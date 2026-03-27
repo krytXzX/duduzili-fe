@@ -1,0 +1,193 @@
+<main class="page-shell">
+  <div class="page-canvas">
+    <header class="topbar">
+      <div class="brand-pill">
+        <span class="brand-mark">D</span>
+        <span class="brand-name">Duduzili</span>
+      </div>
+
+      <div class="topbar-links" aria-label="Quick actions">
+        <span class="topbar-link is-live">Download app</span>
+        <span class="topbar-link">Sign in</span>
+      </div>
+    </header>
+
+    <section class="hero" aria-labelledby="hero-title">
+      @for (card of heroCards; track card.name) {
+        <article class="hero-card" [style]="card.style">
+          <img
+            [ngSrc]="card.imageUrl"
+            [alt]="card.alt"
+            width="120"
+            height="90"
+            class="hero-card__image"
+          />
+          <p class="hero-card__label">{{ card.name }}</p>
+        </article>
+      }
+
+      <div class="hero-copy">
+        <h1 id="hero-title">Find men&apos;s wear on Duduzili</h1>
+
+        <label class="search-bar" for="landing-search">
+          <span class="sr-only">Search listings</span>
+          <input
+            id="landing-search"
+            type="search"
+            placeholder="What are you looking for?"
+            autocomplete="off"
+            [value]="searchQuery()"
+            (input)="updateSearchQuery($event)"
+          />
+          <button type="button">Search</button>
+        </label>
+      </div>
+    </section>
+
+    <section aria-label="Shortcuts" class="shortcut-grid">
+      @for (shortcut of shortcuts; track shortcut.title) {
+        <article class="shortcut-item">
+          <div class="shortcut-icon" [style]="shortcut.iconStyle">{{ shortcut.icon }}</div>
+          <p>{{ shortcut.title }}</p>
+        </article>
+      }
+    </section>
+
+    <section aria-labelledby="sponsored-title" class="content-section">
+      <div class="section-heading">
+        <h2 id="sponsored-title">Sponsored listings</h2>
+      </div>
+
+      <div class="sponsored-grid">
+        @for (listing of sponsoredListings; track listing.name) {
+          <article class="listing-card listing-card--featured">
+            <div class="listing-card__media">
+              <span class="listing-badge">{{ listing.badge }}</span>
+              <img
+                [ngSrc]="listing.imageUrl"
+                [alt]="listing.name"
+                width="220"
+                height="148"
+              />
+            </div>
+            <div class="listing-card__body">
+              <h3>{{ listing.name }}</h3>
+              <p class="listing-card__price">{{ listing.price }}</p>
+              <p class="listing-card__meta">{{ listing.location }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section aria-labelledby="nearby-title" class="content-section">
+      <div class="section-heading">
+        <h2 id="nearby-title">Listing near you</h2>
+      </div>
+
+      <div class="listing-grid">
+        @for (listing of filteredNearbyListings(); track listing.name) {
+          <article class="listing-card">
+            <div class="listing-card__media">
+              <span class="listing-badge">{{ listing.badge }}</span>
+              <img
+                [ngSrc]="listing.imageUrl"
+                [alt]="listing.name"
+                width="170"
+                height="130"
+              />
+            </div>
+            <div class="listing-card__body">
+              <h3>{{ listing.name }}</h3>
+              <p class="listing-card__price">{{ listing.price }}</p>
+              <p class="listing-card__meta">{{ listing.location }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section aria-label="Promotions" class="promo-grid">
+      @for (promo of promoCards; track promo.title) {
+        <article class="promo-card" [style]="promo.style">
+          <div class="promo-card__copy" [style.color]="promo.accent">
+            <p>{{ promo.title }}</p>
+            <span>{{ promo.caption }}</span>
+          </div>
+        </article>
+      }
+    </section>
+
+    <section aria-labelledby="stores-title" class="content-section">
+      <div class="section-heading">
+        <h2 id="stores-title">Featured stores</h2>
+      </div>
+
+      <div class="stores-grid">
+        @for (store of featuredStores; track store.name) {
+          <article class="store-card">
+            <div class="store-card__media">
+              <img
+                [ngSrc]="store.imageUrl"
+                [alt]="store.name"
+                width="170"
+                height="104"
+              />
+              <span class="store-card__badge">{{ store.badge }}</span>
+            </div>
+            <div class="store-card__body">
+              <h3>{{ store.name }}</h3>
+              <p>{{ store.subtitle }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer__brand">
+        <p class="footer__logo">D Duduzili</p>
+
+        <div class="footer__downloads">
+          <div class="qr-block" aria-hidden="true">
+            @for (cell of [1, 2, 3, 4, 5, 6, 7, 8, 9]; track cell) {
+              <span [class.is-muted]="cell === 2 || cell === 5 || cell === 8"></span>
+            }
+          </div>
+
+          <div class="store-buttons">
+            <a href="/" class="store-button">
+              <span>App Store</span>
+            </a>
+            <a href="/" class="store-button">
+              <span>Google Play</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer__links">
+        <div>
+          <h3>Social</h3>
+          <p>X / Twitter</p>
+          <p>Facebook</p>
+          <p>Instagram</p>
+        </div>
+        <div>
+          <h3>Resources</h3>
+          <p>Business guide</p>
+          <p>Help center</p>
+          <p>Seller tools</p>
+        </div>
+      </div>
+
+      <div class="footer__subscribe">
+        <label for="newsletter-email">Subscribe to our newsletter</label>
+        <div class="footer__subscribe-bar">
+          <input id="newsletter-email" type="email" placeholder="Email address" autocomplete="email" />
+          <button type="button">Subscribe</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+</main>

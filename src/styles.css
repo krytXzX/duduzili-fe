@@ -1,0 +1,11 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import 'tailwindcss';
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #ffffff;
+  color: #36394a;
+  font-family: 'Mona Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+}
