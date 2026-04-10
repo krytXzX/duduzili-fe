@@ -1,25 +1,73 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NavbarComponent } from '../../components/layout/navbar.component';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { FooterComponent } from '../../components/layout/footer.component';
-import { Review, ReviewCardComponent } from '../../components/product/review-card.component';
+import { Review } from '../../components/product/review-card.component';
 
 @Component({
   selector: 'app-product-page',
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
+    ReactiveFormsModule,
     NavbarComponent,
     ListingCardComponent,
-    FooterComponent,
-    ReviewCardComponent
+    FooterComponent
   ],
   templateUrl: './product-page.component.html',
   host: { class: 'block h-full overflow-auto bg-[#F9FAFB]' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductPageComponent {
+  private readonly formBuilder = inject(FormBuilder);
+
+  readonly isMessageVendorModalOpen = signal(false);
+  readonly isCallVendorModalOpen = signal(false);
+  readonly isRequestCallbackModalOpen = signal(false);
+  readonly isMakeOfferModalOpen = signal(false);
+  readonly isReportUnavailableModalOpen = signal(false);
+  readonly isReportUnavailableSuccessModalOpen = signal(false);
+  readonly isReportSellerReasonModalOpen = signal(false);
+  readonly isReportSellerDetailsModalOpen = signal(false);
+  readonly isReportSellerSuccessModalOpen = signal(false);
+  readonly isListingActionsMenuOpen = signal(false);
+  readonly compactReviews = computed(() => this.reviews().slice(0, 2));
+  readonly formattedOfferValue = computed(() => {
+    const value = this.makeOfferForm.controls.amount.value ?? '';
+    const digitsOnly = value.replace(/[^\d]/g, '');
+
+    if (!digitsOnly) {
+      return '0.00';
+    }
+
+    return new Intl.NumberFormat('en-NG').format(Number(digitsOnly));
+  });
+
+  readonly requestCallbackForm = this.formBuilder.nonNullable.group({
+    name: ['Bryan Odjede', [Validators.required]],
+    phoneNumber: ['', [Validators.required]],
+  });
+
+  readonly makeOfferForm = this.formBuilder.nonNullable.group({
+    amount: ['', [Validators.required]],
+  });
+
+  readonly reportUnavailableForm = this.formBuilder.nonNullable.group({
+    details: [''],
+  });
+
+  readonly reportSellerReasonForm = this.formBuilder.nonNullable.group({
+    reason: ['', [Validators.required]],
+  });
+
+  readonly reportSellerDetailsForm = this.formBuilder.nonNullable.group({
+    details: ['', [Validators.required]],
+  });
+
   product = signal({
     id: 'p1',
     name: 'Iphone 16 pro',
@@ -28,6 +76,8 @@ export class ProductPageComponent {
     discount: '24%',
     postedDate: '04 January 2025',
     description: 'UK used iPhone 16 pro, activated and fully working. Good battery health.',
+    condition: 'Used',
+    views: '12k',
     images: [
       '/assets/images/product_watch_luxury.png', // Main
       '/assets/images/product_keyboard_rgb.png',
@@ -50,6 +100,7 @@ export class ProductPageComponent {
   store = signal({
     name: 'The Vine Collections',
     location: 'Ikeja, Lagos',
+    whatsappNumber: '08169397454',
     followers: '2.5K',
     products: '143',
     rating: '4.8',
@@ -100,5 +151,130 @@ export class ProductPageComponent {
 
   prevReview() {
     this.currentReviewIndex.update(idx => (idx - 1 + this.reviews().length) % this.reviews().length);
+  }
+
+  whatsappLink(): string {
+    return `https://wa.me/234${this.store().whatsappNumber.replace(/^0/, '')}`;
+  }
+
+  toggleListingActionsMenu(): void {
+    this.isListingActionsMenuOpen.update((value) => !value);
+  }
+
+  closeListingActionsMenu(): void {
+    this.isListingActionsMenuOpen.set(false);
+  }
+
+  shareListing(): void {
+    this.closeListingActionsMenu();
+  }
+
+  reportListingUnavailable(): void {
+    this.closeListingActionsMenu();
+    this.isReportUnavailableModalOpen.set(true);
+  }
+
+  reportSeller(): void {
+    this.closeListingActionsMenu();
+    this.isReportSellerReasonModalOpen.set(true);
+  }
+
+  openCallVendorModal(): void {
+    this.isCallVendorModalOpen.set(true);
+  }
+
+  openRequestCallbackModal(): void {
+    this.isRequestCallbackModalOpen.set(true);
+  }
+
+  openMakeOfferModal(): void {
+    this.isMakeOfferModalOpen.set(true);
+  }
+
+  closeCallVendorModal(): void {
+    this.isCallVendorModalOpen.set(false);
+  }
+
+  closeRequestCallbackModal(): void {
+    this.isRequestCallbackModalOpen.set(false);
+  }
+
+  closeMakeOfferModal(): void {
+    this.isMakeOfferModalOpen.set(false);
+  }
+
+  submitRequestCallback(): void {
+    if (this.requestCallbackForm.invalid) {
+      this.requestCallbackForm.markAllAsTouched();
+      return;
+    }
+
+    this.closeRequestCallbackModal();
+  }
+
+  submitOffer(): void {
+    if (this.makeOfferForm.invalid) {
+      this.makeOfferForm.markAllAsTouched();
+      return;
+    }
+
+    this.closeMakeOfferModal();
+  }
+
+  closeReportUnavailableModal(): void {
+    this.isReportUnavailableModalOpen.set(false);
+  }
+
+  closeReportUnavailableSuccessModal(): void {
+    this.isReportUnavailableSuccessModalOpen.set(false);
+  }
+
+  submitUnavailableReport(): void {
+    this.closeReportUnavailableModal();
+    this.isReportUnavailableSuccessModalOpen.set(true);
+    this.reportUnavailableForm.reset({ details: '' });
+  }
+
+  closeReportSellerReasonModal(): void {
+    this.isReportSellerReasonModalOpen.set(false);
+  }
+
+  closeReportSellerDetailsModal(): void {
+    this.isReportSellerDetailsModalOpen.set(false);
+  }
+
+  closeReportSellerSuccessModal(): void {
+    this.isReportSellerSuccessModalOpen.set(false);
+  }
+
+  goToReportSellerDetails(): void {
+    if (this.reportSellerReasonForm.invalid) {
+      this.reportSellerReasonForm.markAllAsTouched();
+      return;
+    }
+
+    this.closeReportSellerReasonModal();
+    this.isReportSellerDetailsModalOpen.set(true);
+  }
+
+  backToReportSellerReason(): void {
+    this.closeReportSellerDetailsModal();
+    this.isReportSellerReasonModalOpen.set(true);
+  }
+
+  submitSellerReport(): void {
+    if (this.reportSellerDetailsForm.invalid) {
+      this.reportSellerDetailsForm.markAllAsTouched();
+      return;
+    }
+
+    this.closeReportSellerDetailsModal();
+    this.isReportSellerSuccessModalOpen.set(true);
+    this.reportSellerReasonForm.reset({ reason: '' });
+    this.reportSellerDetailsForm.reset({ details: '' });
+  }
+
+  phoneCallLink(): string {
+    return `tel:${this.store().whatsappNumber}`;
   }
 }
