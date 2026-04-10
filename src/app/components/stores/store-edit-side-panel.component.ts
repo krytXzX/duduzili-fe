@@ -25,7 +25,7 @@ import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angula
 
         <!-- Form content -->
         <div class="flex-1 overflow-y-auto p-8 pt-10">
-          <h2 class="text-3xl font-black text-[#1A1C21] mb-8">Edit store</h2>
+          <h2 class="text-[28px] font-black text-[#1A1C21] mb-8">Edit store</h2>
 
           <form [formGroup]="editForm" (ngSubmit)="onSubmit()" class="space-y-10 pb-8">
             

@@ -9,6 +9,9 @@ export interface Store {
   banner: string;
   followers: string;
   isVerified?: boolean;
+  metaLabel?: string;
+  activeUntil?: string;
+  route?: readonly string[];
 }
 
 @Component({

@@ -45,9 +45,9 @@ interface Offer {
       
       <!-- Header -->
       <div class="flex items-center gap-2 mb-8">
-        <h1 class="text-[28px] text-gray-400 tracking-tight">Requests</h1>
-        <span class="text-[28px] text-gray-300 font-light">></span>
-        <h1 class="text-[28px] font-bold text-[#1A1C21] tracking-tight">Offers</h1>
+        <h1 class="text-[22px] text-gray-400 tracking-tight">Requests</h1>
+        <span class="text-[22px] text-gray-300 font-light">></span>
+        <h1 class="text-[22px] font-bold text-[#1A1C21] tracking-tight">Offers</h1>
       </div>
 
       <!-- Main Card -->
@@ -101,13 +101,13 @@ interface Offer {
                       <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden ring-1 ring-gray-100">
                         <img [src]="offer.buyer.avatar" [alt]="offer.buyer.name" class="w-full h-full object-cover">
                       </div>
-                      <span class="text-[15px] font-bold text-[#1A1C21]">{{ offer.buyer.name }}</span>
+                      <span class="text-[14px] font-bold text-[#1A1C21]">{{ offer.buyer.name }}</span>
                     </div>
                   </td>
                   
                   <!-- Offer Amount -->
                   <td class="px-6 py-6 whitespace-nowrap">
-                    <span class="text-[15px] text-[#1A1C21]">
+                    <span class="text-[14px] text-[#1A1C21]">
                       ₦<span class="font-bold">{{ offer.offerAmount | number:'1.0-0' }}</span><span class="text-gray-400 text-sm">.00</span>
                     </span>
                   </td>

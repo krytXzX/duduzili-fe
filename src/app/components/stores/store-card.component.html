@@ -1,7 +1,13 @@
-<a [routerLink]="['/my-stores', store().id]" class="block bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group cursor-pointer relative">
+<a [routerLink]="store().route ?? ['/my-stores', store().id]" class="block bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group cursor-pointer relative">
   <div class="h-32 overflow-hidden bg-gray-100">
     <img [src]="store().banner" [alt]="store().name" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
   </div>
+
+  @if (store().activeUntil) {
+    <div class="absolute left-4 top-4 z-10 rounded-full bg-[#F2F5A7] px-2 py-1 text-[10px] font-bold text-[#6A6B1F]">
+      Active until {{ store().activeUntil }}
+    </div>
+  }
   
   <div class="p-4 pt-10 text-center relative">
     <!-- Store Logo Circle -->
@@ -17,7 +23,7 @@
         </svg>
       }
     </h3>
-    <p class="text-xs text-gray-400 font-medium tracking-tight">{{ store().followers }} followers</p>
+    <p class="text-xs text-gray-400 font-medium tracking-tight">{{ store().metaLabel ?? (store().followers + ' followers') }}</p>
   </div>
 
   <button class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/40 transition-all opacity-0 group-hover:opacity-100">

@@ -2,10 +2,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NgOptimizedImage } from '@angular/common';
-import { NavbarComponent } from '../../components/layout/navbar.component';
 import { FlatNavbarComponent } from '../../components/layout/flat-navbar.component';
 import { PremiumFooterComponent } from '../../components/layout/premium-footer.component';
-import { FooterComponent } from '../../components/layout/footer.component';
 
 @Component({
   selector: 'app-terms-of-service-page',

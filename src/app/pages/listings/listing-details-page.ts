@@ -63,7 +63,7 @@ interface Activity {
 
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div class="flex items-center gap-4">
-            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">{{listing().name}}</h1>
+            <h1 class="text-[28px] font-extrabold text-gray-900 tracking-tight">{{listing().name}}</h1>
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-[10px] font-black uppercase tracking-wider ring-1 ring-purple-100">
               <ng-icon name="heroCheckBadge" class="text-xs"></ng-icon>
               Featured

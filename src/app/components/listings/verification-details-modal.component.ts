@@ -18,7 +18,7 @@ import { heroXMark } from '@ng-icons/heroicons/outline';
       >
         <!-- Header -->
         <div class="px-8 py-6 flex items-center justify-between border-b border-gray-50 flex-none">
-          <h2 class="text-2xl font-black text-[#1A1C21] tracking-tight">
+          <h2 class="text-[21px] font-black text-[#1A1C21] tracking-tight">
             Verification request details
           </h2>
           <button 
@@ -37,20 +37,20 @@ import { heroXMark } from '@ng-icons/heroicons/outline';
             <h3 class="text-[17px] font-bold text-[#1A1C21] mb-6">Summary</h3>
             <div class="space-y-6">
               <div class="grid grid-cols-[180px_1fr] items-center gap-4">
-                <span class="text-[15px] font-medium text-gray-400">ID type</span>
-                <span class="text-[15px] font-bold text-[#1A1C21]">Driver's license</span>
+                <span class="text-[14px] font-medium text-gray-400">ID type</span>
+                <span class="text-[14px] font-bold text-[#1A1C21]">Driver's license</span>
               </div>
               <div class="grid grid-cols-[180px_1fr] items-center gap-4">
-                <span class="text-[15px] font-medium text-gray-400">Issuing country/region</span>
-                <span class="text-[15px] font-bold text-[#1A1C21]">Nigeria</span>
+                <span class="text-[14px] font-medium text-gray-400">Issuing country/region</span>
+                <span class="text-[14px] font-bold text-[#1A1C21]">Nigeria</span>
               </div>
               <div class="grid grid-cols-[180px_1fr] items-center gap-4">
-                <span class="text-[15px] font-medium text-gray-400">Mode of capture</span>
-                <span class="text-[15px] font-bold text-[#1A1C21]">Photo upload</span>
+                <span class="text-[14px] font-medium text-gray-400">Mode of capture</span>
+                <span class="text-[14px] font-bold text-[#1A1C21]">Photo upload</span>
               </div>
               <div class="grid grid-cols-[180px_1fr] items-center gap-4">
-                <span class="text-[15px] font-medium text-gray-400">Date uploaded</span>
-                <span class="text-[15px] font-bold text-[#1A1C21]">Aug 4, 2025</span>
+                <span class="text-[14px] font-medium text-gray-400">Date uploaded</span>
+                <span class="text-[14px] font-bold text-[#1A1C21]">Aug 4, 2025</span>
               </div>
             </div>
           </div>
@@ -62,7 +62,7 @@ import { heroXMark } from '@ng-icons/heroicons/outline';
               
               <!-- Front -->
               <div class="grid grid-cols-[100px_1fr] items-center gap-4">
-                <span class="text-[15px] font-medium text-gray-400">Front</span>
+                <span class="text-[14px] font-medium text-gray-400">Front</span>
                 <div class="relative w-48 h-32 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 shadow-sm">
                   <img 
                     src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&h=250&fit=crop" 
@@ -74,7 +74,7 @@ import { heroXMark } from '@ng-icons/heroicons/outline';
 
               <!-- Back -->
               <div class="grid grid-cols-[100px_1fr] items-center gap-4">
-                <span class="text-[15px] font-medium text-gray-400">Back</span>
+                <span class="text-[14px] font-medium text-gray-400">Back</span>
                 <div class="relative w-48 h-32 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 shadow-sm flex items-center justify-center">
                   <img 
                     src="https://images.unsplash.com/photo-1628151015968-3a4429e9ef04?w=400&h=250&fit=crop" 
@@ -86,7 +86,7 @@ import { heroXMark } from '@ng-icons/heroicons/outline';
 
               <!-- Selfie -->
               <div class="grid grid-cols-[100px_1fr] items-center gap-4">
-                <span class="text-[15px] font-medium text-gray-400">Selfie</span>
+                <span class="text-[14px] font-medium text-gray-400">Selfie</span>
                 <div class="relative w-32 h-32 rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
                   <img 
                     src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=250&h=250&fit=crop" 

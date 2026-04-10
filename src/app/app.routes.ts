@@ -75,6 +75,67 @@ export const routes: Routes = [
             (m) => m.BannerPromotionsPageComponent
           ),
       },
+      {
+        path: 'ads',
+        pathMatch: 'full',
+        redirectTo: 'ads/plans',
+      },
+      {
+        path: 'ads/plans',
+        loadComponent: () =>
+          import('./pages/ads/plans-page.component').then(
+            (m) => m.AdsPlansPageComponent
+          ),
+      },
+      {
+        path: 'ads/running',
+        loadComponent: () =>
+          import('./pages/ads/running-ads-page.component').then(
+            (m) => m.RunningAdsPageComponent
+          ),
+      },
+      {
+        path: 'ads/running/:id',
+        loadComponent: () =>
+          import('./pages/ads/ad-details-page.component').then(
+            (m) => m.AdDetailsPageComponent
+          ),
+      },
+      {
+        path: 'ads/billing-history',
+        loadComponent: () =>
+          import('./pages/ads/billing-history-page.component').then(
+            (m) => m.BillingHistoryPageComponent
+          ),
+      },
+      {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./pages/analytics/analytics-page.component').then(
+            (m) => m.AnalyticsPageComponent
+          ),
+      },
+      {
+        path: 'wallet',
+        loadComponent: () =>
+          import('./pages/wallet/wallet-page.component').then(
+            (m) => m.WalletPageComponent
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./pages/settings/settings-page.component').then(
+            (m) => m.SettingsPageComponent
+          ),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./pages/notifications/notifications-page.component').then(
+            (m) => m.NotificationsPageComponent
+          ),
+      },
     ],
   },
   // Auth Routes

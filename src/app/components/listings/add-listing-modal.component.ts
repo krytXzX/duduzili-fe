@@ -127,7 +127,7 @@ export interface ListingData {
               <!-- STEP 1: Media -->
               @if (currentStep() === 1) {
                 <div class="max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <h2 class="text-3xl font-black text-[#1A1C21] tracking-tight mb-2">Add some photos of your listing</h2>
+                  <h2 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-2">Add some photos of your listing</h2>
                   <p class="text-sm font-medium text-gray-400 mb-8">Hold and drag photo to rearrange</p>
 
                   <!-- Tip Banner -->
@@ -213,8 +213,8 @@ export interface ListingData {
               <!-- STEP 2: Details -->
               @if (currentStep() === 2) {
                 <div class="max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <h2 class="text-[28px] font-black text-[#1A1C21] tracking-tight mb-1">Fill basic details about your listing</h2>
-                  <p class="text-[15px] text-gray-400 mb-8">Add details about the item you want to list</p>
+                  <h2 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-1">Fill basic details about your listing</h2>
+                  <p class="text-[14px] text-gray-400 mb-8">Add details about the item you want to list</p>
                   
                   <div class="space-y-6">
                     <div class="space-y-2">
@@ -270,8 +270,8 @@ export interface ListingData {
                     </div>
 
                     <div class="pt-8 mb-6">
-                       <h3 class="text-[26px] font-black text-[#1A1C21] tracking-tight mb-2">Add description</h3>
-                       <p class="text-[14px] text-gray-500 mb-6 leading-relaxed">Describe the upgrades and standout features that will appeal to buyers and make your listing more desirable.</p>
+                       <h3 class="text-[22px] font-black text-[#1A1C21] tracking-tight mb-2">Add description</h3>
+                       <p class="text-[13px] text-gray-500 mb-6 leading-relaxed">Describe the upgrades and standout features that will appeal to buyers and make your listing more desirable.</p>
                        <div class="space-y-2">
                          <label class="text-[13px] font-medium text-gray-700">Description</label>
                          <textarea 
@@ -288,7 +288,7 @@ export interface ListingData {
               <!-- STEP 3: Delivery & Pricing -->
               @if (currentStep() === 3) {
                  <div class="max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <h2 class="text-[28px] font-black text-[#1A1C21] tracking-tight mb-8">Set your location and delivery preferences</h2>
+                    <h2 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-8">Set your location and delivery preferences</h2>
                     <div class="space-y-8">
                       <!-- Location block -->
                       <div class="space-y-6">
@@ -357,7 +357,7 @@ export interface ListingData {
                       </div>
                       
                       <div class="pt-6">
-                        <h3 class="text-[26px] font-black text-[#1A1C21] tracking-tight mb-6">How much are you selling for?</h3>
+                        <h3 class="text-[22px] font-black text-[#1A1C21] tracking-tight mb-6">How much are you selling for?</h3>
                         
                         <div class="space-y-8">
                           <div class="space-y-2">
@@ -428,13 +428,13 @@ export interface ListingData {
               
               @if (currentStep() === 4) {
                  <div class="max-w-3xl lg:max-w-4xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-32">
-                    <h2 class="text-[32px] font-black text-[#1A1C21] tracking-tight mb-2">Review your listing information</h2>
-                    <p class="text-[15px] text-gray-400 font-medium mb-10">Ensure all details are correct before listing</p>
+                    <h2 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-2">Review your listing information</h2>
+                    <p class="text-[14px] text-gray-400 font-medium mb-10">Ensure all details are correct before listing</p>
 
                     <!-- Media Section -->
                     <div class="mb-10">
                        <div class="flex items-center justify-between mb-4">
-                          <h3 class="text-[22px] font-black text-[#1A1C21]">Media</h3>
+                          <h3 class="text-[20px] font-black text-[#1A1C21]">Media</h3>
                           <button type="button" (click)="currentStep.set(1)" class="text-[14px] font-medium text-gray-600 underline underline-offset-2 hover:text-gray-900 transition-colors">Edit</button>
                        </div>
                        <div class="bg-[#FAFAFA] rounded-[24px] p-8">
@@ -475,7 +475,7 @@ export interface ListingData {
                     <!-- Details Section -->
                     <div class="mb-10">
                        <div class="flex items-center justify-between mb-4">
-                          <h3 class="text-[22px] font-black text-[#1A1C21]">Details</h3>
+                          <h3 class="text-[20px] font-black text-[#1A1C21]">Details</h3>
                           <button type="button" (click)="currentStep.set(2)" class="text-[14px] font-medium text-gray-600 underline underline-offset-2 hover:text-gray-900 transition-colors">Edit</button>
                        </div>
                        <div class="bg-[#FAFAFA] rounded-[24px] p-8">
@@ -507,7 +507,7 @@ export interface ListingData {
                     <!-- Delivery & Pricing Section -->
                     <div class="mb-10">
                        <div class="flex items-center justify-between mb-4">
-                          <h3 class="text-[22px] font-black text-[#1A1C21]">Delivery & Pricing</h3>
+                          <h3 class="text-[20px] font-black text-[#1A1C21]">Delivery & Pricing</h3>
                           <button type="button" (click)="currentStep.set(3)" class="text-[14px] font-medium text-gray-600 underline underline-offset-2 hover:text-gray-900 transition-colors">Edit</button>
                        </div>
                        <div class="bg-[#FAFAFA] rounded-[24px] p-8">
@@ -565,8 +565,8 @@ export interface ListingData {
                        </div>
                     </div>
 
-                    <h2 class="text-[32px] font-black text-[#1A1C21] tracking-tight mb-2">Your listing is live on Duduzili 🎉</h2>
-                    <p class="text-[15px] font-medium text-gray-400 mb-10">You also boosted it for 7 days</p>
+                    <h2 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-2">Your listing is live on Duduzili 🎉</h2>
+                    <p class="text-[14px] font-medium text-gray-400 mb-10">You also boosted it for 7 days</p>
 
                     <div class="flex items-center gap-4 mb-16 px-10 w-full max-w-[460px] mx-auto">
                        <button type="button" (click)="resetForm()" class="flex-1 bg-[#FAFAFA] hover:bg-gray-100 text-[#1A1C21] py-3.5 rounded-full font-bold transition-all text-[15px]">
@@ -643,7 +643,7 @@ export interface ListingData {
         @if (currentStep() < 4) {
           <div class="w-80 lg:w-[400px] shrink-0 bg-[#FAFAFA] border-l border-gray-100 flex flex-col pt-8 px-6 lg:px-10 overflow-y-auto hidden md:flex">
             <div class="mb-6">
-              <h2 class="text-[22px] font-black text-[#1A1C21] mb-1">Preview</h2>
+              <h2 class="text-[20px] font-black text-[#1A1C21] mb-1">Preview</h2>
               <p class="text-xs font-medium text-gray-400">This is how your listing will appear to buyers</p>
             </div>
 

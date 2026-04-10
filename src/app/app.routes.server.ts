@@ -6,6 +6,42 @@ export const serverRoutes: ServerRoute[] = [
     path: 'listings/**',
     renderMode: RenderMode.Client
   },
+  {
+    path: 'my-stores/**',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'messages',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'requests/**',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'promotions',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'ads/**',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'analytics',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'wallet',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'settings',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'notifications',
+    renderMode: RenderMode.Client
+  },
   // Auth and Public routes (SSR)
   {
     path: 'sign-in',

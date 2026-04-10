@@ -122,7 +122,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                      >
                   </div>
                   
-                  <h3 class="text-[32px] font-black text-[#1A1C21] tracking-tight mb-2">Verify your identity</h3>
+                  <h3 class="text-[28px] font-black text-[#1A1C21] tracking-tight mb-2">Verify your identity</h3>
                   <p class="text-[15px] text-gray-400 font-medium leading-relaxed">
                     We need to verify your identity so we can stay secure and complaint. <br>
                     Please be prepared to upload the following:
@@ -180,7 +180,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
               <!-- STEP 2: SELECTION -->
               @if (currentStep() === 'selection') {
                 <div class="animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h3 class="text-[28px] font-black text-[#1A1C21] tracking-tight mb-8">Choose an ID type to add</h3>
+                  <h3 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-8">Choose an ID type to add</h3>
                   
                   <div class="space-y-2 mb-8">
                     <label class="text-[13px] font-bold text-gray-500 ml-1">Issuing country/region</label>
@@ -258,8 +258,8 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
               <!-- STEP 3: UPLOAD METHOD -->
               @if (currentStep() === 'upload_method') {
                 <div class="animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h3 class="text-[28px] font-black text-[#1A1C21] tracking-tight mb-3">How would you like to add your government ID?</h3>
-                  <p class="text-[15px] text-gray-400 font-medium mb-10">You can upload a file or use your webcam</p>
+                  <h3 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-3">How would you like to add your government ID?</h3>
+                  <p class="text-[14px] text-gray-400 font-medium mb-10">You can upload a file or use your webcam</p>
 
                   <div class="grid grid-cols-1 gap-3 mb-12">
                      <button 
@@ -324,8 +324,8 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
               <!-- STEP 4: UPLOAD -->
               @if (currentStep() === 'upload') {
                 <div class="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <h3 class="text-[28px] font-black text-[#1A1C21] tracking-tight mb-2">Upload images of your identity card</h3>
-                  <p class="text-[15px] text-gray-400 font-medium mb-10 leading-relaxed max-w-md">
+                  <h3 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-2">Upload images of your identity card</h3>
+                  <p class="text-[14px] text-gray-400 font-medium mb-10 leading-relaxed max-w-md">
                     Make sure your photos are not blurry and the front of your identity card clearly shows your face
                   </p>
 
@@ -381,8 +381,8 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
               <!-- STEP 5: CAMERA CAPTURE -->
               @if (currentStep() === 'camera_capture') {
                 <div class="flex flex-col items-center py-2 animate-in fade-in zoom-in-95 duration-500 text-center">
-                  <h3 class="text-[28px] font-black text-[#1A1C21] tracking-tight mb-3">Take a photo</h3>
-                  <p class="text-[15px] text-gray-400 font-medium mb-10 px-4">Position your {{ selectedDocTypeLabel() }} in the center</p>
+                  <h3 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-3">Take a photo</h3>
+                  <p class="text-[14px] text-gray-400 font-medium mb-10 px-4">Position your {{ selectedDocTypeLabel() }} in the center</p>
 
                   <div class="relative w-full max-w-sm aspect-3/2 bg-gray-100 rounded-3xl overflow-hidden mb-12 border-4 border-white shadow-xl">
                       <div class="absolute inset-0 flex flex-col items-center justify-center gap-4 text-gray-400">
@@ -424,8 +424,8 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                      >
                   </div>
                   
-                  <h3 class="text-[32px] font-black text-[#1A1C21] tracking-tight mb-3">Let's capture a selfie.</h3>
-                  <p class="text-[15px] text-gray-400 font-medium mb-12 leading-relaxed">
+                  <h3 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-3">Let's capture a selfie.</h3>
+                  <p class="text-[14px] text-gray-400 font-medium mb-12 leading-relaxed">
                     Ensure a well-lit environment and <br> remove your hat or glasses.
                   </p>
 
@@ -479,7 +479,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                      }
                   </div>
 
-                  <p class="text-[15px] text-gray-400 font-medium mb-12 max-w-xs transition-colors" [class.text-green-600]="isFaceDetected()">
+                  <p class="text-[14px] text-gray-400 font-medium mb-12 max-w-xs transition-colors" [class.text-green-600]="isFaceDetected()">
                      {{ isFaceDetected() ? 'Image captured! Proceeding...' : 'Position your face in the oval until it turns green' }}
                   </p>
 
@@ -505,8 +505,8 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                      >
                   </div>
                   
-                  <h3 class="text-[32px] font-black text-[#1A1C21] tracking-tight mb-3">Identity Verified Successfully!</h3>
-                  <p class="text-[15px] text-gray-400 font-medium mb-12 leading-relaxed">
+                  <h3 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-3">Identity Verified Successfully!</h3>
+                  <p class="text-[14px] text-gray-400 font-medium mb-12 leading-relaxed">
                     Your verification is complete. <br> You can now access all services.
                   </p>
 

@@ -18,7 +18,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
       <div class="w-full lg:w-[280px] shrink-0">
         <div class="flex items-baseline gap-1 mb-2">
           <span class="text-6xl font-black text-[#1A1C21] tracking-tight">4.57</span>
-          <span class="text-2xl font-bold text-gray-300">/5</span>
+          <span class="text-[21px] font-bold text-gray-300">/5</span>
         </div>
 
         <!-- Star Rating -->
@@ -50,7 +50,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
       <div class="flex-1 min-w-0">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
-          <h3 class="text-2xl font-black text-[#1A1C21]">215 reviews</h3>
+          <h3 class="text-[21px] font-black text-[#1A1C21]">215 reviews</h3>
           
           <div class="relative group">
             <button class="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-[#1A1C21] hover:bg-gray-50 transition-all">
@@ -108,4 +108,3 @@ export class StoreReviewsComponent {
     { label: 'Hospitality', count: 7 }
   ];
 }
-

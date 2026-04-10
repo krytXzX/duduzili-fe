@@ -18,7 +18,7 @@ import { heroXMark, heroCamera, heroCheck } from '@ng-icons/heroicons/outline';
       >
         <!-- Header -->
         <div class="p-10 pb-6 flex items-center justify-between sticky top-0 bg-white z-10">
-          <h2 class="text-3xl font-black text-[#1A1C21] tracking-tight">Add new store</h2>
+          <h2 class="text-[28px] font-black text-[#1A1C21] tracking-tight">Add new store</h2>
           <button (click)="close.emit()" class="p-3 rounded-full hover:bg-gray-50 transition-colors text-gray-400 hover:text-gray-900 group">
             <ng-icon name="heroXMark" class="text-2xl group-hover:rotate-90 transition-transform duration-300"></ng-icon>
           </button>

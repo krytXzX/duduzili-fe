@@ -43,7 +43,7 @@ interface Listing {
     <div class="max-w-6xl mx-auto">
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
-        <h1 class="text-2xl font-bold text-gray-900">Listings</h1>
+        <h1 class="text-[21px] font-bold text-gray-900">Listings</h1>
         <button (click)="showAddListingModal.set(true)" class="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-purple-700 transition-all shadow-sm">
           <ng-icon name="heroPlus"></ng-icon>
           Sell item
@@ -54,7 +54,7 @@ interface Listing {
       @if (!isVerificationSubmitted()) {
         <div class="bg-linear-to-r from-purple-50 to-pink-50 rounded-3xl p-8 mb-8 flex items-center justify-between relative overflow-hidden border border-purple-100/50">
           <div class="relative z-10 max-w-md">
-            <h2 class="text-xl font-bold text-gray-900 mb-2">Build trust. Get more buyers</h2>
+            <h2 class="text-[19px] font-bold text-gray-900 mb-2">Build trust. Get more buyers</h2>
             <p class="text-sm text-gray-600 mb-6 leading-relaxed">Verified sellers rank higher and attract more inquiries.</p>
             <button 
               (click)="showIdentityModal.set(true)"
@@ -76,7 +76,7 @@ interface Listing {
       } @else {
         <div class="bg-linear-to-r from-[#FFFBF0] to-[#FFF6DA] rounded-3xl p-8 mb-8 flex items-center justify-between relative overflow-hidden border border-yellow-100/50">
           <div class="relative z-10 max-w-lg">
-            <h2 class="text-xl font-bold text-gray-900 mb-2">Verification under review</h2>
+            <h2 class="text-[19px] font-bold text-gray-900 mb-2">Verification under review</h2>
             <p class="text-sm text-gray-600 mb-6 leading-relaxed">Our team is reviewing your documents. You'll be notified within 24–48 hours.</p>
             <button 
               (click)="showVerificationDetailsModal.set(true)"
@@ -110,7 +110,7 @@ interface Listing {
             [class.ring-purple-100]="stat.active"
           >
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{{stat.label}}</p>
-            <p class="text-2xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">{{stat.value}}</p>
+            <p class="text-[21px] font-bold text-gray-900 group-hover:text-purple-600 transition-colors">{{stat.value}}</p>
           </div>
         }
       </div>

@@ -48,7 +48,7 @@ interface Conversation {
       
       <!-- Top Header -->
       <header class="flex justify-between items-center mb-8 px-2">
-        <h1 class="text-3xl font-black text-[#1A1C21] tracking-tight">Messages</h1>
+        <h1 class="text-[28px] font-black text-[#1A1C21] tracking-tight">Messages</h1>
 
         <!-- Store Selector Pill -->
         <div class="relative">

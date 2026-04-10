@@ -74,8 +74,8 @@ import { StoreTabsComponent } from '../../components/stores/store-tabs.component
                   <div class="mb-6 flex items-center justify-center">
                      <img src="/assets/images/empty_state.svg" alt="Empty state" class="w-40 h-40">
                   </div>
-                  <h3 class="text-xl font-bold text-gray-900 mb-1">No feed items yet</h3>
-                  <p class="text-gray-400 text-sm">Stay tuned for updates from {{ s.name }}</p>
+                  <h3 class="text-[19px] font-bold text-gray-900 mb-1">No feed items yet</h3>
+                  <p class="text-gray-400 text-[13px]">Stay tuned for updates from {{ s.name }}</p>
                </div>
             }
           }

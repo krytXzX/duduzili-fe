@@ -59,7 +59,7 @@ import { PromoteStoreModalComponent } from './promote-store-modal.component';
         <!-- Left Side: Title, Badges, Location -->
         <div class="flex-1">
           <div class="flex items-center gap-3 mb-1">
-            <h1 class="text-3xl font-bold text-[#1A1C21] tracking-tight">{{ name() }}</h1>
+            <h1 class="text-[28px] font-bold text-[#1A1C21] tracking-tight">{{ name() }}</h1>
             @if (isVerified()) {
               <ng-icon name="heroCheckBadge" class="text-purple-600 text-xl"></ng-icon>
             }
@@ -175,6 +175,5 @@ export class StoreHeaderComponent {
     this.showPromoteModal.set(false);
   }
 }
-
 
 

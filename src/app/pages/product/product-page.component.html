@@ -77,9 +77,9 @@
           </div>
 
           <div>
-            <h1 class="text-3xl font-black text-[#36394A] mb-2">{{ product().name }}</h1>
+            <h1 class="text-[28px] font-black text-[#36394A] mb-2">{{ product().name }}</h1>
             <div class="flex items-baseline gap-3">
-              <span class="text-2xl font-black text-indigo-600">{{ product().price }}</span>
+              <span class="text-[21px] font-black text-indigo-600">{{ product().price }}</span>
               <span class="text-sm text-gray-400 line-through">{{ product().oldPrice }}</span>
             </div>
           </div>
@@ -126,7 +126,7 @@
         <!-- Reviews Card -->
         <div class="bg-white rounded-[32px] p-6 shadow-sm overflow-hidden">
           <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-black text-[#36394A]">Reviews</h3>
+            <h3 class="text-[19px] font-black text-[#36394A]">Reviews</h3>
             <div class="flex items-center gap-2">
                 <button 
                   (click)="prevReview()"
@@ -173,7 +173,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
             </div>
-          <h3 class="text-xl font-black text-[#36394A] mb-6">Safety tips</h3>
+          <h3 class="text-[19px] font-black text-[#36394A] mb-6">Safety tips</h3>
           <ul class="space-y-4">
             <li class="flex gap-3 text-sm text-gray-600">
                <div class="w-1.5 h-1.5 rounded-full bg-gray-300 mt-2 shrink-0"></div>
@@ -208,7 +208,7 @@
             <div class="p-8 pt-10">
                 <div class="mb-6">
                     <div class="flex items-center gap-2 mb-1">
-                        <h3 class="text-xl font-black text-[#36394A]">{{ store().name }}</h3>
+                        <h3 class="text-[19px] font-black text-[#36394A]">{{ store().name }}</h3>
                         <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
                     </div>
                     <div class="flex items-center gap-1.5 text-xs text-gray-400">
@@ -253,7 +253,7 @@
       <!-- More from Seller -->
       <section>
         <div class="flex items-center justify-between mb-8">
-            <h2 class="text-2xl font-black text-[#36394A]">More from {{ store().name }}</h2>
+            <h2 class="text-[21px] font-black text-[#36394A]">More from {{ store().name }}</h2>
             <button class="text-sm font-bold text-gray-400 hover:text-indigo-600 transition-all">See all</button>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -266,7 +266,7 @@
       <!-- Explore Related -->
       <section>
         <div class="flex items-center justify-between mb-8">
-            <h2 class="text-2xl font-black text-[#36394A]">Explore related items</h2>
+            <h2 class="text-[21px] font-black text-[#36394A]">Explore related items</h2>
             <button class="text-sm font-bold text-gray-400 hover:text-indigo-600 transition-all">See all</button>
         </div>
         

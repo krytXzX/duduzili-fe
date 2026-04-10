@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroBell,
@@ -100,11 +101,52 @@ import {
             <ng-icon name="heroMegaphone" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
             Banner promotions
           </a>
-          <a routerLink="/ads" routerLinkActive="bg-white rounded-xl shadow-sm"
-             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group">
-            <ng-icon name="heroRectangleStack" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
-            Ads
-          </a>
+
+          <div class="flex flex-col">
+            <button
+              type="button"
+              (click)="isAdsExpanded.set(!isAdsExpanded())"
+              class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50 group"
+              [class.bg-white]="isAdsRouteActive()"
+              [class.shadow-sm]="isAdsRouteActive()"
+            >
+              <div class="flex items-center gap-3">
+                <ng-icon name="heroRectangleStack" class="text-lg text-gray-400 transition-colors group-hover:text-purple-600"></ng-icon>
+                Ads
+              </div>
+              <ng-icon [name]="isAdsExpanded() ? 'heroChevronUp' : 'heroChevronDown'" class="text-sm text-gray-400"></ng-icon>
+            </button>
+
+            @if (isAdsExpanded()) {
+              <div class="mt-1 ml-[22px] flex flex-col border-l border-gray-100/60 transition-all animate-in slide-in-from-top-2 duration-300">
+                <a
+                  routerLink="/ads/plans"
+                  routerLinkActive="active-sublink"
+                  class="relative flex items-center py-3 pl-5 text-[14px] font-medium text-gray-400 transition-colors hover:text-gray-900 group"
+                >
+                  <div class="absolute inset-y-2 -left-px hidden w-[2px] bg-black group-[.active-sublink]:block"></div>
+                  <span class="group-[.active-sublink]:text-[#1A1C21]">Plans</span>
+                </a>
+                <a
+                  routerLink="/ads/running"
+                  routerLinkActive="active-sublink"
+                  class="relative flex items-center py-3 pl-5 text-[14px] font-medium text-gray-400 transition-colors hover:text-gray-900 group"
+                >
+                  <div class="absolute inset-y-2 -left-px hidden w-[2px] bg-black group-[.active-sublink]:block"></div>
+                  <span class="group-[.active-sublink]:text-[#1A1C21]">Running Ads</span>
+                </a>
+                <a
+                  routerLink="/ads/billing-history"
+                  routerLinkActive="active-sublink"
+                  class="relative flex items-center py-3 pl-5 text-[14px] font-medium text-gray-400 transition-colors hover:text-gray-900 group"
+                >
+                  <div class="absolute inset-y-2 -left-px hidden w-[2px] bg-black group-[.active-sublink]:block"></div>
+                  <span class="group-[.active-sublink]:text-[#1A1C21]">Billing history</span>
+                </a>
+              </div>
+            }
+          </div>
+
           <a routerLink="/analytics" routerLinkActive="bg-white rounded-xl shadow-sm"
              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group">
             <ng-icon name="heroChartBar" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
@@ -160,5 +202,12 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardSidebarComponent {
-  isRequestsExpanded = signal(true);
+  private readonly router = inject(Router);
+
+  readonly isRequestsExpanded = signal(true);
+  readonly isAdsExpanded = signal(this.router.url.startsWith('/ads'));
+
+  isAdsRouteActive(): boolean {
+    return this.router.url.startsWith('/ads');
+  }
 }

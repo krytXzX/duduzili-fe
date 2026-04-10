@@ -26,8 +26,8 @@ import { CommonModule } from '@angular/common';
           </div>
         </div>
 
-        <h2 class="text-2xl font-black text-gray-900 mb-2">Store created successfully</h2>
-        <p class="text-sm text-gray-400 font-medium leading-relaxed mb-10">
+        <h2 class="text-[21px] font-black text-gray-900 mb-2">Store created successfully</h2>
+        <p class="text-[13px] text-gray-400 font-medium leading-relaxed mb-10">
           Your store is successfully created and has been published.
         </p>
 

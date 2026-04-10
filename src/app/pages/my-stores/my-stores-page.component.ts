@@ -22,7 +22,7 @@ import { SuccessModalComponent } from './components/success-modal.component';
     <div class="max-w-6xl mx-auto px-4 py-8">
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
-        <h1 class="text-3xl font-black text-[#1A1C21] tracking-tight">My Stores</h1>
+        <h1 class="text-[28px] font-black text-[#1A1C21] tracking-tight">My Stores</h1>
         
         <div class="flex items-center gap-4 flex-1 md:justify-end">
           <div class="relative w-full md:w-80 group">
@@ -57,7 +57,7 @@ import { SuccessModalComponent } from './components/success-modal.component';
           <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
             <ng-icon name="heroMagnifyingGlass" class="text-3xl text-gray-200"></ng-icon>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-1">No stores found</h3>
+          <h3 class="text-[19px] font-bold text-gray-900 mb-1">No stores found</h3>
           <p class="text-gray-400 text-sm">We couldn't find any store matching "{{searchQuery()}}"</p>
         </div>
       } @else {
@@ -66,8 +66,8 @@ import { SuccessModalComponent } from './components/success-modal.component';
           <div class="mb-12 flex items-center justify-center">
             <img src="/assets/images/empty_state.svg" alt="Empty state" class="w-64 h-64">
           </div>
-          <h3 class="text-3xl font-black text-[#1A1C21] mb-3 tracking-tight">You don't have any stores yet</h3>
-          <p class="text-gray-400 mb-12 max-w-sm font-medium leading-relaxed text-lg">
+          <h3 class="text-[25px] font-black text-[#1A1C21] mb-3 tracking-tight">You don't have any stores yet</h3>
+          <p class="text-gray-400 mb-12 max-w-sm font-medium leading-relaxed text-[15px]">
             Create a store and start selling or listing your products for buyers to find you.
           </p>
           <button (click)="isAddingStore.set(true)" class="group flex items-center gap-3 bg-purple-600 text-white px-10 py-5 rounded-[24px] font-bold hover:bg-purple-700 transition-all shadow-2xl shadow-purple-200 active:scale-95">

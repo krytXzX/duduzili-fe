@@ -16,7 +16,7 @@ import { heroPlus, heroChevronDown } from '@ng-icons/heroicons/outline';
       @if (products().length > 0) {
         <!-- Header: Count & Sort -->
         <div class="flex items-center justify-between mb-8 px-1">
-          <h3 class="text-2xl font-black text-[#1A1C21]">{{ products().length }} listings</h3>
+          <h3 class="text-[21px] font-black text-[#1A1C21]">{{ products().length }} listings</h3>
           
           <div class="flex items-center gap-3">
             @if (isOwner()) {
@@ -79,8 +79,8 @@ import { heroPlus, heroChevronDown } from '@ng-icons/heroicons/outline';
             <img src="/assets/images/empty_state.svg" alt="No products" class="w-48 h-48">
           </div>
           
-          <h3 class="text-2xl font-black text-[#1A1C21] mb-2 tracking-tight">Look at the empty space here</h3>
-          <p class="text-gray-400 mb-8 max-w-xs font-medium">You don't have any products listing here for now.</p>
+          <h3 class="text-[21px] font-black text-[#1A1C21] mb-2 tracking-tight">Look at the empty space here</h3>
+          <p class="text-gray-400 mb-8 max-w-xs text-[14px] font-medium">You don't have any products listing here for now.</p>
           
           @if (isOwner()) {
             <button (click)="addListing.emit()" class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-purple-100 active:scale-95 flex items-center gap-2">
@@ -130,4 +130,3 @@ export class StoreProductsComponent {
     return groups;
   });
 }
-

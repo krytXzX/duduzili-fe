@@ -57,7 +57,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
                 </div>
               </div>
 
-              <h2 class="text-[28px] font-bold text-[#1A1C21] tracking-tight mb-4 leading-tight">
+              <h2 class="text-[24px] font-bold text-[#1A1C21] tracking-tight mb-4 leading-tight">
                 You have <span class="font-black">2/4</span> store promotion left
               </h2>
 
@@ -94,7 +94,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
                     <ng-icon name="heroXMark" class="text-xl"></ng-icon>
                  </button>
 
-                 <h2 class="text-3xl lg:text-[32px] font-black text-[#1A1C21] tracking-tight mb-2">
+                 <h2 class="text-[28px] lg:text-[30px] font-black text-[#1A1C21] tracking-tight mb-2">
                     Choose a boosting plan to proceed 🚀
                  </h2>
                  <p class="text-gray-400 font-medium">Give your store more visibility</p>
@@ -126,8 +126,8 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
 
                           <div class="flex flex-col">
                              <div class="flex items-baseline gap-1">
-                                <span class="text-2xl font-black text-[#1A1C21]">₦{{ plan.price | number }}</span>
-                                <span class="text-gray-400 text-sm font-medium">/{{ plan.unit }}</span>
+                                <span class="text-[21px] font-black text-[#1A1C21]">₦{{ plan.price | number }}</span>
+                                <span class="text-gray-400 text-[13px] font-medium">/{{ plan.unit }}</span>
                              </div>
                              <p class="text-xs font-bold text-gray-300 mt-1">Billed {{ plan.billedFrequency }}</p>
                           </div>
@@ -152,7 +152,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
            <div class="flex animate-in fade-in slide-in-from-right-4 duration-500">
               <!-- Left Sidebar: Payment Methods -->
               <div class="flex-1 p-10 pr-6">
-                 <h2 class="text-2xl font-bold text-[#1A1C21] mb-8">Select your payment method</h2>
+                 <h2 class="text-[21px] font-bold text-[#1A1C21] mb-8">Select your payment method</h2>
                  
                  <div class="space-y-4">
                     <!-- Wallet Item -->
@@ -220,7 +220,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
                  </button>
 
                  <div class="flex-1">
-                    <h3 class="text-3xl font-black text-[#1A1C21] mt-4 mb-2">Feature for 7 days</h3>
+                    <h3 class="text-[28px] font-black text-[#1A1C21] mt-4 mb-2">Feature for 7 days</h3>
                     <p class="text-[15px] font-medium text-gray-400 mb-8">Billed monthly</p>
 
                     <!-- Divider -->
