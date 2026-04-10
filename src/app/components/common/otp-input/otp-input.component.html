@@ -1,0 +1,42 @@
+<div class="flex justify-center items-center gap-2 py-2 w-full" (paste)="handlePaste($event)">
+  <!-- Left Side Digit Boxes -->
+  <div class="flex gap-2 sm:gap-3">
+    @for (field of otpFields().slice(0, halfLength()); track $index) {
+      <input
+        #digitInput
+        class="h-14 w-12 text-center text-[24px] font-bold rounded-[16px] border border-[#efefef] bg-white text-[#15162b] focus:border-[#6453d9] focus:ring-2 focus:ring-[#6453d9]/20 focus-visible:outline-0 transition-all shadow-sm font-sans"
+        [class.border-[#d24b4b]]="submitted() && !field"
+        type="text"
+        [value]="field"
+        (input)="updateOtpValue($index, $event)"
+        (keydown)="handleKeydown($index, $event)"
+        maxlength="1"
+        inputmode="numeric"
+        aria-label="Digit Verification Field"
+      />
+    }
+  </div>
+
+  <!-- Dash Separator (Visible only for even lengths like 4, 6, 8) -->
+  @if (length() >= 4 && length() % 2 === 0) {
+    <span class="text-[#efefef] text-2xl font-light mx-1 sm:mx-2">—</span>
+  }
+
+  <!-- Right Side Digit Boxes -->
+  <div class="flex gap-2 sm:gap-3">
+    @for (field of otpFields().slice(halfLength()); track $index) {
+      <input
+        #digitInput
+        class="h-14 w-12 text-center text-[24px] font-bold rounded-[16px] border border-[#efefef] bg-white text-[#15162b] focus:border-[#6453d9] focus:ring-2 focus:ring-[#6453d9]/20 focus-visible:outline-0 transition-all shadow-sm font-sans"
+        [class.border-[#d24b4b]]="submitted() && !field"
+        type="text"
+        [value]="field"
+        (input)="updateOtpValue($index + halfLength(), $event)"
+        (keydown)="handleKeydown($index + halfLength(), $event)"
+        maxlength="1"
+        inputmode="numeric"
+        aria-label="Digit Verification Field"
+      />
+    }
+  </div>
+</div>

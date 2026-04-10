@@ -1,209 +1,87 @@
-<main
-  class="relative flex min-h-full h-full w-full overflow-auto bg-white"
->    
-    <section
-    class="flex flex-1 flex-col items-center justify-start px-4 py-6 sm:px-6 sm:py-8 lg:justify-center-safe lg:p-6"
-    aria-labelledby="sign-in-title"
-    >
-    <img
-      class="h-[26px] w-[111.913px] self-start lg:absolute lg:top-6 lg:left-10"
-      [ngSrc]="logoUrl"
-      alt="Duduzili"
-      width="112"
-      height="26"
-      priority
-    />
-      <div class="mt-10 flex w-full max-w-[28.1875rem] flex-col items-center justify-center gap-8 sm:mt-12 sm:gap-10 lg:mt-0 lg:w-fit lg:max-w-full lg:gap-11">
-        <img
-        class="h-[82.074px] w-[82.074px]"
-        [ngSrc]="markUrl"
-        alt=""
-        width="82"
-        height="82"
-        priority
-      />
+  <h1 id="sign-in-title"
+    class="m-0 w-full max-w-72 text-center text-[24px] leading-tight font-medium text-[#15162b] sm:max-w-88 lg:w-112.75 lg:max-w-none lg:leading-none">
+    Sign in to your Duduzili account
+  </h1>
 
-      <h1 id="sign-in-title" class="m-0 w-full max-w-[18rem] text-center text-[24px] leading-tight font-medium text-[#15162b] sm:max-w-[22rem] lg:w-[28.1875rem] lg:max-w-none lg:leading-none">
-        Sign in to your Duduzili account
-      </h1>
+  <div class="flex w-full flex-col gap-4" aria-label="Social sign in options">
+    <button
+      class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[100px] border-0 bg-[#f7f7f7] px-4 text-[16px] leading-5 font-medium text-[#36394a] transition-[transform,box-shadow,background-color,filter] duration-180 hover:-translate-y-px hover:bg-[#f0f0f4] hover:shadow-[0_6px_18px_rgba(21,22,43,0.08)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 lg:min-h-0"
+      type="button">
+      <ng-icon class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-[#4285f4]" name="faBrandGoogle" />
+      <span>Continue with Google</span>
+    </button>
 
-      <div class="flex w-full flex-col gap-4" aria-label="Social sign in options">
-        <button
-          class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[100px] border-0 bg-[#f7f7f7] px-4 text-[16px] leading-5 font-medium text-[#36394a] transition-[transform,box-shadow,background-color,filter] duration-180 hover:-translate-y-px hover:bg-[#f0f0f4] hover:shadow-[0_6px_18px_rgba(21,22,43,0.08)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 lg:min-h-0"
-          type="button"
-        >
-          <ng-icon class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-[#4285f4]" name="faBrandGoogle" />
-          <span>Continue with Google</span>
-        </button>
+    <button
+      class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[100px] border-0 bg-[#f7f7f7] px-4 text-[16px] leading-5 font-medium text-[#36394a] transition-[transform,box-shadow,background-color,filter] duration-180 hover:-translate-y-px hover:bg-[#f0f0f4] hover:shadow-[0_6px_18px_rgba(21,22,43,0.08)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 lg:min-h-0"
+      type="button">
+      <ng-icon class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-black" name="faBrandApple" />
+      <span>Continue with Apple</span>
+    </button>
+  </div>
 
-        <button
-          class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[100px] border-0 bg-[#f7f7f7] px-4 text-[16px] leading-5 font-medium text-[#36394a] transition-[transform,box-shadow,background-color,filter] duration-180 hover:-translate-y-px hover:bg-[#f0f0f4] hover:shadow-[0_6px_18px_rgba(21,22,43,0.08)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 lg:min-h-0"
-          type="button"
-        >
-          <ng-icon class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-black" name="faBrandApple" />
-          <span>Continue with Apple</span>
-        </button>
+  <div class="flex h-[15px] w-full items-center gap-6" aria-hidden="true">
+    <span class="h-px flex-1 bg-[#ebebeb]"></span>
+    <p class="m-0 text-[14px] leading-[1.1] font-medium tracking-[-0.21px] text-[rgba(30,30,30,0.3)]">OR</p>
+    <span class="h-px flex-1 bg-[#ebebeb]"></span>
+  </div>
+
+  <form class="flex w-full flex-col gap-5" [formGroup]="loginForm" (ngSubmit)="continueWithEmail()" novalidate>
+    <div class="relative">
+      <label class="mb-1 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]" for="email-address">
+        Email address
+      </label>
+      <input id="email-address"
+        class="h-11 w-full rounded-[16px] border border-[#efefef] bg-white pr-[52px] pl-4 text-[14px] text-[#36394a] aria-invalid:border-[#d24b4b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 transition-all"
+        [class.bg-gray-50]="isEmailValidated()" [readonly]="isEmailValidated()" type="email" formControlName="email"
+        inputmode="email" autocomplete="email" [attr.aria-invalid]="submitted() && emailControl.invalid" />
+
+      <div class="absolute top-[34px] right-4 h-5 w-5 flex items-center justify-center">
+        @if (isCheckingEmail()) {
+        <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+          </path>
+        </svg>
+        } @else if (isEmailValidated()) {
+        <svg class="h-5 w-5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clip-rule="evenodd" />
+        </svg>
+        } @else {
+        <img class="pointer-events-none h-5 w-5 rotate-180 opacity-30" [ngSrc]="inputChevronUrl" alt="" width="20"
+          height="20" />
+        }
       </div>
+    </div>
 
-      <div class="flex h-[15px] w-full items-center gap-6" aria-hidden="true">
-        <span class="h-px flex-1 bg-[#ebebeb]"></span>
-        <p class="m-0 text-[14px] leading-[1.1] font-medium tracking-[-0.21px] text-[rgba(30,30,30,0.3)]">OR</p>
-        <span class="h-px flex-1 bg-[#ebebeb]"></span>
+    @if (isEmailValidated()) {
+    <div class="relative animate-in slide-in-from-top-2 duration-300">
+      <div class="flex justify-between items-center mb-1">
+        <label class="text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]" for="password">
+          Password
+        </label>
+        <a routerLink="/forgot-password" class="text-[12px] font-bold text-indigo-600 hover:text-indigo-800">Forgot password?</a>
       </div>
-
-      <form
-        class="flex w-full flex-col gap-5 py-4"
-        [formGroup]="loginForm"
-        (ngSubmit)="continueWithEmail()"
-        novalidate
-      >
-        <div class="relative">
-          <label class="mb-1 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]" for="email-address">
-            Email address
-          </label>
-          <input
-            id="email-address"
-            class="h-11 w-full rounded-[16px] border border-[#efefef] bg-white pr-[52px] pl-4 text-[14px] text-[#36394a] aria-[invalid=true]:border-[#d24b4b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10"
-            type="email"
-            formControlName="email"
-            inputmode="email"
-            autocomplete="email"
-            [attr.aria-invalid]="submitted() && emailControl.invalid"
-          />
-          <img
-            class="pointer-events-none absolute top-[10px] right-4 h-5 w-5 rotate-180"
-            [ngSrc]="inputChevronUrl"
-            alt=""
-            width="20"
-            height="20"
-          />
-        </div>
-        <!-- <div>
-          <label class="mb-1 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]" for="password">
-            Password
-          </label>
-          <input
-            id="password"
-            class="h-10 w-full rounded-[16px] border border-[#efefef] bg-white pr-[52px] pl-4 text-[14px] text-[#36394a] aria-[invalid=true]:border-[#d24b4b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
-            type="password"
-            formControlName="password"
-            inputmode="password"
-            autocomplete="off"
-            [attr.aria-invalid]="submitted() && password.invalid"
-          />
-          <img
-            class="pointer-events-none absolute top-[10px] right-4 h-5 w-5 rotate-180"
-            [ngSrc]="inputChevronUrl"
-            alt=""
-            width="20"
-            height="20"
-          />
-        </div> -->
-
-        <button
-          class="mt-1 min-h-11 w-full rounded-[100px] border-0 bg-[#6453d9] px-4 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] transition-[transform,box-shadow,background-color,filter] duration-180 hover:-translate-y-px hover:brightness-[1.04] hover:shadow-[0_10px_22px_rgba(81,35,173,0.38),0_0_0_1px_#6b5bd5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 lg:min-h-0"
-          type="submit"
-        >
-          Continue with email
-        </button>
-      </form>
+      <input id="password"
+        class="h-11 w-full rounded-[16px] border border-[#efefef] bg-white pr-[52px] pl-4 text-[14px] text-[#36394a] aria-invalid:border-[#d24b4b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10"
+        type="password" formControlName="password" inputmode="password" autocomplete="current-password"
+        [attr.aria-invalid]="submitted() && passwordControl.invalid" />
+      <div class="absolute top-[34px] right-4 h-5 w-5 flex items-center justify-center opacity-30">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
       </div>
-    </section>
+    </div>
+    }
 
-    <section class="flex-1 overflow-hidden h-full hidden lg:block sticky inset-y-0">
-      <div class="absolute size-full! inset-0! rounded-l-3xl bg-[#f2f2f2] overflow-hidden">
-        <img
-          class="size-full object-cover"
-          [ngSrc]="heroSkyUrl"
-          alt=""
-          width="911"
-          height="1215"
-          priority
-        />
-  
-        <div class="absolute top-[72px] left-[98px] h-[166px] w-[557px] rotate-[6.34deg] overflow-hidden rounded-[24px] border border-[#eaeaea] bg-white shadow-[0_12px_32px_rgba(94,94,94,0.25)]">
-          <div class="absolute top-[3px] left-[3px] h-[158px] w-[266px] rounded-[20px] border border-[#eaeaea] bg-[#efefef]">
-            <img
-              class="absolute top-[6px] left-[61px] h-[145.63px] w-[145.63px] object-cover"
-              [ngSrc]="phoneImageUrl"
-              alt=""
-              width="146"
-              height="146"
-            />
-            <img
-              class="absolute top-[11px] right-[11px] h-6 w-6"
-              [ngSrc]="productLikeUrl"
-              alt=""
-              width="24"
-              height="24"
-            />
-            <div class="absolute top-[11px] left-[11px] inline-flex h-6 items-center gap-1 rounded-[8px] border border-[#eaeaea] bg-white px-2 py-1 text-[12px] leading-4 font-semibold text-black">
-              <img [ngSrc]="verifiedBadgeIconUrl" alt="" width="14" height="14" />
-              <span>Verified</span>
-            </div>
-            <div class="absolute top-[72px] left-[14px] flex w-[calc(100%-28px)] justify-between">
-              <button class="inline-flex h-6 w-6 items-center justify-center rounded-[60px] border border-[#eaeaea] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]" type="button" aria-label="Previous item">
-                <img [ngSrc]="arrowLeftUrl" alt="" width="12" height="12" />
-              </button>
-              <button class="inline-flex h-6 w-6 items-center justify-center rounded-[60px] border border-[#eaeaea] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]" type="button" aria-label="Next item">
-                <img [ngSrc]="arrowRightUrl" alt="" width="12" height="12" />
-              </button>
-            </div>
-          </div>
-  
-          <div class="absolute top-[13px] left-[282px] flex w-[248px] flex-col gap-[7.176px] text-[#1f1f1f]">
-            <p class="m-0 text-[25.118px] leading-[35.882px] font-normal">Iphone 17 pro max</p>
-            <div class="inline-flex items-center gap-0 text-[28.706px] leading-[43.059px] font-medium">
-              <img [ngSrc]="nairaIconUrl" alt="" width="29" height="29" />
-              <span>1,200,000</span>
-            </div>
-            <div class="inline-flex items-center gap-[7.176px] text-[21.529px] leading-[28.706px] font-normal text-[#959595]">
-              <img [ngSrc]="productLocationIconUrl" alt="" width="22" height="22" />
-              <span>Ikeja, Lagos</span>
-            </div>
-          </div>
-        </div>
-  
-        <div class="absolute top-[184px] left-10 h-[166px] w-[557px] rotate-[-3.4deg] overflow-hidden rounded-[24px] border border-[#eaeaea] bg-white shadow-[0_12px_32px_rgba(94,94,94,0.25)]">
-          <div class="absolute top-[3px] left-[3px] h-[158px] w-[551px] overflow-hidden rounded-t-[20px]">
-            <img
-              class="h-[158px] w-[551px] object-cover"
-              [ngSrc]="closetBannerUrl"
-              alt=""
-              width="551"
-              height="158"
-            />
-          </div>
-          <div class="absolute top-[20.75px] left-[3px] h-[140.251px] w-[551px] bg-[linear-gradient(179.84deg,rgba(255,255,255,0)_0.537%,#ffffff_93.469%)]"></div>
-          <div class="absolute top-7 left-[188.55px] flex w-[203px] flex-col items-center gap-[7px]">
-            <img
-              class="h-[74px] w-[74px] rounded-[1000px] border-4 border-white object-cover"
-              [ngSrc]="sellerAvatarUrl"
-              alt=""
-              width="74"
-              height="74"
-            />
-            <div class="flex flex-col items-start">
-              <div class="inline-flex items-center gap-1 text-[16px] leading-6 font-medium text-[#1f1f1f]">
-                <p class="m-0">Snap Thrifts</p>
-                <img [ngSrc]="sellerVerifyIconUrl" alt="" width="14" height="14" />
-              </div>
-              <div class="inline-flex items-center gap-1 text-[14px] leading-5 font-normal text-[#777777]">
-                <img [ngSrc]="sellerLocationIconUrl" alt="" width="14" height="14" />
-                <span>Ikeja, Lagos</span>
-              </div>
-            </div>
-          </div>
-        </div>
-  
-        <img
-          class="absolute top-[-81px] left-px h-[1263px] w-[689px] object-cover"
-          [ngSrc]="heroImageUrl"
-          alt=""
-          width="689"
-          height="1263"
-          priority
-        />
-      </div>
-    </section>
-</main>
+    <button
+      class="mt-1 min-h-11 w-full rounded-[100px] border-0 bg-[#6453d9] px-4 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] transition-all duration-180 hover:-translate-y-px hover:brightness-[1.04] hover:shadow-[0_10px_22px_rgba(81,35,173,0.38),0_0_0_1px_#6b5bd5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 lg:min-h-0 disabled:opacity-70 disabled:pointer-events-none"
+      type="submit" [disabled]="isCheckingEmail()">
+      {{ isEmailValidated() ? 'Sign in' : 'Continue with email' }}
+    </button>
+  </form>

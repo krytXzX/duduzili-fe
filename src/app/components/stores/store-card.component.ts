@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 export interface Store {
   id: string;
@@ -13,7 +14,7 @@ export interface Store {
 @Component({
   selector: 'app-store-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './store-card.component.html',
   styles: `
     :host {

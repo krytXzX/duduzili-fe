@@ -1,37 +1,79 @@
-<div class="bg-white rounded-[24px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group cursor-pointer h-full flex flex-col">
-  <div class="relative aspect-square overflow-hidden bg-gray-100">
-    <img [src]="listing().image" [alt]="listing().title" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-    
+<a [routerLink]="['/product', listing().id]"
+  class="block bg-white rounded-[24px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group cursor-pointer h-full flex flex-col">
+
+  <!-- Image Container -->
+  <div class="relative aspect-square overflow-hidden bg-gray-50">
+    <img [src]="currentImage()" [alt]="listing().title"
+      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+
+    <!-- Verified Badge (Image Style) -->
     @if (listing().isVerified) {
-      <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+    <div class="absolute top-4 left-4 bg-white px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md z-10">
+      <div class="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd"
+            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+            clip-rule="evenodd" />
         </svg>
-        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-700">Verified</span>
       </div>
+      <span class="text-[10px] font-bold uppercase tracking-wider text-[#36394A]">Verified</span>
+    </div>
     }
-    
-    <button class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/40 transition-all">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+
+    <!-- Heart Icon -->
+    <button (click)="toggleFavorite($event)"
+      class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center transition-all z-10 hover:bg-white/30"
+      [class.text-red-500]="isFavorite()" [class.text-white]="!isFavorite()">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" [attr.fill]="isFavorite() ? 'currentColor' : 'none'"
+        viewBox="0 0 24 24" [attr.stroke]="isFavorite() ? 'currentColor' : 'white'">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
       </svg>
     </button>
+
+    <!-- Carousel Nav (Arrows & Dots) -->
+    @if (listing().images.length > 1) {
+    <div
+      class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+      <button (click)="prevImage($event)"
+        class="w-8 h-8 rounded-full bg-white/60 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all shadow-sm">
+        <svg class="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <button (click)="nextImage($event)"
+        class="w-8 h-8 rounded-full bg-white/60 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all shadow-sm">
+        <svg class="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Dots -->
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+      @for (img of listing().images; track $index) {
+      <span class="w-1.5 h-1.5 rounded-full transition-all" [class.bg-white]="currentImageIndex() === $index"
+        [class.bg-white/40]="currentImageIndex() !== $index"></span>
+      }
+    </div>
+    }
   </div>
-  
-  <div class="p-4 flex flex-col flex-grow">
-    <h3 class="text-sm font-semibold text-[#36394A] line-clamp-2 mb-2 group-hover:text-indigo-600 transition-colors">{{ listing().title }}</h3>
-    <div class="mt-auto">
-      <p class="text-lg font-extrabold text-[#36394A] mb-2">{{ listing().price }}</p>
-      <div class="flex items-center justify-between text-xs text-gray-400">
-        <div class="flex items-center gap-1">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span>{{ listing().location }}</span>
-        </div>
-        <span>{{ listing().timeAgo }}</span>
-      </div>
+
+  <!-- Info Container -->
+  <div class="p-4 flex flex-col grow text-left">
+    <h3 class="text-sm font-bold text-[#1A1C21] line-clamp-1 mb-1">{{ listing().title }}</h3>
+    <p class="text-base font-black text-[#1A1C21] mb-2">{{ listing().price }}</p>
+
+    <div class="mt-auto flex items-center gap-1.5 text-[11px] font-bold text-gray-400">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-60" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+          clip-rule="evenodd" />
+      </svg>
+      <span>{{ listing().location }}</span>
+      <!-- <span class="mx-0.5">•</span> -->
+      <!-- <span>{{ listing().timeAgo }}</span> -->
     </div>
   </div>
-</div>
+
+</a>

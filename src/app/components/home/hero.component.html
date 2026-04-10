@@ -1,28 +1,46 @@
-<section class="relative h-[650px] flex flex-col items-center justify-center bg-linear-to-br from-[#E3EAFF] to-[#F1F3FF] overflow-hidden rounded-b-[60px] mx-4 mb-12">
-  <!-- Wavy background pattern -->
-  <div class="absolute inset-0 opacity-10 pointer-events-none">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" class="w-full h-full fill-blue-500">
-      <path d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,171,864,181.3C960,192,1056,160,1152,138.7C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
-      </path>
-    </svg>
-  </div>
+<section class="relative flex h-[650px] flex-col items-center justify-center overflow-hidden rounded-b-[60px] mx-4 mb-12">
+  <img ngSrc="assets/images/hero-bg.png" alt="" fill priority class="pointer-events-none absolute inset-0 object-cover">
 
-  <!-- Floating Images (Mocking) -->
-  <div class="absolute top-10 left-10 w-32 h-32 rounded-3xl rotate-[-15deg] shadow-2xl overflow-hidden bg-white/30 backdrop-blur-md hidden lg:block">
-    <img src="/assets/images/fashion_menswear.png" class="w-full h-full object-cover grayscale-0" alt="menswear">
+  <div class="pointer-events-none absolute inset-0 bg-[E9E9FF]"></div>
+
+  <!-- Floating Images -->
+  <div class="pointer-events-none absolute inset-x-0 top-50 hidden lg:block">
+    @for (group of carouselGroups; track $index; let index = $index) {
+    <div class="absolute inset-x-0 bottom-0 transition-all duration-700 ease-out" [class.opacity-100]="activeGroupIndex() === index" [class.opacity-0]="activeGroupIndex() !== index">
+      <div [class]="activeGroupIndex() === index
+              ? 'absolute bottom-0 left-20 h-36 w-36 overflow-hidden rounded-3xl backdrop-blur-md transition-all duration-700 ease-out translate-x-0 rotate-[5deg]'
+              : 'absolute bottom-0 left-25 h-36 w-36 overflow-hidden rounded-3xl backdrop-blur-md transition-all duration-700 ease-out -translate-x-24 rotate-[-4deg]'">
+        <img [ngSrc]="group.tlSrc" [alt]="group.tlSrc" fill class="h-full w-full object-cover">
+      </div>
+
+      <div [class]="activeGroupIndex() === index
+              ? 'absolute bottom-0 right-20 h-48 w-44 overflow-hidden rounded-3xl backdrop-blur-md transition-all duration-700 ease-out translate-x-0 rotate-[-10deg]'
+              : 'absolute bottom-0 right-20 h-48 w-44 overflow-hidden rounded-3xl backdrop-blur-md transition-all duration-700 ease-out translate-x-24 rotate-[4deg]'">
+        <img [ngSrc]="group.trSrc" [alt]="group.trSrc" fill class="h-full w-full object-cover">
+      </div>
+    </div>
+    }
   </div>
-  <div class="absolute top-10 right-10 w-40 h-52 rounded-3xl rotate-[15deg] shadow-2xl overflow-hidden bg-white/30 backdrop-blur-md hidden lg:block">
-    <img src="/assets/images/product_sneakers.png" class="w-full h-full object-cover" alt="sneakers">
-  </div>
-  <div class="absolute bottom-10 left-32 w-44 h-48 rounded-3xl rotate-[5deg] shadow-2xl overflow-hidden bg-white/30 backdrop-blur-md hidden lg:block">
-    <img src="/assets/images/hero_img_3.png" class="w-full h-full object-cover" alt="product">
-  </div>
-  <div class="absolute bottom-10 right-20 w-36 h-36 rounded-3xl rotate-[-10deg] shadow-2xl overflow-hidden bg-white/30 backdrop-blur-md hidden lg:block">
-    <img src="/assets/images/hero_img_4.png" class="w-full h-full object-cover" alt="product">
+  <div class="pointer-events-none absolute inset-x-0 bottom-10 hidden lg:block">
+    @for (group of carouselGroups; track $index; let index = $index) {
+    <div class="absolute inset-x-0 bottom-0 transition-all duration-700 ease-out" [class.opacity-100]="activeGroupIndex() === index" [class.opacity-0]="activeGroupIndex() !== index">
+      <div [class]="activeGroupIndex() === index
+            ? 'absolute bottom-0 left-32 h-48 w-44 overflow-hidden rounded-3xl backdrop-blur-md transition-all duration-700 ease-out translate-x-0 rotate-[5deg]'
+            : 'absolute bottom-0 left-32 h-48 w-44 overflow-hidden rounded-3xl backdrop-blur-md transition-all duration-700 ease-out -translate-x-24 rotate-[-4deg]'">
+        <img [ngSrc]="group.blSrc" [alt]="group.blSrc" fill class="h-full w-full object-cover">
+      </div>
+
+      <div [class]="activeGroupIndex() === index
+            ? 'absolute bottom-0 right-20 h-36 w-36 overflow-hidden rounded-3xl backdrop-blur-md transition-all duration-700 ease-out translate-x-0 rotate-[-10deg]'
+            : 'absolute bottom-0 right-20 h-36 w-36 overflow-hidden rounded-3xl backdrop-blur-md transition-all duration-700 ease-out translate-x-24 rotate-[4deg]'">
+        <img [ngSrc]="group.brSrc" [alt]="group.brSrc" fill class="h-full w-full object-cover">
+      </div>
+    </div>
+    }
   </div>
 
   <div class="z-10 text-center max-w-4xl px-4">
-    <h1 class="text-4xl md:text-6xl font-extrabold text-[#36394A] leading-tight mb-8">
+    <h1 class="text-3xl md:text-5xl font-extrabold text-[#36394A] leading-tight mb-8">
       Find men's wear <ng-icon name="faSolidClock" /> on Duduzili
     </h1>
 
@@ -38,9 +56,8 @@
 
   <!-- Pagination markers -->
   <div class="absolute bottom-12 flex gap-2">
-    <span class="w-8 h-2 bg-indigo-600 rounded-full"></span>
-    <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
-    <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
-    <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
+    @for (group of carouselGroups; track $index; let index = $index) {
+    <span class="rounded-full transition-all duration-500" [class.w-8]="activeGroupIndex() === index" [class.bg-indigo-600]="activeGroupIndex() === index" [class.h-2]="activeGroupIndex() === index" [class.w-2]="activeGroupIndex() !== index" [class.h-2]="activeGroupIndex() !== index" [class.bg-gray-300]="activeGroupIndex() !== index"></span>
+    }
   </div>
 </section>

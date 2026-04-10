@@ -1,0 +1,35 @@
+<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+  <!-- Left Side: Logo & Location -->
+  <div class="flex items-center gap-10">
+    <a routerLink="/" class="flex items-center gap-2 transition-transform hover:scale-105 active:scale-95">
+      <img ngSrc="assets/images/logo-light-fill.svg" alt="Duduzili" width="28" height="28" priority>
+      <span class="text-xl font-bold tracking-tight">Duduzili</span>
+    </a>
+
+    <!-- Location Dropdown -->
+    <div class="hidden md:flex items-center gap-3 px-5 py-2.5 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 cursor-pointer transition-all">
+      <ng-icon name="heroMapPin" class="text-[#E74C3C] text-lg"></ng-icon>
+      <span class="text-[14px] font-medium">All of Nigeria</span>
+      <ng-icon name="heroChevronDownMini" class="text-white/30 text-xs"></ng-icon>
+    </div>
+  </div>
+
+  <!-- Right Side: Mode Switch & User -->
+  <div class="flex items-center gap-8">
+    <!-- Switch to seller mode toggle -->
+    <div class="hidden sm:flex items-center gap-4 group cursor-pointer">
+      <span class="text-[14px] font-medium text-white/50 group-hover:text-white transition-colors">Switch to seller mode</span>
+      <div class="w-[44px] h-[24px] rounded-full bg-white/10 relative p-[3px] transition-colors group-hover:bg-white/20">
+        <div class="w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-transform translate-x-[20px]"></div>
+      </div>
+    </div>
+
+    <!-- User & Hamburger Menu Pill -->
+    <button class="flex items-center gap-3 bg-white/5 p-1.5 pr-4 rounded-full border border-white/10 hover:bg-white/10 active:scale-95 transition-all">
+      <div class="w-8 h-8 rounded-full bg-[#6453D9] flex items-center justify-center text-white ring-2 ring-white/10">
+        <ng-icon name="heroUserCircle" class="text-xl"></ng-icon>
+      </div>
+      <ng-icon name="heroBars3" class="text-lg text-white/40"></ng-icon>
+    </button>
+  </div>
+</div>

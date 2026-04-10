@@ -1,0 +1,85 @@
+<!-- Huge Watermark Background -->
+<div class="absolute bottom-[-2vw] left-0 right-0 pointer-events-none select-none z-0 opacity-[0.04]">
+  <h2 class="text-[18vw] font-black text-[#15162B] leading-none tracking-tighter text-center uppercase whitespace-nowrap">
+    Duduzili
+  </h2>
+</div>
+
+<div class="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-12 lg:gap-20">
+  <!-- Brand & QR Section -->
+  <div class="lg:col-span-2 space-y-10">
+    <div class="flex items-center gap-2 group cursor-pointer w-fit">
+      <img ngSrc="assets/images/logo-light-fill.svg" alt="Duduzili" width="28" height="28" class="brightness-0">
+      <span class="text-[22px] font-bold tracking-tight text-[#15162B]">Duduzili</span>
+    </div>
+    
+    <div class="flex items-start gap-8">
+      <!-- QR Placeholder -->
+      <div class="w-[124px] h-[124px] bg-white rounded-[24px] p-[10px] shadow-[0_16px_40px_rgba(0,0,0,0.06)] border border-[#F0F0F0] shrink-0">
+        <div class="w-full h-full bg-[#FAFAFA] rounded-[18px] flex items-center justify-center border-2 border-dashed border-[#E0E0E0]">
+          <svg class="w-10 h-10 text-[#E0E0E0]" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v2h-3v-2zm-3 0h2v3h-2v-3zm3 3h3v2h-3v-2zm-3 3h2v2h-2v-2zm3-3h2v5h-2v-5z"/></svg>
+        </div>
+      </div>
+
+      <!-- App Download Buttons -->
+      <div class="flex flex-col gap-4">
+        <button class="bg-[#15162B] text-white w-[145px] h-[48px] rounded-[14px] flex items-center gap-3 px-4 text-xs font-bold hover:brightness-[1.1] active:scale-95 transition-all shadow-sm">
+          <svg class="w-[20px] h-[20px]" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 12c0-3.04 2.46-5.5 5.5-5.5v-1c-3.58 0-6.5 2.92-6.5 6.5s2.92 6.5 6.5 6.5v-1c-3.04 0-5.5-2.46-5.5-5.5z"/></svg>
+          <div class="text-left">
+            <p class="text-[8px] font-medium opacity-50 uppercase leading-none mb-0.5">Download on</p>
+            <p class="text-[13px] leading-tight font-bold">App Store</p>
+          </div>
+        </button>
+        <button class="bg-[#15162B] text-white w-[145px] h-[48px] rounded-[14px] flex items-center gap-3 px-4 text-xs font-bold hover:brightness-[1.1] active:scale-95 transition-all shadow-sm">
+          <svg class="w-[20px] h-[20px]" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 9-14 9V3z"/></svg>
+          <div class="text-left">
+            <p class="text-[8px] font-medium opacity-50 uppercase leading-none mb-0.5">Get it on</p>
+            <p class="text-[13px] leading-tight font-bold">Google Play</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Social Column -->
+  <div class="space-y-6">
+    <h4 class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#15162B]/30">Social</h4>
+    <ul class="space-y-4">
+      <li><a href="#" class="text-[15px] font-medium text-[#777777] hover:text-[#6453D9] transition-all flex items-center gap-2">Instagram</a></li>
+      <li><a href="#" class="text-[15px] font-medium text-[#777777] hover:text-[#6453D9] transition-all flex items-center gap-2">X (Twitter)</a></li>
+    </ul>
+  </div>
+
+  <!-- Resources Column -->
+  <div class="space-y-6">
+    <h4 class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#15162B]/30">Resources</h4>
+    <ul class="space-y-4">
+      <li><a routerLink="/terms-of-service" class="text-[15px] font-medium text-[#777777] hover:text-[#6453D9] transition-all">Terms of Service</a></li>
+      <li><a routerLink="/terms-of-service" class="text-[15px] font-medium text-[#777777] hover:text-[#6453D9] transition-all">Privacy Policy</a></li>
+      <li><a href="#" class="text-[15px] font-medium text-[#777777] hover:text-[#6453D9] transition-all">Contact us</a></li>
+    </ul>
+  </div>
+
+  <!-- Newsletter Column -->
+  <div class="lg:col-span-1 space-y-6">
+    <h4 class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#15162B]/30">Join our newsletter</h4>
+    <form (ngSubmit)="submitNewsletter()" class="space-y-4">
+       <div class="relative">
+         <input 
+            [(ngModel)]="email" 
+            name="email"
+            type="email" 
+            placeholder="Email address" 
+            class="w-full bg-white border border-[#EFEFEF] rounded-[18px] px-5 py-3.5 text-[14px] outline-none focus:border-[#6453D9]/50 focus:ring-4 focus:ring-[#6453D9]/5 transition-all font-medium placeholder:text-[#BBB]"
+          >
+       </div>
+       <button type="submit" class="w-full bg-[#6453D9] text-white font-bold h-[48px] rounded-[18px] shadow-[0_8px_24px_rgba(100,83,217,0.2)] hover:brightness-[1.04] hover:-translate-y-px active:scale-[0.98] transition-all text-[15px]">
+         Submit
+       </button>
+    </form>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-6 mt-20 pt-8 border-t border-[#F0F0F0] flex flex-col sm:flex-row justify-between items-center gap-4 relative z-10">
+  <p class="text-[12px] text-[#777777]/60 font-medium tracking-tight whitespace-nowrap">&copy; 2026 Duduzili Inc. All rights reserved.</p>
+</div>

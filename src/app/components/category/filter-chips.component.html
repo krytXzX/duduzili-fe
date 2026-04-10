@@ -1,0 +1,61 @@
+<div class="relative py-4">
+  <!-- Backdrop for closing dropdowns when clicking outside -->
+  @if (activeDropdownIndex() !== null) {
+    <div 
+        class="fixed inset-0 z-60 bg-transparent" 
+        (click)="closeAll()"
+    ></div>
+  }
+
+  <div class="flex items-center flex-wrap gap-3 relative z-50">
+    @for (config of filterConfigs; track config.label; let i = $index) {
+      <div class="relative">
+        <div 
+          (click)="toggleDropdown(i, $event)"
+          class="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 transition-all text-sm font-medium text-[#36394A]"
+          [class.bg-indigo-50]="selectedOptions()[i]"
+          [class.border-indigo-100]="selectedOptions()[i]"
+          [class.text-indigo-600]="selectedOptions()[i]"
+        >
+          <span>
+             {{ config.label }}{{ selectedOptions()[i] ? ': ' + selectedOptions()[i] : '' }}
+          </span>
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            class="w-4 h-4 text-gray-400 transition-transform duration-200" 
+            [class.rotate-180]="activeDropdownIndex() === i"
+            viewBox="0 0 20 20" 
+            fill="currentColor"
+          >
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </div>
+
+        <!-- Dropdown Menu -->
+        @if (activeDropdownIndex() === i) {
+          <div class="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-2xl py-2 z-60 animate-in fade-in zoom-in duration-200">
+            @for (option of config.options; track option) {
+              <div 
+                (click)="selectOption(i, option)"
+                class="px-4 py-2.5 text-sm font-medium cursor-pointer transition-colors"
+                [class.text-indigo-600]="selectedOptions()[i] === option"
+                [class.bg-indigo-50]="selectedOptions()[i] === option"
+                [class.text-[#36394A]]="selectedOptions()[i] !== option"
+                [class.hover:bg-gray-50]="selectedOptions()[i] !== option"
+              >
+                {{ option }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+    
+    <button 
+        (click)="resetFilters()"
+        class="ml-2 text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-all"
+    >
+      Reset all
+    </button>
+  </div>
+</div>

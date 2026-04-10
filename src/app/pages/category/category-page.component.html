@@ -1,0 +1,37 @@
+<div class="min-h-full bg-white">
+  <!-- Dynamic Navbar -->
+  <app-navbar />
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Category Title -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-[#36394A]">
+        {{ categoryTitle() }} <span class="text-gray-300 font-medium">({{ listingsCount() }})</span>
+      </h1>
+    </div>
+
+    <!-- Filter Section -->
+    <app-filter-chips />
+
+    <!-- Product Grid: 5 columns on large screens -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-20">
+      @for (listing of listings(); track listing.id) {
+      <app-listing-card [listing]="listing" />
+      }
+    </div>
+  </main>
+
+  <!-- Footer with Decorative Background Text -->
+  <div class="relative overflow-hidden">
+    <!-- Large slanted background text decoration -->
+    <div
+      class="absolute -bottom-40 left-0 right-0 pointer-events-none select-none overflow-hidden h-[500px] z-0 opacity-[0.03]">
+      <span
+        class="text-[30rem] font-black text-black leading-none whitespace-nowrap block rotate-[-5deg] translate-y-20">
+        Duduzili
+      </span>
+    </div>
+
+    <app-footer class="relative z-10" />
+  </div>
+</div>
