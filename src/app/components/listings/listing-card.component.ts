@@ -7,6 +7,8 @@ export interface Listing {
   images: string[];
   title: string;
   price: string;
+  originalPrice?: string;
+  discountBadge?: string;
   location: string;
   timeAgo: string;
   isVerified?: boolean;
@@ -26,6 +28,10 @@ export interface Listing {
 })
 export class ListingCardComponent {
   listing = input.required<Listing>();
+  listingRoute = input<string[]>(
+    ['/product'],
+  );
+  showFavorite = input(true);
   isFavorite = signal(false);
   currentImageIndex = signal(0);
 

@@ -28,4 +28,5 @@ export interface Store {
 })
 export class StoreCardComponent {
   store = input.required<Store>();
+  showFavorite = input(true);
 }

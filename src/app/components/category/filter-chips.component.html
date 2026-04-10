@@ -37,11 +37,10 @@
             @for (option of config.options; track option) {
               <div 
                 (click)="selectOption(i, option)"
-                class="px-4 py-2.5 text-sm font-medium cursor-pointer transition-colors"
+                class="px-4 py-2.5 text-sm font-medium cursor-pointer transition-colors hover:bg-gray-50"
                 [class.text-indigo-600]="selectedOptions()[i] === option"
                 [class.bg-indigo-50]="selectedOptions()[i] === option"
                 [class.text-[#36394A]]="selectedOptions()[i] !== option"
-                [class.hover:bg-gray-50]="selectedOptions()[i] !== option"
               >
                 {{ option }}
               </div>

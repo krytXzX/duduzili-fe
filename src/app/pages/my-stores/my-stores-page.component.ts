@@ -48,7 +48,7 @@ import { SuccessModalComponent } from './components/success-modal.component';
         <!-- Grid State -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           @for (store of filteredStores(); track store.id) {
-            <app-store-card [store]="store" class="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" [style.animation-delay]="($index * 100) + 'ms'"></app-store-card>
+            <app-store-card [store]="store" [showFavorite]="false" class="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" [style.animation-delay]="($index * 100) + 'ms'"></app-store-card>
           }
         </div>
       } @else if (searchQuery()) {

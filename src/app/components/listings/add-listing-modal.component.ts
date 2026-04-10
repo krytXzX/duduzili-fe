@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, output, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, output, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -138,15 +138,29 @@ export interface ListingData {
 
                   <!-- Masonry Photo Grid -->
                   <div class="grid grid-cols-3 gap-4 mb-8">
+                    <input
+                      #mainImageInput
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      (change)="onMainImageSelected($event)"
+                    >
                     
                     <!-- Slot 1: Main Photo (Spans 2 rows, 2 cols) -->
-                    <div class="col-span-2 row-span-2 relative aspect-[4/5] bg-gray-50 rounded-[28px] border border-gray-100 overflow-hidden group">
+                    <div
+                      class="col-span-2 row-span-2 relative aspect-[4/5] bg-gray-50 rounded-[28px] border border-gray-100 overflow-hidden group cursor-pointer"
+                      (click)="openFilePicker(mainImageInput)"
+                    >
                       @if (mainImage()) {
                         <img [src]="mainImage()" class="w-full h-full object-cover">
                         <div class="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-4 py-1.5 rounded-full shadow-sm text-sm font-bold text-[#1A1C21]">
                           Main photo
                         </div>
-                        <button class="absolute top-4 right-4 w-10 h-10 bg-white/95 backdrop-blur-sm rounded-full shadow-sm flex items-center justify-center hover:bg-white transition-colors">
+                        <button
+                          type="button"
+                          class="absolute top-4 right-4 w-10 h-10 bg-white/95 backdrop-blur-sm rounded-full shadow-sm flex items-center justify-center hover:bg-white transition-colors"
+                          (click)="openFilePicker(mainImageInput, $event)"
+                        >
                           <ng-icon name="heroEllipsisHorizontal" class="text-xl text-gray-700"></ng-icon>
                         </button>
                         <div class="absolute bottom-4 right-4 w-8 h-8 bg-white/95 backdrop-blur-sm rounded-full shadow-sm flex items-center justify-center text-sm font-black text-gray-700">
@@ -155,47 +169,51 @@ export interface ListingData {
                       } @else {
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-100/50 transition-colors">
                           <ng-icon name="heroPlus" class="text-4xl mb-2"></ng-icon>
-                          <span class="text-sm font-bold text-gray-500">Add Cover</span>
+                          <span class="text-sm font-bold text-gray-500">Add main image</span>
                         </div>
                       }
                     </div>
 
-                    <!-- Slot 2 -->
-                    <div class="relative aspect-square bg-gray-50 rounded-3xl border border-gray-100 overflow-hidden group">
-                       @if (images()[1]) {
-                         <img [src]="images()[1]" class="w-full h-full object-cover">
-                         <button class="absolute top-3 right-3 w-8 h-8 bg-white/95 backdrop-blur-sm rounded-full shadow-sm flex items-center justify-center hover:bg-white transition-colors">
-                           <ng-icon name="heroEllipsisHorizontal" class="text-lg text-gray-700"></ng-icon>
-                         </button>
-                         <div class="absolute bottom-3 right-3 w-7 h-7 bg-white/95 backdrop-blur-sm rounded-full shadow-sm flex items-center justify-center text-xs font-black text-gray-700">2</div>
-                       } @else {
-                         <div class="absolute inset-0 flex items-center justify-center text-gray-400 cursor-pointer border-2 border-dashed border-gray-200 rounded-3xl m-1 hover:bg-gray-100/30 transition-colors">
-                           <ng-icon name="heroPlus" class="text-2xl"></ng-icon>
-                         </div>
-                       }
-                    </div>
-
-                    <!-- Slot 3 -->
-                    <div class="relative aspect-square bg-[#F8F9FA] rounded-3xl border-2 border-dashed border-gray-200 m-0.5 flex items-center justify-center group cursor-pointer hover:bg-gray-100/50 transition-colors">
-                       <ng-icon name="heroPlus" class="text-2xl text-gray-800"></ng-icon>
-                       <div class="absolute bottom-2 right-2 w-6 h-6 bg-white shadow-sm rounded-full flex items-center justify-center text-[10px] font-black text-gray-600">3</div>
-                    </div>
-
-                    <!-- Row 2: Slots 4, 5, 6 -->
-                    <div class="relative aspect-square bg-[#F8F9FA] rounded-3xl flex items-center justify-center group cursor-pointer hover:bg-gray-100/50 transition-colors border-2 border-dashed border-gray-200 mt-2">
-                       <ng-icon name="heroPlus" class="text-2xl text-gray-800"></ng-icon>
-                       <div class="absolute bottom-2 right-2 w-6 h-6 bg-white shadow-sm rounded-full flex items-center justify-center text-[10px] font-black text-gray-600">4</div>
-                    </div>
-                    
-                    <div class="relative aspect-square bg-[#F8F9FA] rounded-3xl flex items-center justify-center group cursor-pointer hover:bg-gray-100/50 transition-colors border-2 border-dashed border-gray-200 mt-2">
-                       <ng-icon name="heroPlus" class="text-2xl text-gray-800"></ng-icon>
-                       <div class="absolute bottom-2 right-2 w-6 h-6 bg-white shadow-sm rounded-full flex items-center justify-center text-[10px] font-black text-gray-600">5</div>
-                    </div>
-                    
-                    <div class="relative aspect-square bg-[#F8F9FA] rounded-3xl flex items-center justify-center group cursor-pointer hover:bg-gray-100/50 transition-colors border-2 border-dashed border-gray-200 mt-2">
-                       <ng-icon name="heroPlus" class="text-2xl text-gray-800"></ng-icon>
-                       <div class="absolute bottom-2 right-2 w-6 h-6 bg-white shadow-sm rounded-full flex items-center justify-center text-[10px] font-black text-gray-600">6</div>
-                    </div>
+                    @for (slot of imageSlots(); track slot.id; let slotIndex = $index) {
+                      <input
+                        #slotInput
+                        type="file"
+                        accept="image/*"
+                        class="hidden"
+                        (change)="onAdditionalImageSelected(slot.index, $event)"
+                      >
+                      <div
+                        class="relative aspect-square rounded-3xl overflow-hidden group cursor-pointer hover:bg-gray-100/50 transition-colors"
+                        [class.bg-gray-50]="!!slot.image"
+                        [class.border]="!!slot.image"
+                        [class.border-gray-100]="!!slot.image"
+                        [class.bg-[#F8F9FA]]="!slot.image"
+                        [class.border-2]="!slot.image"
+                        [class.border-dashed]="!slot.image"
+                        [class.border-gray-200]="!slot.image"
+                        [class.m-0.5]="slotIndex === 1 && !slot.image"
+                        [class.mt-2]="slotIndex > 1"
+                        (click)="openFilePicker(slotInput, $event)"
+                      >
+                        @if (slot.image) {
+                          <img [src]="slot.image" class="w-full h-full object-cover">
+                          <button
+                            type="button"
+                            class="absolute top-3 right-3 w-8 h-8 bg-white/95 backdrop-blur-sm rounded-full shadow-sm flex items-center justify-center hover:bg-white transition-colors"
+                            (click)="openFilePicker(slotInput, $event)"
+                          >
+                            <ng-icon name="heroEllipsisHorizontal" class="text-lg text-gray-700"></ng-icon>
+                          </button>
+                        } @else {
+                          <div class="absolute inset-0 flex items-center justify-center text-gray-400">
+                            <ng-icon name="heroPlus" class="text-2xl text-gray-800"></ng-icon>
+                          </div>
+                        }
+                        <div class="absolute bottom-2 right-2 w-6 h-6 bg-white shadow-sm rounded-full flex items-center justify-center text-[10px] font-black text-gray-600">
+                          {{ slot.position }}
+                        </div>
+                      </div>
+                    }
                   </div>
 
                   <!-- YouTube Link -->
@@ -372,6 +390,73 @@ export interface ListingData {
                             </div>
                           </div>
 
+                          @if (listingForm.value.addDiscount) {
+                            <div class="space-y-5 rounded-[20px] border border-purple-100 bg-[#FCFBFF] p-5">
+                              <div class="space-y-2">
+                                <label class="text-[13px] font-medium text-gray-700">Discount price</label>
+                                <div class="grid grid-cols-[120px_minmax(0,1fr)] gap-3">
+                                  <div class="relative">
+                                    <select
+                                      formControlName="discountType"
+                                      class="w-full appearance-none rounded-xl border border-gray-100 bg-white p-3.5 pr-10 text-[15px] font-medium text-[#1A1C21] focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+                                    >
+                                      <option value="amount">Amount</option>
+                                      <option value="percentage">Percentage</option>
+                                    </select>
+                                    <div class="absolute right-4 top-[14px] pointer-events-none text-gray-400">
+                                      <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2]"></ng-icon>
+                                    </div>
+                                  </div>
+
+                                  <div class="relative">
+                                    <input
+                                      type="number"
+                                      formControlName="discountPrice"
+                                      class="w-full rounded-xl border border-gray-100 bg-white p-3.5 pr-14 text-[15px] font-medium text-[#1A1C21] focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+                                      [placeholder]="discountInputPlaceholder()"
+                                    >
+                                    <span
+                                      class="absolute right-4 top-[14px] text-[15px] font-medium text-gray-400 pointer-events-none"
+                                    >
+                                      {{ listingForm.value.discountType === 'percentage' ? '%' : 'NGN' }}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                  <label class="text-[13px] font-medium text-gray-700">Start date</label>
+                                  <div class="relative">
+                                    <input
+                                      type="date"
+                                      formControlName="discountStartDate"
+                                      class="w-full rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+                                    >
+                                  </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                  <label class="text-[13px] font-medium text-gray-700">End date</label>
+                                  <div class="relative">
+                                    <input
+                                      type="date"
+                                      formControlName="discountEndDate"
+                                      class="w-full rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+                                    >
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="flex items-start gap-2 rounded-xl bg-[#FFFBEA] px-3 py-3 text-[#9A9300]">
+                                <ng-icon name="heroInformationCircle" class="mt-0.5 text-[16px] shrink-0"></ng-icon>
+                                <p class="text-[13px] font-medium leading-5">
+                                  Your listing price will go back to its default price after the end date
+                                </p>
+                              </div>
+                            </div>
+                          }
+
                           <!-- Toggles -->
                           <div class="space-y-6">
                              <div class="flex items-center justify-between">
@@ -443,7 +528,7 @@ export interface ListingData {
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0 mt-1">Images</span>
                                 <div class="flex items-center gap-3">
                                    <!-- Show up to 4 images -->
-                                   @for (img of images().slice(0, 4); track i; let i = $index) {
+                                   @for (img of reviewImages().slice(0, 4); track i; let i = $index) {
                                       <div class="relative w-[88px] h-[88px] rounded-[16px] overflow-hidden border border-gray-200 bg-white flex items-center justify-center">
                                          @if (img) {
                                             <img [src]="img" class="w-full h-full object-cover">
@@ -452,14 +537,14 @@ export interface ListingData {
                                               <ng-icon name="heroPhoto"></ng-icon>
                                             </div>
                                          }
-                                         @if (i === 3 && images().length > 4) {
+                                         @if (i === 3 && reviewImages().length > 4) {
                                             <div class="absolute inset-0 bg-black/70 flex items-center justify-center backdrop-blur-[1px]">
-                                               <span class="text-white font-bold text-[13px]">+{{ images().length - 3 }} others</span>
+                                               <span class="text-white font-bold text-[13px]">+{{ reviewImages().length - 3 }} others</span>
                                             </div>
                                          }
                                       </div>
                                    }
-                                   @if (images().length === 0) {
+                                   @if (reviewImages().length === 0) {
                                       <span class="text-[15px] font-medium text-[#1A1C21] mt-1">---</span>
                                    }
                                 </div>
@@ -534,6 +619,19 @@ export interface ListingData {
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Price</span>
                                 <span class="text-[15px] font-medium text-[#1A1C21] flex-1">₦{{ (listingForm.value.price | number) || '0' }}</span>
                              </div>
+                             @if (listingForm.value.addDiscount) {
+                               <div class="flex items-start">
+                                  <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Discount</span>
+                                  <span class="text-[15px] font-medium text-[#1A1C21] flex-1">
+                                     {{ listingForm.value.discountType === 'percentage' ? ((listingForm.value.discountPrice || 0) + '%') : ('₦' + ((listingForm.value.discountPrice | number) || '0')) }}
+                                     @if (listingForm.value.discountStartDate || listingForm.value.discountEndDate) {
+                                       <span class="text-gray-400">
+                                         ({{ listingForm.value.discountStartDate || 'No start date' }} - {{ listingForm.value.discountEndDate || 'No end date' }})
+                                       </span>
+                                     }
+                                  </span>
+                               </div>
+                             }
                           </div>
                        </div>
                     </div>
@@ -560,7 +658,7 @@ export interface ListingData {
 
                        <div class="relative z-10 w-64 transform transition-all hover:scale-105 duration-500 shadow-2xl rounded-[24px]">
                           <div class="pointer-events-none">
-                             <app-listing-card [listing]="previewListing()"></app-listing-card>
+                             <app-listing-card [listing]="previewListing()" [showFavorite]="false"></app-listing-card>
                           </div>
                        </div>
                     </div>
@@ -650,7 +748,7 @@ export interface ListingData {
             <!-- Scale down the preview card slightly -->
             <div class="transform scale-[0.85] origin-top bg-white rounded-[24px] shadow-sm overflow-hidden p-2">
               <div class="pointer-events-none">
-                <app-listing-card [listing]="previewListing()"></app-listing-card>
+                <app-listing-card [listing]="previewListing()" [showFavorite]="false"></app-listing-card>
               </div>
             </div>
           </div>
@@ -679,7 +777,7 @@ export interface ListingData {
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AddListingModalComponent {
+export class AddListingModalComponent implements OnDestroy {
   private fb = inject(FormBuilder);
   
   close = output<void>();
@@ -697,9 +795,16 @@ export class AddListingModalComponent {
   ];
 
   mainImage = signal<string | null>('https://images.unsplash.com/photo-1696446701796-da61225697cc?w=800&fit=crop');
-  images = signal<string[]>(['', 'https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=400&h=400&fit=crop']);
+  additionalImages = signal<(string | null)[]>([
+    'https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=400&h=400&fit=crop',
+    null,
+    null,
+    null,
+    null,
+  ]);
 
   formValues: any;
+  private createdObjectUrls = new Set<string>();
 
   constructor() {
     console.log('AddListingModalComponent initialized');
@@ -715,6 +820,10 @@ export class AddListingModalComponent {
       deliveryOptions: [[] as string[], Validators.required],
       price: [null],
       addDiscount: [false],
+      discountType: ['amount'],
+      discountPrice: [null],
+      discountStartDate: [''],
+      discountEndDate: [''],
       acceptOffers: [false],
       listForFree: [false],
       images: [[] as string[]]
@@ -732,13 +841,43 @@ export class AddListingModalComponent {
     { id: 'international', label: 'International' },
   ];
 
+  imageSlots = computed(() =>
+    this.additionalImages().map((image, index) => ({
+      id: `slot-${index + 2}`,
+      index,
+      image,
+      position: index + 2,
+    })),
+  );
+
+  reviewImages = computed(() => [
+    ...(this.mainImage() ? [this.mainImage()] : []),
+    ...this.additionalImages().filter((image): image is string => !!image),
+  ]);
+
+  discountInputPlaceholder = computed(() =>
+    this.formValues().discountType === 'percentage' ? '10' : '2,000,000',
+  );
+
   previewListing = computed(() => {
      const form = this.formValues();
+     const previewImages = this.reviewImages();
+     const basePrice = Number(form.price) || 0;
+     const hasDiscount = !!form.addDiscount && !!form.discountPrice && basePrice > 0;
+     const discountValue = Number(form.discountPrice) || 0;
+     const discountedPrice = hasDiscount
+       ? form.discountType === 'percentage'
+         ? Math.max(basePrice - (basePrice * discountValue) / 100, 0)
+         : Math.max(discountValue, 0)
+       : basePrice;
+
      return {
         id: 'preview',
         title: form.name || 'Untitled listing',
-        price: form.price ? `₦${form.price.toLocaleString()}` : '₦0',
-        images: this.images().filter(img => !!img).length > 0 ? this.images().filter(img => !!img) : [(this.mainImage() || 'https://via.placeholder.com/400')],
+        price: `₦${discountedPrice.toLocaleString()}`,
+        originalPrice: hasDiscount ? `₦${basePrice.toLocaleString()}` : undefined,
+        discountBadge: hasDiscount && form.discountType === 'percentage' ? `${discountValue}% off` : undefined,
+        images: previewImages.length > 0 ? previewImages : ['https://via.placeholder.com/400'],
         location: form.location || 'Location',
         timeAgo: 'Just now',
         isVerified: true
@@ -757,6 +896,10 @@ export class AddListingModalComponent {
     if (this.currentStep() < 4) {
       this.currentStep.update(s => s + 1);
     }
+  }
+
+  ngOnDestroy() {
+    this.revokeAllObjectUrls();
   }
 
   prevStep() {
@@ -784,7 +927,17 @@ export class AddListingModalComponent {
   }
 
   toggleBool(field: string) {
-    this.listingForm.patchValue({ [field]: !this.listingForm.value[field] });
+    const nextValue = !this.listingForm.value[field];
+    this.listingForm.patchValue({ [field]: nextValue });
+
+    if (field === 'addDiscount' && !nextValue) {
+      this.listingForm.patchValue({
+        discountType: 'amount',
+        discountPrice: null,
+        discountStartDate: '',
+        discountEndDate: '',
+      });
+    }
   }
 
   getSelectedDeliveryOptionNames(): string {
@@ -805,7 +958,94 @@ export class AddListingModalComponent {
   }
 
   resetForm() {
+     this.revokeAllObjectUrls();
      this.listingForm.reset();
+     this.mainImage.set(null);
+     this.additionalImages.set([null, null, null, null, null]);
      this.currentStep.set(1);
+  }
+
+  openFilePicker(input: HTMLInputElement, event?: Event) {
+    event?.stopPropagation();
+    input.click();
+  }
+
+  onMainImageSelected(event: Event) {
+    const file = this.getSelectedFile(event);
+    if (!file) {
+      return;
+    }
+
+    const nextUrl = this.createObjectUrl(file);
+    const previousUrl = this.mainImage();
+    if (previousUrl) {
+      this.revokeObjectUrl(previousUrl);
+    }
+
+    this.mainImage.set(nextUrl);
+    this.syncImagesToForm();
+    this.resetFileInput(event);
+  }
+
+  onAdditionalImageSelected(index: number, event: Event) {
+    const file = this.getSelectedFile(event);
+    if (!file) {
+      return;
+    }
+
+    const nextUrl = this.createObjectUrl(file);
+    const previousUrl = this.additionalImages()[index];
+    if (previousUrl) {
+      this.revokeObjectUrl(previousUrl);
+    }
+
+    this.additionalImages.update((images) =>
+      images.map((image, currentIndex) => currentIndex === index ? nextUrl : image),
+    );
+    this.syncImagesToForm();
+    this.resetFileInput(event);
+  }
+
+  private getSelectedFile(event: Event): File | null {
+    const input = event.target as HTMLInputElement | null;
+    return input?.files?.[0] ?? null;
+  }
+
+  private resetFileInput(event: Event) {
+    const input = event.target as HTMLInputElement | null;
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  private createObjectUrl(file: File): string {
+    const url = URL.createObjectURL(file);
+    this.createdObjectUrls.add(url);
+    return url;
+  }
+
+  private revokeObjectUrl(url: string) {
+    if (!this.createdObjectUrls.has(url)) {
+      return;
+    }
+
+    URL.revokeObjectURL(url);
+    this.createdObjectUrls.delete(url);
+  }
+
+  private revokeAllObjectUrls() {
+    for (const url of this.createdObjectUrls) {
+      URL.revokeObjectURL(url);
+    }
+    this.createdObjectUrls.clear();
+  }
+
+  private syncImagesToForm() {
+    this.listingForm.patchValue(
+      {
+        images: this.reviewImages(),
+      },
+      { emitEvent: false },
+    );
   }
 }

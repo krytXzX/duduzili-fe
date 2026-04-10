@@ -1,477 +1,450 @@
-import { ChangeDetectionStrategy, Component, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { 
-  heroChevronRight, 
-  heroCheckBadge, 
-  heroEllipsisVertical,
+import {
+  heroCalendarDays,
+  heroChatBubbleLeftRight,
+  heroChevronDown,
+  heroChevronRight,
+  heroEllipsisHorizontal,
   heroEye,
-  heroShare,
-  heroSquare2Stack,
   heroMapPin,
-  heroClock,
-  heroChatBubbleLeftEllipsis,
-  heroInformationCircle,
-  heroArrowLeft
+  heroRocketLaunch,
+  heroSquare3Stack3d,
+  heroTag,
+  heroHeart,
+  heroArrowTopRightOnSquare,
+  heroClipboardDocumentList,
 } from '@ng-icons/heroicons/outline';
+import { PromoteListingModalComponent } from '../../components/listings/promote-listing-modal.component';
 
-interface Bid {
+interface SellerListingRequest {
   id: string;
-  user: string;
-  amount: number;
-  date: string;
-  status: 'Processed' | 'Pending' | 'Declined';
+  buyer: string;
   avatar: string;
+  message: string;
+  time: string;
+  offer: string;
+  status: 'New' | 'Responded';
 }
 
-interface Activity {
+interface SellerListingActivity {
   id: string;
-  user: string;
-  action: string;
-  date: string;
-  avatar: string;
+  title: string;
+  description: string;
+  time: string;
 }
 
 @Component({
   selector: 'app-listing-details-page',
-  imports: [CommonModule, NgIcon, NgOptimizedImage, RouterLink],
+  imports: [CommonModule, NgOptimizedImage, NgIcon, RouterLink, PromoteListingModalComponent],
   providers: [
-    provideIcons({ 
-      heroChevronRight, 
-      heroCheckBadge, 
-      heroEllipsisVertical,
+    provideIcons({
+      heroCalendarDays,
+      heroChatBubbleLeftRight,
+      heroChevronDown,
+      heroChevronRight,
+      heroEllipsisHorizontal,
       heroEye,
-      heroShare,
-      heroSquare2Stack,
       heroMapPin,
-      heroClock,
-      heroChatBubbleLeftEllipsis,
-      heroInformationCircle,
-      heroArrowLeft
-    })
+      heroRocketLaunch,
+      heroSquare3Stack3d,
+      heroTag,
+      heroHeart,
+      heroArrowTopRightOnSquare,
+      heroClipboardDocumentList,
+    }),
   ],
   template: `
-    <div class="max-w-6xl mx-auto pb-12">
-      <!-- Header Section -->
-      <header class="mb-10">
-        <nav class="flex items-center gap-2 mb-4">
-          <a routerLink="/listings" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-purple-600 transition-colors">Listings</a>
-          <ng-icon name="heroChevronRight" class="text-[8px] text-gray-300"></ng-icon>
-          <span class="text-[10px] font-bold text-gray-900 uppercase tracking-widest">{{listing().name}}</span>
+    <div class="mx-auto max-w-7xl pb-12">
+      <div class="rounded-[32px] border border-gray-100 bg-white p-6 shadow-sm md:p-8">
+        <nav class="mb-6 flex items-center gap-2 text-sm text-gray-400">
+          <a routerLink="/listings" class="transition-colors hover:text-purple-600">Listings</a>
+          <span>/</span>
+          <span class="font-medium text-gray-700">Listing details</span>
         </nav>
 
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div class="flex items-center gap-4">
-            <h1 class="text-[28px] font-extrabold text-gray-900 tracking-tight">{{listing().name}}</h1>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-[10px] font-black uppercase tracking-wider ring-1 ring-purple-100">
-              <ng-icon name="heroCheckBadge" class="text-xs"></ng-icon>
-              Featured
-            </span>
+        <div class="mb-8 flex flex-col gap-6 border-b border-gray-100 pb-6 xl:flex-row xl:items-start xl:justify-between">
+          <div class="flex items-start gap-4">
+            <div class="relative h-14 w-14 overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
+              <img [src]="listing().previewImage" [alt]="listing().name" class="h-full w-full object-cover">
+            </div>
+
+            <div>
+              <div class="flex flex-wrap items-center gap-3">
+                <h1 class="text-[22px] font-semibold tracking-tight text-[#1A1C21] md:text-[24px]">
+                  {{ listing().name }}
+                </h1>
+                @if (listing().isPromoted) {
+                  <span class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-[#1A1C21] shadow-sm">
+                    <span class="text-base leading-none">🚀</span>
+                    Promoted
+                  </span>
+                }
+              </div>
+              <p class="mt-1 text-[15px] text-gray-400">Last updated on: {{ listing().lastUpdated }}</p>
+            </div>
           </div>
-          <div class="flex items-center gap-3">
-            <button class="flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-100">
-              <ng-icon name="heroEye" class="text-lg"></ng-icon>
-              Preview listing
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              (click)="showPromoteListingModal.set(true)"
+              class="inline-flex items-center gap-2 rounded-full bg-[#5E44EE] px-6 py-3 text-sm font-medium text-white shadow-[0_14px_30px_rgba(94,68,238,0.28)] transition-colors hover:bg-[#5036e1]"
+            >
+              <ng-icon name="heroRocketLaunch" class="text-base"></ng-icon>
+              Promote listing
             </button>
-            <button class="p-3 rounded-2xl border border-gray-100 bg-white hover:bg-gray-50 transition-colors text-gray-400 hover:text-gray-600 shadow-sm">
-              <ng-icon name="heroEllipsisVertical" class="text-xl"></ng-icon>
+
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-[#1A1C21] shadow-sm transition-colors hover:bg-gray-50"
+            >
+              <span>Status: <span class="font-medium text-[#F59E0B]">{{ listing().status }}</span></span>
+              <ng-icon name="heroChevronDown" class="text-base text-gray-400"></ng-icon>
+            </button>
+
+            <button
+              type="button"
+              class="inline-flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-700"
+              aria-label="Listing actions"
+            >
+              <ng-icon name="heroEllipsisHorizontal" class="text-xl"></ng-icon>
             </button>
           </div>
         </div>
-      </header>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <!-- Left Content Area -->
-        <div class="lg:col-span-8 space-y-10">
-          
-          <!-- Details View (Gallery + Tabs) -->
-          @if (activeTab() === 'details') {
-            <div class="space-y-10 animate-in fade-in duration-500">
-              <!-- Gallery Section -->
-              <div class="space-y-4">
-                <div class="relative aspect-video bg-gray-50 rounded-4xl overflow-hidden group shadow-sm border border-gray-100 p-1">
-                  <div class="relative w-full h-full rounded-[2.2rem] overflow-hidden">
-                    <img 
-                      [ngSrc]="activeImage()" 
-                      [alt]="listing().name"
-                      fill
-                      class="object-cover transition-transform duration-1000 group-hover:scale-105"
-                      priority
-                    >
+        <div class="mb-7 flex items-center gap-8 border-b border-gray-100">
+          @for (tab of tabs; track tab.id) {
+            <button
+              type="button"
+              (click)="activeTab.set(tab.id)"
+              class="relative flex items-center gap-2 pb-4 text-[15px] font-medium transition-colors"
+              [class.text-[#5E44EE]]="activeTab() === tab.id"
+              [class.text-gray-400]="activeTab() !== tab.id"
+            >
+              <ng-icon [name]="tab.icon" class="text-base"></ng-icon>
+              {{ tab.label }}
+              @if (activeTab() === tab.id) {
+                <span class="absolute bottom-[-1px] left-0 right-0 h-0.5 rounded-full bg-[#5E44EE]"></span>
+              }
+            </button>
+          }
+        </div>
+
+        @if (activeTab() === 'overview') {
+          <div class="space-y-8">
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+              @for (image of listing().gallery; track image.src) {
+                <button
+                  type="button"
+                  (click)="activeImage.set(image.src)"
+                  class="relative overflow-hidden rounded-[22px] bg-[#F5F5F7] transition-all"
+                  [class.ring-2]="activeImage() === image.src"
+                  [class.ring-[#5E44EE]]="activeImage() === image.src"
+                >
+                  <div class="relative aspect-[1/1.15] w-full">
+                    <img [src]="image.src" [alt]="image.alt" class="h-full w-full object-cover">
                   </div>
-                </div>
-                <div class="grid grid-cols-6 gap-3 pt-2">
-                  @for (img of listing().images; track img) {
-                    <button 
-                      (click)="activeImage.set(img)"
-                      class="aspect-square rounded-2xl overflow-hidden border-2 transition-all p-1 relative"
-                      [class.border-purple-600]="activeImage() === img"
-                      [class.border-transparent]="activeImage() !== img"
-                      [class.bg-gray-50]="activeImage() !== img"
-                    >
-                      <div class="relative w-full h-full rounded-xl overflow-hidden">
-                         <img [ngSrc]="img" fill class="object-cover" [alt]="listing().name">
-                      </div>
-                    </button>
-                  }
-                </div>
-              </div>
+                </button>
+              }
+            </div>
 
-              <!-- Product Info Tabs Section -->
+            <div class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_330px]">
               <div class="space-y-8">
-                <div class="flex items-center gap-10 border-b border-gray-100">
-                  <button 
-                    (click)="activeTab.set('details')"
-                    class="pb-5 text-sm font-black transition-all relative"
-                    [class.text-purple-600]="activeTab() === 'details'"
-                    [class.text-gray-400]="activeTab() !== 'details'"
-                  >
-                    Details
-                    @if (activeTab() === 'details') {
-                      <div class="absolute bottom-[-1px] left-0 right-0 h-1 bg-purple-600 rounded-full"></div>
-                    }
-                  </button>
-                  <button 
-                    (click)="activeTab.set('bids')"
-                    class="pb-5 text-sm font-black transition-all relative flex items-center gap-2"
-                    [class.text-purple-600]="activeTab() === 'bids'"
-                    [class.text-gray-400]="activeTab() !== 'bids'"
-                  >
-                    Bids 
-                    <span class="text-[10px] opacity-60">({{bids().length < 10 ? '0' + bids().length : bids().length}})</span>
-                    @if (activeTab() === 'bids') {
-                      <div class="absolute bottom-[-1px] left-0 right-0 h-1 bg-purple-600 rounded-full"></div>
-                    }
-                  </button>
-                  <button 
-                    (click)="activeTab.set('history')"
-                    class="pb-5 text-sm font-black transition-all relative flex items-center gap-2"
-                    [class.text-purple-600]="activeTab() === 'history'"
-                    [class.text-gray-400]="activeTab() !== 'history'"
-                  >
-                    History
-                    <span class="text-[10px] opacity-60">({{history().length < 10 ? '0' + history().length : history().length}})</span>
-                    @if (activeTab() === 'history') {
-                      <div class="absolute bottom-[-1px] left-0 right-0 h-1 bg-purple-600 rounded-full"></div>
-                    }
+                <div>
+                  <h2 class="text-[26px] font-semibold tracking-tight text-[#1A1C21]">{{ listing().name }}</h2>
+                  <div class="mt-2 flex items-center gap-2 text-[15px] text-gray-500">
+                    <ng-icon name="heroMapPin" class="text-base"></ng-icon>
+                    {{ listing().location }}
+                  </div>
+                </div>
+
+                <div class="grid gap-4 rounded-[24px] border border-gray-100 p-5 md:grid-cols-4">
+                  <div class="space-y-2">
+                    <p class="text-[13px] text-gray-400">Date posted</p>
+                    <div class="flex items-center gap-2 text-[15px] font-medium text-[#1A1C21]">
+                      <ng-icon name="heroCalendarDays" class="text-base text-gray-400"></ng-icon>
+                      {{ listing().datePosted }}
+                    </div>
+                  </div>
+                  <div class="space-y-2 border-gray-100 md:border-l md:pl-5">
+                    <p class="text-[13px] text-gray-400">Messages</p>
+                    <div class="flex items-center gap-2 text-[15px] font-medium text-[#1A1C21]">
+                      <ng-icon name="heroChatBubbleLeftRight" class="text-base text-gray-400"></ng-icon>
+                      {{ listing().messages }}
+                    </div>
+                  </div>
+                  <div class="space-y-2 border-gray-100 md:border-l md:pl-5">
+                    <p class="text-[13px] text-gray-400">Views</p>
+                    <div class="flex items-center gap-2 text-[15px] font-medium text-[#1A1C21]">
+                      <ng-icon name="heroEye" class="text-base text-gray-400"></ng-icon>
+                      {{ listing().views }}
+                    </div>
+                  </div>
+                  <div class="space-y-2 border-gray-100 md:border-l md:pl-5">
+                    <p class="text-[13px] text-gray-400">Saves</p>
+                    <div class="flex items-center gap-2 text-[15px] font-medium text-[#1A1C21]">
+                      <ng-icon name="heroHeart" class="text-base text-gray-400"></ng-icon>
+                      {{ listing().saves }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="border-b border-gray-100 pb-8">
+                  <h3 class="mb-4 text-[17px] font-semibold text-[#1A1C21]">Description</h3>
+                  <p class="max-w-3xl text-[15px] leading-8 text-gray-600">
+                    {{ listing().description }}
+                  </p>
+                  <button type="button" class="mt-2 text-[15px] font-medium text-[#1A1C21] underline underline-offset-4">
+                    Show more
                   </button>
                 </div>
 
-                <div class="space-y-10">
-                  <div class="space-y-4">
-                    <h3 class="text-lg font-extrabold text-gray-900 tracking-tight">Description</h3>
-                    <p class="text-gray-500 leading-relaxed text-sm">
-                      {{listing().description}}
-                      <button class="text-purple-600 font-bold hover:underline inline-flex items-center ml-1">Read more</button>
-                    </p>
+                <div>
+                  <h3 class="mb-6 text-[17px] font-semibold text-[#1A1C21]">General details</h3>
+                  <div class="grid gap-y-6 md:grid-cols-[220px_minmax(0,1fr)]">
+                    @for (detail of details(); track detail.label) {
+                      <div class="text-[15px] text-gray-400">{{ detail.label }}</div>
+                      <div class="text-[15px] font-medium text-[#1A1C21]">{{ detail.value }}</div>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <aside class="space-y-6">
+                <div class="rounded-[28px] border border-gray-100 bg-white p-6 shadow-sm">
+                  <div class="flex items-start justify-between border-b border-gray-100 pb-5">
+                    <div>
+                      <p class="mb-2 text-[13px] text-gray-400">Price</p>
+                      <p class="text-[21px] font-semibold text-[#1A1C21]">₦{{ listing().price }}</p>
+                    </div>
+                    <button type="button" class="text-gray-500 transition-colors hover:text-gray-700" aria-label="Edit listing price">
+                      <ng-icon name="heroTag" class="text-xl"></ng-icon>
+                    </button>
                   </div>
 
-                  <div class="space-y-4">
-                    <h3 class="text-lg font-extrabold text-gray-900 tracking-tight">Specifications</h3>
-                    <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden divide-y divide-gray-50 shadow-sm">
-                      @for (spec of specifications(); track spec.label) {
-                        <div class="flex items-center justify-between px-8 py-5">
-                          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{spec.label}}</span>
-                          <span class="text-sm font-bold text-gray-900">{{spec.value}}</span>
+                  <div class="pt-5">
+                    <p class="mb-4 text-[13px] text-gray-400">Store</p>
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 overflow-hidden rounded-full bg-[#E7F1EA]">
+                          <img [src]="listing().store.logo" [alt]="listing().store.name" class="h-full w-full object-cover">
                         </div>
-                      }
+                        <div class="flex items-center gap-1.5">
+                          <span class="text-[15px] font-medium text-[#1A1C21]">{{ listing().store.name }}</span>
+                          <span class="text-[#5E44EE]">✦</span>
+                        </div>
+                      </div>
+                      <button type="button" class="text-gray-500 transition-colors hover:text-gray-700" aria-label="Open store">
+                        <ng-icon name="heroArrowTopRightOnSquare" class="text-xl"></ng-icon>
+                      </button>
                     </div>
                   </div>
                 </div>
-              </div>
+              </aside>
             </div>
-          }
+          </div>
+        }
 
-          <!-- Bids Tab View -->
-          @if (activeTab() === 'bids') {
-            <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <!-- Header copy from image -->
-               <div class="flex items-center gap-10 border-b border-gray-100">
-                  <button (click)="activeTab.set('details')" class="pb-5 text-sm font-black text-gray-400">Details</button>
-                  <button class="pb-5 text-sm font-black text-purple-600 relative flex items-center gap-2">
-                    Bids <span class="text-[10px] opacity-60">(04)</span>
-                    <div class="absolute bottom-[-1px] left-0 right-0 h-1 bg-purple-600 rounded-full"></div>
-                  </button>
-                  <button (click)="activeTab.set('history')" class="pb-5 text-sm font-black text-gray-400 flex items-center gap-2">
-                    History <span class="text-[10px] opacity-60">(02)</span>
-                  </button>
-               </div>
-
-               <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
-                  <table class="w-full text-left">
-                    <thead>
-                      <tr class="bg-gray-50/50 text-gray-400 text-[10px] uppercase font-bold tracking-widest">
-                        <th class="px-8 py-5 w-20">S/N</th>
-                        <th class="px-8 py-5">Name</th>
-                        <th class="px-8 py-5 text-right">Offer (Net price)</th>
-                        <th class="px-8 py-5">Date</th>
-                        <th class="px-8 py-5">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                      @for (bid of bids(); track bid.id; let i = $index) {
-                        <tr class="group hover:bg-gray-50/50 transition-colors">
-                          <td class="px-8 py-6 text-sm font-bold text-gray-400">{{i + 1 < 10 ? '0' + (i + 1) : i + 1}}</td>
-                          <td class="px-8 py-6">
-                            <div class="flex items-center gap-4">
-                              <div class="w-9 h-9 rounded-full bg-gray-100 overflow-hidden ring-2 ring-gray-50 group-hover:ring-white transition-all">
-                                <img [src]="bid.avatar" class="w-full h-full object-cover">
-                              </div>
-                              <span class="text-sm font-bold text-gray-900">{{bid.user}}</span>
-                            </div>
-                          </td>
-                          <td class="px-8 py-6 text-sm font-black text-gray-900 text-right">₦{{bid.amount | number:'1.2-2'}}</td>
-                          <td class="px-8 py-6 text-xs font-medium text-gray-400">{{bid.date}}</td>
-                          <td class="px-8 py-6">
-                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full w-fit"
-                              [class.bg-green-50]="bid.status === 'Processed'"
-                              [class.text-green-600]="bid.status === 'Processed'"
-                              [class.bg-purple-50]="bid.status === 'Pending'"
-                              [class.text-purple-600]="bid.status === 'Pending'"
-                              [class.bg-red-50]="bid.status === 'Declined'"
-                              [class.text-red-600]="bid.status === 'Declined'"
-                            >
-                               <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                               <span class="text-[10px] font-black uppercase tracking-wider">{{bid.status}}</span>
-                            </div>
-                          </td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                  <div class="px-8 py-5 border-t border-gray-50 flex items-center justify-between">
-                     <span class="text-xs text-gray-400 font-medium">1-4 of 4 bids</span>
-                     <div class="flex items-center gap-4">
-                        <button class="text-gray-300 cursor-not-allowed"><ng-icon name="heroArrowLeft"></ng-icon></button>
-                        <button class="text-gray-300 cursor-not-allowed"><ng-icon name="heroChevronRight"></ng-icon></button>
-                     </div>
-                  </div>
-               </div>
+        @if (activeTab() === 'requests') {
+          <div class="space-y-4">
+            <div class="rounded-[24px] border border-gray-100 bg-[#FAFAFA] p-5">
+              <h3 class="text-[17px] font-semibold text-[#1A1C21]">Buyer requests</h3>
+              <p class="mt-1 text-[14px] text-gray-400">Incoming questions and offers for this listing.</p>
             </div>
-          }
 
-          <!-- History Tab View -->
-          @if (activeTab() === 'history') {
-            <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div class="flex items-center gap-10 border-b border-gray-100">
-                  <button (click)="activeTab.set('details')" class="pb-5 text-sm font-black text-gray-400">Details</button>
-                  <button (click)="activeTab.set('bids')" class="pb-5 text-sm font-black text-gray-400 flex items-center gap-2">
-                    Bids <span class="text-[10px] opacity-60">(04)</span>
-                  </button>
-                  <button class="pb-5 text-sm font-black text-purple-600 relative flex items-center gap-2">
-                    History <span class="text-[10px] opacity-60">(02)</span>
-                    <div class="absolute bottom-[-1px] left-0 right-0 h-1 bg-purple-600 rounded-full"></div>
-                  </button>
-               </div>
-
-               <div class="space-y-0 divide-y divide-gray-50">
-                  @for (item of history(); track item.id) {
-                    <div class="flex items-center gap-5 py-6 px-4 hover:bg-gray-50/50 rounded-2xl transition-all group">
-                      <div class="w-12 h-12 rounded-full overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
-                        <img [src]="item.avatar" class="w-full h-full object-cover">
+            @for (request of requests(); track request.id) {
+              <div class="rounded-[24px] border border-gray-100 p-5 transition-colors hover:bg-gray-50">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex items-start gap-3">
+                    <div class="h-11 w-11 overflow-hidden rounded-full bg-gray-100">
+                      <img [src]="request.avatar" [alt]="request.buyer" class="h-full w-full object-cover">
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <p class="text-[15px] font-medium text-[#1A1C21]">{{ request.buyer }}</p>
+                        <span
+                          class="rounded-full px-2 py-1 text-[10px] font-medium"
+                          [class.bg-[#EEFCEB]]="request.status === 'New'"
+                          [class.text-[#2F9E44]]="request.status === 'New'"
+                          [class.bg-[#F4F3FF]]="request.status === 'Responded'"
+                          [class.text-[#5E44EE]]="request.status === 'Responded'"
+                        >
+                          {{ request.status }}
+                        </span>
                       </div>
-                      <div class="flex-1">
-                        <p class="text-sm">
-                          <span class="font-extrabold text-gray-900 group-hover:text-purple-600 transition-colors">{{item.user}}</span>
-                          <span class="text-gray-500 ml-2">{{item.action}}</span>
-                        </p>
-                        <p class="text-xs font-medium text-gray-300 mt-1.5 uppercase tracking-wide">{{item.date}}</p>
+                      <p class="mt-1 text-[14px] leading-6 text-gray-500">{{ request.message }}</p>
+                      <div class="mt-3 flex items-center gap-6 text-[13px] text-gray-400">
+                        <span>{{ request.time }}</span>
+                        <span>Offer: {{ request.offer }}</span>
                       </div>
                     </div>
-                  }
-               </div>
-            </div>
-          }
-        </div>
-
-        <!-- Sidebar Section -->
-        <aside class="lg:col-span-4 space-y-8">
-          
-          <!-- Listing QR Code Card -->
-          <div class="bg-white border border-gray-100 rounded-4xl p-8 shadow-sm space-y-8">
-            <div class="flex items-center justify-between px-2">
-              <h4 class="text-[10px] font-black text-gray-300 uppercase tracking-widest">Listing Code</h4>
-              <button class="text-gray-300 hover:text-purple-600 transition-colors">
-                <ng-icon name="heroSquare2Stack" class="text-lg"></ng-icon>
-              </button>
-            </div>
-            <div class="flex justify-center">
-              <div class="w-48 h-48 bg-gray-50/80 rounded-[2.5rem] flex items-center justify-center border border-dashed border-gray-200/50 p-4 transition-all hover:bg-white hover:shadow-xl hover:shadow-purple-500/5 group">
-                <div class="p-5 bg-white rounded-[2rem] shadow-sm transform group-hover:scale-105 transition-transform duration-500">
-                   <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=listing-123" width="110" height="110" alt="QR Code">
-                </div>
-              </div>
-            </div>
-            <div class="text-center">
-              <p class="text-[10px] text-gray-300 font-bold uppercase tracking-widest mb-1.5">Scan to view listing on mobile</p>
-              <p class="text-sm font-black text-gray-900 tracking-tight">#DUDU-2309-X</p>
-            </div>
-          </div>
-
-          <!-- Price & Stock Card -->
-          <div class="bg-black rounded-4xl p-10 text-white shadow-2xl shadow-purple-900/15 relative overflow-hidden group">
-            <div class="relative z-10 space-y-8">
-              <div class="space-y-2">
-                <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Price Tag</p>
-                <h2 class="text-4xl font-extrabold tracking-tight">₦4,500,000</h2>
-              </div>
-              
-              <div class="pt-8 border-t border-white/10 flex items-center justify-between">
-                <div class="space-y-1">
-                   <p class="text-[10px] font-bold text-white/30 uppercase tracking-widest">Quantity</p>
-                   <p class="text-sm font-black">120 Units</p>
-                </div>
-                <div class="text-right space-y-1">
-                   <p class="text-[10px] font-bold text-white/30 uppercase tracking-widest text-right">Status</p>
-                   <div class="flex items-center gap-2 justify-end">
-                      <span class="w-1.5 h-1.5 rounded-full bg-green-400 shadow-sm shadow-green-400"></span>
-                      <p class="text-sm font-black text-green-400 uppercase tracking-wider">Available</p>
-                   </div>
-                </div>
-              </div>
-            </div>
-            <!-- Glow aesthetic -->
-            <div class="absolute -right-16 -top-16 w-56 h-56 bg-purple-600/20 rounded-full blur-[80px] group-hover:bg-purple-600/30 transition-all duration-700"></div>
-          </div>
-
-          <!-- Seller Info Card -->
-          <div class="bg-gray-50/50 border border-gray-100 rounded-4xl p-8 space-y-8 shadow-sm">
-            <div class="flex items-center gap-5">
-              <div class="w-14 h-14 rounded-full bg-purple-600 flex items-center justify-center text-2xl font-black text-white shadow-xl shadow-purple-500/20 ring-4 ring-white">
-                T
-              </div>
-              <div class="space-y-1.5">
-                <h4 class="text-base font-black text-gray-900 tracking-tight leading-none">The Vine Collections</h4>
-                <div class="flex items-center gap-2">
-                  <div class="flex text-yellow-400 text-[10px] drop-shadow-sm">
-                    ★ ★ ★ ★ ★
                   </div>
-                  <span class="text-[10px] font-black text-gray-300 uppercase">(4.8)</span>
                 </div>
               </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-              <button class="bg-white border border-gray-200 px-4 py-3.5 rounded-2xl text-[10px] font-black text-gray-900 uppercase tracking-widest hover:bg-gray-50 hover:shadow-sm transition-all">
-                View store
-              </button>
-              <button class="bg-white border border-gray-200 px-4 py-3.5 rounded-2xl text-[10px] font-black text-gray-900 uppercase tracking-widest hover:bg-gray-50 hover:shadow-sm transition-all">
-                Contact seller
-              </button>
-            </div>
-
-            <div class="flex items-center gap-2.5 px-2">
-               <ng-icon name="heroInformationCircle" class="text-xl text-gray-300"></ng-icon>
-               <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Verified Business since 2022</span>
-            </div>
+            }
           </div>
+        }
 
-        </aside>
+        @if (activeTab() === 'activities') {
+          <div class="space-y-4">
+            <div class="rounded-[24px] border border-gray-100 bg-[#FAFAFA] p-5">
+              <h3 class="text-[17px] font-semibold text-[#1A1C21]">Listing activities</h3>
+              <p class="mt-1 text-[14px] text-gray-400">Recent actions and changes made on this listing.</p>
+            </div>
+
+            @for (activity of activities(); track activity.id) {
+              <div class="rounded-[24px] border border-gray-100 p-5 transition-colors hover:bg-gray-50">
+                <div class="flex items-start gap-4">
+                  <div class="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F4F3FF] text-[#5E44EE]">
+                    <ng-icon name="heroClipboardDocumentList" class="text-lg"></ng-icon>
+                  </div>
+                  <div>
+                    <p class="text-[15px] font-medium text-[#1A1C21]">{{ activity.title }}</p>
+                    <p class="mt-1 text-[14px] leading-6 text-gray-500">{{ activity.description }}</p>
+                    <p class="mt-3 text-[13px] text-gray-400">{{ activity.time }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
       </div>
     </div>
+
+    @if (showPromoteListingModal()) {
+      <app-promote-listing-modal
+        (close)="showPromoteListingModal.set(false)"
+        (promoted)="markListingAsPromoted()"
+      ></app-promote-listing-modal>
+    }
   `,
   styles: [`
     :host {
       display: block;
     }
-    .animate-in {
-      animation: animateIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes animateIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
   `],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListingDetailsPageComponent {
   private readonly route = inject(ActivatedRoute);
-  
-  protected readonly listingId = computed(() => this.route.snapshot.paramMap.get('id'));
-  
-  protected readonly activeTab = signal<'details' | 'bids' | 'history'>('details');
-  
+
+  protected readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? '1');
+  protected readonly activeTab = signal<'overview' | 'requests' | 'activities'>('overview');
+  protected readonly showPromoteListingModal = signal(false);
+
   protected readonly listing = signal({
-    name: 'Iphone 12 pro max',
-    description: 'Ultimate power and sophisticated design collide in the iPhone 12 Pro Max, featuring a stunning 6.7-inch Super Retina XDR display, advanced A14 Bionic chip, and a pro-grade triple-camera system for breathtaking photos and Dolby Vision HDR video recording. This device offers everything you need for work and play.',
-    images: [
-      'https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=1000&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=1000&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1603919114330-22c608149887?w=1000&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1616348436168-de43ad0db179?w=1000&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1537498425277-c283d32ef9db?w=1000&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1611186871348-b1ec696e52c9?w=1000&h=800&fit=crop'
-    ],
-    price: 4500000.00,
-    quantity: 120,
-    weight: '228g',
+    id: this.listingId(),
+    name: 'Iphone 17 pro max',
+    previewImage: 'https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=240&h=240&fit=crop',
+    lastUpdated: '24 January, 2026',
+    isPromoted: true,
     status: 'Available',
-    shipping: 'Pickup only',
-    location: 'Ikeja, Lagos'
+    location: 'Ikeja, Lagos',
+    datePosted: '14 Feb, 2026',
+    messages: 12,
+    views: '3,990',
+    saves: 200,
+    price: '2,500,000',
+    description: 'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Battery health is strong and the device comes exactly as shown in the photos.',
+    gallery: [
+      {
+        src: 'https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=700&h=820&fit=crop',
+        alt: 'Iphone front view',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=700&h=820&fit=crop',
+        alt: 'Iphone camera close up',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1603919114330-22c608149887?w=700&h=820&fit=crop',
+        alt: 'Iphone in the box',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1616348436168-de43ad0db179?w=700&h=820&fit=crop',
+        alt: 'Iphone display image',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=700&h=820&fit=crop',
+        alt: 'Iphone angled view',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=700&h=820&fit=crop',
+        alt: 'Iphone side angle',
+      },
+    ],
+    store: {
+      name: 'The Vine Collections',
+      logo: 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png',
+    },
   });
 
-  protected readonly activeImage = signal(this.listing().images[0]);
+  protected readonly activeImage = signal(this.listing().gallery[0].src);
 
-  protected readonly specifications = computed(() => [
-    { label: 'Product Name', value: this.listing().name },
-    { label: 'Price Tag', value: `₦${this.listing().price.toLocaleString()}` },
-    { label: 'Quantity', value: `${this.listing().quantity} Units` },
-    { label: 'Weight', value: this.listing().weight },
-    { label: 'Status', value: this.listing().status },
-    { label: 'Shipping type', value: this.listing().shipping },
-    { label: 'Location', value: this.listing().location },
+  protected readonly tabs = [
+    { id: 'overview' as const, label: 'Overview', icon: 'heroSquare3Stack3d' },
+    { id: 'requests' as const, label: 'Requests', icon: 'heroChatBubbleLeftRight' },
+    { id: 'activities' as const, label: 'Activities', icon: 'heroClipboardDocumentList' },
+  ];
+
+  protected readonly details = computed(() => [
+    { label: 'Category', value: 'Electronics/Phones & Tablets' },
+    { label: 'Condition', value: 'Used' },
+    { label: 'Location', value: 'Ikeja, Lagos' },
+    { label: 'Delivery options', value: 'Nationwide' },
+    { label: 'WhatsApp number', value: '08169397454' },
+    { label: 'Call number', value: '08169397454' },
+    { label: 'Accept offers', value: 'Yes' },
   ]);
 
-  protected readonly bids = signal<Bid[]>([
+  protected readonly requests = signal<SellerListingRequest[]>([
     {
-      id: '1',
-      user: 'Ade Mike',
-      amount: 4200000.00,
-      date: '23 oct 2023 | 05:22pm',
-      status: 'Processed',
-      avatar: 'https://i.pravatar.cc/150?u=ade'
+      id: 'r1',
+      buyer: 'John Okafor',
+      avatar: 'https://i.pravatar.cc/100?u=john-okafor',
+      message: 'Hi, is this still available? I would like to know if you can do a better price.',
+      time: 'Today, 7:50 pm',
+      offer: '₦2,350,000',
+      status: 'New',
     },
     {
-      id: '2',
-      user: 'Joshua Davids',
-      amount: 4200000.00,
-      date: '23 oct 2023 | 05:22pm',
-      status: 'Pending',
-      avatar: 'https://i.pravatar.cc/150?u=joshua'
+      id: 'r2',
+      buyer: 'Amaka Eze',
+      avatar: 'https://i.pravatar.cc/100?u=amaka-eze',
+      message: 'Can you deliver to Lekki tomorrow morning? I am interested and ready to pay immediately.',
+      time: 'Yesterday, 5:12 pm',
+      offer: '₦2,500,000',
+      status: 'Responded',
     },
-    {
-      id: '3',
-      user: 'Abigail Jackson',
-      amount: 4200000.00,
-      date: '23 oct 2023 | 05:22pm',
-      status: 'Declined',
-      avatar: 'https://i.pravatar.cc/150?u=abigail'
-    },
-    {
-      id: '4',
-      user: 'Samuel Johnson',
-      amount: 4200000.00,
-      date: '23 oct 2023 | 05:22pm',
-      status: 'Pending',
-      avatar: 'https://i.pravatar.cc/150?u=samuel'
-    }
   ]);
 
-  protected readonly history = signal<Activity[]>([
+  protected readonly activities = signal<SellerListingActivity[]>([
     {
-      id: '1',
-      user: 'The Vine Collections',
-      action: 'updated the price of the listing',
-      date: '23 oct 2023 | 05:22pm',
-      avatar: 'https://i.pravatar.cc/150?u=vine'
+      id: 'a1',
+      title: 'Listing promoted successfully',
+      description: 'Your listing started running as a promoted ad across search and category pages.',
+      time: '24 January, 2026 at 10:32 AM',
     },
     {
-      id: '2',
-      user: 'Admin',
-      action: 'featured this listing',
-      date: '22 oct 2023 | 11:15am',
-      avatar: 'https://i.pravatar.cc/150?u=admin'
-    }
+      id: 'a2',
+      title: 'Price updated',
+      description: 'You changed the listing price from ₦2,700,000 to ₦2,500,000.',
+      time: '22 January, 2026 at 4:11 PM',
+    },
+    {
+      id: 'a3',
+      title: 'Listing created',
+      description: 'This listing was published and made visible to buyers on Duduzili.',
+      time: '14 February, 2026 at 9:08 AM',
+    },
   ]);
+
+  protected markListingAsPromoted() {
+    this.listing.update((listing) => ({
+      ...listing,
+      isPromoted: true,
+    }));
+  }
 }

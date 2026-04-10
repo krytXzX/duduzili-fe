@@ -2,11 +2,16 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  heroBanknotes,
   heroChevronDown,
   heroChevronLeft,
   heroChevronRight,
+  heroBuildingLibrary,
+  heroClipboardDocument,
   heroMagnifyingGlass,
   heroPlus,
+  heroUser,
+  heroXMark,
 } from '@ng-icons/heroicons/outline';
 
 type WalletStatus = 'successful' | 'failed';
@@ -32,6 +37,11 @@ interface WalletTransaction {
       heroChevronRight,
       heroMagnifyingGlass,
       heroPlus,
+      heroXMark,
+      heroClipboardDocument,
+      heroBuildingLibrary,
+      heroUser,
+      heroBanknotes,
     }),
   ],
   template: `
@@ -41,6 +51,7 @@ interface WalletTransaction {
 
         <button
           type="button"
+          (click)="isFundWalletModalOpen.set(true)"
           class="inline-flex items-center gap-2 self-start rounded-full bg-[#6653E4] px-5 py-3 text-[13px] font-semibold text-white shadow-[0_14px_28px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
         >
           <ng-icon name="heroPlus" class="text-sm"></ng-icon>
@@ -158,11 +169,119 @@ interface WalletTransaction {
         </div>
       </div>
     </div>
+
+    @if (isFundWalletModalOpen()) {
+      <div
+        class="fixed inset-0 z-[220] flex items-center justify-center bg-black/20 p-4 backdrop-blur-[2px]"
+        (click)="isFundWalletModalOpen.set(false)"
+      >
+        <div
+          class="w-full max-w-[560px] rounded-[28px] bg-white px-6 py-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:px-8 sm:py-7"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <h2 class="text-[22px] font-black tracking-tight text-[#1A1C21]">Fund wallet</h2>
+
+            <button
+              type="button"
+              (click)="isFundWalletModalOpen.set(false)"
+              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] shadow-sm transition hover:bg-[#EFEFF2]"
+              aria-label="Close fund wallet modal"
+            >
+              <ng-icon name="heroXMark" class="text-xl"></ng-icon>
+            </button>
+          </div>
+
+          <div class="mt-8 overflow-hidden rounded-[24px] bg-[#FCFCFD] p-5 shadow-[inset_0_0_0_1px_rgba(236,238,243,1)]">
+            <p class="max-w-[360px] text-[14px] font-medium leading-7 text-[#5E636D]">
+              Transfer to the account details below and your wallet will be funded instantly ⚡
+            </p>
+
+            <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_132px] lg:items-end">
+              <div class="space-y-6">
+                <div class="flex items-center gap-4">
+                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#F2F3F5] text-[#555A64]">
+                    <ng-icon name="heroClipboardDocument" class="text-xl"></ng-icon>
+                  </div>
+                  <div>
+                    <p class="text-[14px] font-medium text-[#9DA2AB]">Account number</p>
+                    <div class="mt-1 flex items-center gap-2">
+                      <span class="text-[21px] font-medium tracking-tight text-[#20242B]">3105500602</span>
+                      <button
+                        type="button"
+                        class="text-[#6B5CF0] transition hover:text-[#5945DB]"
+                        aria-label="Copy account number"
+                      >
+                        <ng-icon name="heroClipboardDocument" class="text-lg"></ng-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#F2F3F5] text-[#555A64]">
+                    <ng-icon name="heroBuildingLibrary" class="text-xl"></ng-icon>
+                  </div>
+                  <div>
+                    <p class="text-[14px] font-medium text-[#9DA2AB]">Bank name</p>
+                    <p class="mt-1 text-[17px] font-medium tracking-tight text-[#20242B]">Wema Bank</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#F2F3F5] text-[#555A64]">
+                    <ng-icon name="heroUser" class="text-xl"></ng-icon>
+                  </div>
+                  <div>
+                    <p class="text-[14px] font-medium text-[#9DA2AB]">Name</p>
+                    <p class="mt-1 text-[17px] font-medium tracking-tight text-[#20242B]">Bryan Odjede</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="relative mx-auto h-[126px] w-[132px]">
+                <div class="absolute right-0 top-5 h-[86px] w-[104px] rounded-[18px] bg-linear-to-br from-[#7D6AF6] to-[#5C44DF] shadow-[0_22px_30px_-20px_rgba(92,68,223,0.7)]"></div>
+                <div class="absolute right-[20px] top-0 h-12 w-12 rotate-[45deg] rounded-[10px] bg-[#7D6AF6]"></div>
+                <div class="absolute right-[82px] top-[18px] h-8 w-8 rounded-full border border-[#DADCF4] bg-white/70"></div>
+                <div class="absolute right-[58px] top-[18px] h-8 w-8 rounded-full border border-[#DADCF4] bg-white/50"></div>
+                <div class="absolute right-[60px] top-[56px] flex h-7 w-12 items-center justify-center rounded-[8px] bg-[#E9EAF5] text-[#666B74] shadow-sm">
+                  <span class="h-2.5 w-2.5 rounded-full bg-[#8F96A3]"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="my-7 flex items-center gap-4 text-[#7D828B]">
+            <span class="h-px flex-1 bg-[#E7EAF0]"></span>
+            <span class="text-[14px] font-medium">OR</span>
+            <span class="h-px flex-1 bg-[#E7EAF0]"></span>
+          </div>
+
+          <button
+            type="button"
+            class="flex w-full items-center justify-between rounded-[22px] border border-[#ECEEF3] bg-white px-5 py-4 text-left transition hover:bg-[#FAFAFC]"
+          >
+            <div class="flex items-center gap-4">
+              <div class="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#F2F3F5] text-[#4D8DF7]">
+                <ng-icon name="heroBanknotes" class="text-xl"></ng-icon>
+              </div>
+              <div>
+                <p class="text-[16px] font-semibold text-[#20242B]">Pay online</p>
+                <p class="mt-1 text-[14px] font-medium text-[#9DA2AB]">Fund your wallet via Paystack</p>
+              </div>
+            </div>
+
+            <span class="text-[24px] font-light text-[#8C919A]">›</span>
+          </button>
+        </div>
+      </div>
+    }
   `,
   host: { class: 'block h-full' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WalletPageComponent {
+  readonly isFundWalletModalOpen = signal(false);
   readonly transactions = signal<WalletTransaction[]>([
     {
       id: 'wallet-1',

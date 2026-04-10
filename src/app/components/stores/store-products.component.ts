@@ -39,12 +39,13 @@ import { heroPlus, heroChevronDown } from '@ng-icons/heroicons/outline';
               (click)="activeFilter.set(filter)"
               class="px-5 py-2.5 rounded-full text-[13px] font-bold transition-all whitespace-nowrap border"
               [class.bg-purple-600]="activeFilter() === filter"
+              [class.hover:bg-purple-700]="activeFilter() === filter"
               [class.text-white]="activeFilter() === filter"
               [class.border-purple-600]="activeFilter() === filter"
               [class.bg-white]="activeFilter() !== filter"
+              [class.hover:bg-gray-50]="activeFilter() !== filter"
               [class.text-[#1A1C21]]="activeFilter() !== filter"
               [class.border-gray-100]="activeFilter() !== filter"
-              [class.hover:bg-gray-50]="activeFilter() !== filter"
             >
               {{ filter }}
               @if (filter === 'All products') {
@@ -65,7 +66,7 @@ import { heroPlus, heroChevronDown } from '@ng-icons/heroicons/outline';
               
               <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                 @for (product of category.items; track product.id) {
-                  <app-listing-card [listing]="product"></app-listing-card>
+                  <app-listing-card [listing]="product" [listingRoute]="['/listings']" [showFavorite]="false"></app-listing-card>
                 }
               </div>
             </div>

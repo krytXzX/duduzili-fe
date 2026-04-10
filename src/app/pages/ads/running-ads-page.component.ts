@@ -146,7 +146,7 @@ interface RunningAd {
 
               <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 @for (store of promotedStores(); track store.id) {
-                  <app-store-card [store]="store"></app-store-card>
+                  <app-store-card [store]="store" [showFavorite]="false"></app-store-card>
                 }
               </div>
             </section>

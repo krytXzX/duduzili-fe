@@ -16,10 +16,9 @@ import { heroClock, heroStar } from '@ng-icons/heroicons/outline';
         @for (tab of tabs; track tab.id) {
           <button 
             (click)="selectTab(tab.id)"
-            class="pb-4 pt-2 px-1 relative text-sm font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2"
+            class="pb-4 pt-2 px-1 relative text-sm font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2 hover:text-gray-600"
             [class.text-purple-600]="activeTab() === tab.id"
             [class.text-gray-400]="activeTab() !== tab.id"
-            [class.hover:text-gray-600]="activeTab() !== tab.id"
           >
             <ng-icon [name]="tab.icon" class="text-lg"></ng-icon>
             {{ tab.label }}
@@ -55,4 +54,3 @@ export class StoreTabsComponent {
     this.tabChange.emit(id);
   }
 }
-

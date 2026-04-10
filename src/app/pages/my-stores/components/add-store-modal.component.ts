@@ -71,14 +71,13 @@ import { heroXMark, heroCamera, heroCheck } from '@ng-icons/heroicons/outline';
                     <button 
                       type="button"
                       (click)="toggleCategory(cat)"
-                      class="px-5 py-2.5 rounded-full text-xs font-bold transition-all border select-none scale-100 active:scale-95"
+                      class="scale-100 select-none rounded-full border px-5 py-2.5 text-xs font-bold transition-all hover:border-purple-200 active:scale-95"
                       [class.bg-purple-600]="isSelected(cat)"
                       [class.text-white]="isSelected(cat)"
                       [class.border-purple-600]="isSelected(cat)"
                       [class.bg-[#fcfcfc]]="!isSelected(cat)"
                       [class.text-gray-500]="!isSelected(cat)"
                       [class.border-gray-100]="!isSelected(cat)"
-                      [class.hover:border-purple-200]="!isSelected(cat)"
                     >
                       @if (isSelected(cat)) {
                         <ng-icon name="heroCheck" class="mr-1 inline-block"></ng-icon>

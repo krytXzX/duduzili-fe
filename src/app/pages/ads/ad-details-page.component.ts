@@ -208,9 +208,9 @@ interface AdDetail {
       </div>
 
       <div
-        class="mt-8 grid gap-4 border-y border-[#F0F1F4] py-5"
-        [class.md:grid-cols-4]="ad().metrics.length === 4"
-        [class.md:grid-cols-3]="ad().metrics.length === 3"
+        [class]="ad().metrics.length === 4
+          ? 'mt-8 grid gap-4 border-y border-[#F0F1F4] py-5 md:grid-cols-4'
+          : 'mt-8 grid gap-4 border-y border-[#F0F1F4] py-5 md:grid-cols-3'"
       >
         @for (metric of ad().metrics; track metric.label) {
           <div class="border-[#F0F1F4] md:border-r last:border-r-0 md:pr-5">
