@@ -143,6 +143,88 @@ export const routes: Routes = [
             (m) => m.AdminListingDetailsPageComponent
           ),
       },
+      {
+        path: 'ads',
+        pathMatch: 'full',
+        redirectTo: 'ads/plans',
+      },
+      {
+        path: 'ads/plans',
+        loadComponent: () =>
+          import('./pages/admin/admin-ads-plans-page.component').then(
+            (m) => m.AdminAdsPlansPageComponent
+          ),
+      },
+      {
+        path: 'ads/running',
+        loadComponent: () =>
+          import('./pages/admin/admin-running-ads-page.component').then(
+            (m) => m.AdminRunningAdsPageComponent
+          ),
+      },
+      {
+        path: 'ads/approvals',
+        loadComponent: () =>
+          import('./pages/admin/admin-ads-approvals-page.component').then(
+            (m) => m.AdminAdsApprovalsPageComponent
+          ),
+      },
+      {
+        path: 'ads/transactions',
+        loadComponent: () =>
+          import('./pages/admin/admin-ads-transactions-page.component').then(
+            (m) => m.AdminAdsTransactionsPageComponent
+          ),
+      },
+      {
+        path: 'kyc-requests',
+        loadComponent: () =>
+          import('./pages/admin/admin-kyc-requests-page.component').then(
+            (m) => m.AdminKycRequestsPageComponent
+          ),
+      },
+      {
+        path: 'reports',
+        loadComponent: () =>
+          import('./pages/admin/admin-reports-page.component').then(
+            (m) => m.AdminReportsPageComponent
+          ),
+      },
+      {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./pages/admin/admin-analytics-page.component').then(
+            (m) => m.AdminAnalyticsPageComponent
+          ),
+      },
+      {
+        path: 'audit-log',
+        loadComponent: () =>
+          import('./pages/admin/admin-audit-log-page.component').then(
+            (m) => m.AdminAuditLogPageComponent
+          ),
+      },
+      {
+        path: 'team-management',
+        loadComponent: () =>
+          import('./pages/admin/admin-team-management-page.component').then(
+            (m) => m.AdminTeamManagementPageComponent
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./pages/settings/settings-page.component').then(
+            (m) => m.SettingsPageComponent
+          ),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./pages/notifications/notifications-page.component').then(
+            (m) => m.NotificationsPageComponent
+          ),
+      },
     ],
   },
   // Dashboard Routes
@@ -244,8 +326,8 @@ export const routes: Routes = [
       {
         path: 'analytics',
         loadComponent: () =>
-          import('./pages/analytics/analytics-page.component').then(
-            (m) => m.AnalyticsPageComponent
+          import('./pages/admin/admin-analytics-page.component').then(
+            (m) => m.AdminAnalyticsPageComponent
           ),
       },
       {

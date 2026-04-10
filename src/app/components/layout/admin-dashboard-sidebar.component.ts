@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroBell,
   heroChartBar,
   heroChevronDown,
+  heroChevronUp,
   heroCog6Tooth,
   heroFlag,
   heroHome,
@@ -24,6 +25,7 @@ import {
       heroBell,
       heroChartBar,
       heroChevronDown,
+      heroChevronUp,
       heroCog6Tooth,
       heroFlag,
       heroHome,
@@ -72,27 +74,81 @@ import {
             <ng-icon name="heroSquares2x2" class="text-lg text-gray-400"></ng-icon>
             Stores
           </a>
-          <button
-            type="button"
-            (click)="isAdsExpanded.set(!isAdsExpanded())"
-            class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
-          >
-            <span class="flex items-center gap-3">
-              <ng-icon name="heroMegaphone" class="text-lg text-gray-400"></ng-icon>
-              Ads management
-            </span>
-            <ng-icon name="heroChevronDown" class="text-base text-gray-400"></ng-icon>
-          </button>
-          @if (isAdsExpanded()) {
-            <div class="ml-7 flex flex-col gap-2 border-l border-gray-200 pl-5">
-              <a routerLink="/admin/ads/banner-promotions" class="py-1.5 text-sm font-medium text-gray-400 transition hover:text-gray-700">
-                Banner promotions
-              </a>
-              <a routerLink="/admin/ads/plans" class="py-1.5 text-sm font-medium text-gray-400 transition hover:text-gray-700">
-                Plans
-              </a>
-            </div>
-          }
+          <div class="flex flex-col">
+            <button
+              type="button"
+              (click)="isAdsExpanded.set(!isAdsExpanded())"
+              [attr.aria-expanded]="isAdsExpanded()"
+              aria-controls="admin-ads-management-menu"
+              class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
+            >
+              <span class="flex items-center gap-3">
+                <ng-icon name="heroMegaphone" class="text-lg text-gray-400"></ng-icon>
+                Ads management
+              </span>
+              <ng-icon [name]="isAdsExpanded() ? 'heroChevronUp' : 'heroChevronDown'" class="text-base text-gray-400"></ng-icon>
+            </button>
+            @if (isAdsExpanded()) {
+              <div
+                id="admin-ads-management-menu"
+                class="mt-1 ml-[11px] flex flex-col border-l border-[#f0f0f0] pl-2"
+              >
+                <a
+                  routerLink="/admin/ads/plans"
+                  class="flex min-h-12 items-center rounded-full px-4 text-left text-[15px] font-medium transition-colors"
+                  [class.bg-[#f8f8f8]]="isAdsItemActive('plans')"
+                  [class.text-[#1A1C21]]="isAdsItemActive('plans')"
+                  [class.text-[#5e5e5e]]="!isAdsItemActive('plans')"
+                  [class.hover:text-[#1A1C21]]="!isAdsItemActive('plans')"
+                >
+                  Plans
+                </a>
+                <a
+                  routerLink="/admin/ads/running"
+                  class="flex min-h-12 items-center rounded-full px-4 text-left text-[15px] font-medium transition-colors"
+                  [class.bg-[#f8f8f8]]="isAdsItemActive('running-ads')"
+                  [class.text-[#1A1C21]]="isAdsItemActive('running-ads')"
+                  [class.text-[#5e5e5e]]="!isAdsItemActive('running-ads')"
+                  [class.hover:text-[#1A1C21]]="!isAdsItemActive('running-ads')"
+                >
+                  Running Ads
+                </a>
+                <a
+                  routerLink="/admin/ads/approvals"
+                  class="flex min-h-12 items-center rounded-full px-4 text-left text-[15px] font-medium transition-colors"
+                  [class.bg-[#f8f8f8]]="isAdsItemActive('approvals')"
+                  [class.text-[#1A1C21]]="isAdsItemActive('approvals')"
+                  [class.text-[#5e5e5e]]="!isAdsItemActive('approvals')"
+                  [class.hover:text-[#1A1C21]]="!isAdsItemActive('approvals')"
+                >
+                  Approvals
+                </a>
+                <a
+                  routerLink="/admin/ads/transactions"
+                  class="flex min-h-12 items-center rounded-full px-4 text-left text-[15px] font-medium transition-colors"
+                  [class.bg-[#f8f8f8]]="isAdsItemActive('transactions')"
+                  [class.text-[#1A1C21]]="isAdsItemActive('transactions')"
+                  [class.text-[#5e5e5e]]="!isAdsItemActive('transactions')"
+                  [class.hover:text-[#1A1C21]]="!isAdsItemActive('transactions')"
+                >
+                  Transactions
+                </a>
+                @for (item of adsManagementItems.slice(4); track item.id) {
+                  <button
+                    type="button"
+                    class="flex min-h-12 items-center rounded-full px-4 text-left text-[15px] font-medium transition-colors"
+                    [class.bg-[#f8f8f8]]="isAdsItemActive(item.id)"
+                    [class.text-[#1A1C21]]="isAdsItemActive(item.id)"
+                    [class.text-[#5e5e5e]]="!isAdsItemActive(item.id)"
+                    [class.hover:text-[#1A1C21]]="!isAdsItemActive(item.id)"
+                    (click)="activeAdsItem.set(item.id)"
+                  >
+                    {{ item.label }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
         </nav>
       </div>
 
@@ -179,5 +235,40 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardSidebarComponent {
+  private readonly router = inject(Router);
+
   readonly isAdsExpanded = signal(true);
+  readonly activeAdsItem = signal<AdminAdsManagementItemId>('plans');
+  readonly adsManagementItems: ReadonlyArray<{ id: AdminAdsManagementItemId; label: string }> = [
+    { id: 'plans', label: 'Plans' },
+    { id: 'running-ads', label: 'Running Ads' },
+    { id: 'approvals', label: 'Approvals' },
+    { id: 'transactions', label: 'Transactions' },
+  ];
+
+  isAdsItemActive(itemId: AdminAdsManagementItemId): boolean {
+    if (itemId === 'plans' && this.router.url.startsWith('/admin/ads/plans')) {
+      return true;
+    }
+
+    if (itemId === 'running-ads' && this.router.url.startsWith('/admin/ads/running')) {
+      return true;
+    }
+
+    if (itemId === 'approvals' && this.router.url.startsWith('/admin/ads/approvals')) {
+      return true;
+    }
+
+    if (itemId === 'transactions' && this.router.url.startsWith('/admin/ads/transactions')) {
+      return true;
+    }
+
+    return this.activeAdsItem() === itemId;
+  }
 }
+
+type AdminAdsManagementItemId =
+  | 'plans'
+  | 'running-ads'
+  | 'approvals'
+  | 'transactions';
