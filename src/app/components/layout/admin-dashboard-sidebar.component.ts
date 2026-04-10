@@ -38,7 +38,7 @@ import {
     }),
   ],
   template: `
-    <aside class="flex h-full flex-col overflow-y-auto bg-inherit p-8">
+    <aside class="flex h-full flex-col overflow-y-auto bg-inherit p-5 sm:p-8">
       <div class="mb-10">
         <h3 class="mb-5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Main</h3>
         <nav class="space-y-1">

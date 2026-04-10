@@ -54,7 +54,7 @@ interface AdminListingRecord {
     }),
   ],
   template: `
-    <div class="flex h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]">
+    <div class="flex h-full flex-col rounded-[24px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] sm:rounded-[32px]">
       <div class="border-b border-[#EEF0F4] px-6 py-5 sm:px-8">
         <h1 class="text-[22px] font-semibold tracking-[-0.04em] text-[#1A1C21]">Listings</h1>
       </div>
@@ -108,7 +108,7 @@ interface AdminListingRecord {
               </button>
             </div>
 
-            <label class="relative block w-full max-w-[250px]">
+            <label class="relative block w-full lg:max-w-[250px]">
               <ng-icon
                 name="heroMagnifyingGlass"
                 class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A2A7B0]"
@@ -214,10 +214,10 @@ interface AdminListingRecord {
             </table>
           </div>
 
-          <div class="mt-auto flex items-center justify-between px-4 py-6 sm:px-8">
+          <div class="mt-auto flex flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
             <p class="text-[14px] font-semibold text-[#646A73]">{{ visibleListings().length }} results</p>
 
-            <div class="flex items-center gap-2 text-[14px] font-medium text-[#B2B7C0]">
+            <div class="flex items-center gap-2 self-end text-[14px] font-medium text-[#B2B7C0]">
               <button
                 type="button"
                 class="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white transition hover:bg-[#FAFAFC]"

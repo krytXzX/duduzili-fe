@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -27,22 +27,33 @@ import { NgOptimizedImage } from '@angular/common';
     }),
   ],
   template: `
-    <header class="flex h-16 items-center justify-between rounded-full bg-black px-6 text-white shadow-lg">
-      <a routerLink="/" class="flex items-center gap-2 transition-opacity hover:opacity-90">
-        <div class="flex h-8 w-8 items-center justify-center">
-          <img
-            ngSrc="assets/images/logo-light-fill.svg"
-            alt="Duduzili"
-            width="24"
-            height="24"
-            priority
-            class="brightness-0 invert object-contain"
-          />
-        </div>
-        <span class="text-lg font-bold tracking-tight">Duduzili</span>
-      </a>
+    <header class="flex flex-wrap items-center gap-3 rounded-[28px] bg-black px-4 py-3 text-white shadow-lg sm:px-6 sm:py-2.5">
+      <div class="flex min-w-0 items-center gap-3">
+        <button
+          type="button"
+          (click)="menuRequested.emit()"
+          class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-white transition hover:bg-white/20 lg:hidden"
+          aria-label="Open admin sidebar"
+        >
+          <ng-icon name="heroBars3" class="text-lg"></ng-icon>
+        </button>
 
-      <div class="mx-6 flex max-w-lg flex-1 group">
+        <a routerLink="/" class="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-90">
+          <div class="flex h-8 w-8 items-center justify-center">
+            <img
+              ngSrc="assets/images/logo-light-fill.svg"
+              alt="Duduzili"
+              width="24"
+              height="24"
+              priority
+              class="brightness-0 invert object-contain"
+            />
+          </div>
+          <span class="truncate text-base font-bold tracking-tight sm:text-lg">Duduzili</span>
+        </a>
+      </div>
+
+      <div class="order-3 flex w-full group sm:order-2 sm:mx-2 sm:flex-1 sm:max-w-lg lg:mx-6">
         <div class="relative w-full">
           <div class="pointer-events-none absolute inset-y-0 left-4 flex items-center">
             <ng-icon
@@ -91,7 +102,7 @@ import { NgOptimizedImage } from '@angular/common';
         </div>
       </div>
 
-      <div class="relative">
+      <div class="relative ml-auto order-2 sm:order-3">
         @if (isAccountMenuOpen()) {
           <button
             type="button"
@@ -117,7 +128,7 @@ import { NgOptimizedImage } from '@angular/common';
 
         @if (isAccountMenuOpen()) {
           <div
-            class="absolute right-0 top-[calc(100%+12px)] z-50 w-[320px] rounded-[28px] border border-[#EEF0F4] bg-white p-5 text-[#1A1C21] shadow-[0_24px_60px_rgba(26,28,33,0.16)]"
+            class="absolute right-0 top-[calc(100%+12px)] z-50 w-[min(320px,calc(100vw-1rem))] rounded-[28px] border border-[#EEF0F4] bg-white p-5 text-[#1A1C21] shadow-[0_24px_60px_rgba(26,28,33,0.16)]"
             role="menu"
             aria-label="Admin account menu"
           >
@@ -158,6 +169,7 @@ import { NgOptimizedImage } from '@angular/common';
 export class AdminDashboardNavbarComponent {
   private readonly router = inject(Router);
 
+  readonly menuRequested = output<void>();
   readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
 
