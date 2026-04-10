@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, viewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 interface Category {
@@ -27,7 +27,9 @@ interface Category {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoriesComponent {
-  categories = signal<Category[]>([
+  readonly categoriesScroller = viewChild<ElementRef<HTMLDivElement>>('categoriesScroller');
+
+  readonly categories = signal<Category[]>([
     { id: '1', name: 'Automobiles', icon: '🚗' },
     { id: '2', name: 'Real Estate & Property', icon: '🏠' },
     { id: '3', name: 'Phones & Tablets', icon: '📱' },
@@ -37,4 +39,18 @@ export class CategoriesComponent {
     { id: '7', name: 'Women\'s Fashion', icon: '👗' },
     { id: '8', name: 'Beauty & Cosmetics', icon: '💄' },
   ]);
+
+  scrollCategories(): void {
+    this.categoriesScroller()?.nativeElement.scrollBy({
+      left: 320,
+      behavior: 'smooth',
+    });
+  }
+
+  scrollCategoriesBackward(): void {
+    this.categoriesScroller()?.nativeElement.scrollBy({
+      left: -320,
+      behavior: 'smooth',
+    });
+  }
 }

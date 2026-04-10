@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { WishlistToastService } from '../../services/wishlist-toast.service';
 
 export interface Listing {
   id: string;
@@ -27,12 +28,15 @@ export interface Listing {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListingCardComponent {
+  private readonly wishlistToastService = inject(WishlistToastService);
+
   listing = input.required<Listing>();
   listingRoute = input<string[]>(
     ['/product'],
   );
   showFavorite = input(true);
-  isFavorite = signal(false);
+  favoriteFilled = input(false);
+  removedInitiallyFavorited = signal(false);
   currentImageIndex = signal(0);
 
   currentImage = computed(() => {
@@ -41,12 +45,30 @@ export class ListingCardComponent {
     return images[this.currentImageIndex()];
   });
 
+  isFavorited = computed(() =>
+    (this.favoriteFilled() && !this.removedInitiallyFavorited())
+    || this.wishlistToastService.isInWishlist(this.listing().id),
+  );
+
   toggleFavorite(event: Event) {
+    event.preventDefault();
     event.stopPropagation();
-    this.isFavorite.update((v: boolean) => !v);
+
+    if (this.isFavorited()) {
+      if (this.favoriteFilled()) {
+        this.removedInitiallyFavorited.set(true);
+      }
+
+      this.wishlistToastService.removeFromWishlist(this.listing());
+      return;
+    }
+
+    this.removedInitiallyFavorited.set(false);
+    this.wishlistToastService.addToWishlist(this.listing());
   }
 
   nextImage(event: Event) {
+    event.preventDefault();
     event.stopPropagation();
     const images = this.listing().images;
     if (images && images.length > 0) {
@@ -55,6 +77,7 @@ export class ListingCardComponent {
   }
 
   prevImage(event: Event) {
+    event.preventDefault();
     event.stopPropagation();
     const images = this.listing().images;
     if (images && images.length > 0) {

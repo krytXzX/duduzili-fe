@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroMagnifyingGlass,
@@ -33,6 +34,9 @@ interface Conversation {
   selector: 'app-messages-page',
   standalone: true,
   imports: [CommonModule, NgIcon],
+  host: {
+    class: 'block h-full min-h-0',
+  },
   providers: [
     provideIcons({
       heroMagnifyingGlass,
@@ -44,12 +48,15 @@ interface Conversation {
     }),
   ],
   template: `
-    <div class="max-w-[1400px] mx-auto animate-in fade-in duration-700">
+    <div
+      class="mx-auto flex h-full min-h-0 max-w-[1400px] flex-col overflow-hidden px-6 py-6 animate-in fade-in duration-700 sm:px-8"
+    >
       <!-- Top Header -->
-      <header class="flex justify-between items-center mb-8 px-2">
-        <h1 class="text-[28px] font-black text-[#1A1C21] tracking-tight">Messages</h1>
+      <header class="mb-8 flex shrink-0 items-center justify-between px-2">
+        <h1 class="text-[24px] font-semibold text-[#1A1C21] tracking-tight">{{ pageTitle() }}</h1>
 
         <!-- Store Selector Pill -->
+        @if (!isBuyerView()) {
         <div class="relative">
           <div
             (click)="showStoreDropdown.set(!showStoreDropdown())"
@@ -179,9 +186,10 @@ interface Conversation {
             <div class="fixed inset-0 z-40" (click)="showStoreDropdown.set(false)"></div>
           }
         </div>
+        }
       </header>
 
-      <div class="flex min-h-0 h-[calc(100dvh-140px)] gap-10 overflow-hidden">
+      <div class="flex min-h-0 flex-1 gap-10 overflow-hidden">
         <!-- Left Column: Conversations List -->
         <div class="flex min-h-0 w-80 shrink-0 flex-col gap-6">
           <!-- Search Bar -->
@@ -193,7 +201,7 @@ interface Conversation {
             <input
               type="text"
               placeholder="Search messages"
-              class="w-full bg-gray-100/50 border-none rounded-[24px] py-4 pl-14 pr-6 text-[15px] focus:ring-2 focus:ring-purple-100 transition-all placeholder:text-gray-400 font-medium"
+              class="w-full bg-gray-100/50 border-none rounded-[24px] py-4 pl-14 pr-6 text-sm font-medium focus:ring-2 focus:ring-purple-100 transition-all placeholder:text-gray-400"
             />
           </div>
 
@@ -223,14 +231,14 @@ interface Conversation {
                 <!-- Info -->
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between items-baseline mb-1">
-                    <h3 class="text-[15px] font-bold text-[#1A1C21] truncate">{{ chat.name }}</h3>
+                    <h3 class="text-sm font-semibold text-[#1A1C21] truncate">{{ chat.name }}</h3>
                     <span
-                      class="text-[11px] font-bold text-gray-400 group-hover:text-gray-500 transition-colors"
+                      class="text-[11px] font-medium text-gray-400 group-hover:text-gray-500 transition-colors"
                       >{{ chat.time }}</span
                     >
                   </div>
                   <div class="flex justify-between items-center pr-1">
-                    <p class="text-[13px] text-gray-400 font-medium truncate pr-2">
+                    <p class="text-[12px] text-gray-400 font-medium truncate pr-2">
                       {{ chat.lastMessage }}
                     </p>
                     @if (chat.unreadCount) {
@@ -267,10 +275,10 @@ interface Conversation {
                 </div>
               </div>
               <div>
-                <h2 class="text-lg font-black text-[#1A1C21] leading-tight">
+                <h2 class="text-base font-semibold text-[#1A1C21] leading-tight">
                   {{ activeChat()?.name }}
                 </h2>
-                <p class="text-[12px] font-semibold text-gray-400 flex items-center gap-1.5 mt-0.5">
+                <p class="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-gray-400">
                   <span class="w-[6px] h-[6px] rounded-full bg-[#25D366]"></span>
                   Active 25 mins ago
                 </p>
@@ -297,7 +305,7 @@ interface Conversation {
               class="flex items-start max-w-[70%] animate-in fade-in slide-in-from-left-4 duration-500"
             >
               <div
-                class="bg-[#F3F4F6] text-[#1A1C21] rounded-[24px] rounded-bl-sm p-5 py-4 text-[15px] font-medium leading-relaxed"
+                class="bg-[#F3F4F6] text-[#1A1C21] rounded-[24px] rounded-bl-sm p-5 py-4 text-sm font-medium leading-relaxed"
               >
                 Good morning, yes i still have the iphone 17 pro max available
               </div>
@@ -308,7 +316,7 @@ interface Conversation {
               class="flex items-start max-w-[70%] ml-auto animate-in fade-in slide-in-from-right-4 duration-500"
             >
               <div
-                class="bg-[#5932EA] text-white rounded-[24px] rounded-br-sm p-6 py-4 text-[15px] font-medium leading-relaxed shadow-lg shadow-purple-100 relative"
+                class="bg-[#5932EA] text-white rounded-[24px] rounded-br-sm p-6 py-4 text-sm font-medium leading-relaxed shadow-lg shadow-purple-100 relative"
               >
                 Good day👋. Alright great, i want the orang one with 3 cameras delivered this
                 weekend
@@ -319,18 +327,18 @@ interface Conversation {
             <div
               class="flex flex-col gap-2 max-w-[75%] animate-in fade-in slide-in-from-left-4 duration-500"
             >
-              <span class="text-[11px] font-bold text-gray-400 ml-4 mb-2">Replied to you</span>
+              <span class="ml-4 mb-2 text-[11px] font-medium text-gray-400">Replied to you</span>
 
               <!-- Reply Context -->
               <div
-                class="ml-4 w-[70%] bg-purple-100/30 border-l-4 border-purple-300 rounded-[18px] rounded-bl-none p-4 pr-10 text-[14px] text-purple-600 font-medium mb-[-12px] opacity-80 backdrop-blur-sm"
+                class="ml-4 mb-[-12px] w-[70%] rounded-[18px] rounded-bl-none border-l-4 border-purple-300 bg-purple-100/30 p-4 pr-10 text-[13px] font-medium text-purple-600 opacity-80 backdrop-blur-sm"
               >
                 Good day👋. Alright great, i want the orang one with 3 cameras delivered this
                 weekend
               </div>
 
               <div
-                class="bg-[#F3F4F6] text-[#1A1C21] rounded-[24px] rounded-bl-sm p-5 py-4 text-[15px] font-medium leading-relaxed relative z-10 shadow-sm border border-white"
+                class="relative z-10 rounded-[24px] rounded-bl-sm border border-white bg-[#F3F4F6] p-5 py-4 text-sm font-medium leading-relaxed text-[#1A1C21] shadow-sm"
               >
                 That's no problem at all. We can meet at a place of your choosing
               </div>
@@ -341,7 +349,7 @@ interface Conversation {
               class="flex items-start max-w-[70%] ml-auto animate-in fade-in slide-in-from-right-4 duration-500"
             >
               <div
-                class="bg-[#5932EA] text-white rounded-[24px] rounded-br-sm p-6 py-4 text-[15px] font-medium leading-relaxed shadow-lg shadow-purple-100"
+                class="bg-[#5932EA] text-white rounded-[24px] rounded-br-sm p-6 py-4 text-sm font-medium leading-relaxed shadow-lg shadow-purple-100"
               >
                 Alright. Pls send me some pictures of the phone
               </div>
@@ -391,7 +399,7 @@ interface Conversation {
               <input
                 type="text"
                 placeholder="Type a message..."
-                class="w-full bg-[#F3F4F6] border-none rounded-full py-4 px-8 text-[15px] text-[#1A1C21] font-medium focus:ring-2 focus:ring-purple-100 transition-all placeholder:text-gray-400"
+                class="w-full bg-[#F3F4F6] border-none rounded-full py-4 px-8 text-sm font-medium text-[#1A1C21] focus:ring-2 focus:ring-purple-100 transition-all placeholder:text-gray-400"
               />
               <button
                 class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-purple-600 transition-all"
@@ -427,10 +435,14 @@ interface Conversation {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessagesPageComponent {
+  private readonly router = inject(Router);
+
   showStoreDropdown = signal(false);
   selectedStoreId = signal('all');
 
   activeChatId = signal('2');
+  readonly isBuyerView = computed(() => this.router.url.startsWith('/buyer'));
+  readonly pageTitle = computed(() => this.isBuyerView() ? 'Chats' : 'Messages');
 
   conversations = signal<Conversation[]>([
     {

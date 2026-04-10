@@ -30,6 +30,8 @@ export class AuthLayoutComponent {
     this.url().includes('/sign-in') || this.url().includes('/two-factor')
   );
 
+  protected readonly showAccountPrompt = computed(() => !this.url().includes('/admin/invite'));
+
   // Shared Assets
   protected readonly fullLogoUrl =
     'https://www.figma.com/api/mcp/asset/6557fcef-daf3-4c70-aa11-3a73e4624cb7';

@@ -12,6 +12,7 @@
       <img class="block sm:hidden h-[26px] w-[26px]" [ngSrc]="iconLogoUrl" alt="Duduzili" width="26" height="26"
         priority />
 
+      @if (showAccountPrompt()) {
       <div class="flex items-center gap-4 text-[13px] sm:text-[14px]">
         @if (isSignIn()) {
         <span class="text-[#777777]">Don't have a Duduzili account?</span>
@@ -27,6 +28,7 @@
         </a>
         }
       </div>
+      }
     </header>
 
     <div

@@ -702,7 +702,7 @@ export class SettingsPageComponent {
         return {
           title: 'Update full name',
           description: 'Please update to the full name as it appears on your bank certificate.',
-          fieldLabel: 'First name',
+          fieldLabel: 'Full name',
           value: this.modalValue(),
           inputType: 'text' as const,
           confirmLabel: 'Update',

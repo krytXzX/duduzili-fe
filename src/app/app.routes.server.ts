@@ -1,6 +1,14 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
+  {
+    path: 'admin/invite',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'admin/**',
+    renderMode: RenderMode.Client
+  },
   // Dashboard routes (CSR only)
   {
     path: 'listings/**',

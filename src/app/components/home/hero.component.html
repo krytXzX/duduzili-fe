@@ -1,4 +1,4 @@
-<section class="relative flex h-[650px] flex-col items-center justify-center overflow-hidden rounded-b-[60px] mx-4 mb-12">
+<section class="relative mx-4 mb-12 flex h-[650px] flex-col items-center justify-center overflow-x-clip rounded-b-[60px]">
   <img ngSrc="assets/images/hero-bg.png" alt="" fill priority class="pointer-events-none absolute inset-0 object-cover">
 
   <div class="pointer-events-none absolute inset-0 bg-[E9E9FF]"></div>
@@ -44,13 +44,140 @@
       Find men's wear <ng-icon name="faSolidClock" /> on Duduzili
     </h1>
 
-    <div class="relative max-w-2xl mx-auto group">
-      <input type="text" placeholder="What are you looking for?" class="w-full h-20 pl-8 pr-16 bg-white rounded-full text-lg shadow-2xl outline-none focus:ring-4 focus:ring-blue-100 transition-all border-none">
-      <button class="absolute right-3 top-3 h-14 w-14 bg-indigo-600 rounded-full flex items-center justify-center hover:bg-indigo-700 transition-all text-white">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-      </button>
+    <div
+      #searchPanel
+      class="relative z-20 mx-auto max-w-3xl text-left"
+      (focusin)="openSearchPanel()"
+      (focusout)="handleSearchFocusOut($event, searchPanel)"
+    >
+      <div
+        class="rounded-[34px] bg-white p-3 shadow-[0_24px_60px_-32px_rgba(17,24,39,0.3)] transition-all duration-200"
+      >
+        <div class="relative">
+          <input
+            type="text"
+            placeholder="What are you looking for?"
+            [value]="searchQuery()"
+            #searchInput
+            (input)="updateSearchQuery(searchInput.value)"
+            (keydown.enter)="runSearch()"
+            class="h-16 w-full rounded-full border border-transparent bg-white pl-7 pr-40 text-[18px] text-[#1F2430] outline-none transition placeholder:text-[#B0B4BF] focus:border-transparent"
+          >
+
+          <button
+            type="button"
+            (mousedown)="$event.preventDefault()"
+            (click)="runSearch()"
+            class="absolute right-1.5 top-1.5 flex h-13 min-w-[128px] items-center justify-center gap-2 rounded-full bg-indigo-600 px-6 text-[15px] font-medium text-white shadow-[0_14px_28px_-16px_rgba(99,102,241,0.9)] transition hover:bg-indigo-700"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Search
+          </button>
+        </div>
+      </div>
+
+      @if (isSearchFocused()) {
+      <div class="absolute left-0 right-0 top-[calc(100%+12px)] rounded-[36px] bg-white px-7 pb-6 pt-6 shadow-[0_24px_60px_-32px_rgba(17,24,39,0.3)]">
+          @if (hasSearchResults()) {
+          <div class="space-y-1">
+            @for (store of storeSearchResults; track store.name + $index) {
+            <button
+              type="button"
+              (mousedown)="$event.preventDefault()"
+              class="flex w-full items-center gap-4 rounded-[18px] px-2 py-2 text-left transition hover:bg-[#F8F8FB]"
+            >
+              <img [ngSrc]="store.logoSrc" [alt]="store.name" width="48" height="48" class="h-12 w-12 rounded-full object-cover">
+              <span class="min-w-0">
+                <span class="block truncate text-[15px] font-medium text-[#36394A]">{{ store.name }}</span>
+                <span class="mt-1 flex items-center gap-1 text-[14px] text-[#7A808C]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                  </svg>
+                  {{ store.location }}
+                </span>
+              </span>
+            </button>
+            }
+
+            @for (listing of listingSearchResults; track listing + $index) {
+            <button
+              type="button"
+              (mousedown)="$event.preventDefault()"
+              class="flex w-full items-center gap-4 rounded-[18px] px-2 py-2 text-left transition hover:bg-[#F8F8FB]"
+            >
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#7A808C]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+              <span class="text-[15px] font-medium text-[#36394A]">{{ listing }}</span>
+            </button>
+            }
+          </div>
+          } @else {
+          @if (recentSearches().length) {
+          <div>
+            <div class="flex items-center justify-between gap-4">
+              <h2 class="text-[16px] font-semibold text-[#1F2430]">Recent searches</h2>
+              <button
+                type="button"
+                (mousedown)="$event.preventDefault()"
+                (click)="clearRecentSearches()"
+                class="text-[14px] font-medium text-[#0BAA2A] transition hover:text-[#089421]"
+              >
+                Clear history
+              </button>
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-3">
+              @for (search of recentSearches(); track search) {
+              <div class="flex items-center gap-2 rounded-full bg-[#F5F5F7] pr-3">
+                <button
+                  type="button"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="applySuggestion(search)"
+                  class="rounded-full px-4 py-2.5 text-[14px] font-medium text-[#36394A] transition hover:bg-[#ECECF2]"
+                >
+                  {{ search }}
+                </button>
+                <button
+                  type="button"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="removeRecentSearch(search)"
+                  class="inline-flex h-6 w-6 items-center justify-center rounded-full text-[#4B5563] transition hover:bg-[#E5E7EB]"
+                  [attr.aria-label]="'Remove ' + search + ' from recent searches'"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              }
+            </div>
+          </div>
+          }
+
+          <div [class.mt-10]="recentSearches().length">
+            <h2 class="text-[16px] font-semibold text-[#1F2430]">Popular right now</h2>
+
+            <div class="mt-4 flex flex-wrap gap-3">
+              @for (suggestion of popularSearches; track suggestion) {
+              <button
+                type="button"
+                (mousedown)="$event.preventDefault()"
+                (click)="applySuggestion(suggestion)"
+                class="rounded-full bg-[#F5F5F7] px-4 py-2.5 text-[14px] font-medium text-[#36394A] transition hover:bg-[#ECECF2]"
+              >
+                {{ suggestion }}
+              </button>
+              }
+            </div>
+          </div>
+          }
+      </div>
+      }
     </div>
   </div>
 

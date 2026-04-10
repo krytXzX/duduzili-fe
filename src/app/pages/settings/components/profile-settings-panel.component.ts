@@ -82,7 +82,7 @@ export class ProfileSettingsPanelComponent {
       { label: 'Email', value: this.profile().email, action: 'edit-email' },
       { label: 'Call number', value: this.profile().callNumber || '-', action: 'edit-call' },
       { label: 'WhatsApp number', value: this.profile().whatsappNumber || '-', action: 'edit-whatsapp' },
-      { label: 'First name', value: this.profile().firstName, action: 'edit-name' },
+      { label: 'Full name', value: this.profile().firstName, action: 'edit-name' },
     ];
   }
 }

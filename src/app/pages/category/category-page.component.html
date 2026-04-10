@@ -1,33 +1,296 @@
 <div class="min-h-full bg-white">
-  <!-- Dynamic Navbar -->
-  <app-navbar />
+  <app-navbar [showSearch]="true" />
 
-  <main class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Category Title -->
-    <div class="mb-6">
-      <h1 class="text-[28px] font-bold text-[#36394A]">
-        {{ categoryTitle() }} <span class="text-gray-300 font-medium">({{ listingsCount() }})</span>
+  <main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <header class="mb-7">
+      <h1 class="text-[30px] font-semibold tracking-tight text-[#1A1C21] sm:text-[36px]">
+        We found {{ listingsCount() }} results for “{{ searchTerm() }}”
       </h1>
-    </div>
+    </header>
 
-    <!-- Filter Section -->
-    <app-filter-chips />
-
-    <!-- Product Grid: 5 columns on large screens -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-20">
-      @for (listing of listings(); track listing.id) {
-      <app-listing-card [listing]="listing" />
+    <section class="relative mb-8">
+      @if (activeFilter()) {
+      <button
+        type="button"
+        class="fixed inset-0 z-30 cursor-default"
+        (click)="closeFilters()"
+        aria-label="Close filters"
+      ></button>
       }
-    </div>
+
+      <div class="relative z-40 flex flex-wrap items-center gap-3">
+        @for (filter of filters(); track filter.key) {
+        <button
+          type="button"
+          (click)="toggleFilter(filter.key)"
+          [class]="activeFilter() === filter.key
+            ? 'inline-flex items-center gap-2 rounded-full bg-[#ECECFE] px-4 py-3 text-[14px] font-medium text-[#5E57FF] transition hover:bg-[#E3E3FC]'
+            : 'inline-flex items-center gap-2 rounded-full bg-[#F5F5F7] px-4 py-3 text-[14px] font-medium text-[#2C313C] transition hover:bg-[#ECECF2]'"
+        >
+          {{ filter.label }}
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        }
+
+        <button type="button" (click)="resetAllFilters()" class="ml-2 text-[14px] font-medium text-[#5E57FF] transition hover:text-[#4B44F2]">
+          Reset all
+        </button>
+      </div>
+
+      @if (activeFilter()) {
+      <div class="absolute left-0 right-0 top-[calc(100%+18px)] z-50 rounded-[28px] border border-[#E8EAF0] bg-white px-7 pb-6 pt-7 shadow-[0_24px_60px_-30px_rgba(17,24,39,0.28)]">
+        <div class="absolute -top-2 h-4 w-4 rotate-45 border-l border-t border-[#E8EAF0] bg-white"
+          [style.left.%]="activeFilter() === 'category' ? 12 : activeFilter() === 'location' ? 25 : activeFilter() === 'price' ? 36 : activeFilter() === 'condition' ? 48 : activeFilter() === 'verification' ? 62 : activeFilter() === 'following' ? 76 : 90"></div>
+
+        @if (activeFilter() === 'category') {
+        <div class="flex flex-wrap gap-4">
+          @for (category of categoryOptions; track category) {
+          <button
+            type="button"
+            (click)="toggleCategory(category)"
+            [class]="selectedCategories().includes(category)
+              ? 'rounded-full border border-[#1A1C21] bg-[#1A1C21] px-4 py-2.5 text-[14px] font-medium text-white transition'
+              : 'rounded-full border border-[#C9CDD5] px-4 py-2.5 text-[14px] font-medium text-[#1A1C21] transition'"
+          >
+            {{ category }}
+          </button>
+          }
+        </div>
+        }
+
+        @if (activeFilter() === 'location') {
+        <div class="flex flex-wrap gap-4">
+          @for (location of locationOptions; track location) {
+          <button
+            type="button"
+            (click)="toggleLocation(location)"
+            [class]="selectedLocations().includes(location)
+              ? 'rounded-full border border-[#1A1C21] bg-[#1A1C21] px-4 py-2.5 text-[14px] font-medium text-white transition'
+              : 'rounded-full border border-[#C9CDD5] px-4 py-2.5 text-[14px] font-medium text-[#1A1C21] transition'"
+          >
+            {{ location }}
+            @if (selectedLocations().includes(location)) {
+            <span class="ml-2">×</span>
+            }
+          </button>
+          }
+        </div>
+        }
+
+        @if (activeFilter() === 'price') {
+        <div class="px-1 pt-2">
+          <div class="relative h-8">
+            <div class="absolute left-0 right-0 top-3 h-1 rounded-full bg-[#E5E7EB]"></div>
+            <div
+              class="absolute top-3 h-1 rounded-full bg-[#6558F5]"
+              [style.left.%]="(minPrice() / 700000000) * 100"
+              [style.right.%]="100 - ((maxPrice() / 700000000) * 100)"
+            ></div>
+            <input type="range" min="2000" max="700000000" step="1000" [value]="minPrice()" (input)="updateMinPrice(minRange.value)" #minRange class="price-range-input absolute left-0 top-0 z-10 h-8 w-full appearance-none bg-transparent">
+            <input type="range" min="2000" max="700000000" step="1000" [value]="maxPrice()" (input)="updateMaxPrice(maxRange.value)" #maxRange class="price-range-input absolute left-0 top-0 z-20 h-8 w-full appearance-none bg-transparent">
+          </div>
+
+          <div class="mt-7 flex items-center justify-between">
+            <div class="rounded-full border border-[#D8DCE4] px-4 py-2 text-[14px] font-medium text-[#2C313C]">{{ formatPrice(minPrice()) }}</div>
+            <div class="rounded-full border border-[#D8DCE4] px-4 py-2 text-[14px] font-medium text-[#2C313C]">{{ formatPrice(maxPrice()) }}</div>
+          </div>
+        </div>
+        }
+
+        @if (activeFilter() === 'condition') {
+        <div class="flex flex-wrap gap-4">
+          @for (condition of conditionOptions; track condition) {
+          <button
+            type="button"
+            (click)="toggleCondition(condition)"
+            [class]="selectedCondition().includes(condition)
+              ? 'rounded-full border border-[#1A1C21] bg-[#1A1C21] px-4 py-2.5 text-[14px] font-medium text-white transition'
+              : 'rounded-full border border-[#C9CDD5] px-4 py-2.5 text-[14px] font-medium text-[#1A1C21] transition'"
+          >
+            {{ condition }}
+            @if (selectedCondition().includes(condition)) {
+            <span class="ml-2">×</span>
+            }
+          </button>
+          }
+        </div>
+        }
+
+        @if (activeFilter() === 'verification') {
+        <div class="flex flex-wrap gap-4">
+          @for (status of verificationOptions; track status) {
+          <button
+            type="button"
+            (click)="toggleVerification(status)"
+            [class]="selectedVerification().includes(status)
+              ? 'rounded-full border border-[#1A1C21] bg-[#1A1C21] px-4 py-2.5 text-[14px] font-medium text-white transition'
+              : 'rounded-full border border-[#C9CDD5] px-4 py-2.5 text-[14px] font-medium text-[#1A1C21] transition'"
+          >
+            {{ status }}
+            @if (selectedVerification().includes(status)) {
+            <span class="ml-2">×</span>
+            }
+          </button>
+          }
+        </div>
+        }
+
+        @if (activeFilter() === 'following') {
+        <div>
+          <div class="mb-6 max-w-[290px] rounded-full bg-[#F7F7FA] px-4 py-3">
+            <input
+              type="text"
+              [value]="vendorSearch()"
+              #vendorSearchInput
+              (input)="updateVendorSearch(vendorSearchInput.value)"
+              placeholder="Search vendors"
+              class="w-full bg-transparent text-[14px] text-[#1A1C21] outline-none placeholder:text-[#9CA3AF]"
+            >
+          </div>
+
+          <div class="flex flex-wrap gap-4">
+            @for (store of filteredStores(); track store.id) {
+            <button
+              type="button"
+              (click)="toggleFollowing(store.name)"
+              [class]="selectedFollowing().includes(store.name)
+                ? 'inline-flex items-center gap-3 rounded-full border border-[#1A1C21] bg-[#1A1C21] px-3 py-2 text-[14px] font-medium text-white transition'
+                : 'inline-flex items-center gap-3 rounded-full border border-[#C9CDD5] px-3 py-2 text-[14px] font-medium text-[#1A1C21] transition'"
+            >
+              <img [src]="store.logo" [alt]="store.name" class="h-7 w-7 rounded-full object-cover">
+              {{ store.name }}
+              @if (selectedFollowing().includes(store.name)) {
+              <span>×</span>
+              }
+            </button>
+            }
+          </div>
+        </div>
+        }
+
+        @if (activeFilter() === 'sort') {
+        <div class="flex flex-wrap gap-4">
+          @for (option of sortOptions; track option) {
+          <button
+            type="button"
+            (click)="selectSort(option)"
+            [class]="selectedSort() === option
+              ? 'inline-flex items-center gap-3 rounded-full border border-[#1A1C21] bg-[#1A1C21] px-4 py-2.5 text-[14px] font-medium text-white transition'
+              : 'inline-flex items-center gap-3 rounded-full border border-[#C9CDD5] px-4 py-2.5 text-[14px] font-medium text-[#1A1C21] transition'"
+          >
+            <span class="flex h-4 w-4 items-center justify-center rounded-full border"
+              [class.border-white]="selectedSort() === option"
+              [class.border-gray-300]="selectedSort() !== option">
+              @if (selectedSort() === option) {
+              <span class="h-2 w-2 rounded-full bg-[#2D7CFF]"></span>
+              }
+            </span>
+            {{ option }}
+          </button>
+          }
+        </div>
+        }
+
+        <div class="mt-8 border-t border-[#ECEEF3] pt-6">
+          <div class="flex justify-end gap-3">
+            <button type="button" (click)="resetActiveFilter()" class="rounded-full border border-[#D8DCE4] bg-white px-6 py-3 text-[14px] font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA]">
+              Reset
+            </button>
+            <button type="button" (click)="closeFilters()" class="rounded-full bg-[#6558F5] px-6 py-3 text-[14px] font-medium text-white shadow-[0_14px_28px_-16px_rgba(99,102,241,0.8)] transition hover:bg-[#5848F1]">
+              Show 1000+ results
+            </button>
+          </div>
+        </div>
+      </div>
+      }
+    </section>
+
+    <section class="mb-9">
+      <div class="mb-4 flex items-center justify-between gap-4">
+        <h2 class="text-[20px] font-medium text-[#1A1C21]">Stores</h2>
+
+        <div class="flex items-center gap-3">
+          <button type="button" class="text-[14px] font-medium text-[#1A1C21] transition hover:text-[#5E57FF]">
+            View all (12)
+          </button>
+          <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#6B7280] transition hover:bg-[#F8F8FB]">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#6B7280] transition hover:bg-[#F8F8FB]">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        @for (store of stores(); track store.id) {
+        <app-store-card [store]="store" />
+        }
+      </div>
+    </section>
+
+    @for (section of sections(); track section.title; let sectionIndex = $index) {
+    <section class="mb-10">
+      <div class="mb-4 flex items-center justify-between gap-4">
+        <h2 class="text-[20px] font-medium text-[#1A1C21]">{{ section.title }}</h2>
+
+        <div class="flex items-center gap-3">
+          <button type="button" class="inline-flex items-center gap-1 text-[14px] font-medium text-[#1A1C21] transition hover:text-[#5E57FF]">
+            View all ({{ section.viewAllCount }})
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#6B7280] transition hover:bg-[#F8F8FB]">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#6B7280] transition hover:bg-[#F8F8FB]">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-5">
+        @for (listing of section.listings; track listing.id) {
+        <app-listing-card [listing]="listing" />
+        }
+      </div>
+
+      @if (sectionIndex === 1) {
+      <div class="pointer-events-none -mt-4 flex justify-center">
+        <div class="pointer-events-auto flex w-full max-w-[560px] items-center rounded-full border border-[#E6E8EF] bg-white p-1.5 shadow-[0_18px_36px_-24px_rgba(17,24,39,0.28)]">
+          <input
+            type="text"
+            [value]="floatingSearchTerm()"
+            class="h-12 flex-1 bg-transparent px-7 text-[16px] font-medium text-[#1A1C21] outline-none"
+            aria-label="Search query"
+          >
+          <button type="button" class="inline-flex h-12 items-center gap-2 rounded-full bg-[#6558F5] px-6 text-[16px] font-medium text-white shadow-[0_12px_24px_-16px_rgba(99,102,241,0.85)] transition hover:bg-[#5848F1]">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Search
+          </button>
+        </div>
+      </div>
+      }
+    </section>
+    }
   </main>
 
-  <!-- Footer with Decorative Background Text -->
   <div class="relative overflow-hidden">
-    <!-- Large slanted background text decoration -->
-    <div
-      class="absolute -bottom-40 left-0 right-0 pointer-events-none select-none overflow-hidden h-[500px] z-0 opacity-[0.03]">
-      <span
-        class="text-[30rem] font-black text-black leading-none whitespace-nowrap block rotate-[-5deg] translate-y-20">
+    <div class="pointer-events-none absolute -bottom-40 left-0 right-0 h-[420px] select-none overflow-hidden opacity-[0.04]">
+      <span class="block translate-y-24 whitespace-nowrap text-[24rem] font-black leading-none text-[#6058F7]">
         Duduzili
       </span>
     </div>

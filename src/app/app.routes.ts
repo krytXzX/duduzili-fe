@@ -1,8 +1,9 @@
 import { Routes } from '@angular/router';
 import { HomePageComponent } from './pages/home/home-page.component';
 
+import { BuyerDashboardLayoutComponent } from './components/layout/buyer-dashboard-layout.component';
 import { DashboardLayoutComponent } from './components/layout/dashboard-layout.component';
-import { ListingsPageComponent } from './pages/listings/listings-page.component';
+import { AdminDashboardLayoutComponent } from './components/layout/admin-dashboard-layout.component';
 
 // Mock guard
 const isLoggedin = () => {
@@ -15,6 +16,135 @@ export const routes: Routes = [
     component: HomePageComponent,
     pathMatch: 'full',
   },
+  {
+    path: 'buyer',
+    component: BuyerDashboardLayoutComponent,
+    canActivate: [isLoggedin],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'chats',
+      },
+      {
+        path: 'wishlist',
+        loadComponent: () =>
+          import('./pages/buyer/wishlist-page.component').then(
+            (m) => m.BuyerWishlistPageComponent
+          ),
+      },
+      {
+        path: 'chats',
+        loadComponent: () =>
+          import('./pages/messages/messages-page.component').then(
+            (m) => m.MessagesPageComponent
+          ),
+      },
+      {
+        path: 'followed-stores',
+        loadComponent: () =>
+          import('./pages/buyer/followed-stores-page.component').then(
+            (m) => m.BuyerFollowedStoresPageComponent
+          ),
+      },
+      {
+        path: 'followed-stores/:id',
+        loadComponent: () =>
+          import('./pages/buyer/followed-store-details-page.component').then(
+            (m) => m.BuyerFollowedStoreDetailsPageComponent
+          ),
+      },
+      {
+        path: 'recently-viewed',
+        loadComponent: () =>
+          import('./pages/buyer/recently-viewed-page.component').then(
+            (m) => m.BuyerRecentlyViewedPageComponent
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./pages/settings/settings-page.component').then(
+            (m) => m.SettingsPageComponent
+          ),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./pages/notifications/notifications-page.component').then(
+            (m) => m.NotificationsPageComponent
+          ),
+      },
+    ],
+  },
+  {
+    path: 'admin/invite',
+    loadComponent: () =>
+      import('./pages/admin/admin-home-page.component').then(
+        (m) => m.AdminHomePageComponent
+      ),
+  },
+  {
+    path: 'admin',
+    component: AdminDashboardLayoutComponent,
+    canActivate: [isLoggedin],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'home',
+      },
+      {
+        path: 'home',
+        loadComponent: () =>
+          import('./pages/admin/admin-dashboard-home-page.component').then(
+            (m) => m.AdminDashboardHomePageComponent
+          ),
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./pages/admin/admin-users-page.component').then(
+            (m) => m.AdminUsersPageComponent
+          ),
+      },
+      {
+        path: 'users/:id',
+        loadComponent: () =>
+          import('./pages/admin/admin-user-details-page.component').then(
+            (m) => m.AdminUserDetailsPageComponent
+          ),
+      },
+      {
+        path: 'listings',
+        loadComponent: () =>
+          import('./pages/admin/admin-listings-page.component').then(
+            (m) => m.AdminListingsPageComponent
+          ),
+      },
+      {
+        path: 'stores',
+        loadComponent: () =>
+          import('./pages/admin/admin-stores-page.component').then(
+            (m) => m.AdminStoresPageComponent
+          ),
+      },
+      {
+        path: 'stores/:id',
+        loadComponent: () =>
+          import('./pages/admin/admin-store-details-page.component').then(
+            (m) => m.AdminStoreDetailsPageComponent
+          ),
+      },
+      {
+        path: 'listings/:id',
+        loadComponent: () =>
+          import('./pages/admin/admin-listing-details-page.component').then(
+            (m) => m.AdminListingDetailsPageComponent
+          ),
+      },
+    ],
+  },
   // Dashboard Routes
   {
     path: '',
@@ -23,7 +153,10 @@ export const routes: Routes = [
     children: [
       {
         path: 'listings',
-        component: ListingsPageComponent,
+        loadComponent: () =>
+          import('./pages/listings/listings-page.component').then(
+            (m) => m.ListingsPageComponent
+          ),
       },
       {
         path: 'listings/:id',
