@@ -1,0 +1,46 @@
+<section class="relative h-[650px] flex flex-col items-center justify-center bg-linear-to-br from-[#E3EAFF] to-[#F1F3FF] overflow-hidden rounded-b-[60px] mx-4 mb-12">
+  <!-- Wavy background pattern -->
+  <div class="absolute inset-0 opacity-10 pointer-events-none">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" class="w-full h-full fill-blue-500">
+      <path d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,171,864,181.3C960,192,1056,160,1152,138.7C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+      </path>
+    </svg>
+  </div>
+
+  <!-- Floating Images (Mocking) -->
+  <div class="absolute top-10 left-10 w-32 h-32 rounded-3xl rotate-[-15deg] shadow-2xl overflow-hidden bg-white/30 backdrop-blur-md hidden lg:block">
+    <img src="/assets/images/fashion_menswear.png" class="w-full h-full object-cover grayscale-0" alt="menswear">
+  </div>
+  <div class="absolute top-10 right-10 w-40 h-52 rounded-3xl rotate-[15deg] shadow-2xl overflow-hidden bg-white/30 backdrop-blur-md hidden lg:block">
+    <img src="/assets/images/product_sneakers.png" class="w-full h-full object-cover" alt="sneakers">
+  </div>
+  <div class="absolute bottom-10 left-32 w-44 h-48 rounded-3xl rotate-[5deg] shadow-2xl overflow-hidden bg-white/30 backdrop-blur-md hidden lg:block">
+    <img src="/assets/images/hero_img_3.png" class="w-full h-full object-cover" alt="product">
+  </div>
+  <div class="absolute bottom-10 right-20 w-36 h-36 rounded-3xl rotate-[-10deg] shadow-2xl overflow-hidden bg-white/30 backdrop-blur-md hidden lg:block">
+    <img src="/assets/images/hero_img_4.png" class="w-full h-full object-cover" alt="product">
+  </div>
+
+  <div class="z-10 text-center max-w-4xl px-4">
+    <h1 class="text-4xl md:text-6xl font-extrabold text-[#36394A] leading-tight mb-8">
+      Find men's wear <ng-icon name="faSolidClock" /> on Duduzili
+    </h1>
+
+    <div class="relative max-w-2xl mx-auto group">
+      <input type="text" placeholder="What are you looking for?" class="w-full h-20 pl-8 pr-16 bg-white rounded-full text-lg shadow-2xl outline-none focus:ring-4 focus:ring-blue-100 transition-all border-none">
+      <button class="absolute right-3 top-3 h-14 w-14 bg-indigo-600 rounded-full flex items-center justify-center hover:bg-indigo-700 transition-all text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Pagination markers -->
+  <div class="absolute bottom-12 flex gap-2">
+    <span class="w-8 h-2 bg-indigo-600 rounded-full"></span>
+    <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
+    <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
+    <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
+  </div>
+</section>

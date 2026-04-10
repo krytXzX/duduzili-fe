@@ -1,12 +1,10 @@
 import { Routes } from '@angular/router';
+import { HomePageComponent } from './pages/home/home-page.component';
 
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () =>
-      import('./pages/landing/landing-page').then(
-        (module) => module.LandingPageComponent,
-      ),
+    component: HomePageComponent,
   },
   {
     path: 'sign-in',

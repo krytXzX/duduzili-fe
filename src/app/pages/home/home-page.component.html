@@ -1,0 +1,45 @@
+<div class="bg-white">
+  <app-navbar />
+
+  <div class="relative w-full">
+    <app-hero />
+    <app-categories />
+
+    <div class="max-w-7xl mx-auto px-4 mb-24">
+      <app-section-header title="Sponsored listings" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        @for (listing of sponsoredListings(); track listing.id) {
+        <app-listing-card [listing]="listing" />
+        }
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 mb-24">
+      <app-section-header title="Listings near you" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        @for (listing of nearYouListings(); track listing.id) {
+        <app-listing-card [listing]="listing" />
+        }
+      </div>
+
+      <div class="flex justify-center mt-12">
+        <button class="px-8 py-3 bg-[#F1F3FF] text-[#36394A] font-bold rounded-full hover:bg-indigo-100 transition-all">
+          View more results
+        </button>
+      </div>
+    </div>
+
+    <app-promotions />
+
+    <div class="max-w-7xl mx-auto px-4 mb-32">
+      <app-section-header title="Featured stores" />
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        @for (store of featuredStores(); track store.id) {
+        <app-store-card [store]="store" />
+        }
+      </div>
+    </div>
+  </div>
+
+  <app-footer />
+</div>
