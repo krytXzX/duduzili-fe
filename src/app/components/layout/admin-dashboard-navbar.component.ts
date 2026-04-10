@@ -2,8 +2,11 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  heroArrowRightOnRectangle,
+  heroBell,
   heroBars3,
   heroChevronRight,
+  heroCog6Tooth,
   heroMagnifyingGlass,
   heroUserCircle,
 } from '@ng-icons/heroicons/outline';
@@ -14,8 +17,11 @@ import { NgOptimizedImage } from '@angular/common';
   imports: [RouterLink, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({
+      heroArrowRightOnRectangle,
+      heroBell,
       heroBars3,
       heroChevronRight,
+      heroCog6Tooth,
       heroMagnifyingGlass,
       heroUserCircle,
     }),
@@ -85,16 +91,66 @@ import { NgOptimizedImage } from '@angular/common';
         </div>
       </div>
 
-      <button
-        type="button"
-        class="flex items-center gap-2 rounded-full border border-white/10 bg-white p-1 pr-3 text-[#1A1C21] transition hover:bg-white/95"
-        aria-label="Admin menu"
-      >
-        <span class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-purple-600 text-white ring-2 ring-white/10">
-          <ng-icon name="heroUserCircle" class="text-lg"></ng-icon>
-        </span>
-        <ng-icon name="heroBars3" class="text-lg text-[#6883B2]"></ng-icon>
-      </button>
+      <div class="relative">
+        @if (isAccountMenuOpen()) {
+          <button
+            type="button"
+            class="fixed inset-0 z-40 cursor-default bg-transparent"
+            (click)="closeAccountMenu()"
+            aria-label="Close admin account menu"
+          ></button>
+        }
+
+        <button
+          type="button"
+          (click)="toggleAccountMenu()"
+          class="relative z-50 flex items-center gap-2 rounded-full border border-white/10 bg-white p-1 pr-3 text-[#1A1C21] transition hover:bg-white/95"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="isAccountMenuOpen()"
+          aria-label="Open admin account menu"
+        >
+          <span class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-purple-600 text-white ring-2 ring-white/10">
+            <ng-icon name="heroUserCircle" class="text-lg"></ng-icon>
+          </span>
+          <ng-icon name="heroBars3" class="text-lg text-[#6883B2]"></ng-icon>
+        </button>
+
+        @if (isAccountMenuOpen()) {
+          <div
+            class="absolute right-0 top-[calc(100%+12px)] z-50 w-[320px] rounded-[28px] border border-[#EEF0F4] bg-white p-5 text-[#1A1C21] shadow-[0_24px_60px_rgba(26,28,33,0.16)]"
+            role="menu"
+            aria-label="Admin account menu"
+          >
+            <div class="mb-5 flex items-start gap-3">
+              <span class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#6F57E8] text-white">
+                <ng-icon name="heroUserCircle" class="text-[28px]"></ng-icon>
+              </span>
+              <div class="min-w-0">
+                <p class="truncate text-[17px] font-semibold tracking-[-0.02em] text-[#1A1C21]">Bryan Odjede</p>
+                <p class="truncate text-sm text-[#8E9199]">Super Admin</p>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <button type="button" (click)="goToAdminRoute('/admin/settings')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
+                <ng-icon name="heroCog6Tooth" class="text-[18px] text-[#6A6D75]"></ng-icon>
+                Account settings
+              </button>
+              <button type="button" (click)="goToAdminRoute('/admin/notifications')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
+                <ng-icon name="heroBell" class="text-[18px] text-[#6A6D75]"></ng-icon>
+                Notifications
+              </button>
+            </div>
+
+            <div class="my-3 h-px bg-[#EEF0F4]"></div>
+
+            <button type="button" (click)="logOut()" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#FF3B30] transition hover:bg-[#FFF5F5]" role="menuitem">
+              <ng-icon name="heroArrowRightOnRectangle" class="text-[18px] text-[#FF3B30]"></ng-icon>
+              Log out
+            </button>
+          </div>
+        }
+      </div>
     </header>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -103,6 +159,7 @@ export class AdminDashboardNavbarComponent {
   private readonly router = inject(Router);
 
   readonly searchQuery = signal('');
+  readonly isAccountMenuOpen = signal(false);
 
   updateSearchQuery(value: string): void {
     this.searchQuery.set(value);
@@ -112,8 +169,26 @@ export class AdminDashboardNavbarComponent {
     this.searchQuery.set('');
   }
 
+  toggleAccountMenu(): void {
+    this.isAccountMenuOpen.update((value) => !value);
+  }
+
+  closeAccountMenu(): void {
+    this.isAccountMenuOpen.set(false);
+  }
+
   runSearch(): void {
     const query = this.searchQuery().trim() || 'iPhone';
     void this.router.navigate(['/category'], { queryParams: { q: query } });
+  }
+
+  goToAdminRoute(path: string): void {
+    this.closeAccountMenu();
+    void this.router.navigateByUrl(path);
+  }
+
+  logOut(): void {
+    this.closeAccountMenu();
+    void this.router.navigate(['/sign-in']);
   }
 }
