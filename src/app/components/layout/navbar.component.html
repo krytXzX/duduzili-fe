@@ -1,5 +1,5 @@
 <nav
-  class="flex items-center justify-between px-6 py-4 bg-black text-white rounded-full mx-4 mt-4 shadow-lg sticky top-4 z-50">
+  class="mx-4 mt-4 hidden items-center justify-between rounded-full bg-black px-6 py-4 text-white shadow-lg sticky top-4 z-50 md:flex">
 
   <!-- Logo Section -->
   <div class="flex items-center gap-6">
@@ -95,5 +95,175 @@
     </a>
   </div>
 </nav>
+
+<nav class="bg-white px-4 py-4 md:hidden" aria-label="Primary">
+  <div class="flex items-center justify-between gap-3">
+    <a routerLink="/" class="flex items-center transition-opacity hover:opacity-90">
+      <img ngSrc="assets/images/logo-dark-fill.svg" alt="Duduzili" class="h-8 w-auto" width="121" height="28" priority />
+    </a>
+
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EBEAF1] bg-white px-3.5 text-[12px] font-medium text-[#36394A] shadow-[0_8px_18px_-16px_rgba(17,24,39,0.35)]"
+        aria-label="Select location"
+      >
+        <span class="inline-flex h-2.5 w-2.5 rounded-full bg-[#FF4D4F]"></span>
+        <span>All Nigeria</span>
+        <span class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#E6E6EC] text-[#A0A5B1]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        (click)="openMobileMenu()"
+        class="inline-flex h-10 w-10 items-center justify-center text-[#5A50F0]"
+        aria-label="Open menu"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 8h16M4 12h16M4 16h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+@if (mobileMenuOpen()) {
+  <div class="fixed inset-0 z-[90] bg-[#1A1C21]/30 backdrop-blur-[2px] md:hidden" (click)="closeMobileMenu()"></div>
+
+  <aside
+    class="fixed inset-x-0 top-0 z-[100] rounded-b-[28px] bg-white px-5 pb-5 pt-4 shadow-[0_24px_48px_-20px_rgba(17,24,39,0.28)] md:hidden"
+    aria-label="Mobile menu"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <a routerLink="/" (click)="closeMobileMenu()" class="flex items-center gap-2 transition-opacity hover:opacity-90">
+        <img ngSrc="assets/images/logo-dark-fill.svg" alt="Duduzili" class="h-8 w-auto" width="121" height="28" />
+      </a>
+
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border border-[#EBEAF1] bg-white px-3 py-2 text-[12px] font-medium text-[#36394A] shadow-sm"
+          aria-label="Select location"
+        >
+          <span class="inline-flex h-2.5 w-2.5 rounded-full bg-[#FF4D4F]"></span>
+          <span>All Nigeria</span>
+          <span class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#E6E6EC] text-[#A0A5B1]">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+            </svg>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          (click)="closeMobileMenu()"
+          class="inline-flex h-8 w-8 items-center justify-center text-[#4A4F5B]"
+          aria-label="Close menu"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.22 4.22a.75.75 0 011.06 0L10 8.94l4.72-4.72a.75.75 0 111.06 1.06L11.06 10l4.72 4.72a.75.75 0 11-1.06 1.06L10 11.06l-4.72 4.72a.75.75 0 11-1.06-1.06L8.94 10 4.22 5.28a.75.75 0 010-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-5 flex flex-col gap-3 text-[16px] text-[#2D313A]">
+      <a
+        routerLink="/sign-in"
+        (click)="closeMobileMenu()"
+        class="py-1 font-medium transition hover:text-[#6F56F6]"
+      >
+        Sign in
+      </a>
+      <a
+        routerLink="/sign-up"
+        (click)="closeMobileMenu()"
+        class="py-1 font-medium transition hover:text-[#6F56F6]"
+      >
+        Sign up
+      </a>
+      <a
+        routerLink="/my-stores"
+        (click)="closeMobileMenu()"
+        class="py-1 font-medium transition hover:text-[#6F56F6]"
+      >
+        Sell item
+      </a>
+    </div>
+
+    <div class="mt-8 rounded-[24px] border border-[#E9E9EF] px-5 pb-6 pt-7">
+      <div class="pointer-events-none relative overflow-hidden rounded-[20px]">
+        <div class="absolute inset-0 opacity-90">
+          <span class="absolute left-2 top-2 text-[18px] text-[#F4B000]">△</span>
+          <span class="absolute left-8 top-8 text-[18px] text-[#7CC7E8]">○</span>
+          <span class="absolute right-7 top-3 text-[18px] text-[#A272FF]">⌂</span>
+          <span class="absolute right-3 top-8 text-[18px] text-[#F07D57]">□</span>
+          <span class="absolute left-1 top-10 text-[18px] text-[#F4B000]">✦</span>
+          <span class="absolute right-14 top-10 text-[18px] text-[#7FB35B]">☼</span>
+          <span class="absolute left-5 bottom-16 text-[18px] text-[#A272FF]">⌂</span>
+          <span class="absolute right-6 bottom-16 text-[18px] text-[#F4B000]">△</span>
+          <span class="absolute left-10 bottom-8 text-[18px] text-[#7FB35B]">☼</span>
+          <span class="absolute right-12 bottom-7 text-[18px] text-[#A272FF]">○</span>
+        </div>
+
+        <div class="relative flex flex-col items-center pt-2">
+          <div class="rounded-[18px] bg-white p-3 shadow-[0_18px_34px_-26px_rgba(17,24,39,0.55)]">
+            <div
+              class="h-28 w-28 rounded-[10px] bg-[#2D2D2D]"
+              style="background-image:
+                linear-gradient(90deg, #fff 0 14%, transparent 14% 22%, #fff 22% 36%, transparent 36% 44%, #fff 44% 58%, transparent 58% 66%, #fff 66% 80%, transparent 80% 88%, #fff 88% 100%),
+                linear-gradient(#fff 0 14%, transparent 14% 22%, #fff 22% 36%, transparent 36% 44%, #fff 44% 58%, transparent 58% 66%, #fff 66% 80%, transparent 80% 88%, #fff 88% 100%);
+                background-size: 100% 100%;"
+              aria-hidden="true"
+            ></div>
+          </div>
+
+          <div class="mt-4 flex items-center gap-6 text-[#9AA2B2]">
+            <span class="text-[18px]">☼</span>
+            <span class="h-4 w-px bg-[#DFE2E9]"></span>
+            <span class="text-[18px]"></span>
+          </div>
+
+          <p class="mt-4 text-center text-[12px] text-[#92A0B5]">Scan QR code to download mobile app</p>
+
+          <div class="mt-5 flex w-full items-center gap-4 text-[#8F95A2]">
+            <span class="h-px flex-1 bg-[#E4E7EE]"></span>
+            <span class="text-[13px] font-medium">OR</span>
+            <span class="h-px flex-1 bg-[#E4E7EE]"></span>
+          </div>
+
+          <div class="mt-5 flex w-full items-center justify-center gap-3">
+            <button class="flex items-center gap-2 rounded-[10px] bg-black px-3 py-2 text-left text-white shadow-sm">
+              <svg class="h-6 w-6 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M16.365 1.43c0 1.14-.466 2.22-1.244 3.005-.84.862-2.192 1.53-3.38 1.44-.15-1.095.35-2.255 1.11-3.04.835-.873 2.276-1.54 3.514-1.405zM20.49 17.112c-.49 1.086-.723 1.57-1.354 2.53-.88 1.343-2.123 3.016-3.66 3.03-1.367.012-1.72-.89-3.575-.88-1.856.01-2.245.897-3.61.885-1.538-.014-2.715-1.523-3.596-2.866-2.463-3.759-2.72-8.174-1.202-10.52 1.08-1.672 2.79-2.652 4.4-2.652 1.64 0 2.67.902 4.026.902 1.317 0 2.119-.903 4.013-.903 1.433 0 2.95.78 4.03 2.127-3.546 1.942-2.97 6.992.528 8.347z"/>
+              </svg>
+              <span class="leading-tight">
+                <span class="block text-[8px] uppercase tracking-wide text-white/70">Download on the</span>
+                <span class="block text-[13px] font-semibold">App Store</span>
+              </span>
+            </button>
+
+            <button class="flex items-center gap-2 rounded-[10px] bg-black px-3 py-2 text-left text-white shadow-sm">
+              <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24">
+                <path fill="#34A853" d="M3 20.5V3.5c0-.41.17-.77.44-1.03l9.7 9.7-9.7 9.36A1.45 1.45 0 013 20.5z"/>
+                <path fill="#4285F4" d="M16.37 15.13l-3.23-3.11 3.23-3.15 3.9 2.22c1.11.63 1.11 1.55 0 2.18l-3.9 1.86z"/>
+                <path fill="#FBBC04" d="M13.14 12.02L3.44 2.47A1.47 1.47 0 014.6 2.3l11.77 6.57-3.23 3.15z"/>
+                <path fill="#EA4335" d="M13.14 12.02l3.23 3.11L4.6 21.7a1.47 1.47 0 01-1.16-.17l9.7-9.51z"/>
+              </svg>
+              <span class="leading-tight">
+                <span class="block text-[8px] uppercase tracking-wide text-white/70">Get it on</span>
+                <span class="block text-[13px] font-semibold">Google Play</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+}
 
 <app-wishlist-toast />

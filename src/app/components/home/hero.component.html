@@ -1,4 +1,38 @@
-<section class="relative mx-4 mb-12 flex h-[650px] flex-col items-center justify-center overflow-x-clip rounded-b-[60px]">
+<section class="relative mx-4 mb-6 overflow-x-clip md:mb-12">
+  <div
+    #mobileSearchPanel
+    class="relative z-20 md:hidden"
+    (focusin)="openSearchPanel()"
+    (focusout)="handleSearchFocusOut($event, mobileSearchPanel)"
+  >
+    <div class="rounded-[28px] bg-white p-1.5 shadow-[0_18px_36px_-24px_rgba(17,24,39,0.35)]">
+      <div class="relative">
+        <input
+          type="text"
+          placeholder="What are you looking for?"
+          [value]="searchQuery()"
+          #mobileSearchInput
+          (input)="updateSearchQuery(mobileSearchInput.value)"
+          (keydown.enter)="runSearch()"
+          class="h-12 w-full rounded-full border border-transparent bg-[#FAFAFC] pl-5 pr-16 text-[14px] text-[#1F2430] outline-none placeholder:text-[#B0B4BF]"
+        >
+
+        <button
+          type="button"
+          (mousedown)="$event.preventDefault()"
+          (click)="runSearch()"
+          class="absolute right-1 top-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#6F56F6] text-white shadow-[0_12px_24px_-16px_rgba(111,86,246,0.95)] transition hover:bg-[#6249ef]"
+          aria-label="Search"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="relative hidden h-[650px] w-full flex-col items-center justify-center overflow-x-clip rounded-b-[60px] md:flex">
   <img ngSrc="assets/images/hero-bg.png" alt="" fill priority class="pointer-events-none absolute inset-0 object-cover">
 
   <div class="pointer-events-none absolute inset-0 bg-[E9E9FF]"></div>
@@ -186,5 +220,6 @@
     @for (group of carouselGroups; track $index; let index = $index) {
     <span class="rounded-full transition-all duration-500" [class.w-8]="activeGroupIndex() === index" [class.bg-indigo-600]="activeGroupIndex() === index" [class.h-2]="activeGroupIndex() === index" [class.w-2]="activeGroupIndex() !== index" [class.h-2]="activeGroupIndex() !== index" [class.bg-gray-300]="activeGroupIndex() !== index"></span>
     }
+  </div>
   </div>
 </section>

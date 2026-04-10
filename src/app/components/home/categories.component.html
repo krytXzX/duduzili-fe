@@ -1,12 +1,18 @@
-<section class="mb-16 px-4">
+<section class="mb-12 px-2 md:mb-16 md:px-4">
   <div class="relative">
-    <div #categoriesScroller class="flex items-center gap-8 overflow-x-auto no-scrollbar py-4 pl-20 pr-20 justify-start lg:justify-center">
+    <div #categoriesScroller class="flex items-start gap-4 overflow-x-auto no-scrollbar py-4 pl-2 pr-2 md:gap-8 md:pl-20 md:pr-20 md:justify-start lg:justify-center">
       @for (category of categories(); track category.id) {
-        <div class="flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group">
-          <div class="w-16 h-16 rounded-full bg-[#f8f9fa] flex items-center justify-center text-3xl group-hover:bg-[#e9ecef] transition-all">
-            {{ category.icon }}
+        <div class="group flex min-w-[64px] max-w-[72px] cursor-pointer flex-col items-center gap-2 md:min-w-[100px] md:max-w-[120px] md:gap-3">
+          <div class="flex h-14 w-14 items-center justify-center rounded-full bg-[#F7F7FA] transition-all group-hover:bg-[#e9ecef] md:h-16 md:w-16">
+            <img
+              [ngSrc]="category.icon"
+              [alt]="category.name"
+              width="28"
+              height="28"
+              class="h-7 w-7 object-contain md:h-8 md:w-8"
+            >
           </div>
-          <span class="text-sm font-semibold text-[#36394A] text-center line-clamp-2 max-w-[120px]">
+          <span class="text-center text-[10px] font-medium leading-4 text-[#36394A] md:max-w-[120px] md:text-sm md:font-semibold md:line-clamp-2">
             {{ category.name }}
           </span>
         </div>
@@ -16,7 +22,7 @@
     <button
       type="button"
       (click)="scrollCategoriesBackward()"
-      class="absolute left-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-gray-100 bg-white/95 text-gray-400 shadow-[0_12px_24px_-16px_rgba(17,24,39,0.35)] backdrop-blur-sm transition hover:bg-gray-50"
+      class="absolute left-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-gray-100 bg-white/95 text-gray-400 shadow-[0_12px_24px_-16px_rgba(17,24,39,0.35)] backdrop-blur-sm transition hover:bg-gray-50 md:flex"
       aria-label="Scroll categories backward"
     >
       <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -27,7 +33,7 @@
     <button
       type="button"
       (click)="scrollCategories()"
-      class="absolute right-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-gray-100 bg-white/95 text-gray-400 shadow-[0_12px_24px_-16px_rgba(17,24,39,0.35)] backdrop-blur-sm transition hover:bg-gray-50"
+      class="absolute right-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-gray-100 bg-white/95 text-gray-400 shadow-[0_12px_24px_-16px_rgba(17,24,39,0.35)] backdrop-blur-sm transition hover:bg-gray-50 md:flex"
       aria-label="Scroll categories"
     >
       <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

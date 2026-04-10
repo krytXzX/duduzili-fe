@@ -1,39 +1,70 @@
-<div class="overflow-x-clip bg-white">
+<div class="overflow-x-clip bg-white pb-24 md:pb-0">
+  @if (showAppDownloadBanner()) {
+    <section class="flex items-center gap-2 border-b border-[#ECECF2] bg-white px-3 py-3 md:hidden">
+      <button
+        type="button"
+        (click)="dismissAppDownloadBanner()"
+        class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-[#A7ACB5]"
+        aria-label="Dismiss app download banner"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4.22 4.22a.75.75 0 011.06 0L10 8.94l4.72-4.72a.75.75 0 111.06 1.06L11.06 10l4.72 4.72a.75.75 0 11-1.06 1.06L10 11.06l-4.72 4.72a.75.75 0 11-1.06-1.06L8.94 10 4.22 5.28a.75.75 0 010-1.06z" clip-rule="evenodd" />
+        </svg>
+      </button>
+
+      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#6F56F6] shadow-[0_10px_18px_-14px_rgba(111,86,246,0.95)]">
+        <img src="/assets/images/logo-light-fill.svg" alt="" class="h-5 w-5" aria-hidden="true">
+      </div>
+
+      <div class="min-w-0 flex-1">
+        <p class="text-[12px] font-semibold leading-4 text-[#2F3440]">Get the app</p>
+        <p class="truncate text-[10px] leading-4 text-[#7D8390]">The easiest way to use Duduzili</p>
+      </div>
+
+      <button
+        type="button"
+        class="shrink-0 rounded-full bg-[#6F56F6] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.06em] text-white shadow-[0_14px_22px_-14px_rgba(111,86,246,0.95)] transition hover:bg-[#6249ef]"
+      >
+        Download
+      </button>
+    </section>
+  }
+
   <app-navbar />
 
   <div class="relative w-full">
     <app-hero />
     <app-categories />
 
-    <div class="max-w-7xl mx-auto px-4 mb-24">
+    <div class="mx-auto mb-16 max-w-7xl px-3 md:px-4 md:mb-24">
       <app-section-header title="Sponsored listings" />
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
         @for (listing of sponsoredListings(); track listing.id) {
         <app-listing-card [listing]="listing" />
         }
       </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 mb-24">
+    <div class="mx-auto mb-16 max-w-7xl px-3 md:px-4 md:mb-24">
       <app-section-header title="Listings near you" />
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         @for (listing of nearYouListings(); track listing.id) {
         <app-listing-card [listing]="listing" />
         }
       </div>
 
-      <div class="flex justify-center mt-12">
-        <button class="px-8 py-3 bg-[#F1F3FF] text-[#36394A] font-bold rounded-full hover:bg-indigo-100 transition-all">
-          View more results
+      <div class="mt-8 flex justify-center md:mt-12">
+        <button class="min-w-[180px] rounded-full bg-[#F4F4F6] px-8 py-3 text-[13px] font-semibold text-[#36394A] transition-all hover:bg-[#eaebf0] md:bg-[#F1F3FF] md:text-[15px] md:font-bold md:hover:bg-indigo-100">
+          Show more listings
         </button>
       </div>
     </div>
 
     <app-promotions />
 
-    <div class="max-w-7xl mx-auto px-4 mb-32">
+    <div class="mx-auto mb-20 max-w-7xl px-3 md:px-4 md:mb-32">
       <app-section-header title="Featured stores" />
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <div class="grid grid-cols-2 gap-3 md:gap-8 lg:grid-cols-4">
         @for (store of featuredStores(); track store.id) {
         <app-store-card [store]="store" />
         }
@@ -42,4 +73,53 @@
   </div>
 
   <app-footer />
+
+  <nav
+    class="fixed inset-x-3 bottom-3 z-50 rounded-[26px] border border-[#ECECF2] bg-white/95 px-3 py-2 shadow-[0_24px_48px_-28px_rgba(31,36,48,0.45)] backdrop-blur md:hidden"
+    aria-label="Mobile navigation"
+  >
+    <div class="grid grid-cols-5 items-end gap-1 text-center">
+      <a routerLink="/" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-1 text-[10px] font-semibold text-[#6F56F6]">
+        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#EEE9FF]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10.707 1.293a1 1 0 00-1.414 0l-7 7A1 1 0 003 10h1v6a1 1 0 001 1h3a1 1 0 001-1v-3h2v3a1 1 0 001 1h3a1 1 0 001-1v-6h1a1 1 0 00.707-1.707l-7-7z"/>
+          </svg>
+        </span>
+        <span>Listings</span>
+      </a>
+      <a routerLink="/messages" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-1 text-[10px] font-medium text-[#6B7280]">
+        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6F8]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v7a2 2 0 01-2 2H7l-4 3v-3H4a2 2 0 01-2-2V5z"/>
+          </svg>
+        </span>
+        <span>Chat</span>
+      </a>
+      <a routerLink="/my-stores" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-1 text-[10px] font-medium text-[#6B7280]">
+        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6F8]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9z"/>
+          </svg>
+        </span>
+        <span>Stores</span>
+      </a>
+      <a routerLink="/buyer/wishlist" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-1 text-[10px] font-medium text-[#6B7280]">
+        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6F8]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+          </svg>
+        </span>
+        <span>More</span>
+      </a>
+      <button
+        type="button"
+        aria-label="Create new listing"
+        class="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#6F56F6] text-white shadow-[0_24px_30px_-18px_rgba(111,86,246,0.95)] transition hover:bg-[#6249ef]"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
 </div>

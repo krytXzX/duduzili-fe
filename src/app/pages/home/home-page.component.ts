@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NavbarComponent } from '../../components/layout/navbar.component';
 import { HeroComponent } from '../../components/home/hero.component';
 import { CategoriesComponent } from '../../components/home/categories.component';
@@ -14,6 +15,7 @@ import { FooterComponent } from '../../components/layout/footer.component';
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     NavbarComponent,
     HeroComponent,
     CategoriesComponent,
@@ -30,6 +32,7 @@ import { FooterComponent } from '../../components/layout/footer.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent {
+  readonly showAppDownloadBanner = signal(true);
   sponsoredListings = signal<Listing[]>([
     { id: 's1', title: 'Premium Sneakers (Yellow/Purple)', price: '₦20,000', location: 'Lagos', timeAgo: '5 mins ago', isVerified: true, images: ['/assets/images/product_sneakers_lifestyle.png', '/assets/images/product_watch_luxury.png'] },
     { id: 's2', title: 'High Density Wig', price: '₦45,000', location: 'Abuja', timeAgo: '12 mins ago', isVerified: true, images: ['/assets/images/fashion_menswear_hero.png', '/assets/images/product_keyboard_rgb.png'] },
@@ -60,4 +63,8 @@ export class HomePageComponent {
     { id: 'st7', name: 'Watch Store', followers: '1.5k', logo: '/assets/images/product_watch_luxury.png', banner: '/assets/images/product_watch_luxury.png' },
     { id: 'st8', name: 'Sneakers Palace', followers: '3.8k', logo: '/assets/images/product_sneakers_lifestyle.png', banner: '/assets/images/product_sneakers_lifestyle.png' },
   ]);
+
+  dismissAppDownloadBanner(): void {
+    this.showAppDownloadBanner.set(false);
+  }
 }

@@ -17,6 +17,7 @@ export class NavbarComponent {
 
   readonly showSearch = input<boolean>(false);
   readonly searchQuery = signal('');
+  readonly mobileMenuOpen = signal(false);
 
   updateSearchQuery(value: string): void {
     this.searchQuery.set(value);
@@ -29,5 +30,13 @@ export class NavbarComponent {
   runSearch(): void {
     const query = this.searchQuery().trim() || 'iPhone';
     void this.router.navigate(['/category'], { queryParams: { q: query } });
+  }
+
+  openMobileMenu(): void {
+    this.mobileMenuOpen.set(true);
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
   }
 }

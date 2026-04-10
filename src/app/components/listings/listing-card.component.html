@@ -1,5 +1,5 @@
 <a [routerLink]="[...listingRoute(), listing().id]"
-  class="block bg-white rounded-[24px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group cursor-pointer h-full flex flex-col">
+  class="group flex h-full cursor-pointer flex-col overflow-hidden rounded-[18px] border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-xl md:rounded-[24px]">
 
   <!-- Image Container -->
   <div class="relative aspect-square overflow-hidden bg-gray-50">
@@ -8,20 +8,20 @@
 
     <!-- Verified Badge (Image Style) -->
     @if (listing().isVerified) {
-    <div class="absolute top-4 left-4 bg-white px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md z-10">
-      <div class="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+    <div class="absolute left-2 top-2 z-10 flex items-center gap-1 rounded-full bg-white px-2 py-1 shadow-md md:left-4 md:top-4 md:gap-1.5 md:px-3 md:py-1.5">
+      <div class="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-500 md:h-4 md:w-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2 text-white md:h-2.5 md:w-2.5" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd"
             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
             clip-rule="evenodd" />
         </svg>
       </div>
-      <span class="text-[10px] font-bold uppercase tracking-wider text-[#36394A]">Verified</span>
+      <span class="text-[8px] font-bold uppercase tracking-wide text-[#36394A] md:text-[10px] md:tracking-wider">Verified</span>
     </div>
     }
 
     @if (listing().discountBadge) {
-    <div class="absolute left-4 top-[54px] rounded-full bg-[#FF6A3D] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-white shadow-md z-10">
+    <div class="absolute left-2 top-10 z-10 rounded-full bg-[#FF6A3D] px-2 py-1 text-[8px] font-black uppercase tracking-wide text-white shadow-md md:left-4 md:top-[54px] md:px-3 md:py-1.5 md:text-[10px] md:tracking-wider">
       {{ listing().discountBadge }}
     </div>
     }
@@ -29,9 +29,9 @@
     <!-- Heart Icon -->
     @if (showFavorite()) {
     <button (click)="toggleFavorite($event)"
-      class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center transition-all z-10 hover:bg-white/30"
+      class="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#1A1C21]/75 text-white backdrop-blur-md transition-all hover:bg-[#1A1C21]/85 md:right-4 md:top-4 md:h-10 md:w-10 md:bg-white/10"
       [class.text-red-500]="isFavorited()" [class.text-white]="!isFavorited()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" [attr.fill]="isFavorited() ? 'currentColor' : 'none'"
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 md:h-5 md:w-5" [attr.fill]="isFavorited() ? 'currentColor' : 'none'"
         viewBox="0 0 24 24" [attr.stroke]="isFavorited() ? 'currentColor' : 'white'">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -42,23 +42,23 @@
     <!-- Carousel Nav (Arrows & Dots) -->
     @if (listing().images.length > 1) {
     <div
-      class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+      class="absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-between px-1 opacity-100 transition-opacity md:px-2 md:opacity-0 md:group-hover:opacity-100">
       <button (click)="prevImage($event)"
-        class="w-8 h-8 rounded-full bg-white/60 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all shadow-sm">
-        <svg class="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        class="flex h-5 w-5 items-center justify-center rounded-full bg-white/85 shadow-sm transition-all hover:bg-white md:h-8 md:w-8 md:bg-white/60 md:backdrop-blur-sm">
+        <svg class="h-3 w-3 text-gray-800 md:h-4 md:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
       <button (click)="nextImage($event)"
-        class="w-8 h-8 rounded-full bg-white/60 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all shadow-sm">
-        <svg class="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        class="flex h-5 w-5 items-center justify-center rounded-full bg-white/85 shadow-sm transition-all hover:bg-white md:h-8 md:w-8 md:bg-white/60 md:backdrop-blur-sm">
+        <svg class="h-3 w-3 text-gray-800 md:h-4 md:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
       </button>
     </div>
 
     <!-- Dots -->
-    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+    <div class="absolute bottom-2 left-1/2 z-10 hidden -translate-x-1/2 gap-1.5 md:flex md:bottom-4">
       @for (img of listing().images; track $index) {
       <span class="w-1.5 h-1.5 rounded-full transition-all" [class.bg-white]="currentImageIndex() === $index"
         [class.bg-white/40]="currentImageIndex() !== $index"></span>
@@ -68,17 +68,17 @@
   </div>
 
   <!-- Info Container -->
-  <div class="p-4 flex flex-col grow text-left">
-    <h3 class="text-sm font-bold text-[#1A1C21] line-clamp-1 mb-1">{{ listing().title }}</h3>
-    <div class="mb-2 flex items-center gap-2">
-      <p class="text-base font-black text-[#1A1C21]">{{ listing().price }}</p>
+  <div class="flex grow flex-col p-2.5 text-left md:p-4">
+    <h3 class="mb-1 line-clamp-1 text-[11px] font-medium text-[#1A1C21] md:text-sm md:font-bold">{{ listing().title }}</h3>
+    <div class="mb-1.5 flex items-center gap-1.5 md:mb-2 md:gap-2">
+      <p class="text-[14px] font-semibold text-[#1A1C21] md:text-base md:font-black">{{ listing().price }}</p>
       @if (listing().originalPrice) {
-        <span class="text-xs font-semibold text-gray-400 line-through">{{ listing().originalPrice }}</span>
+        <span class="text-[10px] font-medium text-gray-400 line-through md:text-xs md:font-semibold">{{ listing().originalPrice }}</span>
       }
     </div>
 
-    <div class="mt-auto flex items-center gap-1.5 text-[11px] font-bold text-gray-400">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-60" viewBox="0 0 20 20" fill="currentColor">
+    <div class="mt-auto flex items-center gap-1 text-[9px] font-medium text-gray-400 md:gap-1.5 md:text-[11px] md:font-bold">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-60 md:h-3.5 md:w-3.5" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd"
           d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
           clip-rule="evenodd" />

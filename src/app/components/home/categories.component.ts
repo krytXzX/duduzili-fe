@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, viewChild, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 
 interface Category {
   id: string;
@@ -10,7 +10,7 @@ interface Category {
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgOptimizedImage],
   templateUrl: './categories.component.html',
   styles: `
     .no-scrollbar::-webkit-scrollbar {
@@ -30,14 +30,14 @@ export class CategoriesComponent {
   readonly categoriesScroller = viewChild<ElementRef<HTMLDivElement>>('categoriesScroller');
 
   readonly categories = signal<Category[]>([
-    { id: '1', name: 'Automobiles', icon: '🚗' },
-    { id: '2', name: 'Real Estate & Property', icon: '🏠' },
-    { id: '3', name: 'Phones & Tablets', icon: '📱' },
-    { id: '4', name: 'Computers', icon: '💻' },
-    { id: '5', name: 'Home, Furniture & Appliances', icon: '🛋️' },
-    { id: '6', name: 'Men\'s Wear', icon: '👔' },
-    { id: '7', name: 'Women\'s Fashion', icon: '👗' },
-    { id: '8', name: 'Beauty & Cosmetics', icon: '💄' },
+    { id: '1', name: 'Automobiles', icon: 'assets/icons/category-automobiles.svg' },
+    { id: '2', name: 'Real Estate & Property', icon: 'assets/icons/category-real-estate.svg' },
+    { id: '3', name: 'Phones & Tablet', icon: 'assets/icons/category-phones.svg' },
+    { id: '4', name: 'Electronics', icon: 'assets/icons/category-computers.svg' },
+    { id: '5', name: 'Home, furniture & decor', icon: 'assets/icons/category-home.svg' },
+    { id: '6', name: 'Men\'s wear', icon: 'assets/icons/category-menswear.svg' },
+    { id: '7', name: 'Women\'s wear', icon: 'assets/icons/category-womenswear.svg' },
+    { id: '8', name: 'Beauty', icon: 'assets/icons/category-beauty.svg' },
   ]);
 
   scrollCategories(): void {
