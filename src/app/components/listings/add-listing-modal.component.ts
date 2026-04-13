@@ -16,7 +16,8 @@ import {
   heroEllipsisHorizontal,
   heroCheck,
   heroChevronDown,
-  heroDocumentDuplicate
+  heroDocumentDuplicate,
+  heroMagnifyingGlass
 } from '@ng-icons/heroicons/outline';
 import { ListingCardComponent } from './listing-card.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
@@ -35,9 +36,17 @@ export interface ListingData {
   images: string[];
 }
 
+type PickerKind = 'category' | 'condition' | 'store' | 'location';
+
+type PickerOption = {
+  readonly value: string;
+  readonly label: string;
+  readonly subtitle?: string;
+  readonly image?: string;
+};
+
 @Component({
   selector: 'app-add-listing-modal',
-  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, NgIcon, ListingCardComponent],
   providers: [
     provideIcons({ 
@@ -53,7 +62,8 @@ export interface ListingData {
       heroEllipsisHorizontal,
       heroCheck,
       heroChevronDown,
-      heroDocumentDuplicate
+      heroDocumentDuplicate,
+      heroMagnifyingGlass
     })
   ],
   template: `
@@ -376,46 +386,39 @@ export interface ListingData {
 
                     <div class="space-y-2 relative">
                       <label class="text-[12px] font-medium text-[#3F4452]">Category</label>
-                      <select
-                        formControlName="category"
-                        class="w-full appearance-none rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pr-10 text-[12px] font-medium text-[#202335] outline-none"
+                      <button
+                        type="button"
+                        (click)="openPicker('category')"
+                        class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none"
                       >
-                        <option value="Phones & Gadgets">Electronics/Phones & Tablets</option>
-                        <option value="Fashion">Fashion</option>
-                        <option value="Cars">Cars</option>
-                      </select>
-                      <div class="pointer-events-none absolute right-4 top-[38px] text-[#8A8F9A]">
+                        <span>{{ listingForm.value.category || 'Select category' }}</span>
                         <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
-                      </div>
+                      </button>
                     </div>
 
                     <div class="grid grid-cols-2 gap-5">
                       <div class="space-y-2 relative">
                         <label class="text-[12px] font-medium text-[#3F4452]">Condition</label>
-                        <select
-                          formControlName="condition"
-                          class="w-full appearance-none rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pr-10 text-[12px] font-medium text-[#202335] outline-none"
+                        <button
+                          type="button"
+                          (click)="openPicker('condition')"
+                          class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none"
                         >
-                          <option value="used">Used</option>
-                          <option value="new">New</option>
-                        </select>
-                        <div class="pointer-events-none absolute right-4 top-[38px] text-[#8A8F9A]">
+                          <span>{{ listingForm.value.condition || 'Select condition' }}</span>
                           <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
-                        </div>
+                        </button>
                       </div>
 
                       <div class="space-y-2 relative">
                         <label class="text-[12px] font-medium text-[#3F4452]">Store</label>
-                        <select
-                          formControlName="store"
-                          class="w-full appearance-none rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pr-10 text-[12px] font-medium text-[#202335] outline-none"
+                        <button
+                          type="button"
+                          (click)="openPicker('store')"
+                          class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none"
                         >
-                          <option value="1">My Main Store</option>
-                          <option value="2">Secondary Store</option>
-                        </select>
-                        <div class="pointer-events-none absolute right-4 top-[38px] text-[#8A8F9A]">
+                          <span class="truncate">{{ selectedStoreLabel() || 'Select store' }}</span>
                           <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
-                        </div>
+                        </button>
                       </div>
                     </div>
 
@@ -451,45 +454,38 @@ export interface ListingData {
 
                     <div class="space-y-2 relative">
                       <label class="text-[13px] font-medium text-gray-700">Category</label>
-                      <select 
-                        formControlName="category"
-                        class="w-full bg-white border border-gray-100 rounded-xl p-3.5 text-[15px] focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all font-medium text-[#1A1C21] appearance-none pr-10"
+                      <button
+                        type="button"
+                        (click)="openPicker('category')"
+                        class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all"
                       >
-                        <option value="Phones & Gadgets">Phones & Gadgets</option>
-                        <option value="Fashion">Fashion</option>
-                        <option value="Cars">Cars</option>
-                      </select>
-                      <div class="absolute right-4 top-[38px] pointer-events-none text-gray-400">
-                         <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2]"></ng-icon>
-                      </div>
+                        <span>{{ listingForm.value.category || 'Select category' }}</span>
+                        <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
+                      </button>
                     </div>
 
                     <div class="space-y-2 relative">
                       <label class="text-[13px] font-medium text-gray-700">Condition</label>
-                      <select 
-                        formControlName="condition"
-                        class="w-full bg-white border border-gray-100 rounded-xl p-3.5 text-[15px] focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all font-medium text-[#1A1C21] appearance-none pr-10"
+                      <button
+                        type="button"
+                        (click)="openPicker('condition')"
+                        class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all"
                       >
-                          <option value="new">New</option>
-                          <option value="used">Used</option>
-                      </select>
-                      <div class="absolute right-4 top-[38px] pointer-events-none text-gray-400">
-                         <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2]"></ng-icon>
-                      </div>
+                        <span>{{ listingForm.value.condition || 'Select condition' }}</span>
+                        <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
+                      </button>
                     </div>
 
                     <div class="space-y-2 relative">
                       <label class="text-[13px] font-medium text-gray-700">Store</label>
-                      <select 
-                        formControlName="store"
-                        class="w-full bg-white border border-gray-100 rounded-xl p-3.5 text-[15px] focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all font-medium text-[#1A1C21] appearance-none pr-10"
+                      <button
+                        type="button"
+                        (click)="openPicker('store')"
+                        class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all"
                       >
-                          <option value="1">My Main Store</option>
-                          <option value="2">Secondary Store</option>
-                      </select>
-                      <div class="absolute right-4 top-[38px] pointer-events-none text-gray-400">
-                         <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2]"></ng-icon>
-                      </div>
+                        <span>{{ selectedStoreLabel() || 'Select store' }}</span>
+                        <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
+                      </button>
                     </div>
 
                     <div class="pt-8 mb-6">
@@ -517,15 +513,14 @@ export interface ListingData {
                       <div class="space-y-5">
                         <div class="space-y-2 relative">
                           <label class="text-[12px] font-medium text-[#3F4452]">Location</label>
-                          <select
-                            formControlName="location"
-                            class="w-full appearance-none rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pr-10 text-[12px] font-medium text-[#202335] outline-none"
+                          <button
+                            type="button"
+                            (click)="openPicker('location')"
+                            class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none"
                           >
-                            <option value="Ikeja, Lagos">Ikeja, Lagos</option>
-                          </select>
-                          <div class="pointer-events-none absolute right-4 top-[38px] text-[#8A8F9A]">
+                            <span>{{ listingForm.value.location || 'Select location' }}</span>
                             <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
-                          </div>
+                          </button>
                         </div>
 
                         <div class="grid grid-cols-2 gap-5">
@@ -728,15 +723,14 @@ export interface ListingData {
                       <div class="space-y-6">
                         <div class="space-y-2 relative">
                           <label class="text-[13px] font-medium text-gray-700">Location</label>
-                          <select 
-                             formControlName="location"
-                             class="w-full bg-white border border-gray-100 rounded-xl p-3.5 text-[15px] focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all font-medium text-[#1A1C21] appearance-none pr-10"
+                          <button
+                             type="button"
+                             (click)="openPicker('location')"
+                             class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all"
                           >
-                             <option value="Ikeja, Lagos">Ikeja, Lagos</option>
-                          </select>
-                          <div class="absolute right-4 top-[38px] pointer-events-none text-gray-400">
-                             <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2]"></ng-icon>
-                          </div>
+                            <span>{{ listingForm.value.location || 'Select location' }}</span>
+                            <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
+                          </button>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
@@ -989,10 +983,10 @@ export interface ListingData {
                             <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ listingForm.value.category || '---' }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Condition</span>
-                            <span class="text-right text-[12px] font-medium text-[#202335] capitalize">{{ listingForm.value.condition || '---' }}</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.condition || '---' }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Store</span>
-                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.store === '1' ? 'The Vine Collections' : (listingForm.value.store || '---') }}</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ selectedStoreLabel() || '---' }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Description</span>
                             <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ listingForm.value.description || '---' }}</span>
@@ -1094,11 +1088,11 @@ export interface ListingData {
                              </div>
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Condition</span>
-                                <span class="text-[15px] font-medium text-[#1A1C21] capitalize flex-1">{{ listingForm.value.condition || '---' }}</span>
+                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ listingForm.value.condition || '---' }}</span>
                              </div>
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Store</span>
-                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ listingForm.value.store === '1' ? 'The Vine Collections' : (listingForm.value.store || '---') }}</span>
+                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ selectedStoreLabel() || '---' }}</span>
                              </div>
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Description</span>
@@ -1373,6 +1367,128 @@ export interface ListingData {
         }
 
       </div>
+
+      @if (activePicker(); as picker) {
+        <button
+          type="button"
+          class="fixed inset-0 z-[70] bg-black/30"
+          (click)="closePicker()"
+          aria-label="Close picker"
+        ></button>
+
+        <section
+          class="fixed inset-x-0 bottom-0 z-[80] rounded-t-[28px] bg-white px-4 pb-6 pt-3 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.4)] md:hidden"
+          role="dialog"
+          aria-modal="true"
+          [attr.aria-label]="pickerTitle()"
+        >
+          <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E6E7EC]"></div>
+
+          <div class="mt-2 flex items-center justify-between">
+            <button
+              type="button"
+              (click)="closePicker()"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
+              aria-label="Close picker"
+            >
+              <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
+            </button>
+            <h3 class="text-[16px] font-semibold text-[#202335]">{{ pickerTitle() }}</h3>
+            <span class="h-10 w-10"></span>
+          </div>
+
+          @if (pickerHasSearch()) {
+            <label class="mt-5 flex items-center gap-2 rounded-[14px] border border-[#E1E3E8] bg-white px-4 py-3">
+              <ng-icon name="heroMagnifyingGlass" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+              <input
+                type="search"
+                [value]="pickerSearch()"
+                (input)="pickerSearch.set($any($event.target).value)"
+                [placeholder]="pickerSearchPlaceholder()"
+                class="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-[#202335] outline-none placeholder:text-[#B1B5BF]"
+              />
+            </label>
+          }
+
+          <div class="mt-4 max-h-[52vh] overflow-y-auto">
+            @for (option of filteredPickerOptions(); track option.value) {
+              <button
+                type="button"
+                (click)="selectPickerOption(option.value)"
+                class="flex w-full items-center justify-between gap-3 rounded-[14px] px-2 py-3 text-left hover:bg-[#F8F8FB]"
+              >
+                <span class="flex min-w-0 items-center gap-3">
+                  @if (option.image) {
+                    <img [src]="option.image" alt="" class="h-8 w-8 rounded-full object-cover" />
+                  }
+                  <span class="min-w-0">
+                    <span class="block truncate text-[13px] font-medium text-[#202335]">{{ option.label }}</span>
+                    @if (option.subtitle) {
+                      <span class="block truncate text-[11px] text-[#8A8F9A]">{{ option.subtitle }}</span>
+                    }
+                  </span>
+                </span>
+                <ng-icon name="heroChevronRight" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+              </button>
+            }
+          </div>
+        </section>
+
+        <section
+          class="fixed left-1/2 top-1/2 z-[80] hidden w-[min(540px,calc(100vw-48px))] -translate-x-1/2 -translate-y-1/2 rounded-[24px] border border-[#ECEEF4] bg-white p-6 shadow-[0_20px_80px_rgba(32,35,53,0.18)] md:block"
+          role="dialog"
+          aria-modal="true"
+          [attr.aria-label]="pickerTitle()"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="text-[20px] font-semibold text-[#1A1C21]">{{ pickerTitle() }}</h3>
+            <button
+              type="button"
+              (click)="closePicker()"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
+              aria-label="Close picker"
+            >
+              <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
+            </button>
+          </div>
+
+          @if (pickerHasSearch()) {
+            <label class="mt-5 flex items-center gap-2 rounded-[14px] border border-[#E1E3E8] bg-white px-4 py-3">
+              <ng-icon name="heroMagnifyingGlass" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+              <input
+                type="search"
+                [value]="pickerSearch()"
+                (input)="pickerSearch.set($any($event.target).value)"
+                [placeholder]="pickerSearchPlaceholder()"
+                class="min-w-0 flex-1 bg-transparent text-[14px] font-medium text-[#202335] outline-none placeholder:text-[#B1B5BF]"
+              />
+            </label>
+          }
+
+          <div class="mt-5 max-h-[420px] overflow-y-auto">
+            @for (option of filteredPickerOptions(); track option.value) {
+              <button
+                type="button"
+                (click)="selectPickerOption(option.value)"
+                class="flex w-full items-center justify-between gap-4 rounded-[14px] px-3 py-3 text-left hover:bg-[#F8F8FB]"
+              >
+                <span class="flex min-w-0 items-center gap-3">
+                  @if (option.image) {
+                    <img [src]="option.image" alt="" class="h-10 w-10 rounded-full object-cover" />
+                  }
+                  <span class="min-w-0">
+                    <span class="block truncate text-[14px] font-medium text-[#202335]">{{ option.label }}</span>
+                    @if (option.subtitle) {
+                      <span class="block truncate text-[12px] text-[#8A8F9A]">{{ option.subtitle }}</span>
+                    }
+                  </span>
+                </span>
+                <ng-icon name="heroChevronRight" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+              </button>
+            }
+          </div>
+        </section>
+      }
     </div>
   `,
   styles: [`
@@ -1413,6 +1529,68 @@ export class AddListingModalComponent implements OnDestroy {
     { id: 4, name: 'Review' }
   ];
 
+  readonly activePicker = signal<PickerKind | null>(null);
+  readonly pickerSearch = signal('');
+
+  readonly categoryOptions: readonly PickerOption[] = [
+    { value: 'Electronics/Phones & Tablets', label: 'Electronics/Phones & Tablets' },
+    { value: 'Automotives', label: 'Automotives' },
+    { value: 'Real Estate & Properties', label: 'Real Estate & Properties' },
+    { value: 'Home, Furniture & Appliances', label: 'Home, Furniture & Appliances' },
+    { value: 'Men’s fashion', label: 'Men’s fashion' },
+    { value: 'Women’s fashion', label: 'Women’s fashion' },
+    { value: 'Children & Baby fashion', label: 'Children & Baby fashion' },
+    { value: 'Fashion & Design', label: 'Fashion & Design' },
+    { value: 'Beauty & Personal Care', label: 'Beauty & Personal Care' },
+    { value: 'Industrial & Home Supplies', label: 'Industrial & Home Supplies' },
+    { value: 'Business & Industrial', label: 'Business & Industrial' },
+    { value: 'School, Office & General Supplies', label: 'School, Office & General Supplies' },
+    { value: 'Leisure & Activities', label: 'Leisure & Activities' },
+    { value: 'Grocery', label: 'Grocery' },
+    { value: 'Party Supplies', label: 'Party Supplies' },
+    { value: 'Food, Agriculture & Farming', label: 'Food, Agriculture & Farming' },
+    { value: 'Animals & Pets', label: 'Animals & Pets' },
+    { value: 'Services', label: 'Services' },
+    { value: 'Pharmacy', label: 'Pharmacy' },
+    { value: 'Vision Center', label: 'Vision Center' },
+  ];
+
+  readonly conditionOptions: readonly PickerOption[] = [
+    { value: 'Brand new', label: 'Brand new' },
+    { value: 'Fairly used', label: 'Fairly used' },
+  ];
+
+  readonly storeOptions: readonly PickerOption[] = [
+    {
+      value: 'vine',
+      label: 'The Vine Collections',
+      image: '/assets/images/store-vine-logo-mobile.png',
+    },
+    {
+      value: 'eden',
+      label: 'Eden Organics',
+      image: '/assets/images/store-eden-logo-mobile.png',
+    },
+    {
+      value: 'personal',
+      label: 'Personal account',
+      image: '/assets/images/dashboard-avatar-mobile.png',
+    },
+  ];
+
+  readonly locationOptions: readonly PickerOption[] = [
+    { value: 'Ikeja, Lagos', label: 'Ikeja, Lagos', subtitle: 'Lagos State' },
+    { value: 'Yaba, Lagos', label: 'Yaba, Lagos', subtitle: 'Lagos State' },
+    { value: 'Lekki, Lagos', label: 'Lekki, Lagos', subtitle: 'Lagos State' },
+    { value: 'Surulere, Lagos', label: 'Surulere, Lagos', subtitle: 'Lagos State' },
+    { value: 'Asaba, Delta', label: 'Asaba, Delta', subtitle: 'Delta State' },
+    { value: 'Warri, Delta', label: 'Warri, Delta', subtitle: 'Delta State' },
+    { value: 'Abuja, FCT', label: 'Abuja, FCT', subtitle: 'Federal Capital Territory' },
+    { value: 'Port Harcourt, Rivers', label: 'Port Harcourt, Rivers', subtitle: 'Rivers State' },
+    { value: 'Enugu, Enugu', label: 'Enugu, Enugu', subtitle: 'Enugu State' },
+    { value: 'Benin City, Edo', label: 'Benin City, Edo', subtitle: 'Edo State' },
+  ];
+
   mainImage = signal<string | null>('https://images.unsplash.com/photo-1696446701796-da61225697cc?w=800&fit=crop');
   additionalImages = signal<(string | null)[]>([
     'https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=400&h=400&fit=crop',
@@ -1429,11 +1607,11 @@ export class AddListingModalComponent implements OnDestroy {
     this.mobileOverlayService.setAddListingOpen(true);
     this.listingForm = this.fb.group({
       name: ['', Validators.required],
-      category: ['', Validators.required],
-      condition: ['', Validators.required],
-      store: ['', Validators.required],
+      category: ['Electronics/Phones & Tablets', Validators.required],
+      condition: ['Fairly used', Validators.required],
+      store: ['vine', Validators.required],
       description: [''],
-      location: ['', Validators.required],
+      location: ['Ikeja, Lagos', Validators.required],
       whatsappNumber: [''],
       callNumber: [''],
       deliveryOptions: [[] as string[], Validators.required],
@@ -1478,6 +1656,20 @@ export class AddListingModalComponent implements OnDestroy {
     this.formValues().discountType === 'percentage' ? '10' : '2,000,000',
   );
 
+  filteredPickerOptions = computed(() => {
+    const query = this.pickerSearch().trim().toLowerCase();
+    const options = this.optionsForPicker(this.activePicker());
+
+    if (!query) {
+      return options;
+    }
+
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(query) ||
+      option.subtitle?.toLowerCase().includes(query),
+    );
+  });
+
   previewListing = computed(() => {
      const form = this.formValues();
      const previewImages = this.reviewImages();
@@ -1510,6 +1702,64 @@ export class AddListingModalComponent implements OnDestroy {
   stepIcon = computed(() => {
     return 'heroPlus'; // Unused in new design but kept for safety
   });
+
+  pickerTitle(): string {
+    switch (this.activePicker()) {
+      case 'category':
+        return 'Choose a category';
+      case 'condition':
+        return 'Choose condition';
+      case 'store':
+        return 'Select a store';
+      case 'location':
+        return 'Select location';
+      default:
+        return 'Select option';
+    }
+  }
+
+  pickerHasSearch(): boolean {
+    return this.activePicker() !== 'condition';
+  }
+
+  pickerSearchPlaceholder(): string {
+    switch (this.activePicker()) {
+      case 'category':
+        return 'Search category';
+      case 'store':
+        return 'Search stores';
+      case 'location':
+        return 'Search location';
+      default:
+        return 'Search';
+    }
+  }
+
+  selectedStoreLabel(): string {
+    const currentValue = this.listingForm.value.store as string | null;
+    return this.storeOptions.find((option) => option.value === currentValue)?.label ?? '';
+  }
+
+  openPicker(kind: PickerKind): void {
+    this.pickerSearch.set('');
+    this.activePicker.set(kind);
+  }
+
+  closePicker(): void {
+    this.pickerSearch.set('');
+    this.activePicker.set(null);
+  }
+
+  selectPickerOption(value: string): void {
+    const kind = this.activePicker();
+    if (!kind) {
+      return;
+    }
+
+    const controlName = kind === 'store' ? 'store' : kind;
+    this.listingForm.patchValue({ [controlName]: value });
+    this.closePicker();
+  }
 
   nextStep() {
     if (this.currentStep() < 4) {
@@ -1667,5 +1917,20 @@ export class AddListingModalComponent implements OnDestroy {
       },
       { emitEvent: false },
     );
+  }
+
+  private optionsForPicker(kind: PickerKind | null): readonly PickerOption[] {
+    switch (kind) {
+      case 'category':
+        return this.categoryOptions;
+      case 'condition':
+        return this.conditionOptions;
+      case 'store':
+        return this.storeOptions;
+      case 'location':
+        return this.locationOptions;
+      default:
+        return [];
+    }
   }
 }
