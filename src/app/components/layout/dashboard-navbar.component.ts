@@ -27,11 +27,14 @@ type SellerMenuEntry = {
   template: `
     <header class="h-16 bg-black text-white rounded-full flex items-center justify-between px-6 shadow-lg">
       <!-- Left: Logo -->
-      <a routerLink="/" class="flex items-center gap-2 group cursor-pointer transition-opacity hover:opacity-90">
-        <div class="w-8 h-8 flex items-center justify-center">
-          <img ngSrc="assets/images/logo-light-fill.svg" alt="Duduzili" width="24" height="24" class="brightness-0 invert object-contain" />
-        </div>
-        <span class="text-lg font-bold tracking-tight">Duduzili</span>
+      <a routerLink="/" class="group flex items-center cursor-pointer transition-opacity hover:opacity-90">
+        <img
+          ngSrc="assets/icons/seller-shell-logo.svg"
+          alt="Duduzili"
+          width="112"
+          height="26"
+          class="h-[26px] w-auto object-contain"
+        />
       </a>
 
       <!-- Center: Search -->

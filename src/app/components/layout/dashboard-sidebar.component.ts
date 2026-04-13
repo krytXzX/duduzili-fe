@@ -1,211 +1,239 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { Router } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  heroBell,
-  heroChartBar,
-  heroChatBubbleLeft,
-  heroCog6Tooth,
-  heroMegaphone,
-  heroQueueList,
-  heroRectangleStack,
-  heroShoppingBag,
-  heroWallet,
-  heroQrCode,
-  heroClipboardDocumentList,
-  heroChevronUp,
-  heroChevronDown
-} from '@ng-icons/heroicons/outline';
+import { NgOptimizedImage } from '@angular/common';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+
+type SidebarLink = {
+  readonly label: string;
+  readonly route: string;
+  readonly icon: string;
+  readonly notificationCount?: string;
+};
 
 @Component({
   selector: 'app-dashboard-sidebar',
-  standalone: true,
-  imports: [RouterLink, RouterLinkActive, NgIcon],
-  providers: [
-    provideIcons({
-      heroQueueList,
-      heroShoppingBag,
-      heroChatBubbleLeft,
-      heroClipboardDocumentList,
-      heroMegaphone,
-      heroRectangleStack,
-      heroChartBar,
-      heroWallet,
-      heroCog6Tooth,
-      heroBell,
-      heroQrCode,
-      heroChevronUp,
-      heroChevronDown
-    })
-  ],
+  imports: [NgOptimizedImage, RouterLink, RouterLinkActive],
   template: `
-    <aside class="w-64 h-full bg-inherit flex flex-col p-8 overflow-y-auto">
-      <!-- Selling Section -->
-      <div class="mb-10">
-        <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-5 px-3">Selling</h3>
-        <nav class="space-y-1">
-          <a routerLink="/listings" routerLinkActive="bg-white rounded-xl shadow-sm" 
-             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group">
-            <ng-icon name="heroQueueList" class="text-lg text-gray-400 group-hover:text-purple-600 group-[.bg-purple-50]:text-purple-600 transition-colors"></ng-icon>
-            Listings
-          </a>
-          <a routerLink="/my-stores" routerLinkActive="bg-white rounded-xl shadow-sm"
-             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group">
-            <ng-icon name="heroShoppingBag" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
-            My Stores
-          </a>
-          <a routerLink="/messages" routerLinkActive="bg-white rounded-xl shadow-sm"
-             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group">
-            <ng-icon name="heroChatBubbleLeft" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
-            Messages
-          </a>
-          
-          <!-- Requests Dropdown -->
-          <div class="flex flex-col">
-            <button 
-              (click)="isRequestsExpanded.set(!isRequestsExpanded())"
-              class="flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group"
-            >
-              <div class="flex items-center gap-3">
-                <ng-icon name="heroClipboardDocumentList" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
-                Requests
-              </div>
-              <ng-icon [name]="isRequestsExpanded() ? 'heroChevronUp' : 'heroChevronDown'" class="text-sm text-gray-400"></ng-icon>
-            </button>
-            
-            @if (isRequestsExpanded()) {
-              <div class="mt-1 ml-[22px] flex flex-col border-l border-gray-100/60 transition-all animate-in slide-in-from-top-2 duration-300">
-                <a routerLink="/requests/offers" routerLinkActive="active-sublink"
-                   class="relative pl-5 py-3 text-[14px] font-medium text-gray-400 hover:text-gray-900 transition-colors group flex items-center">
-                  <div class="absolute inset-y-2 -left-px w-[2px] bg-black hidden group-[.active-sublink]:block"></div>
-                  <span class="group-[.active-sublink]:text-[#1A1C21]">Offers</span>
-                </a>
-                <a routerLink="/requests/callbacks" routerLinkActive="active-sublink"
-                   class="relative pl-5 py-3 text-[14px] font-medium text-gray-400 hover:text-gray-900 transition-colors group flex items-center">
-                  <div class="absolute inset-y-2 -left-px w-[2px] bg-black hidden group-[.active-sublink]:block"></div>
-                  <span class="group-[.active-sublink]:text-[#1A1C21]">Call back requests</span>
-                </a>
-              </div>
+    <aside class="flex h-full w-64 flex-col overflow-y-auto bg-inherit px-4 pb-4 pt-6">
+      <div class="space-y-7">
+        <section>
+          <p class="px-[10px] text-[12px] font-medium uppercase tracking-[0.08em] text-[#959595]">Selling</p>
+          <nav class="mt-2 space-y-2">
+            @for (item of sellingLinks; track item.label) {
+              <a
+                [routerLink]="item.route"
+                routerLinkActive="bg-white text-[#1F1F1F]"
+                class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
+              >
+                <span class="flex items-center gap-2 px-1">
+                  <img [ngSrc]="item.icon" alt="" width="16" height="16" class="h-4 w-4 shrink-0" />
+                  <span class="text-[14px] font-medium">{{ item.label }}</span>
+                </span>
+              </a>
             }
-          </div>
-        </nav>
-      </div>
 
-      <!-- Performance Section -->
-      <div class="mb-10">
-        <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-5 px-3">Performance</h3>
-        <nav class="space-y-1">
-          <a routerLink="/promotions" routerLinkActive="bg-white rounded-xl shadow-sm"
-             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group">
-            <ng-icon name="heroMegaphone" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
-            Banner promotions
-          </a>
+            <div class="space-y-2">
+              <button
+                type="button"
+                (click)="isRequestsExpanded.set(!isRequestsExpanded())"
+                class="flex h-10 w-full items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
+              >
+                <span class="flex items-center gap-2 px-1">
+                  <img ngSrc="/assets/icons/seller-sidebar-requests.svg" alt="" width="16" height="16" class="h-4 w-4 shrink-0" />
+                  <span class="text-[14px] font-medium">Requests</span>
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#777777]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  @if (isRequestsExpanded()) {
+                    <path fill-rule="evenodd" d="M5.22 12.28a.75.75 0 001.06 0L10 8.56l3.72 3.72a.75.75 0 001.06-1.06l-4.25-4.25a.75.75 0 00-1.06 0L5.22 11.22a.75.75 0 000 1.06z" clip-rule="evenodd" />
+                  } @else {
+                    <path fill-rule="evenodd" d="M14.78 7.72a.75.75 0 00-1.06 0L10 11.44 6.28 7.72a.75.75 0 10-1.06 1.06l4.25 4.25a.75.75 0 001.06 0l4.25-4.25a.75.75 0 000-1.06z" clip-rule="evenodd" />
+                  }
+                </svg>
+              </button>
 
-          <div class="flex flex-col">
-            <button
-              type="button"
-              (click)="isAdsExpanded.set(!isAdsExpanded())"
-              class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50 group"
-              [class.bg-white]="isAdsRouteActive()"
-              [class.shadow-sm]="isAdsRouteActive()"
-            >
-              <div class="flex items-center gap-3">
-                <ng-icon name="heroRectangleStack" class="text-lg text-gray-400 transition-colors group-hover:text-purple-600"></ng-icon>
-                Ads
-              </div>
-              <ng-icon [name]="isAdsExpanded() ? 'heroChevronUp' : 'heroChevronDown'" class="text-sm text-gray-400"></ng-icon>
-            </button>
-
-            @if (isAdsExpanded()) {
-              <div class="mt-1 ml-[22px] flex flex-col border-l border-gray-100/60 transition-all animate-in slide-in-from-top-2 duration-300">
-                <a
-                  routerLink="/ads/plans"
-                  routerLinkActive="active-sublink"
-                  class="relative flex items-center py-3 pl-5 text-[14px] font-medium text-gray-400 transition-colors hover:text-gray-900 group"
-                >
-                  <div class="absolute inset-y-2 -left-px hidden w-[2px] bg-black group-[.active-sublink]:block"></div>
-                  <span class="group-[.active-sublink]:text-[#1A1C21]">Plans</span>
-                </a>
-                <a
-                  routerLink="/ads/running"
-                  routerLinkActive="active-sublink"
-                  class="relative flex items-center py-3 pl-5 text-[14px] font-medium text-gray-400 transition-colors hover:text-gray-900 group"
-                >
-                  <div class="absolute inset-y-2 -left-px hidden w-[2px] bg-black group-[.active-sublink]:block"></div>
-                  <span class="group-[.active-sublink]:text-[#1A1C21]">Running Ads</span>
-                </a>
-                <a
-                  routerLink="/ads/billing-history"
-                  routerLinkActive="active-sublink"
-                  class="relative flex items-center py-3 pl-5 text-[14px] font-medium text-gray-400 transition-colors hover:text-gray-900 group"
-                >
-                  <div class="absolute inset-y-2 -left-px hidden w-[2px] bg-black group-[.active-sublink]:block"></div>
-                  <span class="group-[.active-sublink]:text-[#1A1C21]">Billing history</span>
-                </a>
-              </div>
-            }
-          </div>
-
-          <a routerLink="/analytics" routerLinkActive="bg-white rounded-xl shadow-sm"
-             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group">
-            <ng-icon name="heroChartBar" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
-            Analytics
-          </a>
-          <a routerLink="/wallet" routerLinkActive="bg-white rounded-xl shadow-sm"
-             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group">
-            <ng-icon name="heroWallet" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
-            Wallet
-          </a>
-        </nav>
-      </div>
-
-      <!-- Account Section -->
-      <div>
-        <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-5 px-3">Account</h3>
-        <nav class="space-y-1">
-          <a routerLink="/settings" routerLinkActive="bg-white rounded-xl shadow-sm"
-             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group">
-            <ng-icon name="heroCog6Tooth" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
-            Account settings
-          </a>
-          <a routerLink="/notifications" routerLinkActive="bg-white rounded-xl shadow-sm"
-             class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all group">
-            <div class="flex items-center gap-3">
-              <ng-icon name="heroBell" class="text-lg text-gray-400 group-hover:text-purple-600 transition-colors"></ng-icon>
-              Notifications
+              @if (isRequestsExpanded()) {
+                <div class="ml-[19px] space-y-2 border-l border-[#E5E5E5] pl-0">
+                  <a
+                    routerLink="/requests/offers"
+                    routerLinkActive="text-[#1F1F1F] bg-white"
+                    class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
+                  >
+                    <span class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"></span>
+                    Offers
+                  </a>
+                  <a
+                    routerLink="/requests/callbacks"
+                    routerLinkActive="text-[#1F1F1F] bg-white"
+                    class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
+                  >
+                    <span class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"></span>
+                    Call back requests
+                  </a>
+                </div>
+              }
             </div>
-            <span class="w-5 h-5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full ring-2 ring-white">9+</span>
-          </a>
-        </nav>
+          </nav>
+        </section>
+
+        <section>
+          <p class="px-[10px] text-[12px] font-medium uppercase tracking-[0.08em] text-[#959595]">Performance</p>
+          <nav class="mt-2 space-y-2">
+            <a
+              routerLink="/promotions"
+              routerLinkActive="bg-white text-[#1F1F1F]"
+              class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
+            >
+              <span class="flex items-center gap-2 px-1">
+                <img ngSrc="/assets/icons/seller-sidebar-promotions.svg" alt="" width="16" height="16" class="h-4 w-4 shrink-0" />
+                <span class="text-[14px] font-medium">Banner promotions</span>
+              </span>
+            </a>
+
+            <div class="space-y-2">
+              <button
+                type="button"
+                (click)="isAdsExpanded.set(!isAdsExpanded())"
+                class="flex h-10 w-full items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
+                [class.bg-white]="isAdsRouteActive()"
+                [class.text-[#1F1F1F]]="isAdsRouteActive()"
+              >
+                <span class="flex items-center gap-2 px-1">
+                  <img ngSrc="/assets/icons/seller-sidebar-ads.svg" alt="" width="16" height="16" class="h-4 w-4 shrink-0" />
+                  <span class="text-[14px] font-medium">Ads</span>
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#777777]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  @if (isAdsExpanded()) {
+                    <path fill-rule="evenodd" d="M5.22 12.28a.75.75 0 001.06 0L10 8.56l3.72 3.72a.75.75 0 001.06-1.06l-4.25-4.25a.75.75 0 00-1.06 0L5.22 11.22a.75.75 0 000 1.06z" clip-rule="evenodd" />
+                  } @else {
+                    <path fill-rule="evenodd" d="M14.78 7.72a.75.75 0 00-1.06 0L10 11.44 6.28 7.72a.75.75 0 10-1.06 1.06l4.25 4.25a.75.75 0 001.06 0l4.25-4.25a.75.75 0 000-1.06z" clip-rule="evenodd" />
+                  }
+                </svg>
+              </button>
+
+              @if (isAdsExpanded()) {
+                <div class="ml-[19px] space-y-2 border-l border-[#E5E5E5] pl-0">
+                  <a
+                    routerLink="/ads/plans"
+                    routerLinkActive="text-[#1F1F1F] bg-white"
+                    class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
+                  >
+                    <span class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"></span>
+                    Plans
+                  </a>
+                  <a
+                    routerLink="/ads/running"
+                    routerLinkActive="text-[#1F1F1F] bg-white"
+                    class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
+                  >
+                    <span class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"></span>
+                    Running Ads
+                  </a>
+                  <a
+                    routerLink="/ads/billing-history"
+                    routerLinkActive="text-[#1F1F1F] bg-white"
+                    class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
+                  >
+                    <span class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"></span>
+                    Billing history
+                  </a>
+                </div>
+              }
+            </div>
+
+            @for (item of performanceLinks; track item.label) {
+              <a
+                [routerLink]="item.route"
+                routerLinkActive="bg-white text-[#1F1F1F]"
+                class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
+              >
+                <span class="flex items-center gap-2 px-1">
+                  <img [ngSrc]="item.icon" alt="" width="16" height="16" class="h-4 w-4 shrink-0" />
+                  <span class="text-[14px] font-medium">{{ item.label }}</span>
+                </span>
+              </a>
+            }
+          </nav>
+        </section>
+
+        <section>
+          <p class="px-[10px] text-[12px] font-medium uppercase tracking-[0.08em] text-[#959595]">Account</p>
+          <nav class="mt-2 space-y-2">
+            @for (item of accountLinks; track item.label) {
+              <a
+                [routerLink]="item.route"
+                routerLinkActive="bg-white text-[#1F1F1F]"
+                class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
+              >
+                <span class="flex items-center gap-2 px-1">
+                  <img [ngSrc]="item.icon" alt="" width="16" height="16" class="h-4 w-4 shrink-0" />
+                  <span class="text-[14px] font-medium">{{ item.label }}</span>
+                </span>
+                @if (item.notificationCount) {
+                  <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-[#EE0D0D] px-1 text-[8px] font-semibold leading-[14px] text-white">
+                    {{ item.notificationCount }}
+                  </span>
+                }
+              </a>
+            }
+          </nav>
+        </section>
       </div>
 
-      <!-- Spacer -->
-      <div class="grow"></div>
-
-      <!-- QR Download Card -->
-      <div class="mt-8 p-6 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col items-center text-center">
-        <div class="w-16 h-16 bg-white p-3 rounded-2xl shadow-sm mb-4">
-          <ng-icon name="heroQrCode" class="text-3xl text-gray-900"></ng-icon>
+      <div class="mt-auto pt-6">
+        <div class="overflow-hidden rounded-[20px] bg-white px-6 pb-6 pt-5">
+          <div class="relative mx-auto flex w-[120px] flex-col items-center gap-3">
+            <div class="relative flex h-[120px] w-[120px] items-center justify-center">
+              <div class="absolute inset-[6px] rotate-[-5deg] rounded-[10px] border border-[#F0F0F0] bg-white shadow-[0_4.737px_12.631px_rgba(199,199,199,0.25)]"></div>
+              <img
+                ngSrc="/assets/images/seller-sidebar-qr-code.png"
+                alt="QR code to download the Duduzili mobile app"
+                width="109"
+                height="109"
+                class="relative z-10 h-[109px] w-[109px] rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="flex items-center justify-center gap-4">
+              <span class="text-[24px] leading-none text-[#6C6C6C]">🤖</span>
+              <span class="h-4 w-px bg-[#D8D8D8]"></span>
+              <span class="text-[20px] leading-none text-[#6C6C6C]"></span>
+            </div>
+          </div>
+          <p class="mt-5 text-center text-[14px] font-medium leading-[1.2] text-[#99A2B1]">
+            Scan QR code to
+            <br />
+            download mobile app
+          </p>
         </div>
-        <p class="text-[11px] text-gray-400 font-bold leading-relaxed tracking-wide">
-          Scan QR code to<br>download mobile app
-        </p>
       </div>
     </aside>
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-  `],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardSidebarComponent {
   private readonly router = inject(Router);
 
   readonly isRequestsExpanded = signal(true);
   readonly isAdsExpanded = signal(this.router.url.startsWith('/ads'));
+
+  readonly sellingLinks: readonly SidebarLink[] = [
+    { label: 'Listings', route: '/listings', icon: '/assets/icons/seller-sidebar-listings.svg' },
+    { label: 'My Stores', route: '/my-stores', icon: '/assets/icons/seller-sidebar-stores.svg' },
+    { label: 'Chats', route: '/messages', icon: '/assets/icons/seller-sidebar-messages.svg' },
+  ];
+
+  readonly performanceLinks: readonly SidebarLink[] = [
+    { label: 'Analytics', route: '/analytics', icon: '/assets/icons/seller-sidebar-analytics.svg' },
+    { label: 'Wallet', route: '/wallet', icon: '/assets/icons/seller-sidebar-wallet.svg' },
+  ];
+
+  readonly accountLinks: readonly SidebarLink[] = [
+    { label: 'Account settings', route: '/settings', icon: '/assets/icons/seller-sidebar-settings.svg' },
+    {
+      label: 'Notifications',
+      route: '/notifications',
+      icon: '/assets/icons/seller-sidebar-notifications.svg',
+      notificationCount: '20+',
+    },
+  ];
 
   isAdsRouteActive(): boolean {
     return this.router.url.startsWith('/ads');

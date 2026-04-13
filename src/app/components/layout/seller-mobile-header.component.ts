@@ -13,7 +13,7 @@ import { RouterLink } from '@angular/router';
         class="block"
       >
         <img
-          ngSrc="/assets/icons/dashboard-logo-figma.svg"
+          ngSrc="/assets/icons/seller-shell-logo.svg"
           width="111"
           height="24"
           alt="Duduzili"
