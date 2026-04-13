@@ -1,73 +1,334 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { NavbarComponent } from '../../components/layout/navbar.component';
-import { HeroComponent } from '../../components/home/hero.component';
-import { CategoriesComponent } from '../../components/home/categories.component';
-import { SectionHeaderComponent } from '../../components/common/section-header.component';
-import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
-import { PromotionsComponent } from '../../components/home/promotions.component';
-import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
-import { FooterComponent } from '../../components/layout/footer.component';
-import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
+import { ChangeDetectionStrategy, Component, ElementRef, signal, viewChild } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
+
+type HomeCategory = {
+  id: string;
+  label: string;
+  icon: string;
+};
+
+type HomeListing = {
+  id: string;
+  title: string;
+  price: string;
+  location: string;
+  tag?: string;
+  badge?: string;
+};
+
+type HomePromotion = {
+  id: string;
+  image: string;
+};
+
+type HomeStore = {
+  id: string;
+  name: string;
+  location: string;
+  coverImage: string;
+  mobileCoverImage: string;
+  logoImage: string;
+  mobileLogoImage: string;
+};
 
 @Component({
   selector: 'app-home-page',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    RouterLinkActive,
-    NavbarComponent,
-    HeroComponent,
-    CategoriesComponent,
-    SectionHeaderComponent,
-    ListingCardComponent,
-    PromotionsComponent,
-    StoreCardComponent,
-    FooterComponent,
-    MobileBottomNavComponent
-  ],
+  imports: [NgOptimizedImage, RouterLink],
   templateUrl: './home-page.component.html',
+  styleUrl: './home-page.component.css',
   host: {
-    class: 'block h-full overflow-auto',
+    class: 'block h-full overflow-auto bg-white text-[#1f1f1f]',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent {
+  private readonly categoryRail = viewChild<ElementRef<HTMLDivElement>>('categoryRail');
+
   readonly showAppDownloadBanner = signal(true);
-  sponsoredListings = signal<Listing[]>([
-    { id: 's1', title: 'Premium Sneakers (Yellow/Purple)', price: '₦20,000', location: 'Lagos', timeAgo: '5 mins ago', isVerified: true, images: ['/assets/images/product_sneakers_lifestyle.png', '/assets/images/product_watch_luxury.png'] },
-    { id: 's2', title: 'High Density Wig', price: '₦45,000', location: 'Abuja', timeAgo: '12 mins ago', isVerified: true, images: ['/assets/images/fashion_menswear_hero.png', '/assets/images/product_keyboard_rgb.png'] },
-    { id: 's3', title: 'iPhone 13 Pro Max - 256GB', price: '₦450,000', location: 'Lagos', timeAgo: '15 mins ago', isVerified: true, images: ['/assets/images/product_keyboard_rgb.png', '/assets/images/fashion_menswear_hero.png'] },
-    { id: 's4', title: 'Ergonomic Office Chair', price: '₦85,000', location: 'Enugu', timeAgo: '20 mins ago', isVerified: true, images: ['/assets/images/product_watch_luxury.png', '/assets/images/product_sneakers_lifestyle.png'] },
-  ]);
+  readonly showMobileMenu = signal(false);
 
-  nearYouListings = signal<Listing[]>([
-    { id: 'n1', title: 'iPhone 14 Pro Max', price: '₦750,000', location: 'Lagos', timeAgo: '2 mins ago', images: ['/assets/images/product_sneakers_lifestyle.png'] },
-    { id: 'n2', title: 'Logitech G Pro Wireless Mouse', price: '₦55,000', location: 'Lagos', timeAgo: '10 mins ago', images: ['/assets/images/product_keyboard_rgb.png'] },
-    { id: 'n3', title: 'Mechanical Keyboard RGB', price: '₦35,000', location: 'Lagos', timeAgo: '15 mins ago', images: ['/assets/images/product_keyboard_rgb.png'] },
-    { id: 'n4', title: 'White Essential Hoodie', price: '₦12,000', location: 'Lagos', timeAgo: '25 mins ago', images: ['/assets/images/fashion_menswear_hero.png'] },
-    { id: 'n5', title: 'MacBook Air M2', price: '₦1,200,000', location: 'Lagos', timeAgo: '30 mins ago', images: ['/assets/images/product_watch_luxury.png'] },
-    { id: 'n6', title: 'Formal Blue Tie', price: '₦5,000', location: 'Lagos', timeAgo: '45 mins ago', images: ['/assets/images/fashion_menswear_hero.png'] },
-    { id: 'n7', title: 'Supercar Performance Wax', price: '₦15,000', location: 'Lagos', timeAgo: '1 hour ago', images: ['/assets/images/product_watch_luxury.png'] },
-    { id: 'n8', title: 'Skin Care Serum', price: '₦8,500', location: 'Lagos', timeAgo: '1 hour ago', images: ['/assets/images/product_keyboard_rgb.png'] },
-    { id: 'n9', title: 'Luxury Chronograph Watch', price: '₦120,000', location: 'Lagos', timeAgo: '2 hours ago', images: ['/assets/images/product_watch_luxury.png'] },
-    { id: 'n10', title: 'High Density Serum', price: '₦10,000', location: 'Lagos', timeAgo: '2 hours ago', images: ['/assets/images/product_sneakers_lifestyle.png'] },
-  ]);
+  readonly categories: HomeCategory[] = [
+    { id: 'automotives', label: 'Automotives', icon: '/assets/images/category-automotives.png' },
+    {
+      id: 'real-estate',
+      label: 'Real Estate & Properties',
+      icon: '/assets/images/category-real-estate-properties.png',
+    },
+    { id: 'phones', label: 'Phone & Tablet', icon: '/assets/images/category-phone-tablet.png' },
+    { id: 'electronics', label: 'Electronics', icon: '/assets/images/category-electronics.png' },
+    {
+      id: 'home',
+      label: 'Home, Furniture & Appliances',
+      icon: '/assets/images/category-home-furniture-appliances.png',
+    },
+    { id: 'menswear', label: 'Men’s fashion', icon: '/assets/images/category-mens-fashion.png' },
+    {
+      id: 'womenswear',
+      label: 'Women’s fashion',
+      icon: '/assets/images/category-womens-fashion.png',
+    },
+    {
+      id: 'children-baby',
+      label: 'Children & Baby fashion',
+      icon: '/assets/images/category-children-baby-fashion.png',
+    },
+    {
+      id: 'fashion-design',
+      label: 'Fashion & Design',
+      icon: '/assets/images/category-fashion-design.png',
+    },
+    {
+      id: 'beauty',
+      label: 'Beauty & Personal Care',
+      icon: '/assets/images/category-beauty-personal-care.png',
+    },
+    {
+      id: 'industrial-home',
+      label: 'Industrial & Home Supplies',
+      icon: '/assets/images/category-industrial-home-supplies.png',
+    },
+    {
+      id: 'business-industrial',
+      label: 'Business & Industrial',
+      icon: '/assets/images/category-business-industrial.png',
+    },
+    {
+      id: 'school-office',
+      label: 'School, Office & General Supplies',
+      icon: '/assets/images/category-school-office-general-supplies.png',
+    },
+    {
+      id: 'leisure',
+      label: 'Leisure & Activities',
+      icon: '/assets/images/category-leisure-activities.png',
+    },
+    { id: 'grocery', label: 'Grocery', icon: '/assets/images/category-grocery.png' },
+    { id: 'party', label: 'Party Supplies', icon: '/assets/images/category-party-supplies.png' },
+    {
+      id: 'food',
+      label: 'Food, Agriculture & Farming',
+      icon: '/assets/images/category-food-agriculture-farming.png',
+    },
+    { id: 'pets', label: 'Animals & Pets', icon: '/assets/images/category-animals-pets.png' },
+    {
+      id: 'books',
+      label: 'Books, Movies & Music',
+      icon: '/assets/images/category-books-movies-music.png',
+    },
+  ];
 
-  featuredStores = signal<Store[]>([
-    { id: 'st1', name: 'Techy Collections', followers: '2.5k', isVerified: true, logo: '/assets/images/product_keyboard_rgb.png', banner: '/assets/images/product_keyboard_rgb.png' },
-    { id: 'st2', name: 'Glow Beauty', followers: '1.8k', isVerified: true, logo: '/assets/images/product_sneakers_lifestyle.png', banner: '/assets/images/product_sneakers_lifestyle.png' },
-    { id: 'st3', name: 'Chic Fashion', followers: '4.2k', isVerified: true, logo: '/assets/images/fashion_menswear_hero.png', banner: '/assets/images/fashion_menswear_hero.png' },
-    { id: 'st4', name: 'Gadget Hub', followers: '3.1k', isVerified: true, logo: '/assets/images/product_watch_luxury.png', banner: '/assets/images/product_watch_luxury.png' },
-    { id: 'st5', name: 'Lifestyle Men', followers: '1.2k', isVerified: true, logo: '/assets/images/fashion_menswear_hero.png', banner: '/assets/images/fashion_menswear_hero.png' },
-    { id: 'st6', name: 'Makeup Art', followers: '2.9k', logo: '/assets/images/product_sneakers_lifestyle.png', banner: '/assets/images/product_sneakers_lifestyle.png' },
-    { id: 'st7', name: 'Watch Store', followers: '1.5k', logo: '/assets/images/product_watch_luxury.png', banner: '/assets/images/product_watch_luxury.png' },
-    { id: 'st8', name: 'Sneakers Palace', followers: '3.8k', logo: '/assets/images/product_sneakers_lifestyle.png', banner: '/assets/images/product_sneakers_lifestyle.png' },
-  ]);
+  readonly sponsoredListings: HomeListing[] = [
+    {
+      id: 's1',
+      title: 'Nike sneaker',
+      price: '₦35,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Verified',
+      badge: 'Used',
+    },
+    {
+      id: 's2',
+      title: 'Bone straight wig',
+      price: '₦45,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Verified',
+      badge: 'Used',
+    },
+    {
+      id: 's3',
+      title: 'iPhone X (64 gig)',
+      price: '₦450,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Verified',
+      badge: 'Used',
+    },
+    {
+      id: 's4',
+      title: 'Ergonomic chair',
+      price: '₦85,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Verified',
+      badge: 'Used',
+    },
+  ];
+
+  readonly nearbyListings: HomeListing[] = [
+    {
+      id: 'n1',
+      title: 'Orange iPhone',
+      price: '₦450,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Verified',
+    },
+    {
+      id: 'n2',
+      title: 'Leather sandals',
+      price: '₦25,000',
+      location: 'Ikeja, Lagos',
+      badge: 'Used',
+    },
+    {
+      id: 'n3',
+      title: 'Mechanical keyboard',
+      price: '₦65,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Sponsored',
+    },
+    { id: 'n4', title: 'White shirt', price: '₦18,500', location: 'Ikeja, Lagos', tag: 'Premium' },
+    { id: 'n5', title: 'Perfume set', price: '₦32,000', location: 'Ikeja, Lagos' },
+    {
+      id: 'n6',
+      title: 'Luxury watch',
+      price: '₦120,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Verified',
+    },
+    {
+      id: 'n7',
+      title: 'Orange iPhone',
+      price: '₦450,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Verified',
+    },
+    { id: 'n8', title: 'Leather sandals', price: '₦25,000', location: 'Ikeja, Lagos' },
+    {
+      id: 'n9',
+      title: 'Mechanical keyboard',
+      price: '₦65,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Verified',
+    },
+    { id: 'n10', title: 'White shirt', price: '₦18,500', location: 'Ikeja, Lagos', badge: 'Used' },
+    {
+      id: 'n11',
+      title: 'Ceramic set',
+      price: '₦15,500',
+      location: 'Ikeja, Lagos',
+      tag: 'Verified',
+    },
+    { id: 'n12', title: 'Luxury watch', price: '₦120,000', location: 'Ikeja, Lagos' },
+    {
+      id: 'n13',
+      title: 'Orange iPhone',
+      price: '₦450,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Verified',
+    },
+    {
+      id: 'n14',
+      title: 'Leather sandals',
+      price: '₦25,000',
+      location: 'Ikeja, Lagos',
+      badge: 'Used',
+    },
+    {
+      id: 'n15',
+      title: 'Mechanical keyboard',
+      price: '₦65,000',
+      location: 'Ikeja, Lagos',
+      tag: 'Sponsored',
+    },
+  ];
+
+  readonly promotions: HomePromotion[] = [
+    { id: 'p1', image: '/assets/images/home-promo-1.png' },
+    { id: 'p2', image: '/assets/images/home-promo-2.png' },
+    { id: 'p3', image: '/assets/images/home-promo-3.png' },
+  ];
+
+  readonly featuredStores: HomeStore[] = [
+    {
+      id: 'st1',
+      name: 'The Vine Collections',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-vine-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-vine-cover-mobile.png',
+      logoImage: '/assets/images/store-vine-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-vine-logo-mobile.png',
+    },
+    {
+      id: 'st2',
+      name: 'Eden Organics',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-eden-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-eden-cover-mobile.png',
+      logoImage: '/assets/images/store-eden-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-eden-logo-mobile.png',
+    },
+    {
+      id: 'st3',
+      name: 'Snap Thrifts',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-snap-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-snap-cover-mobile.png',
+      logoImage: '/assets/images/store-snap-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-snap-logo-mobile.png',
+    },
+    {
+      id: 'st4',
+      name: 'goMelon',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-gomelon-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-gomelon-cover-mobile.png',
+      logoImage: '/assets/images/store-gomelon-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-gomelon-logo-mobile.png',
+    },
+    {
+      id: 'st5',
+      name: 'Amazing Fragrances',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-amazing-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-amazing-cover-desktop.png',
+      logoImage: '/assets/images/store-amazing-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-amazing-logo-desktop.png',
+    },
+    {
+      id: 'st6',
+      name: 'None Electronics',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-none-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-none-cover-desktop.png',
+      logoImage: '/assets/images/store-none-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-none-logo-desktop.png',
+    },
+    {
+      id: 'st7',
+      name: 'New Age Properties',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-newage-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-newage-cover-desktop.png',
+      logoImage: '/assets/images/store-newage-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-newage-logo-desktop.png',
+    },
+    {
+      id: 'st8',
+      name: 'Swift Wears',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-swift-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-swift-cover-desktop.png',
+      logoImage: '/assets/images/store-swift-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-swift-logo-desktop.png',
+    },
+  ];
 
   dismissAppDownloadBanner(): void {
     this.showAppDownloadBanner.set(false);
   }
+
+  toggleMobileMenu(): void {
+    this.showMobileMenu.update((isOpen) => !isOpen);
+  }
+
+  closeMobileMenu(): void {
+    this.showMobileMenu.set(false);
+  }
+
+  scrollCategories(): void {
+    this.categoryRail()?.nativeElement.scrollBy({
+      left: 540,
+      behavior: 'smooth',
+    });
+  }
+
 }

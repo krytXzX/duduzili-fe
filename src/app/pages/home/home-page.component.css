@@ -1,0 +1,52 @@
+:host {
+  display: block;
+}
+
+.home-shell {
+  width: min(100%, 1440px);
+}
+
+.home-hero-pattern {
+  height: 685px;
+  background: linear-gradient(0deg, rgba(238, 237, 251, 0.96), rgba(238, 237, 251, 0.96)), #edeafb;
+}
+
+.home-hero-overlay {
+  background: linear-gradient(0deg, rgba(238, 237, 251, 0.82), rgba(238, 237, 251, 0.82));
+}
+/*
+.desktop-footer-wordmark {
+  margin-top: 24px;
+  overflow: hidden;
+  font-size: 287.027px;
+  font-weight: 800;
+  line-height: 430.54px;
+  letter-spacing: 14.3513px;
+  color: #efeef9;
+  text-shadow: 0 10.496px 20.992px rgba(169, 169, 169, 0.25);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.mobile-footer-wordmark {
+  margin-top: 0;
+  overflow: hidden;
+  height: 67px;
+  font-size: 79.079px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 3.9539px;
+  color: #efeef9;
+  text-shadow: 0 2.892px 5.784px rgba(169, 169, 169, 0.25);
+  user-select: none;
+  white-space: nowrap;
+} */
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

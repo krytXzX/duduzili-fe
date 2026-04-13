@@ -1,78 +1,548 @@
-<div class="overflow-x-clip bg-white pb-24 md:pb-0">
+<div class="overflow-x-clip bg-white pb-[108px] lg:pb-0">
   @if (showAppDownloadBanner()) {
-    <section class="flex items-center gap-2 border-b border-[#ECECF2] bg-white px-3 py-3 md:hidden">
-      <button
-        type="button"
-        (click)="dismissAppDownloadBanner()"
-        class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-[#A7ACB5]"
-        aria-label="Dismiss app download banner"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M4.22 4.22a.75.75 0 011.06 0L10 8.94l4.72-4.72a.75.75 0 111.06 1.06L11.06 10l4.72 4.72a.75.75 0 11-1.06 1.06L10 11.06l-4.72 4.72a.75.75 0 11-1.06-1.06L8.94 10 4.22 5.28a.75.75 0 010-1.06z" clip-rule="evenodd" />
+  <section class="border-b border-[#ececf2] bg-white px-4 py-3 lg:hidden">
+    <div class="flex items-center gap-3">
+      <button type="button" class="flex h-5 w-5 items-center justify-center text-[#8e8e98]" (click)="dismissAppDownloadBanner()" aria-label="Dismiss app download banner">
+        <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 fill-current">
+          <path d="M5.28 4.22 10 8.94l4.72-4.72 1.06 1.06L11.06 10l4.72 4.72-1.06 1.06L10 11.06l-4.72 4.72-1.06-1.06L8.94 10 4.22 5.28Z" />
         </svg>
       </button>
 
-      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#6F56F6] shadow-[0_10px_18px_-14px_rgba(111,86,246,0.95)]">
-        <img src="/assets/images/logo-light-fill.svg" alt="" class="h-5 w-5" aria-hidden="true">
+      <div class="flex min-w-0 flex-1 items-center gap-2.5">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#6453d9] shadow-[0_10px_18px_-14px_rgba(100,83,217,0.95)]">
+          <img ngSrc="/assets/images/logo-light-fill.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
+        </div>
+        <div class="min-w-0">
+          <p class="text-[13px] font-semibold leading-4 text-[#373737]">Get the app</p>
+          <p class="truncate text-[11px] leading-4 text-[#99a2b1]">The easiest way to use Duduzili</p>
+        </div>
       </div>
 
-      <div class="min-w-0 flex-1">
-        <p class="text-[12px] font-semibold leading-4 text-[#2F3440]">Get the app</p>
-        <p class="truncate text-[10px] leading-4 text-[#7D8390]">The easiest way to use Duduzili</p>
-      </div>
-
-      <button
-        type="button"
-        class="shrink-0 rounded-full bg-[#6F56F6] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.06em] text-white shadow-[0_14px_22px_-14px_rgba(111,86,246,0.95)] transition hover:bg-[#6249ef]"
-      >
-        Download
+      <button type="button" class="rounded-full bg-[#6453d9] px-3 py-2 text-[10px] font-semibold tracking-[0.06em] text-white shadow-[0_10px_18px_-14px_rgba(100,83,217,0.95)]">
+        DOWNLOAD
       </button>
-    </section>
+    </div>
+  </section>
   }
 
-  <app-navbar />
+  <header class="sticky top-4 z-40 hidden lg:block">
+    <div class="pointer-events-none mx-auto flex max-w-[1440px] justify-center px-8">
+      <div class="pointer-events-auto flex w-full max-w-[1238px] items-center justify-between rounded-full bg-[#1a1a1a] px-6 py-[9px] shadow-[0_12px_28px_rgba(0,0,0,0.14)]">
+        <div class="flex items-center gap-6">
+          <img ngSrc="/assets/icons/home-logo-light.svg" alt="Duduzili" width="112" height="26" class="h-[26px] w-auto" priority />
 
-  <div class="relative w-full">
-    <app-hero />
-    <app-categories />
+          <button type="button" class="flex h-10 items-center justify-between gap-3 rounded-full bg-[#2f2f2f] py-1 pl-3 pr-1 text-white" aria-label="Select location">
+            <span class="flex items-center gap-1 text-sm font-semibold tracking-[0.01em]">
+              <img ngSrc="/assets/icons/home-location.svg" alt="" width="16" height="16" class="h-4 w-4" aria-hidden="true" />
+              All of Nigeria
+            </span>
+            <span class="flex h-8 w-10 items-center justify-center rounded-full bg-[#515151]">
+              <img ngSrc="/assets/icons/home-chevron-down.svg" alt="" width="16" height="16" class="h-4 w-4" aria-hidden="true" />
+            </span>
+          </button>
+        </div>
 
-    <div class="mx-auto mb-16 max-w-7xl px-3 md:px-4 md:mb-24">
-      <app-section-header title="Sponsored listings" />
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-        @for (listing of sponsoredListings(); track listing.id) {
-        <app-listing-card [listing]="listing" />
-        }
+        <nav class="flex items-center gap-0.5 text-sm text-white" aria-label="Desktop navigation">
+          <a routerLink="/" class="rounded-full px-3.5 py-2.5 font-medium">Sell item</a>
+          <a routerLink="/" class="rounded-full px-3.5 py-2.5 font-medium">Sign in</a>
+          <a routerLink="/" class="flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[#1d1d1d]">
+            <span class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#dbe5ff]">
+              <svg aria-hidden="true" viewBox="0 0 24 24" class="h-6 w-6 fill-[#8da7ff]">
+                <path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2.25c-4.14 0-7.5 2.52-7.5 5.63V21h15v-1.12c0-3.11-3.36-5.63-7.5-5.63Z" />
+              </svg>
+            </span>
+            <span class="text-base font-medium">Sign up</span>
+          </a>
+        </nav>
       </div>
     </div>
+  </header>
 
-    <div class="mx-auto mb-16 max-w-7xl px-3 md:px-4 md:mb-24">
-      <app-section-header title="Listings near you" />
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        @for (listing of nearYouListings(); track listing.id) {
-        <app-listing-card [listing]="listing" />
-        }
-      </div>
+  <header class="relative z-30 lg:hidden">
+    <div class="flex items-center justify-between px-5 py-[18px]">
+      <a routerLink="/" class="block" aria-label="Duduzili home">
+        <img ngSrc="/assets/icons/home-header-logo-mobile.svg" alt="Duduzili" width="111" height="24" class="h-6 w-auto" priority />
+      </a>
 
-      <div class="mt-8 flex justify-center md:mt-12">
-        <button class="min-w-[180px] rounded-full bg-[#F4F4F6] px-8 py-3 text-[13px] font-semibold text-[#36394A] transition-all hover:bg-[#eaebf0] md:bg-[#F1F3FF] md:text-[15px] md:font-bold md:hover:bg-indigo-100">
-          Show more listings
+      <div class="flex items-center gap-2">
+        <button type="button" class="flex h-9 items-center justify-between gap-1 rounded-full border border-white bg-[#f3f3f3] py-1 pl-3 pr-1 text-sm font-medium tracking-[0.01em] text-[#373737] shadow-[0_4px_12px_rgba(0,0,0,0.04)]" aria-label="Select location">
+          <span class="flex items-center gap-1">
+            <img ngSrc="/assets/icons/home-header-location-mobile.svg" alt="" width="16" height="16" class="h-4 w-4" aria-hidden="true" />
+            All Nigeria
+          </span>
+          <span class="flex h-7 w-7 items-center justify-center rounded-full bg-white">
+            <img ngSrc="/assets/icons/home-header-chevron-mobile.svg" alt="" width="14" height="14" class="h-3.5 w-3.5" aria-hidden="true" />
+          </span>
+        </button>
+
+        <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg" [attr.aria-expanded]="showMobileMenu()" aria-controls="mobile-home-menu" [attr.aria-label]="showMobileMenu() ? 'Close menu' : 'Open menu'" (click)="toggleMobileMenu()">
+          <img ngSrc="/assets/icons/home-header-menu-mobile.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
     </div>
 
-    <app-promotions />
+    @if (showMobileMenu()) {
+    <div class="absolute inset-x-0 top-full bg-white/72 px-5 pb-6 pt-2 backdrop-blur-[2px]">
+      <div id="mobile-home-menu" class="mx-auto w-full max-w-[350px] rounded-[20px] border border-[#ededed] bg-white px-5 py-6 shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
+        <nav class="flex flex-col items-start gap-3 text-base font-medium tracking-[0.01em] text-[#373737]" aria-label="Mobile menu">
+          <a routerLink="/" class="leading-[1.2]" (click)="closeMobileMenu()">Sign in</a>
+          <a routerLink="/" class="leading-[1.2]" (click)="closeMobileMenu()">Sign up</a>
+          <a routerLink="/" class="leading-[1.2]" (click)="closeMobileMenu()">Sell item</a>
+        </nav>
 
-    <div class="mx-auto mb-20 max-w-7xl px-3 md:px-4 md:mb-32">
-      <app-section-header title="Featured stores" />
-      <div class="grid grid-cols-2 gap-3 md:gap-8 lg:grid-cols-4">
-        @for (store of featuredStores(); track store.id) {
-        <app-store-card [store]="store" />
-        }
+        <div class="mt-6 rounded-[18px] border border-[#f0f0f0] bg-white px-4 py-5">
+          <div class="mx-auto w-fit rounded-[10px] border border-[#f0f0f0] bg-white p-[6px] shadow-[0_4.737px_12.631px_rgba(199,199,199,0.25)]">
+            <img ngSrc="/assets/images/home-qr-code.png" alt="QR code to download the Duduzili app" width="110" height="110" class="h-[110px] w-[110px]" />
+          </div>
+
+          <div class="mt-3 flex items-center justify-center gap-4 text-[#1f1f1f]">
+            <img ngSrc="/assets/icons/home-google-play.svg" alt="" width="24" height="24" class="h-6 w-6" aria-hidden="true" />
+            <span class="h-4 w-px bg-[#d8d8d8]" aria-hidden="true"></span>
+            <img ngSrc="/assets/icons/home-apple.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
+          </div>
+
+          <p class="mt-3 text-center text-sm leading-[1.2] text-[#99a2b1]">Scan QR code to download mobile app</p>
+
+          <div class="mt-5 flex items-center justify-center gap-3">
+            <a routerLink="/" class="flex h-10 w-[120px] items-center rounded-[8px] border border-[#a6a6a6] bg-black pl-[7px] pr-[10px] text-white" (click)="closeMobileMenu()">
+              <img ngSrc="/assets/icons/home-apple.svg" alt="" width="20" height="20" class="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span class="ml-2 block text-left">
+                <span class="block text-[9px] leading-[9px]">Download on the</span>
+                <span class="block text-[18px] font-medium leading-none tracking-[-0.03em]">App Store</span>
+              </span>
+            </a>
+
+            <a routerLink="/" class="flex h-10 w-[120px] items-center rounded-[8px] border border-[#a6a6a6] bg-black pl-[7px] pr-[10px] text-white" (click)="closeMobileMenu()">
+              <img ngSrc="/assets/icons/home-google-play.svg" alt="" width="20" height="20" class="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span class="ml-2 block text-left">
+                <span class="block text-[10px] leading-none uppercase">Get it on</span>
+                <span class="block text-[16px] font-medium leading-[1.05]">Google Play</span>
+              </span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+    }
+  </header>
 
-  <app-footer />
+  <main>
+    <section class="hidden px-2 pt-6 lg:block">
+      <div class="home-shell mx-auto max-w-[1440px]">
+        <div class="home-hero-pattern relative overflow-hidden rounded-[28px]">
+          <img ngSrc="/assets/images/home-hero-bg.png" alt="" width="1424" height="685" class="absolute inset-0 h-full w-full object-cover" aria-hidden="true" priority />
+          <div class="home-hero-overlay absolute inset-0" aria-hidden="true"></div>
 
-  <app-mobile-bottom-nav />
+          <div class="absolute left-[62px] top-[28px] w-[112px] rotate-[8deg] overflow-hidden rounded-[22px] border-4 border-white bg-white shadow-[0_12px_24px_rgba(56,81,178,0.18)]">
+            <img ngSrc="/assets/images/home-hero-card-left-top.png" alt="" width="112" height="129" class="h-[129px] w-full object-cover" aria-hidden="true" />
+          </div>
+          <div class="absolute bottom-[24px] left-[112px] w-[126px] -rotate-[10deg] overflow-hidden rounded-[22px] border-4 border-white bg-white shadow-[0_12px_24px_rgba(56,81,178,0.18)]">
+            <img ngSrc="/assets/images/home-hero-card-left-bottom.png" alt="" width="126" height="145" class="h-[145px] w-full object-cover" aria-hidden="true" />
+          </div>
+          <div class="absolute right-[105px] top-[16px] w-[112px] rotate-[6deg] overflow-hidden rounded-[22px] border-4 border-white bg-white shadow-[0_12px_24px_rgba(56,81,178,0.18)]">
+            <img ngSrc="/assets/images/home-hero-card-right-top.png" alt="" width="112" height="129" class="h-[129px] w-full object-cover" aria-hidden="true" />
+          </div>
+          <div class="absolute bottom-[102px] right-[68px] w-[116px] rotate-[4deg] overflow-hidden rounded-[22px] border-4 border-white bg-white shadow-[0_12px_24px_rgba(56,81,178,0.18)]">
+            <img ngSrc="/assets/images/home-hero-card-right-bottom.png" alt="" width="116" height="134" class="h-[134px] w-full object-cover" aria-hidden="true" />
+          </div>
+
+          <div class="relative z-10 flex h-[685px] flex-col items-center justify-center">
+            <h1 class="max-w-[980px] text-center text-[52px] font-bold leading-[1.05] tracking-[-0.04em] text-[#2c2c2c]">
+              Find men’s wear
+              <span class="mx-2 inline-flex h-[50px] w-[56px] -rotate-[8deg] items-center justify-center rounded-[14px] border-2 border-[#f6f6f6] bg-white align-middle shadow-[0_5px_10px_rgba(56,81,178,0.25)]">
+                <span class="text-[24px]">👟</span>
+              </span>
+              on Duduzili
+            </h1>
+
+            <form class="mt-10 flex w-full max-w-[631px] items-center justify-between rounded-[222px] border border-[#dddddd] bg-white py-2 pl-6 pr-2 shadow-[0_12px_30px_rgba(151,150,196,0.25)]">
+              <label class="sr-only" for="desktop-home-search">Search for products</label>
+              <input id="desktop-home-search" type="search" placeholder="What are you looking for?" class="min-w-0 flex-1 border-none bg-transparent text-2xl text-[#2c2c2c] outline-none placeholder:text-[#adadad]" />
+              <button type="submit" class="flex h-[54px] items-center gap-2 rounded-full border border-white bg-[#6453d9] px-5 text-xl font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]">
+                <img ngSrc="/assets/icons/home-search.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
+                Search
+              </button>
+            </form>
+
+            <div class="mt-5 flex items-center gap-1 rounded-full bg-[#f7f7f7] p-1">
+              <span class="h-2 w-[22px] rounded-full bg-[#2e2e2e]"></span>
+              <span class="h-[5px] w-[5px] rounded-full bg-[#d9d9d9]"></span>
+              <span class="h-[5px] w-[5px] rounded-full bg-[#d9d9d9]"></span>
+              <span class="h-[5px] w-[5px] rounded-full bg-[#d9d9d9]"></span>
+              <span class="h-[5px] w-[5px] rounded-full bg-[#d9d9d9]"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 pb-4 pt-2 lg:hidden">
+      <div class="rounded-[34px] border border-[#dddddd] bg-white px-6 py-2 shadow-[0_12px_30px_rgba(151,150,196,0.18)]">
+        <form class="flex items-center justify-between gap-3">
+          <label class="sr-only" for="mobile-home-search">Search for products</label>
+          <input id="mobile-home-search" type="search" placeholder="What are you looking for?" class="min-w-0 flex-1 border-none bg-transparent text-base text-[#2c2c2c] outline-none placeholder:text-[#adadad]" />
+          <button type="submit" class="flex h-[52px] w-[60px] items-center justify-center rounded-full border border-white bg-[#6453d9] shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]" aria-label="Search">
+            <img ngSrc="/assets/icons/home-search.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section class="relative">
+      <div class="mx-auto max-w-[1440px] px-5 pb-3 pt-6 lg:px-[100px] lg:pb-0 lg:pt-[52px]">
+        <div #categoryRail class="no-scrollbar overflow-x-auto scroll-smooth">
+          <div class="flex min-w-max gap-5 lg:gap-6">
+            @for (category of categories; track category.id) {
+            <button type="button" class="flex w-[76px] shrink-0 flex-col items-center gap-2 text-center lg:w-[130px]" [attr.aria-label]="'Browse ' + category.label">
+              <span class="flex h-[38px] w-[38px] items-center justify-center overflow-hidden bg-white lg:h-16 lg:w-16">
+                <img [ngSrc]="category.icon" alt="" width="64" height="64" class="h-full w-full object-cover object-center" aria-hidden="true" />
+              </span>
+              <span class="max-w-[76px] text-[11px] font-medium leading-[1.25] text-[#36394a] lg:max-w-[130px] lg:text-base lg:leading-6">
+                {{ category.label }}
+              </span>
+            </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="pointer-events-none absolute right-0 top-0 hidden h-full w-[180px] bg-gradient-to-r from-transparent to-white lg:block"></div>
+      <button type="button" (click)="scrollCategories()" class="absolute right-[106px] top-[84px] hidden h-[50px] w-[50px] items-center justify-center rounded-full bg-white text-[#6a6a73] shadow-[0_8px_20px_rgba(0,0,0,0.08)] lg:flex" aria-label="Scroll categories">
+        <img ngSrc="/assets/icons/home-arrow-right.svg" alt="" width="25" height="25" class="h-[25px] w-[25px]" aria-hidden="true" />
+      </button>
+    </section>
+
+    <section class="mx-auto max-w-[1440px] px-5 pb-10 pt-5 lg:px-[100px] lg:pb-[72px] lg:pt-[66px]">
+      <div class="mb-5 flex items-center justify-between lg:mb-6">
+        <h2 class="text-[22px] font-semibold tracking-[-0.03em] text-[#1f1f1f] lg:text-[36px]">Sponsored listings</h2>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-5">
+        @for (listing of sponsoredListings; track listing.id) {
+        <a [routerLink]="['/product', listing.id]" class="group rounded-[18px] border border-[#f0f0f0] bg-white p-[2px] shadow-[0_4px_14px_rgba(0,0,0,0.03)] lg:rounded-[20px]">
+          <div class="relative overflow-hidden rounded-[16px] bg-[#f8f8fa] lg:rounded-[18px]">
+            <img ngSrc="/assets/images/home-item-placeholder.png" [alt]="listing.title" width="376" height="376" class="aspect-[1.01] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+
+            @if (listing.tag) {
+            @if (listing.tag === 'Verified') {
+            <span class="absolute left-2 top-2 inline-flex items-center gap-[2px] rounded-[6px] border border-[#eaeaea] bg-white px-[4.5px] py-[3.5px] text-[8px] font-medium text-[#000000] shadow-sm lg:left-3 lg:top-3 lg:gap-1 lg:px-2 lg:py-1">
+              <img ngSrc="/assets/icons/home-verified-medal.svg" alt="" width="12" height="12" class="h-3 w-3" aria-hidden="true" />
+              <span class="leading-none text-[12px]">Verified</span>
+            </span>
+            } @else {
+            <span class="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.05em] text-[#1f1f1f] shadow-sm lg:left-3 lg:top-3 lg:text-[10px]">
+              {{ listing.tag }}
+            </span>
+            }
+            }
+
+            <button type="button" class="absolute right-2 top-2 flex items-center justify-center text-[#2c2c2c] lg:right-3 lg:top-3" [attr.aria-label]="'Save ' + listing.title">
+              <img src="/assets/icons/home-heart-outline.svg" alt="" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div class="px-2 py-2.5 lg:px-3 lg:py-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="line-clamp-1 text-[11px] font-medium leading-4 text-[#1f1f1f] lg:text-base lg:leading-5">{{ listing.title }}</h3>
+              @if (listing.badge) {
+              <span class="shrink-0 rounded-full bg-[#f4f4f4] px-1.5 py-0.5 text-[8px] font-medium text-[#6a6a73] lg:text-[10px]">
+                {{ listing.badge }}
+              </span>
+              }
+            </div>
+            <p class="mt-1 text-[11px] font-semibold text-[#1f1f1f] lg:mt-1.5 lg:text-2xl lg:font-medium">{{ listing.price }}</p>
+            <p class="mt-1 flex items-center gap-1 text-[9px] text-[#7b7b86] lg:mt-2 lg:text-sm">
+              <span class="inline-flex h-3.5 w-3.5 items-center justify-center lg:h-4 lg:w-4">
+                <img ngSrc="/assets/icons/home-location.svg" alt="" width="12" height="12" class="h-3 w-3 opacity-70 lg:h-[14px] lg:w-[14px]" aria-hidden="true" />
+              </span>
+              {{ listing.location }}
+            </p>
+          </div>
+        </a>
+        }
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-[1440px] px-5 pb-8 lg:px-[100px] lg:pb-[72px]">
+      <div class="mb-5 flex items-center justify-between lg:mb-6">
+        <h2 class="text-[22px] font-semibold tracking-[-0.03em] text-[#1f1f1f] lg:text-[36px]">Listings near you</h2>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5 lg:grid-cols-5 lg:gap-4">
+        @for (listing of nearbyListings; track listing.id) {
+        <a [routerLink]="['/product', listing.id]" class="group rounded-[18px] border border-[#f0f0f0] bg-white p-[2px] shadow-[0_4px_14px_rgba(0,0,0,0.03)] lg:rounded-[20px]">
+          <div class="relative overflow-hidden rounded-[16px] bg-[#f8f8fa] lg:rounded-[18px]">
+            <img ngSrc="/assets/images/home-item-placeholder.png" [alt]="listing.title" width="376" height="376" class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+
+            @if (listing.tag) {
+            @if (listing.tag === 'Verified') {
+            <span class="absolute left-2 top-2 inline-flex items-center gap-[2px] rounded-[6px] border border-[#eaeaea] bg-white px-[4.5px] py-[3.5px] text-[8px] font-medium text-[#000000] shadow-sm lg:left-3 lg:top-3 lg:gap-1 lg:px-2 lg:py-1">
+              <img ngSrc="/assets/icons/home-verified-medal.svg" alt="" width="12" height="12" class="h-3 w-3" aria-hidden="true" />
+              <span class="leading-none lg:text-[10px]">Verified</span>
+            </span>
+            } @else {
+            <span class="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.05em] text-[#1f1f1f] shadow-sm lg:left-3 lg:top-3 lg:text-[10px]">
+              {{ listing.tag }}
+            </span>
+            }
+            }
+
+            <button type="button" class="absolute right-2 top-2 flex h-6 w-6 items-center justify-center text-[#2c2c2c] lg:right-3 lg:top-3" [attr.aria-label]="'Save ' + listing.title">
+              <img ngSrc="/assets/icons/home-heart-outline.svg" alt="" width="13" height="12" class="h-3 w-[13px] lg:h-[13px] lg:w-[14px]" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div class="px-2 py-2.5 lg:px-3 lg:py-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="line-clamp-1 text-[11px] font-medium leading-4 text-[#1f1f1f] lg:text-sm lg:leading-5">{{ listing.title }}</h3>
+              @if (listing.badge) {
+              <span class="shrink-0 rounded-full bg-[#f4f4f4] px-1.5 py-0.5 text-[8px] font-medium text-[#6a6a73] lg:text-[10px]">
+                {{ listing.badge }}
+              </span>
+              }
+            </div>
+            <p class="mt-1 text-[11px] font-semibold text-[#1f1f1f] lg:mt-1.5 lg:text-xl lg:font-medium">{{ listing.price }}</p>
+            <p class="mt-1 flex items-center gap-1 text-[9px] text-[#7b7b86] lg:mt-2 lg:text-sm">
+              <span class="inline-flex h-3.5 w-3.5 items-center justify-center lg:h-4 lg:w-4">
+                <img ngSrc="/assets/icons/home-location.svg" alt="" width="12" height="12" class="h-3 w-3 opacity-70 lg:h-[14px] lg:w-[14px]" aria-hidden="true" />
+              </span>
+              {{ listing.location }}
+            </p>
+          </div>
+        </a>
+        }
+      </div>
+
+      <div class="mt-5 flex justify-center lg:mt-8">
+        <button type="button" class="rounded-full bg-[#f4f4f6] px-5 py-2.5 text-sm font-medium text-[#36394a] lg:bg-[#f5f3ff] lg:px-8 lg:py-3 lg:text-base">
+          Show more listings
+        </button>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-[1440px] px-5 pb-8 lg:px-[100px] lg:pb-[72px]">
+      <div class="hidden items-center gap-5 lg:flex">
+        @for (promotion of promotions; track promotion.id) {
+        <div class="relative overflow-hidden rounded-[24px]">
+          <img [ngSrc]="promotion.image" alt="Sponsored promotion" width="505" height="225" class="h-[225px] w-full object-cover" />
+          <span class="absolute bottom-5 left-5 rounded-full bg-black/55 px-3 py-1 text-sm font-medium text-white backdrop-blur-sm">
+            Sponsored
+          </span>
+        </div>
+        }
+      </div>
+
+      <div class="lg:hidden">
+        <div class="relative overflow-hidden rounded-[18px]">
+          <img ngSrc="/assets/images/home-promo-1.png" alt="Sponsored promotion" width="399" height="224" class="h-auto w-full object-cover" />
+          <span class="absolute bottom-3 left-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+            Sponsored
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-[1440px] px-5 pb-12 lg:px-[100px] lg:pb-[88px]">
+      <div class="mb-5 flex items-center justify-between lg:mb-6">
+        <h2 class="text-2xl font-medium tracking-[-0.03em] text-[#2a2a2a] lg:text-[32px]">Featured stores</h2>
+      </div>
+
+      <div class="grid grid-cols-2 gap-[10px] lg:grid-cols-4 lg:gap-6">
+        @for (store of featuredStores; track store.id) {
+        <a routerLink="/" class="overflow-hidden rounded-[13.746px] border border-[#eaeaea] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.03)] lg:rounded-[24px]">
+          <div class="relative h-[90.5px] overflow-hidden rounded-t-[13.746px] lg:h-[158px] lg:rounded-t-[24px]">
+            <img [ngSrc]="store.mobileCoverImage" alt="" width="173" height="90" class="h-full w-full object-cover lg:hidden" aria-hidden="true" />
+            <img [ngSrc]="store.coverImage" alt="" width="300" height="158" class="hidden h-full w-full object-cover lg:block" aria-hidden="true" />
+            <div class="absolute inset-x-0 bottom-0 h-[40px] bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.95)_68%,#ffffff_100%)] lg:h-[68px]" aria-hidden="true"></div>
+
+            <div class="absolute left-[9px] top-[37px] flex h-[42.385px] w-[42.385px] items-center justify-center overflow-hidden rounded-full border-[2.29px] border-white bg-white shadow-[0_4px_10px_rgba(0,0,0,0.08)] lg:left-4 lg:top-[81px] lg:h-[74px] lg:w-[74px] lg:border-4">
+              <img [ngSrc]="store.mobileLogoImage" alt="" width="43" height="43" class="h-full w-full object-cover lg:hidden" aria-hidden="true" />
+              <img [ngSrc]="store.logoImage" alt="" width="74" height="74" class="hidden h-full w-full object-cover lg:block" aria-hidden="true" />
+            </div>
+          </div>
+
+          <div class="px-[10px] pb-[10px] pt-[8px] lg:px-4 lg:pb-[14px] lg:pt-[12px]">
+            <div class="flex items-center gap-1">
+              <h3 class="line-clamp-1 text-xs font-medium leading-[1.1] tracking-[-0.02em] text-[#2a2a2a] lg:text-base">
+                {{ store.name }}
+              </h3>
+              <img ngSrc="/assets/icons/home-store-verified.svg" alt="" width="12" height="12" class="h-3 w-3 shrink-0 lg:h-[14px] lg:w-[14px]" aria-hidden="true" />
+            </div>
+
+            <p class="mt-[3px] flex items-center gap-1 text-[10px] font-normal leading-none text-[#777777] lg:mt-[6px] lg:text-sm">
+              <img ngSrc="/assets/icons/home-store-location.svg" alt="" width="10" height="10" class="h-[10px] w-[10px] shrink-0 lg:h-[14px] lg:w-[14px]" aria-hidden="true" />
+              {{ store.location }}
+            </p>
+          </div>
+        </a>
+        }
+      </div>
+    </section>
+  </main>
+
+  <footer class="hidden overflow-hidden bg-[linear-gradient(180deg,rgba(123,106,217,0)_32.621%,rgba(123,106,217,0.2)_100%)] lg:block">
+    <div class="relative mx-auto max-w-[1440px] px-[100px] pt-[53px]">
+      <div class="flex items-start justify-between">
+        <div class="max-w-[342px]">
+          <img ngSrc="/assets/icons/home-logo-dark.svg" alt="Duduzili" width="112" height="26" class="h-[26px] w-auto" />
+          <p class="mt-2 text-sm leading-5 text-[#5d5d5d]">
+            Duduzili ia a one stop marketplace that connects a wide range of sellers and buyers.
+          </p>
+        </div>
+
+        <div class="flex gap-16 text-[#36394a]">
+          <div class="space-y-5">
+            <h3 class="text-xl font-medium leading-none">Social</h3>
+            <a routerLink="/" class="block text-base leading-5">Instagram</a>
+            <a routerLink="/" class="block text-base leading-5">X (Twitter)</a>
+          </div>
+
+          <div class="space-y-5">
+            <h3 class="text-xl font-medium leading-none">Resources</h3>
+            <a routerLink="/" class="block text-base leading-5">Terms of Service</a>
+            <a routerLink="/" class="block text-base leading-5">Privacy Policy</a>
+            <a routerLink="/" class="block text-base leading-5">Contact us</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-[75px] flex items-end justify-between gap-10">
+        <div class="flex items-center gap-4">
+          <div class="overflow-hidden rounded-3xl bg-[#252525] p-[7px]">
+            <img ngSrc="/assets/images/home-qr-code.png" alt="QR code to download the Duduzili app" width="138" height="138" class="h-[138px] w-[138px]" />
+          </div>
+
+          <div class="space-y-4">
+            <a routerLink="/" class="flex items-center gap-2 rounded-2xl border border-[#d8d8d8] bg-white p-3">
+              <img ngSrc="/assets/icons/home-apple.svg" alt="" width="40" height="40" class="h-10 w-10" aria-hidden="true" />
+              <span class="block text-left text-[#36394a]">
+                <span class="block text-sm leading-5">Download on the</span>
+                <span class="block text-2xl font-medium leading-none">App Store</span>
+              </span>
+            </a>
+
+            <a routerLink="/" class="flex items-center gap-2 rounded-2xl border border-[#d8d8d8] bg-white p-3">
+              <img ngSrc="/assets/icons/home-google-play.svg" alt="" width="40" height="40" class="h-10 w-10" aria-hidden="true" />
+              <span class="block text-left text-[#36394a]">
+                <span class="block text-sm leading-5">GET IT ON</span>
+                <span class="block text-2xl font-medium leading-none">Google Play</span>
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <form class="flex items-end gap-4">
+          <label class="block w-[310px]">
+            <span class="mb-3 block text-[18px] font-medium text-[#1f1f1f]">Subscribe to our newsletter</span>
+            <input type="email" placeholder="Enter your email" class="h-11 w-full rounded-[10px] border border-[#e6e6e8] px-3 text-base text-[#1f1f1f] outline-none placeholder:text-[#a7a7a7]" />
+          </label>
+
+          <button type="submit" class="h-10 rounded-full border border-white bg-[#6453d9] px-5 text-sm font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]">
+            Subscribe
+          </button>
+        </form>
+      </div>
+
+      <p class="mt-8 text-base leading-6 text-[#7e7e7e]">@2026 Duduzili. All rights reserved</p>
+      <div class="w-full" aria-hidden="true">
+        <img src="/assets/images/footer-wordmark.svg" alt="Duduzili" class="h-[200%] w-full object-contain" />
+      </div>
+    </div>
+  </footer>
+
+  <footer class="overflow-hidden bg-[linear-gradient(180deg,rgba(123,106,217,0)_32.621%,rgba(123,106,217,0.2)_100%)] px-5 pt-[22px] lg:hidden">
+    <div class="mx-auto max-w-[351px]">
+      <div class="flex flex-col gap-8">
+        <div>
+          <img ngSrc="/assets/icons/home-logo-dark.svg" alt="Duduzili" width="146" height="34" class="h-[34px] w-auto" />
+          <p class="mt-2 text-sm leading-5 text-[#5d5d5d]">
+            Duduzili ia a one stop marketplace that connects a wide range of sellers and buyers.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-8 text-[#36394a]">
+          <div class="space-y-4">
+            <h3 class="text-[20px] font-medium leading-none">Social</h3>
+            <a routerLink="/" class="block text-base leading-5">Instagram</a>
+            <a routerLink="/" class="block text-base leading-5">X (Twitter)</a>
+          </div>
+
+          <div class="space-y-4">
+            <h3 class="text-[20px] font-medium leading-none">Resources</h3>
+            <a routerLink="/" class="block text-base leading-5">Terms of Service</a>
+            <a routerLink="/" class="block text-base leading-5">Privacy Policy</a>
+            <a routerLink="/" class="block text-base leading-5">Contact us</a>
+          </div>
+        </div>
+
+        <form class="flex items-end gap-4">
+          <label class="min-w-0 flex-1">
+            <span class="mb-3 block text-base font-medium leading-6 text-[#1f1f1f]">Subscribe to our newsletter</span>
+            <input type="email" placeholder="Enter your email" class="h-11 w-full rounded-[10px] border border-[#e6e6e8] px-3 text-base text-[#1f1f1f] outline-none placeholder:text-[#a7a7a7]" />
+          </label>
+          <button type="submit" class="h-10 shrink-0 rounded-full border border-white bg-[#6453d9] px-5 text-sm font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]">
+            Subscribe
+          </button>
+        </form>
+
+        <div class="flex items-center gap-[14.8px]">
+          <div class="overflow-hidden rounded-[22px] bg-[#252525] p-[6px]">
+            <img ngSrc="/assets/images/home-qr-code.png" alt="QR code to download the Duduzili app" width="128" height="128" class="h-[128px] w-[128px]" />
+          </div>
+
+          <div class="flex flex-col gap-[14px]">
+            <a routerLink="/" class="flex items-center gap-[7px] rounded-[15px] border border-[#d8d8d8] bg-white p-[11px]">
+              <img ngSrc="/assets/icons/home-apple.svg" alt="" width="37" height="37" class="h-[37px] w-[37px]" aria-hidden="true" />
+              <span class="block text-left text-[#36394a]">
+                <span class="block text-[13px] leading-[18px]">Download on the</span>
+                <span class="block text-[22px] font-medium leading-none">App Store</span>
+              </span>
+            </a>
+
+            <a routerLink="/" class="flex items-center gap-[7px] rounded-[15px] border border-[#d8d8d8] bg-white p-[11px]">
+              <img ngSrc="/assets/icons/home-google-play.svg" alt="" width="37" height="37" class="h-[37px] w-[37px]" aria-hidden="true" />
+              <span class="block text-left text-[#36394a]">
+                <span class="block text-[13px] leading-[18px]">GET IT ON</span>
+                <span class="block text-[22px] font-medium leading-none">Google Play</span>
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-sm leading-[22px] text-[#7e7e7e]">@2026 Duduzili. All rights reserved</p>
+          <div class="w-full" aria-hidden="true">
+            <img src="/assets/images/footer-wordmark.svg" alt="Duduzili" class="h-[200%] w-full object-contain" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <nav class="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-b from-transparent to-white px-5 pb-[18px] pt-5 lg:hidden" aria-label="Mobile bottom navigation">
+    <div class="mx-auto flex max-w-[390px] items-end gap-1">
+      <div class="flex min-w-0 flex-1 items-center rounded-full border border-[#f4f4f4] bg-white p-1 shadow-[0_4px_12px_rgba(212,212,212,0.25)]">
+        <a routerLink="/" class="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-[32px] bg-[#f5f3ff] py-1.5 text-[#6453d9]">
+          <img ngSrc="/assets/icons/home-nav-listings.svg" alt="" width="22" height="22" class="h-[22px] w-[22px]" aria-hidden="true" />
+          <span class="text-[11px] font-medium">Listings</span>
+        </a>
+        <a routerLink="/" class="flex min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-[#5c5c5c]">
+          <img ngSrc="/assets/icons/home-nav-chats.svg" alt="" width="22" height="22" class="h-[22px] w-[22px]" aria-hidden="true" />
+          <span class="text-[11px] font-medium">Chats</span>
+        </a>
+        <a routerLink="/" class="flex min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-[#5c5c5c]">
+          <img ngSrc="/assets/icons/home-nav-stores.svg" alt="" width="22" height="22" class="h-[22px] w-[22px]" aria-hidden="true" />
+          <span class="text-[11px] font-medium">Stores</span>
+        </a>
+        <a routerLink="/" class="flex min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-[#5c5c5c]">
+          <img ngSrc="/assets/icons/home-nav-more.svg" alt="" width="22" height="22" class="h-[22px] w-[22px]" aria-hidden="true" />
+          <span class="text-[11px] font-medium">More</span>
+        </a>
+      </div>
+
+      <button type="button" class="flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-[#6453d9] shadow-[0_4px_12px_rgba(158,147,255,0.25)]" aria-label="Create listing">
+        <img ngSrc="/assets/icons/home-nav-add.svg" alt="" width="24" height="24" class="h-6 w-6" aria-hidden="true" />
+      </button>
+    </div>
+  </nav>
 </div>
