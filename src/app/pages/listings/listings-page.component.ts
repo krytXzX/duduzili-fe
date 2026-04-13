@@ -1,689 +1,488 @@
-import { ChangeDetectionStrategy, Component, signal, computed, inject, effect } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { 
-  heroCheckBadge, 
-  heroPlus, 
-  heroMagnifyingGlass, 
-  heroChevronLeft, 
-  heroChevronRight
-} from '@ng-icons/heroicons/outline';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { AddListingModalComponent } from '../../components/listings/add-listing-modal.component';
 import { IdentityVerificationModalComponent } from '../../components/listings/identity-verification-modal.component';
 import { VerificationDetailsModalComponent } from '../../components/listings/verification-details-modal.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
-interface Listing {
+type ListingStatus = 'Available' | 'Sold' | 'Draft' | 'Paused' | 'Suspended';
+type ListingFilter = 'All' | ListingStatus;
+
+type ListingRow = {
   id: string;
   name: string;
   category: string;
-  categoryGroup: string;
-  subcategory?: string;
-  price: number;
+  priceWhole: string;
+  priceFraction: string;
   store: string;
-  status: 'Available' | 'Sold' | 'Draft' | 'Paused' | 'Suspended' | 'Expired';
+  storeLogo: string;
   image: string;
-  isBoosted: boolean;
-}
+  status: ListingStatus;
+  promoted?: boolean;
+};
 
-interface CategoryOption {
-  name: string;
-  subcategories: string[];
-}
+type ListingStat = {
+  key: ListingFilter;
+  label: string;
+  value: string;
+};
 
 @Component({
   selector: 'app-listings-page',
-  imports: [CommonModule, NgIcon, NgOptimizedImage, RouterLink, AddListingModalComponent, IdentityVerificationModalComponent, VerificationDetailsModalComponent],
-  providers: [
-    provideIcons({ 
-      heroCheckBadge, 
-      heroPlus, 
-      heroMagnifyingGlass, 
-      heroChevronLeft, 
-      heroChevronRight
-    })
+  imports: [
+    NgOptimizedImage,
+    AddListingModalComponent,
+    IdentityVerificationModalComponent,
+    VerificationDetailsModalComponent,
   ],
   template: `
-    <div class="px-5 pt-7 md:hidden">
-      <div class="flex items-center justify-between gap-4">
-        <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">Listings</h1>
-        <button
-          type="button"
-          (click)="showAddListingModal.set(true)"
-          class="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#6F56F6] px-5 py-2.5 text-[12px] font-medium text-white shadow-[0_16px_28px_-18px_rgba(111,86,246,0.95)]"
-        >
-          <ng-icon name="heroPlus"></ng-icon>
-          Sell item
-        </button>
-      </div>
+    <div class="min-h-full bg-white lg:-m-8 lg:min-h-[calc(100vh-8rem)] lg:rounded-[32px]">
+      <section class="px-4 pb-8 pt-4 lg:px-0 lg:pb-0 lg:pt-0">
+        <div class="hidden items-center justify-between border-b border-[#eeeeee] px-4 py-[14px] lg:flex">
+          <h1 class="text-[24px] font-medium leading-normal text-[#0d0d0d]">Listings</h1>
+          <button
+            type="button"
+            (click)="showAddListingModal.set(true)"
+            class="inline-flex h-10 items-center gap-2 rounded-full border border-white bg-[#6453d9] px-5 text-sm font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]"
+          >
+            <span class="text-lg leading-none">+</span>
+            Sell item
+          </button>
+        </div>
 
-      @if (!isVerificationSubmitted()) {
-        <section class="mt-7 overflow-hidden rounded-[20px] border border-[#E8E7FF] bg-[linear-gradient(135deg,#FBFBFF_0%,#F4F3FF_55%,#F9F8FF_100%)] px-4 py-4 shadow-[0_10px_24px_-22px_rgba(31,36,48,0.35)]">
-          <div class="flex items-center justify-between gap-3">
-            <div class="min-w-0 flex-1">
-              <h2 class="max-w-[210px] text-[15px] font-medium leading-6 text-[#262834]">Build trust. Get more buyers</h2>
-              <p class="mt-1 max-w-[220px] text-[11px] leading-5 text-[#7A7F8C]">Verified sellers rank higher and attract more inquiries.</p>
+        <div class="flex items-center justify-between pt-2 lg:hidden">
+          <h1 class="text-[24px] font-semibold leading-8 tracking-[-0.03em] text-[#1a1b1d]">Listings</h1>
+          <button
+            type="button"
+            (click)="showAddListingModal.set(true)"
+            class="inline-flex h-10 items-center gap-2 rounded-full border border-white bg-[#6453d9] px-4 text-base font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]"
+          >
+            <span class="text-lg leading-none">+</span>
+            Sell item
+          </button>
+        </div>
+
+        <div
+          class="relative mt-6 overflow-hidden rounded-2xl border border-[#eeeefd] bg-[rgba(246,245,255,0.44)] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] lg:mx-4 lg:mt-7 lg:px-[17px] lg:py-[18px]"
+        >
+          <div class="absolute left-[154px] top-[70px] h-[188px] w-[690px] rounded-full bg-[radial-gradient(circle,rgba(133,121,255,0.12)_0%,rgba(133,121,255,0.04)_35%,rgba(133,121,255,0)_70%)]"></div>
+          <div class="absolute right-[-12px] top-[38px] h-[126px] w-[126px] rounded-full bg-[radial-gradient(circle,rgba(180,171,255,0.22)_0%,rgba(180,171,255,0)_70%)] lg:right-[-18px] lg:top-[35px]"></div>
+
+          <div class="relative z-10 flex items-center justify-between gap-3 lg:gap-6">
+            <div class="min-w-0 lg:max-w-[355px]">
+              <h2 class="text-[18px] font-medium leading-6 text-[#1f1f1f]">Build trust. Get more buyers</h2>
+              <p class="mt-0.5 max-w-[240px] text-sm leading-7 text-[#7b7979] lg:max-w-none lg:leading-5">
+                Verified sellers rank higher and attract more inquiries.
+              </p>
 
               <button
                 type="button"
-                (click)="showIdentityModal.set(true)"
-                class="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-[#E7E8EE] bg-white px-5 py-2.5 text-[11px] font-medium text-[#202335] shadow-[0_8px_18px_-18px_rgba(32,35,53,0.45)]"
+                (click)="openVerificationFlow()"
+                class="mt-3 inline-flex h-10 items-center gap-2 rounded-full border border-[#eaeaea] bg-white px-5 text-sm font-medium text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)] lg:mt-4"
               >
-                Verify my account
+                {{ isVerificationSubmitted() ? 'View submission' : 'Verify my account' }}
                 <span aria-hidden="true">→</span>
               </button>
             </div>
 
             <img
-              ngSrc="/assets/images/identity_verification_id_card_illustration.png"
-              width="96"
-              height="96"
+              [ngSrc]="verificationIllustration()"
+              width="152"
+              height="152"
               alt=""
               aria-hidden="true"
-              class="h-24 w-24 shrink-0 object-contain"
-            >
+              class="h-[116px] w-[116px] shrink-0 object-contain lg:h-[152px] lg:w-[152px]"
+            />
           </div>
-        </section>
-      } @else {
-        <section class="mt-7 overflow-hidden rounded-[20px] border border-[#F3E9BE] bg-[linear-gradient(135deg,#FFFDF4_0%,#FFF7D8_100%)] px-4 py-4 shadow-[0_10px_24px_-22px_rgba(31,36,48,0.35)]">
-          <div class="flex items-center justify-between gap-3">
-            <div class="min-w-0 flex-1">
-              <h2 class="max-w-[210px] text-[15px] font-medium leading-6 text-[#262834]">Verification under review</h2>
-              <p class="mt-1 max-w-[220px] text-[11px] leading-5 text-[#7A7F8C]">Our team is reviewing your documents. You'll be notified soon.</p>
+        </div>
 
-              <button
-                type="button"
-                (click)="showVerificationDetailsModal.set(true)"
-                class="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-[#E7E8EE] bg-white px-5 py-2.5 text-[11px] font-medium text-[#202335] shadow-[0_8px_18px_-18px_rgba(32,35,53,0.45)]"
-              >
-                View submission
+        @if (hasListings()) {
+        <div class="mt-6 lg:mx-4">
+          <div class="no-scrollbar overflow-x-auto lg:overflow-visible">
+            <div class="flex min-w-max gap-3 lg:grid lg:min-w-0 lg:grid-cols-6">
+              @for (stat of stats; track stat.key) {
+                <button
+                  type="button"
+                  (click)="activeFilter.set(stat.key)"
+                  class="relative h-[75px] w-[109px] overflow-hidden rounded-[10px] text-left lg:w-auto"
+                  [class.bg-[rgba(100,83,217,0.05)]]="activeFilter() === stat.key"
+                  [class.border-[1.5px]]="activeFilter() === stat.key"
+                  [class.border-[#6453d9]]="activeFilter() === stat.key"
+                  [class.bg-[#fafafa]]="activeFilter() !== stat.key"
+                >
+                  <span class="absolute left-[8.5px] top-[10px] text-xs text-[rgba(26,27,29,0.5)]">{{ stat.label }}</span>
+                  <span class="absolute left-[8.5px] top-[34px] text-[20px] font-semibold text-[#1a1b1d]">{{ stat.value }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex items-center gap-3 lg:hidden">
+          <label class="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-[#fafafa] px-4 py-3">
+            <img ngSrc="/assets/icons/listings-search-mobile.svg" alt="" width="16" height="16" class="h-4 w-4 opacity-70" aria-hidden="true" />
+            <input
+              type="search"
+              placeholder="Search"
+              [value]="searchTerm()"
+              (input)="updateSearch($event)"
+              class="min-w-0 flex-1 bg-transparent text-sm text-[#1a1b1d] outline-none placeholder:text-[#777]"
+            />
+          </label>
+
+          <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full" aria-label="Filter listings">
+            <img ngSrc="/assets/icons/listings-filter-mobile.svg" alt="" width="24" height="24" class="h-6 w-6" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div class="mt-5 hidden rounded-2xl border border-[#f0f0f0] bg-white lg:block">
+          <div class="flex items-center justify-between px-[15px] py-[15px]">
+            <div class="flex items-center gap-2">
+              <button type="button" class="inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]">
+                Category
+                <img ngSrc="/assets/icons/home-chevron-down.svg" alt="" width="16" height="16" class="h-4 w-4 opacity-70" aria-hidden="true" />
+              </button>
+              <button type="button" class="inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]">
+                Store
+                <img ngSrc="/assets/icons/home-chevron-down.svg" alt="" width="16" height="16" class="h-4 w-4 opacity-70" aria-hidden="true" />
+              </button>
+              <button type="button" class="inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]">
+                Status
+                <img ngSrc="/assets/icons/home-chevron-down.svg" alt="" width="16" height="16" class="h-4 w-4 opacity-70" aria-hidden="true" />
               </button>
             </div>
 
-            <img
-              ngSrc="/assets/images/identity_verification_id_card_illustration.png"
-              width="96"
-              height="96"
-              alt=""
-              aria-hidden="true"
-              class="h-24 w-24 shrink-0 object-contain"
-            >
-          </div>
-        </section>
-      }
-
-      @if (listings().length > 0) {
-        <section class="mt-8">
-          <div class="grid grid-cols-3 gap-3">
-            @for (stat of mobileStats(); track stat.label) {
-              <div
-                class="rounded-[14px] bg-white px-3 py-3.5 shadow-[0_10px_20px_-22px_rgba(31,36,48,0.4)]"
-                [class.border]="stat.active"
-                [class.border-[#6F56F6]]="stat.active"
-                [class.bg-[#F8F7FF]]="stat.active"
-              >
-                <p class="text-[10px] font-medium text-[#8A8F9A]">{{ stat.label }}</p>
-                <p class="mt-2 text-[19px] font-semibold leading-none text-[#2A2D34]">{{ stat.value }}</p>
-              </div>
-            }
-          </div>
-
-          <div class="mt-7 flex items-center gap-3">
-            <label class="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-4 py-3 shadow-[0_10px_20px_-22px_rgba(31,36,48,0.4)]">
-              <ng-icon name="heroMagnifyingGlass" class="text-[#8A8F9A]"></ng-icon>
+            <label class="flex h-10 w-[224px] items-center gap-2 rounded-full bg-[#fafafa] px-3">
+              <img ngSrc="/assets/icons/listings-search.svg" alt="" width="16" height="16" class="h-4 w-4 opacity-70" aria-hidden="true" />
               <input
-                type="text"
+                type="search"
                 placeholder="Search"
                 [value]="searchTerm()"
-                (input)="updateSearchTerm($event)"
-                class="min-w-0 flex-1 bg-transparent text-[12px] font-medium text-[#2A2D34] outline-none placeholder:text-[#9BA0AA]"
-              >
+                (input)="updateSearch($event)"
+                class="min-w-0 flex-1 bg-transparent text-sm text-[#1a1b1d] outline-none placeholder:text-[#777]"
+              />
             </label>
-
-            <button
-              type="button"
-              (click)="toggleFilterPanel('statuses')"
-              aria-label="Open filters"
-              class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-[#2A2D34] shadow-[0_10px_20px_-22px_rgba(31,36,48,0.4)]"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path d="M3 5.75A.75.75 0 013.75 5h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 013 5.75zm10 0A.75.75 0 0113.75 5h2.5a.75.75 0 010 1.5h-2.5a.75.75 0 01-.75-.75zM7 10a.75.75 0 01.75-.75h8.5a.75.75 0 010 1.5h-8.5A.75.75 0 017 10zm-3.25-.75a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5h-1.5zM3 14.25a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H3.75A.75.75 0 013 14.25zm13.5 0a.75.75 0 01.75-.75h.5a.75.75 0 010 1.5h-.5a.75.75 0 01-.75-.75z"/>
-              </svg>
-            </button>
           </div>
 
-          <div class="mt-8 space-y-6">
-            @for (item of filteredListings(); track item.id) {
-              <article
-                class="cursor-pointer border-b border-[#EAECEF] pb-5"
-                (click)="viewListing(item.id)"
-              >
-                <div class="flex items-start gap-3">
-                  <img
-                    [src]="item.image"
-                    [alt]="item.name"
-                    class="h-11 w-11 shrink-0 rounded-[10px] object-cover"
-                  >
+          <div class="border-t border-[#f4f4f4] bg-[#fafafa]">
+            <div class="grid grid-cols-[40px_1.7fr_1.15fr_1fr_1.5fr_1fr_56px] items-center px-[15px] py-[11px] text-xs font-medium text-[rgba(26,27,29,0.6)]">
+              <span class="inline-block h-4 w-4 rounded border border-[#b8b8b8]"></span>
+              <span>Name</span>
+              <span>Category</span>
+              <span>Price</span>
+              <span>Store</span>
+              <span>Status</span>
+              <span></span>
+            </div>
+          </div>
 
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-start justify-between gap-3">
-                      <div class="min-w-0">
-                        <h2 class="truncate text-[13px] font-medium text-[#2A2D34]">{{ item.name }}</h2>
-                        <p class="mt-1 text-[11px] text-[#8A8F9A]">
-                          @if (item.isBoosted) {
-                            <span class="mr-1">🚀</span>
-                            Promoted
-                          } @else {
-                            {{ item.category }}
-                          }
-                        </p>
-                      </div>
+          <div>
+            @for (listing of filteredDesktopListings(); track listing.id) {
+              <div class="grid grid-cols-[40px_1.7fr_1.15fr_1fr_1.5fr_1fr_56px] items-center border-t border-[#f0f0f0] px-[15px] py-3 first:border-t-0">
+                <span class="inline-block h-4 w-4 rounded border border-[#b8b8b8]"></span>
 
-                      <span
-                        class="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium"
-                        [class.bg-[#FFF1DE]]="item.status === 'Available'"
-                        [class.text-[#F19A1A]]="item.status === 'Available'"
-                        [class.bg-[#E8F8EA]]="item.status === 'Sold'"
-                        [class.text-[#22A447]]="item.status === 'Sold'"
-                        [class.bg-[#F2F2F4]]="item.status === 'Draft'"
-                        [class.text-[#646872]]="item.status === 'Draft'"
-                        [class.bg-[#EAF3FF]]="item.status === 'Paused'"
-                        [class.text-[#4A8CFF]]="item.status === 'Paused'"
-                        [class.bg-[#FFF0F0]]="item.status === 'Suspended'"
-                        [class.text-[#FF3B30]]="item.status === 'Suspended'"
-                        [class.bg-[#FFF1DE]]="item.status === 'Expired'"
-                        [class.text-[#F19A1A]]="item.status === 'Expired'"
-                      >
-                        <span
-                          class="inline-block h-2 w-2 rounded-full bg-current"
-                          [class.rounded-[2px]]="item.status === 'Draft'"
-                        ></span>
-                        {{ item.status }}
-                      </span>
-                    </div>
-
-                    <div class="mt-4 grid grid-cols-[1fr_auto] gap-x-4 gap-y-2">
-                      <span class="text-[11px] text-[#8A8F9A]">Store</span>
-                      <span class="text-right text-[11px] font-medium text-[#2A2D34]">{{ item.store }}</span>
-                      <span class="text-[11px] text-[#8A8F9A]">Amount</span>
-                      <span class="text-right text-[11px] font-medium text-[#2A2D34]">₦{{ item.price | number:'1.2-2' }}</span>
-                    </div>
+                <div class="flex items-center gap-2">
+                  <div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md bg-[#efefef]">
+                    <img [ngSrc]="listing.image" [alt]="listing.name" width="44" height="44" class="h-10 w-10 object-cover" />
                   </div>
+                  <span class="text-sm font-medium text-[#1a1b1d]">{{ listing.name }}</span>
                 </div>
-              </article>
+
+                <span class="text-sm text-[#1a1b1d]">{{ listing.category }}</span>
+
+                <span class="flex items-center text-sm font-medium text-[#1f1f1f]">
+                  <img ngSrc="/assets/icons/listings-naira.svg" alt="" width="14" height="14" class="mr-0.5 h-[14px] w-[14px]" aria-hidden="true" />
+                  {{ listing.priceWhole }}<span class="text-[rgba(31,31,31,0.5)]">{{ listing.priceFraction }}</span>
+                </span>
+
+                <div class="flex items-center gap-2">
+                  <div class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#efefef]">
+                    <img [ngSrc]="listing.storeLogo" [alt]="listing.store" width="32" height="32" class="h-8 w-8 object-cover" />
+                  </div>
+                  <span class="text-sm text-[#1a1b1d]">{{ listing.store }}</span>
+                </div>
+
+                <span class="inline-flex w-fit items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold" [class]="desktopStatusClass(listing.status)">
+                  <img [ngSrc]="statusIcon(listing.status)" alt="" width="14" height="14" class="h-[14px] w-[14px]" aria-hidden="true" />
+                  {{ listing.status }}
+                </span>
+
+                <button type="button" class="ml-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]" [attr.aria-label]="'Promote ' + listing.name">
+                  <span class="text-sm leading-none">🚀</span>
+                </button>
+              </div>
             }
           </div>
-        </section>
-      } @else {
-        <section class="flex min-h-[calc(100vh-320px)] flex-col items-center justify-center pb-8 pt-10 text-center">
-          <div class="relative mb-8 h-[160px] w-[210px]">
-            <div class="absolute left-3 top-6 h-[118px] w-[88px] rotate-[-18deg] rounded-[18px] bg-white/70 shadow-[0_16px_30px_-26px_rgba(25,30,40,0.35)] ring-1 ring-[#F1F2F6]"></div>
-            <div class="absolute right-3 top-5 h-[118px] w-[88px] rotate-[18deg] rounded-[18px] bg-white/70 shadow-[0_16px_30px_-26px_rgba(25,30,40,0.35)] ring-1 ring-[#F1F2F6]"></div>
-            <div class="absolute left-1/2 top-0 flex h-[132px] w-[98px] -translate-x-1/2 flex-col rounded-[20px] bg-white shadow-[0_20px_36px_-30px_rgba(25,30,40,0.45)] ring-1 ring-[#ECEEF4]">
-              <div class="flex items-start justify-between px-3 pt-3">
-                <div class="h-2 w-8 rounded-full bg-[#F0F1F5]"></div>
-                <span class="text-[10px] text-[#2B2D36]">♥</span>
+        </div>
+
+        <div class="mt-4 space-y-0 lg:hidden">
+          @for (listing of filteredMobileListings(); track listing.id) {
+            <article class="border-b border-[#ebebeb] py-3">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-[6.6px] bg-[#efefef]">
+                    <img [ngSrc]="listing.image" [alt]="listing.name" width="44" height="44" class="h-11 w-11 object-cover" />
+                  </div>
+                  <div>
+                    <h2 class="text-base font-medium leading-6 text-[rgba(13,13,13,0.8)]">{{ listing.name }}</h2>
+                    @if (listing.promoted) {
+                      <p class="mt-0.5 text-xs text-[#7f8081]"><span class="mr-1 text-[#1a1b1d]">🚀</span>Promoted</p>
+                    }
+                  </div>
+                </div>
+
+                <span class="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold" [class]="mobileStatusClass(listing.status)">
+                  <img [ngSrc]="statusIcon(listing.status)" alt="" width="14" height="14" class="h-[14px] w-[14px]" aria-hidden="true" />
+                  {{ listing.status }}
+                </span>
               </div>
-              <div class="mt-2 flex flex-1 items-center justify-center">
-                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F8] text-[#B6BAC6]">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path d="M10 10a3 3 0 100-6 3 3 0 000 6zm-6 6.25A4.25 4.25 0 018.25 12h3.5A4.25 4.25 0 0116 16.25V17H4v-.75z"/>
-                  </svg>
+
+              <div class="mt-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-[rgba(26,27,29,0.5)]">Store</span>
+                  <span class="text-sm font-medium text-[#1a1b1d]">{{ listing.store }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-[rgba(26,27,29,0.5)]">Amount</span>
+                  <span class="flex items-center text-sm font-medium text-[#1f1f1f]">
+                    <img ngSrc="/assets/icons/listings-naira.svg" alt="" width="14" height="14" class="mr-0.5 h-[14px] w-[14px]" aria-hidden="true" />
+                    {{ mobileAmount(listing) }}
+                  </span>
                 </div>
               </div>
-              <div class="space-y-2 px-4 pb-4">
-                <div class="h-1.5 rounded-full bg-[#F0F1F5]"></div>
-                <div class="mx-auto h-1.5 w-10 rounded-full bg-[#F5F6F9]"></div>
+            </article>
+          }
+        </div>
+
+        <div class="mt-6 hidden items-center justify-between px-4 pb-5 lg:flex">
+          <p class="text-base font-medium text-[#1a1b1d]">{{ filteredDesktopListings().length }} <span class="text-[rgba(26,27,29,0.5)]">results</span></p>
+
+          <div class="flex items-center gap-2 opacity-50">
+            <button type="button" class="flex h-8 w-11 items-center justify-center rounded-lg border border-[#dfe1e7] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12)]" aria-label="Previous page">‹</button>
+            <button type="button" class="flex h-8 w-11 items-center justify-center rounded-lg border border-[#dfe1e7] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12)]" aria-current="page">1</button>
+            <button type="button" class="flex h-8 w-11 items-center justify-center rounded-lg border border-[#dfe1e7] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12)]" aria-label="Next page">›</button>
+            <span class="text-base text-[#1c1f1d]">of 1</span>
+          </div>
+        </div>
+        } @else {
+        <div class="flex flex-col items-center pb-8 pt-[74px] text-center lg:px-6 lg:pb-12 lg:pt-10">
+          <div class="relative h-[142px] w-[168px] lg:h-[261px] lg:w-[309px]">
+            <div class="absolute left-[1px] top-[9px] h-[133px] w-[168px] rounded-[11px] bg-[linear-gradient(181deg,rgba(255,255,255,0)_1.5%,#ffffff_90.4%)] lg:left-0 lg:top-[20px] lg:h-[242px] lg:w-[309px] lg:rounded-[18px]"></div>
+
+            <div class="absolute left-0 top-[10px] h-[123px] w-[87px] rotate-[-17deg] rounded-[9px] border border-[#eaeaea] bg-white p-[1.5px] shadow-[0_10px_24px_rgba(202,202,202,0.18)] lg:left-[10px] lg:top-[19px] lg:h-[228px] lg:w-[152px] lg:rounded-[17px] lg:p-[2.8px] lg:shadow-[0_20px_44px_rgba(202,202,202,0.18)]">
+              <div class="relative h-[85px] rounded-[8px] border border-[#eaeaea] bg-[#efefef] lg:h-[157px] lg:rounded-[14px]">
+                <span class="absolute right-1.5 top-1 text-[7px] text-[#4f4f4f] lg:right-3 lg:top-2 lg:text-[13px]">♥</span>
+              </div>
+            </div>
+
+            <div class="absolute right-0 top-[10px] h-[123px] w-[87px] rotate-[18deg] rounded-[9px] border border-[#eaeaea] bg-white p-[1.5px] shadow-[0_10px_24px_rgba(202,202,202,0.18)] lg:right-[8px] lg:top-[14px] lg:h-[228px] lg:w-[152px] lg:rounded-[17px] lg:p-[2.8px] lg:shadow-[0_20px_44px_rgba(202,202,202,0.18)]">
+              <div class="relative h-[85px] rounded-[8px] border border-[#eaeaea] bg-[#efefef] lg:h-[157px] lg:rounded-[14px]">
+                <span class="absolute right-1.5 top-1 text-[7px] text-[#4f4f4f] lg:right-3 lg:top-2 lg:text-[13px]">♥</span>
+              </div>
+            </div>
+
+            <div class="absolute left-1/2 top-0 h-[124px] w-[87px] -translate-x-1/2 rounded-[9px] border border-[#eaeaea] bg-white p-[1.5px] shadow-[0_10px_24px_rgba(202,202,202,0.22)] lg:top-[7px] lg:h-[228px] lg:w-[152px] lg:rounded-[17px] lg:p-[2.8px] lg:shadow-[0_20px_44px_rgba(202,202,202,0.22)]">
+              <div class="relative h-[85px] rounded-[8px] border border-[#eaeaea] bg-[#efefef] lg:h-[157px] lg:rounded-[14px]">
+                <span class="absolute right-1.5 top-1 text-[7px] text-[#4f4f4f] lg:right-3 lg:top-2 lg:text-[13px]">♥</span>
+                <div class="absolute inset-0 flex items-center justify-center text-[#b7b7b7]">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" class="h-[27px] w-[27px] fill-current lg:h-[48px] lg:w-[48px]">
+                    <path d="M19 5h-3.2l-1-1.35A2 2 0 0 0 13.2 3h-2.4a2 2 0 0 0-1.6.65L8.2 5H5a2 2 0 0 0-2 2v8.5A2.5 2.5 0 0 0 5.5 18h13a2.5 2.5 0 0 0 2.5-2.5V7a2 2 0 0 0-2-2Zm-7 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z" />
+                  </svg>
+                </div>
+                <button
+                  type="button"
+                  class="absolute left-[6px] top-1/2 flex h-[9px] w-[9px] -translate-y-1/2 items-center justify-center rounded-full border border-[#eaeaea] bg-white text-[5px] text-[#777] lg:left-3 lg:h-[18px] lg:w-[18px] lg:text-[10px]"
+                  aria-label="Previous preview"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  class="absolute right-[6px] top-1/2 flex h-[9px] w-[9px] -translate-y-1/2 items-center justify-center rounded-full border border-[#eaeaea] bg-white text-[5px] text-[#777] lg:right-3 lg:h-[18px] lg:w-[18px] lg:text-[10px]"
+                  aria-label="Next preview"
+                >
+                  ›
+                </button>
+              </div>
+
+              <div class="space-y-[3px] px-[3px] pt-[5px] lg:space-y-2 lg:px-[6px] lg:pt-[10px]">
+                <div class="flex items-center justify-between gap-2 lg:gap-3">
+                  <div class="h-[8px] w-[46px] rounded-full bg-[#d9d9d9] lg:h-[13px] lg:w-[81px]"></div>
+                  <div class="h-[8px] w-[14px] rounded-full bg-[#f0f0f0] lg:h-[13px] lg:w-[24px]"></div>
+                </div>
+                <div class="h-[6px] w-[36px] rounded-full bg-[#d9d9d9] lg:h-[11px] lg:w-[64px]"></div>
+                <div class="flex items-center gap-[3px] lg:gap-1.5">
+                  <img ngSrc="/assets/icons/home-location.svg" alt="" width="5" height="5" class="h-[5px] w-[5px] opacity-50 lg:h-2 lg:w-2" aria-hidden="true" />
+                  <div class="h-[5px] w-[24px] rounded-full bg-[#d9d9d9] lg:h-[8px] lg:w-[42px]"></div>
+                </div>
               </div>
             </div>
           </div>
 
-          <h2 class="text-[18px] font-medium leading-8 tracking-[-0.03em] text-[#202335]">Looks a little empty here 👀</h2>
-          <p class="mt-2 max-w-[280px] text-[11px] leading-6 text-[#7A7F8C]">Add a listing so buyers can see what you're offering and reach out.</p>
+          <div class="mt-8 max-w-[350px] lg:max-w-[520px]">
+            <h2 class="text-[24px] font-medium leading-[1.2] tracking-[-0.03em] text-[#1a1b1d] lg:text-[40px] lg:tracking-[-0.04em]">Looks a little empty here 👀</h2>
+            <p class="mt-2 text-[16px] leading-[1.2] text-[#6c6c6c] lg:mt-3">
+              Add a listing so buyers can see what you’re offering and reach out.
+            </p>
+          </div>
 
           <button
             type="button"
             (click)="showAddListingModal.set(true)"
-            class="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-[#6F56F6] px-7 py-3 text-[12px] font-medium text-white shadow-[0_18px_30px_-18px_rgba(111,86,246,0.95)]"
+            class="mt-8 inline-flex h-[52px] items-center gap-2 rounded-full border border-white bg-[#6453d9] px-8 text-[16px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] lg:mt-6 lg:h-12 lg:px-7 lg:text-[14px]"
           >
-            <ng-icon name="heroPlus"></ng-icon>
+            <span class="text-[20px] leading-none lg:text-[18px]">+</span>
             Sell an item
           </button>
-        </section>
+        </div>
+        }
+      </section>
+
+      @if (showAddListingModal()) {
+        <app-add-listing-modal (close)="showAddListingModal.set(false)" />
+      }
+
+      @if (showIdentityModal()) {
+        <app-identity-verification-modal (close)="showIdentityModal.set(false)" />
+      }
+
+      @if (showVerificationDetailsModal()) {
+        <app-verification-details-modal (close)="showVerificationDetailsModal.set(false)" />
       }
     </div>
-
-    <div class="hidden max-w-6xl mx-auto md:block">
-      <!-- Header -->
-      <div class="flex items-center justify-between mb-8">
-        <h1 class="text-[21px] font-bold text-gray-900">Listings</h1>
-        <button (click)="showAddListingModal.set(true)" class="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-purple-700 transition-all shadow-sm">
-          <ng-icon name="heroPlus"></ng-icon>
-          Sell item
-        </button>
-      </div>
-
-      <!-- Trust Banner / Verification Under Review Banner -->
-      @if (!isVerificationSubmitted()) {
-        <div class="bg-linear-to-r from-purple-50 to-pink-50 rounded-3xl p-8 mb-8 flex items-center justify-between relative overflow-hidden border border-purple-100/50">
-          <div class="relative z-10 max-w-md">
-            <h2 class="text-[19px] font-bold text-gray-900 mb-2">Build trust. Get more buyers</h2>
-            <p class="text-sm text-gray-600 mb-6 leading-relaxed">Verified sellers rank higher and attract more inquiries.</p>
-            <button 
-              (click)="showIdentityModal.set(true)"
-              class="flex items-center gap-2 text-purple-600 font-bold hover:gap-3 transition-all group"
-            >
-              Verify my account 
-              <span class="group-hover:translate-x-1 transition-transform">→</span>
-            </button>
-          </div>
-          <div class="hidden md:block">
-            <!-- Placeholder for verification illustration -->
-            <div class="w-32 h-32 bg-white/50 rounded-2xl flex items-center justify-center shadow-sm backdrop-blur-sm border border-white">
-               <ng-icon name="heroCheckBadge" class="text-6xl text-purple-600/20"></ng-icon>
-            </div>
-          </div>
-          <!-- Decorative elements -->
-          <div class="absolute -right-8 -bottom-8 w-48 h-48 bg-purple-200/20 rounded-full blur-3xl"></div>
-        </div>
-      } @else {
-        <div class="bg-linear-to-r from-[#FFFBF0] to-[#FFF6DA] rounded-3xl p-8 mb-8 flex items-center justify-between relative overflow-hidden border border-yellow-100/50">
-          <div class="relative z-10 max-w-lg">
-            <h2 class="text-[19px] font-bold text-gray-900 mb-2">Verification under review</h2>
-            <p class="text-sm text-gray-600 mb-6 leading-relaxed">Our team is reviewing your documents. You'll be notified within 24–48 hours.</p>
-            <button 
-              (click)="showVerificationDetailsModal.set(true)"
-              class="bg-white text-gray-900 px-6 py-2.5 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all active:scale-95 border border-gray-100"
-            >
-              View submission
-            </button>
-          </div>
-          <div class="hidden md:block absolute right-0 top-0 bottom-0 w-1/3">
-            <div class="relative h-full w-full">
-               <img 
-                 ngSrc="/Users/dev/.gemini/antigravity/brain/b80227d6-2ef9-4ea6-9af2-40360d55ea38/verification_under_review_illustration_1775037629662.png" 
-                 width="240" 
-                 height="240" 
-                 class="absolute right-4 top-1/2 -translate-y-1/2 object-contain"
-                 alt="Verification under review"
-               >
-            </div>
-          </div>
-          <!-- Decorative elements -->
-          <div class="absolute -right-8 -bottom-8 w-48 h-48 bg-yellow-200/20 rounded-full blur-3xl"></div>
-        </div>
-      }
-
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-        @for (stat of stats(); track stat.label) {
-          <div 
-            class="bg-white p-5 rounded-2xl border border-gray-100 hover:border-purple-200 transition-all cursor-pointer group"
-            [class.ring-2]="stat.active"
-            [class.ring-purple-100]="stat.active"
-          >
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{{stat.label}}</p>
-            <p class="text-[21px] font-bold text-gray-900 group-hover:text-purple-600 transition-colors">{{stat.value}}</p>
-          </div>
-        }
-      </div>
-
-      <!-- Filters & Search -->
-      <div class="relative bg-white p-4 rounded-2xl border border-gray-100 flex flex-col md:flex-row gap-4 mb-6 shadow-sm">
-        <div class="flex flex-wrap gap-2 flex-1">
-          <button
-            type="button"
-            (click)="toggleFilterPanel('categories')"
-            class="flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100"
-            [class.bg-purple-50]="activeFilterPanel() === 'categories' || !!selectedCategoryLabel()"
-            [class.border-purple-100]="activeFilterPanel() === 'categories' || !!selectedCategoryLabel()"
-            [class.text-purple-700]="activeFilterPanel() === 'categories' || !!selectedCategoryLabel()"
-            [class.bg-gray-50]="activeFilterPanel() !== 'categories' && !selectedCategoryLabel()"
-            [class.border-gray-100]="activeFilterPanel() !== 'categories' && !selectedCategoryLabel()"
-            [class.text-gray-600]="activeFilterPanel() !== 'categories' && !selectedCategoryLabel()"
-          >
-            {{ selectedCategoryLabel() || 'Categories' }}
-            <svg class="w-4 h-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            (click)="toggleFilterPanel('stores')"
-            class="flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100"
-            [class.bg-purple-50]="activeFilterPanel() === 'stores' || !!selectedStore()"
-            [class.border-purple-100]="activeFilterPanel() === 'stores' || !!selectedStore()"
-            [class.text-purple-700]="activeFilterPanel() === 'stores' || !!selectedStore()"
-            [class.bg-gray-50]="activeFilterPanel() !== 'stores' && !selectedStore()"
-            [class.border-gray-100]="activeFilterPanel() !== 'stores' && !selectedStore()"
-            [class.text-gray-600]="activeFilterPanel() !== 'stores' && !selectedStore()"
-          >
-            {{ selectedStore() || 'Store' }}
-            <svg class="w-4 h-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            (click)="toggleFilterPanel('statuses')"
-            class="flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100"
-            [class.bg-purple-50]="activeFilterPanel() === 'statuses' || !!selectedStatus()"
-            [class.border-purple-100]="activeFilterPanel() === 'statuses' || !!selectedStatus()"
-            [class.text-purple-700]="activeFilterPanel() === 'statuses' || !!selectedStatus()"
-            [class.bg-gray-50]="activeFilterPanel() !== 'statuses' && !selectedStatus()"
-            [class.border-gray-100]="activeFilterPanel() !== 'statuses' && !selectedStatus()"
-            [class.text-gray-600]="activeFilterPanel() !== 'statuses' && !selectedStatus()"
-          >
-            {{ selectedStatus() || 'Status' }}
-            <svg class="w-4 h-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-          </button>
-          @if (hasActiveFilters()) {
-            <button
-              type="button"
-              (click)="clearFilters()"
-              class="px-4 py-2 rounded-xl border border-gray-100 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              Clear filters
-            </button>
-          }
-        </div>
-        <div class="relative w-full md:w-64">
-          <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <ng-icon name="heroMagnifyingGlass" class="text-gray-400"></ng-icon>
-          </div>
-          <input 
-            type="text" 
-            placeholder="Search" 
-            [value]="searchTerm()"
-            (input)="updateSearchTerm($event)"
-            class="w-full bg-gray-50 border border-gray-100 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:bg-white transition-all"
-          >
-        </div>
-
-        @if (activeFilterPanel()) {
-          <div class="absolute left-4 right-4 top-[calc(100%+12px)] z-20 rounded-[28px] border border-gray-100 bg-white p-5 shadow-[0_18px_48px_rgba(17,24,39,0.08)]">
-            @if (activeFilterPanel() === 'categories') {
-              @if (categoryNavigationStack().length > 0) {
-                <button
-                  type="button"
-                  (click)="goBackCategoryLevel()"
-                  class="mb-4 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
-                >
-                  ← Back
-                </button>
-              }
-
-              <div class="relative mb-4">
-                <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                  <ng-icon name="heroMagnifyingGlass" class="text-gray-400"></ng-icon>
-                </div>
-                <input
-                  type="text"
-                  [placeholder]="categoryNavigationStack().length > 0 ? 'Search subcategory' : 'Search category'"
-                  [value]="categoryNavigationStack().length > 0 ? subcategorySearchTerm() : categorySearchTerm()"
-                  (input)="updateCategorySearch($event)"
-                  class="w-full rounded-full border border-gray-100 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-100"
-                >
-              </div>
-
-              <div class="max-h-[420px] overflow-y-auto pr-1">
-                @if (categoryNavigationStack().length === 0) {
-                  @for (category of filteredCategoryOptions(); track category.name) {
-                    <button
-                      type="button"
-                      (click)="handleCategorySelection(category)"
-                      class="flex w-full items-center justify-between py-3 text-left text-[15px] font-medium text-gray-700 hover:text-purple-700 transition-colors"
-                    >
-                      <span>{{ category.name }}</span>
-                      @if (category.subcategories.length > 0) {
-                        <ng-icon name="heroChevronRight" class="text-gray-400"></ng-icon>
-                      }
-                    </button>
-                  }
-                } @else {
-                  @for (subcategory of filteredSubcategoryOptions(); track subcategory) {
-                    <button
-                      type="button"
-                      (click)="selectSubcategory(subcategory)"
-                      class="flex w-full items-center justify-between py-3 text-left text-[15px] font-medium text-gray-700 hover:text-purple-700 transition-colors"
-                    >
-                      <span>{{ subcategory }}</span>
-                    </button>
-                  }
-                }
-              </div>
-            }
-
-            @if (activeFilterPanel() === 'stores') {
-              <div class="space-y-1">
-                @for (store of availableStores(); track store) {
-                  <button
-                    type="button"
-                    (click)="selectStore(store)"
-                    class="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-[15px] font-medium transition-colors hover:bg-gray-50"
-                    [class.bg-purple-50]="selectedStore() === store"
-                    [class.text-purple-700]="selectedStore() === store"
-                    [class.text-gray-700]="selectedStore() !== store"
-                  >
-                    <span>{{ store }}</span>
-                    @if (selectedStore() === store) {
-                      <span class="text-xs font-semibold">Selected</span>
-                    }
-                  </button>
-                }
-              </div>
-            }
-
-            @if (activeFilterPanel() === 'statuses') {
-              <div class="space-y-1">
-                @for (status of availableStatuses; track status) {
-                  <button
-                    type="button"
-                    (click)="selectStatus(status)"
-                    class="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-[15px] font-medium transition-colors hover:bg-gray-50"
-                    [class.bg-purple-50]="selectedStatus() === status"
-                    [class.text-purple-700]="selectedStatus() === status"
-                    [class.text-gray-700]="selectedStatus() !== status"
-                  >
-                    <span>{{ status }}</span>
-                    @if (selectedStatus() === status) {
-                      <span class="text-xs font-semibold">Selected</span>
-                    }
-                  </button>
-                }
-              </div>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Listings Content -->
-      @if (filteredListings().length > 0) {
-        <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-          <table class="w-full text-left">
-            <thead>
-              <tr class="bg-gray-50/50 text-gray-400 text-[10px] uppercase tracking-widest font-semibold">
-                <th class="px-6 py-4 w-12"><input type="checkbox" class="rounded border-gray-300"></th>
-                <th class="px-6 py-4">Name</th>
-                <th class="px-6 py-4">Category</th>
-                <th class="px-6 py-4 text-right">Price</th>
-                <th class="px-6 py-4">Store</th>
-                <th class="px-6 py-4">Status</th>
-                <th class="px-6 py-4 w-12"></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-              @for (item of filteredListings(); track item.id) {
-                <tr 
-                  (click)="viewListing(item.id)"
-                  class="hover:bg-gray-50/50 transition-colors group cursor-pointer"
-                >
-                  <td class="px-6 py-4" (click)="$event.stopPropagation()">
-                    <input type="checkbox" class="rounded border-gray-300">
-                  </td>
-                  <td class="px-6 py-4">
-                    <a [routerLink]="['/listings', item.id]" 
-                       (click)="$event.stopPropagation()"
-                       class="flex items-center gap-3 group/link">
-                      <div class="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden relative shadow-sm group-hover:shadow-md transition-shadow">
-                        <img [src]="item.image" [alt]="item.name" class="object-cover w-full h-full group-hover/link:scale-110 transition-transform duration-500">
-                      </div>
-                      <span class="text-sm font-semibold text-gray-900 group-hover/link:text-purple-600 transition-colors">{{item.name}}</span>
-                    </a>
-                  </td>
-                  <td class="px-6 py-4 text-xs text-gray-500">{{item.category}}</td>
-                  <td class="px-6 py-4 text-sm font-bold text-gray-900 text-right">₦{{item.price | number:'1.2-2'}}</td>
-                  <td class="px-6 py-4">
-                    <div class="flex items-center gap-2">
-                       <div class="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center text-[8px] font-bold text-purple-600 overflow-hidden">
-                         {{item.store.charAt(0)}}
-                       </div>
-                       <span class="text-xs text-gray-600 font-medium">{{item.store}}</span>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <span 
-                      class="px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 w-fit"
-                      [class.bg-green-50]="item.status === 'Available'"
-                      [class.text-green-600]="item.status === 'Available'"
-                      [class.bg-purple-50]="item.status === 'Sold'"
-                      [class.text-purple-600]="item.status === 'Sold'"
-                      [class.bg-gray-50]="item.status === 'Draft'"
-                      [class.text-gray-500]="item.status === 'Draft'"
-                      [class.bg-red-50]="item.status === 'Suspended'"
-                      [class.text-red-600]="item.status === 'Suspended'"
-                      [class.bg-orange-50]="item.status === 'Expired' || item.status === 'Paused'"
-                      [class.text-orange-600]="item.status === 'Expired' || item.status === 'Paused'"
-                    >
-                      <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                      {{item.status}}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 text-center">
-                    @if (item.isBoosted) {
-                      <span
-                        class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm leading-none shadow-[0_6px_18px_rgba(17,24,39,0.08)] ring-1 ring-gray-100"
-                        aria-label="Boosted listing"
-                        title="Boosted listing"
-                      >
-                        🚀
-                      </span>
-                    }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-          
-          <!-- Pagination -->
-          <div class="px-6 py-4 border-t border-gray-50 flex items-center justify-between">
-            <span class="text-xs text-gray-400 font-medium">{{filteredListings().length}} results</span>
-            <div class="flex items-center gap-2">
-              <button class="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30" disabled>
-                <ng-icon name="heroChevronLeft"></ng-icon>
-              </button>
-              <div class="flex items-center gap-1">
-                <button class="w-6 h-6 rounded-md bg-purple-600 text-white text-xs font-bold leading-none">1</button>
-              </div>
-              <button class="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30" disabled>
-                <ng-icon name="heroChevronRight"></ng-icon>
-              </button>
-              <span class="text-xs text-gray-400 ml-2">of 1</span>
-            </div>
-          </div>
-        </div>
-      } @else {
-        <!-- Empty State -->
-        <div class="bg-white border border-gray-100 rounded-3xl p-16 flex flex-col items-center text-center shadow-sm">
-          @if (listings().length > 0) {
-            <img
-              ngSrc="/assets/images/empty_state.svg"
-              width="256"
-              height="192"
-              alt="No listings found"
-              class="mb-8 h-48 w-64 object-contain"
-            >
-          } @else {
-            <div class="relative w-64 h-48 mb-8">
-              <div class="absolute inset-0 bg-gray-50 rounded-2xl rotate-2 scale-95 opacity-50"></div>
-              <div class="absolute inset-0 bg-gray-50 rounded-2xl -rotate-2 scale-95 opacity-50"></div>
-              <div class="absolute inset-0 bg-white border border-gray-100 rounded-2xl flex flex-col items-center justify-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center">
-                   <ng-icon name="heroPlus" class="text-2xl text-gray-300"></ng-icon>
-                </div>
-                <div class="w-24 h-2 bg-gray-50 rounded-full"></div>
-                <div class="w-16 h-2 bg-gray-50/50 rounded-full"></div>
-              </div>
-            </div>
-          }
-          <h3 class="text-xl font-bold text-gray-900 mb-2">
-            {{ listings().length > 0 ? 'No listings match those filters' : 'Looks a little empty here 👀' }}
-          </h3>
-          <p class="text-sm text-gray-500 mb-8 max-w-sm">
-            {{ listings().length > 0 ? 'Try a different search term or clear your filters to see more listings.' : 'Add a listing so buyers can see what you\'re offering and reach out.' }}
-          </p>
-          @if (listings().length > 0) {
-            <button
-              type="button"
-              (click)="clearFilters()"
-              class="rounded-2xl border border-gray-100 bg-white px-6 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all"
-            >
-              Clear filters
-            </button>
-          } @else {
-            <button (click)="showAddListingModal.set(true)" class="flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-purple-700 transition-all shadow-md shadow-purple-200">
-              <ng-icon name="heroPlus"></ng-icon>
-              Sell an item
-            </button>
-          }
-        </div>
-      }
-    </div>
-
-    @if (showAddListingModal()) {
-      <app-add-listing-modal 
-        (close)="showAddListingModal.set(false)"
-        (save)="onPublishListing($event)"
-      ></app-add-listing-modal>
+  `,
+  styles: `
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
-    @if (showIdentityModal()) {
-      <app-identity-verification-modal
-        (close)="showIdentityModal.set(false)"
-        (submitted)="isVerificationSubmitted.set(true)"
-      ></app-identity-verification-modal>
-    }
-    @if (showVerificationDetailsModal()) {
-      <app-verification-details-modal
-        (close)="showVerificationDetailsModal.set(false)"
-      ></app-verification-details-modal>
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
     }
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-  `],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListingsPageComponent {
-  private readonly router = inject(Router);
   private readonly mobileOverlayService = inject(MobileOverlayService);
-  protected showAddListingModal = signal(false);
-  protected showIdentityModal = signal(false);
-  protected showVerificationDetailsModal = signal(false);
-  protected isVerificationSubmitted = signal(false);
-  protected readonly activeFilterPanel = signal<'categories' | 'stores' | 'statuses' | null>(null);
+
+  protected readonly showAddListingModal = signal(false);
+  protected readonly showIdentityModal = signal(false);
+  protected readonly showVerificationDetailsModal = signal(false);
+  protected readonly isVerificationSubmitted = signal(false);
   protected readonly searchTerm = signal('');
-  protected readonly categorySearchTerm = signal('');
-  protected readonly subcategorySearchTerm = signal('');
-  protected readonly selectedCategoryGroup = signal<string | null>(null);
-  protected readonly selectedSubcategory = signal<string | null>(null);
-  protected readonly selectedStore = signal<string | null>(null);
-  protected readonly selectedStatus = signal<Listing['status'] | null>(null);
-  protected readonly categoryNavigationStack = signal<string[]>([]);
+  protected readonly activeFilter = signal<ListingFilter>('All');
+
+  protected readonly verificationIllustrationDesktop = '/assets/images/listings-verify-illustration-desktop-v2.png';
+  protected readonly verificationIllustrationMobile = '/assets/images/listings-verify-illustration-mobile-v2.png';
+
+  protected readonly hasListings = computed(() => this.listings().length > 0);
+
+  protected readonly stats: ListingStat[] = [
+    { key: 'All', label: 'All', value: '65' },
+    { key: 'Available', label: 'Available', value: '09' },
+    { key: 'Sold', label: 'Sold', value: '09' },
+    { key: 'Paused', label: 'Paused', value: '09' },
+    { key: 'Suspended', label: 'Suspended', value: '03' },
+    { key: 'Draft', label: 'Draft', value: '03' },
+  ];
+
+  private readonly listings = signal<ListingRow[]>([
+    {
+      id: 'iphone-17',
+      name: 'Iphone 17 pro max',
+      category: 'Phones & Laptops',
+      priceWhole: '2,500,000.',
+      priceFraction: '00',
+      store: 'The Vine Collections',
+      storeLogo: '/assets/images/store-vine-logo-desktop.png',
+      image: '/assets/images/listings-item-iphone.png',
+      status: 'Available',
+      promoted: true,
+    },
+    {
+      id: 'mouse',
+      name: 'Logitech ergonomic mouse',
+      category: 'Electronics',
+      priceWhole: '150,000.',
+      priceFraction: '00',
+      store: 'Eden Organics',
+      storeLogo: '/assets/images/store-eden-logo-desktop.png',
+      image: '/assets/images/listings-item-mouse.png',
+      status: 'Sold',
+      promoted: true,
+    },
+    {
+      id: 'sneaker',
+      name: 'Nike sneaker',
+      category: 'Men’s fashion',
+      priceWhole: '150,000.',
+      priceFraction: '00',
+      store: 'Amazing Fragrances',
+      storeLogo: '/assets/images/store-amazing-logo-desktop.png',
+      image: '/assets/images/listings-item-sneaker.png',
+      status: 'Draft',
+    },
+    {
+      id: 'wig',
+      name: 'Bone straight wig',
+      category: 'Women’s fashion',
+      priceWhole: '150,000.',
+      priceFraction: '00',
+      store: 'Personal account',
+      storeLogo: '/assets/images/dashboard-avatar-mobile.png',
+      image: '/assets/images/listings-item-wig.png',
+      status: 'Paused',
+      promoted: true,
+    },
+    {
+      id: 'maserati',
+      name: 'Maserati',
+      category: 'Automobiles',
+      priceWhole: '150,000.',
+      priceFraction: '00',
+      store: 'The Vine Collections',
+      storeLogo: '/assets/images/store-vine-logo-desktop.png',
+      image: '/assets/images/listings-item-maserati.png',
+      status: 'Suspended',
+    },
+    {
+      id: 'keyboard',
+      name: 'RGB keyboard',
+      category: 'Electronics',
+      priceWhole: '2,500,000.',
+      priceFraction: '00',
+      store: 'Personal account',
+      storeLogo: '/assets/images/dashboard-avatar-mobile.png',
+      image: '/assets/images/store-none-cover-desktop.png',
+      status: 'Suspended',
+    },
+    {
+      id: 'sweatshirt',
+      name: 'Sweatshirt',
+      category: 'Men’s fashion',
+      priceWhole: '2,500,000.',
+      priceFraction: '00',
+      store: 'The Vine Collections',
+      storeLogo: '/assets/images/store-vine-logo-desktop.png',
+      image: '/assets/images/store-swift-cover-desktop.png',
+      status: 'Sold',
+    },
+  ]);
+
+  protected readonly filteredDesktopListings = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const filter = this.activeFilter();
+
+    return this.listings().filter((listing) => {
+      const matchesFilter = filter === 'All' ? true : listing.status === filter;
+      const haystack = `${listing.name} ${listing.category} ${listing.store}`.toLowerCase();
+      const matchesSearch = term.length === 0 ? true : haystack.includes(term);
+      return matchesFilter && matchesSearch;
+    });
+  });
+
+  protected readonly filteredMobileListings = computed(() => this.filteredDesktopListings().slice(0, 5));
 
   constructor() {
     effect(() => {
@@ -696,287 +495,59 @@ export class ListingsPageComponent {
     });
   }
 
-  protected readonly categoryOptions: CategoryOption[] = [
-    { name: 'Automotives', subcategories: [] },
-    { name: 'Real Estate and Properties', subcategories: [] },
-    {
-      name: 'Phone and tablet',
-      subcategories: [
-        'Mobile phones',
-        'iPhone',
-        'Tablets',
-        'Smart watches',
-        'Headphones',
-        'Phones and tablet accessories',
-        'Power banks and charges',
-      ],
-    },
-    { name: 'Electronics', subcategories: [] },
-    { name: 'Home, Furniture and appliances', subcategories: [] },
-    { name: 'Women fashion', subcategories: [] },
-    { name: 'Men fashion', subcategories: [] },
-    { name: 'Young Adult', subcategories: [] },
-    { name: 'Children & Baby fashion', subcategories: [] },
-    { name: 'Fashion & Design', subcategories: [] },
-    { name: 'Beauty & Personal Care', subcategories: [] },
-    { name: 'Industrial & Home Supplies', subcategories: [] },
-    { name: 'Business & Industrial', subcategories: [] },
-    { name: 'School, Office & General Supplies', subcategories: [] },
-    { name: 'Leisure & Activities', subcategories: [] },
-    { name: 'Grocery', subcategories: [] },
-    { name: 'Party Supplies', subcategories: [] },
-    { name: 'Food, Agriculture & Farming', subcategories: [] },
-    { name: 'Animals & Pets', subcategories: [] },
-    { name: 'Services', subcategories: [] },
-    { name: 'Pharmacy', subcategories: [] },
-    { name: 'Vision Center', subcategories: [] },
-  ];
-
-  protected readonly availableStatuses: Listing['status'][] = [
-    'Available',
-    'Sold',
-    'Draft',
-    'Paused',
-    'Suspended',
-    'Expired',
-  ];
-
-  protected viewListing(id: string): void {
-    this.router.navigate(['/listings', id]);
-  }
-  protected readonly listings = signal<Listing[]>([
-    {
-      id: '1',
-      name: 'Iphone 13 pro max',
-      category: 'Phones & Laptops',
-      categoryGroup: 'Phone and tablet',
-      subcategory: 'iPhone',
-      price: 3500000.00,
-      store: 'The Vine Collections',
-      status: 'Available',
-      image: 'https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=100&h=100&fit=crop',
-      isBoosted: true
-    },
-    {
-      id: '2',
-      name: 'Logitech ergonic mouse',
-      category: 'Electronics',
-      categoryGroup: 'Electronics',
-      price: 50000.00,
-      store: 'Eden Organics',
-      status: 'Sold',
-      image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=100&h=100&fit=crop',
-      isBoosted: false
-    },
-    {
-      id: '3',
-      name: 'Nike variable',
-      category: 'Men\'s fashion',
-      categoryGroup: 'Men fashion',
-      price: 25000.00,
-      store: 'Amazing Fragrances',
-      status: 'Draft',
-      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop',
-      isBoosted: true
-    },
-    {
-      id: '4',
-      name: 'Bone straight wig',
-      category: 'Women\'s fashion',
-      categoryGroup: 'Women fashion',
-      price: 150000.00,
-      store: 'Personal account',
-      status: 'Paused',
-      image: 'https://images.unsplash.com/photo-1595475207225-428b4d490b92?w=100&h=100&fit=crop',
-      isBoosted: false
-    },
-    {
-      id: '5',
-      name: 'Maxwell',
-      category: 'Automobiles',
-      categoryGroup: 'Automotives',
-      price: 1500000.00,
-      store: 'Eden Organics',
-      status: 'Sold',
-      image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=100&h=100&fit=crop',
-      isBoosted: true
-    },
-    {
-      id: '6',
-      name: 'RGB keyboard',
-      category: 'Electronics',
-      categoryGroup: 'Electronics',
-      price: 20000.00,
-      store: 'Personal account',
-      status: 'Suspended',
-      image: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=100&h=100&fit=crop',
-      isBoosted: false
-    }
-  ]);
-
-  protected readonly stats = signal([
-    { label: 'All', value: 65, active: true },
-    { label: 'Available', value: '09', active: false },
-    { label: 'Sold', value: '09', active: false },
-    { label: 'Discount', value: '09', active: false },
-    { label: 'Expanded', value: '03', active: false },
-    { label: 'Draft', value: '03', active: false },
-  ]);
-
-  protected readonly availableStores = computed(() =>
-    [...new Set(this.listings().map((listing) => listing.store))],
-  );
-
-  protected readonly selectedCategoryLabel = computed(() =>
-    this.selectedSubcategory() || this.selectedCategoryGroup(),
-  );
-
-  protected readonly filteredCategoryOptions = computed(() => {
-    const term = this.categorySearchTerm().trim().toLowerCase();
-    if (!term) {
-      return this.categoryOptions;
-    }
-
-    return this.categoryOptions.filter((category) => category.name.toLowerCase().includes(term));
-  });
-
-  protected readonly filteredSubcategoryOptions = computed(() => {
-    const activeCategory = this.categoryNavigationStack()[0];
-    const term = this.subcategorySearchTerm().trim().toLowerCase();
-    const subcategories = this.categoryOptions.find((category) => category.name === activeCategory)?.subcategories ?? [];
-
-    if (!term) {
-      return subcategories;
-    }
-
-    return subcategories.filter((subcategory) => subcategory.toLowerCase().includes(term));
-  });
-
-  protected readonly filteredListings = computed(() => {
-    const term = this.searchTerm().trim().toLowerCase();
-    const categoryGroup = this.selectedCategoryGroup();
-    const subcategory = this.selectedSubcategory();
-    const store = this.selectedStore();
-    const status = this.selectedStatus();
-
-    return this.listings().filter((listing) => {
-      const matchesSearch = !term || [
-        listing.name,
-        listing.category,
-        listing.categoryGroup,
-        listing.subcategory ?? '',
-        listing.store,
-        listing.status,
-      ].some((value) => value.toLowerCase().includes(term));
-
-      const matchesCategory = !categoryGroup || listing.categoryGroup === categoryGroup;
-      const matchesSubcategory = !subcategory || listing.subcategory === subcategory;
-      const matchesStore = !store || listing.store === store;
-      const matchesStatus = !status || listing.status === status;
-
-      return matchesSearch && matchesCategory && matchesSubcategory && matchesStore && matchesStatus;
-    });
-  });
-
-  protected readonly hasActiveFilters = computed(() =>
-    !!this.searchTerm().trim() || !!this.selectedCategoryGroup() || !!this.selectedSubcategory() || !!this.selectedStore() || !!this.selectedStatus(),
-  );
-
-  protected readonly mobileStats = computed(() => [
-    { label: 'All', value: this.listings().length, active: true },
-    { label: 'Available', value: this.listings().filter((item) => item.status === 'Available').length, active: false },
-    { label: 'Sold', value: this.listings().filter((item) => item.status === 'Sold').length, active: false },
-  ]);
-
-  protected toggleEmpty(): void {
-    if (this.listings().length > 0) {
-      this.listings.set([]);
-    } else {
-      // Re-populate would go here, but for demo:
-      location.reload();
-    }
+  protected verificationIllustration(): string {
+    return this.verificationIllustrationMobile;
   }
 
-  protected onPublishListing(data: any): void {
-    const newItem: Listing = {
-      id: (this.listings().length + 1).toString(),
-      name: data.name,
-      category: data.category,
-      categoryGroup: data.category ?? 'Phone and tablet',
-      price: data.price,
-      store: 'My Store',
-      status: 'Available',
-      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop',
-      isBoosted: false
-    };
-    this.listings.update(l => [newItem, ...l]);
-    this.showAddListingModal.set(false);
-  }
-
-  protected updateSearchTerm(event: Event): void {
-    const input = event.target as HTMLInputElement | null;
-    this.searchTerm.set(input?.value ?? '');
-  }
-
-  protected toggleFilterPanel(panel: 'categories' | 'stores' | 'statuses'): void {
-    this.activeFilterPanel.update((current) => current === panel ? null : panel);
-  }
-
-  protected updateCategorySearch(event: Event): void {
-    const input = event.target as HTMLInputElement | null;
-    if (this.categoryNavigationStack().length > 0) {
-      this.subcategorySearchTerm.set(input?.value ?? '');
+  protected openVerificationFlow(): void {
+    if (this.isVerificationSubmitted()) {
+      this.showVerificationDetailsModal.set(true);
       return;
     }
 
-    this.categorySearchTerm.set(input?.value ?? '');
+    this.showIdentityModal.set(true);
   }
 
-  protected handleCategorySelection(category: CategoryOption): void {
-    if (category.subcategories.length > 0) {
-      this.categoryNavigationStack.set([category.name]);
-      this.subcategorySearchTerm.set('');
-      return;
+  protected updateSearch(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchTerm.set(input.value);
+  }
+
+  protected statusIcon(status: ListingStatus): string {
+    switch (status) {
+      case 'Available':
+        return '/assets/icons/listings-status-available.svg';
+      case 'Sold':
+        return '/assets/icons/listings-status-sold.svg';
+      case 'Draft':
+        return '/assets/icons/listings-status-draft.svg';
+      case 'Paused':
+        return '/assets/icons/listings-status-paused.svg';
+      case 'Suspended':
+        return '/assets/icons/listings-status-suspended.svg';
     }
-
-    this.selectedCategoryGroup.set(category.name);
-    this.selectedSubcategory.set(null);
-    this.activeFilterPanel.set(null);
   }
 
-  protected goBackCategoryLevel(): void {
-    this.categoryNavigationStack.set([]);
-    this.subcategorySearchTerm.set('');
+  protected desktopStatusClass(status: ListingStatus): string {
+    switch (status) {
+      case 'Available':
+        return 'bg-[#f9f9f9] text-[#ee9c2e]';
+      case 'Sold':
+        return 'bg-[#f3fbf9] text-[#25ad32]';
+      case 'Draft':
+        return 'bg-[#f4f4f4] text-[#5a5a5a]';
+      case 'Paused':
+        return 'bg-[#edf5ff] text-[#4787fe]';
+      case 'Suspended':
+        return 'bg-[#fdf6fa] text-[#ff2524]';
+    }
   }
 
-  protected selectSubcategory(subcategory: string): void {
-    const category = this.categoryNavigationStack()[0] ?? null;
-    this.selectedCategoryGroup.set(category);
-    this.selectedSubcategory.set(subcategory);
-    this.categoryNavigationStack.set([]);
-    this.subcategorySearchTerm.set('');
-    this.activeFilterPanel.set(null);
+  protected mobileStatusClass(status: ListingStatus): string {
+    return this.desktopStatusClass(status);
   }
 
-  protected selectStore(store: string): void {
-    this.selectedStore.set(this.selectedStore() === store ? null : store);
-    this.activeFilterPanel.set(null);
-  }
-
-  protected selectStatus(status: Listing['status']): void {
-    this.selectedStatus.set(this.selectedStatus() === status ? null : status);
-    this.activeFilterPanel.set(null);
-  }
-
-  protected clearFilters(): void {
-    this.searchTerm.set('');
-    this.categorySearchTerm.set('');
-    this.subcategorySearchTerm.set('');
-    this.selectedCategoryGroup.set(null);
-    this.selectedSubcategory.set(null);
-    this.selectedStore.set(null);
-    this.selectedStatus.set(null);
-    this.categoryNavigationStack.set([]);
-    this.activeFilterPanel.set(null);
+  protected mobileAmount(listing: ListingRow): string {
+    return `${listing.priceWhole}${listing.priceFraction}`;
   }
 }

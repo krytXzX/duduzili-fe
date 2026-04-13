@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, signal, viewChild } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 
 type HomeCategory = {
   id: string;
@@ -34,7 +35,7 @@ type HomeStore = {
 
 @Component({
   selector: 'app-home-page',
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [NgOptimizedImage, RouterLink, MobileBottomNavComponent],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.css',
   host: {

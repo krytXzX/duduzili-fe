@@ -1,12 +1,20 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+
+type NavItem = {
+  readonly label: string;
+  readonly iconSrc: string;
+  readonly route: string;
+  readonly activePaths: readonly string[];
+};
 
 @Component({
   selector: 'app-mobile-bottom-nav',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [NgOptimizedImage, RouterLink],
   template: `
-    @if (isActionSheetOpen()) {
+    @if (enableActionSheet() && isActionSheetOpen()) {
       <div
         class="fixed inset-0 z-[70] bg-black/20 md:hidden"
         (click)="closeActionSheet()"
@@ -79,87 +87,99 @@ import { MobileOverlayService } from '../../services/mobile-overlay.service';
       </section>
     }
 
-    <div class="fixed inset-x-5 bottom-4 z-50 flex items-center gap-2.5 md:hidden">
-      <nav
-        class="flex min-w-0 flex-1 items-center justify-between rounded-[28px] border border-[#EEEFF5] bg-white px-2 py-1.5 shadow-[0_18px_40px_-24px_rgba(31,36,48,0.32)]"
-        aria-label="Mobile navigation"
-      >
+    <nav
+      class="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-b from-transparent to-white px-5 pb-[18px] pt-5 lg:hidden"
+      aria-label="Mobile bottom navigation"
+    >
+      <div class="mx-auto flex max-w-[390px] items-end gap-1">
+        <div class="flex min-w-0 flex-1 items-center rounded-full border border-[#f4f4f4] bg-white p-1 shadow-[0_4px_12px_rgba(212,212,212,0.25)]">
+          @for (item of navItems; track item.label) {
+            <a
+              [routerLink]="item.route"
+              class="flex min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-[#5c5c5c]"
+              [class.rounded-[32px]]="isRouteActive(item.activePaths)"
+              [class.bg-[#f5f3ff]]="isRouteActive(item.activePaths)"
+              [class.text-[#6453d9]]="isRouteActive(item.activePaths)"
+            >
+              <img
+                [ngSrc]="item.iconSrc"
+                alt=""
+                width="22"
+                height="22"
+                class="h-[22px] w-[22px]"
+                aria-hidden="true"
+              />
+              <span class="text-[11px] font-medium">{{ item.label }}</span>
+            </a>
+          }
+        </div>
+
         <button
           type="button"
-          (click)="navigateTo('/listings')"
-          class="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-[20px] px-1 py-1 text-[#5F636D] transition-colors"
-          [class.text-[#6F56F6]]="router.url === '/listings'"
+          (click)="handlePrimaryAction()"
+          [attr.aria-label]="createButtonAriaLabel()"
+          class="flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-[#6453d9] shadow-[0_4px_12px_rgba(158,147,255,0.25)] transition hover:bg-[#5c4ad0]"
         >
-          <span class="inline-flex h-7 w-7 items-center justify-center text-current">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M3.75 4.5A1.75 1.75 0 015.5 2.75h9A1.75 1.75 0 0116.25 4.5v11A1.75 1.75 0 0114.5 17.25h-9A1.75 1.75 0 013.75 15.5v-11zm1.75-.25a.25.25 0 00-.25.25v11c0 .138.112.25.25.25h9a.25.25 0 00.25-.25v-11a.25.25 0 00-.25-.25h-9z"/><path d="M7 6.5a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 017 6.5zm0 3.5a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 017 10zm0 3.5a.75.75 0 01.75-.75h3a.75.75 0 010 1.5h-3A.75.75 0 017 13.5z"/>
-            </svg>
-          </span>
-          <span class="text-[10px] font-medium" [class.text-[#6F56F6]]="router.url === '/listings'">Listings</span>
+          <img
+            ngSrc="/assets/icons/home-nav-add.svg"
+            alt=""
+            width="24"
+            height="24"
+            class="h-6 w-6"
+            aria-hidden="true"
+          />
         </button>
-
-        <a
-          routerLink="/messages"
-          routerLinkActive="text-[#6F56F6]"
-          #chatsLink="routerLinkActive"
-          class="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-[20px] px-1 py-1 text-[#5F636D] transition-colors"
-        >
-          <span class="inline-flex h-7 w-7 items-center justify-center text-current">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M3.5 4.75A2.25 2.25 0 015.75 2.5h8.5a2.25 2.25 0 012.25 2.25v5.5a2.25 2.25 0 01-2.25 2.25H9.31l-3.58 3.07A.75.75 0 014.5 15v-2.5h-1A2.25 2.25 0 011.25 10.25v-5.5A2.25 2.25 0 013.5 2.5zm2.25-.75A.75.75 0 005 4.75v5.5c0 .414.336.75.75.75h.5a.75.75 0 01.75.75v1.12l2.53-2.17a.75.75 0 01.49-.18h4.23a.75.75 0 00.75-.75v-5.5a.75.75 0 00-.75-.75h-8.5z"/>
-            </svg>
-          </span>
-          <span class="text-[10px] font-medium" [class.text-[#6F56F6]]="chatsLink.isActive">Chats</span>
-        </a>
-
-        <a
-          routerLink="/my-stores"
-          routerLinkActive="text-[#6F56F6]"
-          #storesLink="routerLinkActive"
-          class="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-[20px] px-1 py-1 text-[#5F636D] transition-colors"
-        >
-          <span class="inline-flex h-7 w-7 items-center justify-center text-current">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M4 4.75A1.75 1.75 0 015.75 3h8.5A1.75 1.75 0 0116 4.75v1.132a2.5 2.5 0 01-.75 1.782v6.586A1.75 1.75 0 0113.5 16h-7A1.75 1.75 0 014.75 14.25V7.664A2.5 2.5 0 014 5.882V4.75zm1.75-.25a.25.25 0 00-.25.25v1.132c0 .34.135.665.375.905l.22.22a.75.75 0 01.22.53v6.713c0 .138.112.25.25.25h7a.25.25 0 00.25-.25V7.537a.75.75 0 01.22-.53l.22-.22A1.28 1.28 0 0014.5 5.88V4.75a.25.25 0 00-.25-.25h-8.5z"/>
-            </svg>
-          </span>
-          <span class="text-[10px] font-medium" [class.text-[#6F56F6]]="storesLink.isActive">Stores</span>
-        </a>
-
-        <a
-          routerLink="/more"
-          routerLinkActive="bg-[#F1EEFF] text-[#6F56F6]"
-          #moreLink="routerLinkActive"
-          class="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-[20px] px-1 py-1 text-[#5F636D] transition-colors"
-        >
-          <span class="inline-flex h-7 w-7 items-center justify-center text-current">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M4 4.75A1.75 1.75 0 015.75 3h2.5A1.75 1.75 0 0110 4.75v2.5A1.75 1.75 0 018.25 9h-2.5A1.75 1.75 0 014 7.25v-2.5zm0 8A1.75 1.75 0 015.75 11h2.5A1.75 1.75 0 0110 12.75v2.5A1.75 1.75 0 018.25 17h-2.5A1.75 1.75 0 014 15.25v-2.5zm6-8A1.75 1.75 0 0111.75 3h2.5A1.75 1.75 0 0116 4.75v2.5A1.75 1.75 0 0114.25 9h-2.5A1.75 1.75 0 0110 7.25v-2.5zm0 8A1.75 1.75 0 0111.75 11h2.5A1.75 1.75 0 0116 12.75v2.5A1.75 1.75 0 0114.25 17h-2.5A1.75 1.75 0 0110 15.25v-2.5z"/>
-            </svg>
-          </span>
-          <span class="text-[10px] font-medium" [class.text-[#6F56F6]]="moreLink.isActive">More</span>
-        </a>
-      </nav>
-
-      <button
-        type="button"
-        (click)="openActionSheet()"
-        aria-label="Create new listing"
-        class="inline-flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-[#6F56F6] text-white shadow-[0_18px_34px_-18px_rgba(111,86,246,0.92)] transition hover:bg-[#6249ef]"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M10 4.5a.75.75 0 01.75.75v4h4a.75.75 0 010 1.5h-4v4a.75.75 0 01-1.5 0v-4h-4a.75.75 0 010-1.5h4v-4A.75.75 0 0110 4.5z" clip-rule="evenodd"/>
-        </svg>
-      </button>
-    </div>
+      </div>
+    </nav>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MobileBottomNavComponent {
-  protected readonly router = inject(Router);
+  private readonly router = inject(Router);
   private readonly mobileOverlayService = inject(MobileOverlayService);
 
+  readonly listingsRoute = input('/listings');
+  readonly listingsActivePaths = input<readonly string[]>(['/listings']);
+  readonly messagesRoute = input('/messages');
+  readonly messagesActivePaths = input<readonly string[]>(['/messages']);
+  readonly storesRoute = input('/my-stores');
+  readonly storesActivePaths = input<readonly string[]>(['/my-stores']);
+  readonly moreRoute = input('/more');
+  readonly moreActivePaths = input<readonly string[]>(['/more']);
+  readonly enableActionSheet = input(true);
+  readonly createButtonRoute = input('/listings');
+  readonly createButtonAriaLabel = input('Create new listing');
+
   readonly isActionSheetOpen = signal(false);
+
+  get navItems(): readonly NavItem[] {
+    return [
+      {
+        label: 'Listings',
+        iconSrc: '/assets/icons/home-nav-listings.svg',
+        route: this.listingsRoute(),
+        activePaths: this.listingsActivePaths(),
+      },
+      {
+        label: 'Chats',
+        iconSrc: '/assets/icons/home-nav-chats.svg',
+        route: this.messagesRoute(),
+        activePaths: this.messagesActivePaths(),
+      },
+      {
+        label: 'Stores',
+        iconSrc: '/assets/icons/home-nav-stores.svg',
+        route: this.storesRoute(),
+        activePaths: this.storesActivePaths(),
+      },
+      {
+        label: 'More',
+        iconSrc: '/assets/icons/home-nav-more.svg',
+        route: this.moreRoute(),
+        activePaths: this.moreActivePaths(),
+      },
+    ];
+  }
 
   openActionSheet(): void {
     this.isActionSheetOpen.set(true);
@@ -167,6 +187,20 @@ export class MobileBottomNavComponent {
 
   closeActionSheet(): void {
     this.isActionSheetOpen.set(false);
+  }
+
+  isRouteActive(paths: readonly string[]): boolean {
+    const currentUrl = this.router.url.split('?')[0] ?? this.router.url;
+    return paths.some((path) => currentUrl === path || currentUrl.startsWith(`${path}/`));
+  }
+
+  handlePrimaryAction(): void {
+    if (this.enableActionSheet()) {
+      this.openActionSheet();
+      return;
+    }
+
+    this.navigateTo(this.createButtonRoute());
   }
 
   navigateTo(path: string): void {

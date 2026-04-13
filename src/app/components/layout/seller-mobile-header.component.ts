@@ -10,17 +10,23 @@ import { RouterLink } from '@angular/router';
       <a
         routerLink="/"
         aria-label="Go to Duduzili home"
-        class="text-[22px] font-medium tracking-[-0.04em] text-[#6F56F6]"
+        class="block"
       >
-        Duduzili
+        <img
+          ngSrc="/assets/icons/dashboard-logo-figma.svg"
+          width="111"
+          height="24"
+          alt="Duduzili"
+          class="h-6 w-auto"
+        >
       </a>
 
       <img
-        ngSrc="/assets/images/image-1-1.jpg"
-        width="40"
-        height="40"
+        ngSrc="/assets/images/dashboard-avatar-mobile.png"
+        width="36"
+        height="36"
         alt="Profile picture"
-        class="h-10 w-10 rounded-full object-cover"
+        class="h-9 w-9 rounded-full object-cover"
       >
     </div>
   `,

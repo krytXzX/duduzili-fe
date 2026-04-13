@@ -2,22 +2,17 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  heroArrowRightOnRectangle,
-  heroBell,
   heroMagnifyingGlass,
-  heroUserCircle,
   heroBars3,
   heroChevronRight,
-  heroChatBubbleLeftRight,
-  heroChartBar,
-  heroCog6Tooth,
-  heroMegaphone,
-  heroQueueList,
-  heroRectangleStack,
-  heroSquares2x2,
-  heroWallet,
 } from '@ng-icons/heroicons/outline';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+
+type SellerMenuEntry = {
+  readonly label: string;
+  readonly iconSrc: string;
+  readonly route: string;
+};
 
 @Component({
   selector: 'app-dashboard-navbar',
@@ -25,19 +20,8 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
   providers: [
     provideIcons({
       heroMagnifyingGlass,
-      heroUserCircle,
       heroBars3,
       heroChevronRight,
-      heroArrowRightOnRectangle,
-      heroBell,
-      heroChatBubbleLeftRight,
-      heroChartBar,
-      heroCog6Tooth,
-      heroMegaphone,
-      heroQueueList,
-      heroRectangleStack,
-      heroSquares2x2,
-      heroWallet,
     })
   ],
   template: `
@@ -113,89 +97,110 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
           <button
             type="button"
             (click)="toggleAccountMenu()"
-            class="relative z-50 flex items-center gap-2 rounded-full border border-white/10 bg-white/10 p-1 pr-3 transition-all hover:bg-white/20"
+            class="relative z-50 flex items-center gap-2 rounded-full border border-white/10 bg-white p-1 pr-3 text-[#15162B] transition-all hover:bg-white/90"
             aria-haspopup="menu"
             [attr.aria-expanded]="isAccountMenuOpen()"
             aria-label="Open seller account menu"
           >
-            <div class="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white ring-2 ring-white/10">
-              <ng-icon name="heroUserCircle" class="text-lg"></ng-icon>
+            <div class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full ring-2 ring-white/10">
+              <img
+                ngSrc="assets/images/seller-menu-avatar.png"
+                alt=""
+                width="28"
+                height="28"
+                class="h-7 w-7 object-cover"
+              />
             </div>
-            <ng-icon name="heroBars3" class="text-white/60 text-lg"></ng-icon>
+            <ng-icon name="heroBars3" class="text-[#15162B] text-lg"></ng-icon>
           </button>
 
           @if (isAccountMenuOpen()) {
             <div
-              class="absolute right-0 top-[calc(100%+12px)] z-50 w-[320px] rounded-[28px] border border-[#EEF0F4] bg-white p-5 text-[#1A1C21] shadow-[0_24px_60px_rgba(26,28,33,0.16)]"
+              class="absolute right-0 top-[calc(100%+12px)] z-50 w-[304px] overflow-hidden rounded-[24px] border border-black/[0.03] bg-white py-4 text-[#15162B] shadow-[0_6.65px_5.32px_rgba(0,0,0,0.03),0_2.767px_2.214px_rgba(0,0,0,0.02)]"
               role="menu"
               aria-label="Seller account menu"
             >
-              <div class="mb-5 flex items-start gap-3">
-                <span class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#6F57E8] text-white">
-                  <ng-icon name="heroUserCircle" class="text-[28px]"></ng-icon>
-                </span>
-                <div class="min-w-0">
-                  <p class="truncate text-[17px] font-semibold tracking-[-0.02em] text-[#1A1C21]">Bryan Odjede</p>
-                  <p class="truncate text-sm text-[#8E9199]">Seller mode</p>
+              <div class="flex flex-col gap-6">
+                <div class="flex items-center gap-1.5 px-3">
+                  <div class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full">
+                    <img
+                      ngSrc="assets/images/seller-menu-avatar.png"
+                      alt=""
+                      width="36"
+                      height="36"
+                      class="h-9 w-9 object-cover"
+                    />
+                  </div>
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-medium tracking-[-0.07px] text-[#15162B]">Bryan Odjede</p>
+                    <p class="truncate text-[10px] font-normal text-[#72737F]">Seller mode</p>
+                  </div>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                  <div class="flex flex-col gap-2">
+                    @for (item of sellerMenuEntries; track item.label) {
+                      <button
+                        type="button"
+                        (click)="goToSellerRoute(item.route)"
+                        class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#F7F8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15162B]"
+                        role="menuitem"
+                      >
+                        <img
+                          [ngSrc]="item.iconSrc"
+                          alt=""
+                          width="16"
+                          height="16"
+                          class="h-4 w-4 shrink-0"
+                        />
+                        <span class="text-sm font-medium leading-none tracking-[-0.08px] text-[#15162B]">
+                          {{ item.label }}
+                        </span>
+                      </button>
+                    }
+                  </div>
+
+                  <div class="flex flex-col gap-3">
+                    <div class="h-px w-full bg-[#E8E8EB]"></div>
+
+                    <button
+                      type="button"
+                      (click)="switchToBuyerMode()"
+                      class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#F7F8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15162B]"
+                      role="menuitem"
+                    >
+                      <img
+                        ngSrc="assets/icons/seller-menu-switch.svg"
+                        alt=""
+                        width="16"
+                        height="16"
+                        class="h-4 w-4 shrink-0"
+                      />
+                      <span class="text-sm font-medium leading-none tracking-[-0.08px] text-[#15162B]">
+                        Switch to buyer mode
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="logOut()"
+                      class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#FFF5F5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF2524]"
+                      role="menuitem"
+                    >
+                      <img
+                        ngSrc="assets/icons/seller-menu-logout.svg"
+                        alt=""
+                        width="16"
+                        height="16"
+                        class="h-4 w-4 shrink-0"
+                      />
+                      <span class="text-sm font-medium leading-none tracking-[-0.08px] text-[#FF2524]">
+                        Log out
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <div class="space-y-1">
-                <button type="button" (click)="goToSellerRoute('/listings')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                  <ng-icon name="heroQueueList" class="text-[18px] text-[#6A6D75]"></ng-icon>
-                  Listings
-                </button>
-                <button type="button" (click)="goToSellerRoute('/my-stores')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                  <ng-icon name="heroSquares2x2" class="text-[18px] text-[#6A6D75]"></ng-icon>
-                  My Stores
-                </button>
-                <button type="button" (click)="goToSellerRoute('/messages')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                  <ng-icon name="heroChatBubbleLeftRight" class="text-[18px] text-[#6A6D75]"></ng-icon>
-                  Messages
-                </button>
-                <button type="button" (click)="goToSellerRoute('/requests/offers')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                  <ng-icon name="heroRectangleStack" class="text-[18px] text-[#6A6D75]"></ng-icon>
-                  Requests
-                </button>
-                <button type="button" (click)="goToSellerRoute('/promotions')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                  <ng-icon name="heroMegaphone" class="text-[18px] text-[#6A6D75]"></ng-icon>
-                  Banner promotions
-                </button>
-                <button type="button" (click)="goToSellerRoute('/ads/plans')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                  <ng-icon name="heroRectangleStack" class="text-[18px] text-[#6A6D75]"></ng-icon>
-                  Ads
-                </button>
-                <button type="button" (click)="goToSellerRoute('/analytics')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                  <ng-icon name="heroChartBar" class="text-[18px] text-[#6A6D75]"></ng-icon>
-                  Analytics
-                </button>
-                <button type="button" (click)="goToSellerRoute('/wallet')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                  <ng-icon name="heroWallet" class="text-[18px] text-[#6A6D75]"></ng-icon>
-                  Wallet
-                </button>
-                <button type="button" (click)="goToSellerRoute('/settings')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                  <ng-icon name="heroCog6Tooth" class="text-[18px] text-[#6A6D75]"></ng-icon>
-                  Account settings
-                </button>
-                <button type="button" (click)="goToSellerRoute('/notifications')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                  <ng-icon name="heroBell" class="text-[18px] text-[#6A6D75]"></ng-icon>
-                  Notifications
-                </button>
-              </div>
-
-              <div class="my-3 h-px bg-[#EEF0F4]"></div>
-
-              <button type="button" (click)="switchToBuyerMode()" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px] text-[#6A6D75]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M3 4.75A.75.75 0 013.75 4h8.19l-1.22-1.22a.75.75 0 111.06-1.06l2.5 2.5a.75.75 0 010 1.06l-2.5 2.5a.75.75 0 11-1.06-1.06L11.94 5.5H3.75A.75.75 0 013 4.75zm14 10.5a.75.75 0 01-.75.75H8.06l1.22 1.22a.75.75 0 11-1.06 1.06l-2.5-2.5a.75.75 0 010-1.06l2.5-2.5a.75.75 0 011.06 1.06L8.06 14.5h8.19a.75.75 0 01.75.75z"/>
-                </svg>
-                Switch to buyer mode
-              </button>
-
-              <button type="button" (click)="logOut()" class="mt-1 flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#FF3B30] transition hover:bg-[#FFF5F5]" role="menuitem">
-                <ng-icon name="heroArrowRightOnRectangle" class="text-[18px] text-[#FF3B30]"></ng-icon>
-                Log out
-              </button>
             </div>
           }
         </div>
@@ -211,6 +216,19 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 })
 export class DashboardNavbarComponent {
   private readonly router = inject(Router);
+
+  readonly sellerMenuEntries: SellerMenuEntry[] = [
+    { label: 'Listings', iconSrc: 'assets/icons/seller-menu-listings.svg', route: '/listings' },
+    { label: 'My Stores', iconSrc: 'assets/icons/seller-menu-stores.svg', route: '/my-stores' },
+    { label: 'Messages', iconSrc: 'assets/icons/seller-menu-messages.svg', route: '/messages' },
+    { label: 'Requests', iconSrc: 'assets/icons/seller-menu-requests.svg', route: '/requests/offers' },
+    { label: 'Banner promotions', iconSrc: 'assets/icons/seller-menu-promotions.svg', route: '/promotions' },
+    { label: 'Ads', iconSrc: 'assets/icons/seller-menu-ads.svg', route: '/ads/plans' },
+    { label: 'Analytics', iconSrc: 'assets/icons/seller-menu-analytics.svg', route: '/analytics' },
+    { label: 'Wallet', iconSrc: 'assets/icons/seller-menu-wallet.svg', route: '/wallet' },
+    { label: 'Account settings', iconSrc: 'assets/icons/seller-menu-settings.svg', route: '/settings' },
+    { label: 'Notifications', iconSrc: 'assets/icons/seller-menu-notifications.svg', route: '/notifications' },
+  ];
 
   readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
