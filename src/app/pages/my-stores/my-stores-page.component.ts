@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroPlus,
-  heroMagnifyingGlass
+  heroMagnifyingGlass,
+  heroChevronRight
 } from '@ng-icons/heroicons/outline';
 import { StoreCardComponent, Store } from '../../components/stores/store-card.component';
 import { AddStoreModalComponent } from './components/add-store-modal.component';
@@ -15,11 +16,84 @@ import { SuccessModalComponent } from './components/success-modal.component';
   providers: [
     provideIcons({
       heroPlus,
-      heroMagnifyingGlass
+      heroMagnifyingGlass,
+      heroChevronRight
     })
   ],
   template: `
-    <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="px-5 pb-10 pt-7 md:hidden">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">My Stores</h1>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F6F7FA] text-[#6B7280]"
+            aria-label="Search stores"
+          >
+            <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
+          </button>
+          <button
+            type="button"
+            (click)="isAddingStore.set(true)"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#202335] shadow-[0_10px_20px_-22px_rgba(31,36,48,0.45)]"
+            aria-label="Add store"
+          >
+            <ng-icon name="heroPlus" class="text-[16px]"></ng-icon>
+          </button>
+        </div>
+      </div>
+
+      @if (filteredStores().length > 0) {
+        <div class="mt-5 grid grid-cols-2 gap-3">
+          @for (store of filteredStores(); track store.id) {
+            <app-store-card [store]="store" [showFavorite]="false"></app-store-card>
+          }
+        </div>
+      } @else {
+        <section class="flex min-h-[calc(100vh-260px)] flex-col items-center justify-center pb-8 pt-10 text-center">
+          <div class="relative mb-8 h-[150px] w-[190px]">
+            <div class="absolute left-5 top-7 h-[96px] w-[72px] rotate-[-16deg] rounded-[18px] bg-white/70 shadow-[0_16px_30px_-26px_rgba(25,30,40,0.35)] ring-1 ring-[#F1F2F6]"></div>
+            <div class="absolute right-5 top-7 h-[96px] w-[72px] rotate-[16deg] rounded-[18px] bg-white/70 shadow-[0_16px_30px_-26px_rgba(25,30,40,0.35)] ring-1 ring-[#F1F2F6]"></div>
+            <div class="absolute left-1/2 top-2 flex h-[110px] w-[84px] -translate-x-1/2 flex-col rounded-[20px] bg-white shadow-[0_20px_36px_-30px_rgba(25,30,40,0.45)] ring-1 ring-[#ECEEF4]">
+              <div class="flex items-start justify-between px-3 pt-3">
+                <div class="h-2 w-8 rounded-full bg-[#F0F1F5]"></div>
+                <span class="text-[10px] text-[#2B2D36]">♥</span>
+              </div>
+              <div class="mt-2 flex flex-1 items-center justify-center">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F8] text-[#B6BAC6]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M10 10a3 3 0 100-6 3 3 0 000 6zm-6 6.25A4.25 4.25 0 018.25 12h3.5A4.25 4.25 0 0116 16.25V17H4v-.75z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="space-y-2 px-4 pb-4">
+                <div class="h-1.5 rounded-full bg-[#F0F1F5]"></div>
+                <div class="mx-auto h-1.5 w-10 rounded-full bg-[#F5F6F9]"></div>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="text-[18px] font-medium leading-8 tracking-[-0.03em] text-[#202335]">You don’t have any stores yet</h2>
+          <p class="mt-2 max-w-[260px] text-[11px] leading-5 text-[#7A7F8C]">
+            Create a dedicated store to organize your listings, gain followers, and increase buyer trust
+          </p>
+
+          <button
+            type="button"
+            (click)="isAddingStore.set(true)"
+            class="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#6F56F6] px-6 py-3 text-[12px] font-medium text-white shadow-[0_18px_30px_-18px_rgba(111,86,246,0.95)]"
+          >
+            <ng-icon name="heroPlus"></ng-icon>
+            Create your first store
+          </button>
+        </section>
+      }
+    </div>
+
+    <div class="mx-auto hidden max-w-6xl px-4 py-8 md:block">
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <h1 class="text-[28px] font-black text-[#1A1C21] tracking-tight">My Stores</h1>
@@ -87,6 +161,7 @@ import { SuccessModalComponent } from './components/success-modal.component';
 
     @if (isSuccess()) {
       <app-success-modal 
+        [storeName]="latestCreatedStoreName()"
         (ok)="isSuccess.set(false)"
         (addAnother)="onAddAnother()"
       ></app-success-modal>
@@ -144,6 +219,7 @@ export class MyStoresPageComponent {
   readonly searchQuery = signal('');
   readonly isAddingStore = signal(false);
   readonly isSuccess = signal(false);
+  readonly latestCreatedStoreName = signal('The Vine Collections');
 
   readonly filteredStores = computed(() => {
     const query = this.searchQuery().toLowerCase();
@@ -168,6 +244,7 @@ export class MyStoresPageComponent {
 
     this.stores.update(prev => [newStore, ...prev]);
     this.isAddingStore.set(false);
+    this.latestCreatedStoreName.set(formData.name);
     
     // Small delay to allow the modal to disappear before showing success
     setTimeout(() => {

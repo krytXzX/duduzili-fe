@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroPlus } from '@ng-icons/heroicons/outline';
+import { heroChevronLeft, heroPlus } from '@ng-icons/heroicons/outline';
 import { CreateBannerAdModalComponent, CreateBannerAdPayload } from './components/create-banner-ad-modal.component';
 import { BannerPromotionCardComponent, BannerPromotionCardData } from '../../components/ads/banner-promotion-card.component';
 
@@ -18,14 +19,141 @@ interface BannerPromotion extends BannerPromotionCardData {
 
 @Component({
   selector: 'app-banner-promotions-page',
-  imports: [CommonModule, NgIcon, NgOptimizedImage, CreateBannerAdModalComponent, BannerPromotionCardComponent],
+  imports: [CommonModule, NgIcon, NgOptimizedImage, RouterLink, CreateBannerAdModalComponent, BannerPromotionCardComponent],
   providers: [
     provideIcons({
+      heroChevronLeft,
       heroPlus
     })
   ],
   template: `
-    <div class="flex h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]">
+    <div class="mx-auto w-full max-w-[420px] bg-[#F7F7FA] px-4 pt-4 pb-8 md:hidden">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <a
+            routerLink="/more"
+            aria-label="Back to More"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
+          >
+            <ng-icon name="heroChevronLeft" class="text-[18px]"></ng-icon>
+          </a>
+          <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">Banner promotions</h1>
+        </div>
+
+        @if (promotions().length > 0) {
+          <button
+            type="button"
+            (click)="isCreateModalOpen.set(true)"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#6F56F6] text-white shadow-[0_18px_34px_-18px_rgba(111,86,246,0.92)]"
+            aria-label="Promote banner"
+          >
+            <ng-icon name="heroPlus" class="text-[16px]"></ng-icon>
+          </button>
+        }
+      </div>
+
+      @if (promotions().length > 0) {
+        <div class="mt-5 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          @for (tab of mobileTabs; track tab.value) {
+            <button
+              type="button"
+              (click)="activeTab.set(tab.value)"
+              [attr.aria-pressed]="activeTab() === tab.value"
+              [class]="activeTab() === tab.value
+                ? 'shrink-0 rounded-full bg-[#1F2024] px-4 py-2 text-[11px] font-medium text-white'
+                : 'shrink-0 rounded-full border border-[#ECEEF4] bg-white px-4 py-2 text-[11px] font-medium text-[#30313A]'"
+            >
+              {{ tab.label }} ({{ countByStatus(tab.value) }})
+            </button>
+          }
+        </div>
+
+        @if (visiblePromotions().length > 0) {
+          <div class="mt-4 space-y-4">
+            @for (promotion of visiblePromotions(); track promotion.id) {
+              <article class="overflow-hidden rounded-[24px] border border-[#ECEEF4] bg-white shadow-[0_12px_28px_-24px_rgba(18,24,35,0.35)]">
+                <a [routerLink]="promotion.route ?? ['/promotions']" class="block">
+                  <div class="relative m-3 aspect-[2.05/1] overflow-hidden rounded-[18px]" [style.background]="promotion.cardTone">
+                    @if (promotion.imagePreview) {
+                      <img
+                        [src]="promotion.imagePreview"
+                        alt=""
+                        class="absolute inset-0 h-full w-full object-cover"
+                      >
+                    }
+
+                    <div class="absolute left-2 top-2 rounded-full px-2 py-1 text-[9px] font-semibold text-[#6A6B1F] shadow-sm" [style.background]="promotion.badgeTone">
+                      Active until: {{ promotion.expiresOn }}
+                    </div>
+
+                    <div class="absolute bottom-2 left-2 rounded-full bg-[#23262D]/75 px-2.5 py-1 text-[9px] font-medium text-white backdrop-blur-sm">
+                      {{ promotion.sponsorLabel }}
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-4 px-4 pb-4 text-[11px] font-medium text-[#A3A6AE]">
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="h-1.5 w-1.5 rounded-full bg-[#C7CBD3]"></span>
+                      {{ promotion.views }}
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="h-1.5 w-1.5 rounded-full bg-[#C7CBD3]"></span>
+                      {{ promotion.clicks }}
+                    </span>
+                  </div>
+                </a>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="flex min-h-[320px] items-center justify-center px-6 text-center">
+            <div>
+              <div class="relative mx-auto mb-6 aspect-[4/3] w-full max-w-[180px]">
+                <img
+                  ngSrc="assets/images/empty_state.svg"
+                  alt="No banner promotions"
+                  fill
+                  class="object-contain"
+                >
+              </div>
+              <h2 class="text-[18px] font-semibold leading-tight tracking-[-0.03em] text-[#202335]">No {{ activeTab() }} banners yet</h2>
+              <p class="mt-2 text-[13px] text-[#A1A5B0]">Switch tabs or promote a new banner to populate this section.</p>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="flex min-h-[72vh] flex-col items-center justify-center px-6 text-center">
+          <div class="relative mb-6 aspect-[4/3] w-full max-w-[180px]">
+            <img
+              ngSrc="assets/images/empty_state.svg"
+              alt="No banner promotions"
+              fill
+              class="object-contain"
+              priority
+            >
+          </div>
+
+          <h2 class="text-[18px] font-semibold leading-tight tracking-[-0.03em] text-[#202335]">
+            You don't have any running banner promotions
+          </h2>
+
+          <p class="mt-2 text-[13px] text-[#A1A5B0]">
+            Upgrade plan to post banners
+          </p>
+
+          <button
+            type="button"
+            (click)="isCreateModalOpen.set(true)"
+            class="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#7B5EE4] px-5 text-[13px] font-medium text-white shadow-[0_18px_34px_-18px_rgba(111,86,246,0.92)] transition-all hover:bg-[#6849D6] hover:shadow-md hover:shadow-purple-500/20 focus:outline-none focus:ring-4 focus:ring-purple-500/20"
+          >
+            <ng-icon name="heroPlus" class="text-[16px]"></ng-icon>
+            Promote banner
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="hidden h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] md:flex">
       <div class="flex flex-col gap-5 border-b border-[#F0F0F2] px-4 py-5 sm:px-8 sm:py-6 lg:flex-row lg:items-center lg:justify-between">
         <h1 class="text-[20px] font-black tracking-tight text-[#1A1C21]">Banner promotions</h1>
 
@@ -234,6 +362,7 @@ export class BannerPromotionsPageComponent {
 
   readonly activeTab = signal<PromotionStatus>('active');
   readonly isCreateModalOpen = signal(false);
+  readonly mobileTabs = this.tabs.slice(0, 3);
 
   readonly visiblePromotions = computed(() =>
     this.promotions().filter((promotion) => promotion.status === this.activeTab())

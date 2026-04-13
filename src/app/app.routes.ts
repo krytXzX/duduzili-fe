@@ -69,6 +69,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'more',
+        loadComponent: () =>
+          import('./pages/more/more-page.component').then(
+            (m) => m.MorePageComponent
+          ),
+      },
+      {
         path: 'notifications',
         loadComponent: () =>
           import('./pages/notifications/notifications-page.component').then(
@@ -145,8 +152,10 @@ export const routes: Routes = [
       },
       {
         path: 'ads',
-        pathMatch: 'full',
-        redirectTo: 'ads/plans',
+        loadComponent: () =>
+          import('./pages/ads/ads-page.component').then(
+            (m) => m.AdsPageComponent
+          ),
       },
       {
         path: 'ads/plans',
@@ -227,6 +236,14 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'more',
+    canActivate: [isLoggedin],
+    loadComponent: () =>
+      import('./pages/more/more-page.component').then(
+        (m) => m.MorePageComponent
+      ),
+  },
   // Dashboard Routes
   {
     path: '',
@@ -270,6 +287,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'requests',
+        loadComponent: () =>
+          import('./pages/requests/requests-page.component').then(
+            (m) => m.RequestsPageComponent
+          ),
+      },
+      {
         path: 'requests/offers',
         loadComponent: () =>
           import('./pages/requests/offers/offers-page.component').then(
@@ -292,8 +316,10 @@ export const routes: Routes = [
       },
       {
         path: 'ads',
-        pathMatch: 'full',
-        redirectTo: 'ads/plans',
+        loadComponent: () =>
+          import('./pages/ads/ads-page.component').then(
+            (m) => m.AdsPageComponent
+          ),
       },
       {
         path: 'ads/plans',

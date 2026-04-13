@@ -1,23 +1,98 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroXMark, heroPencil } from '@ng-icons/heroicons/outline';
+import { heroXMark, heroPencil, heroChevronDown } from '@ng-icons/heroicons/outline';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 @Component({
   selector: 'app-store-edit-side-panel',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, NgIcon],
   providers: [
-    provideIcons({ heroXMark, heroPencil })
+    provideIcons({ heroXMark, heroPencil, heroChevronDown })
   ],
   template: `
     <div class="fixed inset-0 z-100 flex items-center justify-center lg:justify-end p-4 lg:p-0 border-none shadow-none">
       <!-- Backdrop -->
       <div class="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity" (click)="close.emit()"></div>
-      
+
+      <div class="fixed inset-x-0 bottom-0 top-3 rounded-t-[34px] bg-white px-4 pb-4 pt-3 shadow-2xl md:hidden">
+        <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E7E8EE]"></div>
+
+        <div class="mt-2 flex justify-end">
+          <button (click)="close.emit()" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]">
+            <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
+          </button>
+        </div>
+
+        <div class="mt-2 flex h-[calc(100%-3.25rem)] flex-col overflow-hidden text-[#202335]">
+          <div class="flex-1 overflow-y-auto pb-4">
+            <h2 class="text-[18px] font-semibold tracking-[-0.03em]">Edit store</h2>
+
+            <form [formGroup]="editForm" class="mt-5 space-y-5">
+              <section>
+                <h3 class="text-[14px] font-semibold">General information</h3>
+                <p class="mt-1 text-[10px] leading-4 text-[#8A8F9A]">Fill out general information about this store</p>
+
+                <div class="mt-4 space-y-4">
+                  <div>
+                    <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Store name</label>
+                    <input type="text" formControlName="name" class="h-11 w-full rounded-[12px] border border-[#E6E8EE] bg-white px-3 text-[12px] outline-none">
+                  </div>
+
+                  <div>
+                    <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Location</label>
+                    <div class="relative">
+                      <select formControlName="location" class="h-11 w-full appearance-none rounded-[12px] border border-[#E6E8EE] bg-white px-3 pr-10 text-[12px] outline-none">
+                        <option value="Ikeja, Lagos">Ikeja, Lagos</option>
+                        <option value="Lekki, Lagos">Lekki, Lagos</option>
+                        <option value="Island, Lagos">Island, Lagos</option>
+                        <option value="Abuja, Nigeria">Abuja, Nigeria</option>
+                      </select>
+                      <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8A8F9A]">
+                        <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">WhatsApp Number</label>
+                    <input type="tel" formControlName="whatsappNumber" class="h-11 w-full rounded-[12px] border border-[#E6E8EE] bg-white px-3 text-[12px] outline-none">
+                  </div>
+
+                  <div>
+                    <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Call number</label>
+                    <input type="tel" formControlName="callNumber" class="h-11 w-full rounded-[12px] border border-[#E6E8EE] bg-white px-3 text-[12px] outline-none">
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h3 class="text-[14px] font-semibold">Profile photo</h3>
+                <p class="mt-1 text-[10px] leading-4 text-[#8A8F9A]">Recommended size: 100 x 100</p>
+
+                <div class="mt-3 flex items-center gap-4">
+                  <div class="h-16 w-16 overflow-hidden rounded-full border border-[#E6E8EE] bg-[#F7F8FA]">
+                    <img [src]="store().logo" [alt]="store().name" class="h-full w-full object-cover">
+                  </div>
+                  <button type="button" class="inline-flex items-center gap-2 rounded-full border border-[#ECEEF4] bg-white px-4 py-2 text-[11px] font-medium text-[#202335] shadow-sm">
+                    <ng-icon name="heroPencil" class="text-[14px]"></ng-icon>
+                    Change
+                  </button>
+                </div>
+              </section>
+            </form>
+          </div>
+
+          <button (click)="onSubmit()" class="rounded-full bg-[#6F56F6] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_30px_-18px_rgba(111,86,246,0.95)]">
+            Save changes
+          </button>
+        </div>
+      </div>
+
       <!-- Side Panel -->
-      <div class="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 fill-mode-both">
+      <div class="relative hidden h-full w-full max-w-md bg-white shadow-2xl md:flex md:flex-col animate-in slide-in-from-right duration-300 fill-mode-both">
         <!-- Close Button -->
         <button (click)="close.emit()" class="absolute right-6 top-6 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 transition-all z-10">
           <ng-icon name="heroXMark" class="text-xl"></ng-icon>
@@ -130,15 +205,16 @@ import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angula
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StoreEditSidePanelComponent {
+export class StoreEditSidePanelComponent implements OnDestroy {
   store = input.required<any>();
   close = output<void>();
   save = output<any>();
+  private readonly mobileOverlayService = inject(MobileOverlayService);
 
   editForm: FormGroup;
 
   constructor(private fb: FormBuilder) {
-    console.log('StoreEditSidePanelComponent initialized');
+    this.mobileOverlayService.openMobileModal();
     this.editForm = this.fb.group({
       name: ['', Validators.required],
       location: ['Ikeja, Lagos'],
@@ -148,7 +224,6 @@ export class StoreEditSidePanelComponent {
   }
 
   ngOnInit() {
-    console.log('StoreEditSidePanelComponent ngOnInit');
     if (this.store()) {
       this.editForm.patchValue({
         name: this.store().name,
@@ -163,5 +238,9 @@ export class StoreEditSidePanelComponent {
     if (this.editForm.valid) {
       this.save.emit(this.editForm.value);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.mobileOverlayService.closeMobileModal();
   }
 }

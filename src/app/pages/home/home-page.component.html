@@ -74,52 +74,5 @@
 
   <app-footer />
 
-  <nav
-    class="fixed inset-x-3 bottom-3 z-50 rounded-[26px] border border-[#ECECF2] bg-white/95 px-3 py-2 shadow-[0_24px_48px_-28px_rgba(31,36,48,0.45)] backdrop-blur md:hidden"
-    aria-label="Mobile navigation"
-  >
-    <div class="grid grid-cols-5 items-end gap-1 text-center">
-      <a routerLink="/" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-1 text-[10px] font-semibold text-[#6F56F6]">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#EEE9FF]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10.707 1.293a1 1 0 00-1.414 0l-7 7A1 1 0 003 10h1v6a1 1 0 001 1h3a1 1 0 001-1v-3h2v3a1 1 0 001 1h3a1 1 0 001-1v-6h1a1 1 0 00.707-1.707l-7-7z"/>
-          </svg>
-        </span>
-        <span>Listings</span>
-      </a>
-      <a routerLink="/messages" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-1 text-[10px] font-medium text-[#6B7280]">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6F8]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v7a2 2 0 01-2 2H7l-4 3v-3H4a2 2 0 01-2-2V5z"/>
-          </svg>
-        </span>
-        <span>Chat</span>
-      </a>
-      <a routerLink="/my-stores" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-1 text-[10px] font-medium text-[#6B7280]">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6F8]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9z"/>
-          </svg>
-        </span>
-        <span>Stores</span>
-      </a>
-      <a routerLink="/buyer/wishlist" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-1 text-[10px] font-medium text-[#6B7280]">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6F8]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
-          </svg>
-        </span>
-        <span>More</span>
-      </a>
-      <button
-        type="button"
-        aria-label="Create new listing"
-        class="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#6F56F6] text-white shadow-[0_24px_30px_-18px_rgba(111,86,246,0.95)] transition hover:bg-[#6249ef]"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
-        </svg>
-      </button>
-    </div>
-  </nav>
+  <app-mobile-bottom-nav />
 </div>

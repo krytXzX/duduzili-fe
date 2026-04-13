@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  heroChevronLeft,
   heroGlobeAlt,
   heroWallet,
   heroXMark,
 } from '@ng-icons/heroicons/outline';
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
+import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 interface ListingBoostPlan {
   id: '1-day' | '7-days' | '14-days' | '30-days';
@@ -25,13 +27,279 @@ interface ListingBoostPlan {
 @Component({
   selector: 'app-promote-listing-modal',
   imports: [CommonModule, NgIcon],
-  providers: [provideIcons({ heroXMark, heroWallet, heroGlobeAlt, heroStarSolid })],
+  providers: [provideIcons({ heroXMark, heroWallet, heroGlobeAlt, heroStarSolid, heroChevronLeft })],
   template: `
     <div class="fixed inset-0 z-[220] flex items-center justify-center p-4" (click)="close.emit()">
       <div class="absolute inset-0 bg-black/20 backdrop-blur-[2px]"></div>
 
       <div
-        class="relative overflow-hidden rounded-[32px] bg-white shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]"
+        class="relative h-[calc(100vh-1.5rem)] w-full max-w-[375px] overflow-hidden rounded-[30px] bg-white shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] md:hidden"
+        (click)="$event.stopPropagation()"
+      >
+        @if (step() === 'confirm') {
+          <div class="flex h-full flex-col px-4 pb-4 pt-3">
+            <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E7E8EE]"></div>
+
+            <div class="mt-2 flex justify-end">
+              <button
+                type="button"
+                (click)="close.emit()"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
+                [attr.aria-label]="'Close promote ' + targetLabel() + ' flow'"
+              >
+                <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
+              </button>
+            </div>
+
+            <div class="flex flex-1 flex-col justify-center px-2 text-[#202335]">
+              <div class="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-[#F8F6EE]">
+                <div class="flex h-20 w-20 items-center justify-center rounded-full bg-[#FFF2BD]">
+                  <div class="flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#D0B21F] text-white">
+                    <ng-icon name="heroStarSolid" class="text-[22px]"></ng-icon>
+                  </div>
+                </div>
+              </div>
+
+              <h2 class="mt-7 text-[17px] font-semibold leading-7 tracking-[-0.03em]">
+                You have <span class="font-black">4/100</span> {{ targetLabel() }} promotion left
+              </h2>
+
+              <p class="mt-3 text-[11px] leading-5 text-[#8A8F9A]">
+                Promoting this would mean, kinikan kinikan and more kinikan. You get?
+              </p>
+            </div>
+
+            <button
+              type="button"
+              (click)="step.set('plan')"
+              class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+            >
+              {{ confirmActionLabel() }}
+            </button>
+          </div>
+        }
+
+        @if (step() === 'plan') {
+          <div class="flex h-full flex-col px-4 pb-4 pt-3">
+            <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E7E8EE]"></div>
+
+            <div class="mt-2 flex items-center justify-between">
+              <button
+                type="button"
+                (click)="step.set('confirm')"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F6F7FA] text-[#4D5260]"
+                aria-label="Go back"
+              >
+                <ng-icon name="heroChevronLeft" class="text-[20px]"></ng-icon>
+              </button>
+              <button
+                type="button"
+                (click)="close.emit()"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
+                [attr.aria-label]="'Close promote ' + targetLabel() + ' flow'"
+              >
+                <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
+              </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto pb-4 pt-6 text-[#202335]">
+              <div class="rounded-[24px] bg-[linear-gradient(180deg,#B5A9FF_0%,#EEE9FF_42%,#FFFFFF_100%)] px-5 pb-6 pt-6">
+                <h2 class="text-center text-[17px] font-semibold leading-7 tracking-[-0.03em]">
+                  Choose a boosting plan to proceed🚀
+                </h2>
+                <p class="mt-1 text-center text-[11px] leading-5 text-[#8A8F9A]">{{ planSubtitle() }}</p>
+
+                <div class="mt-5 space-y-3">
+                  @for (plan of plans; track plan.id) {
+                    <button
+                      type="button"
+                      (click)="selectedPlanId.set(plan.id)"
+                      class="relative flex w-full items-center justify-between rounded-[16px] border bg-white px-4 py-4 text-left"
+                      [class.border-[#6955F2]]="selectedPlanId() === plan.id"
+                      [class.border-[#E7E8EC]]="selectedPlanId() !== plan.id"
+                    >
+                      <div>
+                        <p class="text-[12px] font-medium text-[#1B1D23]">{{ plan.label }}</p>
+                        <p class="mt-1 text-[10px] text-[#8B8F98]">{{ plan.billing }}</p>
+                      </div>
+                      <span class="text-[12px] font-medium text-[#1B1D23]">{{ plan.price }}</span>
+
+                      @if (plan.savings) {
+                        <span class="absolute right-2 top-[-9px] rounded-full bg-[#F1F7AA] px-2 py-0.5 text-[8px] font-semibold text-[#6A7414]">
+                          Save {{ plan.savings }}
+                        </span>
+                      }
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="step.set('payment')"
+              class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+            >
+              Proceed
+            </button>
+          </div>
+        }
+
+        @if (step() === 'payment') {
+          <div class="flex h-full flex-col px-4 pb-4 pt-3">
+            <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E7E8EE]"></div>
+
+            <div class="mt-2 flex items-center justify-between">
+              <button
+                type="button"
+                (click)="step.set('plan')"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F6F7FA] text-[#4D5260]"
+                aria-label="Go back"
+              >
+                <ng-icon name="heroChevronLeft" class="text-[20px]"></ng-icon>
+              </button>
+              <button
+                type="button"
+                (click)="close.emit()"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
+                [attr.aria-label]="'Close promote ' + targetLabel() + ' flow'"
+              >
+                <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
+              </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto pb-4 pt-6 text-[#202335]">
+              <div class="rounded-[22px] bg-[#FAFAFB] p-4 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]">
+                <h2 class="pr-8 text-[17px] font-semibold leading-7 tracking-[-0.03em]">{{ selectedPlan().label }}</h2>
+                <p class="mt-1 text-[11px] text-[#8B8F98]">{{ selectedPlan().summaryBilling }}</p>
+
+                <div class="mt-4 h-px bg-[#E3E5EA]"></div>
+
+                <div class="mt-4 space-y-3 text-[11px] text-[#595E68]">
+                  <div class="flex items-center justify-between gap-3">
+                    <span>Weekly subscription</span>
+                    <span>{{ selectedPlan().subscriptionAmount }}</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span>VAT (7.5%)</span>
+                    <span>{{ selectedPlan().vatAmount }}</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3 pt-1 text-[12px] font-semibold text-[#1A1C21]">
+                    <span>Total due today</span>
+                    <span>{{ selectedPlan().totalAmount }}</span>
+                  </div>
+                </div>
+
+                <label class="mt-4 flex items-center gap-2 text-[10px] text-[#595E68]">
+                  <input
+                    type="checkbox"
+                    [checked]="isRecurring()"
+                    (change)="isRecurring.set(!isRecurring())"
+                    class="h-3.5 w-3.5 rounded border-[#D3D6DE] text-[#6955F2] focus:ring-[#6955F2]/20"
+                  >
+                  <span>Mark this payment as recurring</span>
+                </label>
+              </div>
+
+              <section class="mt-6">
+                <h3 class="text-[13px] font-medium text-[#1A1C21]">Select your payment method</h3>
+
+                <div class="mt-3 space-y-3">
+                  <button
+                    type="button"
+                    (click)="selectedPaymentId.set('wallet')"
+                    class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition"
+                    [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
+                    [class.bg-[#F8F6FF]]="selectedPaymentId() === 'wallet'"
+                    [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
+                  >
+                    <div class="flex items-start gap-3">
+                      <span class="mt-0.5 text-[#272A31]">
+                        <ng-icon name="heroWallet" class="text-[16px]"></ng-icon>
+                      </span>
+                      <p class="text-[11px] font-medium text-[#1A1C21]">Wallet (Balance: N250,000)</p>
+                    </div>
+                    <span class="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border"
+                      [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
+                      [class.border-[#D9DBE2]]="selectedPaymentId() !== 'wallet'">
+                      @if (selectedPaymentId() === 'wallet') {
+                        <span class="h-2 w-2 rounded-full bg-[#6955F2]"></span>
+                      }
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="selectedPaymentId.set('online')"
+                    class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition"
+                    [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
+                    [class.bg-[#F8F6FF]]="selectedPaymentId() === 'online'"
+                    [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
+                  >
+                    <div class="flex items-start gap-3">
+                      <span class="mt-0.5 text-[#272A31]">
+                        <ng-icon name="heroGlobeAlt" class="text-[16px]"></ng-icon>
+                      </span>
+                      <p class="text-[11px] font-medium text-[#1A1C21]">Online</p>
+                    </div>
+                    <span class="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border"
+                      [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
+                      [class.border-[#D9DBE2]]="selectedPaymentId() !== 'online'">
+                      @if (selectedPaymentId() === 'online') {
+                        <span class="h-2 w-2 rounded-full bg-[#6955F2]"></span>
+                      }
+                    </span>
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <button
+              type="button"
+              (click)="step.set('success')"
+              class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+            >
+              Confirm and pay
+            </button>
+
+            <p class="mt-3 px-2 text-[9px] leading-4 text-[#6D727C]">
+              By clicking on Confirm and pay, you accept the <span class="text-[#6653E4]">Terms of Use</span> and confirm this posting does not include prohibited items.
+            </p>
+          </div>
+        }
+
+        @if (step() === 'success') {
+          <div class="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
+            <div class="mb-8 text-[72px] leading-none">🛒</div>
+            <h2 class="text-[18px] font-semibold leading-7 tracking-[-0.03em] text-[#1A1C21]">
+              {{ successTitle() }}
+            </h2>
+            <p class="mt-3 text-[11px] leading-5 text-[#8E929B]">
+              {{ successDescription() }}
+            </p>
+
+            <div class="mt-8 grid w-full grid-cols-1 gap-3">
+              <button
+                type="button"
+                (click)="resetFlow()"
+                class="rounded-full bg-[#F3F3F5] px-6 py-3 text-[12px] font-medium text-[#353A43]"
+              >
+                {{ repeatActionLabel() }}
+              </button>
+              <button
+                type="button"
+                (click)="finishAndClose()"
+                class="rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+              >
+                View running Ads
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div
+        class="relative hidden overflow-hidden rounded-[32px] bg-white shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] md:block"
         [class.w-full]="step() !== 'confirm'"
         [style.max-width]="modalWidth()"
         (click)="$event.stopPropagation()"
@@ -57,7 +325,7 @@ interface ListingBoostPlan {
             </div>
 
             <h2 class="text-[24px] font-semibold leading-tight tracking-tight text-[#1A1C21]">
-              You have <span class="font-black">4/100</span> listing promotion left
+              You have <span class="font-black">4/100</span> {{ targetLabel() }} promotion left
             </h2>
 
             <p class="mx-auto mt-5 max-w-[420px] text-[15px] leading-7 text-gray-500">
@@ -77,7 +345,7 @@ interface ListingBoostPlan {
                 (click)="step.set('plan')"
                 class="rounded-full bg-[#6653E4] px-8 py-4 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
               >
-                Yes, promote listing
+                {{ confirmActionLabel() }}
               </button>
             </div>
           </div>
@@ -99,7 +367,7 @@ interface ListingBoostPlan {
                   Choose a boosting plan to proceed🚀
                 </h2>
                 <p class="mt-3 text-[0.95rem] font-medium text-[#7F828B]">
-                  Give your listing more visibility
+                  {{ planSubtitle() }}
                 </p>
               </div>
             </div>
@@ -270,10 +538,10 @@ interface ListingBoostPlan {
           <div class="flex h-full flex-col items-center justify-center px-6 py-12 text-center animate-in fade-in zoom-in-95 duration-300">
             <div class="mb-10 text-[92px] leading-none">🛒</div>
             <h2 class="text-[2rem] font-black tracking-tight text-[#1A1C21]">
-              Listing promotion is now active 🚀
+              {{ successTitle() }}
             </h2>
             <p class="mt-4 max-w-[620px] text-[0.95rem] font-medium leading-7 text-[#8E929B]">
-              Your listing is now promoted across Search, Categories, and Explore.
+              {{ successDescription() }}
               Promotion ends on 27 April 2026.
             </p>
 
@@ -283,7 +551,7 @@ interface ListingBoostPlan {
                 (click)="resetFlow()"
                 class="rounded-full bg-[#F3F3F5] px-6 py-3.5 text-sm font-semibold text-[#353A43] transition hover:bg-[#E9EAF0]"
               >
-                Promote another listing
+                {{ repeatActionLabel() }}
               </button>
               <button
                 type="button"
@@ -305,9 +573,11 @@ interface ListingBoostPlan {
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PromoteListingModalComponent {
+export class PromoteListingModalComponent implements OnDestroy {
+  promoteTarget = input<'listing' | 'store'>('listing');
   close = output<void>();
   promoted = output<void>();
+  private readonly mobileOverlayService = inject(MobileOverlayService);
 
   readonly step = signal<'confirm' | 'plan' | 'payment' | 'success'>('confirm');
   readonly selectedPlanId = signal<ListingBoostPlan['id']>('7-days');
@@ -384,6 +654,32 @@ export class PromoteListingModalComponent {
     }
   });
 
+  readonly targetLabel = computed(() => this.promoteTarget() === 'store' ? 'store' : 'listing');
+  readonly confirmTitle = computed(() => `You have 4/100 ${this.targetLabel()} promotion left`);
+  readonly confirmActionLabel = computed(() => `Yes, promote ${this.targetLabel()}`);
+  readonly planSubtitle = computed(() =>
+    this.promoteTarget() === 'store'
+      ? 'Give your store more visibility'
+      : 'Give your listing more visibility',
+  );
+  readonly successTitle = computed(() =>
+    this.promoteTarget() === 'store'
+      ? 'Store promotion is now active 🚀'
+      : 'Listing promotion is now active 🚀',
+  );
+  readonly successDescription = computed(() =>
+    this.promoteTarget() === 'store'
+      ? 'Your store is now promoted across Search, Categories, and Explore.'
+      : 'Your listing is now promoted across Search, Categories, and Explore.',
+  );
+  readonly repeatActionLabel = computed(() =>
+    this.promoteTarget() === 'store' ? 'Promote another store' : 'Promote another listing',
+  );
+
+  constructor() {
+    this.mobileOverlayService.openMobileModal();
+  }
+
   resetFlow() {
     this.selectedPlanId.set('7-days');
     this.selectedPaymentId.set('wallet');
@@ -394,5 +690,9 @@ export class PromoteListingModalComponent {
   finishAndClose() {
     this.promoted.emit();
     this.close.emit();
+  }
+
+  ngOnDestroy(): void {
+    this.mobileOverlayService.closeMobileModal();
   }
 }

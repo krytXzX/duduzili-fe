@@ -19,6 +19,7 @@ import {
   heroDocumentDuplicate
 } from '@ng-icons/heroicons/outline';
 import { ListingCardComponent } from './listing-card.component';
+import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 export interface ListingData {
   name: string;
@@ -57,9 +58,45 @@ export interface ListingData {
   ],
   template: `
     <div class="fixed inset-0 z-50 bg-white flex flex-col animate-in fade-in slide-in-from-bottom-10 duration-500 overflow-hidden">
-      
+
+      <div class="shrink-0 border-b border-gray-100 bg-white md:hidden">
+        <div class="flex items-center justify-between px-5 pb-4 pt-5">
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              (click)="close.emit()"
+              class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
+              aria-label="Close add listing flow"
+            >
+              <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
+            </button>
+            @if (currentStep() < 5) {
+              <h1 class="text-[16px] font-medium text-[#2A2D34]">Add listing</h1>
+            }
+          </div>
+
+          @if (currentStep() < 5) {
+            <button type="button" class="text-[14px] font-medium text-[#2A2D34] underline underline-offset-2">
+              Save to drafts
+            </button>
+          }
+        </div>
+
+        @if (currentStep() < 5) {
+          <div class="grid grid-cols-4 gap-2 px-4 pb-3">
+            @for (step of steps; track step.id) {
+              <div
+                class="h-[2px] rounded-full"
+                [class.bg-[#6F56F6]]="step.id <= currentStep()"
+                [class.bg-[#E5E7EB]]="step.id > currentStep()"
+              ></div>
+            }
+          </div>
+        }
+      </div>
+
       <!-- Top Header Bar -->
-      <div class="h-20 flex items-center justify-between px-8 bg-white shrink-0 shadow-sm border-b border-gray-100 z-10 relative">
+      <div class="hidden h-20 items-center justify-between px-8 bg-white shrink-0 shadow-sm border-b border-gray-100 z-10 relative md:flex">
         <div class="flex items-center gap-6">
           <button 
             (click)="close.emit()" 
@@ -121,12 +158,105 @@ export interface ListingData {
         <div class="flex-1 flex flex-col relative bg-white overflow-hidden">
           
           <!-- Scrollable Content -->
-          <div class="flex-1 overflow-y-auto px-8 md:px-16 py-10 custom-scrollbar pb-32">
+          <div class="flex-1 overflow-y-auto px-5 py-6 custom-scrollbar pb-32 md:px-8 md:py-10 md:pb-32 lg:px-16">
             <form [formGroup]="listingForm">
 
               <!-- STEP 1: Media -->
               @if (currentStep() === 1) {
-                <div class="max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div class="mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 md:hidden">
+                  <h2 class="text-[18px] font-semibold leading-10 tracking-[-0.03em] text-[#202335]">Add some photos of your listing</h2>
+                  <p class="text-[11px] font-medium text-[#8A8F9A]">Hold and drag photo to rearrange</p>
+
+                  <div class="mt-7 rounded-[16px] bg-[#F8F8F9] px-4 py-3">
+                    <p class="text-[11px] font-medium leading-5 text-[#5F6470]">
+                      <span class="mr-1.5">💡</span>
+                      <span class="font-semibold">Tip:</span> Attaching high quality media improves your selling chances
+                    </p>
+                  </div>
+
+                  <div class="mt-7 grid grid-cols-3 gap-2.5">
+                    <input
+                      #mobileMainImageInput
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      (change)="onMainImageSelected($event)"
+                    >
+
+                    <div
+                      class="relative col-span-2 row-span-2 aspect-[1.1/1.22] overflow-hidden rounded-[18px] border border-[#ECEEF4] bg-[#F6F7FA]"
+                      (click)="openFilePicker(mobileMainImageInput)"
+                    >
+                      @if (mainImage()) {
+                        <img [src]="mainImage()" alt="" class="h-full w-full object-cover">
+                        <div class="absolute left-2.5 top-2.5 rounded-full bg-white px-3 py-1 text-[10px] font-medium text-[#2A2D34] shadow-sm">
+                          Main photo
+                        </div>
+                        <button
+                          type="button"
+                          class="absolute right-2.5 top-2.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#4C5160] shadow-sm"
+                          (click)="openFilePicker(mobileMainImageInput, $event)"
+                          aria-label="Edit main photo"
+                        >
+                          <ng-icon name="heroEllipsisHorizontal" class="text-[18px]"></ng-icon>
+                        </button>
+                        <div class="absolute bottom-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-[#4C5160] shadow-sm">
+                          1
+                        </div>
+                      } @else {
+                        <div class="flex h-full items-center justify-center text-[#2A2D34]">
+                          <ng-icon name="heroPlus" class="text-[28px]"></ng-icon>
+                        </div>
+                      }
+                    </div>
+
+                    @for (slot of imageSlots(); track slot.id; let slotIndex = $index) {
+                      <input
+                        #mobileSlotInput
+                        type="file"
+                        accept="image/*"
+                        class="hidden"
+                        (change)="onAdditionalImageSelected(slot.index, $event)"
+                      >
+
+                      <div
+                        class="relative aspect-square overflow-hidden rounded-[16px] border border-[#ECEEF4] bg-[#F6F7FA]"
+                        (click)="openFilePicker(mobileSlotInput, $event)"
+                      >
+                        @if (slot.image) {
+                          <img [src]="slot.image" alt="" class="h-full w-full object-cover">
+                          <button
+                            type="button"
+                            class="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-[#4C5160] shadow-sm"
+                            (click)="openFilePicker(mobileSlotInput, $event)"
+                            aria-label="Edit additional photo"
+                          >
+                            <ng-icon name="heroEllipsisHorizontal" class="text-[16px]"></ng-icon>
+                          </button>
+                        } @else {
+                          <div class="flex h-full items-center justify-center text-[#2A2D34]">
+                            <ng-icon name="heroPlus" class="text-[24px]"></ng-icon>
+                          </div>
+                        }
+
+                        <div class="absolute bottom-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-[#4C5160] shadow-sm">
+                          {{ slot.position }}
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="mt-7 space-y-2">
+                    <label class="text-[12px] font-medium text-[#5F6470]">Embedded YouTube link (optional)</label>
+                    <input
+                      type="text"
+                      placeholder="Enter link to YouTube video"
+                      class="w-full rounded-[14px] border border-[#DCDDE3] px-4 py-3.5 text-[12px] font-medium text-[#2A2D34] outline-none placeholder:text-[#B1B5BF]"
+                    >
+                  </div>
+                </div>
+
+                <div class="hidden max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 md:block">
                   <h2 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-2">Add some photos of your listing</h2>
                   <p class="text-sm font-medium text-gray-400 mb-8">Hold and drag photo to rearrange</p>
 
@@ -230,7 +360,82 @@ export interface ListingData {
 
               <!-- STEP 2: Details -->
               @if (currentStep() === 2) {
-                <div class="max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div class="mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 md:hidden">
+                  <h2 class="max-w-[260px] text-[18px] font-semibold leading-10 tracking-[-0.03em] text-[#202335]">Fill basic details about your listing</h2>
+                  <p class="mt-1 text-[11px] font-medium text-[#8A8F9A]">Add details about the item you want to list</p>
+
+                  <div class="mt-8 space-y-6">
+                    <div class="space-y-2">
+                      <label class="text-[12px] font-medium text-[#3F4452]">Item name</label>
+                      <input
+                        type="text"
+                        formControlName="name"
+                        class="w-full rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-[12px] font-medium text-[#202335] outline-none"
+                      >
+                    </div>
+
+                    <div class="space-y-2 relative">
+                      <label class="text-[12px] font-medium text-[#3F4452]">Category</label>
+                      <select
+                        formControlName="category"
+                        class="w-full appearance-none rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pr-10 text-[12px] font-medium text-[#202335] outline-none"
+                      >
+                        <option value="Phones & Gadgets">Electronics/Phones & Tablets</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Cars">Cars</option>
+                      </select>
+                      <div class="pointer-events-none absolute right-4 top-[38px] text-[#8A8F9A]">
+                        <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-5">
+                      <div class="space-y-2 relative">
+                        <label class="text-[12px] font-medium text-[#3F4452]">Condition</label>
+                        <select
+                          formControlName="condition"
+                          class="w-full appearance-none rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pr-10 text-[12px] font-medium text-[#202335] outline-none"
+                        >
+                          <option value="used">Used</option>
+                          <option value="new">New</option>
+                        </select>
+                        <div class="pointer-events-none absolute right-4 top-[38px] text-[#8A8F9A]">
+                          <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
+                        </div>
+                      </div>
+
+                      <div class="space-y-2 relative">
+                        <label class="text-[12px] font-medium text-[#3F4452]">Store</label>
+                        <select
+                          formControlName="store"
+                          class="w-full appearance-none rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pr-10 text-[12px] font-medium text-[#202335] outline-none"
+                        >
+                          <option value="1">My Main Store</option>
+                          <option value="2">Secondary Store</option>
+                        </select>
+                        <div class="pointer-events-none absolute right-4 top-[38px] text-[#8A8F9A]">
+                          <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="pt-3">
+                      <h3 class="text-[18px] font-semibold leading-10 tracking-[-0.03em] text-[#202335]">Add description</h3>
+                      <p class="max-w-[320px] text-[11px] leading-5 text-[#8A8F9A]">Describe the upgrades and standout features that will appeal to buyers</p>
+
+                      <div class="mt-5 space-y-2">
+                        <label class="text-[12px] font-medium text-[#3F4452]">Description</label>
+                        <textarea
+                          formControlName="description"
+                          rows="6"
+                          class="w-full resize-none rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-[12px] font-medium text-[#202335] outline-none"
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="hidden max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 md:block">
                   <h2 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-1">Fill basic details about your listing</h2>
                   <p class="text-[14px] text-gray-400 mb-8">Add details about the item you want to list</p>
                   
@@ -305,7 +510,218 @@ export interface ListingData {
 
               <!-- STEP 3: Delivery & Pricing -->
               @if (currentStep() === 3) {
-                 <div class="max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                 <div class="mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 md:hidden">
+                    <h2 class="max-w-[280px] text-[18px] font-semibold leading-10 tracking-[-0.03em] text-[#202335]">Set your location and delivery preferences</h2>
+
+                    <div class="mt-7 space-y-7">
+                      <div class="space-y-5">
+                        <div class="space-y-2 relative">
+                          <label class="text-[12px] font-medium text-[#3F4452]">Location</label>
+                          <select
+                            formControlName="location"
+                            class="w-full appearance-none rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pr-10 text-[12px] font-medium text-[#202335] outline-none"
+                          >
+                            <option value="Ikeja, Lagos">Ikeja, Lagos</option>
+                          </select>
+                          <div class="pointer-events-none absolute right-4 top-[38px] text-[#8A8F9A]">
+                            <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
+                          </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-5">
+                          <div class="space-y-2">
+                            <label class="text-[12px] font-medium text-[#3F4452]">Your WhatsApp number</label>
+                            <input
+                              type="text"
+                              formControlName="whatsappNumber"
+                              class="w-full rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-[12px] font-medium text-[#202335] outline-none"
+                            >
+                          </div>
+
+                          <div class="space-y-2">
+                            <label class="text-[12px] font-medium text-[#3F4452]">Your call number</label>
+                            <input
+                              type="text"
+                              formControlName="callNumber"
+                              class="w-full rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-[12px] font-medium text-[#202335] outline-none"
+                            >
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="space-y-3">
+                        <label class="block text-[12px] font-medium text-[#3F4452]">Delivery options</label>
+                        <div class="grid grid-cols-2 gap-3">
+                          @for (opt of availableDeliveryOptions; track opt.id) {
+                            <button
+                              type="button"
+                              (click)="toggleDeliveryOption(opt.id)"
+                              class="flex items-center gap-2 rounded-[14px] border px-3 py-3 text-left transition-colors"
+                              [class.border-[#6F56F6]]="isDeliveryOptionSelected(opt.id)"
+                              [class.bg-[#F8F7FF]]="isDeliveryOptionSelected(opt.id)"
+                              [class.text-[#2A2D34]]="isDeliveryOptionSelected(opt.id)"
+                              [class.border-[#E1E3E8]]="!isDeliveryOptionSelected(opt.id)"
+                              [class.bg-white]="!isDeliveryOptionSelected(opt.id)"
+                              [class.text-[#2A2D34]]="!isDeliveryOptionSelected(opt.id)"
+                            >
+                              <span
+                                class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border"
+                                [class.border-[#6F56F6]]="isDeliveryOptionSelected(opt.id)"
+                                [class.bg-[#6F56F6]]="isDeliveryOptionSelected(opt.id)"
+                                [class.border-[#D4D7DE]]="!isDeliveryOptionSelected(opt.id)"
+                                [class.bg-white]="!isDeliveryOptionSelected(opt.id)"
+                              >
+                                @if (isDeliveryOptionSelected(opt.id)) {
+                                  <ng-icon name="heroCheck" class="text-[10px] text-white"></ng-icon>
+                                }
+                              </span>
+                              <span class="text-[12px] font-medium">{{ opt.label }}</span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <div class="pt-4">
+                        <h3 class="text-[18px] font-semibold leading-10 tracking-[-0.03em] text-[#202335]">How much are you selling for?</h3>
+
+                        <div class="mt-4 space-y-6">
+                          <div class="space-y-2">
+                            <label class="text-[12px] font-medium text-[#3F4452]">Price</label>
+                            <div class="relative">
+                              <input
+                                type="number"
+                                formControlName="price"
+                                class="w-full rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pl-9 text-[12px] font-medium text-[#202335] outline-none"
+                              >
+                              <span class="pointer-events-none absolute left-4 top-[14px] text-[12px] font-medium text-[#9BA0AA]">₦</span>
+                            </div>
+                          </div>
+
+                          @if (listingForm.value.addDiscount) {
+                            <div class="space-y-4 rounded-[16px] border border-[#E7DFFF] bg-[#FBFAFF] p-4">
+                              <div class="space-y-2">
+                                <label class="text-[12px] font-medium text-[#3F4452]">Discount price</label>
+                                <div class="grid grid-cols-[108px_minmax(0,1fr)] gap-3">
+                                  <div class="relative">
+                                    <select
+                                      formControlName="discountType"
+                                      class="w-full appearance-none rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pr-9 text-[12px] font-medium text-[#202335] outline-none"
+                                    >
+                                      <option value="amount">Amount</option>
+                                      <option value="percentage">Percentage</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute right-3 top-[14px] text-[#8A8F9A]">
+                                      <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
+                                    </div>
+                                  </div>
+
+                                  <div class="relative">
+                                    <input
+                                      type="number"
+                                      formControlName="discountPrice"
+                                      class="w-full rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 pr-12 text-[12px] font-medium text-[#202335] outline-none"
+                                      [placeholder]="discountInputPlaceholder()"
+                                    >
+                                    <span class="pointer-events-none absolute right-4 top-[14px] text-[12px] font-medium text-[#9BA0AA]">
+                                      {{ listingForm.value.discountType === 'percentage' ? '%' : 'NGN' }}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="grid grid-cols-2 gap-3">
+                                <div class="space-y-2">
+                                  <label class="text-[12px] font-medium text-[#3F4452]">Start date</label>
+                                  <input
+                                    type="date"
+                                    formControlName="discountStartDate"
+                                    class="w-full rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-[12px] font-medium text-[#202335] outline-none"
+                                  >
+                                </div>
+
+                                <div class="space-y-2">
+                                  <label class="text-[12px] font-medium text-[#3F4452]">End date</label>
+                                  <input
+                                    type="date"
+                                    formControlName="discountEndDate"
+                                    class="w-full rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-[12px] font-medium text-[#202335] outline-none"
+                                  >
+                                </div>
+                              </div>
+
+                              <div class="flex items-start gap-2 rounded-[14px] bg-[#FFFBEA] px-3 py-3 text-[#9A9300]">
+                                <ng-icon name="heroInformationCircle" class="mt-0.5 shrink-0 text-[15px]"></ng-icon>
+                                <p class="text-[11px] font-medium leading-5">
+                                  Your listing price will go back to its default price after the end date
+                                </p>
+                              </div>
+                            </div>
+                          }
+
+                          <div class="space-y-5">
+                            <div class="flex items-start justify-between gap-4">
+                              <div class="min-w-0">
+                                <h4 class="text-[12px] font-medium text-[#202335]">Add discount</h4>
+                                <p class="mt-1 text-[11px] leading-5 text-[#8A8F9A]">Let your buyers know if you are running a discount</p>
+                              </div>
+                              <button
+                                type="button"
+                                (click)="toggleBool('addDiscount')"
+                                class="relative mt-0.5 inline-flex h-6 w-11 shrink-0 rounded-full transition-colors"
+                                [class.bg-[#6F56F6]]="listingForm.value.addDiscount"
+                                [class.bg-[#E4E6EB]]="!listingForm.value.addDiscount"
+                              >
+                                <span
+                                  class="absolute top-[2px] left-[2px] h-5 w-5 rounded-full bg-white shadow-sm transition-transform"
+                                  [class.translate-x-5]="listingForm.value.addDiscount"
+                                ></span>
+                              </button>
+                            </div>
+
+                            <div class="flex items-start justify-between gap-4">
+                              <div class="min-w-0">
+                                <h4 class="text-[12px] font-medium text-[#202335]">Accept offers from buyers</h4>
+                                <p class="mt-1 text-[11px] leading-5 text-[#8A8F9A]">Buyers can submit price offers for your review</p>
+                              </div>
+                              <button
+                                type="button"
+                                (click)="toggleBool('acceptOffers')"
+                                class="relative mt-0.5 inline-flex h-6 w-11 shrink-0 rounded-full transition-colors"
+                                [class.bg-[#6F56F6]]="listingForm.value.acceptOffers"
+                                [class.bg-[#E4E6EB]]="!listingForm.value.acceptOffers"
+                              >
+                                <span
+                                  class="absolute top-[2px] left-[2px] h-5 w-5 rounded-full bg-white shadow-sm transition-transform"
+                                  [class.translate-x-5]="listingForm.value.acceptOffers"
+                                ></span>
+                              </button>
+                            </div>
+
+                            <div class="flex items-start justify-between gap-4">
+                              <div class="min-w-0">
+                                <h4 class="text-[12px] font-medium text-[#202335]">List this item for free</h4>
+                                <p class="mt-1 text-[11px] leading-5 text-[#8A8F9A]">Give this item away for free</p>
+                              </div>
+                              <button
+                                type="button"
+                                (click)="toggleBool('listForFree')"
+                                class="relative mt-0.5 inline-flex h-6 w-11 shrink-0 rounded-full transition-colors"
+                                [class.bg-[#6F56F6]]="listingForm.value.listForFree"
+                                [class.bg-[#E4E6EB]]="!listingForm.value.listForFree"
+                              >
+                                <span
+                                  class="absolute top-[2px] left-[2px] h-5 w-5 rounded-full bg-white shadow-sm transition-transform"
+                                  [class.translate-x-5]="listingForm.value.listForFree"
+                                ></span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                 </div>
+
+                 <div class="hidden max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 md:block">
                     <h2 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-8">Set your location and delivery preferences</h2>
                     <div class="space-y-8">
                       <!-- Location block -->
@@ -512,7 +928,110 @@ export interface ListingData {
               }
               
               @if (currentStep() === 4) {
-                 <div class="max-w-3xl lg:max-w-4xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-32">
+                 <div class="mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-32 md:hidden">
+                    <h2 class="max-w-[250px] text-[18px] font-semibold leading-10 tracking-[-0.03em] text-[#202335]">Review your listing information</h2>
+                    <p class="mt-1 text-[11px] font-medium text-[#8A8F9A]">Ensure all details are correct before listing</p>
+
+                    <div class="mt-7 space-y-9">
+                      <section>
+                        <div class="mb-3 flex items-center justify-between gap-4">
+                          <h3 class="text-[14px] font-medium text-[#202335]">Media</h3>
+                          <button type="button" (click)="currentStep.set(1)" class="text-[12px] font-medium text-[#202335] underline underline-offset-2">Edit</button>
+                        </div>
+
+                        <div class="rounded-[18px] bg-[#FBFBFC] px-4 py-4">
+                          <div class="grid grid-cols-[96px_minmax(0,1fr)] gap-x-4 gap-y-4">
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Images</span>
+                            <div class="grid grid-cols-2 gap-3">
+                              @for (img of reviewImages().slice(0, 3); track img; let i = $index) {
+                                <div class="relative aspect-square overflow-hidden rounded-[14px] border border-[#E7E9EF] bg-white">
+                                  <img [src]="img" alt="" class="h-full w-full object-cover">
+                                  @if (i === 1 && reviewImages().length > 3) {
+                                    <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[12px] font-medium text-white">
+                                      +{{ reviewImages().length - 2 }} others
+                                    </div>
+                                  }
+                                </div>
+                              }
+                            </div>
+
+                            <span class="text-[12px] font-medium leading-6 text-[#8A8F9A]">Embedded video link</span>
+                            <div class="flex min-h-[92px] items-center justify-end">
+                              @if (reviewImages()[1]) {
+                                <div class="relative aspect-square w-[92px] overflow-hidden rounded-[14px] border border-[#E7E9EF] bg-white">
+                                  <img [src]="reviewImages()[1]" alt="" class="h-full w-full object-cover">
+                                  <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#202335] shadow-sm">
+                                      ▶
+                                    </div>
+                                  </div>
+                                </div>
+                              } @else {
+                                <span class="text-[12px] font-medium text-[#202335]">---</span>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section>
+                        <div class="mb-3 flex items-center justify-between gap-4">
+                          <h3 class="text-[14px] font-medium text-[#202335]">Details</h3>
+                          <button type="button" (click)="currentStep.set(2)" class="text-[12px] font-medium text-[#202335] underline underline-offset-2">Edit</button>
+                        </div>
+
+                        <div class="rounded-[18px] bg-[#FBFBFC] px-4 py-4">
+                          <div class="grid grid-cols-[110px_minmax(0,1fr)] gap-x-4 gap-y-3">
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Item name</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.name || '---' }}</span>
+
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Category</span>
+                            <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ listingForm.value.category || '---' }}</span>
+
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Condition</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335] capitalize">{{ listingForm.value.condition || '---' }}</span>
+
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Store</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.store === '1' ? 'The Vine Collections' : (listingForm.value.store || '---') }}</span>
+
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Description</span>
+                            <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ listingForm.value.description || '---' }}</span>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section>
+                        <div class="mb-3 flex items-center justify-between gap-4">
+                          <h3 class="text-[14px] font-medium text-[#202335]">Delivery & Pricing</h3>
+                          <button type="button" (click)="currentStep.set(3)" class="text-[12px] font-medium text-[#202335] underline underline-offset-2">Edit</button>
+                        </div>
+
+                        <div class="rounded-[18px] bg-[#FBFBFC] px-4 py-4">
+                          <div class="grid grid-cols-[120px_minmax(0,1fr)] gap-x-4 gap-y-3">
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Location</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.location || '---' }}</span>
+
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Delivery options</span>
+                            <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ getSelectedDeliveryOptionNames() }}</span>
+
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">WhatsApp number</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.whatsappNumber || '---' }}</span>
+
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Call number</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.callNumber || '---' }}</span>
+
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Price</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">₦{{ (listingForm.value.price | number) || '0' }}</span>
+
+                            <span class="text-[12px] font-medium text-[#8A8F9A]">Accept offers</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.acceptOffers ? 'Yes' : 'No' }}</span>
+                          </div>
+                        </div>
+                      </section>
+                    </div>
+                 </div>
+
+                 <div class="hidden max-w-3xl lg:max-w-4xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-32 md:block">
                     <h2 class="text-[24px] font-black text-[#1A1C21] tracking-tight mb-2">Review your listing information</h2>
                     <p class="text-[14px] text-gray-400 font-medium mb-10">Ensure all details are correct before listing</p>
 
@@ -641,7 +1160,82 @@ export interface ListingData {
 
               <!-- STEP 5: Success -->
               @if (currentStep() === 5) {
-                 <div class="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 text-center py-12 flex flex-col items-center">
+                 <div class="mx-auto flex flex-col items-center py-10 text-center animate-in fade-in slide-in-from-bottom-8 duration-700 md:hidden">
+                    <div class="relative mb-8 flex w-full justify-center">
+                      <div class="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+                        <div class="absolute left-[18%] top-4 h-1 w-1 rounded-full bg-[#E85D75]"></div>
+                        <div class="absolute left-[24%] top-10 h-1 w-1 rounded-full bg-[#6F56F6]"></div>
+                        <div class="absolute left-[30%] top-6 h-1 w-1 rounded-full bg-[#40C057]"></div>
+                        <div class="absolute left-[36%] top-12 h-1 w-1 rounded-full bg-[#4DABF7]"></div>
+                        <div class="absolute left-[44%] top-3 h-1 w-1 rounded-full bg-[#FFD43B]"></div>
+                        <div class="absolute left-[56%] top-8 h-1 w-1 rounded-full bg-[#DA77F2]"></div>
+                        <div class="absolute right-[36%] top-5 h-1 w-1 rounded-full bg-[#40C057]"></div>
+                        <div class="absolute right-[28%] top-10 h-1 w-1 rounded-full bg-[#4DABF7]"></div>
+                        <div class="absolute right-[21%] top-4 h-1 w-1 rounded-full bg-[#E85D75]"></div>
+                        <div class="absolute right-[16%] top-12 h-1 w-1 rounded-full bg-[#FFD43B]"></div>
+                      </div>
+
+                      <div class="relative z-10 w-[132px] rounded-[18px] bg-white p-2 shadow-[0_24px_38px_-28px_rgba(32,35,53,0.55)] ring-1 ring-[#ECEEF4]">
+                        <div class="pointer-events-none scale-[0.78] origin-top-left">
+                          <app-listing-card [listing]="previewListing()" [showFavorite]="false"></app-listing-card>
+                        </div>
+                      </div>
+                    </div>
+
+                    <h2 class="max-w-[280px] text-[18px] font-semibold leading-10 tracking-[-0.03em] text-[#202335]">Your listing is live on Duduzili 🎉</h2>
+                    <p class="mt-1 text-[11px] font-medium text-[#8A8F9A]">You also boosted it for 7 days</p>
+
+                    <div class="mt-8 grid w-full grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        (click)="resetForm()"
+                        class="inline-flex min-h-12 items-center justify-center rounded-full bg-[#F5F5F7] px-4 py-3 text-[14px] font-medium text-[#202335]"
+                      >
+                        Add another listing
+                      </button>
+                      <button
+                        type="button"
+                        (click)="close.emit()"
+                        class="inline-flex min-h-12 items-center justify-center rounded-full bg-[#6F56F6] px-4 py-3 text-[14px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(111,86,246,0.95)]"
+                      >
+                        View listing
+                      </button>
+                    </div>
+
+                    <div class="mt-10 flex w-full items-center gap-3">
+                      <div class="h-px flex-1 bg-[#ECEEF4]"></div>
+                      <span class="text-[11px] font-medium text-[#B0B4BE]">OR SHARE VIA</span>
+                      <div class="h-px flex-1 bg-[#ECEEF4]"></div>
+                    </div>
+
+                    <div class="mt-8 flex w-full items-center gap-3 rounded-full bg-[#F7F7F9] px-4 py-3">
+                      <span class="min-w-0 flex-1 truncate text-left text-[12px] font-medium text-[#5F6470]">https://duduzili.com/listing001</span>
+                      <button
+                        type="button"
+                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E1E3E8] bg-white text-[#202335]"
+                        aria-label="Copy link"
+                      >
+                        <ng-icon name="heroDocumentDuplicate" class="text-[18px]"></ng-icon>
+                      </button>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-center gap-5">
+                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#111111]" aria-label="Share on X">
+                        <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 22.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                      </button>
+                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#25D366]" aria-label="Share on WhatsApp">
+                        <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M12.031 0A12.03 12.03 0 0 0 0 12.03c0 2.378.618 4.698 1.791 6.745L.044 24l5.345-1.401A11.97 11.97 0 0 0 12.03 24c6.643 0 12.03-5.385 12.03-12.029A12.03 12.03 0 0 0 12.031 0m6.417 17.15c-.266.75-1.554 1.432-2.158 1.503-.54.062-1.258.18-3.568-.781-2.8-1.168-4.576-4.01-4.714-4.195-.14-.184-1.127-1.503-1.127-2.864 0-1.362.706-2.031.956-2.28 0 0 .367-.369.832-.369.176 0 .332.006.464.012.214.011.5-.084.78.591.353.845 1.205 2.949 1.312 3.166.108.217.18.471.042.748-.138.277-.208.448-.415.698-.207.25-.436.56-.622.736-.208.196-.43.407-.197.808.233.4 1.034 1.705 2.222 2.766 1.528 1.365 2.8 1.789 3.197 1.957.398.17.632.146.868-.124.237-.27.994-1.159 1.261-1.556.265-.398.532-.332.895-.198.363.136 2.308 1.085 2.705 1.282.398.197.664.296.76.463.096.168.096.974-.17 1.725"/></svg>
+                      </button>
+                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#E4405F]" aria-label="Share on Instagram">
+                        <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm3.98-10.366a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0z"/></svg>
+                      </button>
+                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#1877F2]" aria-label="Share on Facebook">
+                        <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                      </button>
+                    </div>
+                 </div>
+
+                 <div class="hidden max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 text-center py-12 md:flex flex-col items-center">
                     
                     <!-- Confetti background container via absolute dots -->
                     <div class="relative w-full flex justify-center mb-10 mt-10">
@@ -715,7 +1309,7 @@ export interface ListingData {
 
           <!-- Bottom Floating Action Bar -->
           @if (currentStep() < 5) {
-            <div class="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-white via-white to-transparent pointer-events-none flex auto justify-end gap-4">
+            <div class="absolute bottom-0 left-0 right-0 hidden p-8 bg-gradient-to-t from-white via-white to-transparent pointer-events-none md:flex auto justify-end gap-4">
             @if (currentStep() > 1) {
               <button 
                 type="button"
@@ -733,6 +1327,30 @@ export interface ListingData {
               {{ currentStep() === 4 ? 'List item' : 'Continue' }}
             </button>
           </div>
+          }
+
+          @if (currentStep() < 5) {
+            <div class="absolute bottom-0 left-0 right-0 border-t border-[#ECEEF4] bg-white px-5 pb-6 pt-3 md:hidden">
+              <div class="grid gap-3" [class.grid-cols-2]="currentStep() > 1">
+                @if (currentStep() > 1) {
+                  <button
+                    type="button"
+                    (click)="prevStep()"
+                    class="inline-flex min-h-14 items-center justify-center rounded-full border border-[#E7E9EF] bg-white px-6 py-4 text-[14px] font-medium text-[#202335]"
+                  >
+                    Back
+                  </button>
+                }
+
+                <button
+                  type="button"
+                  (click)="currentStep() === 4 ? publish() : nextStep()"
+                  class="inline-flex min-h-14 items-center justify-center rounded-full bg-[#6F56F6] px-6 py-4 text-[14px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(111,86,246,0.95)]"
+                >
+                  {{ currentStep() === 4 ? 'List item' : 'Continue' }}
+                </button>
+              </div>
+            </div>
           }
 
         </div>
@@ -779,6 +1397,7 @@ export interface ListingData {
 })
 export class AddListingModalComponent implements OnDestroy {
   private fb = inject(FormBuilder);
+  private readonly mobileOverlayService = inject(MobileOverlayService);
   
   close = output<void>();
   save = output<ListingData>();
@@ -807,7 +1426,7 @@ export class AddListingModalComponent implements OnDestroy {
   private createdObjectUrls = new Set<string>();
 
   constructor() {
-    console.log('AddListingModalComponent initialized');
+    this.mobileOverlayService.setAddListingOpen(true);
     this.listingForm = this.fb.group({
       name: ['', Validators.required],
       category: ['', Validators.required],
@@ -899,6 +1518,7 @@ export class AddListingModalComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
+    this.mobileOverlayService.setAddListingOpen(false);
     this.revokeAllObjectUrls();
   }
 

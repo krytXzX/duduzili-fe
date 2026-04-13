@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, effect } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -12,6 +12,7 @@ import {
 import { AddListingModalComponent } from '../../components/listings/add-listing-modal.component';
 import { IdentityVerificationModalComponent } from '../../components/listings/identity-verification-modal.component';
 import { VerificationDetailsModalComponent } from '../../components/listings/verification-details-modal.component';
+import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 interface Listing {
   id: string;
@@ -44,7 +45,216 @@ interface CategoryOption {
     })
   ],
   template: `
-    <div class="max-w-6xl mx-auto">
+    <div class="px-5 pt-7 md:hidden">
+      <div class="flex items-center justify-between gap-4">
+        <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">Listings</h1>
+        <button
+          type="button"
+          (click)="showAddListingModal.set(true)"
+          class="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#6F56F6] px-5 py-2.5 text-[12px] font-medium text-white shadow-[0_16px_28px_-18px_rgba(111,86,246,0.95)]"
+        >
+          <ng-icon name="heroPlus"></ng-icon>
+          Sell item
+        </button>
+      </div>
+
+      @if (!isVerificationSubmitted()) {
+        <section class="mt-7 overflow-hidden rounded-[20px] border border-[#E8E7FF] bg-[linear-gradient(135deg,#FBFBFF_0%,#F4F3FF_55%,#F9F8FF_100%)] px-4 py-4 shadow-[0_10px_24px_-22px_rgba(31,36,48,0.35)]">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <h2 class="max-w-[210px] text-[15px] font-medium leading-6 text-[#262834]">Build trust. Get more buyers</h2>
+              <p class="mt-1 max-w-[220px] text-[11px] leading-5 text-[#7A7F8C]">Verified sellers rank higher and attract more inquiries.</p>
+
+              <button
+                type="button"
+                (click)="showIdentityModal.set(true)"
+                class="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-[#E7E8EE] bg-white px-5 py-2.5 text-[11px] font-medium text-[#202335] shadow-[0_8px_18px_-18px_rgba(32,35,53,0.45)]"
+              >
+                Verify my account
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
+
+            <img
+              ngSrc="/assets/images/identity_verification_id_card_illustration.png"
+              width="96"
+              height="96"
+              alt=""
+              aria-hidden="true"
+              class="h-24 w-24 shrink-0 object-contain"
+            >
+          </div>
+        </section>
+      } @else {
+        <section class="mt-7 overflow-hidden rounded-[20px] border border-[#F3E9BE] bg-[linear-gradient(135deg,#FFFDF4_0%,#FFF7D8_100%)] px-4 py-4 shadow-[0_10px_24px_-22px_rgba(31,36,48,0.35)]">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <h2 class="max-w-[210px] text-[15px] font-medium leading-6 text-[#262834]">Verification under review</h2>
+              <p class="mt-1 max-w-[220px] text-[11px] leading-5 text-[#7A7F8C]">Our team is reviewing your documents. You'll be notified soon.</p>
+
+              <button
+                type="button"
+                (click)="showVerificationDetailsModal.set(true)"
+                class="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-[#E7E8EE] bg-white px-5 py-2.5 text-[11px] font-medium text-[#202335] shadow-[0_8px_18px_-18px_rgba(32,35,53,0.45)]"
+              >
+                View submission
+              </button>
+            </div>
+
+            <img
+              ngSrc="/assets/images/identity_verification_id_card_illustration.png"
+              width="96"
+              height="96"
+              alt=""
+              aria-hidden="true"
+              class="h-24 w-24 shrink-0 object-contain"
+            >
+          </div>
+        </section>
+      }
+
+      @if (listings().length > 0) {
+        <section class="mt-8">
+          <div class="grid grid-cols-3 gap-3">
+            @for (stat of mobileStats(); track stat.label) {
+              <div
+                class="rounded-[14px] bg-white px-3 py-3.5 shadow-[0_10px_20px_-22px_rgba(31,36,48,0.4)]"
+                [class.border]="stat.active"
+                [class.border-[#6F56F6]]="stat.active"
+                [class.bg-[#F8F7FF]]="stat.active"
+              >
+                <p class="text-[10px] font-medium text-[#8A8F9A]">{{ stat.label }}</p>
+                <p class="mt-2 text-[19px] font-semibold leading-none text-[#2A2D34]">{{ stat.value }}</p>
+              </div>
+            }
+          </div>
+
+          <div class="mt-7 flex items-center gap-3">
+            <label class="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-4 py-3 shadow-[0_10px_20px_-22px_rgba(31,36,48,0.4)]">
+              <ng-icon name="heroMagnifyingGlass" class="text-[#8A8F9A]"></ng-icon>
+              <input
+                type="text"
+                placeholder="Search"
+                [value]="searchTerm()"
+                (input)="updateSearchTerm($event)"
+                class="min-w-0 flex-1 bg-transparent text-[12px] font-medium text-[#2A2D34] outline-none placeholder:text-[#9BA0AA]"
+              >
+            </label>
+
+            <button
+              type="button"
+              (click)="toggleFilterPanel('statuses')"
+              aria-label="Open filters"
+              class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-[#2A2D34] shadow-[0_10px_20px_-22px_rgba(31,36,48,0.4)]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M3 5.75A.75.75 0 013.75 5h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 013 5.75zm10 0A.75.75 0 0113.75 5h2.5a.75.75 0 010 1.5h-2.5a.75.75 0 01-.75-.75zM7 10a.75.75 0 01.75-.75h8.5a.75.75 0 010 1.5h-8.5A.75.75 0 017 10zm-3.25-.75a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5h-1.5zM3 14.25a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H3.75A.75.75 0 013 14.25zm13.5 0a.75.75 0 01.75-.75h.5a.75.75 0 010 1.5h-.5a.75.75 0 01-.75-.75z"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="mt-8 space-y-6">
+            @for (item of filteredListings(); track item.id) {
+              <article
+                class="cursor-pointer border-b border-[#EAECEF] pb-5"
+                (click)="viewListing(item.id)"
+              >
+                <div class="flex items-start gap-3">
+                  <img
+                    [src]="item.image"
+                    [alt]="item.name"
+                    class="h-11 w-11 shrink-0 rounded-[10px] object-cover"
+                  >
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <h2 class="truncate text-[13px] font-medium text-[#2A2D34]">{{ item.name }}</h2>
+                        <p class="mt-1 text-[11px] text-[#8A8F9A]">
+                          @if (item.isBoosted) {
+                            <span class="mr-1">🚀</span>
+                            Promoted
+                          } @else {
+                            {{ item.category }}
+                          }
+                        </p>
+                      </div>
+
+                      <span
+                        class="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium"
+                        [class.bg-[#FFF1DE]]="item.status === 'Available'"
+                        [class.text-[#F19A1A]]="item.status === 'Available'"
+                        [class.bg-[#E8F8EA]]="item.status === 'Sold'"
+                        [class.text-[#22A447]]="item.status === 'Sold'"
+                        [class.bg-[#F2F2F4]]="item.status === 'Draft'"
+                        [class.text-[#646872]]="item.status === 'Draft'"
+                        [class.bg-[#EAF3FF]]="item.status === 'Paused'"
+                        [class.text-[#4A8CFF]]="item.status === 'Paused'"
+                        [class.bg-[#FFF0F0]]="item.status === 'Suspended'"
+                        [class.text-[#FF3B30]]="item.status === 'Suspended'"
+                        [class.bg-[#FFF1DE]]="item.status === 'Expired'"
+                        [class.text-[#F19A1A]]="item.status === 'Expired'"
+                      >
+                        <span
+                          class="inline-block h-2 w-2 rounded-full bg-current"
+                          [class.rounded-[2px]]="item.status === 'Draft'"
+                        ></span>
+                        {{ item.status }}
+                      </span>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-[1fr_auto] gap-x-4 gap-y-2">
+                      <span class="text-[11px] text-[#8A8F9A]">Store</span>
+                      <span class="text-right text-[11px] font-medium text-[#2A2D34]">{{ item.store }}</span>
+                      <span class="text-[11px] text-[#8A8F9A]">Amount</span>
+                      <span class="text-right text-[11px] font-medium text-[#2A2D34]">₦{{ item.price | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      } @else {
+        <section class="flex min-h-[calc(100vh-320px)] flex-col items-center justify-center pb-8 pt-10 text-center">
+          <div class="relative mb-8 h-[160px] w-[210px]">
+            <div class="absolute left-3 top-6 h-[118px] w-[88px] rotate-[-18deg] rounded-[18px] bg-white/70 shadow-[0_16px_30px_-26px_rgba(25,30,40,0.35)] ring-1 ring-[#F1F2F6]"></div>
+            <div class="absolute right-3 top-5 h-[118px] w-[88px] rotate-[18deg] rounded-[18px] bg-white/70 shadow-[0_16px_30px_-26px_rgba(25,30,40,0.35)] ring-1 ring-[#F1F2F6]"></div>
+            <div class="absolute left-1/2 top-0 flex h-[132px] w-[98px] -translate-x-1/2 flex-col rounded-[20px] bg-white shadow-[0_20px_36px_-30px_rgba(25,30,40,0.45)] ring-1 ring-[#ECEEF4]">
+              <div class="flex items-start justify-between px-3 pt-3">
+                <div class="h-2 w-8 rounded-full bg-[#F0F1F5]"></div>
+                <span class="text-[10px] text-[#2B2D36]">♥</span>
+              </div>
+              <div class="mt-2 flex flex-1 items-center justify-center">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F8] text-[#B6BAC6]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M10 10a3 3 0 100-6 3 3 0 000 6zm-6 6.25A4.25 4.25 0 018.25 12h3.5A4.25 4.25 0 0116 16.25V17H4v-.75z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="space-y-2 px-4 pb-4">
+                <div class="h-1.5 rounded-full bg-[#F0F1F5]"></div>
+                <div class="mx-auto h-1.5 w-10 rounded-full bg-[#F5F6F9]"></div>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="text-[18px] font-medium leading-8 tracking-[-0.03em] text-[#202335]">Looks a little empty here 👀</h2>
+          <p class="mt-2 max-w-[280px] text-[11px] leading-6 text-[#7A7F8C]">Add a listing so buyers can see what you're offering and reach out.</p>
+
+          <button
+            type="button"
+            (click)="showAddListingModal.set(true)"
+            class="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-[#6F56F6] px-7 py-3 text-[12px] font-medium text-white shadow-[0_18px_30px_-18px_rgba(111,86,246,0.95)]"
+          >
+            <ng-icon name="heroPlus"></ng-icon>
+            Sell an item
+          </button>
+        </section>
+      }
+    </div>
+
+    <div class="hidden max-w-6xl mx-auto md:block">
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <h1 class="text-[21px] font-bold text-gray-900">Listings</h1>
@@ -432,6 +642,7 @@ interface CategoryOption {
         </div>
       }
     </div>
+
     @if (showAddListingModal()) {
       <app-add-listing-modal 
         (close)="showAddListingModal.set(false)"
@@ -459,6 +670,7 @@ interface CategoryOption {
 })
 export class ListingsPageComponent {
   private readonly router = inject(Router);
+  private readonly mobileOverlayService = inject(MobileOverlayService);
   protected showAddListingModal = signal(false);
   protected showIdentityModal = signal(false);
   protected showVerificationDetailsModal = signal(false);
@@ -472,6 +684,17 @@ export class ListingsPageComponent {
   protected readonly selectedStore = signal<string | null>(null);
   protected readonly selectedStatus = signal<Listing['status'] | null>(null);
   protected readonly categoryNavigationStack = signal<string[]>([]);
+
+  constructor() {
+    effect(() => {
+      if (!this.mobileOverlayService.shouldOpenAddListing()) {
+        return;
+      }
+
+      this.showAddListingModal.set(true);
+      this.mobileOverlayService.consumeOpenAddListingRequest();
+    });
+  }
 
   protected readonly categoryOptions: CategoryOption[] = [
     { name: 'Automotives', subcategories: [] },
@@ -658,6 +881,12 @@ export class ListingsPageComponent {
   protected readonly hasActiveFilters = computed(() =>
     !!this.searchTerm().trim() || !!this.selectedCategoryGroup() || !!this.selectedSubcategory() || !!this.selectedStore() || !!this.selectedStatus(),
   );
+
+  protected readonly mobileStats = computed(() => [
+    { label: 'All', value: this.listings().length, active: true },
+    { label: 'Available', value: this.listings().filter((item) => item.status === 'Available').length, active: false },
+    { label: 'Sold', value: this.listings().filter((item) => item.status === 'Sold').length, active: false },
+  ]);
 
   protected toggleEmpty(): void {
     if (this.listings().length > 0) {

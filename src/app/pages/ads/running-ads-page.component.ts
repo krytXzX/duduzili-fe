@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroPlus, heroChevronLeft, heroChevronRight } from '@ng-icons/heroicons/outline';
 import { CreateBannerAdModalComponent } from '../promotions/components/create-banner-ad-modal.component';
@@ -9,7 +9,7 @@ import { Store, StoreCardComponent } from '../../components/stores/store-card.co
 import { BannerPromotionCardComponent, BannerPromotionCardData } from '../../components/ads/banner-promotion-card.component';
 
 type AdPlacement = 'promoted listings' | 'store promotions' | 'banner ads';
-type AdStatus = 'active' | 'paused' | 'expired';
+type AdStatus = 'active' | 'paused' | 'expired' | 'pending approval';
 type ListingCategory = 'other listings' | 'automobile listings' | 'property listings';
 
 interface SummaryStat {
@@ -52,7 +52,181 @@ interface RunningAd {
   ],
   providers: [provideIcons({ heroPlus, heroChevronLeft, heroChevronRight })],
   template: `
-    <div class="flex h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]">
+    <div class="mx-auto w-full max-w-[420px] bg-[#F7F7FA] px-4 pt-4 pb-8 md:hidden">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <a
+            routerLink="/ads"
+            aria-label="Back to Ads"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
+          >
+            <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
+          </a>
+          <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">Running Ads</h1>
+        </div>
+
+        <button
+          type="button"
+          (click)="isCreateAdTypeModalOpen.set(true)"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#6653E4] text-white shadow-[0_14px_28px_-18px_rgba(102,83,228,0.9)]"
+          aria-label="Create ad"
+        >
+          <ng-icon name="heroPlus" class="text-[14px]"></ng-icon>
+        </button>
+      </div>
+
+      <div class="mt-5 grid grid-cols-3 gap-3 border-y border-[#F0F1F4] py-4">
+        @for (stat of mobileSummaryStats(); track stat.label) {
+          <div class="border-r border-[#F0F1F4] pr-2 last:border-r-0">
+            <p class="text-[9px] text-[#A0A4AD]">{{ stat.label }}</p>
+            <p class="mt-1 text-[12px] font-semibold text-[#2B2F36]">{{ stat.value }}</p>
+          </div>
+        }
+      </div>
+
+      <div class="mt-4 flex items-center gap-4 overflow-x-auto border-b border-[#F0F0F2] pb-3 text-[11px] font-medium [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        @for (tab of placementTabs; track tab.value) {
+          <button
+            type="button"
+            (click)="activePlacement.set(tab.value); resetMobilePlacementState(tab.value)"
+            class="inline-flex shrink-0 items-center gap-1.5 border-b pb-2 transition"
+            [class.border-[#6C5CE7]]="activePlacement() === tab.value"
+            [class.text-[#6C5CE7]]="activePlacement() === tab.value"
+            [class.border-transparent]="activePlacement() !== tab.value"
+            [class.text-[#9CA1AA]]="activePlacement() !== tab.value"
+          >
+            <span class="h-2 w-2 rounded-full" [class.bg-[#6C5CE7]]="activePlacement() === tab.value" [class.bg-[#D4D8E1]]="activePlacement() !== tab.value"></span>
+            {{ tab.label }}
+          </button>
+        }
+      </div>
+
+      @if (mobileStatusTabs().length > 0) {
+        <div class="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          @for (tab of mobileStatusTabs(); track tab.value) {
+            <button
+              type="button"
+              (click)="activeStatus.set(tab.value)"
+              class="shrink-0 rounded-full px-3 py-1.5 text-[10px] font-medium transition"
+              [class.bg-[#1F2024]]="activeStatus() === tab.value"
+              [class.text-white]="activeStatus() === tab.value"
+              [class.bg-[#F4F4F6]]="activeStatus() !== tab.value"
+              [class.text-[#4B4F57]]="activeStatus() !== tab.value"
+            >
+              {{ tab.label }}({{ countByStatus(tab.value) }})
+            </button>
+          }
+        </div>
+      }
+
+      @if (mobileShowsUpgradeState()) {
+        <div class="flex min-h-[56vh] flex-col items-center justify-center px-6 text-center">
+          <div class="relative mb-8 h-[150px] w-full max-w-[180px] opacity-70">
+            <img
+              ngSrc="assets/images/empty_state.svg"
+              alt="Upgrade required"
+              fill
+              class="object-contain"
+            >
+          </div>
+
+          <h2 class="text-[16px] font-semibold leading-tight tracking-[-0.03em] text-[#24262D]">
+            {{ mobileUpgradeTitle() }}
+          </h2>
+
+          <p class="mt-2 text-[11px] text-[#9297A1]">
+            {{ mobileUpgradeDescription() }}
+          </p>
+
+          <button
+            type="button"
+            (click)="navigateToPlans()"
+            class="mt-6 rounded-full bg-[#F2F3F5] px-6 py-2.5 text-[11px] font-medium text-[#2F333B]"
+          >
+            Upgrade plan
+          </button>
+        </div>
+      } @else if (!mobileHasVisibleContent()) {
+        <div class="flex min-h-[56vh] flex-col items-center justify-center px-6 text-center">
+          <div class="relative mb-8 h-[150px] w-full max-w-[180px] opacity-70">
+            <img
+              ngSrc="assets/images/empty_state.svg"
+              alt="No running ads"
+              fill
+              class="object-contain"
+            >
+          </div>
+
+          <h2 class="text-[16px] font-semibold leading-tight tracking-[-0.03em] text-[#24262D]">
+            {{ emptyStateTitle() }}
+          </h2>
+
+          <p class="mt-2 text-[11px] text-[#9297A1]">
+            {{ emptyStateDescription() }}
+          </p>
+
+          <button
+            type="button"
+            (click)="isCreateAdTypeModalOpen.set(true)"
+            class="mt-6 rounded-full bg-[#F2F3F5] px-6 py-2.5 text-[11px] font-medium text-[#2F333B]"
+          >
+            {{ emptyStateActionLabel() }}
+          </button>
+        </div>
+      } @else if (activePlacement() === 'banner ads') {
+        <section class="mt-4 space-y-4">
+          @for (banner of visibleBannerAds(); track banner.id) {
+            <app-banner-promotion-card [card]="banner"></app-banner-promotion-card>
+          }
+        </section>
+      } @else if (activePlacement() === 'store promotions') {
+        <section class="mt-4 grid grid-cols-2 gap-3">
+          @for (store of promotedStores(); track store.id) {
+            <app-store-card [store]="store" [showFavorite]="false"></app-store-card>
+          }
+        </section>
+      } @else {
+        @for (section of mobileSectionedAds(); track section.category) {
+          <section class="mt-5">
+            <div class="mb-3 flex items-center justify-between">
+              <h2 class="text-[15px] font-semibold tracking-[-0.03em] text-[#23262D]">{{ section.label }}</h2>
+              @if ($index === 0) {
+                <button type="button" class="text-[10px] font-medium text-[#4B4F57]">View all (3,341)</button>
+              }
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              @for (ad of section.items; track ad.id) {
+                <article
+                  [routerLink]="['/ads/running', ad.id]"
+                  class="cursor-pointer overflow-hidden rounded-[18px] border border-[#ECEEF3] bg-white shadow-[0_12px_24px_-24px_rgba(17,24,39,0.55)]"
+                >
+                  <div class="relative m-2 aspect-[0.92] overflow-hidden rounded-[14px]">
+                    <img [src]="ad.image" [alt]="ad.title" class="h-full w-full object-cover">
+                    <div class="absolute left-1.5 top-1.5 rounded-full bg-[#F2F5A7] px-1.5 py-1 text-[8px] font-bold text-[#6A6B1F]">
+                      Active until {{ ad.expiresOn }}
+                    </div>
+                  </div>
+
+                  <div class="px-2.5 pb-3">
+                    <h3 class="line-clamp-1 text-[11px] font-medium text-[#2A2D34]">{{ ad.title }}</h3>
+                    <p class="mt-1 text-[13px] font-semibold text-[#2A2D34]">{{ ad.price }}</p>
+
+                    <div class="mt-2 flex flex-wrap items-center gap-2 text-[9px] text-[#ADB1B9]">
+                      <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>{{ ad.views }}</span>
+                      <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>{{ ad.clicks }}</span>
+                      <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>{{ ad.saves }}</span>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        }
+      }
+    </div>
+
+    <div class="hidden h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] md:flex">
       <div class="flex items-center justify-between border-b border-[#F0F0F2] px-8 py-6">
         <h1 class="text-[20px] font-black tracking-tight text-[#1A1C21]">Ads &gt; Running Ads</h1>
 
@@ -279,6 +453,7 @@ interface RunningAd {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RunningAdsPageComponent {
+  private readonly router = inject(Router);
   readonly summaryStats: SummaryStat[] = [
     { label: 'Current plan', value: 'Enterprise' },
     { label: 'Automobile listings', value: 'Unlimited' },
@@ -362,7 +537,7 @@ export class RunningAdsPageComponent {
     },
     {
       id: 'banner-4',
-      status: 'expired',
+      status: 'pending approval',
       title: 'Back to school deals',
       subtitle: 'Campaign ended',
       primaryFigure: '54',
@@ -608,6 +783,63 @@ export class RunningAdsPageComponent {
     })),
   );
 
+  readonly mobileStatusTabs = computed(() => {
+    if (this.activePlacement() === 'banner ads') {
+      return [
+        { label: 'Active', value: 'active' as const },
+        { label: 'Paused', value: 'paused' as const },
+        { label: 'Pending approval', value: 'pending approval' as const },
+      ];
+    }
+
+    return this.statusTabs;
+  });
+
+  readonly mobileSummaryStats = computed(() => {
+    if (this.activePlacement() === 'store promotions' || this.activePlacement() === 'banner ads') {
+      const hasAccess = this.activeStatus() === 'active';
+      return [
+        { label: 'Current plan', value: hasAccess ? 'Enterprise' : 'Free' },
+        { label: this.activePlacement() === 'store promotions' ? 'Store promotions' : 'Banner ads', value: hasAccess ? 'Unlimited' : '0/5 left' },
+        { label: 'Promoted listings', value: hasAccess ? 'Unlimited' : '3/5 left' },
+      ];
+    }
+
+    return [
+      { label: 'Current plan', value: 'Free' },
+      { label: 'Automobile listings', value: '3/5 left' },
+      { label: 'Property listings', value: '3/5 left' },
+    ];
+  });
+
+  readonly mobileShowsUpgradeState = computed(() =>
+    (this.activePlacement() === 'store promotions' || this.activePlacement() === 'banner ads') &&
+    this.activeStatus() !== 'active',
+  );
+
+  readonly mobileHasVisibleContent = computed(() =>
+    this.activePlacement() === 'banner ads'
+      ? this.visibleBannerAds().length > 0
+      : this.activePlacement() === 'store promotions'
+        ? this.promotedStores().length > 0
+        : this.filteredAds().length > 0,
+  );
+
+  readonly mobileSectionedAds = computed(() => {
+    const sections: Array<{ category: ListingCategory; label: string; items: RunningAd[] }> = [
+      { category: 'other listings', label: 'Phones & Laptops', items: [] },
+      { category: 'automobile listings', label: 'Automobile listings', items: [] },
+      { category: 'property listings', label: 'Property listings', items: [] },
+    ];
+
+    return sections
+      .map(section => ({
+        ...section,
+        items: this.filteredAds().filter(ad => ad.category === section.category),
+      }))
+      .filter(section => section.items.length > 0);
+  });
+
   private readonly storeLogoMap: Record<string, string> = {
     'store-1': 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png',
     'store-2': 'https://cdn-icons-png.flaticon.com/512/1047/1047648.png',
@@ -641,6 +873,18 @@ export class RunningAdsPageComponent {
     this.activePlacement() === 'store promotions' ? 'Upgrade plan' : 'Create Ad',
   );
 
+  readonly mobileUpgradeTitle = computed(() =>
+    this.activePlacement() === 'store promotions'
+      ? 'You can’t feature stores on the Free plan'
+      : 'You can’t post banner on the Free plan',
+  );
+
+  readonly mobileUpgradeDescription = computed(() =>
+    this.activePlacement() === 'store promotions'
+      ? 'Upgrade plan to feature your store(s)'
+      : 'Upgrade your plan to post banner',
+  );
+
   countByStatus(status: AdStatus): number {
     if (this.activePlacement() === 'banner ads') {
       return this.bannerAds().filter(ad => ad.status === status).length;
@@ -666,6 +910,17 @@ export class RunningAdsPageComponent {
         this.activeStatus.set('active');
         break;
     }
+  }
+
+  resetMobilePlacementState(placement: AdPlacement): void {
+    this.activeStatus.set('active');
+    if (placement === 'banner ads') {
+      this.activeStatus.set('active');
+    }
+  }
+
+  navigateToPlans(): void {
+    void this.router.navigateByUrl('/ads/plans');
   }
 
 }

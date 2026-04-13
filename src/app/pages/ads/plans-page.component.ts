@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroSparklesSolid, heroCheckSolid } from '@ng-icons/heroicons/solid';
 import { AdsSubscriptionModalComponent } from './components/ads-subscription-modal.component';
@@ -19,10 +20,102 @@ interface PlanFeature {
 
 @Component({
   selector: 'app-ads-plans-page',
-  imports: [CommonModule, NgIcon, AdsSubscriptionModalComponent],
+  imports: [CommonModule, RouterLink, NgIcon, AdsSubscriptionModalComponent],
   providers: [provideIcons({ heroSparklesSolid, heroCheck: heroCheckSolid })],
   template: `
-    <div class="flex h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]">
+    <div class="mx-auto w-full max-w-[420px] bg-[#F7F7FA] px-4 pt-4 pb-8 md:hidden">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            (click)="goToAdsMenu()"
+            aria-label="Back to Ads"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-[16px] w-[16px]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M11.78 4.22a.75.75 0 010 1.06L7.06 10l4.72 4.72a.75.75 0 11-1.06 1.06l-5.25-5.25a.75.75 0 010-1.06l5.25-5.25a.75.75 0 011.06 0z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">Plans</h1>
+        </div>
+      </div>
+
+      <div class="mt-5 inline-flex w-full items-center gap-3 rounded-[14px] bg-[#F5F3FF] px-3 py-3 text-[11px] font-medium text-[#4A4F57]">
+        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[#6D5AF0] shadow-sm">
+          <ng-icon name="heroSparklesSolid" class="text-[12px]"></ng-icon>
+        </span>
+        Your subscription expires on 27 April, 2026
+      </div>
+
+      <div class="mt-4 flex items-center rounded-full border border-[#EFEFF3] bg-white p-1 shadow-[0_10px_18px_-18px_rgba(18,24,39,0.45)]">
+        @for (tab of billingTabs; track tab.id) {
+          <button
+            type="button"
+            (click)="activeBillingTab.set(tab.id)"
+            class="rounded-full px-3 py-2 text-[10px] font-medium transition"
+            [class.bg-[#F7F7FA]]="activeBillingTab() === tab.id"
+            [class.text-[#3A3E46]]="activeBillingTab() === tab.id"
+            [class.text-[#9A9EA8]]="activeBillingTab() !== tab.id"
+          >
+            {{ tab.label }}
+            @if (tab.id === 'monthly') {
+              <span class="text-[#C7B97A]">Save ~ 20%</span>
+            }
+          </button>
+        }
+      </div>
+
+      <div class="mt-4 flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        @for (card of mobilePlans(); track card.id) {
+          <article
+            class="min-w-[160px] flex-1 rounded-[20px] border bg-white p-4 shadow-[0_10px_24px_-24px_rgba(17,24,39,0.55)]"
+            [class.border-[#EEEFF3]]="card.id !== 'pro'"
+            [class.border-[#E0D3FF]]="card.id === 'pro'"
+            [class.shadow-[inset_0_0_0_1px_rgba(114,90,242,0.18)]]="card.id === 'pro'"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <p class="text-[13px] font-semibold text-[#1D2027]">{{ card.name }}</p>
+                <div class="mt-3 flex items-baseline gap-1">
+                  <span class="text-[17px] font-black text-[#1D2027]">{{ card.price }}</span>
+                </div>
+                <p class="mt-1 text-[10px] text-[#8A8E96]">{{ card.billing }}</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="card.id === 'free' ? null : openSubscriptionModal(card.id)"
+              [disabled]="card.id === 'free'"
+              class="mt-4 w-full rounded-full px-3 py-2 text-[10px] font-medium"
+              [class.border]="card.id === 'free'"
+              [class.border-[#E8E8ED]]="card.id === 'free'"
+              [class.bg-[#FAFAFB]]="card.id === 'free'"
+              [class.text-[#A7AAB2]]="card.id === 'free'"
+              [class.bg-[#6653E4]]="card.id !== 'free'"
+              [class.text-white]="card.id !== 'free'"
+              [class.shadow-[0_16px_30px_-18px_rgba(102,83,228,0.9)]]="card.id !== 'free'"
+            >
+              {{ card.cta }}
+            </button>
+
+            <div class="mt-4">
+              <p class="text-[10px] font-medium text-[#1D2027]">What you'll get</p>
+              <div class="mt-3 space-y-2">
+                @for (feature of card.features; track feature) {
+                  <div class="flex items-start gap-2 text-[9px] text-[#555B66]">
+                    <ng-icon name="heroCheck" class="mt-0.5 text-[10px] text-[#7A6AF1]"></ng-icon>
+                    <span>{{ feature }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+
+    <div class="hidden h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] md:flex">
       <div class="border-b border-[#F0F0F2] px-8 py-6">
         <h1 class="text-[20px] font-black tracking-tight text-[#1A1C21]">Ads &gt; Plans</h1>
       </div>
@@ -174,14 +267,15 @@ interface PlanFeature {
         </div>
       </div>
 
-      @if (isSubscriptionModalOpen()) {
-        <app-ads-subscription-modal
-          [plan]="selectedPlanType()"
-          (close)="isSubscriptionModalOpen.set(false)"
-          (subscribe)="isSubscriptionModalOpen.set(false)"
-        ></app-ads-subscription-modal>
-      }
     </div>
+
+    @if (isSubscriptionModalOpen()) {
+      <app-ads-subscription-modal
+        [plan]="selectedPlanType()"
+        (close)="isSubscriptionModalOpen.set(false)"
+        (subscribe)="isSubscriptionModalOpen.set(false)"
+      ></app-ads-subscription-modal>
+    }
   `,
   host: {
     class: 'block h-full'
@@ -189,6 +283,8 @@ interface PlanFeature {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdsPlansPageComponent {
+  private readonly router = inject(Router);
+
   readonly billingTabs: BillingTab[] = [
     { id: 'weekly', label: 'Weekly billing' },
     { id: 'monthly', label: 'Monthly billing' },
@@ -221,8 +317,74 @@ export class AdsPlansPageComponent {
     { label: 'Store promotion', free: '-', pro: '-', premium: '1', enterprise: 'Unlimited' },
   ];
 
+  readonly mobilePlans = computed(() => {
+    const billing = this.activeBillingTab();
+    const unit = billing === 'monthly' ? 'Billed monthly' : billing === 'yearly' ? 'Billed yearly' : 'Billed weekly';
+
+    return [
+      {
+        id: 'free' as const,
+        name: 'Free',
+        price: '₦0',
+        billing: '',
+        cta: 'Current plan',
+        features: [
+          'Limited Ad views',
+          '1 listing in Automobile',
+          '1 listing in Property',
+          '5 listings in Other categories',
+        ],
+      },
+      {
+        id: 'pro' as const,
+        name: 'Pro',
+        price: billing === 'monthly' ? '₦3,200' : billing === 'yearly' ? '₦26,600' : '₦1,000',
+        billing: unit,
+        cta: 'Get Pro',
+        features: [
+          'Unlimited Ad views',
+          '5 listings in Automobile',
+          '5 listings in Property',
+          '15 listings in Other categories',
+          '1 promotional image banner listing',
+        ],
+      },
+      {
+        id: 'premium' as const,
+        name: 'Premium',
+        price: billing === 'monthly' ? '₦4,800' : billing === 'yearly' ? '₦39,000' : '₦1,500',
+        billing: unit,
+        cta: 'Get Premium',
+        features: [
+          'Unlimited Ad views',
+          'Unlimited Automobile listings',
+          'Unlimited Property listings',
+          '10 Promoted listings',
+          '1 promotional video banner listing',
+        ],
+      },
+      {
+        id: 'enterprise' as const,
+        name: 'Enterprise',
+        price: billing === 'monthly' ? '₦6,400' : billing === 'yearly' ? '₦52,000' : '₦2,000',
+        billing: unit,
+        cta: 'Get Enterprise',
+        features: [
+          'Unlimited Ad views',
+          'Unlimited listings in all categories',
+          '10 Promoted listings',
+          'Unlimited store promotions',
+        ],
+      },
+    ];
+  });
+
   openSubscriptionModal(plan: 'pro' | 'premium' | 'enterprise'): void {
     this.selectedPlanType.set(plan);
     this.isSubscriptionModalOpen.set(true);
+  }
+
+  goToAdsMenu(): void {
+    void this.router.navigateByUrl('/ads');
   }
 }

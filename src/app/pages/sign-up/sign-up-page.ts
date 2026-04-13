@@ -20,9 +20,9 @@ import { OtpInputComponent } from '../../components/common/otp-input/otp-input.c
 export class SignUpPageComponent {
   private readonly router = inject(Router);
   
-  // Multi-step management: 1=Email, 2=Identity, 3=OTP, 4=Security
+  // Multi-step management: 1=Email, 2=OTP, 3=Security
   protected readonly currentStep = signal(1);
-  protected readonly totalSteps = 4;
+  protected readonly totalSteps = 3;
   protected readonly submitted = signal(false);
   protected readonly isProcessing = signal(false);
 
@@ -31,11 +31,7 @@ export class SignUpPageComponent {
       nonNullable: true,
       validators: [Validators.required, Validators.email],
     }),
-    firstName: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    lastName: new FormControl('', {
+    fullName: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -54,16 +50,15 @@ export class SignUpPageComponent {
   });
 
   protected readonly emailControl = this.signupForm.controls.email;
-  protected readonly firstNameControl = this.signupForm.controls.firstName;
-  protected readonly lastNameControl = this.signupForm.controls.lastName;
+  protected readonly fullNameControl = this.signupForm.controls.fullName;
   protected readonly otpControl = this.signupForm.controls.otp;
   protected readonly passwordControl = this.signupForm.controls.password;
   protected readonly confirmPasswordControl = this.signupForm.controls.confirmPassword;
 
   protected readonly isStep1Valid = computed(() => this.emailControl.valid);
-  protected readonly isStep2Valid = computed(() => this.firstNameControl.valid && this.lastNameControl.valid);
-  protected readonly isStep3Valid = computed(() => this.otpControl.valid);
-  protected readonly isStep4Valid = computed(() => 
+  protected readonly isStep2Valid = computed(() => this.otpControl.valid);
+  protected readonly isStep3Valid = computed(() => 
+    this.fullNameControl.valid &&
     this.passwordControl.valid && 
     this.confirmPasswordControl.value === this.passwordControl.value
   );
@@ -82,21 +77,13 @@ export class SignUpPageComponent {
       }, 800);
     } else if (step === 2 && this.isStep2Valid()) {
       this.isProcessing.set(true);
-      // Mock OTP send
+      // Mock OTP verify
       setTimeout(() => {
         this.isProcessing.set(false);
         this.currentStep.set(3);
         this.submitted.set(false);
-      }, 1000);
-    } else if (step === 3 && this.isStep3Valid()) {
-      this.isProcessing.set(true);
-      // Mock OTP verify
-      setTimeout(() => {
-        this.isProcessing.set(false);
-        this.currentStep.set(4);
-        this.submitted.set(false);
       }, 800);
-    } else if (step === 4 && this.isStep4Valid()) {
+    } else if (step === 3 && this.isStep3Valid()) {
       this.finishSignup();
     }
   }

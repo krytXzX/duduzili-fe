@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, inject, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroXMark } from '@ng-icons/heroicons/outline';
+import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 @Component({
   selector: 'app-verification-details-modal',
@@ -110,6 +111,15 @@ import { heroXMark } from '@ng-icons/heroicons/outline';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VerificationDetailsModalComponent {
+export class VerificationDetailsModalComponent implements OnDestroy {
   close = output<void>();
+  private readonly mobileOverlayService = inject(MobileOverlayService);
+
+  constructor() {
+    this.mobileOverlayService.openMobileModal();
+  }
+
+  ngOnDestroy(): void {
+    this.mobileOverlayService.closeMobileModal();
+  }
 }

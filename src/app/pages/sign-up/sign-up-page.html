@@ -2,15 +2,14 @@
   class="m-0 w-full max-w-72 text-center text-[24px] leading-tight font-medium text-[#15162b] sm:max-w-88 lg:w-112.75 lg:max-w-none lg:leading-none">
   @switch (currentStep()) {
   @case (1) { Create your Duduzili account }
-  @case (2) { Tell us about yourself }
-  @case (3) { We emailed you a code }
-  @case (4) { Create a secure password }
+  @case (2) { We emailed you a code }
+  @case (3) { Create a secure password }
   }
 </h1>
 
 <!-- Progress Indicator -->
 <div class="flex w-full items-center gap-2 px-4 lg:px-0">
-  @for (step of [1, 2, 3, 4]; track step) {
+  @for (step of [1, 2, 3]; track step) {
   <div class="h-1 flex-1 rounded-full transition-all duration-300" [class.bg-[#6453d9]]="step <= currentStep()"
     [class.bg-[#efefef]]="step > currentStep()"></div>
   }
@@ -53,31 +52,8 @@
   </div>
   }
 
-  <!-- Step 2: Name Details -->
+  <!-- Step 2: OTP Verification -->
   @if (currentStep() === 2) {
-  <div class="flex flex-col gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
-    <div class="relative">
-      <label class="mb-1 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]" for="first-name">
-        First name
-      </label>
-      <input id="first-name"
-        class="h-11 w-full rounded-[16px] border border-[#efefef] bg-white px-4 text-[14px] text-[#36394a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 transition-all font-sans"
-        type="text" formControlName="firstName" autocomplete="given-name" />
-    </div>
-
-    <div class="relative">
-      <label class="mb-1 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]" for="last-name">
-        Last name
-      </label>
-      <input id="last-name"
-        class="h-11 w-full rounded-[16px] border border-[#efefef] bg-white px-4 text-[14px] text-[#36394a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 transition-all font-sans"
-        type="text" formControlName="lastName" autocomplete="family-name" />
-    </div>
-  </div>
-  }
-
-  <!-- Step 3: OTP Verification -->
-  @if (currentStep() === 3) {
   <div class="flex flex-col gap-6 animate-in fade-in slide-in-from-right-4 duration-300 items-center">
     <p class="text-[14px] text-[#777777] text-center px-4">
       Enter the verification code we sent to <span class="font-bold text-[#15162b]">{{ emailControl.value }}</span>
@@ -96,9 +72,18 @@
   </div>
   }
 
-  <!-- Step 4: Password Security -->
-  @if (currentStep() === 4) {
+  <!-- Step 3: Full Name + Password Security -->
+  @if (currentStep() === 3) {
   <div class="flex flex-col gap-5 animate-in fade-in slide-in-from-right-4 duration-300">
+    <div class="relative">
+      <label class="mb-1 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]" for="full-name">
+        Full name
+      </label>
+      <input id="full-name"
+        class="h-11 w-full rounded-[16px] border border-[#efefef] bg-white px-4 text-[14px] text-[#36394a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 transition-all font-sans"
+        type="text" formControlName="fullName" autocomplete="name" />
+    </div>
+
     <div class="relative">
       <label class="mb-1 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]" for="password">
         Create password
@@ -115,9 +100,9 @@
       </label>
       <input id="confirm-password"
         class="h-11 w-full rounded-[16px] border border-[#efefef] bg-white px-4 text-[14px] text-[#36394a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10 transition-all font-sans"
-        [class.border-red-400]="submitted() && !isStep4Valid() && confirmPasswordControl.touched"
+        [class.border-red-400]="submitted() && !isStep3Valid() && confirmPasswordControl.touched"
         type="password" formControlName="confirmPassword" />
-      @if (submitted() && !isStep4Valid() && confirmPasswordControl.touched) {
+      @if (submitted() && !isStep3Valid() && confirmPasswordControl.touched) {
         <p class="mt-1 text-xs text-red-500 font-medium animate-in fade-in duration-200">Passwords do not match.</p>
       }
     </div>
@@ -145,7 +130,7 @@
         </path>
       </svg>
       }
-      {{ currentStep() === 4 ? 'Complete Sign Up' : 'Continue' }}
+      {{ currentStep() === 3 ? 'Complete Sign Up' : 'Continue' }}
     </button>
   </div>
 </form>

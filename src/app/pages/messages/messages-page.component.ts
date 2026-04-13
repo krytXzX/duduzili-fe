@@ -28,6 +28,8 @@ interface Conversation {
   unreadCount?: number;
   avatar: string;
   online?: boolean;
+  subtitle?: string;
+  storeLabel?: string;
 }
 
 @Component({
@@ -48,8 +50,244 @@ interface Conversation {
     }),
   ],
   template: `
+    <div class="mx-auto h-full min-h-0 max-w-[1400px] animate-in fade-in duration-700 md:hidden">
+      @if (!isMobileConversationOpen()) {
+        <div class="flex h-full min-h-0 flex-col px-5 pb-10 pt-7">
+          <header class="shrink-0">
+            <div class="flex items-center justify-between">
+              <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">Chats</h1>
+              <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F6F7FA] text-[#6B7280]">
+                <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
+              </button>
+            </div>
+
+            @if (!isBuyerView()) {
+              <button
+                type="button"
+                (click)="showMobileStoreSheet.set(true)"
+                class="mt-4 flex min-h-9 items-center gap-2 rounded-full border border-[#ECEEF4] bg-white px-3 py-2 text-[11px] font-medium text-[#202335] shadow-[0_10px_20px_-22px_rgba(31,36,48,0.45)]"
+              >
+                <span class="flex -space-x-1.5">
+                  <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop" class="h-4 w-4 rounded-full border border-white object-cover" alt="">
+                  <img src="https://images.unsplash.com/photo-1554151228-14d9def656e4?w=40&h=40&fit=crop" class="h-4 w-4 rounded-full border border-white object-cover" alt="">
+                  <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop" class="h-4 w-4 rounded-full border border-white object-cover" alt="">
+                </span>
+                <span>{{ selectedStoreLabel() }}</span>
+                <ng-icon name="heroChevronDown" class="text-[14px] text-[#8A8F9A]"></ng-icon>
+              </button>
+            }
+          </header>
+
+          <div class="mt-5 flex-1 overflow-y-auto pb-24">
+            <div class="space-y-2">
+              @for (chat of conversations(); track chat.id) {
+                <button
+                  type="button"
+                  (click)="openMobileConversation(chat.id)"
+                  class="flex w-full items-center gap-3 rounded-[16px] px-1 py-2 text-left"
+                >
+                  <div class="relative h-11 w-11 shrink-0">
+                    <img [src]="chat.avatar" [alt]="chat.name" class="h-full w-full rounded-full object-cover">
+                    <div class="absolute -bottom-0.5 -right-0.5 h-4 w-4 overflow-hidden rounded-full border-2 border-white bg-white shadow-sm">
+                      <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=30&h=30&fit=crop" class="h-full w-full object-cover" alt="">
+                    </div>
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-start justify-between gap-2">
+                      <h3 class="truncate text-[12px] font-medium text-[#202335]">{{ chat.name }}</h3>
+                      <span class="shrink-0 text-[9px] text-[#8A8F9A]">{{ chat.time }}</span>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between gap-2">
+                      <p class="truncate text-[10px] text-[#8A8F9A]">{{ chat.lastMessage }}</p>
+                      @if (chat.unreadCount) {
+                        <span class="rounded-full bg-[#6F56F6] px-1.5 py-0.5 text-[8px] font-medium text-white">{{ chat.unreadCount }}</span>
+                      }
+                    </div>
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="flex h-full min-h-0 flex-col bg-white">
+          <header class="flex items-center justify-between border-b border-[#ECEEF4] px-4 py-3">
+            <div class="flex items-center gap-3">
+              <button type="button" (click)="closeMobileConversation()" class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F6F7FA] text-[#202335]">
+                <ng-icon name="heroChevronDown" class="rotate-90 text-[16px]"></ng-icon>
+              </button>
+
+              <div class="relative h-9 w-9 shrink-0">
+                <img [src]="activeChat()?.avatar" [alt]="activeChat()?.name || 'Chat avatar'" class="h-full w-full rounded-full object-cover">
+                <div class="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#25D366]"></div>
+              </div>
+
+              <div>
+                <h2 class="text-[12px] font-medium text-[#202335]">{{ activeChat()?.name }}</h2>
+                <p class="text-[9px] text-[#8A8F9A]">{{ activeChat()?.subtitle || 'Active 15 mins ago' }}</p>
+              </div>
+            </div>
+
+            <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6B7280]">
+              <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
+            </button>
+          </header>
+
+          <div class="flex-1 overflow-y-auto px-4 py-4">
+            <div class="space-y-4">
+              <div class="flex justify-center">
+                <span class="text-[9px] uppercase tracking-[0.18em] text-[#C4C8D2]">Today</span>
+              </div>
+
+              <div class="max-w-[78%] rounded-[18px] rounded-tl-[6px] bg-[#F3F4F7] px-3 py-2.5 text-[11px] leading-5 text-[#202335]">
+                Good morning, yes i still have the iphone 17 pro max available
+              </div>
+
+              <div class="ml-auto max-w-[78%] rounded-[18px] rounded-tr-[6px] bg-[#6F56F6] px-3 py-2.5 text-[11px] leading-5 text-white">
+                Good day👋. Alright great, i want the orang one with 3 cameras delivered this weekend
+              </div>
+
+              <div class="max-w-[82%]">
+                <p class="mb-1 ml-2 text-[9px] text-[#A0A5B1]">Replied to you</p>
+                <div class="rounded-[14px] border-l-2 border-[#B6A8FF] bg-[#F2EEFF] px-3 py-2 text-[10px] leading-4 text-[#8A7BF4]">
+                  Good day👋. Alright great, i want the orang one with 3 cameras delivered this weekend
+                </div>
+                <div class="mt-1 rounded-[18px] rounded-tl-[6px] bg-[#F3F4F7] px-3 py-2.5 text-[11px] leading-5 text-[#202335]">
+                  That’s no problem at all. We can meet at a place of your choosing 👍
+                </div>
+              </div>
+
+              <div class="ml-auto max-w-[78%] rounded-[18px] rounded-tr-[6px] bg-[#6F56F6] px-3 py-2.5 text-[11px] leading-5 text-white">
+                Alright. Please send me some pictures of the phone
+              </div>
+
+              <div class="ml-auto flex max-w-[150px] -space-x-6">
+                <img src="https://images.unsplash.com/photo-1696446701796-da61225697cc?w=300&fit=crop" alt="" class="h-20 w-20 rounded-[18px] border-4 border-white object-cover shadow-md">
+                <img src="https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=300&fit=crop" alt="" class="mt-4 h-20 w-20 rounded-[18px] border-4 border-white object-cover shadow-md">
+              </div>
+
+              <div class="max-w-[78%] rounded-[18px] rounded-tl-[6px] bg-white px-3 py-2 shadow-[0_10px_18px_-18px_rgba(31,36,48,0.45)]">
+                <div class="flex items-center gap-2">
+                  <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#6F56F6] text-white">
+                    <span class="text-[8px]">▶</span>
+                  </button>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-1">
+                      @for (bar of voiceWaveBars; track $index) {
+                        <span class="w-0.5 rounded-full bg-[#202335]/70" [style.height.px]="bar"></span>
+                      }
+                    </div>
+                  </div>
+                  <span class="text-[8px] text-[#8A8F9A]">0:15</span>
+                </div>
+              </div>
+
+              <div class="ml-auto max-w-[78%] rounded-[18px] rounded-tr-[6px] bg-[#6F56F6] px-3 py-2 text-white shadow-[0_16px_24px_-20px_rgba(111,86,246,0.95)]">
+                <div class="flex items-center gap-2">
+                  <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white">
+                    <span class="text-[8px]">▶</span>
+                  </button>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-1">
+                      @for (bar of voiceWaveBars; track $index) {
+                        <span class="w-0.5 rounded-full bg-white/90" [style.height.px]="bar"></span>
+                      }
+                    </div>
+                  </div>
+                  <span class="text-[8px] text-white/80">0:15</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          @if (!isRecordingVoice()) {
+            <div class="border-t border-[#ECEEF4] bg-white px-4 py-3">
+              <div class="flex items-center gap-3">
+                <button type="button" class="inline-flex h-8 w-8 items-center justify-center text-[#6B7280]">
+                  <ng-icon name="heroPhoto" class="text-[16px]"></ng-icon>
+                </button>
+                <div class="relative flex-1">
+                  <input
+                    type="text"
+                    [value]="draftMessage()"
+                    (input)="updateDraftMessage($event)"
+                    placeholder="Type a message.."
+                    class="h-10 w-full rounded-full bg-[#F6F7FA] px-4 pr-10 text-[11px] text-[#202335] outline-none placeholder:text-[#A0A5B1]"
+                  >
+                  <button type="button" (click)="isRecordingVoice.set(true)" class="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]">
+                    <ng-icon name="heroMicrophone" class="text-[16px]"></ng-icon>
+                  </button>
+                </div>
+                <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#6F56F6] text-white">
+                  <span class="text-[12px]">➤</span>
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="border-t border-[#ECEEF4] bg-white px-4 py-3">
+              <div class="flex items-center gap-3 rounded-full bg-[#F6F7FA] px-4 py-2.5">
+                <button type="button" (click)="cancelRecording()" class="text-[12px] text-[#8A8F9A]">×</button>
+                <span class="text-[10px] font-medium text-red-500">Recording...</span>
+                <div class="flex flex-1 items-center gap-1">
+                  @for (bar of recordingWaveBars; track $index) {
+                    <span class="w-0.5 rounded-full bg-[#202335]" [style.height.px]="bar"></span>
+                  }
+                </div>
+                <span class="text-[10px] text-[#8A8F9A]">0:15</span>
+                <button type="button" (click)="finishRecording()" class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#6F56F6] text-white">
+                  <span class="text-[11px]">➤</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (showMobileStoreSheet()) {
+        <div class="fixed inset-0 z-[80] bg-black/20 md:hidden" (click)="showMobileStoreSheet.set(false)"></div>
+        <section class="fixed inset-x-0 bottom-0 z-[90] rounded-t-[30px] bg-white px-4 pb-5 pt-3 shadow-2xl md:hidden">
+          <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E7E8EE]"></div>
+          <div class="mt-2 flex justify-end">
+            <button type="button" (click)="showMobileStoreSheet.set(false)" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-sm">
+              <span class="text-[16px]">×</span>
+            </button>
+          </div>
+
+          <div class="mt-2">
+            <label class="relative block">
+              <ng-icon name="heroMagnifyingGlass" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A0A5B1] text-[14px]"></ng-icon>
+              <input type="text" placeholder="Search store" class="h-10 w-full rounded-full bg-[#F6F7FA] pl-10 pr-4 text-[11px] outline-none placeholder:text-[#A0A5B1]">
+            </label>
+          </div>
+
+          <div class="mt-4 space-y-1">
+            @for (store of mobileStoreOptions; track store.id) {
+              <button
+                type="button"
+                (click)="selectStore(store.id)"
+                class="flex w-full items-center justify-between rounded-[18px] px-3 py-3 text-left"
+              >
+                <div class="flex items-center gap-3">
+                  <img [src]="store.avatar" [alt]="store.label" class="h-8 w-8 rounded-full object-cover">
+                  <div>
+                    <p class="text-[11px] font-medium text-[#202335]">{{ store.label }}</p>
+                    <p class="text-[9px] text-[#8A8F9A]">{{ store.meta }}</p>
+                  </div>
+                </div>
+
+                @if (selectedStoreId() === store.id) {
+                  <ng-icon name="heroCheck" class="text-[14px] text-[#6F56F6]"></ng-icon>
+                }
+              </button>
+            }
+          </div>
+        </section>
+      }
+    </div>
+
     <div
-      class="mx-auto flex h-full min-h-0 max-w-[1400px] flex-col overflow-hidden px-6 py-6 animate-in fade-in duration-700 sm:px-8"
+      class="mx-auto hidden h-full min-h-0 max-w-[1400px] flex-col overflow-hidden px-6 py-6 animate-in fade-in duration-700 md:flex sm:px-8"
     >
       <!-- Top Header -->
       <header class="mb-8 flex shrink-0 items-center justify-between px-2">
@@ -439,10 +677,46 @@ export class MessagesPageComponent {
 
   showStoreDropdown = signal(false);
   selectedStoreId = signal('all');
+  showMobileStoreSheet = signal(false);
 
   activeChatId = signal('2');
+  isMobileConversationOpen = signal(false);
+  isRecordingVoice = signal(false);
+  draftMessage = signal('');
   readonly isBuyerView = computed(() => this.router.url.startsWith('/buyer'));
   readonly pageTitle = computed(() => this.isBuyerView() ? 'Chats' : 'Messages');
+  readonly selectedStoreLabel = computed(() => {
+    const activeStore = this.mobileStoreOptions.find((store) => store.id === this.selectedStoreId());
+    return activeStore?.label ?? 'All stores (4)';
+  });
+  protected readonly voiceWaveBars = [5, 9, 12, 7, 10, 6, 11, 8, 4, 9, 12, 6] as const;
+  protected readonly recordingWaveBars = [4, 8, 13, 6, 15, 10, 7, 14, 9, 5, 12] as const;
+  protected readonly mobileStoreOptions = [
+    {
+      id: 'all',
+      label: 'All stores (4)',
+      meta: 'All accounts',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop',
+    },
+    {
+      id: 'vine',
+      label: 'The Vine Collections',
+      meta: 'Ikeja, Lagos',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=50&h=50&fit=crop',
+    },
+    {
+      id: 'eden',
+      label: 'Eden Organics',
+      meta: 'Warri, Delta',
+      avatar: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=200&fit=crop',
+    },
+    {
+      id: 'personal',
+      label: 'Personal profile',
+      meta: 'Bryan Odjede',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop',
+    },
+  ] as const;
 
   conversations = signal<Conversation[]>([
     {
@@ -452,6 +726,7 @@ export class MessagesPageComponent {
       time: '15 hrs',
       unreadCount: 148,
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
+      subtitle: 'Bryan Odjede',
     },
     {
       id: '2',
@@ -460,6 +735,7 @@ export class MessagesPageComponent {
       time: 'Just now',
       avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop',
       online: true,
+      subtitle: 'Active 15 mins ago',
     },
     {
       id: '3',
@@ -467,8 +743,37 @@ export class MessagesPageComponent {
       lastMessage: 'Can we meet on Thursday?',
       time: '20/02/2024',
       avatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop',
+      subtitle: 'Active 1 hr ago',
     },
   ]);
 
   activeChat = () => this.conversations().find((c) => c.id === this.activeChatId());
+
+  protected openMobileConversation(chatId: string): void {
+    this.activeChatId.set(chatId);
+    this.isMobileConversationOpen.set(true);
+  }
+
+  protected closeMobileConversation(): void {
+    this.isMobileConversationOpen.set(false);
+    this.isRecordingVoice.set(false);
+  }
+
+  protected updateDraftMessage(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    this.draftMessage.set(input?.value ?? '');
+  }
+
+  protected cancelRecording(): void {
+    this.isRecordingVoice.set(false);
+  }
+
+  protected finishRecording(): void {
+    this.isRecordingVoice.set(false);
+  }
+
+  protected selectStore(storeId: string): void {
+    this.selectedStoreId.set(storeId);
+    this.showMobileStoreSheet.set(false);
+  }
 }

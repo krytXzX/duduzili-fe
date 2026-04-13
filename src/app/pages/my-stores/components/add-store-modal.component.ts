@@ -1,19 +1,127 @@
-import { ChangeDetectionStrategy, Component, output, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroXMark, heroCamera, heroCheck } from '@ng-icons/heroicons/outline';
+import { heroXMark, heroCamera, heroCheck, heroChevronDown, heroUser, heroPlus } from '@ng-icons/heroicons/outline';
+import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 
 @Component({
   selector: 'app-add-store-modal',
   imports: [CommonModule, ReactiveFormsModule, NgIcon],
   providers: [
-    provideIcons({ heroXMark, heroCamera, heroCheck })
+    provideIcons({ heroXMark, heroCamera, heroCheck, heroChevronDown, heroUser, heroPlus })
   ],
   template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity animate-in fade-in duration-300" (click)="close.emit()">
+      <div
+        class="fixed inset-x-0 bottom-0 top-3 rounded-t-[34px] bg-white px-4 pb-4 pt-3 shadow-2xl md:hidden"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E7E8EE]"></div>
+
+        <div class="mt-2 flex justify-end">
+          <button
+            type="button"
+            (click)="close.emit()"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
+            aria-label="Close add store flow"
+          >
+            <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
+          </button>
+        </div>
+
+        <div class="mt-2 flex h-[calc(100%-3.25rem)] flex-col overflow-hidden text-[#202335]">
+          <div class="flex-1 overflow-y-auto pb-4">
+            <h2 class="text-[18px] font-semibold tracking-[-0.03em]">Add new store</h2>
+
+            <section class="mt-5">
+              <h3 class="text-[14px] font-semibold">General information</h3>
+              <p class="mt-1 text-[10px] leading-4 text-[#8A8F9A]">Fill out general information about this store</p>
+
+              <form [formGroup]="storeForm" class="mt-5 space-y-4">
+                <div>
+                  <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Store name</label>
+                  <input
+                    type="text"
+                    formControlName="name"
+                    class="h-11 w-full rounded-[12px] border border-[#E6E8EE] bg-white px-3 text-[12px] outline-none"
+                  >
+                </div>
+
+                <div>
+                  <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Location</label>
+                  <div class="relative">
+                    <select
+                      formControlName="location"
+                      class="h-11 w-full appearance-none rounded-[12px] border border-[#E6E8EE] bg-white px-3 pr-10 text-[12px] outline-none"
+                    >
+                      <option value="" disabled>Select location</option>
+                      <option value="lagos">Lagos, Nigeria</option>
+                      <option value="abuja">Abuja, Nigeria</option>
+                      <option value="accra">Accra, Ghana</option>
+                    </select>
+                    <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8A8F9A]">
+                      <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">WhatsApp Number</label>
+                  <input
+                    type="tel"
+                    formControlName="phone"
+                    class="h-11 w-full rounded-[12px] border border-[#E6E8EE] bg-white px-3 text-[12px] outline-none"
+                  >
+                </div>
+
+                <div>
+                  <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Call number</label>
+                  <input
+                    type="tel"
+                    formControlName="phone"
+                    class="h-11 w-full rounded-[12px] border border-[#E6E8EE] bg-white px-3 text-[12px] outline-none"
+                  >
+                </div>
+              </form>
+            </section>
+
+            <section class="mt-6">
+              <h3 class="text-[14px] font-semibold">Profile photo</h3>
+              <p class="mt-1 text-[10px] leading-4 text-[#8A8F9A]">Recommended size: 100 x 100</p>
+
+              <button
+                type="button"
+                (click)="simulateUpload('profile')"
+                class="relative mt-3 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-[#E6E8EE] bg-[#F7F8FA] text-[#A0A5B1]"
+                aria-label="Upload store profile photo"
+              >
+                @if (profilePreview()) {
+                  <img [src]="profilePreview()" alt="Store profile preview" class="h-full w-full object-cover">
+                } @else {
+                  <ng-icon name="heroUser" class="text-[26px]"></ng-icon>
+                }
+
+                <span class="absolute bottom-[-2px] right-[-2px] inline-flex h-6 w-6 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#6B7280] shadow-sm">
+                  <ng-icon name="heroPlus" class="text-[12px]"></ng-icon>
+                </span>
+              </button>
+            </section>
+          </div>
+
+          <button
+            type="button"
+            (click)="onSubmit()"
+            [disabled]="!storeForm.valid"
+            class="rounded-full bg-[#6F56F6] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_30px_-18px_rgba(111,86,246,0.95)] disabled:opacity-50"
+          >
+            Add store
+          </button>
+        </div>
+      </div>
+
       <div 
-        class="bg-white rounded-[40px] w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl transition-all animate-in zoom-in-95 slide-in-from-bottom-8 duration-500"
+        class="hidden max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[40px] bg-white shadow-2xl transition-all animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 md:flex md:flex-col"
         (click)="$event.stopPropagation()"
       >
         <!-- Header -->
@@ -172,11 +280,12 @@ import { heroXMark, heroCamera, heroCheck } from '@ng-icons/heroicons/outline';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AddStoreModalComponent {
+export class AddStoreModalComponent implements OnDestroy {
   close = output<void>();
   submit = output<any>();
 
   private readonly fb = inject(FormBuilder);
+  private readonly mobileOverlayService = inject(MobileOverlayService);
   
   readonly categories = ['Electronics', 'Fashion', 'Home Decor', 'Beauty', 'Health', 'Travel', 'Food', 'Other'];
   readonly selectedCategories = signal<string[]>([]);
@@ -189,6 +298,10 @@ export class AddStoreModalComponent {
     categories: [[]],
     phone: ['', [Validators.required, Validators.pattern(/^[0-9+ ]+$/)]]
   });
+
+  constructor() {
+    this.mobileOverlayService.openMobileModal();
+  }
 
   toggleCategory(cat: string) {
     this.selectedCategories.update(prev => 
@@ -218,5 +331,9 @@ export class AddStoreModalComponent {
         banner: this.coverPreview() || 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=200&fit=crop'
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.mobileOverlayService.closeMobileModal();
   }
 }

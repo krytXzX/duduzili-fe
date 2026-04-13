@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, output, signal, computed, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, output, signal, computed, viewChild, inject } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -14,12 +14,12 @@ import {
   heroArrowUpTray,
   heroChevronDown
 } from '@ng-icons/heroicons/outline';
+import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
-export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload' | 'camera_capture' | 'selfie_intro' | 'selfie_capture' | 'success';
+export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload' | 'camera_capture' | 'selfie_intro' | 'selfie_capture' | 'selfie_review' | 'success';
 
 @Component({
   selector: 'app-identity-verification-modal',
-  standalone: true,
   imports: [CommonModule, NgIcon, FormsModule, NgOptimizedImage],
   providers: [
     provideIcons({ 
@@ -36,9 +36,301 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
     })
   ],
   template: `
-    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">
+    <div class="fixed inset-0 z-[230] animate-in fade-in duration-300 md:flex md:items-center md:justify-center md:p-4">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+      <div
+        class="fixed inset-x-0 bottom-0 top-3 z-[240] rounded-t-[34px] bg-white px-4 pb-5 pt-3 shadow-2xl md:hidden"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E7E8EE]"></div>
+
+        <div class="mt-2 flex justify-end">
+          <button
+            type="button"
+            (click)="close.emit()"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
+            aria-label="Close verification flow"
+          >
+            <ng-icon name="heroXMark" class="text-[22px]"></ng-icon>
+          </button>
+        </div>
+
+        <div class="mt-3 flex h-[calc(100%-3.5rem)] flex-col overflow-hidden">
+          @if (currentStep() === 'intro') {
+            <div class="flex flex-1 flex-col overflow-y-auto px-1 pb-3 pt-2 text-[#202335]">
+              <div class="relative mx-auto h-28 w-28">
+                <img
+                  ngSrc="/assets/images/identity_verification_id_card_illustration.png"
+                  fill
+                  class="object-contain"
+                  alt="Identity verification"
+                >
+              </div>
+
+              <h2 class="mt-4 text-center text-[17px] font-semibold tracking-[-0.03em]">Verify your identity</h2>
+              <p class="mt-3 text-center text-[11px] leading-5 text-[#8A8F9A]">
+                We need to verify your identity so we can stay secure and compliant. Please be prepared to upload the following:
+              </p>
+
+              <div class="mt-6 space-y-5 rounded-[22px] bg-[#FCFCFD] px-4 py-4">
+                <section>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[13px] font-semibold text-[#5E44EE]">01.</span>
+                    <h3 class="text-[13px] font-semibold">Government ID</h3>
+                  </div>
+                  <ul class="mt-2 space-y-1.5 pl-5 text-[11px] leading-5 text-[#6D7280]">
+                    <li>Clear and readable. Good lighting helps.</li>
+                    <li>Not too close to expiration date.</li>
+                    <li>Pictures required. No screenshots or photocopies.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[13px] font-semibold text-[#5E44EE]">02.</span>
+                    <h3 class="text-[13px] font-semibold">Selfie</h3>
+                  </div>
+                  <ul class="mt-2 space-y-1.5 pl-5 text-[11px] leading-5 text-[#6D7280]">
+                    <li>Clear photo taken live by you.</li>
+                    <li>No passport photos or other generic pictures.</li>
+                  </ul>
+                </section>
+              </div>
+
+              <button
+                type="button"
+                (click)="nextStep()"
+                class="mt-auto rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]"
+              >
+                Start verification
+              </button>
+            </div>
+          } @else if (currentStep() === 'success') {
+            <div class="flex flex-1 flex-col items-center justify-center px-4 pb-5 text-center text-[#202335]">
+              <div class="relative h-28 w-28">
+                <img
+                  ngSrc="/assets/images/identity_verification_id_card_illustration.png"
+                  fill
+                  class="object-contain"
+                  alt=""
+                >
+              </div>
+
+              <h2 class="mt-5 text-[17px] font-semibold tracking-[-0.03em]">ID Verification Submitted</h2>
+              <p class="mt-3 max-w-[250px] text-[11px] leading-5 text-[#8A8F9A]">
+                Your documents have been uploaded successfully. Our team will review it shortly and you’ll be notified once it is approved.
+              </p>
+
+              <button
+                type="button"
+                (click)="submitted.emit(); close.emit()"
+                class="mt-8 min-w-[140px] rounded-full bg-[#5E44EE] px-7 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]"
+              >
+                Done
+              </button>
+            </div>
+          } @else {
+            <div class="flex flex-1 flex-col overflow-hidden">
+              <div class="grid grid-cols-4 gap-2 px-1 pb-4 pt-1">
+                @for (segment of mobileProgressSegments; track segment) {
+                  <div
+                    class="h-0.5 rounded-full"
+                    [class.bg-[#5E44EE]]="segment <= mobileProgressStep()"
+                    [class.bg-[#E9EAF0]]="segment > mobileProgressStep()"
+                  ></div>
+                }
+              </div>
+
+              <div class="flex-1 overflow-y-auto px-1 pb-3 text-[#202335]">
+                @if (currentStep() === 'selection') {
+                  <h2 class="text-[17px] font-semibold tracking-[-0.03em]">Choose an ID type to add</h2>
+
+                  <div class="mt-4">
+                    <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Issuing country</label>
+                    <div class="relative">
+                      <select
+                        [(ngModel)]="selectedCountry"
+                        class="h-11 w-full appearance-none rounded-[12px] border border-[#E6E8EE] bg-white px-3 pr-10 text-[12px] text-[#202335] outline-none"
+                      >
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="United States">United States</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                        <option value="Canada">Canada</option>
+                      </select>
+                      <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8A8F9A]">
+                        <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 space-y-3">
+                    @for (doc of documentTypes; track doc.id) {
+                      <button
+                        type="button"
+                        (click)="selectedDocType.set(doc.id)"
+                        class="flex w-full items-center justify-between rounded-[14px] border px-3 py-3 text-left"
+                        [class.border-[#5E44EE]]="selectedDocType() === doc.id"
+                        [class.bg-[#F6F4FF]]="selectedDocType() === doc.id"
+                        [class.border-[#ECEEF4]]="selectedDocType() !== doc.id"
+                        [class.bg-white]="selectedDocType() !== doc.id"
+                      >
+                        <span class="text-[12px] font-medium">{{ doc.name }}</span>
+                        <span class="inline-flex h-4 w-4 items-center justify-center rounded-full border"
+                          [class.border-[#5E44EE]]="selectedDocType() === doc.id"
+                          [class.border-[#D7D9E0]]="selectedDocType() !== doc.id">
+                          @if (selectedDocType() === doc.id) {
+                            <span class="h-2 w-2 rounded-full bg-[#5E44EE]"></span>
+                          }
+                        </span>
+                      </button>
+                    }
+                  </div>
+
+                  <p class="mt-5 text-[10px] leading-4 text-[#8A8F9A]">
+                    Your ID will be handled according to our
+                    <a href="#" class="text-[#5E44EE] underline">Privacy Policy</a>
+                    and won’t be shared with anyone.
+                  </p>
+                }
+
+                @if (currentStep() === 'upload_method') {
+                  <h2 class="text-[17px] font-semibold tracking-[-0.03em]">How would you like to add your government ID?</h2>
+                  <p class="mt-2 text-[11px] leading-5 text-[#8A8F9A]">You can upload it file by file or use your webcam.</p>
+
+                  <div class="mt-5 space-y-3">
+                    <button
+                      type="button"
+                      (click)="selectedUploadMethod.set('file')"
+                      class="flex w-full items-center justify-between rounded-[14px] border px-3 py-4 text-left"
+                      [class.border-[#5E44EE]]="selectedUploadMethod() === 'file'"
+                      [class.bg-[#F6F4FF]]="selectedUploadMethod() === 'file'"
+                      [class.border-[#ECEEF4]]="selectedUploadMethod() !== 'file'"
+                    >
+                      <span class="text-[12px] font-medium">Upload an existing photo</span>
+                      <span class="inline-flex h-4 w-4 items-center justify-center rounded-full border"
+                        [class.border-[#5E44EE]]="selectedUploadMethod() === 'file'"
+                        [class.border-[#D7D9E0]]="selectedUploadMethod() !== 'file'">
+                        @if (selectedUploadMethod() === 'file') {
+                          <span class="h-2 w-2 rounded-full bg-[#5E44EE]"></span>
+                        }
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="selectedUploadMethod.set('webcam')"
+                      class="flex w-full items-center justify-between rounded-[14px] border px-3 py-4 text-left"
+                      [class.border-[#5E44EE]]="selectedUploadMethod() === 'webcam'"
+                      [class.bg-[#F6F4FF]]="selectedUploadMethod() === 'webcam'"
+                      [class.border-[#ECEEF4]]="selectedUploadMethod() !== 'webcam'"
+                    >
+                      <span class="text-[12px] font-medium">Take a photo with a webcam</span>
+                      <span class="inline-flex h-4 w-4 items-center justify-center rounded-full border"
+                        [class.border-[#5E44EE]]="selectedUploadMethod() === 'webcam'"
+                        [class.border-[#D7D9E0]]="selectedUploadMethod() !== 'webcam'">
+                        @if (selectedUploadMethod() === 'webcam') {
+                          <span class="h-2 w-2 rounded-full bg-[#5E44EE]"></span>
+                        }
+                      </span>
+                    </button>
+                  </div>
+                }
+
+                @if (currentStep() === 'upload') {
+                  <h2 class="text-[17px] font-semibold tracking-[-0.03em]">Upload images of your identity card</h2>
+                  <p class="mt-2 text-[11px] leading-5 text-[#8A8F9A]">Make sure your photos are not blurry and the front of your card clearly shows your face.</p>
+
+                  <div class="mt-5 grid grid-cols-1 gap-4">
+                    <div>
+                      <input #frontUploadInput type="file" accept="image/*" class="hidden" (change)="onDocumentUpload('front', $event)">
+                      <div class="rounded-[18px] border border-dashed border-[#D9DCE5] bg-[#FAFBFD] px-4 py-5 text-center">
+                        @if (capturedDocumentFront()) {
+                          <img [src]="capturedDocumentFront()" alt="Front of ID" class="h-28 w-full rounded-[14px] object-cover">
+                        } @else {
+                          <div class="flex h-28 items-center justify-center rounded-[14px] bg-white text-[#B7BBC7]">
+                            <ng-icon name="heroArrowUpTray" class="text-[24px]"></ng-icon>
+                          </div>
+                        }
+                        <button type="button" (click)="openFilePicker(frontUploadInput, $event)" class="mt-4 rounded-full bg-white px-5 py-2 text-[11px] font-medium text-[#202335] shadow-sm">
+                          {{ capturedDocumentFront() ? 'Replace front' : 'Upload front' }}
+                        </button>
+                        <p class="mt-2 text-[10px] text-[#A0A5B1]">Jpeg, Png only</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <input #backUploadInput type="file" accept="image/*" class="hidden" (change)="onDocumentUpload('back', $event)">
+                      <div class="rounded-[18px] border border-dashed border-[#D9DCE5] bg-[#FAFBFD] px-4 py-5 text-center">
+                        @if (capturedDocumentBack()) {
+                          <img [src]="capturedDocumentBack()" alt="Back of ID" class="h-28 w-full rounded-[14px] object-cover">
+                        } @else {
+                          <div class="flex h-28 items-center justify-center rounded-[14px] bg-white text-[#B7BBC7]">
+                            <ng-icon name="heroArrowUpTray" class="text-[24px]"></ng-icon>
+                          </div>
+                        }
+                        <button type="button" (click)="openFilePicker(backUploadInput, $event)" class="mt-4 rounded-full bg-white px-5 py-2 text-[11px] font-medium text-[#202335] shadow-sm">
+                          {{ capturedDocumentBack() ? 'Replace back' : 'Upload back' }}
+                        </button>
+                        <p class="mt-2 text-[10px] text-[#A0A5B1]">Jpeg, Png only</p>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                @if (currentStep() === 'selfie_intro') {
+                  <h2 class="text-[17px] font-semibold tracking-[-0.03em]">Take a photo of yourself</h2>
+                  <p class="mt-2 text-[11px] leading-5 text-[#8A8F9A]">Keep your face clearly visible and ensure your whole face is in the oval.</p>
+
+                  <div class="mt-5 flex justify-center">
+                    <div class="relative h-[260px] w-full max-w-[174px] overflow-hidden rounded-[18px] bg-[#F4F5F8]">
+                      @if (cameraReady() && !capturedSelfie()) {
+                        <video #selfieVideo autoplay playsinline muted class="h-full w-full object-cover scale-x-[-1]"></video>
+                      } @else {
+                        <img [src]="capturedSelfie() || selfiePlaceholderImage" alt="Selfie preview" class="h-full w-full object-cover">
+                      }
+                      <div class="pointer-events-none absolute inset-4 rounded-[999px] border-2 border-white/90"></div>
+                    </div>
+                  </div>
+                }
+
+                @if (currentStep() === 'selfie_review') {
+                  <h2 class="text-[17px] font-semibold tracking-[-0.03em]">Review your photo</h2>
+                  <p class="mt-2 text-[11px] leading-5 text-[#8A8F9A]">Make sure it’s well-lit, clear and matches the person in the ID.</p>
+
+                  <div class="mt-5 flex justify-center">
+                    <div class="relative h-[260px] w-full max-w-[174px] overflow-hidden rounded-[18px] bg-[#F4F5F8]">
+                      <img [src]="capturedSelfie() || selfiePlaceholderImage" alt="Review selfie" class="h-full w-full object-cover">
+                      <div class="pointer-events-none absolute inset-4 rounded-[999px] border-2 border-white/90"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 pt-3">
+                @if (currentStep() === 'selection') {
+                  <button type="button" (click)="nextStep()" class="col-span-2 rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]" [disabled]="!selectedDocType()" [class.opacity-50]="!selectedDocType()">Continue</button>
+                } @else if (currentStep() === 'upload_method') {
+                  <button type="button" (click)="goBack()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335]">Back</button>
+                  <button type="button" (click)="nextStep()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]" [disabled]="!selectedUploadMethod()" [class.opacity-50]="!selectedUploadMethod()">Continue</button>
+                } @else if (currentStep() === 'upload') {
+                  <button type="button" (click)="goBack()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335]">Back</button>
+                  <button type="button" (click)="nextStep()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]" [disabled]="!hasDocumentImages()" [class.opacity-50]="!hasDocumentImages()">Continue</button>
+                } @else if (currentStep() === 'selfie_intro') {
+                  <button type="button" (click)="captureSelfieForReview()" class="col-span-2 rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]">Take photo</button>
+                } @else if (currentStep() === 'selfie_review') {
+                  <button type="button" (click)="retakeSelfieForReview()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335]">Retake photo</button>
+                  <button type="button" (click)="submitSelfieReview()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]">Submit photo</button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
       <div 
-        class="bg-white w-full max-w-3xl max-h-[90vh] rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 flex flex-col"
+        class="relative z-[240] hidden max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-[32px] bg-white shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 md:flex md:flex-col"
+        style="margin: 1rem;"
         (click)="$event.stopPropagation()"
       >
         <!-- Header -->
@@ -92,13 +384,13 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                   <div class="flex items-center gap-3">
                      <div 
                       class="h-px w-3 transition-all duration-300"
-                      [class.bg-[#5932EA]]="['selfie_intro', 'selfie_capture'].includes(currentStep())"
-                      [class.bg-gray-200]="!['selfie_intro', 'selfie_capture'].includes(currentStep())"
+                      [class.bg-[#5932EA]]="['selfie_intro', 'selfie_capture', 'selfie_review'].includes(currentStep())"
+                      [class.bg-gray-200]="!['selfie_intro', 'selfie_capture', 'selfie_review'].includes(currentStep())"
                      ></div>
                      <span 
                       class="text-sm font-semibold tracking-tight transition-colors duration-300"
-                      [class.text-[#1A1C21]]="['selfie_intro', 'selfie_capture'].includes(currentStep())"
-                      [class.text-gray-300]="!['selfie_intro', 'selfie_capture'].includes(currentStep())"
+                      [class.text-[#1A1C21]]="['selfie_intro', 'selfie_capture', 'selfie_review'].includes(currentStep())"
+                      [class.text-gray-300]="!['selfie_intro', 'selfie_capture', 'selfie_review'].includes(currentStep())"
                      >
                         Selfie
                      </span>
@@ -628,28 +920,34 @@ export class IdentityVerificationModalComponent implements OnDestroy {
   close = output<void>();
   submitted = output<void>();
 
+  private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly documentVideoRef = viewChild<ElementRef<HTMLVideoElement>>('documentVideo');
   private readonly selfieVideoRef = viewChild<ElementRef<HTMLVideoElement>>('selfieVideo');
   
-  currentStep = signal<VerificationStep>('intro');
-  selectedCountry = 'Nigeria';
-  selectedDocType = signal<string | null>(null);
-  selectedUploadMethod = signal<'file' | 'webcam' | null>(null);
-  capturedDocumentFront = signal<string | null>(null);
-  capturedDocumentBack = signal<string | null>(null);
-  capturedSelfie = signal<string | null>(null);
-  activeDocumentCaptureSide = signal<'front' | 'back'>('front');
-  cameraReady = signal(false);
+  protected readonly currentStep = signal<VerificationStep>('intro');
+  protected selectedCountry = 'Nigeria';
+  protected readonly selectedDocType = signal<string | null>(null);
+  protected readonly selectedUploadMethod = signal<'file' | 'webcam' | null>(null);
+  protected readonly capturedDocumentFront = signal<string | null>(null);
+  protected readonly capturedDocumentBack = signal<string | null>(null);
+  protected readonly capturedSelfie = signal<string | null>(null);
+  protected readonly activeDocumentCaptureSide = signal<'front' | 'back'>('front');
+  protected readonly cameraReady = signal(false);
+  protected readonly mobileProgressSegments = [0, 1, 2, 3] as const;
+  protected readonly selfiePlaceholderImage = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=700&h=920&fit=crop';
 
   private mediaStream: MediaStream | null = null;
   private createdObjectUrls = new Set<string>();
 
-  documentTypes = [
+  protected readonly documentTypes = [
+    { id: 'license', name: 'Driver’s licence', icon: '🪪' },
     { id: 'passport', name: 'Passport', icon: '🛂' },
-    { id: 'license', name: 'Driver\'s License', icon: '🪪' },
-    { id: 'id_card', name: 'Identity Card', icon: '🆔' },
-    { id: 'resident', name: 'Residence Permit', icon: '🏠' }
-  ];
+    { id: 'id_card', name: 'Identity card', icon: '🆔' },
+  ] as const;
+
+  constructor() {
+    this.mobileOverlayService.openMobileModal();
+  }
 
   title = computed(() => {
     switch (this.currentStep()) {
@@ -660,16 +958,35 @@ export class IdentityVerificationModalComponent implements OnDestroy {
       case 'camera_capture': return 'Verification';
       case 'selfie_intro': return 'Verification';
       case 'selfie_capture': return 'Face verification';
+      case 'selfie_review': return 'Face verification';
       case 'success': return '';
       default: return 'Identity Verification';
     }
   });
 
   progress = computed(() => {
-    const steps: VerificationStep[] = ['selection', 'upload_method', 'upload', 'camera_capture', 'selfie_intro', 'selfie_capture'];
+    const steps: VerificationStep[] = ['selection', 'upload_method', 'upload', 'camera_capture', 'selfie_intro', 'selfie_capture', 'selfie_review'];
     const idx = steps.indexOf(this.currentStep());
     if (idx === -1) return 0;
     return ((idx + 1) / steps.length) * 100;
+  });
+
+  protected readonly mobileProgressStep = computed(() => {
+    switch (this.currentStep()) {
+      case 'selection':
+        return 0;
+      case 'upload_method':
+      case 'upload':
+      case 'camera_capture':
+        return 1;
+      case 'selfie_intro':
+        return 2;
+      case 'selfie_review':
+      case 'selfie_capture':
+        return 3;
+      default:
+        return 0;
+    }
   });
 
   selectedDocTypeLabel = computed(() => {
@@ -697,12 +1014,14 @@ export class IdentityVerificationModalComponent implements OnDestroy {
         return;
       }
       this.currentStep.set('selfie_intro');
+      this.scheduleCameraStart();
     } else if (step === 'camera_capture') {
       if (!this.hasDocumentImages()) {
         return;
       }
       this.stopCamera();
       this.currentStep.set('selfie_intro');
+      this.scheduleCameraStart();
     } else if (step === 'selfie_intro') {
       this.currentStep.set('selfie_capture');
       this.scheduleCameraStart();
@@ -711,6 +1030,11 @@ export class IdentityVerificationModalComponent implements OnDestroy {
         return;
       }
       this.stopCamera();
+      this.currentStep.set('success');
+    } else if (step === 'selfie_review') {
+      if (!this.capturedSelfie()) {
+        return;
+      }
       this.currentStep.set('success');
     }
   }
@@ -726,6 +1050,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
       this.stopCamera();
       this.currentStep.set('upload_method');
     } else if (step === 'selfie_intro') {
+      this.stopCamera();
       if (this.selectedUploadMethod() === 'file') {
         this.currentStep.set('upload');
       } else {
@@ -735,6 +1060,10 @@ export class IdentityVerificationModalComponent implements OnDestroy {
     } else if (step === 'selfie_capture') {
       this.stopCamera();
       this.currentStep.set('selfie_intro');
+      this.scheduleCameraStart();
+    } else if (step === 'selfie_review') {
+      this.currentStep.set('selfie_intro');
+      this.scheduleCameraStart();
     }
   }
 
@@ -745,6 +1074,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
   ngOnDestroy() {
     this.stopCamera();
     this.revokeAllObjectUrls();
+    this.mobileOverlayService.closeMobileModal();
   }
 
   openFilePicker(input: HTMLInputElement, event?: Event) {
@@ -783,6 +1113,32 @@ export class IdentityVerificationModalComponent implements OnDestroy {
     }
 
     this.setManagedImage(this.capturedSelfie, captured);
+  }
+
+  protected captureSelfieForReview() {
+    const video = this.selfieVideoRef()?.nativeElement;
+    const captured = this.captureFrameFromVideo(video, true) ?? this.selfiePlaceholderImage;
+    this.setManagedImage(this.capturedSelfie, captured);
+    this.stopCamera();
+    this.currentStep.set('selfie_review');
+  }
+
+  protected retakeSelfieForReview() {
+    const previous = this.capturedSelfie();
+    if (previous) {
+      this.revokeObjectUrl(previous);
+    }
+    this.capturedSelfie.set(null);
+    this.currentStep.set('selfie_intro');
+    this.scheduleCameraStart();
+  }
+
+  protected submitSelfieReview() {
+    if (!this.capturedSelfie()) {
+      return;
+    }
+
+    this.currentStep.set('success');
   }
 
   private setDocumentImage(side: 'front' | 'back', imageUrl: string) {
@@ -856,7 +1212,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
         audio: false,
       });
 
-      const video = this.currentStep() === 'selfie_capture'
+      const video = ['selfie_intro', 'selfie_capture', 'selfie_review'].includes(this.currentStep())
         ? this.selfieVideoRef()?.nativeElement
         : this.documentVideoRef()?.nativeElement;
 

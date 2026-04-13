@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NavbarComponent } from '../../components/layout/navbar.component';
 import { HeroComponent } from '../../components/home/hero.component';
 import { CategoriesComponent } from '../../components/home/categories.component';
@@ -9,6 +9,7 @@ import { Listing, ListingCardComponent } from '../../components/listings/listing
 import { PromotionsComponent } from '../../components/home/promotions.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 import { FooterComponent } from '../../components/layout/footer.component';
+import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 
 @Component({
   selector: 'app-home-page',
@@ -16,6 +17,7 @@ import { FooterComponent } from '../../components/layout/footer.component';
   imports: [
     CommonModule,
     RouterLink,
+    RouterLinkActive,
     NavbarComponent,
     HeroComponent,
     CategoriesComponent,
@@ -23,7 +25,8 @@ import { FooterComponent } from '../../components/layout/footer.component';
     ListingCardComponent,
     PromotionsComponent,
     StoreCardComponent,
-    FooterComponent
+    FooterComponent,
+    MobileBottomNavComponent
   ],
   templateUrl: './home-page.component.html',
   host: {
