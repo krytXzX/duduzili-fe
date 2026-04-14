@@ -1,25 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  heroArrowLeft,
-  heroArrowTopRightOnSquare,
-  heroCalendarDays,
-  heroChatBubbleLeftRight,
-  heroChevronDown,
-  heroChevronRight,
-  heroEllipsisHorizontal,
-  heroEye,
-  heroMapPin,
-  heroPencilSquare,
-  heroRocketLaunch,
-  heroSquare3Stack3d,
-  heroTrash,
-  heroPause,
-  heroPlay,
-  heroClipboardDocumentList,
-} from '@ng-icons/heroicons/outline';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { PromoteListingModalComponent } from '../../components/listings/promote-listing-modal.component';
 
 type ListingTab = 'overview' | 'requests' | 'activities';
@@ -79,30 +61,29 @@ interface StatusOption {
   tone: 'available' | 'paused' | 'sold';
 }
 
+interface TabItem {
+  id: ListingTab;
+  label: string;
+  iconSrc: string;
+}
+
+interface ActionItem {
+  id: MobileActionId;
+  label: string;
+  iconSrc?: string;
+}
+
 type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
+type EditSectionId = 'media' | 'details' | 'delivery';
 
 @Component({
   selector: 'app-listing-details-page',
-  imports: [CommonModule, NgOptimizedImage, RouterLink, NgIcon, PromoteListingModalComponent],
-  providers: [
-    provideIcons({
-      heroArrowLeft,
-      heroArrowTopRightOnSquare,
-      heroCalendarDays,
-      heroChatBubbleLeftRight,
-      heroChevronDown,
-      heroChevronRight,
-      heroClipboardDocumentList,
-      heroEllipsisHorizontal,
-      heroEye,
-      heroMapPin,
-      heroPause,
-      heroPencilSquare,
-      heroPlay,
-      heroRocketLaunch,
-      heroSquare3Stack3d,
-      heroTrash,
-    }),
+  imports: [
+    CommonModule,
+    NgOptimizedImage,
+    RouterLink,
+    ReactiveFormsModule,
+    PromoteListingModalComponent,
   ],
   template: `
     <div class="mx-auto max-w-[1248px] px-4 pb-28 pt-4 md:px-0 md:pb-0 md:pt-0">
@@ -114,10 +95,19 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
               class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F7] text-[#202335]"
               aria-label="Back to listings"
             >
-              <ng-icon name="heroArrowLeft" class="text-[18px]"></ng-icon>
+              <img
+                ngSrc="/assets/icons/listing-details-back.svg"
+                alt=""
+                width="20"
+                height="20"
+                class="h-5 w-5"
+                aria-hidden="true"
+              />
             </a>
             <div>
-              <p class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">Listing details</p>
+              <p class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">
+                Listing details
+              </p>
             </div>
           </div>
 
@@ -127,41 +117,77 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
             class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F7] text-[#202335]"
             aria-label="Open listing actions"
           >
-            <ng-icon name="heroEllipsisHorizontal" class="text-[20px]"></ng-icon>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              class="h-5 w-5 fill-current"
+              aria-hidden="true"
+            >
+              <circle cx="4" cy="10" r="1.6" />
+              <circle cx="10" cy="10" r="1.6" />
+              <circle cx="16" cy="10" r="1.6" />
+            </svg>
           </button>
         </div>
 
         <section class="mt-6">
           <div class="flex flex-col gap-4">
             <div class="flex items-center gap-3">
-              <div class="relative h-[54px] w-[54px] shrink-0 overflow-hidden rounded-[10.8px] bg-[#EFEFEF]">
-              <img
-                [ngSrc]="listing().previewImage"
-                [alt]="listing().name"
-                fill
-                sizes="15vw"
-                class="object-cover"
-              />
+              <div
+                class="relative h-[54px] w-[54px] shrink-0 overflow-hidden rounded-[10.8px] bg-[#EFEFEF]"
+              >
+                <img
+                  [ngSrc]="listing().previewImage"
+                  [alt]="listing().name"
+                  fill
+                  priority
+                  sizes="15vw"
+                  class="object-cover"
+                />
               </div>
 
               <div class="min-w-0 flex-1">
-                <h1 class="truncate text-[18px] font-semibold leading-[1.3] tracking-[-0.03em] text-[#1A1B1D]">
-                    {{ listing().name }}
+                <h1
+                  class="truncate text-[18px] font-semibold leading-[1.3] tracking-[-0.03em] text-[#1A1B1D]"
+                >
+                  {{ listing().name }}
                 </h1>
-                <p class="mt-1 text-[13px] leading-[1.2] text-[#777777]">Last updated on: {{ listing().lastUpdated }}</p>
+                <p class="mt-1 text-[13px] leading-[1.2] text-[#777777]">
+                  Last updated on: {{ listing().lastUpdated }}
+                </p>
               </div>
 
-              <button
-                type="button"
-                (click)="showPromoteListingModal.set(true)"
-                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#2D2D2D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
-                aria-label="Promote listing"
-              >
-                <ng-icon name="heroRocketLaunch" class="text-[14px]"></ng-icon>
-              </button>
+              @if (listing().isPromoted) {
+                <button
+                  type="button"
+                  (click)="showPromoteListingModal.set(true)"
+                  class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#2D2D2D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                  aria-label="Promoted listing"
+                >
+                  <span class="text-[14px] leading-none" aria-hidden="true">🚀</span>
+                </button>
+              }
             </div>
 
             <div class="flex items-center gap-3">
+              @if (!listing().isPromoted) {
+                <button
+                  type="button"
+                  (click)="showPromoteListingModal.set(true)"
+                  class="inline-flex h-12 items-center gap-2 rounded-full border border-white bg-[#6453D9] px-4 text-[14px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                >
+                  <img
+                    ngSrc="/assets/icons/listing-details-tag-2.svg"
+                    alt=""
+                    width="14"
+                    height="14"
+                    class="h-[14px] w-[14px]"
+                    aria-hidden="true"
+                  />
+                  Promote listing
+                </button>
+              }
+
               <button
                 type="button"
                 (click)="statusSheetOpen.set(true)"
@@ -178,7 +204,14 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                     {{ listing().status }}
                   </span>
                 </span>
-                <ng-icon name="heroChevronDown" class="text-[14px] text-[#000000]"></ng-icon>
+                <img
+                  ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                  alt=""
+                  width="14"
+                  height="14"
+                  class="h-[14px] w-[14px]"
+                  aria-hidden="true"
+                />
               </button>
             </div>
           </div>
@@ -190,13 +223,20 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
               type="button"
               (click)="activeTab.set(tab.id)"
               class="relative flex shrink-0 items-center gap-2 pb-3 text-[13px] font-medium transition-colors"
-              [class.text-[#202335]]="activeTab() === tab.id"
+              [class.text-[#6453D9]]="activeTab() === tab.id"
               [class.text-[#8A8F9A]]="activeTab() !== tab.id"
             >
-              <ng-icon [name]="tab.icon" class="text-[16px]"></ng-icon>
+              <img
+                [ngSrc]="tab.iconSrc"
+                alt=""
+                width="16"
+                height="16"
+                class="h-4 w-4"
+                aria-hidden="true"
+              />
               {{ tab.label }}
               @if (activeTab() === tab.id) {
-                <span class="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#202335]"></span>
+                <span class="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#6453D9]"></span>
               }
             </button>
           }
@@ -225,20 +265,28 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
             </div>
 
             <div>
-              <h2 class="text-[24px] font-semibold tracking-[-0.04em] text-[#202335]">{{ listing().name }}</h2>
-              <div class="mt-2 flex items-center gap-2 text-[13px] text-[#707684]">
-                <ng-icon name="heroMapPin" class="text-[16px]"></ng-icon>
-                <span>{{ listing().location }}</span>
-              </div>
+              <h2 class="text-[24px] font-semibold tracking-[-0.04em] text-[#202335]">
+                {{ listing().name }}
+              </h2>
+              <p class="mt-2 text-[13px] text-[#707684]">{{ listing().location }}</p>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               @for (stat of overviewStats(); track stat.label) {
                 <article class="rounded-[22px] border border-[#E9EBF0] bg-white px-4 py-4">
                   <p class="text-[11px] text-[#8A8F9A]">{{ stat.label }}</p>
-                  <div class="mt-2 flex items-center gap-2 text-[14px] font-semibold text-[#202335]">
-                    @if (stat.icon) {
-                      <ng-icon [name]="stat.icon" class="text-[16px] text-[#8A8F9A]"></ng-icon>
+                  <div
+                    class="mt-2 flex items-center gap-2 text-[14px] font-semibold text-[#202335]"
+                  >
+                    @if (stat.iconSrc) {
+                      <img
+                        [ngSrc]="stat.iconSrc"
+                        alt=""
+                        width="16"
+                        height="16"
+                        class="h-4 w-4"
+                        aria-hidden="true"
+                      />
                     }
                     <span>{{ stat.value }}</span>
                   </div>
@@ -261,7 +309,14 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                   class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF3] bg-white text-[#202335]"
                   aria-label="Edit listing"
                 >
-                  <ng-icon name="heroPencilSquare" class="text-[18px]"></ng-icon>
+                  <img
+                    ngSrc="/assets/icons/listing-details-edit.svg"
+                    alt=""
+                    width="20"
+                    height="20"
+                    class="h-5 w-5"
+                    aria-hidden="true"
+                  />
                 </button>
               </div>
 
@@ -269,7 +324,9 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                 <p class="mb-3 text-[12px] text-[#8A8F9A]">Store</p>
                 <div class="flex items-center justify-between gap-3">
                   <div class="flex min-w-0 items-center gap-3">
-                    <div class="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#EEF4F0]">
+                    <div
+                      class="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#EEF4F0]"
+                    >
                       <img
                         [ngSrc]="listing().store.logo"
                         [alt]="listing().store.name"
@@ -281,8 +338,17 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
 
                     <div class="min-w-0">
                       <div class="flex items-center gap-1.5">
-                        <span class="truncate text-[14px] font-semibold text-[#202335]">{{ listing().store.name }}</span>
-                        <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#131A24] text-[10px] text-white">✓</span>
+                        <span class="truncate text-[14px] font-semibold text-[#202335]">{{
+                          listing().store.name
+                        }}</span>
+                        <img
+                          ngSrc="/assets/icons/listing-details-verify.svg"
+                          alt=""
+                          width="14"
+                          height="14"
+                          class="h-[14px] w-[14px]"
+                          aria-hidden="true"
+                        />
                       </div>
                       <p class="mt-1 text-[11px] text-[#8A8F9A]">Verified store</p>
                     </div>
@@ -293,26 +359,39 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                     class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF3] bg-white text-[#202335]"
                     aria-label="Open store"
                   >
-                    <ng-icon name="heroArrowTopRightOnSquare" class="text-[18px]"></ng-icon>
+                    <img
+                      ngSrc="/assets/icons/listing-details-export.svg"
+                      alt=""
+                      width="20"
+                      height="20"
+                      class="h-5 w-5"
+                      aria-hidden="true"
+                    />
                   </button>
                 </div>
               </div>
             </section>
 
             <section class="border-b border-[#ECEEF3] pb-6">
-              <h3 class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">Description</h3>
+              <h3 class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">
+                Description
+              </h3>
               <p class="mt-3 text-[14px] leading-7 text-[#5E6472]">
                 {{ listing().description }}
               </p>
             </section>
 
             <section>
-              <h3 class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">General details</h3>
+              <h3 class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">
+                General details
+              </h3>
               <div class="mt-5 space-y-4">
                 @for (detail of details(); track detail.label) {
                   <div class="flex items-start justify-between gap-5">
                     <span class="text-[13px] text-[#8A8F9A]">{{ detail.label }}</span>
-                    <span class="max-w-[60%] text-right text-[13px] font-medium leading-6 text-[#202335]">
+                    <span
+                      class="max-w-[60%] text-right text-[13px] font-medium leading-6 text-[#202335]"
+                    >
                       {{ detail.value }}
                     </span>
                   </div>
@@ -329,7 +408,9 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                 @for (request of requests(); track request.id) {
                   <article class="rounded-[22px] border border-[#E9EBF0] bg-white p-4">
                     <div class="flex items-start gap-3">
-                      <div class="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F3F4F7]">
+                      <div
+                        class="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F3F4F7]"
+                      >
                         <img
                           [ngSrc]="request.avatar"
                           [alt]="request.buyer"
@@ -341,7 +422,9 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
 
                       <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2">
-                          <p class="truncate text-[14px] font-semibold text-[#202335]">{{ request.buyer }}</p>
+                          <p class="truncate text-[14px] font-semibold text-[#202335]">
+                            {{ request.buyer }}
+                          </p>
                           <span
                             class="rounded-full px-2.5 py-1 text-[10px] font-medium"
                             [class.bg-[#EEFCEB]]="request.status === 'New'"
@@ -353,7 +436,9 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                           </span>
                         </div>
 
-                        <p class="mt-2 text-[13px] leading-6 text-[#5E6472]">{{ request.message }}</p>
+                        <p class="mt-2 text-[13px] leading-6 text-[#5E6472]">
+                          {{ request.message }}
+                        </p>
                         <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-[#8A8F9A]">
                           <span>{{ request.time }}</span>
                           <span>Offer: {{ request.offer }}</span>
@@ -364,9 +449,13 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                 }
               </div>
             } @else {
-              <div class="rounded-[24px] border border-dashed border-[#D9DCE3] bg-white px-6 py-12 text-center">
+              <div
+                class="rounded-[24px] border border-dashed border-[#D9DCE3] bg-white px-6 py-12 text-center"
+              >
                 <p class="text-[15px] font-semibold text-[#202335]">No requests yet</p>
-                <p class="mt-2 text-[13px] text-[#8A8F9A]">Buyer messages and offers will appear here when the backend returns data.</p>
+                <p class="mt-2 text-[13px] text-[#8A8F9A]">
+                  Buyer messages and offers will appear here when the backend returns data.
+                </p>
               </div>
             }
           </section>
@@ -379,13 +468,24 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                 @for (activity of activities(); track activity.id) {
                   <article class="rounded-[22px] border border-[#E9EBF0] bg-white p-4">
                     <div class="flex items-start gap-3">
-                      <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]">
-                        <ng-icon name="heroClipboardDocumentList" class="text-[18px]"></ng-icon>
+                      <div
+                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]"
+                      >
+                        <img
+                          ngSrc="/assets/icons/listing-details-tab-activities.svg"
+                          alt=""
+                          width="18"
+                          height="18"
+                          class="h-[18px] w-[18px]"
+                          aria-hidden="true"
+                        />
                       </div>
 
                       <div class="min-w-0 flex-1">
                         <p class="text-[14px] font-semibold text-[#202335]">{{ activity.title }}</p>
-                        <p class="mt-2 text-[13px] leading-6 text-[#5E6472]">{{ activity.description }}</p>
+                        <p class="mt-2 text-[13px] leading-6 text-[#5E6472]">
+                          {{ activity.description }}
+                        </p>
                         <p class="mt-3 text-[11px] text-[#8A8F9A]">{{ activity.time }}</p>
                       </div>
                     </div>
@@ -393,9 +493,13 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                 }
               </div>
             } @else {
-              <div class="rounded-[24px] border border-dashed border-[#D9DCE3] bg-white px-6 py-12 text-center">
+              <div
+                class="rounded-[24px] border border-dashed border-[#D9DCE3] bg-white px-6 py-12 text-center"
+              >
                 <p class="text-[15px] font-semibold text-[#202335]">No activities yet</p>
-                <p class="mt-2 text-[13px] text-[#8A8F9A]">Status changes, edits, and promotions will appear here when data is available.</p>
+                <p class="mt-2 text-[13px] text-[#8A8F9A]">
+                  Status changes, edits, and promotions will appear here when data is available.
+                </p>
               </div>
             }
           </section>
@@ -409,14 +513,19 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
           <span class="font-medium text-[#202335]">Listing details</span>
         </nav>
 
-        <section class="rounded-[32px] border border-[#E9EBF0] bg-white p-8 shadow-[0_20px_50px_-38px_rgba(18,24,35,0.35)]">
+        <section
+          class="rounded-[32px] border border-[#E9EBF0] bg-white p-8 shadow-[0_20px_50px_-38px_rgba(18,24,35,0.35)]"
+        >
           <div class="flex items-start justify-between gap-6 border-b border-[#ECEEF3] pb-7">
             <div class="flex items-start gap-4">
-              <div class="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[24px] bg-[#F3F4F7]">
+              <div
+                class="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[24px] bg-[#F3F4F7]"
+              >
                 <img
                   [ngSrc]="listing().previewImage"
                   [alt]="listing().name"
                   fill
+                  priority
                   sizes="8vw"
                   class="object-cover"
                 />
@@ -427,11 +536,16 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                   <h1 class="text-[22px] font-semibold tracking-[-0.04em] text-[#202335]">
                     {{ listing().name }}
                   </h1>
-                  <span class="inline-flex rounded-full px-4 py-1.5 text-[12px] font-medium" [class]="statusBadgeClass()">
+                  <span
+                    class="inline-flex rounded-full px-4 py-1.5 text-[12px] font-medium"
+                    [class]="statusBadgeClass()"
+                  >
                     {{ listing().status }}
                   </span>
                 </div>
-                <p class="mt-2 text-[14px] text-[#8A8F9A]">Last updated on: {{ listing().lastUpdated }}</p>
+                <p class="mt-2 text-[14px] text-[#8A8F9A]">
+                  Last updated on: {{ listing().lastUpdated }}
+                </p>
               </div>
             </div>
 
@@ -442,21 +556,98 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                   (click)="showPromoteListingModal.set(true)"
                   class="inline-flex h-12 items-center gap-2 rounded-full bg-[#111111] px-5 text-[14px] font-semibold text-white"
                 >
-                  <ng-icon name="heroRocketLaunch" class="text-[16px]"></ng-icon>
+                  <span class="text-[16px] leading-none" aria-hidden="true">🚀</span>
                   Promote listing
                 </button>
               }
 
               @if (listing().status !== 'Sold') {
-                <button
-                  type="button"
-                  (click)="statusSheetOpen.set(true)"
-                  class="inline-flex h-12 items-center gap-2 rounded-full border border-[#E4E7EC] bg-white px-5 text-[14px] font-medium text-[#202335]"
-                >
-                  Status
-                  <span class="font-semibold">{{ listing().status }}</span>
-                  <ng-icon name="heroChevronDown" class="text-[16px] text-[#8A8F9A]"></ng-icon>
-                </button>
+                <div class="relative">
+                  <button
+                    type="button"
+                    (click)="statusSheetOpen.set(true)"
+                    class="inline-flex h-12 items-center gap-2 rounded-full border border-[#E4E7EC] bg-white px-5 text-[14px] font-medium text-[#202335]"
+                  >
+                    Status
+                    <span class="font-semibold">{{ listing().status }}</span>
+                    <img
+                      ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                      alt=""
+                      width="16"
+                      height="16"
+                      class="h-4 w-4"
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  @if (statusSheetOpen()) {
+                    <div
+                      class="absolute right-0 top-[calc(100%+12px)] z-20 hidden w-[296px] flex-col gap-4 overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white p-3 shadow-[0_6.65px_5.32px_rgba(0,0,0,0.03),0_2.767px_2.214px_rgba(0,0,0,0.02)] md:flex"
+                      role="menu"
+                      aria-label="Update listing status"
+                    >
+                      <h3 class="text-[20px] font-medium leading-5 text-[rgba(13,13,13,0.87)]">
+                        Update status
+                      </h3>
+
+                      <div class="flex flex-col gap-1">
+                        @for (option of statusOptions; track option.value) {
+                          <button
+                            type="button"
+                            (click)="handleStatusSelection(option.value)"
+                            class="flex h-8 w-full items-center justify-between rounded-[8px] py-[10px] text-left"
+                          >
+                            <div class="flex items-center gap-[6px]">
+                              @if (option.value === 'Available') {
+                                <img
+                                  ngSrc="/assets/icons/listing-details-status-desktop-available.svg"
+                                  alt=""
+                                  width="14"
+                                  height="14"
+                                  class="h-[14px] w-[14px]"
+                                  aria-hidden="true"
+                                />
+                              }
+                              @if (option.value === 'Paused') {
+                                <img
+                                  ngSrc="/assets/icons/listing-details-status-desktop-pause.svg"
+                                  alt=""
+                                  width="14"
+                                  height="14"
+                                  class="h-[14px] w-[14px]"
+                                  aria-hidden="true"
+                                />
+                              }
+                              @if (option.value === 'Sold') {
+                                <img
+                                  ngSrc="/assets/icons/listing-details-status-desktop-sold.svg"
+                                  alt=""
+                                  width="14"
+                                  height="14"
+                                  class="h-[14px] w-[14px]"
+                                  aria-hidden="true"
+                                />
+                              }
+                              <span
+                                class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.87)]"
+                              >
+                                {{ option.label }}
+                              </span>
+                            </div>
+
+                            @if (listing().status === option.value) {
+                              <span
+                                class="inline-flex items-center rounded-full bg-[#F0F0F0] px-2 py-[2px] text-[12px] font-medium leading-4 text-[#1F1F1F]"
+                              >
+                                Current
+                              </span>
+                            }
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
               }
 
               <div class="relative">
@@ -467,12 +658,21 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                   aria-label="Open listing actions"
                   [attr.aria-expanded]="desktopMenuOpen()"
                 >
-                  <ng-icon name="heroEllipsisHorizontal" class="text-[20px]"></ng-icon>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    class="h-5 w-5 fill-current"
+                    aria-hidden="true"
+                  >
+                    <circle cx="4" cy="10" r="1.6" />
+                    <circle cx="10" cy="10" r="1.6" />
+                    <circle cx="16" cy="10" r="1.6" />
+                  </svg>
                 </button>
 
                 @if (desktopMenuOpen()) {
                   <div
-                    class="absolute right-0 top-[calc(100%+12px)] z-20 w-[240px] rounded-[24px] border border-[#ECEEF3] bg-white p-3 shadow-[0_20px_40px_-30px_rgba(18,24,35,0.45)]"
+                    class="absolute right-0 top-[calc(100%+12px)] z-20 flex w-[154px] flex-col gap-1 overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white p-[10px] shadow-[0_6.65px_5.32px_rgba(0,0,0,0.03),0_2.767px_2.214px_rgba(0,0,0,0.02)]"
                     role="menu"
                     aria-label="Listing actions"
                   >
@@ -480,11 +680,20 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                       <button
                         type="button"
                         (click)="handleMobileAction(action.id)"
-                        class="flex w-full items-center gap-3 rounded-[18px] px-3 py-3 text-left text-[14px] font-medium transition hover:bg-[#F6F7FA]"
+                        class="flex h-8 w-full items-center gap-[6px] rounded-[8px] px-2 py-[10px] text-left text-[14px] font-medium leading-5 transition hover:bg-[#F6F7FA]"
                         [class.text-[#FF3B30]]="action.id === 'delete'"
-                        [class.text-[#202335]]="action.id !== 'delete'"
+                        [class.text-[rgba(13,13,13,0.87)]]="action.id !== 'delete'"
                       >
-                        <ng-icon [name]="action.icon" class="text-[18px]"></ng-icon>
+                        @if (action.iconSrc) {
+                          <img
+                            [ngSrc]="action.iconSrc"
+                            alt=""
+                            width="14"
+                            height="14"
+                            class="h-[14px] w-[14px]"
+                            aria-hidden="true"
+                          />
+                        }
                         <span>{{ action.label }}</span>
                       </button>
                     }
@@ -500,13 +709,20 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                 type="button"
                 (click)="activeTab.set(tab.id)"
                 class="relative flex items-center gap-2 pb-4 text-[14px] font-medium transition-colors"
-                [class.text-[#202335]]="activeTab() === tab.id"
+                [class.text-[#6453D9]]="activeTab() === tab.id"
                 [class.text-[#8A8F9A]]="activeTab() !== tab.id"
               >
-                <ng-icon [name]="tab.icon" class="text-[16px]"></ng-icon>
+                <img
+                  [ngSrc]="tab.iconSrc"
+                  alt=""
+                  width="16"
+                  height="16"
+                  class="h-4 w-4"
+                  aria-hidden="true"
+                />
                 {{ tab.label }}
                 @if (activeTab() === tab.id) {
-                  <span class="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#202335]"></span>
+                  <span class="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#6453D9]"></span>
                 }
               </button>
             }
@@ -539,20 +755,35 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
               <div class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_316px]">
                 <div class="space-y-8">
                   <div>
-                    <h2 class="text-[32px] font-semibold tracking-[-0.05em] text-[#202335]">{{ listing().name }}</h2>
-                    <div class="mt-3 flex items-center gap-2 text-[15px] text-[#707684]">
-                      <ng-icon name="heroMapPin" class="text-[18px]"></ng-icon>
-                      <span>{{ listing().location }}</span>
-                    </div>
+                    <h2 class="text-[32px] font-semibold tracking-[-0.05em] text-[#202335]">
+                      {{ listing().name }}
+                    </h2>
+                    <p class="mt-3 text-[15px] text-[#707684]">{{ listing().location }}</p>
                   </div>
 
-                  <div class="grid gap-4 rounded-[28px] border border-[#E9EBF0] bg-white p-5 md:grid-cols-4">
+                  <div
+                    class="grid gap-4 rounded-[28px] border border-[#E9EBF0] bg-white p-5 md:grid-cols-4"
+                  >
                     @for (stat of overviewStats(); track stat.label; let index = $index) {
-                      <article class="space-y-2 md:pl-0" [class.md:border-l]="index > 0" [class.md:border-[#ECEEF3]]="index > 0" [class.md:pl-5]="index > 0">
+                      <article
+                        class="space-y-2 md:pl-0"
+                        [class.md:border-l]="index > 0"
+                        [class.md:border-[#ECEEF3]]="index > 0"
+                        [class.md:pl-5]="index > 0"
+                      >
                         <p class="text-[13px] text-[#8A8F9A]">{{ stat.label }}</p>
-                        <div class="flex items-center gap-2 text-[15px] font-semibold text-[#202335]">
-                          @if (stat.icon) {
-                            <ng-icon [name]="stat.icon" class="text-[18px] text-[#8A8F9A]"></ng-icon>
+                        <div
+                          class="flex items-center gap-2 text-[15px] font-semibold text-[#202335]"
+                        >
+                          @if (stat.iconSrc) {
+                            <img
+                              [ngSrc]="stat.iconSrc"
+                              alt=""
+                              width="18"
+                              height="18"
+                              class="h-[18px] w-[18px]"
+                              aria-hidden="true"
+                            />
                           }
                           <span>{{ stat.value }}</span>
                         </div>
@@ -561,18 +792,24 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                   </div>
 
                   <section class="border-b border-[#ECEEF3] pb-8">
-                    <h3 class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">Description</h3>
+                    <h3 class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">
+                      Description
+                    </h3>
                     <p class="mt-4 max-w-[720px] text-[15px] leading-8 text-[#5E6472]">
                       {{ listing().description }}
                     </p>
                   </section>
 
                   <section>
-                    <h3 class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">General details</h3>
+                    <h3 class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">
+                      General details
+                    </h3>
                     <div class="mt-6 grid gap-y-6 md:grid-cols-[220px_minmax(0,1fr)]">
                       @for (detail of details(); track detail.label) {
                         <div class="text-[15px] text-[#8A8F9A]">{{ detail.label }}</div>
-                        <div class="text-[15px] font-medium leading-7 text-[#202335]">{{ detail.value }}</div>
+                        <div class="text-[15px] font-medium leading-7 text-[#202335]">
+                          {{ detail.value }}
+                        </div>
                       }
                     </div>
                   </section>
@@ -584,7 +821,9 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                       <div class="flex items-start justify-between gap-4">
                         <div>
                           <p class="text-[13px] text-[#8A8F9A]">Price</p>
-                          <p class="mt-3 text-[34px] font-semibold tracking-[-0.05em] text-[#202335]">
+                          <p
+                            class="mt-3 text-[34px] font-semibold tracking-[-0.05em] text-[#202335]"
+                          >
                             <span class="text-[30px]">₦</span>{{ listing().price }}
                           </p>
                         </div>
@@ -595,7 +834,14 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                           class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#ECEEF3] bg-white text-[#202335]"
                           aria-label="Edit listing"
                         >
-                          <ng-icon name="heroPencilSquare" class="text-[18px]"></ng-icon>
+                          <img
+                            ngSrc="/assets/icons/listing-details-edit.svg"
+                            alt=""
+                            width="20"
+                            height="20"
+                            class="h-5 w-5"
+                            aria-hidden="true"
+                          />
                         </button>
                       </div>
                     </div>
@@ -604,7 +850,9 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                       <p class="mb-4 text-[13px] text-[#8A8F9A]">Store</p>
                       <div class="flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
-                          <div class="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-[#EEF4F0]">
+                          <div
+                            class="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-[#EEF4F0]"
+                          >
                             <img
                               [ngSrc]="listing().store.logo"
                               [alt]="listing().store.name"
@@ -616,8 +864,17 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
 
                           <div class="min-w-0">
                             <div class="flex items-center gap-1.5">
-                              <span class="truncate text-[15px] font-semibold text-[#202335]">{{ listing().store.name }}</span>
-                              <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#131A24] text-[10px] text-white">✓</span>
+                              <span class="truncate text-[15px] font-semibold text-[#202335]">{{
+                                listing().store.name
+                              }}</span>
+                              <img
+                                ngSrc="/assets/icons/listing-details-verify.svg"
+                                alt=""
+                                width="14"
+                                height="14"
+                                class="h-[14px] w-[14px]"
+                                aria-hidden="true"
+                              />
                             </div>
                             <p class="mt-1 text-[12px] text-[#8A8F9A]">Verified store</p>
                           </div>
@@ -628,7 +885,14 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                           class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#ECEEF3] bg-white text-[#202335]"
                           aria-label="Open store"
                         >
-                          <ng-icon name="heroArrowTopRightOnSquare" class="text-[18px]"></ng-icon>
+                          <img
+                            ngSrc="/assets/icons/listing-details-export.svg"
+                            alt=""
+                            width="20"
+                            height="20"
+                            class="h-5 w-5"
+                            aria-hidden="true"
+                          />
                         </button>
                       </div>
                     </div>
@@ -645,7 +909,9 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                   @for (request of requests(); track request.id) {
                     <article class="rounded-[24px] border border-[#E9EBF0] bg-white p-5">
                       <div class="flex items-start gap-4">
-                        <div class="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-[#F3F4F7]">
+                        <div
+                          class="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-[#F3F4F7]"
+                        >
                           <img
                             [ngSrc]="request.avatar"
                             [alt]="request.buyer"
@@ -657,7 +923,9 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
 
                         <div class="min-w-0 flex-1">
                           <div class="flex items-center gap-2">
-                            <p class="text-[15px] font-semibold text-[#202335]">{{ request.buyer }}</p>
+                            <p class="text-[15px] font-semibold text-[#202335]">
+                              {{ request.buyer }}
+                            </p>
                             <span
                               class="rounded-full px-2.5 py-1 text-[10px] font-medium"
                               [class.bg-[#EEFCEB]]="request.status === 'New'"
@@ -669,8 +937,12 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                             </span>
                           </div>
 
-                          <p class="mt-2 max-w-[860px] text-[14px] leading-7 text-[#5E6472]">{{ request.message }}</p>
-                          <div class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-[#8A8F9A]">
+                          <p class="mt-2 max-w-[860px] text-[14px] leading-7 text-[#5E6472]">
+                            {{ request.message }}
+                          </p>
+                          <div
+                            class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-[#8A8F9A]"
+                          >
                             <span>{{ request.time }}</span>
                             <span>Offer: {{ request.offer }}</span>
                           </div>
@@ -680,9 +952,13 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                   }
                 </div>
               } @else {
-                <div class="rounded-[28px] border border-dashed border-[#D9DCE3] bg-white px-8 py-16 text-center">
+                <div
+                  class="rounded-[28px] border border-dashed border-[#D9DCE3] bg-white px-8 py-16 text-center"
+                >
                   <p class="text-[18px] font-semibold text-[#202335]">No requests yet</p>
-                  <p class="mt-2 text-[14px] text-[#8A8F9A]">Buyer messages and offers will appear here when the backend returns data.</p>
+                  <p class="mt-2 text-[14px] text-[#8A8F9A]">
+                    Buyer messages and offers will appear here when the backend returns data.
+                  </p>
                 </div>
               }
             </section>
@@ -695,13 +971,26 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                   @for (activity of activities(); track activity.id) {
                     <article class="rounded-[24px] border border-[#E9EBF0] bg-white p-5">
                       <div class="flex items-start gap-4">
-                        <div class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]">
-                          <ng-icon name="heroClipboardDocumentList" class="text-[18px]"></ng-icon>
+                        <div
+                          class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]"
+                        >
+                          <img
+                            ngSrc="/assets/icons/listing-details-tab-activities.svg"
+                            alt=""
+                            width="18"
+                            height="18"
+                            class="h-[18px] w-[18px]"
+                            aria-hidden="true"
+                          />
                         </div>
 
                         <div class="min-w-0 flex-1">
-                          <p class="text-[15px] font-semibold text-[#202335]">{{ activity.title }}</p>
-                          <p class="mt-2 max-w-[860px] text-[14px] leading-7 text-[#5E6472]">{{ activity.description }}</p>
+                          <p class="text-[15px] font-semibold text-[#202335]">
+                            {{ activity.title }}
+                          </p>
+                          <p class="mt-2 max-w-[860px] text-[14px] leading-7 text-[#5E6472]">
+                            {{ activity.description }}
+                          </p>
                           <p class="mt-4 text-[12px] text-[#8A8F9A]">{{ activity.time }}</p>
                         </div>
                       </div>
@@ -709,9 +998,13 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
                   }
                 </div>
               } @else {
-                <div class="rounded-[28px] border border-dashed border-[#D9DCE3] bg-white px-8 py-16 text-center">
+                <div
+                  class="rounded-[28px] border border-dashed border-[#D9DCE3] bg-white px-8 py-16 text-center"
+                >
                   <p class="text-[18px] font-semibold text-[#202335]">No activities yet</p>
-                  <p class="mt-2 text-[14px] text-[#8A8F9A]">Status changes, edits, and promotions will appear here when data is available.</p>
+                  <p class="mt-2 text-[14px] text-[#8A8F9A]">
+                    Status changes, edits, and promotions will appear here when data is available.
+                  </p>
                 </div>
               }
             </section>
@@ -719,6 +1012,1195 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
         </section>
       </div>
     </div>
+
+    @if (editSheetOpen()) {
+      <button
+        type="button"
+        (click)="closeEditSheet()"
+        class="fixed inset-0 z-40 bg-black/35"
+        aria-label="Close edit listing"
+      ></button>
+
+      <section
+        class="fixed inset-x-0 bottom-0 top-0 z-50 overflow-hidden rounded-t-[24px] bg-white md:hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit listing"
+      >
+        <form
+          [formGroup]="editListingForm"
+          class="flex h-full flex-col"
+          (ngSubmit)="saveEditListing()"
+        >
+          <div class="relative px-4 pb-4 pt-3">
+            <div class="mx-auto h-1 w-[50px] rounded-full bg-[#E7E7E7]"></div>
+
+            <button
+              type="button"
+              (click)="goBackInMobileEditFlow()"
+              class="absolute left-4 top-[26px] inline-flex h-8 w-10 items-center justify-center rounded-[8px] bg-white"
+              aria-label="Go back"
+            >
+              <img
+                ngSrc="/assets/icons/listing-details-back.svg"
+                alt=""
+                width="20"
+                height="20"
+                class="h-5 w-5"
+                aria-hidden="true"
+              />
+            </button>
+
+            <button
+              type="button"
+              (click)="closeEditSheet()"
+              class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+              aria-label="Close edit listing"
+            >
+              <img
+                ngSrc="/assets/icons/edit-listing-close.svg"
+                alt=""
+                width="24"
+                height="24"
+                class="h-6 w-6"
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+
+          <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
+            @if (mobileEditStep() === 'media') {
+              <div class="space-y-6">
+                <div class="space-y-1">
+                  <h2 class="text-[20px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D]">
+                    Add some photos of your listing
+                  </h2>
+                  <p class="text-[10px] leading-5 text-[rgba(26,27,29,0.5)]">
+                    Hold and drag photo to rearrange
+                  </p>
+                </div>
+
+                <div class="flex items-start gap-2 rounded-[12px] bg-[#F7F7F7] px-3 py-2">
+                  <span class="pt-0.5 text-[16px]" aria-hidden="true">💡</span>
+                  <p class="text-[12px] leading-5 text-[rgba(26,27,29,0.7)]">
+                    Tip: Attaching high quality media improves your selling chances
+                  </p>
+                </div>
+
+                <div class="space-y-2.5">
+                  <div class="grid grid-cols-3 gap-2">
+                    <div
+                      class="relative h-[230px] overflow-hidden rounded-[18px] bg-[#F4F4F4] col-span-2"
+                    >
+                      <img
+                        ngSrc="/assets/images/edit-listing-main-photo.png"
+                        alt="Main listing photo"
+                        fill
+                        priority
+                        sizes="58vw"
+                        class="object-cover"
+                      />
+                      <div
+                        class="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[12px] font-medium text-[#1A1B1D]"
+                      >
+                        Main photo
+                      </div>
+                      <button
+                        type="button"
+                        class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
+                        aria-label="Photo actions"
+                      >
+                        <img
+                          ngSrc="/assets/icons/edit-listing-menu-dots.svg"
+                          alt=""
+                          width="16"
+                          height="16"
+                          class="h-4 w-4"
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <span
+                        class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                      >
+                        1
+                      </span>
+                    </div>
+
+                    <div class="flex h-[230px] flex-col gap-2 col-span-1">
+                      <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
+                        <img
+                          ngSrc="/assets/images/edit-listing-secondary-photo.png"
+                          alt="Secondary listing photo"
+                          fill
+                          sizes="30vw"
+                          class="object-cover"
+                        />
+                        <button
+                          type="button"
+                          class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
+                          aria-label="Photo actions"
+                        >
+                          <img
+                            ngSrc="/assets/icons/edit-listing-menu-dots.svg"
+                            alt=""
+                            width="16"
+                            height="16"
+                            class="h-4 w-4"
+                            aria-hidden="true"
+                          />
+                        </button>
+                        <span
+                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                        >
+                          2
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
+                        aria-label="Add third listing photo"
+                      >
+                        <img
+                          ngSrc="/assets/icons/edit-listing-add.svg"
+                          alt=""
+                          width="24"
+                          height="24"
+                          class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
+                          aria-hidden="true"
+                        />
+                        <span
+                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                        >
+                          3
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-3 gap-2">
+                    @for (slot of editMediaPlaceholderSlots; track slot) {
+                      <button
+                        type="button"
+                        class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
+                        [attr.aria-label]="'Add listing photo ' + slot"
+                      >
+                        <img
+                          ngSrc="/assets/icons/edit-listing-add.svg"
+                          alt=""
+                          width="24"
+                          height="24"
+                          class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
+                          aria-hidden="true"
+                        />
+                        <span
+                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                        >
+                          {{ slot }}
+                        </span>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <label class="block space-y-1">
+                  <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                    Embedded YouTube link (optional)
+                  </span>
+                  <input
+                    type="url"
+                    formControlName="embeddedVideo"
+                    placeholder="Enter link to YouTube video"
+                    class="h-12 w-full rounded-[12px] border border-[#EFEFEF] px-3 text-[14px] text-[#0D0D0D] outline-none placeholder:text-[rgba(13,13,13,0.3)]"
+                  />
+                </label>
+              </div>
+            }
+
+            @if (mobileEditStep() === 'details') {
+              <div class="space-y-6">
+                <div class="space-y-0.5">
+                  <h2 class="text-[20px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D]">
+                    Fill basic details about your listing
+                  </h2>
+                  <p class="text-[10px] leading-6 text-[rgba(26,27,29,0.5)]">
+                    Add details about the item you want to list
+                  </p>
+                </div>
+
+                <div class="space-y-6">
+                  <label class="block space-y-1">
+                    <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                      Item name
+                    </span>
+                    <input
+                      type="text"
+                      formControlName="name"
+                      class="h-12 w-full rounded-[12px] border border-[#EFEFEF] px-3 text-[14px] text-[#0D0D0D] outline-none"
+                    />
+                  </label>
+
+                  <label class="block space-y-1">
+                    <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]"> Category </span>
+                    <div class="relative">
+                      <select
+                        formControlName="category"
+                        class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
+                      >
+                        @for (category of editCategories; track category) {
+                          <option [value]="category">{{ category }}</option>
+                        }
+                      </select>
+                      <img
+                        ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                        alt=""
+                        width="14"
+                        height="14"
+                        class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  </label>
+
+                  <div class="grid grid-cols-[112px_minmax(0,1fr)] gap-6">
+                    <label class="block space-y-1">
+                      <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                        Condition
+                      </span>
+                      <div class="relative">
+                        <select
+                          formControlName="condition"
+                          class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
+                        >
+                          @for (condition of editConditions; track condition) {
+                            <option [value]="condition">{{ condition }}</option>
+                          }
+                        </select>
+                        <img
+                          ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                          alt=""
+                          width="14"
+                          height="14"
+                          class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                          aria-hidden="true"
+                        />
+                      </div>
+                    </label>
+
+                    <label class="block space-y-1">
+                      <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">Store</span>
+                      <div class="relative">
+                        <select
+                          formControlName="store"
+                          class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
+                        >
+                          @for (store of editStores; track store) {
+                            <option [value]="store">{{ store }}</option>
+                          }
+                        </select>
+                        <img
+                          ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                          alt=""
+                          width="14"
+                          height="14"
+                          class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                          aria-hidden="true"
+                        />
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="space-y-4">
+                  <div class="space-y-0.5">
+                    <h3 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">
+                      Add description
+                    </h3>
+                    <p class="text-[12px] leading-[18px] text-[rgba(26,27,29,0.5)]">
+                      Describe the upgrades and standout features that will appeal to buyers
+                    </p>
+                  </div>
+
+                  <label class="block space-y-1">
+                    <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                      Description
+                    </span>
+                    <textarea
+                      formControlName="description"
+                      rows="5"
+                      class="w-full rounded-[8px] border border-[#EAEAEA] px-3 py-3 text-[12px] leading-[18px] text-[#1F1F1F] outline-none"
+                    ></textarea>
+                  </label>
+                </div>
+              </div>
+            }
+
+            @if (mobileEditStep() === 'delivery') {
+              <div class="space-y-6">
+                <div class="space-y-0.5">
+                  <h2 class="text-[20px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D]">
+                    Set your location and delivery preferences
+                  </h2>
+                </div>
+
+                <div class="space-y-6">
+                  <label class="block space-y-1.5">
+                    <span class="text-[12px] leading-5 text-[rgba(26,27,29,0.5)]">Location</span>
+                    <div class="relative">
+                      <select
+                        formControlName="location"
+                        class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
+                      >
+                        @for (location of editLocations; track location) {
+                          <option [value]="location">{{ location }}</option>
+                        }
+                      </select>
+                      <img
+                        ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                        alt=""
+                        width="14"
+                        height="14"
+                        class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  </label>
+
+                  <div class="grid grid-cols-2 gap-6">
+                    <label class="block space-y-1.5">
+                      <span class="text-[12px] leading-5 text-[rgba(26,27,29,0.5)]">
+                        WhatsApp number
+                      </span>
+                      <input
+                        type="tel"
+                        formControlName="whatsAppNumber"
+                        class="h-12 w-full rounded-[12px] border border-[#EFEFEF] px-3 text-[12px] text-[#0D0D0D] outline-none"
+                      />
+                    </label>
+
+                    <label class="block space-y-1.5">
+                      <span class="text-[12px] leading-5 text-[rgba(26,27,29,0.5)]">
+                        Call number
+                      </span>
+                      <input
+                        type="tel"
+                        formControlName="callNumber"
+                        class="h-12 w-full rounded-[12px] border border-[#EFEFEF] px-3 text-[12px] text-[#0D0D0D] outline-none"
+                      />
+                    </label>
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <span class="text-[12px] leading-5 text-[rgba(26,27,29,0.5)]">
+                      Delivery options
+                    </span>
+                    <div class="grid grid-cols-2 gap-3">
+                      @for (option of mobileDeliveryOptions(); track option.id) {
+                        <button
+                          type="button"
+                          (click)="handleMobileDeliveryOption(option.id)"
+                          class="flex items-center gap-2 rounded-[10px] border px-3 py-3 text-left"
+                          [class.border-[#6453D9]]="isMobileDeliveryOptionSelected(option.id)"
+                          [class.bg-[#F9F7FF]]="isMobileDeliveryOptionSelected(option.id)"
+                          [class.border-[#EAEAEA]]="!isMobileDeliveryOptionSelected(option.id)"
+                          [class.bg-[#FAFAFA]]="!isMobileDeliveryOptionSelected(option.id)"
+                        >
+                          <span
+                            class="inline-flex h-4 w-4 items-center justify-center rounded-[4px] border"
+                            [class.border-[#6453D9]]="isMobileDeliveryOptionSelected(option.id)"
+                            [class.bg-[#6453D9]]="isMobileDeliveryOptionSelected(option.id)"
+                            [class.border-[#D5D5D5]]="!isMobileDeliveryOptionSelected(option.id)"
+                          >
+                            @if (isMobileDeliveryOptionSelected(option.id)) {
+                              <span
+                                class="block h-[6px] w-[10px] rotate-[-45deg] border-b-2 border-l-2 border-white"
+                              ></span>
+                            }
+                          </span>
+                          <span class="text-[12px] leading-5 text-[#1F1F1F]">{{
+                            option.label
+                          }}</span>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-4">
+                  <h3 class="text-[20px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D]">
+                    How much are you selling for?
+                  </h3>
+
+                  <label class="block space-y-1.5">
+                    <span class="text-[12px] leading-5 text-[rgba(26,27,29,0.5)]">Price</span>
+                    <div
+                      class="flex h-12 items-center rounded-[12px] border border-[#EFEFEF] bg-white px-3"
+                    >
+                      <span class="mr-2 text-[14px] text-[#8F8F8F]">₦</span>
+                      <input
+                        type="text"
+                        formControlName="price"
+                        class="w-full bg-transparent text-[12px] text-[#0D0D0D] outline-none"
+                      />
+                    </div>
+                  </label>
+
+                  <div class="space-y-5">
+                    <div class="flex items-start justify-between gap-4">
+                      <div class="max-w-[304px] space-y-1">
+                        <p class="text-[16px] font-medium leading-6 text-[#0D0D0D]">
+                          Accept offers from buyers
+                        </p>
+                        <p class="text-[12px] leading-5 text-[rgba(13,13,13,0.5)]">
+                          Buyers can submit price offers for your review
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        (click)="toggleAcceptOffers()"
+                        class="relative inline-flex h-5 w-8 rounded-full transition-colors"
+                        [class.bg-[#6453D9]]="editAcceptOffersEnabled()"
+                        [class.bg-[#DCDCDC]]="!editAcceptOffersEnabled()"
+                        aria-label="Toggle accept offers"
+                        [attr.aria-pressed]="editAcceptOffersEnabled()"
+                      >
+                        <span
+                          class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                          [style.transform]="
+                            editAcceptOffersEnabled() ? 'translateX(14px)' : 'translateX(2px)'
+                          "
+                        ></span>
+                      </button>
+                    </div>
+
+                    <div class="flex items-start justify-between gap-4">
+                      <div class="max-w-[316px] space-y-1">
+                        <p class="text-[16px] font-medium leading-6 text-[#0D0D0D]">
+                          List this item for free
+                        </p>
+                        <p class="text-[12px] leading-5 text-[rgba(13,13,13,0.5)]">
+                          Give this item away for free
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        (click)="toggleFreeListing()"
+                        class="relative inline-flex h-5 w-8 rounded-full transition-colors"
+                        [class.bg-[#6453D9]]="editFreeListingEnabled()"
+                        [class.bg-[#DCDCDC]]="!editFreeListingEnabled()"
+                        aria-label="Toggle free listing"
+                        [attr.aria-pressed]="editFreeListingEnabled()"
+                      >
+                        <span
+                          class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                          [style.transform]="
+                            editFreeListingEnabled() ? 'translateX(14px)' : 'translateX(2px)'
+                          "
+                        ></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div
+            class="border-t border-transparent bg-white px-4 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-3"
+          >
+            <button
+              type="submit"
+              class="inline-flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[14px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+            >
+              Save changes
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section
+        class="fixed inset-y-0 left-auto right-0 z-50 hidden w-[600px] overflow-hidden rounded-l-[16px] bg-white md:block"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit listing"
+      >
+        <div class="flex h-full flex-col">
+          <header class="flex h-20 items-center justify-between px-6">
+            <h2 class="text-[28px] font-semibold leading-10 tracking-[-0.03em] text-[#0D0D0D]">
+              Edit listing
+            </h2>
+
+            <button
+              type="button"
+              (click)="closeEditSheet()"
+              class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+              aria-label="Close edit listing"
+            >
+              <img
+                ngSrc="/assets/icons/edit-listing-close.svg"
+                alt=""
+                width="24"
+                height="24"
+                class="h-6 w-6"
+                aria-hidden="true"
+              />
+            </button>
+          </header>
+
+          <form
+            [formGroup]="editListingForm"
+            class="flex min-h-0 flex-1 flex-col"
+            (ngSubmit)="saveEditListing()"
+          >
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-8">
+              <div class="space-y-6 pb-8">
+                <section class="space-y-5">
+                  <button
+                    type="button"
+                    (click)="toggleEditSection('media')"
+                    class="flex w-full items-center justify-between rounded-[8px] bg-[#FAFAFA] px-3 py-[6px] text-left"
+                    [attr.aria-expanded]="isEditSectionOpen('media')"
+                  >
+                    <span class="text-[16px] font-medium leading-5 text-[#0D0D0D]">Media</span>
+                    <img
+                      ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                      alt=""
+                      width="20"
+                      height="20"
+                      class="h-5 w-5 transition-transform"
+                      [class.rotate-180]="isEditSectionOpen('media')"
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  @if (isEditSectionOpen('media')) {
+                    <div class="space-y-8">
+                      <div class="space-y-3">
+                        <div class="grid grid-cols-[minmax(0,1fr)_176px] gap-3">
+                          <div
+                            class="relative h-[363px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
+                          >
+                            <img
+                              ngSrc="/assets/images/edit-listing-main-photo.png"
+                              alt="Main listing photo"
+                              fill
+                              priority
+                              sizes="(min-width: 768px) 23vw, 65vw"
+                              class="object-cover"
+                            />
+
+                            <div
+                              class="absolute left-3 top-3 rounded-full border border-[#F1F1F1] bg-white px-3 py-[6px] text-[18px] font-medium leading-[30px] text-[#1A1B1D]"
+                            >
+                              Main photo
+                            </div>
+
+                            <button
+                              type="button"
+                              class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
+                              aria-label="Photo actions"
+                            >
+                              <img
+                                ngSrc="/assets/icons/edit-listing-menu-dots.svg"
+                                alt=""
+                                width="25"
+                                height="25"
+                                class="h-[25px] w-[25px]"
+                                aria-hidden="true"
+                              />
+                            </button>
+
+                            <div
+                              class="absolute bottom-4 right-5 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                            >
+                              1
+                            </div>
+                          </div>
+
+                          <div class="flex h-[363px] flex-col gap-3">
+                            <div
+                              class="relative flex-1 overflow-hidden rounded-[18px] bg-[#F4F4F4]"
+                            >
+                              <img
+                                ngSrc="/assets/images/edit-listing-secondary-photo.png"
+                                alt="Secondary listing photo"
+                                fill
+                                sizes="(min-width: 768px) 12vw, 28vw"
+                                class="object-cover"
+                              />
+
+                              <button
+                                type="button"
+                                class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
+                                aria-label="Photo actions"
+                              >
+                                <img
+                                  ngSrc="/assets/icons/edit-listing-menu-dots.svg"
+                                  alt=""
+                                  width="25"
+                                  height="25"
+                                  class="h-[25px] w-[25px]"
+                                  aria-hidden="true"
+                                />
+                              </button>
+
+                              <div
+                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                              >
+                                2
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              class="relative flex-1 overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
+                              aria-label="Add third listing photo"
+                            >
+                              <img
+                                ngSrc="/assets/icons/edit-listing-add.svg"
+                                alt=""
+                                width="37"
+                                height="37"
+                                class="absolute left-1/2 top-1/2 h-[37px] w-[37px] -translate-x-1/2 -translate-y-1/2"
+                                aria-hidden="true"
+                              />
+                              <span
+                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                              >
+                                3
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                          @for (slot of editMediaPlaceholderSlots; track slot) {
+                            <button
+                              type="button"
+                              class="relative h-[175px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
+                              [attr.aria-label]="'Add listing photo ' + slot"
+                            >
+                              <img
+                                ngSrc="/assets/icons/edit-listing-add.svg"
+                                alt=""
+                                width="37"
+                                height="37"
+                                class="absolute left-1/2 top-1/2 h-[37px] w-[37px] -translate-x-1/2 -translate-y-1/2"
+                                aria-hidden="true"
+                              />
+                              <span
+                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                              >
+                                {{ slot }}
+                              </span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <label class="block space-y-1">
+                        <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                          Embedded video link (optional)
+                        </span>
+                        <input
+                          type="url"
+                          formControlName="embeddedVideo"
+                          placeholder="Enter link to YouTube video"
+                          class="h-10 w-full rounded-[12px] border border-[#EFEFEF] px-3 text-[14px] text-[#0D0D0D] outline-none placeholder:text-[rgba(13,13,13,0.3)]"
+                        />
+                      </label>
+                    </div>
+                  }
+                </section>
+
+                <section class="space-y-5">
+                  <button
+                    type="button"
+                    (click)="toggleEditSection('details')"
+                    class="flex w-full items-center justify-between rounded-[8px] bg-[#FAFAFA] px-3 py-[6px] text-left"
+                    [attr.aria-expanded]="isEditSectionOpen('details')"
+                  >
+                    <span class="text-[16px] font-medium leading-5 text-[#0D0D0D]">Details</span>
+                    <img
+                      ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                      alt=""
+                      width="20"
+                      height="20"
+                      class="h-5 w-5 transition-transform"
+                      [class.rotate-180]="isEditSectionOpen('details')"
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  @if (isEditSectionOpen('details')) {
+                    <div class="space-y-5">
+                      <div class="space-y-0.5">
+                        <h3 class="text-[24px] font-semibold leading-10 text-[#1A1B1D]">
+                          Fill basic details about your listing
+                        </h3>
+                        <p class="text-[14px] leading-6 text-[rgba(26,27,29,0.7)]">
+                          Add details about the item you want to list
+                        </p>
+                      </div>
+
+                      <div class="space-y-6">
+                        <label class="block space-y-1">
+                          <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                            Item name
+                          </span>
+                          <input
+                            type="text"
+                            formControlName="name"
+                            class="h-10 w-full rounded-[12px] border border-[#EFEFEF] px-3 text-[14px] text-[#0D0D0D] outline-none"
+                          />
+                        </label>
+
+                        <label class="block space-y-1">
+                          <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                            Category
+                          </span>
+                          <div class="relative">
+                            <select
+                              formControlName="category"
+                              class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
+                            >
+                              @for (category of editCategories; track category) {
+                                <option [value]="category">{{ category }}</option>
+                              }
+                            </select>
+                            <img
+                              ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                              alt=""
+                              width="14"
+                              height="14"
+                              class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                              aria-hidden="true"
+                            />
+                          </div>
+                        </label>
+
+                        <label class="block space-y-1">
+                          <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                            Condition
+                          </span>
+                          <div class="relative">
+                            <select
+                              formControlName="condition"
+                              class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
+                            >
+                              @for (condition of editConditions; track condition) {
+                                <option [value]="condition">{{ condition }}</option>
+                              }
+                            </select>
+                            <img
+                              ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                              alt=""
+                              width="14"
+                              height="14"
+                              class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                              aria-hidden="true"
+                            />
+                          </div>
+                        </label>
+
+                        <label class="block space-y-1">
+                          <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                            Store
+                          </span>
+                          <div class="relative">
+                            <select
+                              formControlName="store"
+                              class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
+                            >
+                              @for (store of editStores; track store) {
+                                <option [value]="store">{{ store }}</option>
+                              }
+                            </select>
+                            <img
+                              ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                              alt=""
+                              width="14"
+                              height="14"
+                              class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                              aria-hidden="true"
+                            />
+                          </div>
+                        </label>
+                      </div>
+
+                      <div class="space-y-5">
+                        <div class="space-y-0.5">
+                          <h3 class="text-[24px] font-semibold leading-10 text-[#1A1B1D]">
+                            Add description
+                          </h3>
+                          <p class="text-[14px] leading-6 text-[rgba(26,27,29,0.7)]">
+                            Describe the upgrades and standout features that will appeal to buyers
+                            and make your listing more desirable.
+                          </p>
+                        </div>
+
+                        <label class="block space-y-1.5">
+                          <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                            Description
+                          </span>
+                          <textarea
+                            formControlName="description"
+                            rows="7"
+                            class="w-full rounded-[8px] border border-[#EAEAEA] px-3 py-3 text-[14px] leading-5 text-[#1F1F1F] outline-none"
+                          ></textarea>
+                        </label>
+                      </div>
+                    </div>
+                  }
+                </section>
+
+                <section class="space-y-5">
+                  <button
+                    type="button"
+                    (click)="toggleEditSection('delivery')"
+                    class="flex w-full items-center justify-between rounded-[8px] bg-[#FAFAFA] px-3 py-[6px] text-left"
+                    [attr.aria-expanded]="isEditSectionOpen('delivery')"
+                  >
+                    <span class="text-[16px] font-medium leading-5 text-[#0D0D0D]">
+                      Delivery & Pricing
+                    </span>
+                    <img
+                      ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                      alt=""
+                      width="20"
+                      height="20"
+                      class="h-5 w-5 transition-transform"
+                      [class.rotate-180]="isEditSectionOpen('delivery')"
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  @if (isEditSectionOpen('delivery')) {
+                    <div class="space-y-5">
+                      <div class="space-y-0.5">
+                        <h3 class="text-[24px] font-semibold leading-10 text-[#1A1B1D]">
+                          Set your location and delivery preferences
+                        </h3>
+                      </div>
+
+                      <div class="space-y-6">
+                        <label class="block space-y-1.5">
+                          <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                            Location
+                          </span>
+                          <div class="relative">
+                            <select
+                              formControlName="location"
+                              class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
+                            >
+                              @for (location of editLocations; track location) {
+                                <option [value]="location">{{ location }}</option>
+                              }
+                            </select>
+                            <img
+                              ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                              alt=""
+                              width="14"
+                              height="14"
+                              class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                              aria-hidden="true"
+                            />
+                          </div>
+                        </label>
+
+                        <div class="grid grid-cols-2 gap-6">
+                          <label class="block space-y-1.5">
+                            <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                              Your WhatsApp number
+                            </span>
+                            <input
+                              type="tel"
+                              formControlName="whatsAppNumber"
+                              class="h-10 w-full rounded-[12px] border border-[#EFEFEF] px-3 text-[14px] text-[#0D0D0D] outline-none"
+                            />
+                          </label>
+
+                          <label class="block space-y-1.5">
+                            <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                              Your call number
+                            </span>
+                            <input
+                              type="tel"
+                              formControlName="callNumber"
+                              class="h-10 w-full rounded-[12px] border border-[#EFEFEF] px-3 text-[14px] text-[#0D0D0D] outline-none"
+                            />
+                          </label>
+                        </div>
+
+                        <div class="space-y-1.5">
+                          <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                            Delivery options
+                          </span>
+                          <div class="space-y-3">
+                            <div class="grid grid-cols-3 gap-3">
+                              @for (option of deliveryMethodOptions; track option.id) {
+                                <button
+                                  type="button"
+                                  (click)="toggleDeliveryMethod(option.id)"
+                                  class="flex items-center gap-2 rounded-[12px] border p-3 text-left text-[16px] leading-5"
+                                  [class.border-[#6453D9]]="isDeliveryMethodSelected(option.id)"
+                                  [class.bg-[#F9F7FF]]="isDeliveryMethodSelected(option.id)"
+                                  [class.border-[#EAEAEA]]="!isDeliveryMethodSelected(option.id)"
+                                  [class.bg-[#FAFAFA]]="!isDeliveryMethodSelected(option.id)"
+                                >
+                                  <span
+                                    class="inline-flex h-4 w-4 items-center justify-center rounded-[4px] border"
+                                    [class.border-[#6453D9]]="isDeliveryMethodSelected(option.id)"
+                                    [class.bg-[#6453D9]]="isDeliveryMethodSelected(option.id)"
+                                    [class.border-[#D5D5D5]]="!isDeliveryMethodSelected(option.id)"
+                                  >
+                                    @if (isDeliveryMethodSelected(option.id)) {
+                                      <span
+                                        class="block h-[6px] w-[10px] rotate-[-45deg] border-b-2 border-l-2 border-white"
+                                      ></span>
+                                    }
+                                  </span>
+                                  <span class="text-[#1F1F1F]">{{ option.label }}</span>
+                                </button>
+                              }
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-3">
+                              @for (option of deliveryRangeOptions; track option.id) {
+                                <button
+                                  type="button"
+                                  (click)="toggleDeliveryRange(option.id)"
+                                  class="flex items-center gap-2 rounded-[12px] border p-3 text-left text-[16px] leading-5"
+                                  [class.border-[#6453D9]]="isDeliveryRangeSelected(option.id)"
+                                  [class.bg-[#F9F7FF]]="isDeliveryRangeSelected(option.id)"
+                                  [class.border-[#EAEAEA]]="!isDeliveryRangeSelected(option.id)"
+                                  [class.bg-[#FAFAFA]]="!isDeliveryRangeSelected(option.id)"
+                                >
+                                  <span
+                                    class="inline-flex h-4 w-4 items-center justify-center rounded-[4px] border"
+                                    [class.border-[#6453D9]]="isDeliveryRangeSelected(option.id)"
+                                    [class.bg-[#6453D9]]="isDeliveryRangeSelected(option.id)"
+                                    [class.border-[#D5D5D5]]="!isDeliveryRangeSelected(option.id)"
+                                  >
+                                    @if (isDeliveryRangeSelected(option.id)) {
+                                      <span
+                                        class="block h-[6px] w-[10px] rotate-[-45deg] border-b-2 border-l-2 border-white"
+                                      ></span>
+                                    }
+                                  </span>
+                                  <span class="text-[#1F1F1F]">{{ option.label }}</span>
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="space-y-5">
+                        <h3 class="text-[24px] font-semibold leading-10 text-[#1A1B1D]">
+                          How much are you selling for?
+                        </h3>
+
+                        <label class="block space-y-1.5">
+                          <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                            Price
+                          </span>
+                          <div
+                            class="flex h-10 items-center rounded-[12px] border border-[#EFEFEF] bg-white px-3"
+                          >
+                            <span class="mr-2 text-[14px] text-[#8F8F8F]">₦</span>
+                            <input
+                              type="text"
+                              formControlName="price"
+                              class="w-full bg-transparent text-[14px] text-[#0D0D0D] outline-none"
+                            />
+                          </div>
+                        </label>
+
+                        <div class="rounded-[12px]">
+                          <div class="flex items-start justify-between gap-6">
+                            <div class="max-w-[331px] space-y-1">
+                              <p class="text-[16px] font-medium leading-6 text-[#0D0D0D]">
+                                Add discount
+                              </p>
+                              <p class="text-[13px] leading-normal text-[rgba(13,13,13,0.5)]">
+                                Let your buyers know if you are running a discount
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              (click)="toggleEditDiscount()"
+                              class="relative inline-flex h-5 w-8 rounded-full transition-colors"
+                              [class.bg-[#6453D9]]="editDiscountEnabled()"
+                              [class.bg-[#DCDCDC]]="!editDiscountEnabled()"
+                              aria-label="Toggle discount"
+                              [attr.aria-pressed]="editDiscountEnabled()"
+                            >
+                              <span
+                                class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                                [style.transform]="
+                                  editDiscountEnabled() ? 'translateX(14px)' : 'translateX(2px)'
+                                "
+                              ></span>
+                            </button>
+                          </div>
+
+                          @if (editDiscountEnabled()) {
+                            <div class="mt-6 space-y-3">
+                              <div class="flex gap-[6px]">
+                                <div
+                                  class="flex h-10 w-[113px] items-center justify-between rounded-[10px] border border-[#DEDEDE] bg-white px-3"
+                                >
+                                  <span class="text-[14px] text-[#1A1B1D]">Amount</span>
+                                  <img
+                                    ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                                    alt=""
+                                    width="16"
+                                    height="16"
+                                    class="h-4 w-4"
+                                    aria-hidden="true"
+                                  />
+                                </div>
+
+                                <div
+                                  class="flex h-10 flex-1 items-center rounded-[10px] border border-[#6453D9] bg-white px-3 shadow-[0_0_0_4px_rgba(1,140,205,0.05)]"
+                                >
+                                  <input
+                                    type="text"
+                                    formControlName="discountPrice"
+                                    class="w-full bg-transparent text-[14px] text-[#1A1B1D] outline-none"
+                                  />
+                                  <span class="text-[14px] text-[#808080]">NGN</span>
+                                </div>
+                              </div>
+
+                              <div class="grid grid-cols-2 gap-5">
+                                <label class="block space-y-1.5">
+                                  <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                                    Start date
+                                  </span>
+                                  <input
+                                    type="date"
+                                    formControlName="discountStartDate"
+                                    class="h-10 w-full rounded-[8px] border border-[#EAEAEA] px-3 text-[14px] text-[#1A1B1D] outline-none"
+                                  />
+                                </label>
+
+                                <label class="block space-y-1.5">
+                                  <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                                    End date
+                                  </span>
+                                  <input
+                                    type="date"
+                                    formControlName="discountEndDate"
+                                    class="h-10 w-full rounded-[8px] border border-[#EAEAEA] px-3 text-[14px] text-[#1A1B1D] outline-none"
+                                  />
+                                </label>
+                              </div>
+
+                              <div
+                                class="flex items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[6px] text-[14px] font-medium text-[#A2A500]"
+                              >
+                                <span
+                                  class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#E8E39C] text-[12px] text-[#8C8F00]"
+                                  aria-hidden="true"
+                                >
+                                  i
+                                </span>
+                                <span>
+                                  Your listing price will go back to its default price after the end
+                                  date
+                                </span>
+                              </div>
+                            </div>
+                          }
+                        </div>
+
+                        <div class="flex items-start justify-between gap-6">
+                          <div class="max-w-[331px] space-y-1">
+                            <p class="text-[16px] font-medium leading-6 text-[#0D0D0D]">
+                              Accept offers from buyers
+                            </p>
+                            <p class="text-[14px] leading-5 text-[rgba(13,13,13,0.5)]">
+                              Buyers can submit price offers for your review
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            (click)="toggleAcceptOffers()"
+                            class="relative inline-flex h-5 w-8 rounded-full transition-colors"
+                            [class.bg-[#6453D9]]="editAcceptOffersEnabled()"
+                            [class.bg-[#DCDCDC]]="!editAcceptOffersEnabled()"
+                            aria-label="Toggle accept offers"
+                            [attr.aria-pressed]="editAcceptOffersEnabled()"
+                          >
+                            <span
+                              class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                              [style.transform]="
+                                editAcceptOffersEnabled() ? 'translateX(14px)' : 'translateX(2px)'
+                              "
+                            ></span>
+                          </button>
+                        </div>
+
+                        <div class="flex items-start justify-between gap-6">
+                          <div class="max-w-[331px] space-y-1">
+                            <p class="text-[16px] font-medium leading-6 text-[#0D0D0D]">
+                              List this item for free
+                            </p>
+                            <p class="text-[14px] leading-5 text-[rgba(13,13,13,0.5)]">
+                              Give this item away for free
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            (click)="toggleFreeListing()"
+                            class="relative inline-flex h-5 w-8 rounded-full transition-colors"
+                            [class.bg-[#6453D9]]="editFreeListingEnabled()"
+                            [class.bg-[#DCDCDC]]="!editFreeListingEnabled()"
+                            aria-label="Toggle free listing"
+                            [attr.aria-pressed]="editFreeListingEnabled()"
+                          >
+                            <span
+                              class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                              [style.transform]="
+                                editFreeListingEnabled() ? 'translateX(14px)' : 'translateX(2px)'
+                              "
+                            ></span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </section>
+              </div>
+            </div>
+
+            <footer class="mt-auto bg-white px-6 py-5">
+              <div class="flex justify-end gap-2">
+                <button
+                  type="button"
+                  (click)="closeEditSheet()"
+                  class="inline-flex h-10 items-center justify-center rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.5px] text-[#05061A]"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  class="inline-flex h-10 items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                >
+                  Save changes
+                </button>
+              </div>
+            </footer>
+          </form>
+        </div>
+      </section>
+    }
 
     @if (desktopMenuOpen()) {
       <button
@@ -731,13 +2213,15 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
 
     @if (desktopMenuOpen()) {
       <section
-        class="fixed inset-x-0 bottom-0 z-20 rounded-t-[32px] bg-white px-4 pb-8 pt-4 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] md:hidden"
+        class="fixed inset-x-0 bottom-0 z-20 rounded-t-[32px] bg-white px-4 pb-28 pt-4 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] md:hidden"
         role="dialog"
         aria-modal="true"
         aria-label="Listing actions"
       >
         <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E5E7EC]"></div>
-        <h2 class="mt-4 text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">Listing actions</h2>
+        <h2 class="mt-4 text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">
+          Listing actions
+        </h2>
 
         <div class="mt-6 space-y-2">
           @for (action of mobileActions(); track action.id) {
@@ -748,7 +2232,16 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
               [class.text-[#FF3B30]]="action.id === 'delete'"
               [class.text-[#202335]]="action.id !== 'delete'"
             >
-              <ng-icon [name]="action.icon" class="text-[18px]"></ng-icon>
+              @if (action.iconSrc) {
+                <img
+                  [ngSrc]="action.iconSrc"
+                  alt=""
+                  width="20"
+                  height="20"
+                  class="h-5 w-5"
+                  aria-hidden="true"
+                />
+              }
               <span>{{ action.label }}</span>
             </button>
           }
@@ -760,41 +2253,90 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
       <button
         type="button"
         (click)="statusSheetOpen.set(false)"
-        class="fixed inset-0 z-30 bg-black/30"
+        class="fixed inset-0 z-30 bg-black/30 md:hidden"
         aria-label="Close status dialog"
       ></button>
 
       <section
-        class="fixed inset-x-0 bottom-0 z-40 rounded-t-[32px] bg-white px-4 pb-8 pt-4 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] md:left-1/2 md:right-auto md:top-1/2 md:w-[420px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-[32px] md:px-6 md:pb-6 md:pt-6"
+        class="fixed inset-x-0 bottom-0 z-40 rounded-t-[36px] bg-white px-4 pb-28 pt-4 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] md:hidden"
         role="dialog"
         aria-modal="true"
         aria-label="Update listing status"
       >
-        <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E5E7EC] md:hidden"></div>
-        <h2 class="mt-4 text-[20px] font-semibold tracking-[-0.03em] text-[#202335] md:mt-0">Update status</h2>
-        <p class="mt-2 text-[13px] leading-6 text-[#8A8F9A]">Choose the current status for this listing.</p>
+        <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E5E7EC]"></div>
 
-        <div class="mt-6 space-y-3">
+        <button
+          type="button"
+          (click)="statusSheetOpen.set(false)"
+          class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+          aria-label="Close status dialog"
+        >
+          <img
+            ngSrc="/assets/icons/listing-details-status-close.svg"
+            alt=""
+            width="24"
+            height="24"
+            class="h-6 w-6"
+            aria-hidden="true"
+          />
+        </button>
+
+        <h2
+          class="mt-[48px] text-[24px] font-semibold leading-[1.2] tracking-[-0.03em] text-[#15162B]"
+        >
+          Update status
+        </h2>
+
+        <div class="mt-4 space-y-4">
           @for (option of statusOptions; track option.value) {
             <button
               type="button"
               (click)="handleStatusSelection(option.value)"
-              class="flex w-full items-center justify-between rounded-[20px] border px-4 py-4 text-left transition hover:bg-[#F8F9FB]"
-              [class.border-[#202335]]="listing().status === option.value"
-              [class.border-[#E9EBF0]]="listing().status !== option.value"
+              class="flex w-full items-center justify-between py-1 text-left"
             >
-              <div>
-                <p class="text-[14px] font-semibold text-[#202335]">{{ option.label }}</p>
-                <p class="mt-1 text-[12px] text-[#8A8F9A]">
-                  @if (option.value === 'Available') {Visible to buyers and accepting requests}
-                  @if (option.value === 'Paused') {Hidden temporarily while you keep the listing}
-                  @if (option.value === 'Sold') {Marks the listing as sold and closes new requests}
+              <div class="flex items-center gap-[10px]">
+                @if (option.value === 'Available') {
+                  <img
+                    ngSrc="/assets/icons/listing-details-status-available.svg"
+                    alt=""
+                    width="20"
+                    height="20"
+                    class="h-5 w-5"
+                    aria-hidden="true"
+                  />
+                }
+                @if (option.value === 'Paused') {
+                  <img
+                    ngSrc="/assets/icons/listing-details-status-pause.svg"
+                    alt=""
+                    width="20"
+                    height="20"
+                    class="h-5 w-5"
+                    aria-hidden="true"
+                  />
+                }
+                @if (option.value === 'Sold') {
+                  <img
+                    ngSrc="/assets/icons/listing-details-status-sold.svg"
+                    alt=""
+                    width="20"
+                    height="20"
+                    class="h-5 w-5"
+                    aria-hidden="true"
+                  />
+                }
+                <p class="text-[16px] font-medium leading-5 text-[rgba(13,13,13,0.87)]">
+                  {{ option.label }}
                 </p>
               </div>
 
-              <span class="inline-flex rounded-full px-3 py-1 text-[11px] font-medium" [class]="statusOptionBadgeClass(option.tone)">
-                {{ option.label }}
-              </span>
+              @if (listing().status === option.value) {
+                <span
+                  class="inline-flex items-center rounded-full bg-[#F0F0F0] px-3 py-1 text-[14px] font-medium leading-4 text-[#1F1F1F]"
+                >
+                  Current
+                </span>
+              }
             </button>
           }
         </div>
@@ -810,32 +2352,152 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
       ></button>
 
       <section
-        class="fixed inset-x-0 bottom-0 z-40 rounded-t-[32px] bg-white px-4 pb-8 pt-4 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] md:left-1/2 md:right-auto md:top-1/2 md:w-[420px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-[32px] md:px-6 md:pb-6 md:pt-6"
+        class="fixed inset-x-0 bottom-0 z-40 rounded-t-[36px] bg-white px-4 pb-28 pt-4 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] md:hidden"
         role="dialog"
         aria-modal="true"
         aria-label="Delete listing"
       >
         <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E5E7EC] md:hidden"></div>
-        <div class="mt-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF1F0] text-[#FF3B30] md:mt-0">
-          <ng-icon name="heroTrash" class="text-[20px]"></ng-icon>
-        </div>
-        <h2 class="mt-4 text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">Delete listing?</h2>
-        <p class="mt-2 text-[13px] leading-6 text-[#8A8F9A]">This action cannot be undone. The listing will be removed from your seller account.</p>
 
-        <div class="mt-6 flex flex-col gap-3 md:flex-row">
+        <button
+          type="button"
+          (click)="deleteSheetOpen.set(false)"
+          class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+          aria-label="Close delete dialog"
+        >
+          <img
+            ngSrc="/assets/icons/listing-details-delete-close.svg"
+            alt=""
+            width="24"
+            height="24"
+            class="h-6 w-6"
+            aria-hidden="true"
+          />
+        </button>
+
+        <div class="mt-[49px]">
+          <div class="relative h-[120px] w-[122px] overflow-hidden md:h-14 md:w-14">
+            <div class="absolute inset-0 rounded-full bg-[#FFF1F1]"></div>
+            <div
+              class="absolute left-1/2 top-1/2 h-[88px] w-[89px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FFD5D5]"
+            ></div>
+            <div
+              class="absolute left-1/2 top-1/2 h-[54px] w-[54px] -translate-x-1/2 -translate-y-1/2"
+            >
+              <img
+                ngSrc="/assets/icons/listing-details-delete-trash.svg"
+                alt=""
+                width="54"
+                height="54"
+                class="h-[54px] w-[54px]"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
+          <h2
+            class="mt-[6px] text-[24px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D]"
+          >
+            Delete listing
+          </h2>
+          <p class="mt-[6px] max-w-[325px] text-[16px] leading-[24px] text-[#5A5A5A]">
+            Are you sure you want to delete this listing? This action cannot be undone.
+          </p>
+        </div>
+
+        <div class="mt-[70px]">
+          <button
+            type="button"
+            (click)="confirmDeleteListing()"
+            class="inline-flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#FF2524] text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A]"
+          >
+            Yes, delete
+          </button>
+        </div>
+      </section>
+
+      <section
+        class="fixed left-1/2 top-1/2 z-40 hidden w-[500px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[20px] bg-[#F4F4F4] shadow-[0_20px_50px_-30px_rgba(18,24,35,0.45)] md:block"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Delete listing"
+      >
+        <div class="relative rounded-b-[15px] bg-white px-6 pb-[118px] pt-6">
           <button
             type="button"
             (click)="deleteSheetOpen.set(false)"
-            class="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-[#E4E7EC] bg-white text-[14px] font-medium text-[#202335]"
+            class="absolute right-6 top-6 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F9F9F9]"
+            aria-label="Close delete dialog"
+          >
+            <img
+              ngSrc="/assets/icons/listing-details-delete-desktop-close.svg"
+              alt=""
+              width="24"
+              height="24"
+              class="h-6 w-6 -rotate-45"
+              aria-hidden="true"
+            />
+          </button>
+
+          <div class="flex flex-col gap-3">
+            <div class="relative h-[120px] w-[122px]">
+              <img
+                ngSrc="/assets/images/listing-details-delete-desktop-circle.svg"
+                alt=""
+                width="121"
+                height="120"
+                class="absolute inset-0 h-[120px] w-[121px]"
+                aria-hidden="true"
+              />
+              <img
+                ngSrc="/assets/images/listing-details-delete-desktop-inner-circle.svg"
+                alt=""
+                width="89"
+                height="88"
+                class="absolute left-1/2 top-1/2 h-[88px] w-[89px] -translate-x-1/2 -translate-y-1/2"
+                aria-hidden="true"
+              />
+              <div
+                class="absolute left-1/2 top-1/2 h-[54px] w-[54px] -translate-x-1/2 -translate-y-1/2"
+              >
+                <img
+                  ngSrc="/assets/icons/listing-details-delete-desktop-trash.svg"
+                  alt=""
+                  width="54"
+                  height="54"
+                  class="h-[54px] w-[54px]"
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <h2 class="text-[24px] font-semibold leading-normal text-[#0D0D0D]">
+                Delete listing
+              </h2>
+              <p
+                class="max-w-[430px] text-[16px] font-medium leading-[1.4] text-[rgba(13,13,13,0.7)]"
+              >
+                Are you sure you want to delete this listing? This action cannot be undone.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-start justify-end gap-4 px-[14px] pb-[15px] pt-[15px]">
+          <button
+            type="button"
+            (click)="deleteSheetOpen.set(false)"
+            class="inline-flex h-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#000000]"
           >
             Cancel
           </button>
           <button
             type="button"
             (click)="confirmDeleteListing()"
-            class="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-[#FF3B30] text-[14px] font-semibold text-white"
+            class="inline-flex h-10 items-center justify-center rounded-full border border-white bg-[#FF2524] px-5 text-[14px] font-medium text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A]"
           >
-            Delete listing
+            Yes, delete
           </button>
         </div>
       </section>
@@ -850,27 +2512,152 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
       ></button>
 
       <section
-        class="fixed inset-x-0 bottom-0 z-40 rounded-t-[32px] bg-white px-4 pb-8 pt-4 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] md:left-1/2 md:right-auto md:top-1/2 md:w-[420px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-[32px] md:px-6 md:pb-6 md:pt-6"
+        class="fixed inset-x-0 bottom-0 z-40 rounded-t-[36px] bg-white px-4 pb-28 pt-4 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] md:hidden"
         role="dialog"
         aria-modal="true"
         aria-label="Mark listing as sold"
       >
         <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E5E7EC] md:hidden"></div>
-        <h2 class="mt-4 text-[20px] font-semibold tracking-[-0.03em] text-[#202335] md:mt-0">Mark listing as sold?</h2>
-        <p class="mt-2 text-[13px] leading-6 text-[#8A8F9A]">Buyers will still see the listing details, but new purchase requests will stop.</p>
 
-        <div class="mt-6 flex flex-col gap-3 md:flex-row">
+        <button
+          type="button"
+          (click)="markSoldSheetOpen.set(false)"
+          class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+          aria-label="Close mark sold dialog"
+        >
+          <img
+            ngSrc="/assets/icons/listing-details-sold-close.svg"
+            alt=""
+            width="24"
+            height="24"
+            class="h-6 w-6"
+            aria-hidden="true"
+          />
+        </button>
+
+        <div class="mt-[49px]">
+          <div class="relative h-[120px] w-[122px] overflow-hidden">
+            <div class="absolute inset-0 rounded-full bg-[#F8F4E4]"></div>
+            <div
+              class="absolute left-1/2 top-1/2 h-[88px] w-[89px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#F1E19A]"
+            ></div>
+            <div
+              class="absolute left-1/2 top-1/2 h-[54px] w-[54px] -translate-x-1/2 -translate-y-1/2"
+            >
+              <img
+                ngSrc="/assets/icons/listing-details-sold-danger.svg"
+                alt=""
+                width="54"
+                height="54"
+                class="h-[54px] w-[54px]"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
+          <h2
+            class="mt-[6px] text-[24px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D]"
+          >
+            Mark this item as sold?
+          </h2>
+          <p class="mt-[6px] max-w-[325px] text-[16px] leading-[24px] text-[#5A5A5A]">
+            This listing will be moved to your Sold items and removed from active listings. You
+            won’t be able to mark it as available again.
+          </p>
+        </div>
+
+        <div class="mt-[70px]">
+          <button
+            type="button"
+            (click)="confirmMarkSold()"
+            class="inline-flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8]"
+          >
+            Mark as sold
+          </button>
+        </div>
+      </section>
+
+      <section
+        class="fixed left-1/2 top-1/2 z-40 hidden w-[500px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[20px] bg-[#F4F4F4] shadow-[0_20px_50px_-30px_rgba(18,24,35,0.45)] md:block"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mark listing as sold"
+      >
+        <div class="relative rounded-b-[15px] bg-white px-6 pb-[97px] pt-6">
           <button
             type="button"
             (click)="markSoldSheetOpen.set(false)"
-            class="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-[#E4E7EC] bg-white text-[14px] font-medium text-[#202335]"
+            class="absolute right-[25px] top-[25px] inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F9F9F9]"
+            aria-label="Close mark sold dialog"
+          >
+            <img
+              ngSrc="/assets/icons/listing-details-delete-desktop-close.svg"
+              alt=""
+              width="24"
+              height="24"
+              class="h-6 w-6 -rotate-45"
+              aria-hidden="true"
+            />
+          </button>
+
+          <div class="flex flex-col gap-3">
+            <div class="relative h-[120px] w-[122px]">
+              <img
+                ngSrc="/assets/images/listing-details-sold-desktop-circle.svg"
+                alt=""
+                width="121"
+                height="120"
+                class="absolute inset-0 h-[120px] w-[121px]"
+                aria-hidden="true"
+              />
+              <img
+                ngSrc="/assets/images/listing-details-sold-desktop-inner-circle.svg"
+                alt=""
+                width="89"
+                height="88"
+                class="absolute left-1/2 top-[16.57px] h-[88px] w-[89px] -translate-x-1/2"
+                aria-hidden="true"
+              />
+              <div
+                class="absolute left-1/2 top-1/2 h-[54px] w-[54px] -translate-x-1/2 -translate-y-1/2"
+              >
+                <img
+                  ngSrc="/assets/icons/listing-details-sold-danger.svg"
+                  alt=""
+                  width="54"
+                  height="54"
+                  class="h-[54px] w-[54px]"
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <h2 class="text-[24px] font-semibold leading-normal text-[#0D0D0D]">
+                Mark this item as sold?
+              </h2>
+              <p
+                class="max-w-[451px] text-[16px] font-medium leading-[1.4] text-[rgba(13,13,13,0.7)]"
+              >
+                This listing will be moved to your Sold items and removed from active listings. You
+                won’t be able to mark it as available again.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-start justify-end gap-4 px-[14px] pb-[15px] pt-[15px]">
+          <button
+            type="button"
+            (click)="markSoldSheetOpen.set(false)"
+            class="inline-flex h-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#000000]"
           >
             Cancel
           </button>
           <button
             type="button"
             (click)="confirmMarkSold()"
-            class="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-[#111111] text-[14px] font-semibold text-white"
+            class="inline-flex h-10 items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
           >
             Mark as sold
           </button>
@@ -885,16 +2672,19 @@ type MobileActionId = 'share' | 'edit' | 'pause' | 'resume' | 'delete';
       ></app-promote-listing-modal>
     }
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-  `],
+  styles: [
+    `
+      :host {
+        display: block;
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListingDetailsPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly formBuilder = inject(FormBuilder);
 
   protected readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? '1');
   protected readonly activeTab = signal<ListingTab>('overview');
@@ -904,6 +2694,53 @@ export class ListingDetailsPageComponent {
   protected readonly statusSheetOpen = signal(false);
   protected readonly deleteSheetOpen = signal(false);
   protected readonly markSoldSheetOpen = signal(false);
+  protected readonly editSheetOpen = signal(false);
+  protected readonly mobileEditStep = signal<EditSectionId>('media');
+  protected readonly openEditSections = signal<EditSectionId[]>(['media']);
+  protected readonly editDiscountEnabled = signal(false);
+  protected readonly editAcceptOffersEnabled = signal(false);
+  protected readonly editFreeListingEnabled = signal(false);
+  protected readonly selectedDeliveryMethods = signal<string[]>(['seller-delivery']);
+  protected readonly selectedDeliveryRanges = signal<string[]>(['nation-wide']);
+  protected readonly editMediaPlaceholderSlots = [4, 5, 6] as const;
+  protected readonly editCategories = [
+    'Electronics/Phones & Tablets',
+    'Electronics/Computers',
+    'Fashion',
+    'Home & Kitchen',
+  ] as const;
+  protected readonly editConditions = ['Used', 'Brand new', 'Refurbished'] as const;
+  protected readonly editStores = ['The Vine Collections', 'Duduzili Store'] as const;
+  protected readonly editLocations = ['Ikeja, Lagos', 'Yaba, Lagos', 'Abuja'] as const;
+  protected readonly deliveryMethodOptions = [
+    { id: 'buyer-pickup', label: 'Buyer pickup' },
+    { id: 'seller-delivery', label: 'Seller delivery' },
+    { id: 'public-location', label: 'Public location' },
+  ] as const;
+  protected readonly deliveryRangeOptions = [
+    { id: 'nation-wide', label: 'Nation-wide' },
+    { id: 'state-wide', label: 'State-wide' },
+    { id: 'international', label: 'International' },
+  ] as const;
+  protected readonly mobileDeliveryOptions = computed(() => [
+    ...this.deliveryMethodOptions,
+    ...this.deliveryRangeOptions,
+  ]);
+  protected readonly editListingForm = this.formBuilder.nonNullable.group({
+    name: 'Iphone 17 pro max',
+    category: 'Electronics/Phones & Tablets',
+    condition: 'Used',
+    store: 'The Vine Collections',
+    description: 'UK used iPhone 17, neatly used and fully working. Good battery health.',
+    embeddedVideo: '',
+    location: 'Ikeja, Lagos',
+    whatsAppNumber: '+234 801 234 5678',
+    callNumber: '+234 809 876 5432',
+    price: '2,500,000',
+    discountPrice: '2,000,000',
+    discountStartDate: '',
+    discountEndDate: '',
+  });
 
   protected readonly listing = signal<ListingDetails>({
     id: this.listingId(),
@@ -915,18 +2752,27 @@ export class ListingDetailsPageComponent {
     price: '2,500,000',
     description:
       'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, strong battery health, and no repairs. Minor signs of use only. Everything shown in the gallery is included exactly as pictured.',
-    status: 'Sold',
+    status: 'Available',
     messages: 12,
     views: '3,990',
     saves: 200,
-    isPromoted: true,
+    isPromoted: false,
     gallery: [
       { src: '/assets/images/listings-item-iphone.png', alt: 'Front view of iPhone 17 Pro Max' },
-      { src: '/assets/images/listings-item-iphone.png', alt: 'Rear camera view of iPhone 17 Pro Max' },
+      {
+        src: '/assets/images/listings-item-iphone.png',
+        alt: 'Rear camera view of iPhone 17 Pro Max',
+      },
       { src: '/assets/images/listings-item-iphone.png', alt: 'Angled view of iPhone 17 Pro Max' },
-      { src: '/assets/images/listings-item-iphone.png', alt: 'Display close up of iPhone 17 Pro Max' },
+      {
+        src: '/assets/images/listings-item-iphone.png',
+        alt: 'Display close up of iPhone 17 Pro Max',
+      },
       { src: '/assets/images/listings-item-iphone.png', alt: 'Side profile of iPhone 17 Pro Max' },
-      { src: '/assets/images/listings-item-iphone.png', alt: 'Packaging shot of iPhone 17 Pro Max' },
+      {
+        src: '/assets/images/listings-item-iphone.png',
+        alt: 'Packaging shot of iPhone 17 Pro Max',
+      },
     ],
     store: {
       name: 'The Vine Collections',
@@ -934,10 +2780,22 @@ export class ListingDetailsPageComponent {
     },
   });
 
-  protected readonly tabs = [
-    { id: 'overview' as const, label: 'Overview', icon: 'heroSquare3Stack3d' },
-    { id: 'requests' as const, label: 'Requests', icon: 'heroChatBubbleLeftRight' },
-    { id: 'activities' as const, label: 'Activities', icon: 'heroClipboardDocumentList' },
+  protected readonly tabs: readonly TabItem[] = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      iconSrc: '/assets/icons/listing-details-tab-overview.svg',
+    },
+    {
+      id: 'requests',
+      label: 'Requests',
+      iconSrc: '/assets/icons/listing-details-tab-requests.svg',
+    },
+    {
+      id: 'activities',
+      label: 'Activities',
+      iconSrc: '/assets/icons/listing-details-tab-activities.svg',
+    },
   ] as const;
 
   protected readonly statusOptions: readonly StatusOption[] = [
@@ -970,7 +2828,8 @@ export class ListingDetailsPageComponent {
       id: 'r2',
       buyer: 'Amaka Eze',
       avatar: '/assets/images/seller-menu-avatar.png',
-      message: 'Can you deliver to Lekki tomorrow morning? I am interested and ready to pay immediately.',
+      message:
+        'Can you deliver to Lekki tomorrow morning? I am interested and ready to pay immediately.',
       time: 'Yesterday, 5:12 pm',
       offer: '₦2,500,000',
       status: 'Responded',
@@ -981,7 +2840,8 @@ export class ListingDetailsPageComponent {
     {
       id: 'a1',
       title: 'Listing promoted successfully',
-      description: 'Your listing started running as a promoted ad across search and category pages.',
+      description:
+        'Your listing started running as a promoted ad across search and category pages.',
       time: '24 January, 2026 at 10:32 AM',
     },
     {
@@ -1002,32 +2862,84 @@ export class ListingDetailsPageComponent {
   protected readonly hasActivities = computed(() => this.activities().length > 0);
 
   protected readonly overviewStats = computed(() => [
-    { label: 'Date posted', value: this.listing().datePosted, icon: 'heroCalendarDays' },
-    { label: 'Messages', value: `${this.listing().messages}`, icon: 'heroChatBubbleLeftRight' },
-    { label: 'Views', value: this.listing().views, icon: 'heroEye' },
-    { label: 'Saves', value: `${this.listing().saves}`, icon: '' },
+    { label: 'Date posted', value: this.listing().datePosted, iconSrc: '' },
+    {
+      label: 'Messages',
+      value: `${this.listing().messages}`,
+      iconSrc: '/assets/icons/listing-details-messages.svg',
+    },
+    {
+      label: 'Views',
+      value: this.listing().views,
+      iconSrc: '/assets/icons/listing-details-eye.svg',
+    },
+    {
+      label: 'Saves',
+      value: `${this.listing().saves}`,
+      iconSrc: '/assets/icons/listing-details-heart.svg',
+    },
   ]);
 
-  protected readonly mobileActions = computed(() => {
+  protected readonly mobileActions = computed<readonly ActionItem[]>(() => {
     switch (this.listing().status) {
       case 'Paused':
         return [
-          { id: 'edit' as const, label: 'Edit listing', icon: 'heroPencilSquare' },
-          { id: 'resume' as const, label: 'Resume listing', icon: 'heroPlay' },
-          { id: 'delete' as const, label: 'Delete listing', icon: 'heroTrash' },
+          {
+            id: 'edit',
+            label: 'Edit listing',
+            iconSrc: '/assets/icons/listing-details-action-edit.svg',
+          },
+          {
+            id: 'resume',
+            label: 'Resume listing',
+            iconSrc: '/assets/icons/listing-details-action-pause.svg',
+          },
+          {
+            id: 'delete',
+            label: 'Delete listing',
+            iconSrc: '/assets/icons/listing-details-action-delete.svg',
+          },
         ];
       case 'Sold':
         return [
-          { id: 'share' as const, label: 'Share listing', icon: 'heroArrowTopRightOnSquare' },
-          { id: 'edit' as const, label: 'Edit listing', icon: 'heroPencilSquare' },
-          { id: 'delete' as const, label: 'Delete listing', icon: 'heroTrash' },
+          {
+            id: 'share',
+            label: 'Share listing',
+            iconSrc: '/assets/icons/listing-details-action-share.svg',
+          },
+          {
+            id: 'edit',
+            label: 'Edit listing',
+            iconSrc: '/assets/icons/listing-details-action-edit.svg',
+          },
+          {
+            id: 'delete',
+            label: 'Delete listing',
+            iconSrc: '/assets/icons/listing-details-action-delete.svg',
+          },
         ];
       default:
         return [
-          { id: 'share' as const, label: 'Share listing', icon: 'heroArrowTopRightOnSquare' },
-          { id: 'edit' as const, label: 'Edit listing', icon: 'heroPencilSquare' },
-          { id: 'pause' as const, label: 'Pause listing', icon: 'heroPause' },
-          { id: 'delete' as const, label: 'Delete listing', icon: 'heroTrash' },
+          {
+            id: 'share',
+            label: 'Share listing',
+            iconSrc: '/assets/icons/listing-details-action-share.svg',
+          },
+          {
+            id: 'edit',
+            label: 'Edit listing',
+            iconSrc: '/assets/icons/listing-details-action-edit.svg',
+          },
+          {
+            id: 'pause',
+            label: 'Pause listing',
+            iconSrc: '/assets/icons/listing-details-action-pause.svg',
+          },
+          {
+            id: 'delete',
+            label: 'Delete listing',
+            iconSrc: '/assets/icons/listing-details-action-delete.svg',
+          },
         ];
     }
   });
@@ -1062,6 +2974,87 @@ export class ListingDetailsPageComponent {
     this.statusSheetOpen.set(false);
     this.deleteSheetOpen.set(false);
     this.markSoldSheetOpen.set(false);
+  }
+
+  protected isEditSectionOpen(section: EditSectionId): boolean {
+    return this.openEditSections().includes(section);
+  }
+
+  protected toggleEditSection(section: EditSectionId): void {
+    this.openEditSections.update((sections) =>
+      sections.includes(section)
+        ? sections.filter((item) => item !== section)
+        : [...sections, section],
+    );
+  }
+
+  protected goBackInMobileEditFlow(): void {
+    const step = this.mobileEditStep();
+
+    if (step === 'delivery') {
+      this.mobileEditStep.set('details');
+      return;
+    }
+
+    if (step === 'details') {
+      this.mobileEditStep.set('media');
+      return;
+    }
+
+    this.closeEditSheet();
+  }
+
+  protected isDeliveryMethodSelected(optionId: string): boolean {
+    return this.selectedDeliveryMethods().includes(optionId);
+  }
+
+  protected toggleDeliveryMethod(optionId: string): void {
+    this.selectedDeliveryMethods.update((selected) =>
+      selected.includes(optionId)
+        ? selected.filter((item) => item !== optionId)
+        : [...selected, optionId],
+    );
+  }
+
+  protected isDeliveryRangeSelected(optionId: string): boolean {
+    return this.selectedDeliveryRanges().includes(optionId);
+  }
+
+  protected toggleDeliveryRange(optionId: string): void {
+    this.selectedDeliveryRanges.update((selected) =>
+      selected.includes(optionId)
+        ? selected.filter((item) => item !== optionId)
+        : [...selected, optionId],
+    );
+  }
+
+  protected isMobileDeliveryOptionSelected(optionId: string): boolean {
+    return this.isDeliveryMethodSelected(optionId) || this.isDeliveryRangeSelected(optionId);
+  }
+
+  protected handleMobileDeliveryOption(optionId: string): void {
+    if (this.deliveryMethodOptions.some((option) => option.id === optionId)) {
+      this.toggleDeliveryMethod(optionId);
+      return;
+    }
+
+    this.toggleDeliveryRange(optionId);
+  }
+
+  protected toggleEditDiscount(): void {
+    this.editDiscountEnabled.update((enabled) => !enabled);
+  }
+
+  protected toggleAcceptOffers(): void {
+    this.editAcceptOffersEnabled.update((enabled) => !enabled);
+  }
+
+  protected toggleFreeListing(): void {
+    this.editFreeListingEnabled.update((enabled) => !enabled);
+  }
+
+  protected closeEditSheet(): void {
+    this.editSheetOpen.set(false);
   }
 
   protected handleStatusSelection(status: ListingStatus): void {
@@ -1100,7 +3093,40 @@ export class ListingDetailsPageComponent {
   }
 
   protected handleEditAction(): void {
-    void this.router.navigateByUrl('/listings');
+    this.mobileEditStep.set('media');
+    this.editSheetOpen.set(true);
+  }
+
+  protected saveEditListing(): void {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      const step = this.mobileEditStep();
+
+      if (step === 'media') {
+        this.mobileEditStep.set('details');
+        return;
+      }
+
+      if (step === 'details') {
+        this.mobileEditStep.set('delivery');
+        return;
+      }
+    }
+
+    const formValue = this.editListingForm.getRawValue();
+
+    this.listing.update((listing) => ({
+      ...listing,
+      name: formValue.name,
+      description: formValue.description,
+      location: formValue.location,
+      price: formValue.price,
+      store: {
+        ...listing.store,
+        name: formValue.store,
+      },
+    }));
+
+    this.editSheetOpen.set(false);
   }
 
   protected confirmDeleteListing(): void {
