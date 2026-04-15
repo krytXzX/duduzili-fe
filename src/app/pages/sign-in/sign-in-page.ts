@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { Router, RouterLink } from '@angular/router';
@@ -19,8 +19,8 @@ import { faBrandApple, faBrandGoogle } from '@ng-icons/font-awesome/brands';
 export class SignInPageComponent {
   private readonly router = inject(Router);
   
-  protected readonly inputChevronUrl =
-    'https://www.figma.com/api/mcp/asset/b16d236c-c311-401c-9e76-ac341eb58109';
+  protected readonly inputChevronUrl = '/assets/icons/auth-input-chevron.svg';
+  protected readonly inputEyeUrl = '/assets/icons/listing-details-eye.svg';
 
   protected readonly loginForm = new FormGroup({
     email: new FormControl('', {
@@ -38,6 +38,16 @@ export class SignInPageComponent {
   protected readonly submitted = signal(false);
   protected readonly isEmailValidated = signal(false);
   protected readonly isCheckingEmail = signal(false);
+  protected readonly showPassword = signal(false);
+  protected readonly showPasswordField = computed(() => this.isEmailValidated());
+  protected readonly primaryActionLabel = computed(() =>
+    this.isEmailValidated() ? 'Sign in' : 'Continue with email',
+  );
+  protected readonly isPrimaryActionDisabled = computed(() =>
+    this.isCheckingEmail() ||
+    (!this.isEmailValidated() && this.emailControl.invalid) ||
+    (this.isEmailValidated() && this.loginForm.invalid),
+  );
 
   protected continueWithEmail(): void {
     if (this.isEmailValidated()) {
@@ -63,5 +73,9 @@ export class SignInPageComponent {
       this.submitted.set(true);
       this.emailControl.markAsTouched();
     }
+  }
+
+  protected togglePasswordVisibility(): void {
+    this.showPassword.update((value) => !value);
   }
 }

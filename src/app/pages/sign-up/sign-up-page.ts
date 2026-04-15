@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { Router } from '@angular/router';
@@ -9,7 +10,7 @@ import { OtpInputComponent } from '../../components/common/otp-input/otp-input.c
 
 @Component({
   selector: 'app-sign-up-page',
-  imports: [ReactiveFormsModule, NgIcon, OtpInputComponent],
+  imports: [NgOptimizedImage, ReactiveFormsModule, NgIcon, OtpInputComponent],
   templateUrl: './sign-up-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [provideIcons({ faBrandGoogle, faBrandApple })],
@@ -20,11 +21,12 @@ import { OtpInputComponent } from '../../components/common/otp-input/otp-input.c
 export class SignUpPageComponent {
   private readonly router = inject(Router);
   
-  // Multi-step management: 1=Email, 2=OTP, 3=Security
   protected readonly currentStep = signal(1);
-  protected readonly totalSteps = 3;
   protected readonly submitted = signal(false);
   protected readonly isProcessing = signal(false);
+  protected readonly inputEyeUrl = '/assets/icons/listing-details-eye.svg';
+  protected readonly showPassword = signal(false);
+  protected readonly showConfirmPassword = signal(false);
 
   protected readonly signupForm = new FormGroup({
     email: new FormControl('', {
@@ -57,11 +59,55 @@ export class SignUpPageComponent {
 
   protected readonly isStep1Valid = computed(() => this.emailControl.valid);
   protected readonly isStep2Valid = computed(() => this.otpControl.valid);
-  protected readonly isStep3Valid = computed(() => 
+  protected readonly isStep3Valid = computed(() =>
     this.fullNameControl.valid &&
-    this.passwordControl.valid && 
+    this.passwordControl.valid &&
     this.confirmPasswordControl.value === this.passwordControl.value
   );
+  protected readonly heading = computed(() => {
+    switch (this.currentStep()) {
+      case 1:
+        return 'Create your Duduzili account';
+      case 2:
+        return 'Verify your email address';
+      default:
+        return 'Create a secure password';
+    }
+  });
+  protected readonly description = computed(() => {
+    switch (this.currentStep()) {
+      case 1:
+        return 'Sign up to buy, sell, and manage your Duduzili account across desktop and mobile.';
+      case 2:
+        return `Enter the verification code we sent to ${this.emailControl.value || 'your email address'}.`;
+      default:
+        return 'Set a strong password you can use to access your Duduzili account securely.';
+    }
+  });
+  protected readonly primaryActionLabel = computed(() => {
+    switch (this.currentStep()) {
+      case 1:
+        return 'Continue with email';
+      case 2:
+        return 'Verify and continue';
+      default:
+        return 'Complete sign up';
+    }
+  });
+  protected readonly isPrimaryActionDisabled = computed(() => {
+    if (this.isProcessing()) {
+      return true;
+    }
+
+    switch (this.currentStep()) {
+      case 1:
+        return !this.isStep1Valid();
+      case 2:
+        return !this.isStep2Valid();
+      default:
+        return !this.isStep3Valid();
+    }
+  });
 
   protected nextStep(): void {
     const step = this.currentStep();
@@ -90,9 +136,17 @@ export class SignUpPageComponent {
 
   protected prevStep(): void {
     if (this.currentStep() > 1) {
-      this.currentStep.update(s => s - 1);
+      this.currentStep.update((value) => value - 1);
       this.submitted.set(false);
     }
+  }
+
+  protected togglePasswordVisibility(): void {
+    this.showPassword.update((value) => !value);
+  }
+
+  protected toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword.update((value) => !value);
   }
 
   private finishSignup(): void {
