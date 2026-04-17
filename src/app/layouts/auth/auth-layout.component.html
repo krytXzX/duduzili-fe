@@ -1,173 +1,131 @@
-<main class="relative flex min-h-screen h-full w-full overflow-auto bg-white">
-  <section
-    class="flex flex-1 flex-col items-center justify-start px-0 py-0 lg:justify-center-safe"
-    aria-labelledby="auth-title"
-  >
-    <header class="self-start w-full border-b border-gray-50/50 px-6 py-6 lg:px-10 lg:py-8">
-      <div class="hidden items-center justify-between sm:flex">
-        <img
-          class="h-[26px] w-[111.913px]"
-          [ngSrc]="fullLogoUrl"
-          alt="Duduzili"
-          width="112"
-          height="26"
-          priority
-        />
+<main class="mx-auto h-screen w-full overflow-hidden bg-white lg:grid lg:max-w-[1432px] xl:grid-cols-2">
+  <section class="flex h-screen overflow-y-auto justify-center bg-white px-4 pb-[23px] pt-[10px] sm:px-6 lg:px-0 lg:pb-[26px] lg:pt-0" aria-labelledby="auth-title">
+    <div class="flex w-full max-w-[390px] flex-1 flex-col lg:max-w-[742px]">
+
+      <header class="mx-auto mt-[16px] flex w-full max-w-[358px] items-center justify-between lg:mt-0 lg:max-w-[680.913px] lg:pt-[24px]">
+        <img class="hidden h-[26px] w-[111.913px] lg:block" [ngSrc]="fullLogoUrl" alt="Duduzili" width="112" height="26" priority />
+
+        <img class="block h-[23px] w-[23px] lg:hidden" [ngSrc]="iconLogoUrl" alt="Duduzili" width="23" height="23" priority />
 
         @if (showAccountPrompt()) {
-          <div class="flex items-center gap-4 text-[13px] sm:text-[14px]">
-            @if (isSignIn()) {
-              <span class="text-[#777777]">Don't have a Duduzili account?</span>
-              <a
-                routerLink="/sign-up"
-                class="rounded-full bg-[#F2F2F2] px-4 py-2 text-center font-bold whitespace-nowrap text-[#15162B] transition-all hover:bg-[#EAEAEA] sm:px-5 sm:py-2.5"
-              >
-                Create a new account
-              </a>
-            } @else {
-              <span class="text-[#777777]">Already have a Duduzili account?</span>
-              <a
-                routerLink="/sign-in"
-                class="rounded-full bg-[#F2F2F2] px-4 py-2 text-center font-bold whitespace-nowrap text-[#15162B] transition-all hover:bg-[#EAEAEA] sm:px-5 sm:py-2.5"
-              >
-                Sign in
-              </a>
-            }
-          </div>
+        <div class="hidden items-center justify-end gap-4 text-right lg:flex">
+          <span class="text-[16px] leading-[1.3] tracking-[-0.5px] text-[#434455]">
+            {{ desktopPromptText() }}
+          </span>
+          <a [routerLink]="promptLink()" class="inline-flex h-10 items-center justify-center rounded-[100px] bg-[#f7f7f7] px-4 text-[16px] leading-5 font-medium text-[#36394a] transition-colors hover:bg-[#efefef] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
+            {{ desktopPromptAction() }}
+          </a>
+        </div>
+
+        <div class="flex items-center gap-1 text-[16px] leading-none tracking-[-0.24px] lg:hidden">
+          <span class="font-medium text-[rgba(26,27,29,0.5)]">{{ mobilePromptText() }}</span>
+          <a [routerLink]="promptLink()" class="font-medium text-[#6453d9] underline decoration-solid underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
+            {{ mobilePromptAction() }}
+          </a>
+        </div>
         }
-      </div>
+      </header>
 
-      <div class="flex items-center justify-between sm:hidden">
-        <img
-          class="h-[23px] w-[23px]"
-          [ngSrc]="iconLogoUrl"
-          alt="Duduzili"
-          width="23"
-          height="23"
-          priority
-        />
+      <div class="flex flex-1 flex-col items-center">
+        <div class="mt-[49px] flex w-full max-w-[358px] flex-1 flex-col items-center gap-5 lg:mt-[165px] lg:max-w-[455px] lg:gap-[44px]">
+          <img class="h-[60.864px] w-[60.864px] lg:h-[82.074px] lg:w-[82.074px]" [ngSrc]="markUrl" alt="" width="82" height="82" priority />
 
-        @if (showAccountPrompt()) {
-          <div class="flex items-center gap-1 text-[14px] leading-5">
-            @if (isSignIn()) {
-              <span class="text-[#8A8A91]">Don’t have an account?</span>
-              <a
-                routerLink="/sign-up"
-                class="font-medium text-[#6453D9] underline underline-offset-2"
-              >
-                Sign up
-              </a>
-            } @else {
-              <span class="text-[#8A8A91]">Already have an account?</span>
-              <a
-                routerLink="/sign-in"
-                class="font-medium text-[#6453D9] underline underline-offset-2"
-              >
-                Sign in
-              </a>
-            }
-          </div>
-        }
-      </div>
-    </header>
+          <router-outlet></router-outlet>
+        </div>
 
-    <div
-      class="mt-8 flex w-full flex-1 flex-col items-center justify-start gap-8 px-4 sm:mt-12 sm:max-w-112.75 sm:gap-10 lg:mt-0 lg:w-fit lg:max-w-full lg:justify-center lg:gap-11"
-    >
-      <img
-        class="h-[82.074px] w-[82.074px]"
-        [ngSrc]="markUrl"
-        alt=""
-        width="82"
-        height="82"
-        priority
-      />
-
-      <router-outlet></router-outlet>
-
-      <div class="mt-auto px-6 pb-8 pt-6 text-center text-[12px] text-[#777777] sm:mt-4 sm:pb-0">
-        By continuing, you agree to the
-        <a
-          routerLink="/terms-of-service"
-          class="text-[#6453d9] transition-colors hover:text-[#5142c8]"
-        >
-          Terms
-        </a>
-        and
-        <a
-          routerLink="/terms-of-service"
-          class="text-[#6453d9] transition-colors hover:text-[#5142c8]"
-        >
-          Privacy Policy
-        </a>
+        <div class="mt-auto w-full max-w-[323px] pt-6 text-center text-[12px] leading-4 tracking-[-0.24px] text-[#5a5a5a] lg:max-w-[403px] lg:pt-0 lg:text-[12px] lg:leading-[18px]">
+          By continuing, you agree to the
+          <a routerLink="/terms-of-service" class="text-[#6453d9] transition-colors hover:text-[#5142c8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
+            Terms
+          </a>
+          and
+          <a routerLink="/terms-of-service" class="text-[#6453d9] transition-colors hover:text-[#5142c8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
+            Privacy Policy
+          </a>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="sticky inset-y-0 hidden h-full flex-1 overflow-hidden lg:block">
-    <div class="absolute inset-0 overflow-hidden rounded-l-3xl bg-[#f2f2f2]">
-      <img
-        class="size-full object-cover"
-        [ngSrc]="heroSkyUrl"
-        alt=""
-        width="911"
-        height="1215"
-        priority
-      />
+  <section class="hidden h-screen overflow-hidden py-2 xl:block">
+    <div class="relative h-full w-full overflow-hidden rounded-l-[24px] bg-[#f2f2f2]">
+      <img class="absolute left-[-33px] top-[-100px] h-[1215px] w-[911px] max-w-none object-cover" [ngSrc]="heroSkyUrl" alt="" width="911" height="1215" priority />
 
-      <div
-        class="absolute left-[98px] top-[72px] h-[166px] w-[557px] rotate-[6.34deg] overflow-hidden rounded-[24px] border border-[#eaeaea] bg-white shadow-[0_12px_32px_rgba(94,94,94,0.25)]"
-      >
-        <div
-          class="absolute left-[3px] top-[3px] h-[158px] w-[266px] rounded-[20px] border border-[#eaeaea] bg-[#efefef]"
-        >
-          <img
-            class="absolute left-[61px] top-[6px] h-[145.63px] w-[145.63px] object-cover"
-            [ngSrc]="phoneImageUrl"
-            alt=""
-            width="146"
-            height="146"
-          />
-          <img
-            class="absolute right-[11px] top-[11px] h-6 w-6"
-            [ngSrc]="productLikeUrl"
-            alt=""
-            width="24"
-            height="24"
-          />
-          <div
-            class="absolute left-[11px] top-[11px] inline-flex h-6 items-center gap-1 rounded-[8px] border border-[#eaeaea] bg-white px-2 py-1 text-[12px] leading-4 font-semibold text-black"
-          >
-            <img [ngSrc]="verifiedBadgeIconUrl" alt="" width="14" height="14" />
-            <span>Verified</span>
-          </div>
-        </div>
+      <div class="absolute left-[97.68px] top-[69.77px] flex h-[226.453px] w-[571.917px] items-center justify-center">
+        <div class="rotate-[6.34deg]">
+          <div class="relative h-[166px] w-[557px] rounded-[24px] border border-[#eaeaea] bg-white shadow-[0_12px_32px_rgba(94,94,94,0.25)]">
+            <div class="absolute left-[3px] top-[3px] h-[158px] w-[266px] overflow-hidden rounded-[20px] border border-[#eaeaea] bg-[#efefef]">
+              <img class="absolute left-[60.82px] top-[7.4px] h-[160.812px] w-[160.812px] object-cover" [ngSrc]="phoneImageUrl" alt="" width="161" height="161" />
 
-        <div class="absolute left-[282px] top-[13px] flex w-[248px] flex-col gap-[7.176px] text-[#1f1f1f]">
-          <p class="m-0 text-[25.118px] leading-[35.882px] font-normal">Iphone 17 pro max</p>
-          <div class="inline-flex items-center gap-0 text-[28.706px] leading-[43.059px] font-medium">
-            <img [ngSrc]="nairaIconUrl" alt="" width="29" height="29" />
-            <span>1,200,000</span>
+              <div class="absolute left-[11px] top-[11px] inline-flex h-6 items-center justify-center gap-1 rounded-[8px] border border-[#eaeaea] bg-white px-2 py-1 text-[12px] leading-4 font-semibold text-black">
+                <img [ngSrc]="verifiedBadgeIconUrl" alt="" width="14" height="14" />
+                <span>Verified</span>
+              </div>
+
+              <img class="absolute right-[11px] top-[11px] h-6 w-6" [ngSrc]="productLikeUrl" alt="" width="24" height="24" />
+
+              <img class="absolute left-[120.86px] top-[209px] h-1 w-[25.289px]" [ngSrc]="carouselDotsUrl" alt="" width="25" height="4" />
+
+              <div class="absolute left-[13.05px] top-[67.5px] flex w-[238.894px] items-center justify-between">
+                <button type="button" class="inline-flex h-[26.502px] w-[26.502px] items-center justify-center rounded-full border-[0.6px] border-[#eaeaea] bg-white p-[6px] shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]" aria-label="Previous product image">
+                  <img [ngSrc]="arrowLeftUrl" alt="" width="12" height="12" />
+                </button>
+
+                <button type="button" class="inline-flex h-[26.502px] w-[26.502px] items-center justify-center rounded-full border-[0.6px] border-[#eaeaea] bg-white p-[6px] shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]" aria-label="Next product image">
+                  <img [ngSrc]="arrowRightUrl" alt="" width="12" height="12" />
+                </button>
+              </div>
+            </div>
+
+            <div class="absolute left-[282.1px] top-[12.94px] flex flex-col gap-[7.176px] px-[7.176px] text-[#1f1f1f]">
+              <p class="m-0 text-[25.118px] leading-[35.882px] font-normal">Iphone 17 pro max</p>
+
+              <div class="inline-flex items-center">
+                <img [ngSrc]="nairaIconUrl" alt="" width="29" height="29" />
+                <span class="text-[28.706px] leading-[43.059px] font-medium">1,200,000</span>
+              </div>
+
+              <div class="inline-flex items-center gap-[7.176px] text-[21.529px] leading-[28.706px] text-[#959595]">
+                <img [ngSrc]="locationIconUrl" alt="" width="22" height="22" />
+                <span>Ikeja, Lagos</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <img
-        class="absolute left-[38.64px] right-[84.48px] top-[256.43px]"
-        [ngSrc]="storeBannerUrl"
-        alt=""
-        width="628"
-        height="261"
-      />
+      <div class="absolute left-[39.64px] top-[183.43px] flex h-[198.787px] w-[565.875px] items-center justify-center">
+        <div class="-rotate-[3.4deg]">
+          <div class="relative h-[166px] w-[557px] overflow-hidden rounded-[24px] border border-[#eaeaea] bg-white shadow-[0_12px_32px_rgba(94,94,94,0.25)]">
+            <div class="absolute left-[3px] right-[3px] top-[3px] h-[158px] overflow-hidden rounded-t-[20px]">
+              <img class="h-full w-full object-cover" [ngSrc]="storeCoverUrl" alt="" width="551" height="158" />
+              <div class="absolute inset-0 bg-[linear-gradient(179.84deg,rgba(255,255,255,0)_0.54%,#ffffff_93.47%)]"></div>
+            </div>
 
-      <img
-        class="absolute left-px top-[-81px] h-[1263px] w-[689px] object-cover"
-        [ngSrc]="heroImageUrl"
-        alt=""
-        width="689"
-        height="1263"
-        priority
-      />
+            <div class="absolute left-[188.55px] top-[28.14px] flex w-[203px] flex-col items-center">
+              <div class="flex flex-col items-start gap-[7px]">
+                <div class="overflow-hidden rounded-full border-4 border-white bg-white">
+                  <img class="h-[74px] w-[74px] object-cover" [ngSrc]="storeAvatarUrl" alt="" width="74" height="74" />
+                </div>
+
+                <div class="flex flex-col items-start">
+                  <div class="inline-flex items-center gap-1">
+                    <span class="text-[16px] leading-6 font-medium text-[#1f1f1f]">Snap Thrifts</span>
+                    <img [ngSrc]="storeVerifyUrl" alt="" width="14" height="14" />
+                  </div>
+
+                  <div class="inline-flex items-center gap-1 text-[14px] leading-5 text-[#777777]">
+                    <img [ngSrc]="storeLocationUrl" alt="" width="14" height="14" />
+                    <span>Ikeja, Lagos</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <img class="absolute left-px top-[-81px] h-[1263px] w-[689px] max-w-none object-cover" [ngSrc]="heroImageUrl" alt="" width="689" height="1263" priority />
     </div>
   </section>
 </main>

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, signal, viewChild } fro
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
+import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 
 type HomeCategory = {
   id: string;
@@ -23,19 +24,9 @@ type HomePromotion = {
   image: string;
 };
 
-type HomeStore = {
-  id: string;
-  name: string;
-  location: string;
-  coverImage: string;
-  mobileCoverImage: string;
-  logoImage: string;
-  mobileLogoImage: string;
-};
-
 @Component({
   selector: 'app-home-page',
-  imports: [NgOptimizedImage, RouterLink, MobileBottomNavComponent],
+  imports: [NgOptimizedImage, RouterLink, MobileBottomNavComponent, StoreCardComponent],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.css',
   host: {
@@ -238,7 +229,7 @@ export class HomePageComponent {
     { id: 'p3', image: '/assets/images/home-promo-3.png' },
   ];
 
-  readonly featuredStores: HomeStore[] = [
+  readonly featuredStores: Store[] = [
     {
       id: 'st1',
       name: 'The Vine Collections',
@@ -247,6 +238,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-vine-cover-mobile.png',
       logoImage: '/assets/images/store-vine-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-vine-logo-mobile.png',
+      route: ['/'],
     },
     {
       id: 'st2',
@@ -256,6 +248,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-eden-cover-mobile.png',
       logoImage: '/assets/images/store-eden-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-eden-logo-mobile.png',
+      route: ['/'],
     },
     {
       id: 'st3',
@@ -265,6 +258,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-snap-cover-mobile.png',
       logoImage: '/assets/images/store-snap-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-snap-logo-mobile.png',
+      route: ['/'],
     },
     {
       id: 'st4',
@@ -274,6 +268,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-gomelon-cover-mobile.png',
       logoImage: '/assets/images/store-gomelon-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-gomelon-logo-mobile.png',
+      route: ['/'],
     },
     {
       id: 'st5',
@@ -283,6 +278,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-amazing-cover-desktop.png',
       logoImage: '/assets/images/store-amazing-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-amazing-logo-desktop.png',
+      route: ['/'],
     },
     {
       id: 'st6',
@@ -292,6 +288,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-none-cover-desktop.png',
       logoImage: '/assets/images/store-none-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-none-logo-desktop.png',
+      route: ['/'],
     },
     {
       id: 'st7',
@@ -301,6 +298,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-newage-cover-desktop.png',
       logoImage: '/assets/images/store-newage-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-newage-logo-desktop.png',
+      route: ['/'],
     },
     {
       id: 'st8',
@@ -310,6 +308,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-swift-cover-desktop.png',
       logoImage: '/assets/images/store-swift-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-swift-logo-desktop.png',
+      route: ['/'],
     },
   ];
 

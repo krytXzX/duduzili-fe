@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, input, output, signal, effect, ElementRef, ViewChildren, QueryList } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  QueryList,
+  ViewChildren,
+  effect,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 
 @Component({
   selector: 'app-otp-input',
@@ -6,20 +16,13 @@ import { ChangeDetectionStrategy, Component, input, output, signal, effect, Elem
   templateUrl: './otp-input.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'flex flex-col items-center w-full',
+    class: 'block w-full',
   },
 })
 export class OtpInputComponent {
-  /** Total number of digits in the OTP */
   length = input<number>(6);
-  
-  /** Whether the parent form has been submitted (to show error styling) */
   submitted = input<boolean>(false);
-  
-  /** Emits the full code whenever any digit changes */
   codeChange = output<string>();
-  
-  /** Emits the full code only when it's fully filled */
   codeFilled = output<string>();
 
   @ViewChildren('digitInput') inputs!: QueryList<ElementRef<HTMLInputElement>>;
@@ -38,26 +41,23 @@ export class OtpInputComponent {
   protected updateOtpValue(index: number, event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     let value = inputElement.value;
-    
-    // Accept only numeric characters
+
     value = value.replace(/\D/g, '');
     inputElement.value = value;
-    
-    // Only take the last character if multiple are entered
+
     if (value.length > 1) value = value.slice(-1);
-    
+
     const fields = [...this.otpFields()];
     fields[index] = value;
     this.otpFields.set(fields);
-    
+
     const fullValue = fields.join('');
     this.codeChange.emit(fullValue);
-    
+
     if (fullValue.length === this.length()) {
       this.codeFilled.emit(fullValue);
     }
-    
-    // Auto-focus next
+
     if (value && index < this.length() - 1) {
       setTimeout(() => {
         this.inputs.toArray()[index + 1].nativeElement.focus();
@@ -84,15 +84,30 @@ export class OtpInputComponent {
 
     const fullValue = fields.join('');
     this.codeChange.emit(fullValue);
-    
+
     if (fullValue.length === this.length()) {
       this.codeFilled.emit(fullValue);
     }
 
-    // Attempt to focus the next empty box or the last one
     const nextIndex = digits.length < this.length() ? digits.length : this.length() - 1;
     setTimeout(() => {
       this.inputs.toArray()[nextIndex].nativeElement.focus();
     });
+  }
+
+  protected fieldBorderRadius(index: number): string {
+    if (index === 0) {
+      return '19.839px 8.266px 8.266px 19.839px';
+    }
+
+    if (index === this.length() - 1) {
+      return '8.266px 19.839px 19.839px 8.266px';
+    }
+
+    return '8.266px';
+  }
+
+  protected fieldAriaLabel(index: number): string {
+    return `Verification code digit ${index + 1}`;
   }
 }

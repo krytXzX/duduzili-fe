@@ -1,30 +1,32 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NgIcon, provideIcons } from '@ng-icons/core';
 import { Router } from '@angular/router';
 import { inject } from '@angular/core';
-import { faBrandApple, faBrandGoogle } from '@ng-icons/font-awesome/brands';
 
 import { OtpInputComponent } from '../../components/common/otp-input/otp-input.component';
 
+type SignUpStep = 1 | 2 | 3;
+
 @Component({
   selector: 'app-sign-up-page',
-  imports: [NgOptimizedImage, ReactiveFormsModule, NgIcon, OtpInputComponent],
+  imports: [NgOptimizedImage, ReactiveFormsModule, OtpInputComponent],
   templateUrl: './sign-up-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [provideIcons({ faBrandGoogle, faBrandApple })],
   host: {
-    class: 'flex flex-col gap-5',
+    class: 'block w-full max-w-[358px] lg:max-w-[455px]',
   },
 })
 export class SignUpPageComponent {
   private readonly router = inject(Router);
-  
-  protected readonly currentStep = signal(1);
+
+  protected readonly currentStep = signal<SignUpStep>(1);
   protected readonly submitted = signal(false);
   protected readonly isProcessing = signal(false);
-  protected readonly inputEyeUrl = '/assets/icons/listing-details-eye.svg';
+  protected readonly googleIconUrl = '/assets/icons/signin-google.svg';
+  protected readonly appleIconUrl = '/assets/icons/signin-apple.svg';
+  protected readonly inputEyeUrl = '/assets/icons/signup-password-eye.svg';
   protected readonly showPassword = signal(false);
   protected readonly showConfirmPassword = signal(false);
 
@@ -56,42 +58,79 @@ export class SignUpPageComponent {
   protected readonly otpControl = this.signupForm.controls.otp;
   protected readonly passwordControl = this.signupForm.controls.password;
   protected readonly confirmPasswordControl = this.signupForm.controls.confirmPassword;
+  private readonly emailValue = toSignal(this.emailControl.valueChanges, {
+    initialValue: this.emailControl.getRawValue(),
+  });
+  private readonly fullNameValue = toSignal(this.fullNameControl.valueChanges, {
+    initialValue: this.fullNameControl.getRawValue(),
+  });
+  private readonly otpValue = toSignal(this.otpControl.valueChanges, {
+    initialValue: this.otpControl.getRawValue(),
+  });
+  private readonly passwordValue = toSignal(this.passwordControl.valueChanges, {
+    initialValue: this.passwordControl.getRawValue(),
+  });
+  private readonly confirmPasswordValue = toSignal(this.confirmPasswordControl.valueChanges, {
+    initialValue: this.confirmPasswordControl.getRawValue(),
+  });
 
-  protected readonly isStep1Valid = computed(() => this.emailControl.valid);
-  protected readonly isStep2Valid = computed(() => this.otpControl.valid);
-  protected readonly isStep3Valid = computed(() =>
-    this.fullNameControl.valid &&
-    this.passwordControl.valid &&
-    this.confirmPasswordControl.value === this.passwordControl.value
+  protected readonly emailPreview = computed(
+    () => this.emailValue().trim() || 'name@email.com',
   );
+  protected readonly isStep1Processing = computed(
+    () => this.currentStep() === 1 && this.isProcessing(),
+  );
+  protected readonly isConfirmPasswordMismatch = computed(
+    () => this.confirmPasswordValue().length > 0 && this.confirmPasswordValue() !== this.passwordValue(),
+  );
+  protected readonly isEmailEmpty = computed(() => this.emailValue().trim().length === 0);
+  protected readonly isStep1Valid = computed(() => {
+    this.emailValue();
+    return this.emailControl.valid;
+  });
+  protected readonly isStep2Valid = computed(() => {
+    this.otpValue();
+    return this.otpControl.valid;
+  });
+  protected readonly isStep3Valid = computed(() => {
+    this.fullNameValue();
+    this.passwordValue();
+    this.confirmPasswordValue();
+
+    return (
+      this.fullNameControl.valid &&
+      this.passwordControl.valid &&
+      this.confirmPasswordValue() === this.passwordValue()
+    );
+  });
   protected readonly heading = computed(() => {
     switch (this.currentStep()) {
       case 1:
-        return 'Create your Duduzili account';
+        return 'Sign up to join Duduzili';
       case 2:
-        return 'Verify your email address';
+        return 'We emailed you a code';
       default:
-        return 'Create a secure password';
+        return 'You’re almost done';
     }
   });
   protected readonly description = computed(() => {
     switch (this.currentStep()) {
       case 1:
-        return 'Sign up to buy, sell, and manage your Duduzili account across desktop and mobile.';
+        return null;
       case 2:
-        return `Enter the verification code we sent to ${this.emailControl.value || 'your email address'}.`;
+        return 'Enter the verification code we sent to';
       default:
-        return 'Set a strong password you can use to access your Duduzili account securely.';
+        return 'Add your name and set a password to complete your sign up';
     }
   });
   protected readonly primaryActionLabel = computed(() => {
     switch (this.currentStep()) {
       case 1:
-        return 'Continue with email';
+        return 'Send code';
       case 2:
-        return 'Verify and continue';
+        return 'Confirm and continue';
       default:
-        return 'Complete sign up';
+        return 'Create account';
     }
   });
   protected readonly isPrimaryActionDisabled = computed(() => {
@@ -115,7 +154,6 @@ export class SignUpPageComponent {
 
     if (step === 1 && this.isStep1Valid()) {
       this.isProcessing.set(true);
-      // Mock validation
       setTimeout(() => {
         this.isProcessing.set(false);
         this.currentStep.set(2);
@@ -123,7 +161,6 @@ export class SignUpPageComponent {
       }, 800);
     } else if (step === 2 && this.isStep2Valid()) {
       this.isProcessing.set(true);
-      // Mock OTP verify
       setTimeout(() => {
         this.isProcessing.set(false);
         this.currentStep.set(3);
@@ -131,13 +168,6 @@ export class SignUpPageComponent {
       }, 800);
     } else if (step === 3 && this.isStep3Valid()) {
       this.finishSignup();
-    }
-  }
-
-  protected prevStep(): void {
-    if (this.currentStep() > 1) {
-      this.currentStep.update((value) => value - 1);
-      this.submitted.set(false);
     }
   }
 
@@ -151,11 +181,8 @@ export class SignUpPageComponent {
 
   private finishSignup(): void {
     this.isProcessing.set(true);
-    console.log('User Registered:', this.signupForm.value);
-    // Mock success
     setTimeout(() => {
       this.isProcessing.set(false);
-      // Navigate to success or login
       this.router.navigate(['/listings']);
     }, 1500);
   }

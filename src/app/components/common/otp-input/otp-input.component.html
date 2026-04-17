@@ -1,41 +1,42 @@
-<div class="flex justify-center items-center gap-2 py-2 w-full" (paste)="handlePaste($event)">
-  <!-- Left Side Digit Boxes -->
-  <div class="flex gap-2 sm:gap-3">
+<div class="flex w-full items-center justify-center gap-[11.573px]" (paste)="handlePaste($event)">
+  <div class="flex items-center gap-[6.613px]">
     @for (field of otpFields().slice(0, halfLength()); track $index) {
       <input
         #digitInput
-        class="h-14 w-12 text-center text-[24px] font-bold rounded-[16px] border border-[#efefef] bg-white text-[#15162b] focus:border-[#6453d9] focus:ring-2 focus:ring-[#6453d9]/20 focus-visible:outline-0 transition-all shadow-sm font-sans"
-        [class.border-[#d24b4b]]="submitted() && !field"
+        class="h-[57.864px] w-[49.598px] border bg-[#f3f3f3] text-center text-[24px] leading-none font-semibold tracking-[-0.36px] text-[#1a1b1d] transition-[background-color,border-color,box-shadow] focus:bg-white focus-visible:border-[#6453d9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+        [style.borderRadius]="fieldBorderRadius($index)"
+        [style.borderColor]="submitted() && !field ? '#d24b4b' : 'transparent'"
         type="text"
         [value]="field"
         (input)="updateOtpValue($index, $event)"
         (keydown)="handleKeydown($index, $event)"
         maxlength="1"
         inputmode="numeric"
-        aria-label="Digit Verification Field"
+        autocomplete="one-time-code"
+        [attr.aria-label]="fieldAriaLabel($index)"
       />
     }
   </div>
 
-  <!-- Dash Separator (Visible only for even lengths like 4, 6, 8) -->
   @if (length() >= 4 && length() % 2 === 0) {
-    <span class="text-[#efefef] text-2xl font-light mx-1 sm:mx-2">—</span>
+    <span class="block h-px w-[9.92px] bg-[#cfcfd4]" aria-hidden="true"></span>
   }
 
-  <!-- Right Side Digit Boxes -->
-  <div class="flex gap-2 sm:gap-3">
+  <div class="flex items-center gap-[6.613px]">
     @for (field of otpFields().slice(halfLength()); track $index) {
       <input
         #digitInput
-        class="h-14 w-12 text-center text-[24px] font-bold rounded-[16px] border border-[#efefef] bg-white text-[#15162b] focus:border-[#6453d9] focus:ring-2 focus:ring-[#6453d9]/20 focus-visible:outline-0 transition-all shadow-sm font-sans"
-        [class.border-[#d24b4b]]="submitted() && !field"
+        class="h-[57.864px] w-[49.598px] border bg-[#f3f3f3] text-center text-[24px] leading-none font-semibold tracking-[-0.36px] text-[#1a1b1d] transition-[background-color,border-color,box-shadow] focus:bg-white focus-visible:border-[#6453d9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+        [style.borderRadius]="fieldBorderRadius($index + halfLength())"
+        [style.borderColor]="submitted() && !field ? '#d24b4b' : 'transparent'"
         type="text"
         [value]="field"
         (input)="updateOtpValue($index + halfLength(), $event)"
         (keydown)="handleKeydown($index + halfLength(), $event)"
         maxlength="1"
         inputmode="numeric"
-        aria-label="Digit Verification Field"
+        autocomplete="one-time-code"
+        [attr.aria-label]="fieldAriaLabel($index + halfLength())"
       />
     }
   </div>

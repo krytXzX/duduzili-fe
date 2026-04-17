@@ -1,29 +1,33 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { faEnvelopeOpen, faCircleCheck } from '@ng-icons/font-awesome/regular';
 
 import { OtpInputComponent } from '../../components/common/otp-input/otp-input.component';
 
+type ForgotPasswordStep = 'email' | 'code' | 'password' | 'success';
+
 @Component({
   selector: 'app-forgot-password-page',
-  imports: [ReactiveFormsModule, NgIcon, RouterLink, OtpInputComponent],
+  imports: [NgOptimizedImage, ReactiveFormsModule, RouterLink, OtpInputComponent],
   templateUrl: './forgot-password-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [provideIcons({ faEnvelopeOpen, faCircleCheck })],
   host: {
-    class: 'flex flex-col gap-6',
+    class: 'block w-full',
   },
 })
 export class ForgotPasswordPageComponent {
-  // Multi-step management: 1=Email, 2=Check Email, 3=Verify OTP, 4=New Password, 5=Success
-  protected readonly currentStep = signal(1);
-  protected readonly totalSteps = 5;
-  protected readonly isProcessing = signal(false);
+  protected readonly currentStep = signal<ForgotPasswordStep>('email');
   protected readonly submitted = signal(false);
+  protected readonly isProcessing = signal(false);
+  protected readonly showPassword = signal(false);
+  protected readonly showConfirmPassword = signal(false);
 
-  // Forms
+  protected readonly inputEyeUrl = '/assets/icons/forgot-password-password-eye.svg';
+  protected readonly successIllustrationUrl =
+    '/assets/images/forgot-password-success-illustration.png';
+
   protected readonly forgotPasswordForm = new FormGroup({
     email: new FormControl('', {
       nonNullable: true,
@@ -31,7 +35,7 @@ export class ForgotPasswordPageComponent {
     }),
     otp: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(4), Validators.maxLength(4)],
+      validators: [Validators.required, Validators.minLength(6), Validators.maxLength(6)],
     }),
     password: new FormControl('', {
       nonNullable: true,
@@ -43,72 +47,177 @@ export class ForgotPasswordPageComponent {
     }),
   });
 
-  // Easy access to controls
   protected readonly emailControl = this.forgotPasswordForm.controls.email;
   protected readonly otpControl = this.forgotPasswordForm.controls.otp;
   protected readonly passwordControl = this.forgotPasswordForm.controls.password;
   protected readonly confirmPasswordControl = this.forgotPasswordForm.controls.confirmPassword;
 
-  // Validation state
-  protected readonly isStep1Valid = computed(() => this.emailControl.valid);
-  protected readonly isStep3Valid = computed(() => this.otpControl.valid);
-  protected readonly isStep4Valid = computed(() => 
-    this.passwordControl.valid && 
-    this.confirmPasswordControl.value === this.passwordControl.value
+  private readonly emailValue = toSignal(this.emailControl.valueChanges, {
+    initialValue: this.emailControl.getRawValue(),
+  });
+  private readonly otpValue = toSignal(this.otpControl.valueChanges, {
+    initialValue: this.otpControl.getRawValue(),
+  });
+  private readonly passwordValue = toSignal(this.passwordControl.valueChanges, {
+    initialValue: this.passwordControl.getRawValue(),
+  });
+  private readonly confirmPasswordValue = toSignal(this.confirmPasswordControl.valueChanges, {
+    initialValue: this.confirmPasswordControl.getRawValue(),
+  });
+
+  protected readonly emailPreview = computed(
+    () => this.emailValue().trim() || 'name@email.com',
   );
+  protected readonly isEmailStep = computed(() => this.currentStep() === 'email');
+  protected readonly isCodeStep = computed(() => this.currentStep() === 'code');
+  protected readonly isPasswordStep = computed(() => this.currentStep() === 'password');
+  protected readonly isSuccessStep = computed(() => this.currentStep() === 'success');
+  protected readonly isEmailEmpty = computed(() => this.emailValue().trim().length === 0);
+  protected readonly isPasswordEmpty = computed(() => this.passwordValue().trim().length === 0);
+  protected readonly isConfirmPasswordEmpty = computed(
+    () => this.confirmPasswordValue().trim().length === 0,
+  );
+  protected readonly isConfirmPasswordMismatch = computed(
+    () =>
+      this.confirmPasswordValue().length > 0 &&
+      this.confirmPasswordValue() !== this.passwordValue(),
+  );
+  protected readonly isEmailValid = computed(() => {
+    this.emailValue();
+    return this.emailControl.valid;
+  });
+  protected readonly isOtpValid = computed(() => {
+    this.otpValue();
+    return this.otpControl.valid;
+  });
+  protected readonly isPasswordStepValid = computed(() => {
+    this.passwordValue();
+    this.confirmPasswordValue();
 
-  protected sendOtp(): void {
-    this.submitted.set(true);
-    if (!this.isStep1Valid()) return;
-
-    this.isProcessing.set(true);
-    // Mock API call to send OTP
-    setTimeout(() => {
-      this.isProcessing.set(false);
-      this.currentStep.set(2);
-      this.submitted.set(false);
-    }, 1200);
-  }
-
-  protected verifyOtp(): void {
-    this.submitted.set(true);
-    if (!this.isStep3Valid()) return;
-
-    this.isProcessing.set(true);
-    // Mock API call to verify OTP
-    setTimeout(() => {
-      this.isProcessing.set(false);
-      this.currentStep.set(4);
-      this.submitted.set(false);
-    }, 1000);
-  }
-
-  protected resetPassword(): void {
-    this.submitted.set(true);
-    if (!this.isStep4Valid()) return;
-
-    this.isProcessing.set(true);
-    // Mock API call to reset password
-    setTimeout(() => {
-      this.isProcessing.set(false);
-      this.currentStep.set(5);
-      this.submitted.set(false);
-    }, 1500);
-  }
-
-  protected goToVerifyStep(): void {
-    this.currentStep.set(3);
-  }
-
-  protected prevStep(): void {
-    const prevMap: Record<number, number> = {
-      2: 1,
-      3: 1, // Step 3 back goes to Step 1 (or 2)
-      4: 3,
-    };
-    const prev = prevMap[this.currentStep()];
-    if (prev) {
-      this.currentStep.set(prev);
+    return (
+      this.passwordControl.valid &&
+      this.confirmPasswordControl.valid &&
+      !this.isConfirmPasswordMismatch()
+    );
+  });
+  protected readonly heading = computed(() => {
+    switch (this.currentStep()) {
+      case 'code':
+        return 'We emailed you a code';
+      case 'password':
+        return 'Reset your password';
+      default:
+        return 'Reset your password';
     }
+  });
+  protected readonly description = computed(() => {
+    switch (this.currentStep()) {
+      case 'email':
+        return "Enter the email address associated with your account and we'll send you a code to reset your password.";
+      case 'code':
+        return 'Enter the verification code we sent to';
+      case 'password':
+        return 'You are almost done. Enter your new password and you are good to go';
+      default:
+        return null;
+    }
+  });
+  protected readonly primaryActionLabel = computed(() => {
+    switch (this.currentStep()) {
+      case 'code':
+        return 'Confirm and continue';
+      case 'password':
+        return 'Reset password';
+      default:
+        return 'Send code';
+    }
+  });
+  protected readonly isPrimaryActionDisabled = computed(() => {
+    if (this.isProcessing()) {
+      return true;
+    }
+
+    switch (this.currentStep()) {
+      case 'email':
+        return this.isEmailEmpty() || !this.isEmailValid();
+      case 'code':
+        return !this.isOtpValid();
+      case 'password':
+        return !this.isPasswordStepValid();
+      default:
+        return false;
+    }
+  });
+
+  protected submitCurrentStep(): void {
+    this.submitted.set(true);
+
+    switch (this.currentStep()) {
+      case 'email':
+        if (!this.isEmailValid()) {
+          this.emailControl.markAsTouched();
+          return;
+        }
+
+        this.isProcessing.set(true);
+        setTimeout(() => {
+          this.isProcessing.set(false);
+          this.currentStep.set('code');
+          this.submitted.set(false);
+        }, 1000);
+        return;
+
+      case 'code':
+        if (!this.isOtpValid()) {
+          this.otpControl.markAsTouched();
+          return;
+        }
+
+        this.isProcessing.set(true);
+        setTimeout(() => {
+          this.isProcessing.set(false);
+          this.currentStep.set('password');
+          this.submitted.set(false);
+        }, 700);
+        return;
+
+      case 'password':
+        if (!this.isPasswordStepValid()) {
+          this.passwordControl.markAsTouched();
+          this.confirmPasswordControl.markAsTouched();
+          return;
+        }
+
+        this.isProcessing.set(true);
+        setTimeout(() => {
+          this.isProcessing.set(false);
+          this.currentStep.set('success');
+          this.submitted.set(false);
+        }, 900);
+        return;
+
+      default:
+        return;
+    }
+  }
+
+  protected resendCode(): void {
+    if (this.isProcessing()) {
+      return;
+    }
+
+    this.submitted.set(false);
+    this.isProcessing.set(true);
+    setTimeout(() => {
+      this.isProcessing.set(false);
+    }, 900);
+  }
+
+  protected togglePasswordVisibility(): void {
+    this.showPassword.update((value) => !value);
+  }
+
+  protected toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword.update((value) => !value);
   }
 }

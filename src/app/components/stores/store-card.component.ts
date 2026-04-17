@@ -1,23 +1,28 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 export interface Store {
   id: string;
   name: string;
-  logo: string;
-  banner: string;
-  followers: string;
+  logo?: string;
+  banner?: string;
+  followers?: string;
   isVerified?: boolean;
   metaLabel?: string;
   activeUntil?: string;
   route?: readonly string[];
+  location?: string;
+  coverImage?: string;
+  mobileCoverImage?: string;
+  logoImage?: string;
+  mobileLogoImage?: string;
 }
 
 @Component({
   selector: 'app-store-card',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [NgOptimizedImage, RouterLink],
   templateUrl: './store-card.component.html',
   styles: `
     :host {
@@ -29,4 +34,21 @@ export interface Store {
 export class StoreCardComponent {
   store = input.required<Store>();
   showFavorite = input(true);
+
+  protected readonly route = computed(() => this.store().route ?? ['/my-stores', this.store().id]);
+  protected readonly desktopCoverImage = computed(() => this.store().coverImage ?? this.store().banner ?? '');
+  protected readonly mobileCoverImage = computed(
+    () => this.store().mobileCoverImage ?? this.desktopCoverImage(),
+  );
+  protected readonly desktopLogoImage = computed(
+    () => this.store().logoImage ?? this.store().logo ?? '',
+  );
+  protected readonly mobileLogoImage = computed(
+    () => this.store().mobileLogoImage ?? this.desktopLogoImage(),
+  );
+  protected readonly locationLabel = computed(
+    () => this.store().location ?? this.store().metaLabel ?? this.store().followers ?? '',
+  );
+  protected readonly hasLocation = computed(() => this.locationLabel().trim().length > 0);
+  protected readonly isVerified = computed(() => this.store().isVerified ?? true);
 }

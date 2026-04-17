@@ -1,209 +1,228 @@
-<h1
-  id="auth-title"
-  class="m-0 w-full max-w-[320px] text-center text-[24px] leading-[1.16] font-medium tracking-[-0.03em] text-[#15162b] sm:max-w-[360px] lg:max-w-[451px]"
->
-  {{ heading() }}
-</h1>
+<section class="flex w-full flex-col gap-8 text-center" aria-labelledby="auth-title">
+  <div class="flex w-full flex-col items-center gap-2 lg:gap-3">
+    <h1
+      id="auth-title"
+      class="m-0 w-full text-[24px] leading-[1.2] font-medium tracking-[-0.03em] text-[#15162b]"
+    >
+      {{ heading() }}
+    </h1>
 
-<p class="m-0 w-full max-w-[360px] text-center text-[14px] leading-5 text-[#777777]">
-  {{ description() }}
-</p>
-
-<div class="flex w-full max-w-[360px] items-center gap-2" aria-label="Sign up progress">
-  @for (step of [1, 2, 3]; track step) {
-    <div
-      class="h-1.5 flex-1 rounded-full transition-all duration-300"
-      [style.background-color]="step <= currentStep() ? '#6453d9' : '#efeff3'"
-    ></div>
-  }
-</div>
-
-<form
-  class="flex w-full max-w-[360px] flex-col gap-[18px]"
-  [formGroup]="signupForm"
-  (ngSubmit)="nextStep()"
-  novalidate
->
-  @if (currentStep() === 1) {
-    <div class="flex w-full flex-col gap-3.5" aria-label="Social sign up options">
-      <button
-        class="inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-[100px] border border-[#F0F1F4] bg-[#F7F7F8] px-4 text-[15px] leading-5 font-medium text-[#36394a] transition-[transform,box-shadow,background-color,filter] duration-180 hover:-translate-y-px hover:bg-[#f1f1f4] hover:shadow-[0_6px_18px_rgba(21,22,43,0.08)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:min-h-11"
-        type="button"
-      >
-        <ng-icon
-          class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-[#4285f4]"
-          name="faBrandGoogle"
-        />
-        <span>Sign up with Google</span>
-      </button>
-
-      <button
-        class="inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-[100px] border border-[#F0F1F4] bg-[#F7F7F8] px-4 text-[15px] leading-5 font-medium text-[#36394a] transition-[transform,box-shadow,background-color,filter] duration-180 hover:-translate-y-px hover:bg-[#f1f1f4] hover:shadow-[0_6px_18px_rgba(21,22,43,0.08)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:min-h-11"
-        type="button"
-      >
-        <ng-icon
-          class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-black"
-          name="faBrandApple"
-        />
-        <span>Sign up with Apple</span>
-      </button>
-    </div>
-
-    <div class="flex h-[15px] w-full items-center gap-6" aria-hidden="true">
-      <span class="h-px flex-1 bg-[#ebebeb]"></span>
-      <p class="m-0 text-[14px] leading-[1.1] font-medium tracking-[-0.21px] text-[rgba(30,30,30,0.3)]">
-        OR
-      </p>
-      <span class="h-px flex-1 bg-[#ebebeb]"></span>
-    </div>
-
-    <div class="relative">
-      <label
-        class="mb-1.5 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]"
-        for="email-address"
-      >
-        Email address
-      </label>
-      <input
-        id="email-address"
-        class="h-12 w-full rounded-[16px] border border-[#E9E9EE] bg-white px-4 text-[14px] text-[#36394a] transition-all aria-invalid:border-[#d24b4b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-11"
-        type="email"
-        formControlName="email"
-        inputmode="email"
-        autocomplete="email"
-        placeholder="e.g sample@gmail.com"
-        [attr.aria-invalid]="submitted() && emailControl.invalid"
-      />
-      @if (submitted() && emailControl.invalid) {
-        <p class="mt-1 text-xs font-medium text-red-500">Please enter a valid email address.</p>
-      }
-    </div>
-  }
-
-  @if (currentStep() === 2) {
-    <div class="flex flex-col items-center gap-5 rounded-[28px] border border-[#F0F1F5] bg-[#FAFBFD] px-5 py-6 text-center">
-      <div class="inline-flex rounded-full bg-white px-3 py-1 text-[12px] font-medium text-[#5f6470] shadow-sm">
-        {{ emailControl.value }}
-      </div>
-
-      <app-otp-input
-        [length]="6"
-        [submitted]="submitted()"
-        (codeChange)="otpControl.setValue($event)"
-      />
-
-      <p class="m-0 text-[13px] leading-5 text-[#777777]">
-        Didn’t get a code?
-        <button
-          type="button"
-          class="border-0 bg-transparent p-0 font-bold text-[#6453d9] hover:underline"
-        >
-          Resend
-        </button>
-      </p>
-    </div>
-  }
-
-  @if (currentStep() === 3) {
-    <div class="flex flex-col gap-[18px]">
-      <div class="relative">
-        <label
-          class="mb-1.5 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]"
-          for="full-name"
-        >
-          Full name
-        </label>
-        <input
-          id="full-name"
-          class="h-12 w-full rounded-[16px] border border-[#E9E9EE] bg-white px-4 text-[14px] text-[#36394a] transition-all aria-invalid:border-[#d24b4b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-11"
-          type="text"
-          formControlName="fullName"
-          autocomplete="name"
-          placeholder="Enter your full name"
-          [attr.aria-invalid]="submitted() && fullNameControl.invalid"
-        />
-      </div>
-
-      <div class="relative">
-        <label
-          class="mb-1.5 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]"
-          for="password"
-        >
-          Create password
-        </label>
-        <input
-          id="password"
-          class="h-12 w-full rounded-[16px] border border-[#E9E9EE] bg-white pr-[52px] pl-4 text-[14px] text-[#36394a] transition-all aria-invalid:border-[#d24b4b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-11"
-          [type]="showPassword() ? 'text' : 'password'"
-          formControlName="password"
-          autocomplete="new-password"
-          placeholder="Minimum 8 characters"
-          [attr.aria-invalid]="submitted() && passwordControl.invalid"
-        />
-        <button
-          type="button"
-          class="absolute right-4 top-[39px] inline-flex h-5 w-5 items-center justify-center rounded-full border-0 bg-transparent p-0 opacity-50 transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
-          (click)="togglePasswordVisibility()"
-          [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
-        >
-          <img [ngSrc]="inputEyeUrl" alt="" width="16" height="16" />
-        </button>
-        <p class="mt-1 text-[12px] leading-4 text-[#777777]">
-          Minimum 8 characters with at least one number.
+    @if (description(); as stepDescription) {
+      @if (currentStep() === 2) {
+        <p class="m-0 max-w-[320px] text-[14px] leading-[1.4] text-[rgba(26,27,29,0.5)] lg:max-w-full lg:text-[16px]">
+          {{ stepDescription }}
+          <span class="font-medium text-[#1a1b1d]">{{ ' ' + emailPreview() }}</span>
         </p>
-      </div>
+      } @else {
+        <p class="m-0 max-w-[310px] text-[14px] leading-[1.4] text-[rgba(26,27,29,0.5)] lg:max-w-full lg:text-[16px]">
+          {{ stepDescription }}
+        </p>
+      }
+    }
+  </div>
 
-      <div class="relative">
-        <label
-          class="mb-1.5 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]"
-          for="confirm-password"
-        >
-          Confirm password
-        </label>
-        <input
-          id="confirm-password"
-          class="h-12 w-full rounded-[16px] border border-[#E9E9EE] bg-white pr-[52px] pl-4 text-[14px] text-[#36394a] transition-all aria-invalid:border-[#d24b4b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-11"
-          [class.border-red-400]="submitted() && !isStep3Valid() && confirmPasswordControl.touched"
-          [type]="showConfirmPassword() ? 'text' : 'password'"
-          formControlName="confirmPassword"
-          autocomplete="new-password"
-          placeholder="Re-enter your password"
-          [attr.aria-invalid]="submitted() && !isStep3Valid() && confirmPasswordControl.touched"
+  <form class="flex w-full flex-col gap-8" [formGroup]="signupForm" (ngSubmit)="nextStep()" novalidate>
+    @if (currentStep() === 1) {
+      <div class="flex flex-col gap-5">
+        <div class="flex w-full flex-col gap-4" aria-label="Social sign up options">
+          <button
+            class="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-[100px] border-0 bg-[#f7f7f7] px-4 text-[16px] leading-5 font-medium text-[#36394a] transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#f2f2f2] hover:shadow-[0_8px_20px_rgba(21,22,43,0.08)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10"
+            type="button"
+          >
+            <img [ngSrc]="googleIconUrl" alt="" width="20" height="20" />
+            <span>Continue with Google</span>
+          </button>
+
+          <button
+            class="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-[100px] border-0 bg-[#f7f7f7] px-4 text-[16px] leading-5 font-medium text-[#36394a] transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#f2f2f2] hover:shadow-[0_8px_20px_rgba(21,22,43,0.08)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10"
+            type="button"
+          >
+            <img [ngSrc]="appleIconUrl" alt="" width="16" height="20" />
+            <span>Continue with Apple</span>
+          </button>
+        </div>
+
+        <div class="flex h-[15px] w-full items-center gap-6" aria-hidden="true">
+          <span class="h-px flex-1 bg-[#ebebeb]"></span>
+          <span
+            class="text-[14px] leading-[1.1] font-medium tracking-[-0.21px] text-[rgba(30,30,30,0.3)]"
+          >
+            OR
+          </span>
+          <span class="h-px flex-1 bg-[#ebebeb]"></span>
+        </div>
+
+        <div class="relative text-left">
+          <label
+            class="mb-1 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777] lg:text-[#5a5a5a]"
+            for="email-address"
+          >
+            Email address
+          </label>
+          <input
+            id="email-address"
+            class="h-[52px] w-full rounded-[16px] border border-[#efefef] bg-white px-4 pr-12 text-[14px] leading-[1.4] text-[#36394a] transition-[border-color,box-shadow] placeholder:text-[rgba(26,27,29,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10"
+            [style.borderColor]="submitted() && emailControl.invalid ? '#d24b4b' : '#efefef'"
+            type="email"
+            formControlName="email"
+            inputmode="email"
+            autocomplete="email"
+            [readonly]="isStep1Processing()"
+            [attr.aria-invalid]="submitted() && emailControl.invalid"
+          />
+
+          @if (isStep1Processing()) {
+            <span
+              class="absolute right-4 top-[38px] inline-flex h-5 w-5 animate-spin rounded-full border-2 border-[#d8d8dc] border-r-[#6453d9] lg:top-[34px]"
+              aria-hidden="true"
+            ></span>
+          }
+
+          @if (submitted() && isEmailEmpty()) {
+            <p class="mt-2 text-[12px] leading-4 font-medium text-[#d24b4b]">
+              Email address is required.
+            </p>
+          } @else if (submitted() && emailControl.invalid) {
+            <p class="mt-2 text-[12px] leading-4 font-medium text-[#d24b4b]">
+              Please enter a valid email address.
+            </p>
+          }
+        </div>
+      </div>
+    }
+
+    @if (currentStep() === 2) {
+      <div class="flex flex-col gap-5">
+        <app-otp-input
+          [length]="6"
+          [submitted]="submitted()"
+          (codeChange)="otpControl.setValue($event)"
         />
-        <button
-          type="button"
-          class="absolute right-4 top-[39px] inline-flex h-5 w-5 items-center justify-center rounded-full border-0 bg-transparent p-0 opacity-50 transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
-          (click)="toggleConfirmPasswordVisibility()"
-          [attr.aria-label]="showConfirmPassword() ? 'Hide confirm password' : 'Show confirm password'"
+
+        <p
+          class="m-0 text-center text-[14px] leading-5 tracking-[-0.21px] text-[rgba(26,27,29,0.5)]"
         >
-          <img [ngSrc]="inputEyeUrl" alt="" width="16" height="16" />
-        </button>
-        @if (submitted() && !isStep3Valid() && confirmPasswordControl.touched) {
-          <p class="mt-1 text-xs font-medium text-red-500">Passwords do not match.</p>
+          Didn’t get a code?
+          <button
+            type="button"
+            class="ml-1 border-0 bg-transparent p-0 font-medium text-[#6453d9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+          >
+            Resend
+          </button>
+        </p>
+
+        @if (submitted() && otpControl.invalid) {
+          <p class="m-0 text-center text-[12px] leading-4 font-medium text-[#d24b4b]">
+            Enter the 6-digit verification code.
+          </p>
         }
       </div>
-    </div>
-  }
+    }
 
-  <div class="mt-2 flex gap-3">
-    @if (currentStep() > 1) {
-      <button
-        class="min-h-12 flex-1 rounded-[100px] border border-[#E9E9EE] bg-white px-4 text-[14px] leading-5 font-medium text-[#15162B] transition-all hover:bg-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:min-h-11"
-        type="button"
-        (click)="prevStep()"
-      >
-        Back
-      </button>
+    @if (currentStep() === 3) {
+      <div class="flex flex-col gap-4 text-left">
+        <div>
+          <label
+            class="mb-1.5 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777] lg:text-[#5a5a5a]"
+            for="full-name"
+          >
+            Full name
+          </label>
+          <input
+            id="full-name"
+            class="h-12 w-full rounded-[12px] border border-[#e6e6e8] bg-white px-3 text-[14px] leading-[1.4] text-[#1a1b1d] transition-[border-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10"
+            [style.borderColor]="submitted() && fullNameControl.invalid ? '#d24b4b' : '#e6e6e8'"
+            type="text"
+            formControlName="fullName"
+            autocomplete="name"
+            [attr.aria-invalid]="submitted() && fullNameControl.invalid"
+          />
+          @if (submitted() && fullNameControl.invalid) {
+            <p class="mt-2 text-[12px] leading-4 font-medium text-[#d24b4b]">
+              Enter your full name.
+            </p>
+          }
+        </div>
+
+        <div class="relative">
+          <label
+            class="mb-1.5 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777] lg:text-[#5a5a5a]"
+            for="password"
+          >
+            New password
+          </label>
+          <input
+            id="password"
+            class="h-12 w-full rounded-[12px] border border-[#e6e6e8] bg-white px-3 pr-11 text-[14px] leading-[1.4] text-[#1a1b1d] transition-[border-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10"
+            [style.borderColor]="submitted() && passwordControl.invalid ? '#d24b4b' : '#e6e6e8'"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="new-password"
+            [attr.aria-invalid]="submitted() && passwordControl.invalid"
+          />
+          <button
+            type="button"
+            class="absolute right-3 top-[35px] inline-flex h-5 w-5 items-center justify-center rounded-full border-0 bg-transparent p-0 opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:top-[31px]"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          >
+            <img [ngSrc]="inputEyeUrl" alt="" width="20" height="20" />
+          </button>
+          @if (submitted() && passwordControl.invalid) {
+            <p class="mt-2 text-[12px] leading-4 font-medium text-[#d24b4b]">
+              Use at least 8 characters for your password.
+            </p>
+          }
+        </div>
+
+        <div class="relative">
+          <label
+            class="mb-1.5 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777] lg:text-[#5a5a5a]"
+            for="confirm-password"
+          >
+            Confirm new password
+          </label>
+          <input
+            id="confirm-password"
+            class="h-12 w-full rounded-[12px] border border-[#e6e6e8] bg-white px-3 pr-11 text-[14px] leading-[1.4] text-[#1a1b1d] transition-[border-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10"
+            [style.borderColor]="submitted() && (confirmPasswordControl.invalid || isConfirmPasswordMismatch()) ? '#d24b4b' : '#e6e6e8'"
+            [type]="showConfirmPassword() ? 'text' : 'password'"
+            formControlName="confirmPassword"
+            autocomplete="new-password"
+            [attr.aria-invalid]="submitted() && (confirmPasswordControl.invalid || isConfirmPasswordMismatch())"
+          />
+          <button
+            type="button"
+            class="absolute right-3 top-[35px] inline-flex h-5 w-5 items-center justify-center rounded-full border-0 bg-transparent p-0 opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:top-[31px]"
+            (click)="toggleConfirmPasswordVisibility()"
+            [attr.aria-label]="showConfirmPassword() ? 'Hide confirm password' : 'Show confirm password'"
+          >
+            <img [ngSrc]="inputEyeUrl" alt="" width="20" height="20" />
+          </button>
+          @if (submitted() && confirmPasswordControl.invalid) {
+            <p class="mt-2 text-[12px] leading-4 font-medium text-[#d24b4b]">
+              Confirm your new password.
+            </p>
+          } @else if (submitted() && isConfirmPasswordMismatch()) {
+            <p class="mt-2 text-[12px] leading-4 font-medium text-[#d24b4b]">
+              Passwords do not match.
+            </p>
+          }
+        </div>
+      </div>
     }
 
     <button
-      class="min-h-[56px] rounded-[100px] border-0 bg-[#B9AFF2] px-4 text-[14px] leading-5 font-medium text-white shadow-[0_6px_18px_rgba(145,130,231,0.28),0_0_0_1px_#b7acf0] transition-all duration-180 hover:-translate-y-px hover:brightness-[1.02] hover:shadow-[0_10px_22px_rgba(145,130,231,0.34),0_0_0_1px_#b7acf0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] disabled:pointer-events-none disabled:opacity-70 enabled:bg-[#6453d9] enabled:shadow-[0_8px_18px_rgba(100,83,217,0.28)] lg:min-h-11"
-      [class.flex-1]="currentStep() > 1"
-      [class.w-full]="currentStep() === 1"
+      class="inline-flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] transition-[transform,box-shadow,filter,opacity] duration-200 hover:-translate-y-px hover:brightness-[1.03] hover:shadow-[0_8px_20px_rgba(81,35,173,0.3),0_0_0_1px_#6b5bd5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] disabled:cursor-not-allowed disabled:opacity-50 lg:h-10"
       type="submit"
       [disabled]="isPrimaryActionDisabled()"
     >
-      {{ primaryActionLabel() }}
+      @if (currentStep() === 3) {
+        <span class="lg:hidden">{{ primaryActionLabel() }}</span>
+        <span class="hidden lg:inline">Continue</span>
+      } @else {
+        {{ primaryActionLabel() }}
+      }
     </button>
-  </div>
-</form>
+  </form>
+</section>

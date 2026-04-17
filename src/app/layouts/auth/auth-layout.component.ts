@@ -31,15 +31,35 @@ export class AuthLayoutComponent {
     () => this.url().includes('/sign-in') || this.url().includes('/two-factor'),
   );
   protected readonly showAccountPrompt = computed(() => !this.url().includes('/admin/invite'));
+  protected readonly promptLink = computed(() => (this.isSignIn() ? '/sign-up' : '/sign-in'));
+  protected readonly desktopPromptText = computed(() =>
+    this.isSignIn() ? "Don't have a Duduzili account?" : 'Already have a Duduzili account?',
+  );
+  protected readonly desktopPromptAction = computed(() =>
+    this.isSignIn() ? 'Create a new account' : 'Log in',
+  );
+  protected readonly mobilePromptText = computed(() =>
+    this.isSignIn() ? 'Don’t have an account?' : 'Already have an account?',
+  );
+  protected readonly mobilePromptAction = computed(() =>
+    this.isSignIn() ? 'Sign up' : 'Log in',
+  );
 
-  protected readonly fullLogoUrl = iconAsset('home-logo-dark.svg');
-  protected readonly iconLogoUrl = imageAsset('logo-dark-fill.svg');
-  protected readonly markUrl = imageAsset('mark-image.svg');
-  protected readonly heroSkyUrl = imageAsset('hero-sky-bg.png');
-  protected readonly phoneImageUrl = imageAsset('listings-item-iphone.png');
-  protected readonly storeBannerUrl = imageAsset('store-banner.png');
-  protected readonly heroImageUrl = imageAsset('hero-image.png');
-  protected readonly productLikeUrl = iconAsset('home-heart-outline.svg');
-  protected readonly verifiedBadgeIconUrl = iconAsset('home-verified-medal.svg');
-  protected readonly nairaIconUrl = iconAsset('listings-naira.svg');
+  protected readonly fullLogoUrl = iconAsset('auth-shell-logo-full.svg');
+  protected readonly iconLogoUrl = iconAsset('auth-shell-logo-mark.svg');
+  protected readonly markUrl = imageAsset('auth-shell-mark.svg');
+  protected readonly heroSkyUrl = imageAsset('auth-shell-hero-sky.png');
+  protected readonly phoneImageUrl = imageAsset('auth-shell-hero-phone.png');
+  protected readonly storeCoverUrl = imageAsset('auth-shell-store-cover.png');
+  protected readonly heroImageUrl = imageAsset('auth-shell-hero-couple.png');
+  protected readonly productLikeUrl = iconAsset('auth-shell-card-heart.svg');
+  protected readonly verifiedBadgeIconUrl = iconAsset('auth-shell-card-verified.svg');
+  protected readonly arrowLeftUrl = iconAsset('auth-shell-card-arrow-left.svg');
+  protected readonly arrowRightUrl = iconAsset('auth-shell-card-arrow-right.svg');
+  protected readonly carouselDotsUrl = iconAsset('auth-shell-carousel-dots.svg');
+  protected readonly nairaIconUrl = iconAsset('auth-shell-card-naira.svg');
+  protected readonly locationIconUrl = iconAsset('auth-shell-card-location.svg');
+  protected readonly storeAvatarUrl = imageAsset('auth-shell-store-avatar.png');
+  protected readonly storeVerifyUrl = iconAsset('auth-shell-store-verify.svg');
+  protected readonly storeLocationUrl = iconAsset('auth-shell-store-location.svg');
 }

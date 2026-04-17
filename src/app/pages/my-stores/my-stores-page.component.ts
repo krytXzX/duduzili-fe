@@ -1,258 +1,293 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  heroPlus,
-  heroMagnifyingGlass,
-  heroChevronRight
-} from '@ng-icons/heroicons/outline';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+
 import { StoreCardComponent, Store } from '../../components/stores/store-card.component';
 import { AddStoreModalComponent } from './components/add-store-modal.component';
 import { SuccessModalComponent } from './components/success-modal.component';
 
+interface NewStoreFormData {
+  readonly name: string;
+  readonly logo: string;
+  readonly banner: string;
+}
+
 @Component({
   selector: 'app-my-stores-page',
-  imports: [CommonModule, NgIcon, StoreCardComponent, AddStoreModalComponent, SuccessModalComponent],
-  providers: [
-    provideIcons({
-      heroPlus,
-      heroMagnifyingGlass,
-      heroChevronRight
-    })
-  ],
+  imports: [NgOptimizedImage, StoreCardComponent, AddStoreModalComponent, SuccessModalComponent],
   template: `
-    <div class="px-5 pb-10 pt-7 md:hidden">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">My Stores</h1>
-        </div>
+    <section class="flex min-h-full flex-col bg-white md:bg-transparent">
+      <div class="flex h-[54px] items-center justify-between px-5 md:hidden">
+        <h1 class="text-[24px] leading-8 font-medium tracking-[-0.03em] text-[#1a1b1d]">My Stores</h1>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-[6px]">
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F6F7FA] text-[#6B7280]"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-transparent transition-colors hover:bg-[#f5f5f7]"
             aria-label="Search stores"
+            (click)="openStoreSearch()"
           >
-            <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
+            <img [ngSrc]="searchIconUrl" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
           </button>
+
           <button
             type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f7f7] transition-colors hover:bg-[#efeff2]"
+            aria-label="Create your first store"
             (click)="isAddingStore.set(true)"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#202335] shadow-[0_10px_20px_-22px_rgba(31,36,48,0.45)]"
-            aria-label="Add store"
           >
-            <ng-icon name="heroPlus" class="text-[16px]"></ng-icon>
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(31,36,48,0.08)]">
+              <img [ngSrc]="addOutlineIconUrl" alt="" width="24" height="24" class="h-6 w-6" aria-hidden="true" />
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mx-auto hidden w-full max-w-[1108px] md:block">
+        <div class="flex h-[69px] items-center justify-between px-4 lg:px-0">
+          <h1 class="text-[28px] leading-[1.2] font-medium tracking-[-0.03em] text-[#1a1b1d]">My Stores</h1>
+
+          <button
+            type="button"
+            class="inline-flex h-10 items-center justify-center gap-2 rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-[1.03] hover:shadow-[0_8px_20px_rgba(81,35,173,0.3),0_0_0_1px_#6b5bd5]"
+            (click)="isAddingStore.set(true)"
+          >
+            <img [ngSrc]="addLinearIconUrl" alt="" width="18" height="18" class="h-[18px] w-[18px]" aria-hidden="true" />
+            <span>Add new listing</span>
           </button>
         </div>
       </div>
 
       @if (filteredStores().length > 0) {
-        <div class="mt-5 grid grid-cols-2 gap-3">
-          @for (store of filteredStores(); track store.id) {
-            <app-store-card [store]="store" [showFavorite]="false"></app-store-card>
-          }
+        <div class="px-5 pb-10 pt-5 md:px-4 md:pb-0 md:pt-8 lg:px-0">
+          <div class="mx-auto grid max-w-[1108px] grid-cols-2 gap-3 md:grid-cols-2 md:gap-6 xl:grid-cols-4">
+            @for (store of filteredStores(); track store.id) {
+              <app-store-card [store]="store" [showFavorite]="false" />
+            }
+          </div>
         </div>
       } @else {
-        <section class="flex min-h-[calc(100vh-260px)] flex-col items-center justify-center pb-8 pt-10 text-center">
-          <div class="relative mb-8 h-[150px] w-[190px]">
-            <div class="absolute left-5 top-7 h-[96px] w-[72px] rotate-[-16deg] rounded-[18px] bg-white/70 shadow-[0_16px_30px_-26px_rgba(25,30,40,0.35)] ring-1 ring-[#F1F2F6]"></div>
-            <div class="absolute right-5 top-7 h-[96px] w-[72px] rotate-[16deg] rounded-[18px] bg-white/70 shadow-[0_16px_30px_-26px_rgba(25,30,40,0.35)] ring-1 ring-[#F1F2F6]"></div>
-            <div class="absolute left-1/2 top-2 flex h-[110px] w-[84px] -translate-x-1/2 flex-col rounded-[20px] bg-white shadow-[0_20px_36px_-30px_rgba(25,30,40,0.45)] ring-1 ring-[#ECEEF4]">
-              <div class="flex items-start justify-between px-3 pt-3">
-                <div class="h-2 w-8 rounded-full bg-[#F0F1F5]"></div>
-                <span class="text-[10px] text-[#2B2D36]">♥</span>
-              </div>
-              <div class="mt-2 flex flex-1 items-center justify-center">
-                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F8] text-[#B6BAC6]">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path d="M10 10a3 3 0 100-6 3 3 0 000 6zm-6 6.25A4.25 4.25 0 018.25 12h3.5A4.25 4.25 0 0116 16.25V17H4v-.75z"/>
-                  </svg>
+        <div class="flex flex-1 flex-col items-center px-5 pb-10 pt-[134px] text-center md:px-4 md:pb-0 md:pt-[72px] lg:px-0">
+          <div class="w-full max-w-[350px] md:max-w-[740px]">
+            <div
+              class="relative mx-auto h-[141.902px] w-[168px] md:h-[260.999px] md:w-[309px]"
+              aria-hidden="true"
+            >
+              <div class="absolute left-[-6.684px] top-[16.395px] flex h-[143.613px] w-[119.341px] items-center justify-center md:left-[-12.293px] md:top-[30.154px] md:h-[264.145px] md:w-[219.503px]">
+                <div class="rotate-[-17.02deg]">
+                  <div class="flex h-[123.566px] w-[86.99px] flex-col gap-[3.042px] rounded-[9.125px] border border-[#eaeaea] bg-white px-[1.521px] pb-[5.703px] pt-[1.521px] shadow-[0_4px_12px_rgba(199,199,199,0.18)] md:h-[227.273px] md:w-[160px] md:gap-[5.594px] md:rounded-[16.783px] md:px-[2.797px] md:pb-[10.49px] md:pt-[2.797px]">
+                    <div class="relative h-[85.165px] overflow-hidden rounded-[7.604px] border border-[#eaeaea] bg-[#efefef] md:h-[156.643px] md:rounded-[13.986px]">
+                      <img [ngSrc]="emptyHeartIconUrl" alt="" width="16" height="16" class="absolute right-[4.562px] top-[4.562px] h-[9.125px] w-[9.125px] md:right-[7.69px] md:top-[7.69px] md:h-[16.783px] md:w-[16.783px]" />
+                      <div class="absolute left-[4.563px] top-[4.562px] h-[9.125px] w-[30.927px] rounded-[4.352px] bg-white md:left-[7.69px] md:top-[7.69px] md:h-[16.783px] md:w-[56.776px] md:rounded-[8px]"></div>
+                      <div class="absolute left-1/2 top-1/2 flex w-[74.52px] -translate-x-1/2 -translate-y-1/2 items-center justify-between md:w-[137.063px]">
+                        <span class="inline-flex h-[9.125px] w-[9.125px] items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_1px_3px_rgba(202,202,202,0.25)] md:h-[16.783px] md:w-[16.783px]">
+                          <img [ngSrc]="emptyArrowLeftIconUrl" alt="" width="5" height="5" class="h-[4.562px] w-[4.562px] md:h-[8.392px] md:w-[8.392px]" />
+                        </span>
+                        <span class="inline-flex h-[9.125px] w-[9.125px] items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_1px_3px_rgba(202,202,202,0.25)] md:h-[16.783px] md:w-[16.783px]">
+                          <img [ngSrc]="emptyArrowRightIconUrl" alt="" width="5" height="5" class="h-[4.562px] w-[4.562px] md:h-[8.392px] md:w-[8.392px]" />
+                        </span>
+                      </div>
+                      <div class="absolute left-1/2 top-1/2 flex h-[26.614px] w-[26.614px] -translate-x-1/2 -translate-y-1/2 items-center justify-center md:h-[48.951px] md:w-[48.951px]">
+                        <img [ngSrc]="emptyImageIconUrl" alt="" width="49" height="49" class="h-full w-full" />
+                      </div>
+                      <div class="absolute bottom-[6.844px] left-1/2 flex -translate-x-1/2 gap-[1.14px] md:bottom-[11.19px] md:gap-[2.1px]">
+                        @for (dot of dots; track dot) {
+                          <span class="h-[1.521px] w-[1.521px] rounded-full bg-[#d9d9d9] md:h-[2.797px] md:w-[2.797px]"></span>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="mt-[4.563px] px-[1.521px] text-left md:mt-[8.392px] md:px-[2.797px]">
+                      <div class="flex items-center justify-between">
+                        <span class="h-[7.604px] w-[46.004px] rounded-[38px] bg-[#d9d9d9] md:h-[13.986px] md:w-[84.615px] md:rounded-[69.93px]"></span>
+                        <span class="h-[8.521px] w-[16.083px] rounded-[999px] bg-[#f0f0f0] md:h-[14.797px] md:w-[29.189px]"></span>
+                      </div>
+                      <span class="mt-[1.521px] block h-[6.083px] w-[36.119px] rounded-[30px] bg-[#d9d9d9] md:mt-[2.797px] md:h-[11.189px] md:w-[66.434px] md:rounded-[69.93px]"></span>
+                      <div class="mt-[1.521px] flex items-center gap-[1.521px] md:mt-[2.797px] md:gap-[2.797px]">
+                        <img [ngSrc]="emptyLocationIconUrl" alt="" width="8" height="8" class="h-[4.562px] w-[4.562px] md:h-[8.392px] md:w-[8.392px]" />
+                        <span class="h-[4.562px] w-[23.953px] rounded-[30px] bg-[#d9d9d9] md:h-[8.392px] md:w-[44.056px] md:rounded-[69.93px]"></span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="space-y-2 px-4 pb-4">
-                <div class="h-1.5 rounded-full bg-[#F0F1F5]"></div>
-                <div class="mx-auto h-1.5 w-10 rounded-full bg-[#F5F6F9]"></div>
+
+              <div class="absolute left-[90.027px] top-[-9.265px] flex h-[145.063px] w-[122.287px] items-center justify-center md:left-[165.586px] md:top-[-17.041px] md:h-[266.812px] md:w-[224.92px]">
+                <div class="rotate-[18.88deg]">
+                  <div class="flex h-[123.566px] w-[86.99px] flex-col gap-[3.042px] rounded-[9.125px] border border-[#eaeaea] bg-white px-[1.521px] pb-[5.703px] pt-[1.521px] shadow-[0_4px_12px_rgba(199,199,199,0.18)] md:h-[227.273px] md:w-[160px] md:gap-[5.594px] md:rounded-[16.783px] md:px-[2.797px] md:pb-[10.49px] md:pt-[2.797px]">
+                    <div class="relative h-[85.165px] overflow-hidden rounded-[7.604px] border border-[#eaeaea] bg-[#efefef] md:h-[156.643px] md:rounded-[13.986px]">
+                      <img [ngSrc]="emptyHeartIconUrl" alt="" width="16" height="16" class="absolute right-[4.562px] top-[4.562px] h-[9.125px] w-[9.125px] md:right-[7.69px] md:top-[7.69px] md:h-[16.783px] md:w-[16.783px]" />
+                      <div class="absolute left-[4.563px] top-[4.562px] h-[9.125px] w-[32.216px] rounded-[4.352px] bg-white md:left-[7.69px] md:top-[7.69px] md:h-[16.783px] md:w-[59.153px] md:rounded-[8px]"></div>
+                      <div class="absolute left-1/2 top-1/2 flex w-[73.464px] -translate-x-1/2 -translate-y-1/2 items-center justify-between md:w-[135.122px]">
+                        <span class="inline-flex h-[9.125px] w-[9.125px] items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_1px_3px_rgba(202,202,202,0.25)] md:h-[16.783px] md:w-[16.783px]">
+                          <img [ngSrc]="emptyArrowLeftIconUrl" alt="" width="5" height="5" class="h-[4.562px] w-[4.562px] md:h-[8.392px] md:w-[8.392px]" />
+                        </span>
+                        <span class="inline-flex h-[9.125px] w-[9.125px] items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_1px_3px_rgba(202,202,202,0.25)] md:h-[16.783px] md:w-[16.783px]">
+                          <img [ngSrc]="emptyArrowRightIconUrl" alt="" width="5" height="5" class="h-[4.562px] w-[4.562px] md:h-[8.392px] md:w-[8.392px]" />
+                        </span>
+                      </div>
+                      <div class="absolute left-1/2 top-1/2 flex h-[33.793px] w-[33.793px] -translate-x-1/2 -translate-y-1/2 items-center justify-center md:h-[48.951px] md:w-[48.951px]">
+                        <img [ngSrc]="emptyImageIconUrl" alt="" width="49" height="49" class="h-full w-full" />
+                      </div>
+                      <div class="absolute bottom-[6.844px] left-1/2 flex -translate-x-1/2 gap-[1.14px] md:bottom-[11.19px] md:gap-[2.1px]">
+                        @for (dot of dots; track dot) {
+                          <span class="h-[1.931px] w-[1.931px] rounded-full bg-[#d9d9d9] md:h-[3.552px] md:w-[3.552px]"></span>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="mt-[4.563px] px-[1.521px] text-left md:mt-[8.392px] md:px-[2.797px]">
+                      <div class="flex items-center justify-between">
+                        <span class="h-[7.604px] w-[45.991px] rounded-[38px] bg-[#d9d9d9] md:h-[13.986px] md:w-[84.59px] md:rounded-[69.93px]"></span>
+                        <span class="h-[8.521px] w-[17.975px] rounded-[999px] bg-[#f0f0f0] md:h-[14.797px] md:w-[32.406px]"></span>
+                      </div>
+                      <span class="mt-[1.521px] block h-[6.083px] w-[36.145px] rounded-[30px] bg-[#d9d9d9] md:mt-[2.797px] md:h-[11.189px] md:w-[66.481px] md:rounded-[69.93px]"></span>
+                      <div class="mt-[1.521px] flex items-center gap-[1.521px] md:mt-[2.797px] md:gap-[2.797px]">
+                        <img [ngSrc]="emptyLocationIconUrl" alt="" width="8" height="8" class="h-[5.793px] w-[5.793px] md:h-[8.392px] md:w-[8.392px]" />
+                        <span class="h-[4.562px] w-[24.141px] rounded-[30px] bg-[#d9d9d9] md:h-[8.392px] md:w-[44.402px] md:rounded-[69.93px]"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              <div class="absolute left-[35.442px] top-[-2.577px] z-10 flex h-[123.566px] w-[86.99px] flex-col gap-[3.042px] rounded-[9.125px] border border-[#eaeaea] bg-white px-[1.521px] pb-[5.703px] pt-[1.521px] shadow-[0_4px_12px_rgba(199,199,199,0.18)] md:left-[65.186px] md:top-[-4.741px] md:h-[227.273px] md:w-[160px] md:gap-[5.594px] md:rounded-[16.783px] md:px-[2.797px] md:pb-[10.49px] md:pt-[2.797px]">
+                <div class="relative h-[85.165px] overflow-hidden rounded-[7.604px] border border-[#eaeaea] bg-[#efefef] md:h-[156.643px] md:rounded-[13.986px]">
+                  <img [ngSrc]="emptyHeartIconUrl" alt="" width="16" height="16" class="absolute right-[4.562px] top-[4.562px] h-[9.125px] w-[9.125px] md:right-[7.69px] md:top-[7.69px] md:h-[16.783px] md:w-[16.783px]" />
+                  <div class="absolute left-[4.563px] top-[4.562px] h-[9.125px] w-[30.927px] rounded-[4.352px] bg-white md:left-[7.69px] md:top-[7.69px] md:h-[16.783px] md:w-[56.776px] md:rounded-[8px]"></div>
+                  <div class="absolute left-1/2 top-1/2 flex w-[74.52px] -translate-x-1/2 -translate-y-1/2 items-center justify-between md:w-[137.063px]">
+                    <span class="inline-flex h-[9.125px] w-[9.125px] items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_1px_3px_rgba(202,202,202,0.25)] md:h-[16.783px] md:w-[16.783px]">
+                      <img [ngSrc]="emptyArrowLeftIconUrl" alt="" width="5" height="5" class="h-[4.562px] w-[4.562px] md:h-[8.392px] md:w-[8.392px]" />
+                    </span>
+                    <span class="inline-flex h-[9.125px] w-[9.125px] items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_1px_3px_rgba(202,202,202,0.25)] md:h-[16.783px] md:w-[16.783px]">
+                      <img [ngSrc]="emptyArrowRightIconUrl" alt="" width="5" height="5" class="h-[4.562px] w-[4.562px] md:h-[8.392px] md:w-[8.392px]" />
+                    </span>
+                  </div>
+                  <div class="absolute left-1/2 top-1/2 flex h-[26.614px] w-[26.614px] -translate-x-1/2 -translate-y-1/2 items-center justify-center md:h-[48.951px] md:w-[48.951px]">
+                    <img [ngSrc]="emptyImageIconUrl" alt="" width="49" height="49" class="h-full w-full" />
+                  </div>
+                  <div class="absolute bottom-[6.844px] left-1/2 flex -translate-x-1/2 gap-[1.14px] md:bottom-[11.19px] md:gap-[2.1px]">
+                    @for (dot of dots; track dot) {
+                      <span class="h-[1.521px] w-[1.521px] rounded-full bg-[#d9d9d9] md:h-[2.797px] md:w-[2.797px]"></span>
+                    }
+                  </div>
+                </div>
+
+                <div class="mt-[4.563px] px-[1.521px] text-left md:mt-[8.392px] md:px-[2.797px]">
+                  <div class="flex items-center justify-between">
+                    <span class="h-[7.604px] w-[46.216px] rounded-[38px] bg-[#d9d9d9] md:h-[13.986px] md:w-[85.004px] md:rounded-[69.93px]"></span>
+                    <span class="h-[8.521px] w-[17.873px] rounded-[999px] bg-[#f0f0f0] md:h-[14.797px] md:w-[32.241px]"></span>
+                  </div>
+                  <span class="mt-[1.521px] block h-[6.083px] w-[36.318px] rounded-[30px] bg-[#d9d9d9] md:mt-[2.797px] md:h-[11.189px] md:w-[66.8px] md:rounded-[69.93px]"></span>
+                  <div class="mt-[1.521px] flex items-center gap-[1.521px] md:mt-[2.797px] md:gap-[2.797px]">
+                    <img [ngSrc]="emptyLocationIconUrl" alt="" width="8" height="8" class="h-[5.698px] w-[5.698px] md:h-[8.392px] md:w-[8.392px]" />
+                    <span class="h-[4.562px] w-[24.239px] rounded-[30px] bg-[#d9d9d9] md:h-[8.392px] md:w-[44.583px] md:rounded-[69.93px]"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="absolute left-0 top-[9.243px] h-[132.66px] w-[168px] rounded-[10.874px] bg-[linear-gradient(181.41deg,rgba(255,255,255,0)_1.51%,#ffffff_90.4%)] md:top-[17px] md:h-[244px] md:w-[309px] md:rounded-[20px]"></div>
+            </div>
+
+            <div class="mt-[32px] flex flex-col items-center gap-[32px] md:mt-[24px]">
+              <div class="flex flex-col items-center gap-2">
+                <h2 class="max-w-[330px] text-[24px] leading-[1.2] font-medium tracking-[-0.03em] text-[#1a1b1d] md:max-w-none md:text-[28px]">
+                  You don’t have any stores yet
+                </h2>
+                <p class="max-w-[350px] text-[16px] leading-[1.2] text-[#6c6c6c] md:max-w-[740px] md:text-[18px]">
+                  Create a dedicated store to organize your listings, gain followers, and increase buyer trust
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="inline-flex h-[52px] items-center justify-center gap-2 rounded-[64px] border border-white bg-[#6453d9] px-5 text-[16px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-[1.03] hover:shadow-[0_8px_20px_rgba(81,35,173,0.3),0_0_0_1px_#6b5bd5] md:h-10 md:px-5 md:text-[14px]"
+                (click)="isAddingStore.set(true)"
+              >
+                <img [ngSrc]="addLinearIconUrl" alt="" width="18" height="18" class="h-[18px] w-[18px]" aria-hidden="true" />
+                <span>Create your first store</span>
+              </button>
             </div>
           </div>
-
-          <h2 class="text-[18px] font-medium leading-8 tracking-[-0.03em] text-[#202335]">You don’t have any stores yet</h2>
-          <p class="mt-2 max-w-[260px] text-[11px] leading-5 text-[#7A7F8C]">
-            Create a dedicated store to organize your listings, gain followers, and increase buyer trust
-          </p>
-
-          <button
-            type="button"
-            (click)="isAddingStore.set(true)"
-            class="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#6F56F6] px-6 py-3 text-[12px] font-medium text-white shadow-[0_18px_30px_-18px_rgba(111,86,246,0.95)]"
-          >
-            <ng-icon name="heroPlus"></ng-icon>
-            Create your first store
-          </button>
-        </section>
-      }
-    </div>
-
-    <div class="mx-auto hidden max-w-6xl px-4 py-8 md:block">
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
-        <h1 class="text-[28px] font-black text-[#1A1C21] tracking-tight">My Stores</h1>
-        
-        <div class="flex items-center gap-4 flex-1 md:justify-end">
-          <div class="relative w-full md:w-80 group">
-            <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <ng-icon name="heroMagnifyingGlass" class="text-gray-400 group-focus-within:text-purple-500 transition-colors"></ng-icon>
-            </div>
-            <input 
-              type="text" 
-              [value]="searchQuery()"
-              (input)="updateSearch($event)"
-              placeholder="Store name" 
-              class="w-full bg-white border border-gray-100 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:ring-4 focus:ring-purple-50 focus:border-purple-200 transition-all shadow-sm placeholder:text-gray-300 font-medium"
-            >
-          </div>
-          <button (click)="isAddingStore.set(true)" class="flex items-center gap-2 bg-purple-600 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-100 active:scale-95 whitespace-nowrap">
-            <ng-icon name="heroPlus" class="text-lg"></ng-icon>
-            Add store
-          </button>
-        </div>
-      </div>
-
-      @if (filteredStores().length > 0) {
-        <!-- Grid State -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          @for (store of filteredStores(); track store.id) {
-            <app-store-card [store]="store" [showFavorite]="false" class="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" [style.animation-delay]="($index * 100) + 'ms'"></app-store-card>
-          }
-        </div>
-      } @else if (searchQuery()) {
-        <!-- No Search Results -->
-        <div class="flex flex-col items-center justify-center py-20 text-center scale-up-center animate-out fade-out duration-300">
-          <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-            <ng-icon name="heroMagnifyingGlass" class="text-3xl text-gray-200"></ng-icon>
-          </div>
-          <h3 class="text-[19px] font-bold text-gray-900 mb-1">No stores found</h3>
-          <p class="text-gray-400 text-sm">We couldn't find any store matching "{{searchQuery()}}"</p>
-        </div>
-      } @else {
-        <!-- Empty State -->
-        <div class="bg-white border border-gray-50 rounded-[48px] p-20 flex flex-col items-center text-center shadow-xl shadow-gray-100/50 min-h-[550px] justify-center animate-in fade-in zoom-in-95 duration-700">
-          <div class="mb-12 flex items-center justify-center">
-            <img src="/assets/images/empty_state.svg" alt="Empty state" class="w-64 h-64">
-          </div>
-          <h3 class="text-[25px] font-black text-[#1A1C21] mb-3 tracking-tight">You don't have any stores yet</h3>
-          <p class="text-gray-400 mb-12 max-w-sm font-medium leading-relaxed text-[15px]">
-            Create a store and start selling or listing your products for buyers to find you.
-          </p>
-          <button (click)="isAddingStore.set(true)" class="group flex items-center gap-3 bg-purple-600 text-white px-10 py-5 rounded-[24px] font-bold hover:bg-purple-700 transition-all shadow-2xl shadow-purple-200 active:scale-95">
-            <ng-icon name="heroPlus" class="text-xl group-hover:rotate-90 transition-transform duration-300"></ng-icon>
-            Create a new store
-          </button>
         </div>
       }
-    </div>
+    </section>
 
     @if (isAddingStore()) {
-      <app-add-store-modal 
+      <app-add-store-modal
         (close)="isAddingStore.set(false)"
         (submit)="onStoreSubmit($event)"
-      ></app-add-store-modal>
+      />
     }
 
     @if (isSuccess()) {
-      <app-success-modal 
+      <app-success-modal
         [storeName]="latestCreatedStoreName()"
         (ok)="isSuccess.set(false)"
         (addAnother)="onAddAnother()"
-      ></app-success-modal>
+      />
     }
   `,
-  styles: [`
-    :host {
-      display: block;
-      background-color: #fcfcfc;
-      min-height: 100vh;
-    }
-  `],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  host: {
+    class: 'block h-full',
+  },
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyStoresPageComponent {
-  readonly stores = signal<Store[]>([
-    {
-      id: '1',
-      name: 'Eden Organics',
-      logo: 'https://cdn-icons-png.flaticon.com/512/1047/1047648.png',
-      banner: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=200&fit=crop',
-      // items: '12',
-      // categoryIcon: 'https://cdn-icons-png.flaticon.com/512/1047/1047648.png',
-      followers: '23.4k'
-    },
-    {
-      id: '2',
-      name: 'The Vine Collections',
-      logo: 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png',
-      banner: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=400&h=200&fit=crop',
-      // items: '08',
-      // categoryIcon: 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png',
-      followers: '23.4k'
-    },
-    {
-      id: '3',
-      name: 'Amazing Fragrances',
-      logo: 'https://cdn-icons-png.flaticon.com/512/3126/3126040.png',
-      banner: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=200&fit=crop',
-      // items: '05',
-      // categoryIcon: 'https://cdn-icons-png.flaticon.com/512/3126/3126040.png',
-      followers: '23.4k'
-    },
-    {
-      id: '4',
-      name: 'The Gift Shop',
-      logo: 'https://cdn-icons-png.flaticon.com/512/2813/2813401.png',
-      banner: 'https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=400&h=200&fit=crop',
-      // items: '15',
-      // categoryIcon: 'https://cdn-icons-png.flaticon.com/512/2813/2813401.png',
-      followers: '23.4k'
+  protected readonly searchIconUrl = '/assets/icons/my-stores-search.svg';
+  protected readonly addOutlineIconUrl = '/assets/icons/my-stores-add-outline.svg';
+  protected readonly addLinearIconUrl = '/assets/icons/my-stores-add-linear.svg';
+  protected readonly emptyImageIconUrl = '/assets/icons/my-stores-empty-image.svg';
+  protected readonly emptyHeartIconUrl = '/assets/icons/my-stores-empty-heart.svg';
+  protected readonly emptyArrowLeftIconUrl = '/assets/icons/my-stores-empty-arrow-left.svg';
+  protected readonly emptyArrowRightIconUrl = '/assets/icons/my-stores-empty-arrow-right.svg';
+  protected readonly emptyLocationIconUrl = '/assets/icons/my-stores-empty-location.svg';
+  protected readonly dots = [1, 2, 3, 4] as const;
+
+  protected readonly stores = signal<Store[]>([]);
+  protected readonly searchQuery = signal('');
+  protected readonly isAddingStore = signal(false);
+  protected readonly isSuccess = signal(false);
+  protected readonly latestCreatedStoreName = signal('The Vine Collections');
+
+  protected readonly filteredStores = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+
+    if (!query) {
+      return this.stores();
     }
-  ]);
 
-  readonly searchQuery = signal('');
-  readonly isAddingStore = signal(false);
-  readonly isSuccess = signal(false);
-  readonly latestCreatedStoreName = signal('The Vine Collections');
-
-  readonly filteredStores = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    if (!query) return this.stores();
-    return this.stores().filter(s => s.name.toLowerCase().includes(query));
+    return this.stores().filter((store) => store.name.toLowerCase().includes(query));
   });
 
-  updateSearch(event: Event) {
+  protected openStoreSearch(): void {
+    // Reserved for the shell-aligned mobile search interaction.
+  }
+
+  protected updateSearchQuery(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchQuery.set(input.value);
   }
 
-  onStoreSubmit(formData: any) {
+  protected onStoreSubmit(formData: NewStoreFormData): void {
     const newStore: Store = {
-      id: Math.random().toString(36).substring(7),
+      id: crypto.randomUUID(),
       name: formData.name,
       logo: formData.logo,
       banner: formData.banner,
-      followers: "0",
-      isVerified: false
+      followers: '0',
+      isVerified: false,
     };
 
-    this.stores.update(prev => [newStore, ...prev]);
+    this.stores.update((previousStores) => [newStore, ...previousStores]);
     this.isAddingStore.set(false);
     this.latestCreatedStoreName.set(formData.name);
-    
-    // Small delay to allow the modal to disappear before showing success
+
     setTimeout(() => {
       this.isSuccess.set(true);
     }, 300);
   }
 
-  onAddAnother() {
+  protected onAddAnother(): void {
     this.isSuccess.set(false);
     this.isAddingStore.set(true);
   }

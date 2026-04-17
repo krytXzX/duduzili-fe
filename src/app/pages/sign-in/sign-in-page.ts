@@ -1,26 +1,27 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NgIcon, provideIcons } from '@ng-icons/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { inject } from '@angular/core';
-import { faBrandApple, faBrandGoogle } from '@ng-icons/font-awesome/brands';
 
 @Component({
   selector: 'app-sign-in-page',
-  imports: [NgOptimizedImage, ReactiveFormsModule, NgIcon, RouterLink],
+  imports: [NgOptimizedImage, ReactiveFormsModule, RouterLink],
   templateUrl: './sign-in-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [provideIcons({ faBrandGoogle, faBrandApple })],
   host: {
-    class: 'flex flex-col gap-5',
+    class: 'block w-full max-w-[358px] lg:max-w-[455px]',
   },
 })
 export class SignInPageComponent {
   private readonly router = inject(Router);
-  
+
+  protected readonly googleIconUrl = '/assets/icons/signin-google.svg';
+  protected readonly appleIconUrl = '/assets/icons/signin-apple.svg';
   protected readonly inputChevronUrl = '/assets/icons/auth-input-chevron.svg';
-  protected readonly inputEyeUrl = '/assets/icons/listing-details-eye.svg';
+  protected readonly inputEyeUrl = '/assets/icons/signin-password-eye.svg';
+  protected readonly verifiedEmailIconUrl = '/assets/icons/signin-email-verified.svg';
 
   protected readonly loginForm = new FormGroup({
     email: new FormControl('', {
@@ -35,36 +36,38 @@ export class SignInPageComponent {
 
   protected readonly emailControl = this.loginForm.controls.email;
   protected readonly passwordControl = this.loginForm.controls.password;
+  private readonly emailValue = toSignal(this.emailControl.valueChanges, {
+    initialValue: this.emailControl.getRawValue(),
+  });
+  private readonly passwordValue = toSignal(this.passwordControl.valueChanges, {
+    initialValue: this.passwordControl.getRawValue(),
+  });
   protected readonly submitted = signal(false);
   protected readonly isEmailValidated = signal(false);
   protected readonly isCheckingEmail = signal(false);
   protected readonly showPassword = signal(false);
   protected readonly showPasswordField = computed(() => this.isEmailValidated());
-  protected readonly primaryActionLabel = computed(() =>
-    this.isEmailValidated() ? 'Sign in' : 'Continue with email',
-  );
+  protected readonly primaryActionLabel = computed(() => 'Continue with email');
+  protected readonly isEmailEmpty = computed(() => this.emailValue().trim().length === 0);
+  protected readonly isPasswordEmpty = computed(() => this.passwordValue().trim().length === 0);
   protected readonly isPrimaryActionDisabled = computed(() =>
     this.isCheckingEmail() ||
-    (!this.isEmailValidated() && this.emailControl.invalid) ||
-    (this.isEmailValidated() && this.loginForm.invalid),
+    (!this.isEmailValidated() && (this.isEmailEmpty() || this.emailControl.invalid)) ||
+    (this.isEmailValidated() && this.isPasswordEmpty()),
   );
 
   protected continueWithEmail(): void {
     if (this.isEmailValidated()) {
-      // Final Sign In
       this.submitted.set(true);
       if (this.loginForm.valid) {
-        console.log('Signing in...', this.loginForm.value);
-        // Navigate or handle success
         this.router.navigate(['/listings']);
       }
       return;
     }
 
-    // Step 1: Validate Email
     if (this.emailControl.valid) {
+      this.submitted.set(false);
       this.isCheckingEmail.set(true);
-      // Mock backend call
       setTimeout(() => {
         this.isCheckingEmail.set(false);
         this.isEmailValidated.set(true);

@@ -349,32 +349,7 @@
 
       <div class="grid grid-cols-2 gap-[10px] lg:grid-cols-4 lg:gap-6">
         @for (store of featuredStores; track store.id) {
-        <a routerLink="/" class="overflow-hidden rounded-[13.746px] border border-[#eaeaea] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.03)] lg:rounded-[24px]">
-          <div class="relative h-[90.5px] overflow-hidden rounded-t-[13.746px] lg:h-[158px] lg:rounded-t-[24px]">
-            <img [ngSrc]="store.mobileCoverImage" alt="" width="173" height="90" class="h-full w-full object-cover lg:hidden" aria-hidden="true" />
-            <img [ngSrc]="store.coverImage" alt="" width="300" height="158" class="hidden h-full w-full object-cover lg:block" aria-hidden="true" />
-            <div class="absolute inset-x-0 bottom-0 h-[40px] bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.95)_68%,#ffffff_100%)] lg:h-[68px]" aria-hidden="true"></div>
-
-            <div class="absolute left-[9px] top-[37px] flex h-[42.385px] w-[42.385px] items-center justify-center overflow-hidden rounded-full border-[2.29px] border-white bg-white shadow-[0_4px_10px_rgba(0,0,0,0.08)] lg:left-4 lg:top-[81px] lg:h-[74px] lg:w-[74px] lg:border-4">
-              <img [ngSrc]="store.mobileLogoImage" alt="" width="43" height="43" class="h-full w-full object-cover lg:hidden" aria-hidden="true" />
-              <img [ngSrc]="store.logoImage" alt="" width="74" height="74" class="hidden h-full w-full object-cover lg:block" aria-hidden="true" />
-            </div>
-          </div>
-
-          <div class="px-[10px] pb-[10px] pt-[8px] lg:px-4 lg:pb-[14px] lg:pt-[12px]">
-            <div class="flex items-center gap-1">
-              <h3 class="line-clamp-1 text-xs font-medium leading-[1.1] tracking-[-0.02em] text-[#2a2a2a] lg:text-base">
-                {{ store.name }}
-              </h3>
-              <img ngSrc="/assets/icons/home-store-verified.svg" alt="" width="12" height="12" class="h-3 w-3 shrink-0 lg:h-[14px] lg:w-[14px]" aria-hidden="true" />
-            </div>
-
-            <p class="mt-[3px] flex items-center gap-1 text-[10px] font-normal leading-none text-[#777777] lg:mt-[6px] lg:text-sm">
-              <img ngSrc="/assets/icons/home-store-location.svg" alt="" width="10" height="10" class="h-[10px] w-[10px] shrink-0 lg:h-[14px] lg:w-[14px]" aria-hidden="true" />
-              {{ store.location }}
-            </p>
-          </div>
-        </a>
+        <app-store-card [store]="store" [showFavorite]="false" />
         }
       </div>
     </section>
