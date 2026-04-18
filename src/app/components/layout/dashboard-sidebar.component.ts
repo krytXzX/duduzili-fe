@@ -13,10 +13,12 @@ type SidebarLink = {
   selector: 'app-dashboard-sidebar',
   imports: [NgOptimizedImage, RouterLink, RouterLinkActive],
   template: `
-    <aside class="flex h-full w-64 flex-col overflow-y-auto bg-inherit px-4 pb-4 pt-6">
+    <aside class="flex h-full w-full flex-col overflow-y-auto bg-inherit px-4 pb-4 pt-6">
       <div class="space-y-7">
         <section>
-          <p class="px-[10px] text-[12px] font-medium uppercase tracking-[0.08em] text-[#959595]">Selling</p>
+          <p class="px-[10px] text-[12px] font-medium uppercase tracking-[0.08em] text-[#959595]">
+            Selling
+          </p>
           <nav class="mt-2 space-y-2">
             @for (item of sellingLinks; track item.label) {
               <a
@@ -38,14 +40,34 @@ type SidebarLink = {
                 class="flex h-10 w-full items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
               >
                 <span class="flex items-center gap-2 px-1">
-                  <img ngSrc="/assets/icons/seller-sidebar-requests.svg" alt="" width="16" height="16" class="h-4 w-4 shrink-0" />
+                  <img
+                    ngSrc="/assets/icons/seller-sidebar-requests.svg"
+                    alt=""
+                    width="16"
+                    height="16"
+                    class="h-4 w-4 shrink-0"
+                  />
                   <span class="text-[14px] font-medium">Requests</span>
                 </span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#777777]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-[#777777]"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
                   @if (isRequestsExpanded()) {
-                    <path fill-rule="evenodd" d="M5.22 12.28a.75.75 0 001.06 0L10 8.56l3.72 3.72a.75.75 0 001.06-1.06l-4.25-4.25a.75.75 0 00-1.06 0L5.22 11.22a.75.75 0 000 1.06z" clip-rule="evenodd" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.22 12.28a.75.75 0 001.06 0L10 8.56l3.72 3.72a.75.75 0 001.06-1.06l-4.25-4.25a.75.75 0 00-1.06 0L5.22 11.22a.75.75 0 000 1.06z"
+                      clip-rule="evenodd"
+                    />
                   } @else {
-                    <path fill-rule="evenodd" d="M14.78 7.72a.75.75 0 00-1.06 0L10 11.44 6.28 7.72a.75.75 0 10-1.06 1.06l4.25 4.25a.75.75 0 001.06 0l4.25-4.25a.75.75 0 000-1.06z" clip-rule="evenodd" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M14.78 7.72a.75.75 0 00-1.06 0L10 11.44 6.28 7.72a.75.75 0 10-1.06 1.06l4.25 4.25a.75.75 0 001.06 0l4.25-4.25a.75.75 0 000-1.06z"
+                      clip-rule="evenodd"
+                    />
                   }
                 </svg>
               </button>
@@ -57,7 +79,9 @@ type SidebarLink = {
                     routerLinkActive="text-[#1F1F1F] bg-white"
                     class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
                   >
-                    <span class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"></span>
+                    <span
+                      class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
+                    ></span>
                     Offers
                   </a>
                   <a
@@ -65,7 +89,9 @@ type SidebarLink = {
                     routerLinkActive="text-[#1F1F1F] bg-white"
                     class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
                   >
-                    <span class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"></span>
+                    <span
+                      class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
+                    ></span>
                     Call back requests
                   </a>
                 </div>
@@ -75,7 +101,9 @@ type SidebarLink = {
         </section>
 
         <section>
-          <p class="px-[10px] text-[12px] font-medium uppercase tracking-[0.08em] text-[#959595]">Performance</p>
+          <p class="px-[10px] text-[12px] font-medium uppercase tracking-[0.08em] text-[#959595]">
+            Performance
+          </p>
           <nav class="mt-2 space-y-2">
             <a
               routerLink="/promotions"
@@ -83,7 +111,13 @@ type SidebarLink = {
               class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
             >
               <span class="flex items-center gap-2 px-1">
-                <img ngSrc="/assets/icons/seller-sidebar-promotions.svg" alt="" width="16" height="16" class="h-4 w-4 shrink-0" />
+                <img
+                  ngSrc="/assets/icons/seller-sidebar-promotions.svg"
+                  alt=""
+                  width="16"
+                  height="16"
+                  class="h-4 w-4 shrink-0"
+                />
                 <span class="text-[14px] font-medium">Banner promotions</span>
               </span>
             </a>
@@ -97,14 +131,34 @@ type SidebarLink = {
                 [class.text-[#1F1F1F]]="isAdsRouteActive()"
               >
                 <span class="flex items-center gap-2 px-1">
-                  <img ngSrc="/assets/icons/seller-sidebar-ads.svg" alt="" width="16" height="16" class="h-4 w-4 shrink-0" />
+                  <img
+                    ngSrc="/assets/icons/seller-sidebar-ads.svg"
+                    alt=""
+                    width="16"
+                    height="16"
+                    class="h-4 w-4 shrink-0"
+                  />
                   <span class="text-[14px] font-medium">Ads</span>
                 </span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#777777]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-[#777777]"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
                   @if (isAdsExpanded()) {
-                    <path fill-rule="evenodd" d="M5.22 12.28a.75.75 0 001.06 0L10 8.56l3.72 3.72a.75.75 0 001.06-1.06l-4.25-4.25a.75.75 0 00-1.06 0L5.22 11.22a.75.75 0 000 1.06z" clip-rule="evenodd" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.22 12.28a.75.75 0 001.06 0L10 8.56l3.72 3.72a.75.75 0 001.06-1.06l-4.25-4.25a.75.75 0 00-1.06 0L5.22 11.22a.75.75 0 000 1.06z"
+                      clip-rule="evenodd"
+                    />
                   } @else {
-                    <path fill-rule="evenodd" d="M14.78 7.72a.75.75 0 00-1.06 0L10 11.44 6.28 7.72a.75.75 0 10-1.06 1.06l4.25 4.25a.75.75 0 001.06 0l4.25-4.25a.75.75 0 000-1.06z" clip-rule="evenodd" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M14.78 7.72a.75.75 0 00-1.06 0L10 11.44 6.28 7.72a.75.75 0 10-1.06 1.06l4.25 4.25a.75.75 0 001.06 0l4.25-4.25a.75.75 0 000-1.06z"
+                      clip-rule="evenodd"
+                    />
                   }
                 </svg>
               </button>
@@ -116,7 +170,9 @@ type SidebarLink = {
                     routerLinkActive="text-[#1F1F1F] bg-white"
                     class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
                   >
-                    <span class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"></span>
+                    <span
+                      class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
+                    ></span>
                     Plans
                   </a>
                   <a
@@ -124,7 +180,9 @@ type SidebarLink = {
                     routerLinkActive="text-[#1F1F1F] bg-white"
                     class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
                   >
-                    <span class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"></span>
+                    <span
+                      class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
+                    ></span>
                     Running Ads
                   </a>
                   <a
@@ -132,7 +190,9 @@ type SidebarLink = {
                     routerLinkActive="text-[#1F1F1F] bg-white"
                     class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
                   >
-                    <span class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"></span>
+                    <span
+                      class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
+                    ></span>
                     Billing history
                   </a>
                 </div>
@@ -155,7 +215,9 @@ type SidebarLink = {
         </section>
 
         <section>
-          <p class="px-[10px] text-[12px] font-medium uppercase tracking-[0.08em] text-[#959595]">Account</p>
+          <p class="px-[10px] text-[12px] font-medium uppercase tracking-[0.08em] text-[#959595]">
+            Account
+          </p>
           <nav class="mt-2 space-y-2">
             @for (item of accountLinks; track item.label) {
               <a
@@ -168,7 +230,9 @@ type SidebarLink = {
                   <span class="text-[14px] font-medium">{{ item.label }}</span>
                 </span>
                 @if (item.notificationCount) {
-                  <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-[#EE0D0D] px-1 text-[8px] font-semibold leading-[14px] text-white">
+                  <span
+                    class="inline-flex min-w-5 items-center justify-center rounded-full bg-[#EE0D0D] px-1 text-[8px] font-semibold leading-[14px] text-white"
+                  >
                     {{ item.notificationCount }}
                   </span>
                 }
@@ -182,7 +246,9 @@ type SidebarLink = {
         <div class="overflow-hidden rounded-[20px] bg-white px-6 pb-6 pt-5">
           <div class="relative mx-auto flex w-[120px] flex-col items-center gap-3">
             <div class="relative flex h-[120px] w-[120px] items-center justify-center">
-              <div class="absolute inset-[6px] rotate-[-5deg] rounded-[10px] border border-[#F0F0F0] bg-white shadow-[0_4.737px_12.631px_rgba(199,199,199,0.25)]"></div>
+              <div
+                class="absolute inset-[6px] rotate-[-5deg] rounded-[10px] border border-[#F0F0F0] bg-white shadow-[0_4.737px_12.631px_rgba(199,199,199,0.25)]"
+              ></div>
               <img
                 ngSrc="/assets/images/seller-sidebar-qr-code.png"
                 alt="QR code to download the Duduzili mobile app"
@@ -226,7 +292,11 @@ export class DashboardSidebarComponent {
   ];
 
   readonly accountLinks: readonly SidebarLink[] = [
-    { label: 'Account settings', route: '/settings', icon: '/assets/icons/seller-sidebar-settings.svg' },
+    {
+      label: 'Account settings',
+      route: '/settings',
+      icon: '/assets/icons/seller-sidebar-settings.svg',
+    },
     {
       label: 'Notifications',
       route: '/notifications',

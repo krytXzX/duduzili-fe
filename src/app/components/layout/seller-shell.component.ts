@@ -27,7 +27,7 @@ import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
       <div class="flex min-h-0 flex-1 overflow-hidden lg:gap-4">
         @if (showDesktopSidebar()) {
-          <aside class="hidden w-64 shrink-0 lg:block">
+          <aside class="hidden w-56 shrink-0 lg:block">
             <app-dashboard-sidebar class="h-full" />
           </aside>
         }

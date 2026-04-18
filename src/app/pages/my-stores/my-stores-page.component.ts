@@ -32,7 +32,7 @@ interface NewStoreFormData {
           <button
             type="button"
             class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f7f7] transition-colors hover:bg-[#efeff2]"
-            aria-label="Create your first store"
+            aria-label="Add new store"
             (click)="isAddingStore.set(true)"
           >
             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(31,36,48,0.08)]">
@@ -42,27 +42,97 @@ interface NewStoreFormData {
         </div>
       </div>
 
-      <div class="mx-auto hidden w-full max-w-[1108px] md:block">
-        <div class="flex h-[69px] items-center justify-between px-4 lg:px-0">
-          <h1 class="text-[28px] leading-[1.2] font-medium tracking-[-0.03em] text-[#1a1b1d]">My Stores</h1>
-
-          <button
-            type="button"
-            class="inline-flex h-10 items-center justify-center gap-2 rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-[1.03] hover:shadow-[0_8px_20px_rgba(81,35,173,0.3),0_0_0_1px_#6b5bd5]"
-            (click)="isAddingStore.set(true)"
-          >
-            <img [ngSrc]="addLinearIconUrl" alt="" width="18" height="18" class="h-[18px] w-[18px]" aria-hidden="true" />
-            <span>Add new listing</span>
-          </button>
+      @if (hasStores()) {
+        <div class="px-5 pb-1 pt-2 md:hidden">
+          <label class="relative block">
+            <img
+              [ngSrc]="searchIconUrl"
+              alt=""
+              width="18"
+              height="18"
+              class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 opacity-40"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              [value]="searchQuery()"
+              (input)="updateSearchQuery($event)"
+              placeholder="Search your stores"
+              class="h-11 w-full rounded-full border border-[#f1f1f3] bg-[#f7f7f7] pl-11 pr-4 text-[14px] text-[#1a1b1d] outline-none placeholder:text-[#8d8d95]"
+            />
+          </label>
         </div>
+      }
+
+      <div class="mx-auto hidden w-full max-w-[1108px] md:block">
+        @if (stores().length > 0) {
+          <div class="flex h-[69px] items-center justify-between gap-4 px-4 lg:px-0">
+            <h1 class="shrink-0 text-[28px] leading-[1.2] font-medium tracking-[-0.03em] text-[#1a1b1d]">
+              My Stores
+            </h1>
+
+            <div class="flex flex-1 items-center justify-end gap-4">
+              <label class="relative block w-full max-w-[354px]">
+                <img
+                  [ngSrc]="searchIconUrl"
+                  alt=""
+                  width="18"
+                  height="18"
+                  class="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 opacity-40"
+                  aria-hidden="true"
+                />
+                <input
+                  type="text"
+                  [value]="searchQuery()"
+                  (input)="updateSearchQuery($event)"
+                  placeholder="Search your stores"
+                  class="h-10 w-full rounded-full bg-[#f7f7f7] pl-10 pr-4 text-[14px] text-[#1a1b1d] outline-none placeholder:text-[#8d8d95]"
+                />
+              </label>
+
+              <button
+                type="button"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-[1.03] hover:shadow-[0_8px_20px_rgba(81,35,173,0.3),0_0_0_1px_#6b5bd5]"
+                (click)="isAddingStore.set(true)"
+              >
+                <img [ngSrc]="addLinearIconUrl" alt="" width="18" height="18" class="h-[18px] w-[18px]" aria-hidden="true" />
+                <span>Add new store</span>
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="flex h-[69px] items-center justify-between px-4 lg:px-0">
+            <h1 class="text-[28px] leading-[1.2] font-medium tracking-[-0.03em] text-[#1a1b1d]">My Stores</h1>
+
+            <button
+              type="button"
+              class="inline-flex h-10 items-center justify-center gap-2 rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-[1.03] hover:shadow-[0_8px_20px_rgba(81,35,173,0.3),0_0_0_1px_#6b5bd5]"
+              (click)="isAddingStore.set(true)"
+            >
+              <img [ngSrc]="addLinearIconUrl" alt="" width="18" height="18" class="h-[18px] w-[18px]" aria-hidden="true" />
+              <span>Add new store</span>
+            </button>
+          </div>
+        }
       </div>
 
       @if (filteredStores().length > 0) {
-        <div class="px-5 pb-10 pt-5 md:px-4 md:pb-0 md:pt-8 lg:px-0">
-          <div class="mx-auto grid max-w-[1108px] grid-cols-2 gap-3 md:grid-cols-2 md:gap-6 xl:grid-cols-4">
-            @for (store of filteredStores(); track store.id) {
-              <app-store-card [store]="store" [showFavorite]="false" />
-            }
+        <div class="px-5 pb-24 pt-4 md:px-4 md:pb-10 md:pt-7 lg:px-0">
+          <div class="mx-auto max-w-[1108px]">
+            <div class="grid grid-cols-2 gap-x-3 gap-y-4 md:grid-cols-2 md:gap-x-6 md:gap-y-8 xl:grid-cols-4">
+              @for (store of filteredStores(); track store.id; let index = $index) {
+                <app-store-card [store]="store" [showFavorite]="false" [priority]="index === 0" />
+              }
+            </div>
+          </div>
+        </div>
+      } @else if (stores().length > 0) {
+        <div class="flex flex-1 items-center justify-center px-5 pb-10 pt-5 text-center md:px-4 md:pb-0 md:pt-8 lg:px-0">
+          <div class="rounded-[24px] border border-[#efefef] bg-white px-6 py-10 shadow-[0_6px_24px_rgba(0,0,0,0.03)]">
+            <h2 class="text-[18px] leading-6 font-medium text-[#1a1b1d]">No stores found</h2>
+            <p class="mt-2 max-w-[320px] text-[14px] leading-5 text-[#6c6c6c]">
+              Try a different search term to find one of your stores.
+            </p>
           </div>
         </div>
       } @else {
@@ -243,11 +313,101 @@ export class MyStoresPageComponent {
   protected readonly emptyLocationIconUrl = '/assets/icons/my-stores-empty-location.svg';
   protected readonly dots = [1, 2, 3, 4] as const;
 
-  protected readonly stores = signal<Store[]>([]);
+  protected readonly stores = signal<Store[]>([
+    {
+      id: 'my-store-1',
+      name: 'The Vine Collections',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-vine-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-vine-cover-mobile.png',
+      logoImage: '/assets/images/store-vine-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-vine-logo-mobile.png',
+      isVerified: true,
+      route: ['/my-stores', 'my-store-1'],
+    },
+    {
+      id: 'my-store-2',
+      name: 'Eden Organics',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-eden-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-eden-cover-mobile.png',
+      logoImage: '/assets/images/store-eden-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-eden-logo-mobile.png',
+      isVerified: true,
+      route: ['/my-stores', 'my-store-2'],
+    },
+    {
+      id: 'my-store-3',
+      name: 'Snap Thrifts',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-snap-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-snap-cover-mobile.png',
+      logoImage: '/assets/images/store-snap-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-snap-logo-mobile.png',
+      isVerified: true,
+      route: ['/my-stores', 'my-store-3'],
+    },
+    {
+      id: 'my-store-4',
+      name: 'goMelon',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-gomelon-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-gomelon-cover-mobile.png',
+      logoImage: '/assets/images/store-gomelon-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-gomelon-logo-mobile.png',
+      isVerified: true,
+      route: ['/my-stores', 'my-store-4'],
+    },
+    {
+      id: 'my-store-5',
+      name: 'Amazing Fragrances',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-amazing-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-amazing-cover-desktop.png',
+      logoImage: '/assets/images/store-amazing-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-amazing-logo-desktop.png',
+      isVerified: true,
+      route: ['/my-stores', 'my-store-5'],
+    },
+    {
+      id: 'my-store-6',
+      name: 'New Age Properties',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-newage-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-newage-cover-desktop.png',
+      logoImage: '/assets/images/store-newage-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-newage-logo-desktop.png',
+      isVerified: true,
+      route: ['/my-stores', 'my-store-6'],
+    },
+    {
+      id: 'my-store-7',
+      name: 'Swift Wears',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-swift-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-swift-cover-desktop.png',
+      logoImage: '/assets/images/store-swift-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-swift-logo-desktop.png',
+      isVerified: true,
+      route: ['/my-stores', 'my-store-7'],
+    },
+    {
+      id: 'my-store-8',
+      name: 'None Electronics',
+      location: 'Ikeja, Lagos',
+      coverImage: '/assets/images/store-none-cover-desktop.png',
+      mobileCoverImage: '/assets/images/store-none-cover-desktop.png',
+      logoImage: '/assets/images/store-none-logo-desktop.png',
+      mobileLogoImage: '/assets/images/store-none-logo-desktop.png',
+      isVerified: true,
+      route: ['/my-stores', 'my-store-8'],
+    },
+  ]);
   protected readonly searchQuery = signal('');
   protected readonly isAddingStore = signal(false);
   protected readonly isSuccess = signal(false);
   protected readonly latestCreatedStoreName = signal('The Vine Collections');
+  protected readonly hasStores = computed(() => this.stores().length > 0);
 
   protected readonly filteredStores = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
@@ -274,8 +434,10 @@ export class MyStoresPageComponent {
       name: formData.name,
       logo: formData.logo,
       banner: formData.banner,
+      location: 'Ikeja, Lagos',
       followers: '0',
       isVerified: false,
+      route: ['/my-stores'],
     };
 
     this.stores.update((previousStores) => [newStore, ...previousStores]);

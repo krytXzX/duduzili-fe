@@ -34,6 +34,7 @@ export interface Store {
 export class StoreCardComponent {
   store = input.required<Store>();
   showFavorite = input(true);
+  priority = input(false);
 
   protected readonly route = computed(() => this.store().route ?? ['/my-stores', this.store().id]);
   protected readonly desktopCoverImage = computed(() => this.store().coverImage ?? this.store().banner ?? '');
@@ -51,4 +52,8 @@ export class StoreCardComponent {
   );
   protected readonly hasLocation = computed(() => this.locationLabel().trim().length > 0);
   protected readonly isVerified = computed(() => this.store().isVerified ?? true);
+
+  protected isDataUrl(value: string): boolean {
+    return value.startsWith('data:');
+  }
 }

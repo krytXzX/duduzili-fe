@@ -1,336 +1,391 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, output, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroXMark, heroCamera, heroCheck, heroChevronDown, heroUser, heroPlus } from '@ng-icons/heroicons/outline';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnDestroy,
+  output,
+  signal,
+} from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
+
+export interface AddStoreFormValue {
+  readonly name: string;
+  readonly location: string;
+  readonly whatsappNumber: string;
+  readonly callNumber: string;
+  readonly logo: string;
+  readonly banner: string;
+}
 
 @Component({
   selector: 'app-add-store-modal',
-  imports: [CommonModule, ReactiveFormsModule, NgIcon],
-  providers: [
-    provideIcons({ heroXMark, heroCamera, heroCheck, heroChevronDown, heroUser, heroPlus })
-  ],
+  imports: [ReactiveFormsModule, NgOptimizedImage],
   template: `
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity animate-in fade-in duration-300" (click)="close.emit()">
+    <div
+      class="fixed inset-0 z-50 bg-black/40 backdrop-blur-[4px] md:flex md:items-center md:justify-center md:p-4"
+      (click)="close.emit()"
+    >
       <div
-        class="fixed inset-x-0 bottom-0 top-3 rounded-t-[34px] bg-white px-4 pb-4 pt-3 shadow-2xl md:hidden"
+        class="fixed inset-x-0 bottom-0 top-3 flex max-h-[calc(100dvh-0.75rem)] flex-col overflow-x-hidden overflow-y-hidden rounded-t-[36px] bg-white md:relative md:top-auto md:max-h-[90vh] md:w-full md:max-w-[600px] md:rounded-[16px]"
         (click)="$event.stopPropagation()"
       >
-        <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E7E8EE]"></div>
+        <div
+          class="absolute left-1/2 top-[11px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#ebebeb] md:hidden"
+        ></div>
 
-        <div class="mt-2 flex justify-end">
-          <button
-            type="button"
-            (click)="close.emit()"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
-            aria-label="Close add store flow"
+        <div class="flex min-h-0 flex-1 flex-col">
+          <div
+            class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pb-8 pt-[34px] md:px-6 md:pb-0 md:pt-6"
           >
-            <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
-          </button>
-        </div>
+            <div class="mx-auto w-full md:w-[552px]">
+              <div class="flex items-center justify-between gap-4">
+                <h2
+                  class="text-[24px] leading-8 font-semibold tracking-[-0.03em] text-[#1a1b1d] md:text-[28px] md:leading-10 md:text-[#0d0d0d]"
+                >
+                  Add new store
+                </h2>
 
-        <div class="mt-2 flex h-[calc(100%-3.25rem)] flex-col overflow-hidden text-[#202335]">
-          <div class="flex-1 overflow-y-auto pb-4">
-            <h2 class="text-[18px] font-semibold tracking-[-0.03em]">Add new store</h2>
+                <button
+                  type="button"
+                  class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                  aria-label="Close add store flow"
+                  (click)="close.emit()"
+                >
+                  <img
+                    [ngSrc]="closeIconUrl"
+                    alt=""
+                    width="24"
+                    height="24"
+                    class="h-6 w-6"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
 
-            <section class="mt-5">
-              <h3 class="text-[14px] font-semibold">General information</h3>
-              <p class="mt-1 text-[10px] leading-4 text-[#8A8F9A]">Fill out general information about this store</p>
-
-              <form [formGroup]="storeForm" class="mt-5 space-y-4">
-                <div>
-                  <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Store name</label>
-                  <input
-                    type="text"
-                    formControlName="name"
-                    class="h-11 w-full rounded-[12px] border border-[#E6E8EE] bg-white px-3 text-[12px] outline-none"
-                  >
+              <section class="mt-6 md:mt-8">
+                <div class="flex flex-col gap-[7px]">
+                  <h3 class="text-[20px] leading-6 font-semibold text-[#0d0d0d]">
+                    General information
+                  </h3>
+                  <p class="text-[14px] leading-5 text-[rgba(13,13,13,0.5)]">
+                    Fill out general information about this store
+                  </p>
                 </div>
 
-                <div>
-                  <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Location</label>
-                  <div class="relative">
-                    <select
-                      formControlName="location"
-                      class="h-11 w-full appearance-none rounded-[12px] border border-[#E6E8EE] bg-white px-3 pr-10 text-[12px] outline-none"
+                <form [formGroup]="storeForm" class="mt-6 space-y-5 md:mt-6 md:space-y-5">
+                  <div class="space-y-2">
+                    <label
+                      class="block text-[14px] leading-[1.2] font-medium text-[#5a5a5a]"
+                      for="store-name"
                     >
-                      <option value="" disabled>Select location</option>
-                      <option value="lagos">Lagos, Nigeria</option>
-                      <option value="abuja">Abuja, Nigeria</option>
-                      <option value="accra">Accra, Ghana</option>
-                    </select>
-                    <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8A8F9A]">
-                      <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
+                      Store name
+                    </label>
+                    <input
+                      id="store-name"
+                      type="text"
+                      formControlName="name"
+                      class="h-12 w-full rounded-[8px] border border-[#eaeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
+                    />
+                  </div>
+
+                  <div class="space-y-2">
+                    <label
+                      class="block text-[14px] leading-[1.2] font-medium text-[#5a5a5a]"
+                      for="store-location"
+                    >
+                      Location
+                    </label>
+                    <div class="relative">
+                      <select
+                        id="store-location"
+                        formControlName="location"
+                        class="h-12 w-full appearance-none rounded-[8px] border border-[#eaeaea] bg-white px-3 pr-10 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none md:h-10"
+                      >
+                        <option value="" disabled>Select location</option>
+                        @for (location of locations; track location) {
+                          <option [value]="location">{{ location }}</option>
+                        }
+                      </select>
+
+                      <img
+                        [ngSrc]="chevronIconUrl"
+                        alt=""
+                        width="10"
+                        height="10"
+                        class="pointer-events-none absolute right-3 top-1/2 shrink-0 -translate-y-1/2 object-contain rotate-[-90deg]"
+                        aria-hidden="true"
+                      />
                     </div>
                   </div>
+
+                  <div class="grid gap-5 md:grid-cols-2 md:gap-5">
+                    <div class="space-y-2">
+                      <label
+                        class="block text-[14px] leading-[1.2] font-medium text-[#5a5a5a]"
+                        for="store-whatsapp"
+                      >
+                        WhatsApp number
+                      </label>
+                      <input
+                        id="store-whatsapp"
+                        type="tel"
+                        formControlName="whatsappNumber"
+                        class="h-12 w-full rounded-[8px] border border-[#eaeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
+                      />
+                    </div>
+
+                    <div class="space-y-2">
+                      <label
+                        class="block text-[14px] leading-[1.2] font-medium text-[#5a5a5a]"
+                        for="store-call"
+                      >
+                        Call number
+                      </label>
+                      <input
+                        id="store-call"
+                        type="tel"
+                        formControlName="callNumber"
+                        class="h-12 w-full rounded-[8px] border border-[#eaeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
+                      />
+                    </div>
+                  </div>
+                </form>
+              </section>
+
+              <section class="mt-8 md:mt-8">
+                <div class="flex flex-col gap-1">
+                  <h3 class="text-[20px] leading-6 font-semibold text-[#0d0d0d]">Profile photo</h3>
+                  <p class="text-[14px] leading-5 text-[rgba(13,13,13,0.5)]">
+                    Recommended size: 100 x 100
+                  </p>
                 </div>
 
-                <div>
-                  <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">WhatsApp Number</label>
-                  <input
-                    type="tel"
-                    formControlName="phone"
-                    class="h-11 w-full rounded-[12px] border border-[#E6E8EE] bg-white px-3 text-[12px] outline-none"
+                <input
+                  #profileInput
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  class="hidden"
+                  (change)="onFileSelected($event, 'profile')"
+                />
+
+                <button
+                  type="button"
+                  class="relative mt-3 inline-flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-full border border-[#eaeaea] bg-[#f9f9f9]"
+                  (click)="profileInput.click()"
+                  aria-label="Upload profile photo"
+                >
+                  @if (profilePreview(); as profilePreview) {
+                    <img
+                      [src]="profilePreview"
+                      alt="Store profile preview"
+                      class="h-full w-full object-cover"
+                    />
+                  } @else {
+                    <img
+                      [ngSrc]="imagePlaceholderIconUrl"
+                      alt=""
+                      width="50"
+                      height="50"
+                      class="h-[50px] w-[50px]"
+                      aria-hidden="true"
+                    />
+                  }
+
+                  <span
+                    class="absolute bottom-0 right-0 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_2.67px_5.339px_rgba(202,202,202,0.25)]"
                   >
+                    <img
+                      [ngSrc]="plusIconUrl"
+                      alt=""
+                      width="16"
+                      height="16"
+                      class="h-4 w-4 rotate-[-45deg]"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </button>
+              </section>
+
+              <section class="mt-8 md:mt-8">
+                <div class="flex flex-col gap-1">
+                  <h3 class="text-[20px] leading-6 font-semibold text-[#0d0d0d]">Cover photo</h3>
+                  <p class="text-[14px] leading-5 text-[rgba(13,13,13,0.5)]">
+                    Recommended size: 1080 x 90
+                  </p>
                 </div>
 
-                <div>
-                  <label class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Call number</label>
-                  <input
-                    type="tel"
-                    formControlName="phone"
-                    class="h-11 w-full rounded-[12px] border border-[#E6E8EE] bg-white px-3 text-[12px] outline-none"
-                  >
-                </div>
-              </form>
-            </section>
+                <input
+                  #coverInput
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  class="hidden"
+                  (change)="onFileSelected($event, 'cover')"
+                />
 
-            <section class="mt-6">
-              <h3 class="text-[14px] font-semibold">Profile photo</h3>
-              <p class="mt-1 text-[10px] leading-4 text-[#8A8F9A]">Recommended size: 100 x 100</p>
+                <button
+                  type="button"
+                  class="relative mt-3 flex h-[138px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-dashed border-[#d8d8d8] bg-[#f9f9f9]"
+                  (click)="coverInput.click()"
+                  aria-label="Upload cover photo"
+                >
+                  @if (coverPreview(); as coverPreview) {
+                    <img
+                      [src]="coverPreview"
+                      alt="Store cover preview"
+                      class="absolute inset-0 h-full w-full object-cover"
+                    />
+                  }
 
-              <button
-                type="button"
-                (click)="simulateUpload('profile')"
-                class="relative mt-3 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-[#E6E8EE] bg-[#F7F8FA] text-[#A0A5B1]"
-                aria-label="Upload store profile photo"
-              >
-                @if (profilePreview()) {
-                  <img [src]="profilePreview()" alt="Store profile preview" class="h-full w-full object-cover">
-                } @else {
-                  <ng-icon name="heroUser" class="text-[26px]"></ng-icon>
-                }
+                  <span class="relative z-10 flex flex-col items-center gap-2">
+                    <span
+                      class="inline-flex h-10 items-center justify-center rounded-[64px] border border-[#eaeaea] bg-white px-5 text-[14px] leading-5 font-medium text-black"
+                    >
+                      Add file
+                    </span>
+                    <span
+                      class="text-center text-[12px] leading-[1.2] tracking-[-0.01em] text-[#848484]"
+                    >
+                      PNG, JPEG under 2MB
+                    </span>
+                  </span>
+                </button>
+              </section>
 
-                <span class="absolute bottom-[-2px] right-[-2px] inline-flex h-6 w-6 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#6B7280] shadow-sm">
-                  <ng-icon name="heroPlus" class="text-[12px]"></ng-icon>
-                </span>
-              </button>
-            </section>
+              <div class="hidden h-[1px] w-full bg-[#efefef] md:mt-8 md:block"></div>
+            </div>
           </div>
 
-          <button
-            type="button"
-            (click)="onSubmit()"
-            [disabled]="!storeForm.valid"
-            class="rounded-full bg-[#6F56F6] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_30px_-18px_rgba(111,86,246,0.95)] disabled:opacity-50"
-          >
-            Add store
-          </button>
-        </div>
-      </div>
-
-      <div 
-        class="hidden max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[40px] bg-white shadow-2xl transition-all animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 md:flex md:flex-col"
-        (click)="$event.stopPropagation()"
-      >
-        <!-- Header -->
-        <div class="p-10 pb-6 flex items-center justify-between sticky top-0 bg-white z-10">
-          <h2 class="text-[28px] font-black text-[#1A1C21] tracking-tight">Add new store</h2>
-          <button (click)="close.emit()" class="p-3 rounded-full hover:bg-gray-50 transition-colors text-gray-400 hover:text-gray-900 group">
-            <ng-icon name="heroXMark" class="text-2xl group-hover:rotate-90 transition-transform duration-300"></ng-icon>
-          </button>
-        </div>
-
-        <!-- Scrollable Content -->
-        <div class="p-10 pt-0 space-y-12">
-          <!-- General Info Section -->
-          <section>
-            <div class="mb-8">
-              <h3 class="text-lg font-black text-[#1A1C21] mb-1">General information</h3>
-              <p class="text-[13px] text-gray-400 font-medium">Fill in the basic info to set up your store</p>
-            </div>
-
-            <form [formGroup]="storeForm" class="space-y-6">
-              <div>
-                <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Store name</label>
-                <input 
-                  type="text" 
-                  formControlName="name"
-                  placeholder="Enter store name"
-                  class="w-full bg-[#fcfcfc] border border-gray-100 rounded-2xl py-4.5 px-6 text-sm focus:outline-none focus:ring-4 focus:ring-purple-50 focus:border-purple-200 transition-all font-medium placeholder:text-gray-300"
-                >
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Location</label>
-                <div class="relative group">
-                  <select 
-                    formControlName="location"
-                    class="w-full bg-[#fcfcfc] border border-gray-100 rounded-2xl py-4.5 px-6 text-sm focus:outline-none focus:ring-4 focus:ring-purple-50 focus:border-purple-200 transition-all font-medium appearance-none cursor-pointer placeholder:text-gray-300"
-                  >
-                    <option value="" disabled>Select location</option>
-                    <option value="lagos">Lagos, Nigeria</option>
-                    <option value="abuja">Abuja, Nigeria</option>
-                    <option value="accra">Accra, Ghana</option>
-                  </select>
-                  <div class="absolute inset-y-0 right-6 flex items-center pointer-events-none text-gray-400 group-hover:text-purple-500 transition-colors">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Store category</label>
-                <div class="flex flex-wrap gap-2">
-                  @for (cat of categories; track cat) {
-                    <button 
-                      type="button"
-                      (click)="toggleCategory(cat)"
-                      class="scale-100 select-none rounded-full border px-5 py-2.5 text-xs font-bold transition-all hover:border-purple-200 active:scale-95"
-                      [class.bg-purple-600]="isSelected(cat)"
-                      [class.text-white]="isSelected(cat)"
-                      [class.border-purple-600]="isSelected(cat)"
-                      [class.bg-[#fcfcfc]]="!isSelected(cat)"
-                      [class.text-gray-500]="!isSelected(cat)"
-                      [class.border-gray-100]="!isSelected(cat)"
-                    >
-                      @if (isSelected(cat)) {
-                        <ng-icon name="heroCheck" class="mr-1 inline-block"></ng-icon>
-                      }
-                      {{cat}}
-                    </button>
-                  }
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Phone number</label>
-                <input 
-                  type="tel" 
-                  formControlName="phone"
-                  placeholder="Enter phone number" 
-                  class="w-full bg-[#fcfcfc] border border-gray-100 rounded-2xl py-4.5 px-6 text-sm focus:outline-none focus:ring-4 focus:ring-purple-50 focus:border-purple-200 transition-all font-medium font-mono placeholder:text-gray-300"
-                >
-              </div>
-            </form>
-          </section>
-
-          <!-- Profile Photo Section -->
-          <section>
-            <div class="mb-4">
-              <h3 class="text-lg font-black text-[#1A1C21] mb-1">Profile photo</h3>
-              <p class="text-[13px] text-gray-400 font-medium">Recommended size is 512 x 512</p>
-            </div>
-            <div 
-              (click)="simulateUpload('profile')"
-              class="w-28 h-28 rounded-full bg-[#fcfcfc] border-2 border-dashed border-gray-100 flex items-center justify-center cursor-pointer hover:bg-white hover:border-purple-200 transition-all group overflow-hidden relative shadow-inner"
+          <div class="shrink-0 bg-white px-4 pb-[14px] pt-[11px] md:hidden">
+            <button
+              type="button"
+              class="flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453d9] text-[16px] leading-6 font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8] disabled:opacity-50"
+              [disabled]="storeForm.invalid"
+              (click)="onSubmit()"
             >
-              @if (profilePreview()) {
-                <img [src]="profilePreview()" class="w-full h-full object-cover animate-in fade-in zoom-in-75 duration-300">
-                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <ng-icon name="heroCamera" class="text-2xl text-white"></ng-icon>
-                </div>
-              } @else {
-                <ng-icon name="heroCamera" class="text-3xl text-gray-300 group-hover:text-purple-400 group-hover:scale-110 transition-all"></ng-icon>
-              }
-            </div>
-          </section>
+              Add store
+            </button>
+          </div>
 
-          <!-- Cover Photo Section -->
-          <section>
-            <div class="mb-4">
-              <h3 class="text-lg font-black text-[#1A1C21] mb-1">Cover photo</h3>
-              <p class="text-[13px] text-gray-400 font-medium">Recommended size is 1024 x 1024</p>
-            </div>
-            <div 
-              (click)="simulateUpload('cover')"
-              class="w-full h-44 rounded-[32px] bg-[#fcfcfc] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-white hover:border-purple-200 transition-all group relative overflow-hidden"
+          <div class="hidden h-20 items-center justify-end gap-2 bg-white px-[29px] md:flex">
+            <button
+              type="button"
+              class="inline-flex h-10 items-center justify-center rounded-[82px] bg-[#f5f5f5] px-6 text-[16px] leading-[22px] font-medium tracking-[-0.03em] text-[#05061a]"
+              (click)="close.emit()"
             >
-              @if (coverPreview()) {
-                <img [src]="coverPreview()" class="absolute inset-0 w-full h-full object-cover animate-in fade-in duration-500">
-                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <button class="bg-white px-6 py-2.5 rounded-2xl text-sm font-black text-[#1A1C21] shadow-xl">Change Cover</button>
-                </div>
-              } @else {
-                <div class="bg-white w-12 h-12 rounded-2xl shadow-sm border border-gray-50 flex items-center justify-center group-hover:scale-110 group-hover:text-purple-500 transition-all duration-300">
-                  <ng-icon name="heroCamera" class="text-2xl text-gray-300 group-hover:text-purple-400 transition-colors"></ng-icon>
-                </div>
-                <button class="bg-white px-6 py-2.5 rounded-2xl text-xs font-black text-[#1A1C21] shadow-sm border border-gray-100 group-hover:translate-y-[-2px] transition-transform">Upload</button>
-                <span class="text-[11px] text-gray-400 font-black uppercase tracking-widest">JPEG, PNG only</span>
-              }
-            </div>
-          </section>
-        </div>
+              Cancel
+            </button>
 
-        <!-- Footer Actions -->
-        <div class="p-10 pt-6 flex items-center gap-4 sticky bottom-0 bg-white/95 backdrop-blur-md z-10 border-t border-gray-50">
-          <button (click)="close.emit()" class="flex-1 py-5 rounded-[24px] font-black text-gray-400 hover:text-gray-900 transition-all text-sm select-none">
-            Back
-          </button>
-          <button 
-            (click)="onSubmit()"
-            [disabled]="!storeForm.valid"
-            class="flex-1 py-5 rounded-[24px] font-black text-white bg-purple-600 hover:bg-purple-700 disabled:bg-gray-100 disabled:text-gray-300 disabled:shadow-none transition-all shadow-2xl shadow-purple-200 active:scale-[0.98] text-sm select-none"
-          >
-            Ready
-          </button>
+            <button
+              type="button"
+              class="inline-flex h-10 items-center justify-center rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] disabled:opacity-50"
+              [disabled]="storeForm.invalid"
+              (click)="onSubmit()"
+            >
+              Add store
+            </button>
+          </div>
         </div>
       </div>
     </div>
   `,
-  styles: [`
-    :host { scrollbar-gutter: stable; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #ddd; }
-  `],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styles: [
+    `
+      :host {
+        display: block;
+      }
+
+      select {
+        background-image: none;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(13, 13, 13, 0.12);
+        border-radius: 999px;
+      }
+    `,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddStoreModalComponent implements OnDestroy {
-  close = output<void>();
-  submit = output<any>();
+  readonly close = output<void>();
+  readonly submit = output<AddStoreFormValue>();
 
-  private readonly fb = inject(FormBuilder);
+  protected readonly closeIconUrl = '/assets/icons/my-stores-add-close.svg';
+  protected readonly chevronIconUrl = '/assets/icons/my-stores-add-chevron.svg';
+  protected readonly imagePlaceholderIconUrl = '/assets/icons/my-stores-add-image-placeholder.svg';
+  protected readonly plusIconUrl = '/assets/icons/my-stores-add-plus.svg';
+  protected readonly locations = [
+    'Ikeja, Lagos',
+    'Lekki, Lagos',
+    'Abuja, FCT',
+    'Port Harcourt, Rivers',
+  ] as const;
+
+  protected readonly profilePreview = signal<string | null>(null);
+  protected readonly coverPreview = signal<string | null>(null);
+
+  private readonly fb = inject(NonNullableFormBuilder);
   private readonly mobileOverlayService = inject(MobileOverlayService);
-  
-  readonly categories = ['Electronics', 'Fashion', 'Home Decor', 'Beauty', 'Health', 'Travel', 'Food', 'Other'];
-  readonly selectedCategories = signal<string[]>([]);
-  readonly profilePreview = signal<string | null>(null);
-  readonly coverPreview = signal<string | null>(null);
 
-  storeForm: FormGroup = this.fb.group({
+  protected readonly storeForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
-    location: ['', [Validators.required]],
-    categories: [[]],
-    phone: ['', [Validators.required, Validators.pattern(/^[0-9+ ]+$/)]]
+    location: ['', Validators.required],
+    whatsappNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],
+    callNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],
   });
 
   constructor() {
     this.mobileOverlayService.openMobileModal();
   }
 
-  toggleCategory(cat: string) {
-    this.selectedCategories.update(prev => 
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-    );
-    this.storeForm.patchValue({ categories: this.selectedCategories() });
-  }
+  protected onFileSelected(event: Event, type: 'profile' | 'cover'): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
 
-  isSelected(cat: string): boolean {
-    return this.selectedCategories().includes(cat);
-  }
-
-  simulateUpload(type: 'profile' | 'cover') {
-    // Simulate a photo pick from Unsplash for visual feedback
-    if (type === 'profile') {
-      this.profilePreview.set(`https://images.unsplash.com/photo-${Math.random() > 0.5 ? '1534528741775-53994a69daeb' : '1507003211169-0a1dd7228f2d'}?w=200&h=200&fit=crop`);
-    } else {
-      this.coverPreview.set(`https://images.unsplash.com/photo-${Math.random() > 0.5 ? '1441986300917-64674bd600d8' : '1555529669-e69e7aa0ba9a'}?w=800&h=400&fit=crop`);
+    if (!file) {
+      return;
     }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : null;
+
+      if (!result) {
+        return;
+      }
+
+      if (type === 'profile') {
+        this.profilePreview.set(result);
+      } else {
+        this.coverPreview.set(result);
+      }
+    };
+
+    reader.readAsDataURL(file);
+    input.value = '';
   }
 
-  onSubmit() {
-    if (this.storeForm.valid) {
-      this.submit.emit({
-        ...this.storeForm.value,
-        logo: this.profilePreview() || 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png',
-        banner: this.coverPreview() || 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=200&fit=crop'
-      });
+  protected onSubmit(): void {
+    if (this.storeForm.invalid) {
+      this.storeForm.markAllAsTouched();
+      return;
     }
+
+    const formValue = this.storeForm.getRawValue();
+
+    this.submit.emit({
+      ...formValue,
+      logo: this.profilePreview() ?? '/assets/images/store-vine-logo-desktop.png',
+      banner: this.coverPreview() ?? '/assets/images/store-vine-cover-desktop.png',
+    });
   }
 
   ngOnDestroy(): void {

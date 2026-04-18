@@ -1,284 +1,493 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import {
-  heroMagnifyingGlass,
-  heroChevronDown,
-  heroFaceSmile,
-  heroPhoto,
-  heroMicrophone,
-  heroCheck,
-} from '@ng-icons/heroicons/outline';
-
-interface Message {
-  id: string;
-  sender: 'me' | 'other';
-  text: string;
-  time: string;
-  replyTo?: string;
-  images?: string[];
-}
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { Router } from '@angular/router';
+import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 interface Conversation {
   id: string;
   name: string;
-  lastMessage: string;
+  preview: string;
   time: string;
   unreadCount?: number;
   avatar: string;
-  online?: boolean;
-  subtitle?: string;
-  storeLabel?: string;
+  mobileAvatar?: string;
+  storeBadge: string;
+  mobileStoreBadge?: string;
+}
+
+interface StoreOption {
+  id: string;
+  label: string;
 }
 
 @Component({
   selector: 'app-messages-page',
-  standalone: true,
-  imports: [CommonModule, NgIcon],
+  imports: [CommonModule, NgOptimizedImage],
   host: {
     class: 'block h-full min-h-0',
   },
-  providers: [
-    provideIcons({
-      heroMagnifyingGlass,
-      heroChevronDown,
-      heroFaceSmile,
-      heroPhoto,
-      heroMicrophone,
-      heroCheck,
-    }),
-  ],
   template: `
-    <div class="mx-auto h-full min-h-0 max-w-[1400px] animate-in fade-in duration-700 md:hidden">
-      @if (!isMobileConversationOpen()) {
-        <div class="flex h-full min-h-0 flex-col px-5 pb-10 pt-7">
-          <header class="shrink-0">
-            <div class="flex items-center justify-between">
-              <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">Chats</h1>
-              <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F6F7FA] text-[#6B7280]">
-                <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
-              </button>
-            </div>
+    <div class="hidden h-full min-h-0 md:block">
+      <section class="mx-auto flex h-full min-h-0 max-w-[1060px] flex-col overflow-hidden">
+        <header
+          class="flex h-[69px] shrink-0 items-center justify-between border-b border-[#EEEEEE] px-4"
+        >
+          <h1 class="text-[24px] font-medium leading-normal text-[#0D0D0D]">Chats</h1>
 
-            @if (!isBuyerView()) {
-              <button
-                type="button"
-                (click)="showMobileStoreSheet.set(true)"
-                class="mt-4 flex min-h-9 items-center gap-2 rounded-full border border-[#ECEEF4] bg-white px-3 py-2 text-[11px] font-medium text-[#202335] shadow-[0_10px_20px_-22px_rgba(31,36,48,0.45)]"
-              >
-                <span class="flex -space-x-1.5">
-                  <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop" class="h-4 w-4 rounded-full border border-white object-cover" alt="">
-                  <img src="https://images.unsplash.com/photo-1554151228-14d9def656e4?w=40&h=40&fit=crop" class="h-4 w-4 rounded-full border border-white object-cover" alt="">
-                  <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop" class="h-4 w-4 rounded-full border border-white object-cover" alt="">
+          @if (!isBuyerView()) {
+            <button
+              type="button"
+              class="flex h-12 w-[296px] items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
+            >
+              <span class="flex items-center gap-2">
+                <span class="relative h-8 w-[68px] shrink-0">
+                  <img
+                    [ngSrc]="assets.selectorAvatarOne"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <img
+                    [ngSrc]="assets.selectorAvatarTwo"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <img
+                    [ngSrc]="assets.selectorAvatarThree"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <span
+                    class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                  >
+                    <img
+                      [ngSrc]="assets.selectorStoreIconDesktop"
+                      width="21"
+                      height="16"
+                      alt=""
+                      class="h-4 w-[21px]"
+                    />
+                  </span>
                 </span>
-                <span>{{ selectedStoreLabel() }}</span>
-                <ng-icon name="heroChevronDown" class="text-[14px] text-[#8A8F9A]"></ng-icon>
-              </button>
-            }
-          </header>
 
-          <div class="mt-5 flex-1 overflow-y-auto pb-24">
-            <div class="space-y-2">
+                <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
+                  {{ selectedStoreLabel() }}
+                </span>
+              </span>
+
+              <span class="flex items-center gap-[10px]">
+                <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
+                <span class="rounded-full bg-[#EDEDED] p-1">
+                  <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
+                </span>
+              </span>
+            </button>
+          }
+        </header>
+
+        <div class="flex min-h-0 flex-1 items-stretch gap-8 px-6 pb-6 pt-6">
+          <aside class="flex min-h-0 w-[296px] shrink-0 flex-col">
+            <label class="flex h-10 items-center gap-2 rounded-full bg-[#FAFAFA] px-3">
+              <img [ngSrc]="assets.searchDesktop" width="16" height="16" alt="" class="h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search messages"
+                class="w-full bg-transparent text-[14px] leading-5 text-[#0D0D0D] outline-none placeholder:text-[#777777]"
+              />
+            </label>
+
+            <div class="mt-3 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 chats-scrollbar">
               @for (chat of conversations(); track chat.id) {
                 <button
                   type="button"
-                  (click)="openMobileConversation(chat.id)"
-                  class="flex w-full items-center gap-3 rounded-[16px] px-1 py-2 text-left"
+                  (click)="activeChatId.set(chat.id)"
+                  class="w-full rounded-[18px] px-3 py-4 text-left"
+                  [class.bg-[#F6F6F6]]="activeChatId() === chat.id"
                 >
-                  <div class="relative h-11 w-11 shrink-0">
-                    <img [src]="chat.avatar" [alt]="chat.name" class="h-full w-full rounded-full object-cover">
-                    <div class="absolute -bottom-0.5 -right-0.5 h-4 w-4 overflow-hidden rounded-full border-2 border-white bg-white shadow-sm">
-                      <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=30&h=30&fit=crop" class="h-full w-full object-cover" alt="">
+                  <div class="flex items-center gap-[9px]">
+                    <div class="relative h-12 w-12 shrink-0">
+                      <img
+                        [ngSrc]="chat.avatar"
+                        width="48"
+                        height="48"
+                        [alt]="chat.name"
+                        class="h-12 w-12 rounded-full object-cover"
+                      />
+                      <span
+                        class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
+                      >
+                        <img
+                          [ngSrc]="chat.storeBadge"
+                          width="20"
+                          height="20"
+                          alt=""
+                          class="h-5 w-5 object-cover"
+                        />
+                      </span>
                     </div>
-                  </div>
 
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-start justify-between gap-2">
-                      <h3 class="truncate text-[12px] font-medium text-[#202335]">{{ chat.name }}</h3>
-                      <span class="shrink-0 text-[9px] text-[#8A8F9A]">{{ chat.time }}</span>
-                    </div>
-                    <div class="mt-1 flex items-center justify-between gap-2">
-                      <p class="truncate text-[10px] text-[#8A8F9A]">{{ chat.lastMessage }}</p>
-                      @if (chat.unreadCount) {
-                        <span class="rounded-full bg-[#6F56F6] px-1.5 py-0.5 text-[8px] font-medium text-white">{{ chat.unreadCount }}</span>
-                      }
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center">
+                        <div class="min-w-0 flex-1">
+                          <p class="truncate text-[16px] font-semibold leading-6 text-[#002F35]">
+                            {{ chat.name }}
+                          </p>
+                        </div>
+
+                        <span
+                          class="w-[104px] shrink-0 text-right text-[12px] leading-4"
+                          [class.text-[#6453D9]]="chat.unreadCount"
+                          [class.font-medium]="chat.unreadCount"
+                          [class.text-[#6C6C6C]]="!chat.unreadCount"
+                        >
+                          {{ chat.time }}
+                        </span>
+                      </div>
+
+                      <div class="mt-1 flex items-center gap-[19px]">
+                        <p class="min-w-0 flex-1 truncate text-[14px] leading-5 text-[#7A7A7A]">
+                          {{ chat.preview }}
+                        </p>
+
+                        @if (chat.unreadCount) {
+                          <span
+                            class="inline-flex h-5 min-w-[33px] items-center justify-center rounded-[12px] bg-[#6453D9] px-[6px] text-[12px] leading-4 text-white"
+                          >
+                            {{ chat.unreadCount }}
+                          </span>
+                        }
+                      </div>
                     </div>
                   </div>
                 </button>
               }
             </div>
-          </div>
-        </div>
-      } @else {
-        <div class="flex h-full min-h-0 flex-col bg-white">
-          <header class="flex items-center justify-between border-b border-[#ECEEF4] px-4 py-3">
-            <div class="flex items-center gap-3">
-              <button type="button" (click)="closeMobileConversation()" class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F6F7FA] text-[#202335]">
-                <ng-icon name="heroChevronDown" class="rotate-90 text-[16px]"></ng-icon>
-              </button>
+          </aside>
 
-              <div class="relative h-9 w-9 shrink-0">
-                <img [src]="activeChat()?.avatar" [alt]="activeChat()?.name || 'Chat avatar'" class="h-full w-full rounded-full object-cover">
-                <div class="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#25D366]"></div>
-              </div>
-
-              <div>
-                <h2 class="text-[12px] font-medium text-[#202335]">{{ activeChat()?.name }}</h2>
-                <p class="text-[9px] text-[#8A8F9A]">{{ activeChat()?.subtitle || 'Active 15 mins ago' }}</p>
-              </div>
-            </div>
-
-            <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6B7280]">
-              <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
-            </button>
-          </header>
-
-          <div class="flex-1 overflow-y-auto px-4 py-4">
-            <div class="space-y-4">
-              <div class="flex justify-center">
-                <span class="text-[9px] uppercase tracking-[0.18em] text-[#C4C8D2]">Today</span>
-              </div>
-
-              <div class="max-w-[78%] rounded-[18px] rounded-tl-[6px] bg-[#F3F4F7] px-3 py-2.5 text-[11px] leading-5 text-[#202335]">
-                Good morning, yes i still have the iphone 17 pro max available
-              </div>
-
-              <div class="ml-auto max-w-[78%] rounded-[18px] rounded-tr-[6px] bg-[#6F56F6] px-3 py-2.5 text-[11px] leading-5 text-white">
-                Good day👋. Alright great, i want the orang one with 3 cameras delivered this weekend
-              </div>
-
-              <div class="max-w-[82%]">
-                <p class="mb-1 ml-2 text-[9px] text-[#A0A5B1]">Replied to you</p>
-                <div class="rounded-[14px] border-l-2 border-[#B6A8FF] bg-[#F2EEFF] px-3 py-2 text-[10px] leading-4 text-[#8A7BF4]">
-                  Good day👋. Alright great, i want the orang one with 3 cameras delivered this weekend
-                </div>
-                <div class="mt-1 rounded-[18px] rounded-tl-[6px] bg-[#F3F4F7] px-3 py-2.5 text-[11px] leading-5 text-[#202335]">
-                  That’s no problem at all. We can meet at a place of your choosing 👍
-                </div>
-              </div>
-
-              <div class="ml-auto max-w-[78%] rounded-[18px] rounded-tr-[6px] bg-[#6F56F6] px-3 py-2.5 text-[11px] leading-5 text-white">
-                Alright. Please send me some pictures of the phone
-              </div>
-
-              <div class="ml-auto flex max-w-[150px] -space-x-6">
-                <img src="https://images.unsplash.com/photo-1696446701796-da61225697cc?w=300&fit=crop" alt="" class="h-20 w-20 rounded-[18px] border-4 border-white object-cover shadow-md">
-                <img src="https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=300&fit=crop" alt="" class="mt-4 h-20 w-20 rounded-[18px] border-4 border-white object-cover shadow-md">
-              </div>
-
-              <div class="max-w-[78%] rounded-[18px] rounded-tl-[6px] bg-white px-3 py-2 shadow-[0_10px_18px_-18px_rgba(31,36,48,0.45)]">
+          <section
+            class="grid min-h-0 min-w-0 flex-1 grid-rows-[83px_minmax(0,1fr)_77px] overflow-hidden rounded-[16px] border border-[#F1F1F1] bg-white"
+          >
+            <header class="border-b border-[#EAEAEA] bg-white px-[23px] py-[12.5px]">
+              <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#6F56F6] text-white">
-                    <span class="text-[8px]">▶</span>
-                  </button>
-                  <div class="flex-1">
-                    <div class="flex items-center gap-1">
-                      @for (bar of voiceWaveBars; track $index) {
-                        <span class="w-0.5 rounded-full bg-[#202335]/70" [style.height.px]="bar"></span>
-                      }
+                  <div class="relative h-[56px] w-[56px] shrink-0">
+                    <img
+                      [ngSrc]="activeDesktopConversation().avatar"
+                      width="56"
+                      height="56"
+                      [alt]="activeDesktopConversation().name"
+                      class="h-14 w-14 rounded-full object-cover"
+                    />
+                    <span
+                      class="absolute bottom-0 left-[32px] flex h-[23px] w-[23px] items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
+                    >
+                      <img
+                        [ngSrc]="activeDesktopConversation().storeBadge"
+                        width="22"
+                        height="22"
+                        alt=""
+                        class="h-[22px] w-[22px] object-cover"
+                      />
+                    </span>
+                  </div>
+
+                  <div>
+                    <p class="text-[20px] font-medium leading-6 text-[#002F35]">
+                      {{ activeDesktopConversation().name }}
+                    </p>
+                    <div class="mt-1 flex items-center gap-1">
+                      <span class="h-1 w-1 rounded-full bg-[#BFBFBF]"></span>
+                      <span class="text-[14px] leading-5 text-[#9C9C9C]"> Active 25 mins ago </span>
                     </div>
                   </div>
-                  <span class="text-[8px] text-[#8A8F9A]">0:15</span>
                 </div>
-              </div>
 
-              <div class="ml-auto max-w-[78%] rounded-[18px] rounded-tr-[6px] bg-[#6F56F6] px-3 py-2 text-white shadow-[0_16px_24px_-20px_rgba(111,86,246,0.95)]">
-                <div class="flex items-center gap-2">
-                  <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white">
-                    <span class="text-[8px]">▶</span>
-                  </button>
-                  <div class="flex-1">
-                    <div class="flex items-center gap-1">
-                      @for (bar of voiceWaveBars; track $index) {
-                        <span class="w-0.5 rounded-full bg-white/90" [style.height.px]="bar"></span>
-                      }
-                    </div>
-                  </div>
-                  <span class="text-[8px] text-white/80">0:15</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          @if (!isRecordingVoice()) {
-            <div class="border-t border-[#ECEEF4] bg-white px-4 py-3">
-              <div class="flex items-center gap-3">
-                <button type="button" class="inline-flex h-8 w-8 items-center justify-center text-[#6B7280]">
-                  <ng-icon name="heroPhoto" class="text-[16px]"></ng-icon>
+                <button type="button" class="rounded-[40px] p-[10px]">
+                  <img
+                    [ngSrc]="assets.searchDesktop"
+                    width="24"
+                    height="24"
+                    alt=""
+                    class="h-6 w-6"
+                  />
                 </button>
-                <div class="relative flex-1">
+              </div>
+            </header>
+
+            <div class="min-h-0 overflow-y-auto px-[23px] py-6 chats-scrollbar">
+              <p class="text-center text-[12px] leading-4 text-[#6F6F6F]">20/02/2024</p>
+
+              <div class="relative mt-6 h-[156px]">
+                <div
+                  class="absolute left-0 top-0 max-w-[420px] rounded-[24px] bg-[#F8F8F8] px-[18px] py-3"
+                >
+                  <p class="text-[16px] leading-6 text-[#242424]">
+                    Good morning, yes i still have the iphone 17 pro max available
+                  </p>
+                </div>
+
+                <div
+                  class="absolute bottom-0 right-0 max-w-[420px] rounded-[24px] bg-[#6453D9] px-[18px] py-3"
+                >
+                  <p class="text-[16px] leading-6 text-white">
+                    Good day👋🏻. Alright great, i want the orang one with 3 cameras delivered this
+                    weekend
+                  </p>
+                </div>
+              </div>
+
+              <p class="mt-6 text-center text-[12px] leading-4 text-[#6F6F6F]">Today</p>
+
+              <div class="relative mt-6 h-[312px]">
+                <p
+                  class="absolute left-[95px] top-0 -translate-x-full text-[12px] leading-4 text-[#6F6F6F]"
+                >
+                  Replied to you
+                </p>
+
+                <span class="absolute left-[7px] top-[18px] h-[65px] w-px bg-[#E2E2E2]"></span>
+
+                <div
+                  class="absolute right-[183px] top-[25px] max-w-[420px] rounded-[24px] bg-[#6453D9] px-[18px] py-3 opacity-30"
+                >
+                  <p class="text-[16px] leading-6 text-white">
+                    Good day👋🏻. Alright great, i want the orang one with 3 cameras delivered this
+                    weekend
+                  </p>
+                </div>
+
+                <div
+                  class="absolute left-0 top-[84px] max-w-[420px] rounded-[24px] bg-[#F8F8F8] px-[18px] py-3"
+                >
+                  <p class="text-[16px] leading-6 text-[#262626]">
+                    That’s no problem at all. We can meet at a place of your choosing
+                  </p>
+                </div>
+
+                <div
+                  class="absolute left-[173px] top-[168px] max-w-[420px] rounded-[24px] bg-[#6453D9] px-[18px] py-3"
+                >
+                  <p class="text-[16px] leading-6 text-white">
+                    Alright. Pls send me some pictures of the phone
+                  </p>
+                </div>
+
+                <div class="absolute left-0 top-[228px] h-[138px] w-[157px]">
+                  <img
+                    [ngSrc]="assets.attachmentOneDesktop"
+                    width="102"
+                    height="114"
+                    alt=""
+                    class="absolute left-[4px] top-[11px] h-[114px] w-[102px] -rotate-[4.16deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+                  />
+                  <img
+                    [ngSrc]="assets.attachmentTwoDesktop"
+                    width="102"
+                    height="114"
+                    alt=""
+                    class="absolute left-[20px] top-[7px] h-[114px] w-[102px] rotate-[6deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+                  />
+                  <img
+                    [ngSrc]="assets.attachmentThreeDesktop"
+                    width="102"
+                    height="114"
+                    alt=""
+                    class="absolute left-[34px] top-0 h-[114px] w-[102px] rotate-[16deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <footer class="border-t border-[#EEEEEE] bg-white px-[15px] py-[8px]">
+              <div class="flex items-center gap-5">
+                <div class="flex items-center gap-3">
+                  <button type="button">
+                    <img
+                      [ngSrc]="assets.galleryDesktop"
+                      width="24"
+                      height="24"
+                      alt=""
+                      class="h-6 w-6"
+                    />
+                  </button>
+                  <button type="button">
+                    <img
+                      [ngSrc]="assets.emojiDesktop"
+                      width="24"
+                      height="24"
+                      alt=""
+                      class="h-6 w-6"
+                    />
+                  </button>
+                </div>
+
+                <div
+                  class="relative flex h-[45px] min-w-0 flex-1 items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] px-[13px]"
+                >
                   <input
                     type="text"
-                    [value]="draftMessage()"
-                    (input)="updateDraftMessage($event)"
-                    placeholder="Type a message.."
-                    class="h-10 w-full rounded-full bg-[#F6F7FA] px-4 pr-10 text-[11px] text-[#202335] outline-none placeholder:text-[#A0A5B1]"
-                  >
-                  <button type="button" (click)="isRecordingVoice.set(true)" class="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]">
-                    <ng-icon name="heroMicrophone" class="text-[16px]"></ng-icon>
+                    placeholder="Type a message..."
+                    class="w-full bg-transparent pr-10 text-[14px] leading-5 text-[#0D0D0D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
+                  />
+                  <button type="button" class="absolute right-[11px] top-1/2 -translate-y-1/2">
+                    <img
+                      [ngSrc]="assets.micDesktop"
+                      width="24"
+                      height="24"
+                      alt=""
+                      class="h-6 w-6"
+                    />
                   </button>
                 </div>
-                <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#6F56F6] text-white">
-                  <span class="text-[12px]">➤</span>
-                </button>
               </div>
-            </div>
-          } @else {
-            <div class="border-t border-[#ECEEF4] bg-white px-4 py-3">
-              <div class="flex items-center gap-3 rounded-full bg-[#F6F7FA] px-4 py-2.5">
-                <button type="button" (click)="cancelRecording()" class="text-[12px] text-[#8A8F9A]">×</button>
-                <span class="text-[10px] font-medium text-red-500">Recording...</span>
-                <div class="flex flex-1 items-center gap-1">
-                  @for (bar of recordingWaveBars; track $index) {
-                    <span class="w-0.5 rounded-full bg-[#202335]" [style.height.px]="bar"></span>
-                  }
-                </div>
-                <span class="text-[10px] text-[#8A8F9A]">0:15</span>
-                <button type="button" (click)="finishRecording()" class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#6F56F6] text-white">
-                  <span class="text-[11px]">➤</span>
-                </button>
-              </div>
-            </div>
-          }
+            </footer>
+          </section>
         </div>
-      }
+      </section>
+    </div>
 
-      @if (showMobileStoreSheet()) {
-        <div class="fixed inset-0 z-[80] bg-black/20 md:hidden" (click)="showMobileStoreSheet.set(false)"></div>
-        <section class="fixed inset-x-0 bottom-0 z-[90] rounded-t-[30px] bg-white px-4 pb-5 pt-3 shadow-2xl md:hidden">
-          <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E7E8EE]"></div>
-          <div class="mt-2 flex justify-end">
-            <button type="button" (click)="showMobileStoreSheet.set(false)" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-sm">
-              <span class="text-[16px]">×</span>
+    <div class="h-full md:hidden">
+      @if (!isMobileConversationOpen()) {
+        <section class="px-5 pb-28 pt-[14px]">
+          <div class="flex items-center justify-between">
+            <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">Chats</h1>
+
+            <button
+              type="button"
+              class="flex h-9 w-9 items-center justify-center rounded-full bg-[#FAFAFA]"
+            >
+              <img [ngSrc]="assets.searchMobile" width="20" height="20" alt="" class="h-5 w-5" />
             </button>
           </div>
 
-          <div class="mt-2">
-            <label class="relative block">
-              <ng-icon name="heroMagnifyingGlass" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A0A5B1] text-[14px]"></ng-icon>
-              <input type="text" placeholder="Search store" class="h-10 w-full rounded-full bg-[#F6F7FA] pl-10 pr-4 text-[11px] outline-none placeholder:text-[#A0A5B1]">
-            </label>
-          </div>
+          @if (!isBuyerView()) {
+            <button
+              type="button"
+              class="mt-6 flex h-12 w-full items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2"
+            >
+              <span class="flex items-center gap-2">
+                <span class="relative h-8 w-[68px] shrink-0">
+                  <img
+                    [ngSrc]="assets.selectorAvatarOne"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <img
+                    [ngSrc]="assets.selectorAvatarTwo"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <img
+                    [ngSrc]="assets.selectorAvatarThree"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <span
+                    class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                  >
+                    <img
+                      [ngSrc]="assets.selectorStoreIconMobile"
+                      width="21"
+                      height="16"
+                      alt=""
+                      class="h-4 w-[21px]"
+                    />
+                  </span>
+                </span>
+
+                <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
+                  {{ selectedStoreLabel() }}
+                </span>
+              </span>
+
+              <span class="flex items-center gap-[10px]">
+                <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
+                <span class="rounded-full bg-[#EDEDED] p-1">
+                  <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
+                </span>
+              </span>
+            </button>
+          }
 
           <div class="mt-4 space-y-1">
-            @for (store of mobileStoreOptions; track store.id) {
+            @for (chat of conversations(); track chat.id) {
               <button
                 type="button"
-                (click)="selectStore(store.id)"
-                class="flex w-full items-center justify-between rounded-[18px] px-3 py-3 text-left"
+                (click)="openMobileConversation(chat.id)"
+                class="w-full py-4 text-left"
               >
-                <div class="flex items-center gap-3">
-                  <img [src]="store.avatar" [alt]="store.label" class="h-8 w-8 rounded-full object-cover">
-                  <div>
-                    <p class="text-[11px] font-medium text-[#202335]">{{ store.label }}</p>
-                    <p class="text-[9px] text-[#8A8F9A]">{{ store.meta }}</p>
+                <div class="flex items-center gap-[9px]">
+                  <div class="relative h-12 w-12 shrink-0">
+                    <img
+                      [ngSrc]="chat.mobileAvatar ?? chat.avatar"
+                      width="48"
+                      height="48"
+                      [alt]="chat.name"
+                      class="h-12 w-12 rounded-full object-cover"
+                    />
+                    <span
+                      class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
+                    >
+                      <img
+                        [ngSrc]="chat.mobileStoreBadge ?? assets.storeBadgeMobile"
+                        width="20"
+                        height="20"
+                        alt=""
+                        class="h-5 w-5 object-cover"
+                      />
+                    </span>
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center">
+                      <p
+                        class="min-w-0 flex-1 truncate text-[16px] font-semibold leading-6 text-[#002F35]"
+                      >
+                        {{ chat.name }}
+                      </p>
+                      <span
+                        class="w-[104px] shrink-0 text-right text-[12px] leading-4"
+                        [class.text-[#6453D9]]="chat.unreadCount"
+                        [class.font-medium]="chat.unreadCount"
+                        [class.text-[#6C6C6C]]="!chat.unreadCount"
+                      >
+                        {{ chat.time }}
+                      </span>
+                    </div>
+
+                    <div class="mt-1 flex items-center gap-[19px]">
+                      <p class="min-w-0 flex-1 truncate text-[14px] leading-5 text-[#7A7A7A]">
+                        {{ chat.preview }}
+                      </p>
+
+                      @if (chat.unreadCount) {
+                        <span
+                          class="inline-flex h-5 min-w-[33px] items-center justify-center rounded-[12px] bg-[#6453D9] px-[6px] text-[12px] leading-4 text-white"
+                        >
+                          {{ chat.unreadCount }}
+                        </span>
+                      }
+                    </div>
                   </div>
                 </div>
-
-                @if (selectedStoreId() === store.id) {
-                  <ng-icon name="heroCheck" class="text-[14px] text-[#6F56F6]"></ng-icon>
-                }
               </button>
             }
           </div>
@@ -286,477 +495,334 @@ interface Conversation {
       }
     </div>
 
-    <div
-      class="mx-auto hidden h-full min-h-0 max-w-[1400px] flex-col overflow-hidden px-6 py-6 animate-in fade-in duration-700 md:flex sm:px-8"
-    >
-      <!-- Top Header -->
-      <header class="mb-8 flex shrink-0 items-center justify-between px-2">
-        <h1 class="text-[24px] font-semibold text-[#1A1C21] tracking-tight">{{ pageTitle() }}</h1>
-
-        <!-- Store Selector Pill -->
-        @if (!isBuyerView()) {
-        <div class="relative">
-          <div
-            (click)="showStoreDropdown.set(!showStoreDropdown())"
-            class="flex items-center gap-3 bg-white border border-gray-100 rounded-full px-4 py-2 shadow-xs cursor-pointer hover:bg-gray-50 transition-all"
-          >
-            <div class="flex -space-x-2">
-              <img
-                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=50&h=50&fit=crop"
-                class="w-6 h-6 rounded-full border-2 border-white object-cover"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1554151228-14d9def656e4?w=50&h=50&fit=crop"
-                class="w-6 h-6 rounded-full border-2 border-white object-cover"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop"
-                class="w-6 h-6 rounded-full border-2 border-white object-cover border-l-0"
-              />
-            </div>
-            <span class="text-xs font-bold text-gray-700">All stores (4)</span>
-            <ng-icon
-              name="heroChevronDown"
-              class="text-gray-400 text-xs border-l border-gray-100 pl-2 ml-1 w-6"
-            ></ng-icon>
-          </div>
-
-          <!-- Store Selector Dropdown -->
-          @if (showStoreDropdown()) {
-            <div
-              class="absolute top-full right-0 mt-3 w-80 bg-white rounded-[32px] shadow-2xl border border-gray-50 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-300"
-            >
-              <!-- Search Field -->
-              <div class="p-6 pb-2">
-                <div class="relative group">
-                  <ng-icon
-                    name="heroMagnifyingGlass"
-                    class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  ></ng-icon>
-                  <input
-                    type="text"
-                    placeholder="Search stores"
-                    class="w-full bg-gray-50 border-none rounded-full py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-1 focus:ring-purple-100 transition-all placeholder:text-gray-400"
-                  />
-                </div>
-              </div>
-
-              <!-- Store List -->
-              <div class="px-2 pb-6 space-y-1">
-                <!-- All Stores Option -->
-                <div
-                  (click)="selectedStoreId.set('all'); showStoreDropdown.set(false)"
-                  class="flex items-center justify-between p-4 px-5 rounded-[24px] cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                  <div class="flex items-center gap-3">
-                    <div class="flex -space-x-1.5">
-                      <img
-                        src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop"
-                        class="w-5 h-5 rounded-full border border-white"
-                      />
-                      <img
-                        src="https://images.unsplash.com/photo-1554151228-14d9def656e4?w=40&h=40&fit=crop"
-                        class="w-5 h-5 rounded-full border border-white"
-                      />
-                      <img
-                        src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop"
-                        class="w-5 h-5 rounded-full border border-white"
-                      />
-                    </div>
-                    <span class="text-[14px] font-bold text-[#1A1C21]">All stores (4)</span>
-                  </div>
-                  @if (selectedStoreId() === 'all') {
-                    <ng-icon name="heroCheck" class="text-purple-600 font-bold"></ng-icon>
-                  }
-                </div>
-
-                <!-- Personal Profile Option -->
-                <div
-                  (click)="selectedStoreId.set('personal'); showStoreDropdown.set(false)"
-                  class="flex items-center justify-between p-4 px-5 rounded-[24px] cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                  <div class="flex items-center gap-3">
-                    <img
-                      src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop"
-                      class="w-8 h-8 rounded-full object-cover"
-                    />
-                    <div class="flex flex-col">
-                      <span class="text-[14px] font-bold text-[#1A1C21]">Personal profile</span>
-                      <span class="text-[11px] font-medium text-gray-400">Bryan Odjede</span>
-                    </div>
-                  </div>
-                  @if (selectedStoreId() === 'personal') {
-                    <ng-icon name="heroCheck" class="text-purple-600 font-bold"></ng-icon>
-                  }
-                </div>
-
-                <!-- Store Items -->
-                <div
-                  (click)="selectedStoreId.set('vine'); showStoreDropdown.set(false)"
-                  class="flex items-center gap-3 p-4 px-5 rounded-[24px] cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=50&h=50&fit=crop"
-                    class="w-10 h-10 rounded-full border-2 border-white object-cover"
-                  />
-                  <div class="flex flex-col">
-                    <span class="text-[14px] font-bold text-[#1A1C21]">The Vine Collections</span>
-                    <span class="text-[11px] font-medium text-gray-400">Ikeja, Lagos</span>
-                  </div>
-                </div>
-
-                <div
-                  (click)="selectedStoreId.set('eden'); showStoreDropdown.set(false)"
-                  class="flex items-center gap-3 p-4 px-5 rounded-[24px] cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1696446701796-da61225697cc?w=400&fit=crop"
-                    class="w-10 h-10 rounded-full border-2 border-white object-cover"
-                  />
-                  <div class="flex flex-col">
-                    <span class="text-[14px] font-bold text-[#1A1C21]">Eden Organics</span>
-                    <span class="text-[11px] font-medium text-gray-400">Warri, Delta</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Backdrop Overlay -->
-            <div class="fixed inset-0 z-40" (click)="showStoreDropdown.set(false)"></div>
-          }
-        </div>
-        }
-      </header>
-
-      <div class="flex min-h-0 flex-1 gap-10 overflow-hidden">
-        <!-- Left Column: Conversations List -->
-        <div class="flex min-h-0 w-80 shrink-0 flex-col gap-6">
-          <!-- Search Bar -->
-          <div class="relative group">
-            <ng-icon
-              name="heroMagnifyingGlass"
-              class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-lg group-focus-within:text-purple-600 transition-colors"
-            ></ng-icon>
-            <input
-              type="text"
-              placeholder="Search messages"
-              class="w-full bg-gray-100/50 border-none rounded-[24px] py-4 pl-14 pr-6 text-sm font-medium focus:ring-2 focus:ring-purple-100 transition-all placeholder:text-gray-400"
-            />
-          </div>
-
-          <!-- Conversations List -->
-          <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-2">
-            @for (chat of conversations(); track chat.id) {
-              <div
-                (click)="activeChatId.set(chat.id)"
-                class="relative group flex cursor-pointer items-center gap-4 rounded-[28px] border border-transparent p-4 transition-all hover:bg-gray-50"
-                [class.bg-white]="activeChatId() === chat.id"
-                [class.shadow-sm]="activeChatId() === chat.id"
-                [class.border-gray-50]="activeChatId() === chat.id"
+    @if (isMobileConversationOpen()) {
+      <section class="fixed inset-0 z-[95] bg-white md:hidden">
+        <header class="border-b border-[#EAEAEA] bg-white px-4 pt-[47px]">
+          <div class="flex items-center gap-3 py-[14px]">
+            <div class="flex min-w-0 flex-1 items-center">
+              <button
+                type="button"
+                (click)="closeMobileConversation()"
+                class="shrink-0 rounded-[40px] p-[10px]"
+                aria-label="Go back"
               >
-                <!-- Avatar with Badge -->
-                <div class="relative w-14 h-14 shrink-0">
-                  <img [src]="chat.avatar" class="w-full h-full rounded-2xl object-cover" />
-                  <div
-                    class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-white shadow-sm"
+                <img [ngSrc]="assets.backMobile" width="20" height="20" alt="" class="h-5 w-5" />
+              </button>
+
+              <div class="ml-1 flex min-w-0 items-center gap-2">
+                <div class="relative h-[46px] w-[46px] shrink-0">
+                  <img
+                    [ngSrc]="
+                      activeMobileConversation().mobileAvatar ?? activeMobileConversation().avatar
+                    "
+                    width="46"
+                    height="46"
+                    [alt]="activeMobileConversation().name"
+                    class="h-[46px] w-[46px] rounded-full object-cover"
+                  />
+                  <span
+                    class="absolute bottom-0 left-[27px] flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
                   >
                     <img
-                      src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=30&h=30&fit=crop"
-                      class="w-full h-full object-cover"
+                      [ngSrc]="
+                        activeMobileConversation().mobileStoreBadge ?? assets.storeBadgeMobile
+                      "
+                      width="19"
+                      height="19"
+                      alt=""
+                      class="h-[19px] w-[19px] object-cover"
                     />
-                  </div>
+                  </span>
                 </div>
 
-                <!-- Info -->
-                <div class="flex-1 min-w-0">
-                  <div class="flex justify-between items-baseline mb-1">
-                    <h3 class="text-sm font-semibold text-[#1A1C21] truncate">{{ chat.name }}</h3>
-                    <span
-                      class="text-[11px] font-medium text-gray-400 group-hover:text-gray-500 transition-colors"
-                      >{{ chat.time }}</span
-                    >
-                  </div>
-                  <div class="flex justify-between items-center pr-1">
-                    <p class="text-[12px] text-gray-400 font-medium truncate pr-2">
-                      {{ chat.lastMessage }}
-                    </p>
-                    @if (chat.unreadCount) {
-                      <span
-                        class="bg-[#5932EA] text-white text-[10px] font-black rounded-full px-2 py-0.5 shadow-sm"
-                        >{{ chat.unreadCount }}</span
-                      >
-                    }
+                <div class="min-w-0">
+                  <p class="truncate text-[20px] font-medium leading-6 text-[#002F35]">
+                    {{ activeMobileConversation().name }}
+                  </p>
+                  <div class="mt-1 flex items-center gap-1">
+                    <span class="h-1 w-1 rounded-full bg-[#BFBFBF]"></span>
+                    <span class="text-[14px] leading-5 text-[#9C9C9C]">Active 25 mins ago</span>
                   </div>
                 </div>
               </div>
-            }
+            </div>
+
+            <button type="button" class="shrink-0 rounded-[40px] p-[10px]">
+              <img [ngSrc]="assets.searchMobile" width="20" height="20" alt="" class="h-5 w-5" />
+            </button>
+          </div>
+        </header>
+
+        <div class="h-[calc(100vh-193px)] overflow-y-auto px-4 pb-8 pt-6 chats-scrollbar">
+          <p class="text-center text-[12px] leading-4 text-[#6F6F6F]">09/01/2026</p>
+
+          <div class="relative mt-6 h-[164px]">
+            <div
+              class="absolute left-0 top-0 max-w-[280px] rounded-[24px] bg-[#F8F8F8] px-[14px] py-3"
+            >
+              <p class="text-[16px] leading-5 text-[#242424]">
+                Good morning, yes i still have the iphone 17 pro max available
+              </p>
+            </div>
+
+            <div
+              class="absolute right-0 top-20 max-w-[300px] rounded-[24px] bg-[#6453D9] px-[14px] py-3"
+            >
+              <p class="text-[16px] leading-5 text-white">
+                Good day👋🏻. Alright great, i want the orang one with 3 cameras delivered this
+                weekend
+              </p>
+            </div>
+          </div>
+
+          <p class="mt-6 text-center text-[12px] leading-4 text-[#6F6F6F]">Today</p>
+
+          <div class="relative mt-6 h-[380px]">
+            <p class="absolute left-[7px] top-0 text-[12px] leading-4 text-[#6F6F6F]">
+              Replied to you
+            </p>
+            <span class="absolute left-[1px] top-[18px] h-[65px] w-px bg-[#E2E2E2]"></span>
+
+            <div
+              class="absolute right-[52px] top-[25px] w-[280px] rounded-[24px] bg-[#6453D9] px-[14px] py-3 opacity-30"
+            >
+              <p class="text-[16px] leading-5 text-white">
+                Good day👋🏻. Alright great, i want the orang one with 3 cameras delivered this
+                weekend
+              </p>
+            </div>
+
+            <div
+              class="absolute left-3 top-[82px] w-[280px] rounded-[24px] bg-[#F8F8F8] px-[14px] py-3"
+            >
+              <p class="text-[16px] leading-5 text-[#262626]">
+                That’s no problem at all. We can meet at a place of your choosing
+              </p>
+            </div>
+
+            <div
+              class="absolute right-[19px] top-[130px] rounded-[24px] border border-[#F5F5F5] bg-white px-3 py-1 shadow-[0_3px_8px_rgba(216,216,216,0.25)]"
+            >
+              <span class="text-[16px] leading-6 text-[#9C9C9C]">👍</span>
+            </div>
+
+            <div
+              class="absolute left-[58px] top-[170px] max-w-[300px] rounded-[24px] bg-[#6453D9] px-[14px] py-3"
+            >
+              <p class="text-[16px] leading-5 text-white">
+                Alright. Pls send me some pictures of the phone
+              </p>
+            </div>
+
+            <div class="absolute left-[-9px] top-[242px] h-[138px] w-[157px]">
+              <img
+                [ngSrc]="assets.attachmentOneMobile"
+                width="102"
+                height="114"
+                alt=""
+                class="absolute left-[14px] top-[11px] h-[114px] w-[102px] -rotate-[4.18deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+              />
+              <img
+                [ngSrc]="assets.attachmentTwoMobile"
+                width="102"
+                height="114"
+                alt=""
+                class="absolute left-[20px] top-[7px] h-[114px] w-[102px] rotate-[6deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+              />
+              <img
+                [ngSrc]="assets.attachmentThreeMobile"
+                width="102"
+                height="114"
+                alt=""
+                class="absolute left-[28px] top-0 h-[114px] w-[102px] rotate-[16deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+              />
+            </div>
           </div>
         </div>
 
-        <!-- Right Column: Active Chat Area -->
-        <div
-          class="grid h-full min-h-0 max-h-full flex-1 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-[40px] border border-gray-50 bg-white shadow-sm"
+        <footer
+          class="absolute inset-x-0 bottom-0 border-t border-[#EEEEEE] bg-white px-[15px] py-[8px]"
         >
-          <!-- Chat Header -->
-          <div
-            class="p-6 px-10 border-b border-gray-50 flex items-center justify-between shrink-0 bg-white/80 backdrop-blur-md z-10"
-          >
-            <div class="flex items-center gap-4">
-              <div class="relative w-12 h-12">
-                <img [src]="activeChat()?.avatar" class="w-full h-full rounded-2xl object-cover" />
-                <div
-                  class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white overflow-hidden bg-white shadow-sm"
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=30&h=30&fit=crop"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-              <div>
-                <h2 class="text-base font-semibold text-[#1A1C21] leading-tight">
-                  {{ activeChat()?.name }}
-                </h2>
-                <p class="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-gray-400">
-                  <span class="w-[6px] h-[6px] rounded-full bg-[#25D366]"></span>
-                  Active 25 mins ago
-                </p>
-              </div>
-            </div>
-            <button
-              class="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
-            >
-              <ng-icon name="heroMagnifyingGlass" class="text-xl"></ng-icon>
-            </button>
-          </div>
+          <div class="flex h-[46px] items-center gap-4">
+            @if (!hasDraftMessage()) {
+              <button type="button" class="shrink-0">
+                <img [ngSrc]="assets.galleryMobile" width="24" height="24" alt="" class="h-6 w-6" />
+              </button>
+            }
 
-          <!-- Messages Scrollable Area -->
-          <div class="min-h-0 overflow-y-auto p-10 space-y-8 custom-scrollbar">
-            <!-- Day Separator -->
-            <div class="flex justify-center my-4">
-              <span class="text-[11px] font-black text-gray-300 uppercase tracking-widest"
-                >Today</span
-              >
-            </div>
-
-            <!-- Received Message (Regular) -->
             <div
-              class="flex items-start max-w-[70%] animate-in fade-in slide-in-from-left-4 duration-500"
+              class="flex h-[46px] min-w-0 flex-1 items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] pl-[13px]"
+              [class.pr-[13px]]="!hasDraftMessage()"
+              [class.pr-1]="hasDraftMessage()"
             >
-              <div
-                class="bg-[#F3F4F6] text-[#1A1C21] rounded-[24px] rounded-bl-sm p-5 py-4 text-sm font-medium leading-relaxed"
-              >
-                Good morning, yes i still have the iphone 17 pro max available
-              </div>
-            </div>
-
-            <!-- Sent Message (Regular) -->
-            <div
-              class="flex items-start max-w-[70%] ml-auto animate-in fade-in slide-in-from-right-4 duration-500"
-            >
-              <div
-                class="bg-[#5932EA] text-white rounded-[24px] rounded-br-sm p-6 py-4 text-sm font-medium leading-relaxed shadow-lg shadow-purple-100 relative"
-              >
-                Good day👋. Alright great, i want the orang one with 3 cameras delivered this
-                weekend
-              </div>
-            </div>
-
-            <!-- Received Message (with Reply) -->
-            <div
-              class="flex flex-col gap-2 max-w-[75%] animate-in fade-in slide-in-from-left-4 duration-500"
-            >
-              <span class="ml-4 mb-2 text-[11px] font-medium text-gray-400">Replied to you</span>
-
-              <!-- Reply Context -->
-              <div
-                class="ml-4 mb-[-12px] w-[70%] rounded-[18px] rounded-bl-none border-l-4 border-purple-300 bg-purple-100/30 p-4 pr-10 text-[13px] font-medium text-purple-600 opacity-80 backdrop-blur-sm"
-              >
-                Good day👋. Alright great, i want the orang one with 3 cameras delivered this
-                weekend
-              </div>
-
-              <div
-                class="relative z-10 rounded-[24px] rounded-bl-sm border border-white bg-[#F3F4F6] p-5 py-4 text-sm font-medium leading-relaxed text-[#1A1C21] shadow-sm"
-              >
-                That's no problem at all. We can meet at a place of your choosing
-              </div>
-            </div>
-
-            <!-- Sent Message (Another) -->
-            <div
-              class="flex items-start max-w-[70%] ml-auto animate-in fade-in slide-in-from-right-4 duration-500"
-            >
-              <div
-                class="bg-[#5932EA] text-white rounded-[24px] rounded-br-sm p-6 py-4 text-sm font-medium leading-relaxed shadow-lg shadow-purple-100"
-              >
-                Alright. Pls send me some pictures of the phone
-              </div>
-            </div>
-
-            <!-- Attachment Stack -->
-            <div
-              class="flex flex-col items-end gap-3 ml-auto animate-in fade-in slide-in-from-right-4 duration-500"
-            >
-              <div class="relative flex -space-x-14">
-                <div
-                  class="w-36 h-44 rounded-[32px] border-4 border-white shadow-xl overflow-hidden rotate-[-8deg] transform transition-transform hover:rotate-0 duration-300"
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1696446701796-da61225697cc?w=400&fit=crop"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-                <div
-                  class="w-36 h-44 rounded-[32px] border-4 border-white shadow-xl overflow-hidden rotate-[4deg] transform translate-y-4 z-10 transition-transform hover:rotate-0 duration-300"
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=400&fit=crop"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bottom Chat Input Bar -->
-          <div
-            class="border-t border-gray-50 bg-white/95 p-4 px-10 shadow-[0_-18px_40px_-30px_rgba(17,24,39,0.22)] backdrop-blur-sm flex items-center gap-4"
-          >
-            <button
-              class="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full transition-all"
-            >
-              <ng-icon name="heroFaceSmile" class="text-2xl"></ng-icon>
-            </button>
-            <button
-              class="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full transition-all"
-            >
-              <ng-icon name="heroPhoto" class="text-2xl"></ng-icon>
-            </button>
-
-            <div class="flex-1 relative group">
               <input
                 type="text"
+                [value]="draftMessage()"
+                (input)="updateDraftMessage($event)"
                 placeholder="Type a message..."
-                class="w-full bg-[#F3F4F6] border-none rounded-full py-4 px-8 text-sm font-medium text-[#1A1C21] focus:ring-2 focus:ring-purple-100 transition-all placeholder:text-gray-400"
+                class="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#2D2D2D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
               />
-              <button
-                class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-purple-600 transition-all"
-              >
-                <ng-icon name="heroMicrophone" class="text-xl"></ng-icon>
-              </button>
+
+              @if (!hasDraftMessage()) {
+                <button type="button" class="shrink-0">
+                  <img [ngSrc]="assets.micMobile" width="24" height="24" alt="" class="h-6 w-6" />
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="flex h-10 w-[58px] shrink-0 items-center justify-center rounded-full bg-[#6453D9]"
+                >
+                  <img [ngSrc]="assets.sendMobile" width="24" height="24" alt="" class="h-6 w-6" />
+                </button>
+              }
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </footer>
+      </section>
+    }
   `,
   styles: [
     `
       :host {
         display: block;
       }
-      .custom-scrollbar::-webkit-scrollbar {
+
+      .chats-scrollbar::-webkit-scrollbar {
         width: 4px;
       }
-      .custom-scrollbar::-webkit-scrollbar-track {
+
+      .chats-scrollbar::-webkit-scrollbar-track {
         background: transparent;
       }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #e5e7eb;
-        border-radius: 10px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #d1d5db;
+
+      .chats-scrollbar::-webkit-scrollbar-thumb {
+        background: #e5e5e5;
+        border-radius: 999px;
       }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MessagesPageComponent {
+export class MessagesPageComponent implements OnDestroy {
   private readonly router = inject(Router);
+  private readonly mobileOverlayService = inject(MobileOverlayService);
+  private mobileConversationOverlayOpen = false;
 
-  showStoreDropdown = signal(false);
-  selectedStoreId = signal('all');
-  showMobileStoreSheet = signal(false);
+  readonly assets = {
+    attachmentOneDesktop: '/assets/images/chats-attachment-1-desktop.png',
+    attachmentOneMobile: '/assets/images/chats-attachment-1-mobile.png',
+    attachmentThreeDesktop: '/assets/images/chats-attachment-3-desktop.png',
+    attachmentThreeMobile: '/assets/images/chats-attachment-3-mobile.png',
+    attachmentTwoDesktop: '/assets/images/chats-attachment-2-desktop.png',
+    attachmentTwoMobile: '/assets/images/chats-attachment-2-mobile.png',
+    backMobile: '/assets/icons/chats-back-mobile.svg',
+    bryanAvatarDesktop: '/assets/images/chats-bryan-avatar-desktop.png',
+    bryanAvatarMobile: '/assets/images/chats-bryan-avatar-mobile.png',
+    chatsAvatarDesktop: '/assets/images/chats-angela-avatar-desktop.png',
+    chatsAvatarMobile: '/assets/images/chats-angela-avatar-mobile.png',
+    chevronDown: '/assets/icons/chats-chevron-down.svg',
+    ediriAvatarDesktop: '/assets/images/chats-ediri-avatar-desktop.png',
+    ediriAvatarMobile: '/assets/images/chats-ediri-avatar-mobile.png',
+    emojiDesktop: '/assets/icons/chats-emoji-desktop.svg',
+    galleryDesktop: '/assets/icons/chats-gallery-desktop.svg',
+    galleryMobile: '/assets/icons/chats-gallery-mobile.svg',
+    bryanBadgeDesktop: '/assets/icons/chats-bryan-badge-desktop.svg',
+    bryanBadgeMobile: '/assets/icons/chats-bryan-badge-mobile.svg',
+    micDesktop: '/assets/icons/chats-mic-desktop.svg',
+    micMobile: '/assets/icons/chats-mic-mobile.svg',
+    searchDesktop: '/assets/icons/chats-search-desktop.svg',
+    searchMobile: '/assets/icons/chats-search-mobile.svg',
+    selectorAvatarOne: '/assets/images/chats-selector-avatar-1.png',
+    selectorAvatarThree: '/assets/images/chats-store-badge-desktop.png',
+    selectorAvatarTwo: '/assets/images/chats-selector-avatar-2.png',
+    selectorStoreIconDesktop: '/assets/icons/chats-selector-store-icon-desktop.svg',
+    selectorStoreIconMobile: '/assets/icons/chats-selector-store-icon-mobile.svg',
+    sendMobile: '/assets/icons/chats-send-mobile.svg',
+    storeBadgeMobile: '/assets/images/chats-store-badge-mobile.png',
+  } as const;
 
-  activeChatId = signal('2');
-  isMobileConversationOpen = signal(false);
-  isRecordingVoice = signal(false);
-  draftMessage = signal('');
+  readonly isMobileConversationOpen = signal(false);
+  readonly activeChatId = signal('2');
+  readonly draftMessage = signal('');
+  readonly selectedStoreId = signal('all');
   readonly isBuyerView = computed(() => this.router.url.startsWith('/buyer'));
-  readonly pageTitle = computed(() => this.isBuyerView() ? 'Chats' : 'Messages');
-  readonly selectedStoreLabel = computed(() => {
-    const activeStore = this.mobileStoreOptions.find((store) => store.id === this.selectedStoreId());
-    return activeStore?.label ?? 'All stores (4)';
-  });
-  protected readonly voiceWaveBars = [5, 9, 12, 7, 10, 6, 11, 8, 4, 9, 12, 6] as const;
-  protected readonly recordingWaveBars = [4, 8, 13, 6, 15, 10, 7, 14, 9, 5, 12] as const;
-  protected readonly mobileStoreOptions = [
-    {
-      id: 'all',
-      label: 'All stores (4)',
-      meta: 'All accounts',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop',
-    },
-    {
-      id: 'vine',
-      label: 'The Vine Collections',
-      meta: 'Ikeja, Lagos',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=50&h=50&fit=crop',
-    },
-    {
-      id: 'eden',
-      label: 'Eden Organics',
-      meta: 'Warri, Delta',
-      avatar: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=200&fit=crop',
-    },
-    {
-      id: 'personal',
-      label: 'Personal profile',
-      meta: 'Bryan Odjede',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop',
-    },
-  ] as const;
+  readonly hasDraftMessage = computed(() => this.draftMessage().trim().length > 0);
 
-  conversations = signal<Conversation[]>([
+  readonly storeOptions: readonly StoreOption[] = [
+    { id: 'all', label: 'All stores (4)' },
+    { id: 'vine', label: 'The Vine Collections' },
+    { id: 'personal', label: 'Personal profile' },
+  ];
+
+  readonly conversations = signal<Conversation[]>([
     {
       id: '1',
       name: 'Bryan Odjede',
-      lastMessage: "I'm glad you like the perfume",
+      preview: 'I’m glad you like the perfume',
       time: '15 hrs',
       unreadCount: 148,
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-      subtitle: 'Bryan Odjede',
+      avatar: '/assets/images/chats-bryan-avatar-desktop.png',
+      mobileAvatar: '/assets/images/chats-bryan-avatar-mobile.png',
+      storeBadge: '/assets/icons/chats-bryan-badge-desktop.svg',
+      mobileStoreBadge: '/assets/icons/chats-bryan-badge-mobile.svg',
     },
     {
       id: '2',
       name: 'Angela Ugorji',
-      lastMessage: "That's no problem at all. We can meet ...",
+      preview: 'That’s no problem at all. We can meet at Co...',
       time: 'Just now',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop',
-      online: true,
-      subtitle: 'Active 15 mins ago',
+      avatar: '/assets/images/chats-angela-avatar-desktop.png',
+      mobileAvatar: '/assets/images/chats-angela-avatar-mobile.png',
+      storeBadge: '/assets/images/chats-store-badge-desktop.png',
+      mobileStoreBadge: '/assets/images/chats-store-badge-mobile.png',
     },
     {
       id: '3',
       name: 'Ediri Oghenemaro',
-      lastMessage: 'Can we meet on Thursday?',
+      preview: 'Can we meet on Thursday?',
       time: '20/02/2024',
-      avatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop',
-      subtitle: 'Active 1 hr ago',
+      avatar: '/assets/images/chats-ediri-avatar-desktop.png',
+      mobileAvatar: '/assets/images/chats-ediri-avatar-mobile.png',
+      storeBadge: '/assets/images/chats-store-badge-desktop.png',
+      mobileStoreBadge: '/assets/images/chats-store-badge-mobile.png',
     },
   ]);
 
-  activeChat = () => this.conversations().find((c) => c.id === this.activeChatId());
+  readonly selectedStoreLabel = computed(
+    () =>
+      this.storeOptions.find((store) => store.id === this.selectedStoreId())?.label ??
+      'All stores (4)',
+  );
+
+  readonly activeDesktopConversation = computed(
+    () =>
+      this.conversations().find((conversation) => conversation.id === this.activeChatId()) ??
+      this.conversations()[1],
+  );
+
+  readonly activeMobileConversation = computed(
+    () =>
+      this.conversations().find((conversation) => conversation.id === this.activeChatId()) ??
+      this.conversations()[1],
+  );
 
   protected openMobileConversation(chatId: string): void {
     this.activeChatId.set(chatId);
     this.isMobileConversationOpen.set(true);
+
+    if (!this.mobileConversationOverlayOpen) {
+      this.mobileOverlayService.openMobileModal();
+      this.mobileConversationOverlayOpen = true;
+    }
   }
 
   protected closeMobileConversation(): void {
     this.isMobileConversationOpen.set(false);
-    this.isRecordingVoice.set(false);
+
+    if (this.mobileConversationOverlayOpen) {
+      this.mobileOverlayService.closeMobileModal();
+      this.mobileConversationOverlayOpen = false;
+    }
   }
 
   protected updateDraftMessage(event: Event): void {
@@ -764,16 +830,10 @@ export class MessagesPageComponent {
     this.draftMessage.set(input?.value ?? '');
   }
 
-  protected cancelRecording(): void {
-    this.isRecordingVoice.set(false);
-  }
-
-  protected finishRecording(): void {
-    this.isRecordingVoice.set(false);
-  }
-
-  protected selectStore(storeId: string): void {
-    this.selectedStoreId.set(storeId);
-    this.showMobileStoreSheet.set(false);
+  ngOnDestroy(): void {
+    if (this.mobileConversationOverlayOpen) {
+      this.mobileOverlayService.closeMobileModal();
+      this.mobileConversationOverlayOpen = false;
+    }
   }
 }

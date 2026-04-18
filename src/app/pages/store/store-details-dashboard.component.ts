@@ -1,332 +1,830 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroChevronLeft, heroChevronRight, heroPencil, heroStar, heroChevronDown } from '@ng-icons/heroicons/outline';
-import { AddListingModalComponent } from '../../components/listings/add-listing-modal.component';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import {
+  AddListingModalComponent,
+  ListingData,
+} from '../../components/listings/add-listing-modal.component';
 import { PromoteListingModalComponent } from '../../components/listings/promote-listing-modal.component';
-import { ListingCardComponent } from '../../components/listings/listing-card.component';
-import { Listing } from '../../components/listings/listing-card.component';
-import { Review } from '../../components/product/review-card.component';
+import {
+  StoreItemCardComponent,
+  StoreItemCardData,
+} from '../../components/stores/store-item-card.component';
+import {
+  StoreReviewCardComponent,
+  StoreReviewCardData,
+} from '../../components/stores/store-review-card.component';
 import { StoreEditSidePanelComponent } from '../../components/stores/store-edit-side-panel.component';
-import { StoreHeaderComponent } from '../../components/stores/store-header.component';
-import { StoreProductsComponent } from '../../components/stores/store-products.component';
-import { StoreReviewsComponent } from '../../components/stores/store-reviews.component';
-import { StoreTabsComponent } from '../../components/stores/store-tabs.component';
+
+type StoreTab = 'listings' | 'reviews';
+
+interface StoreProfile {
+  id: string;
+  name: string;
+  logo: string;
+  mobileLogo: string;
+  banner: string;
+  mobileBanner: string;
+  isVerified: boolean;
+  products: string;
+  followers: string;
+  rating: string;
+  dateCreated: string;
+  dateJoined: string;
+  promoted: boolean;
+  location: string;
+  whatsappNumber?: string;
+  callNumber?: string;
+}
+
+interface StoreProduct extends StoreItemCardData {}
+
+interface ProductSection {
+  id: string;
+  title: string;
+  viewAllLabel: string;
+  items: StoreProduct[];
+}
 
 @Component({
   selector: 'app-store-details-dashboard',
-  standalone: true,
   imports: [
     CommonModule,
     RouterLink,
-    NgIcon,
-    ListingCardComponent,
+    NgOptimizedImage,
     PromoteListingModalComponent,
-    StoreHeaderComponent,
-    StoreTabsComponent,
-    StoreProductsComponent,
-    StoreReviewsComponent,
     StoreEditSidePanelComponent,
-    AddListingModalComponent
+    AddListingModalComponent,
+    StoreItemCardComponent,
+    StoreReviewCardComponent,
   ],
-  providers: [
-    provideIcons({ heroChevronRight, heroChevronLeft, heroPencil, heroStar, heroChevronDown })
-  ],
+  host: {
+    class: 'block min-h-full',
+  },
   template: `
-    <div class="max-w-7xl mx-auto">
+    <div class="min-h-full bg-white lg:bg-transparent">
       @if (store(); as s) {
-        <div class="md:hidden">
-          <div class="flex items-center gap-3 px-5 pt-2">
-            <a routerLink="/my-stores" class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F6F7FA] text-[#202335]">
-              <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
+        <section class="px-5 pb-12 pt-2 lg:hidden">
+          <div class="flex items-center gap-3">
+            <a
+              routerLink="/my-stores"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
+              aria-label="Go back to my stores"
+            >
+              <img [ngSrc]="assets.backMobile" width="20" height="20" alt="" class="h-5 w-5" />
             </a>
-            <h1 class="text-[18px] font-semibold tracking-[-0.03em] text-[#202335]">Store information</h1>
+            <h1 class="text-[20px] font-semibold leading-none text-black">Store information</h1>
           </div>
 
-          <section class="px-5 pt-5 text-[#202335]">
-            <div class="overflow-hidden rounded-[18px] border border-[#ECEEF4] bg-white shadow-[0_10px_20px_-22px_rgba(31,36,48,0.4)]">
-              <div class="h-[64px] overflow-hidden bg-[#F4F5F8]">
-                <img [src]="s.banner" [alt]="s.name" class="h-full w-full object-cover">
-              </div>
+          <div class="mt-6">
+            <div class="relative h-[91px] overflow-hidden rounded-t-[11.455px]">
+              <img
+                [ngSrc]="s.mobileBanner"
+                width="350"
+                height="91"
+                alt=""
+                priority
+                class="h-full w-full object-cover"
+              />
+              <div
+                class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,235,191,0.5)_0%,rgba(255,255,255,0)_100%)]"
+              ></div>
+              <div
+                class="absolute inset-x-0 bottom-0 h-[57px] bg-[linear-gradient(180deg,rgba(255,255,255,0)_0.54%,#FFFFFF_93.47%)]"
+              ></div>
+            </div>
 
-              <div class="relative px-4 pb-4">
-                <div class="flex items-end justify-between gap-3">
-                  <div class="relative -mt-6 h-14 w-14 overflow-hidden rounded-full border-4 border-white bg-white shadow-sm">
-                    <img [src]="s.logo" [alt]="s.name" class="h-full w-full object-cover">
+            <div class="relative px-[11px]">
+              <div class="flex items-start justify-between">
+                <div class="-mt-[32px] flex flex-col items-start gap-2">
+                  <div
+                    class="aspect-square h-[74px] shrink-0 self-start overflow-hidden rounded-[50%] border-4 border-white bg-[#3D785F]"
+                  >
+                    <img
+                      [ngSrc]="s.mobileLogo"
+                      width="74"
+                      height="74"
+                      alt="{{ s.name }} logo"
+                      class="aspect-square h-full w-full rounded-[50%] object-contain"
+                    />
                   </div>
 
-                  <div class="mt-3 flex items-center gap-2">
-                    <button type="button" (click)="openEditModal()" class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-sm">
-                      <ng-icon name="heroPencil" class="text-[14px]"></ng-icon>
-                    </button>
-                    <button type="button" (click)="showPromoteStoreModal.set(true)" class="rounded-full bg-[#6F56F6] px-4 py-2 text-[11px] font-medium text-white shadow-[0_16px_24px_-18px_rgba(111,86,246,0.95)]">
-                      Promote
-                    </button>
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-1.5">
+                      <h2 class="text-[18px] font-medium leading-[1.2] text-[#1F1F1F]">
+                        {{ s.name }}
+                      </h2>
+                      @if (s.isVerified) {
+                        <img
+                          [ngSrc]="assets.verifyMobile"
+                          width="16"
+                          height="16"
+                          alt=""
+                          class="h-4 w-4"
+                        />
+                      }
+                    </div>
+                    <div class="flex items-center gap-1 text-[#959595]">
+                      <img
+                        [ngSrc]="assets.locationMobile"
+                        width="14"
+                        height="14"
+                        alt=""
+                        class="h-[14px] w-[14px]"
+                      />
+                      <span class="text-[14px] leading-none">{{ s.location }}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div class="mt-2">
-                  <div class="flex items-center gap-1">
-                    <h2 class="text-[15px] font-medium">{{ s.name }}</h2>
-                    @if (s.isVerified) {
-                      <span class="text-[13px] text-blue-500">●</span>
+                <div class="mt-1 flex items-center gap-[9px]">
+                  <button
+                    type="button"
+                    (click)="openEditModal()"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#DEDEDE] bg-white"
+                    aria-label="Edit store"
+                  >
+                    <img
+                      [ngSrc]="assets.editMobile"
+                      width="20"
+                      height="20"
+                      alt=""
+                      class="h-5 w-5"
+                    />
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="showPromoteStoreModal.set(true)"
+                    class="inline-flex h-9 items-center justify-center rounded-full border border-white bg-[#6453D9] px-4 text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8]"
+                  >
+                    Promote
+                  </button>
+                </div>
+              </div>
+
+              <div class="mx-auto mt-7 flex w-full items-start justify-between rounded-[16px]">
+                @for (item of mobileStats(); track item.label; let last = $last) {
+                  <div class="flex items-center gap-4">
+                    <div class="min-w-0">
+                      <p class="text-[12px] leading-4 text-[#777777]">{{ item.label }}</p>
+                      <div class="mt-1 flex items-center gap-1">
+                        <span class="text-[14px] font-medium leading-5 text-[#1F1F1F]">{{
+                          item.value
+                        }}</span>
+                        @if (item.highlightIcon === 'star') {
+                          <img
+                            [ngSrc]="assets.starMobile"
+                            width="18"
+                            height="18"
+                            alt=""
+                            class="h-[18px] w-[18px]"
+                          />
+                        }
+                      </div>
+                    </div>
+
+                    @if (!last) {
+                      <div class="h-9 w-px bg-[#EAEAEA]"></div>
                     }
                   </div>
-                  <p class="mt-1 text-[10px] text-[#8A8F9A]">Ikeja, Lagos</p>
-                </div>
+                }
+              </div>
+            </div>
+          </div>
 
-                <div class="mt-4 grid grid-cols-4 gap-3 border-t border-[#EEF0F4] pt-3 text-center">
-                  <div>
-                    <p class="text-[9px] text-[#8A8F9A]">Followers</p>
-                    <p class="mt-1 text-[11px] font-medium">{{ s.followers }}</p>
-                  </div>
-                  <div>
-                    <p class="text-[9px] text-[#8A8F9A]">Products</p>
-                    <p class="mt-1 text-[11px] font-medium">{{ s.products }}</p>
-                  </div>
-                  <div>
-                    <p class="text-[9px] text-[#8A8F9A]">Rating</p>
-                    <p class="mt-1 text-[11px] font-medium">{{ s.rating }} <span class="text-yellow-400">★</span></p>
-                  </div>
-                  <div>
-                    <p class="text-[9px] text-[#8A8F9A]">Date joined</p>
-                    <p class="mt-1 text-[11px] font-medium">{{ s.dateCreated }}</p>
-                  </div>
-                </div>
+          <div class="mt-8 flex items-end gap-1 border-b border-[#EAEAEA]">
+            <button
+              type="button"
+              (click)="activeTab.set('listings')"
+              class="flex items-center gap-1 px-3 pb-[10px] pt-1 text-[16px] font-medium"
+              [class.text-[#6453D9]]="activeTab() === 'listings'"
+              [class.text-[#959595]]="activeTab() !== 'listings'"
+            >
+              <img
+                [ngSrc]="assets.tabListingsMobile"
+                width="16"
+                height="16"
+                alt=""
+                class="h-4 w-4"
+              />
+              Products
+            </button>
+
+            <button
+              type="button"
+              (click)="activeTab.set('reviews')"
+              class="flex items-center gap-1 px-3 pb-[10px] pt-1 text-[16px] font-medium"
+              [class.text-[#6453D9]]="activeTab() === 'reviews'"
+              [class.text-[#959595]]="activeTab() !== 'reviews'"
+            >
+              <img
+                [ngSrc]="assets.tabReviewsMobile"
+                width="16"
+                height="16"
+                alt=""
+                class="h-4 w-4"
+              />
+              Reviews
+            </button>
+          </div>
+          <div
+            class="h-[2px] w-[102px] bg-[#6453D9] transition-transform duration-200"
+            [style.transform]="mobileTabIndicatorTransform()"
+          ></div>
+
+          @if (activeTab() === 'listings') {
+            <div
+              class="mt-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <div class="flex min-w-max gap-[10px]">
+                @for (chip of chips; track chip) {
+                  <button
+                    type="button"
+                    (click)="activeChip.set(chip)"
+                    class="inline-flex h-10 items-center justify-center rounded-[16px] px-4 text-[14px] font-medium"
+                    [class.bg-[#1A1A1A]]="activeChip() === chip"
+                    [class.text-white]="activeChip() === chip"
+                    [class.bg-[#F4F4F4]]="activeChip() !== chip"
+                    [class.text-[#1F1F1F]]="activeChip() !== chip"
+                  >
+                    {{ chip }}
+                  </button>
+                }
               </div>
             </div>
 
-            <div class="mt-5 flex items-center gap-5 border-b border-[#ECEEF4] text-[12px]">
-              <button type="button" (click)="activeTab.set('listings')" class="border-b-2 pb-3 font-medium"
-                [class.border-[#6F56F6]]="activeTab() === 'listings'"
-                [class.text-[#6F56F6]]="activeTab() === 'listings'"
-                [class.border-transparent]="activeTab() !== 'listings'"
-                [class.text-[#8A8F9A]]="activeTab() !== 'listings'">
-                Products
-              </button>
-              <button type="button" (click)="activeTab.set('reviews')" class="border-b-2 pb-3 font-medium"
-                [class.border-[#6F56F6]]="activeTab() === 'reviews'"
-                [class.text-[#6F56F6]]="activeTab() === 'reviews'"
-                [class.border-transparent]="activeTab() !== 'reviews'"
-                [class.text-[#8A8F9A]]="activeTab() !== 'reviews'">
-                Reviews
-              </button>
-            </div>
-
-            @if (activeTab() === 'listings') {
-              @if (products().length === 0) {
-                <section class="flex min-h-[420px] flex-col items-center justify-center pb-8 pt-8 text-center">
-                  <div class="relative mb-6 h-[150px] w-[190px]">
-                    <div class="absolute left-5 top-7 h-[96px] w-[72px] rotate-[-16deg] rounded-[18px] bg-white/70 shadow-[0_16px_30px_-26px_rgba(25,30,40,0.35)] ring-1 ring-[#F1F2F6]"></div>
-                    <div class="absolute right-5 top-7 h-[96px] w-[72px] rotate-[16deg] rounded-[18px] bg-white/70 shadow-[0_16px_30px_-26px_rgba(25,30,40,0.35)] ring-1 ring-[#F1F2F6]"></div>
-                    <div class="absolute left-1/2 top-2 flex h-[110px] w-[84px] -translate-x-1/2 flex-col rounded-[20px] bg-white shadow-[0_20px_36px_-30px_rgba(25,30,40,0.45)] ring-1 ring-[#ECEEF4]">
-                      <div class="flex items-start justify-between px-3 pt-3">
-                        <div class="h-2 w-8 rounded-full bg-[#F0F1F5]"></div>
-                        <span class="text-[10px] text-[#2B2D36]">♥</span>
-                      </div>
-                      <div class="mt-2 flex flex-1 items-center justify-center">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F8] text-[#B6BAC6]">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path d="M10 10a3 3 0 100-6 3 3 0 000 6zm-6 6.25A4.25 4.25 0 018.25 12h3.5A4.25 4.25 0 0116 16.25V17H4v-.75z"/>
-                          </svg>
-                        </div>
-                      </div>
-                      <div class="space-y-2 px-4 pb-4">
-                        <div class="h-1.5 rounded-full bg-[#F0F1F5]"></div>
-                        <div class="mx-auto h-1.5 w-10 rounded-full bg-[#F5F6F9]"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <h2 class="text-[18px] font-medium leading-8 tracking-[-0.03em] text-[#202335]">Looks a little empty here 👀</h2>
-                  <p class="mt-2 max-w-[260px] text-[11px] leading-5 text-[#7A7F8C]">
-                    Add a listing so buyers can see what you’re selling and reach out.
-                  </p>
-
-                  <button type="button" (click)="showAddListingModal.set(true)" class="mt-6 rounded-full bg-[#6F56F6] px-6 py-3 text-[12px] font-medium text-white shadow-[0_18px_30px_-18px_rgba(111,86,246,0.95)]">
-                    Sell an item
-                  </button>
-                </section>
-              } @else {
-                <div class="mt-4 flex gap-2 overflow-x-auto pb-2">
-                  @for (filter of mobileStoreFilters(); track filter) {
-                    <button type="button" class="whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-medium"
-                      [class.bg-[#202335]]="mobileStoreFilter() === filter"
-                      [class.text-white]="mobileStoreFilter() === filter"
-                      [class.bg-[#F3F4F7]]="mobileStoreFilter() !== filter"
-                      [class.text-[#202335]]="mobileStoreFilter() !== filter"
-                      (click)="mobileStoreFilter.set(filter)">
-                      {{ filter }}
+            <div class="mt-6 space-y-8">
+              @for (section of filteredMobileSections(); track section.id) {
+                <section>
+                  <div class="mb-4 flex items-center justify-between">
+                    <h2 class="text-[20px] font-medium leading-6 text-[#1F1F1F]">
+                      {{ section.title }}
+                    </h2>
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-1 text-[14px] text-[#1F1F1F]"
+                    >
+                      {{ section.viewAllLabel }}
+                      <img
+                        [ngSrc]="assets.arrowRightMobile"
+                        width="16"
+                        height="16"
+                        alt=""
+                        class="h-4 w-4"
+                      />
                     </button>
-                  }
-                </div>
+                  </div>
 
-                <div class="mt-4 space-y-6">
-                  @for (group of mobileProductGroups(); track group.name) {
-                    <section>
-                      <div class="mb-3 flex items-center justify-between">
-                        <h3 class="text-[13px] font-medium">{{ group.name }}</h3>
-                        <button type="button" class="inline-flex items-center gap-1 text-[10px] font-medium text-[#202335]">
-                          View all ({{ group.items.length }})
-                          <ng-icon name="heroChevronRight" class="text-[12px]"></ng-icon>
-                        </button>
-                      </div>
-
-                      <div class="grid grid-cols-2 gap-3">
-                        @for (product of group.items; track product.id) {
-                          <app-listing-card [listing]="product" [listingRoute]="['/listings']" [showFavorite]="false"></app-listing-card>
-                        }
-                      </div>
-                    </section>
-                  }
-                </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    @for (item of section.items.slice(0, 4); track item.id) {
+                      <app-store-item-card
+                        [item]="item"
+                        mode="mobile"
+                        [badgeIcon]="assets.badgeMobile"
+                        [heartIcon]="assets.heartMobile"
+                        [locationIcon]="assets.itemLocationMobile"
+                        [leftArrowIcon]="assets.backMobile"
+                        [rightArrowIcon]="assets.arrowRightMobile"
+                      ></app-store-item-card>
+                    }
+                  </div>
+                </section>
               }
-            }
-
-            @if (activeTab() === 'reviews') {
-              <section class="space-y-5 pt-4">
-                <div class="rounded-[18px] bg-white p-4 shadow-[0_10px_20px_-22px_rgba(31,36,48,0.4)]">
-                  <div class="grid grid-cols-[auto_1fr] gap-4">
-                    <div>
-                      <p class="text-[28px] font-semibold leading-none">4.57<span class="text-[18px] text-[#B4B8C2]">/5</span></p>
-                      <div class="mt-2 flex gap-1 text-yellow-400">
-                        @for (star of [1,2,3,4,5]; track star) {
-                          <ng-icon name="heroStar" class="fill-current text-[12px]"></ng-icon>
-                        }
-                      </div>
+            </div>
+          } @else {
+            <section class="space-y-8 pt-8">
+              <div class="rounded-2xl bg-[#FAFAFA] px-3 py-[23px]">
+                <div class="flex items-start gap-8">
+                  <div class="space-y-[2px]">
+                    <p class="text-[40px] font-semibold leading-[48px] text-[#2D2D2D]">
+                      4.57<span class="text-[20px] font-medium leading-6 text-[#BFBFBF]">/5</span>
+                    </p>
+                    <div class="flex h-5 items-center gap-1">
+                      @for (star of reviewStarsRange; track star) {
+                        <img
+                          [ngSrc]="assets.reviewStarFilled"
+                          width="20"
+                          height="20"
+                          alt=""
+                          class="h-5 w-5"
+                        />
+                      }
                     </div>
-                    <div>
-                      <p class="text-[11px] font-medium">Overall rating</p>
-                      <div class="mt-2 space-y-2">
-                        @for (bar of reviewDistribution; track bar.stars) {
-                          <div class="grid grid-cols-[18px_1fr_26px] items-center gap-2 text-[9px] text-[#8A8F9A]">
-                            <span>{{ bar.stars }} ★</span>
-                            <div class="h-1.5 rounded-full bg-[#EEF0F4]">
-                              <div class="h-1.5 rounded-full bg-[#202335]" [style.width.%]="bar.percentage"></div>
-                            </div>
-                            <span>{{ bar.percentage }}%</span>
+                  </div>
+
+                  <div class="min-w-0 flex-1 space-y-1">
+                    <p class="text-[16px] font-semibold leading-6 text-[#2D2D2D]">Overall rating</p>
+
+                    <div class="space-y-2">
+                      @for (bar of reviewDistribution; track bar.stars) {
+                        <div class="grid grid-cols-[23px_84px_31px] items-center gap-3">
+                          <div class="flex items-center gap-0.5">
+                            <span
+                              class="w-[9px] text-center text-[14px] leading-5 text-[#2D2D2D]"
+                              >{{ bar.stars }}</span
+                            >
+                            <img
+                              [ngSrc]="assets.reviewStarFilled"
+                              width="12"
+                              height="12"
+                              alt=""
+                              class="h-3 w-3"
+                            />
                           </div>
-                        }
-                      </div>
+
+                          <div class="h-[7px] overflow-hidden rounded-2xl bg-[#EAEAEA]">
+                            <div
+                              class="h-full rounded-2xl bg-[#2D2D2D]"
+                              [style.width.%]="bar.percentage"
+                            ></div>
+                          </div>
+
+                          <span class="text-center text-[14px] leading-5 text-[#959595]"
+                            >{{ bar.percentage }}%</span
+                          >
+                        </div>
+                      }
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div class="flex items-center justify-between">
-                  <h3 class="text-[13px] font-medium">215 reviews</h3>
-                  <button type="button" class="inline-flex items-center gap-1 rounded-full bg-[#F3F4F7] px-3 py-2 text-[10px] font-medium text-[#202335]">
+              <div class="space-y-7">
+                <div class="flex items-center justify-between gap-4">
+                  <h3 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h3>
+                  <button
+                    type="button"
+                    class="inline-flex h-8 items-center gap-1 rounded-[32px] border border-[#EAEAEA] bg-white px-2 text-[14px] leading-5 text-[#1A1B1D]"
+                  >
                     Most recent
-                    <ng-icon name="heroChevronDown" class="text-[12px]"></ng-icon>
+                    <img
+                      [ngSrc]="assets.reviewSortArrowMobile"
+                      width="14"
+                      height="14"
+                      alt=""
+                      class="h-[14px] w-[14px]"
+                    />
                   </button>
                 </div>
 
-                <div>
-                  <p class="text-[11px] font-medium">This listing is great at..</p>
-                  <div class="mt-3 flex flex-wrap gap-2">
-                    @for (tag of reviewTags; track tag.label) {
-                      <span class="rounded-full bg-[#F7F8FA] px-3 py-2 text-[10px] text-[#5F6470]">
+                <div class="space-y-3">
+                  <p class="text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                    This listing is great at..
+                  </p>
+                  <div class="flex flex-wrap gap-x-[7px] gap-y-[13px]">
+                    @for (tag of mobileReviewTags; track tag.label) {
+                      <span
+                        class="inline-flex items-center justify-center rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-3 py-2 text-[16px] font-medium leading-6 text-[#5A5A5A]"
+                      >
                         {{ tag.label }} ({{ tag.count }})
                       </span>
                     }
                   </div>
                 </div>
 
-                <div class="space-y-5 pb-8">
+                <div class="space-y-8">
                   @for (review of reviews(); track review.author) {
-                    <article class="border-b border-[#ECEEF4] pb-4">
-                      <div class="flex items-center gap-3">
-                        <div class="h-9 w-9 overflow-hidden rounded-full bg-[#F3F4F7]">
-                          <img [src]="review.avatar || fallbackAvatar" [alt]="review.author" class="h-full w-full object-cover">
-                        </div>
-                        <div>
-                          <h4 class="text-[12px] font-medium">{{ review.author }}</h4>
-                          <div class="mt-1 flex items-center gap-2 text-[9px] text-[#8A8F9A]">
-                            <span>{{ review.date }}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="mt-2 flex gap-1 text-[#202335]">
-                        @for (filled of reviewStars(review.rating); track $index) {
-                          <span class="text-[10px]">{{ filled ? '★' : '☆' }}</span>
-                        }
-                      </div>
-
-                      <p class="mt-3 text-[11px] leading-5 text-[#4C5160]">{{ review.text }}</p>
-
-                      @if (review.images?.length) {
-                        <div class="mt-3 flex gap-2 overflow-x-auto">
-                          @for (image of review.images; track image) {
-                            <img [src]="image" alt="" class="h-12 w-12 rounded-[10px] object-cover">
-                          }
-                        </div>
-                      }
-                    </article>
+                    <app-store-review-card
+                      [review]="review"
+                      mode="mobile"
+                      [starsImage]="assets.reviewStarsMobile"
+                    ></app-store-review-card>
                   }
                 </div>
-              </section>
-            }
-          </section>
-        </div>
-
-        <div class="hidden md:block">
-        <!-- Breadcrumbs -->
-        <nav class="flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-6 px-1">
-          <a routerLink="/my-stores" class="hover:text-purple-600 transition-colors">My Stores</a>
-          <span class="text-gray-300">/</span>
-          <span class="text-gray-900">{{ s.name }}</span>
-        </nav>
-
-        <app-store-header 
-          [banner]="s.banner" 
-          [logo]="s.logo" 
-          [name]="s.name" 
-          [isVerified]="s.isVerified"
-          [products]="s.products"
-          [followers]="s.followers"
-          [rating]="s.rating"
-          [dateCreated]="s.dateCreated"
-          [isOwner]="isOwner()"
-          (edit)="openEditModal()"
-          (sellItem)="showAddListingModal.set(true)"
-        ></app-store-header>
-
-        <app-store-tabs 
-          [activeTab]="activeTab()" 
-          (tabChange)="activeTab.set($event)"
-        ></app-store-tabs>
-
-        <div class="mt-8 transition-all duration-300">
-          @switch (activeTab()) {
-            @case ('listings') {
-              <app-store-products 
-                [products]="products()" 
-                [isOwner]="isOwner()" 
-                (addListing)="showAddListingModal.set(true)"
-              ></app-store-products>
-            }
-            @case ('reviews') {
-              <app-store-reviews [averageRating]="s.rating" [reviews]="reviews()"></app-store-reviews>
-            }
-            @case ('feed') {
-               <div class="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-95 duration-500">
-                  <div class="mb-6 flex items-center justify-center">
-                     <img src="/assets/images/empty_state.svg" alt="Empty state" class="w-40 h-40">
-                  </div>
-                  <h3 class="text-[19px] font-bold text-gray-900 mb-1">No feed items yet</h3>
-                  <p class="text-gray-400 text-[13px]">Stay tuned for updates from {{ s.name }}</p>
-               </div>
-            }
+              </div>
+            </section>
           }
-        </div>
-        </div>
+        </section>
+
+        <section class="hidden lg:block">
+          <nav class="flex items-center gap-2 px-1 pb-6 text-[16px] leading-6">
+            <a routerLink="/my-stores" class="text-[#959595] transition-colors hover:text-[#6453D9]"
+              >My Stores</a
+            >
+            <span class="text-[#959595]">/</span>
+            <span class="text-[#1F1F1F]">Store information</span>
+          </nav>
+
+          <div class="overflow-hidden rounded-[24px] bg-white">
+            <div class="relative z-0 h-[197px] overflow-hidden rounded-t-[20px]">
+              <img
+                [ngSrc]="s.banner"
+                width="1061"
+                height="197"
+                alt=""
+                priority
+                class="h-full w-full object-cover"
+              />
+              <div
+                class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,235,191,0.45)_0%,rgba(255,255,255,0)_100%)]"
+              ></div>
+              <div
+                class="absolute inset-x-0 bottom-0 h-[99px] bg-[linear-gradient(180deg,rgba(255,255,255,0)_0.54%,#FFFFFF_93.47%)]"
+              ></div>
+            </div>
+
+            <div class="relative z-10 px-9 pb-3">
+              <div class="flex items-end justify-between">
+                <div class="-mt-[58px] flex items-end gap-4">
+                  <div
+                    class="aspect-square h-[97px] shrink-0 overflow-hidden rounded-[50%] border-4 border-white bg-[#3D785F]"
+                  >
+                    <img
+                      [ngSrc]="s.logo"
+                      width="97"
+                      height="97"
+                      alt="{{ s.name }} logo"
+                      class="aspect-square h-full w-full rounded-[50%] object-contain"
+                    />
+                  </div>
+
+                  <div class="pb-2">
+                    <div class="flex items-center gap-4">
+                      <div>
+                        <div class="flex items-center gap-1">
+                          <h1 class="text-[24px] font-medium leading-8 text-[#1F1F1F]">
+                            {{ s.name }}
+                          </h1>
+                          @if (s.isVerified) {
+                            <img
+                              [ngSrc]="assets.verifyDesktop"
+                              width="14"
+                              height="14"
+                              alt=""
+                              class="h-[14px] w-[14px]"
+                            />
+                          }
+                        </div>
+                        <div class="mt-1 flex items-center gap-1 text-[#777777]">
+                          <img
+                            [ngSrc]="assets.locationDesktop"
+                            width="16"
+                            height="16"
+                            alt=""
+                            class="h-4 w-4"
+                          />
+                          <span class="text-[16px] leading-6">{{ s.location }}</span>
+                        </div>
+                      </div>
+
+                      @if (s.promoted) {
+                        <div
+                          class="inline-flex h-8 items-center gap-[6px] rounded-full border border-[#EAEAEA] bg-white px-4 text-[14px] text-[#2D2D2D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                        >
+                          <span class="text-[14px] leading-none" aria-hidden="true">🚀</span>
+                          Promoted
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-8">
+                  <button
+                    type="button"
+                    (click)="showPromoteStoreModal.set(true)"
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                  >
+                    <img
+                      [ngSrc]="assets.awardDesktop"
+                      width="14"
+                      height="14"
+                      alt=""
+                      class="h-[14px] w-[14px]"
+                    />
+                    Promote store
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="openEditModal()"
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-black"
+                  >
+                    <img
+                      [ngSrc]="assets.editDesktop"
+                      width="14"
+                      height="14"
+                      alt=""
+                      class="h-[14px] w-[14px]"
+                    />
+                    Edit store
+                  </button>
+
+                  <button
+                    type="button"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white"
+                    aria-label="More options"
+                  >
+                    <img
+                      [ngSrc]="assets.menuDotsDesktop"
+                      width="16"
+                      height="16"
+                      alt=""
+                      class="h-4 w-4"
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div class="mt-6 flex items-center gap-8">
+                @for (item of desktopStats(); track item.label; let last = $last) {
+                  <div class="flex items-center gap-8">
+                    <div>
+                      <p class="text-[14px] leading-5 text-[#777777]">{{ item.label }}</p>
+                      <div class="mt-1 flex items-center gap-1">
+                        <span class="text-[16px] font-medium leading-6 text-[#1F1F1F]">{{
+                          item.value
+                        }}</span>
+                        @if (item.highlightIcon === 'star') {
+                          <img
+                            [ngSrc]="assets.starDesktop"
+                            width="18"
+                            height="18"
+                            alt=""
+                            class="h-[18px] w-[18px]"
+                          />
+                        }
+                      </div>
+                    </div>
+
+                    @if (!last) {
+                      <div class="h-9 w-px bg-[#EAEAEA]"></div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="mt-5 border-b border-[#EAEAEA] px-1">
+              <div class="flex items-end gap-2 px-2">
+                <button
+                  type="button"
+                  (click)="activeTab.set('listings')"
+                  class="flex items-center gap-1 rounded-t-[8px] px-3 pb-[10px] pt-1 text-[16px] font-medium"
+                  [class.text-[#6453D9]]="activeTab() === 'listings'"
+                  [class.text-[#959595]]="activeTab() !== 'listings'"
+                >
+                  <img
+                    [ngSrc]="assets.tabListingsDesktop"
+                    width="16"
+                    height="16"
+                    alt=""
+                    class="h-4 w-4"
+                  />
+                  Listings
+                </button>
+
+                <button
+                  type="button"
+                  (click)="activeTab.set('reviews')"
+                  class="flex items-center gap-1 rounded-t-[8px] px-3 pb-[10px] pt-1 text-[16px] font-medium"
+                  [class.text-[#6453D9]]="activeTab() === 'reviews'"
+                  [class.text-[#959595]]="activeTab() !== 'reviews'"
+                >
+                  <img
+                    [ngSrc]="assets.tabReviewsDesktop"
+                    width="16"
+                    height="16"
+                    alt=""
+                    class="h-4 w-4"
+                  />
+                  Reviews
+                </button>
+              </div>
+              <div
+                class="h-[2px] w-[96px] bg-[#6453D9] transition-transform duration-200"
+                [style.transform]="desktopTabIndicatorTransform()"
+              ></div>
+            </div>
+
+            @if (activeTab() === 'listings') {
+              <div class="relative overflow-hidden border-b border-transparent px-[14px] py-6">
+                <div
+                  class="flex items-center gap-[10px] overflow-x-auto pr-12 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  @for (chip of chips; track chip) {
+                    <button
+                      type="button"
+                      (click)="activeChip.set(chip)"
+                      class="inline-flex h-10 shrink-0 items-center justify-center rounded-[16px] px-4 text-[14px] font-medium"
+                      [class.bg-[#1A1A1A]]="activeChip() === chip"
+                      [class.text-white]="activeChip() === chip"
+                      [class.bg-[#F4F4F4]]="activeChip() !== chip"
+                      [class.text-[#1F1F1F]]="activeChip() !== chip"
+                    >
+                      {{ chip }}
+                    </button>
+                  }
+                </div>
+
+                <div
+                  class="pointer-events-none absolute inset-y-0 right-0 w-[162px] bg-[linear-gradient(270deg,#FFFFFF_22.77%,rgba(255,255,255,0)_100%)]"
+                ></div>
+                <button
+                  type="button"
+                  class="absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_3.2px_6.4px_rgba(202,202,202,0.25)]"
+                  aria-label="Scroll filters"
+                >
+                  <img
+                    [ngSrc]="assets.arrowRightDesktop"
+                    width="16"
+                    height="16"
+                    alt=""
+                    class="h-4 w-4"
+                  />
+                </button>
+              </div>
+
+              <div class="space-y-10 px-6 pb-8 pt-4">
+                @for (section of filteredDesktopSections(); track section.id) {
+                  <section>
+                    <div class="mb-4 flex items-center justify-between">
+                      <h2 class="text-[20px] font-medium leading-6 text-[#1F1F1F]">
+                        {{ section.title }}
+                      </h2>
+
+                      <div class="flex items-center gap-[25px]">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1 text-[16px] text-[#1F1F1F]"
+                        >
+                          {{ section.viewAllLabel }}
+                          <img
+                            [ngSrc]="assets.arrowRightDesktop"
+                            width="16"
+                            height="16"
+                            alt=""
+                            class="h-4 w-4"
+                          />
+                        </button>
+
+                        <div class="flex items-center gap-3">
+                          <button
+                            type="button"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_3.2px_6.4px_rgba(202,202,202,0.25)]"
+                            aria-label="Previous products"
+                          >
+                            <img
+                              [ngSrc]="assets.arrowLeftDesktop"
+                              width="16"
+                              height="16"
+                              alt=""
+                              class="h-4 w-4 opacity-30"
+                            />
+                          </button>
+                          <button
+                            type="button"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_3.2px_6.4px_rgba(202,202,202,0.25)]"
+                            aria-label="Next products"
+                          >
+                            <img
+                              [ngSrc]="assets.arrowRightDesktop"
+                              width="16"
+                              height="16"
+                              alt=""
+                              class="h-4 w-4"
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-5 gap-[19px]">
+                      @for (item of section.items; track item.id) {
+                        <app-store-item-card
+                          [item]="item"
+                          mode="desktop"
+                          [badgeIcon]="assets.badgeDesktop"
+                          [heartIcon]="assets.heartDesktop"
+                          [locationIcon]="assets.itemLocationDesktop"
+                          [leftArrowIcon]="assets.arrowLeftDesktop"
+                          [rightArrowIcon]="assets.arrowRightDesktop"
+                        ></app-store-item-card>
+                      }
+                    </div>
+                  </section>
+                }
+              </div>
+            } @else {
+              <div class="grid grid-cols-[261px_minmax(0,1fr)] gap-[39px] px-4 pb-8 pt-8">
+                <aside class="space-y-5">
+                  <div class="rounded-2xl bg-[#FAFAFA] px-6 py-[23px]">
+                    <div class="flex flex-col items-center gap-8">
+                      <div class="flex flex-col items-center gap-[2px]">
+                        <p
+                          class="text-center text-[56px] font-semibold leading-[64px] text-[#2D2D2D]"
+                        >
+                          4.57<span class="text-[28px] font-medium leading-10 text-[#BFBFBF]"
+                            >/5</span
+                          >
+                        </p>
+
+                        <div class="flex items-center justify-center gap-1">
+                          @for (star of reviewStarsRange; track star) {
+                            <img
+                              [ngSrc]="assets.reviewStarFilled"
+                              width="23"
+                              height="23"
+                              alt=""
+                              class="h-[23px] w-[23px]"
+                            />
+                          }
+                        </div>
+                      </div>
+
+                      <div class="w-full space-y-1">
+                        <p class="text-[16px] font-semibold leading-6 text-[#2D2D2D]">
+                          Overall rating
+                        </p>
+
+                        <div class="space-y-2">
+                          @for (bar of reviewDistribution; track bar.stars) {
+                            <div class="grid grid-cols-[23px_132px_1fr] items-center gap-3">
+                              <div class="flex items-center gap-0.5">
+                                <span
+                                  class="w-[9px] text-center text-[14px] leading-5 text-[#2D2D2D]"
+                                  >{{ bar.stars }}</span
+                                >
+                                <img
+                                  [ngSrc]="assets.reviewStarFilled"
+                                  width="12"
+                                  height="12"
+                                  alt=""
+                                  class="h-3 w-3"
+                                />
+                              </div>
+
+                              <div class="h-[7px] overflow-hidden rounded-2xl bg-[#EAEAEA]">
+                                <div
+                                  class="h-full rounded-2xl bg-[#2D2D2D]"
+                                  [style.width.%]="bar.percentage"
+                                ></div>
+                              </div>
+
+                              <span class="text-right text-[14px] leading-5 text-[#959595]"
+                                >{{ bar.percentage }}%</span
+                              >
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </aside>
+
+                <div class="space-y-7">
+                  <div class="flex items-center justify-between gap-4">
+                    <h3 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h3>
+                    <button
+                      type="button"
+                      class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EAEAEA] bg-white px-2 text-[14px] leading-5 text-[#1A1B1D]"
+                    >
+                      Most recent
+                      <img
+                        [ngSrc]="assets.reviewSortArrowDesktop"
+                        width="14"
+                        height="14"
+                        alt=""
+                        class="h-[14px] w-[14px]"
+                      />
+                    </button>
+                  </div>
+
+                  <div class="space-y-3">
+                    <p class="text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                      This vendor is great at..
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                      @for (tag of desktopReviewTags; track tag.label) {
+                        <span
+                          class="inline-flex items-center justify-center rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-4 py-2 text-[16px] font-medium leading-6 text-[#5A5A5A]"
+                        >
+                          {{ tag.label }} ({{ tag.count }})
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="space-y-8">
+                    @for (review of reviews(); track review.author) {
+                      <app-store-review-card
+                        [review]="review"
+                        mode="desktop"
+                        [starsImage]="assets.reviewStarsDesktop"
+                      ></app-store-review-card>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
       }
 
-      <!-- Side panel for editing -->
       @if (showEditModal()) {
         <app-store-edit-side-panel
-          [store]="store()" 
+          [store]="store()"
           (close)="showEditModal.set(false)"
           (save)="onSaveStore($event)"
         ></app-store-edit-side-panel>
@@ -340,153 +838,341 @@ import { StoreTabsComponent } from '../../components/stores/store-tabs.component
         ></app-promote-listing-modal>
       }
 
-      <!-- Modal for adding listings -->
       @if (showAddListingModal()) {
-        <app-add-listing-modal 
+        <app-add-listing-modal
           (close)="showAddListingModal.set(false)"
           (save)="onPublishListing($event)"
         ></app-add-listing-modal>
       }
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-      min-height: 100%;
-    }
-  `],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StoreDetailsDashboardComponent {
-  private route = inject(ActivatedRoute);
-  protected readonly fallbackAvatar = 'https://i.pravatar.cc/150?u=fallback-reviewer';
+  protected readonly chips = [
+    'All',
+    'Phones & Laptops',
+    'Women',
+    'Men',
+    'Beauty',
+    'Food & Drinks',
+    'Baby & Toddler',
+    'Home',
+    'Properties',
+    'Fitness & Nutrition',
+    'Accessories',
+    'Pet supplies',
+    'Toys & Games',
+    'Electronics',
+    'Arts & Crafts',
+    'Luggage & Bags',
+    'Sporting goods',
+  ] as const;
+  protected readonly assets = {
+    awardDesktop: '/assets/icons/store-filled-award-desktop.svg',
+    backMobile: '/assets/icons/store-filled-back-mobile.svg',
+    badgeDesktop: '/assets/icons/store-filled-badge-mobile.svg',
+    badgeMobile: '/assets/icons/store-filled-badge-mobile.svg',
+    editDesktop: '/assets/icons/store-filled-edit-desktop.svg',
+    editMobile: '/assets/icons/store-filled-edit-mobile.svg',
+    arrowLeftDesktop: '/assets/icons/store-filled-arrow-left-desktop.svg',
+    arrowRightDesktop: '/assets/icons/store-filled-arrow-right-desktop.svg',
+    arrowRightMobile: '/assets/icons/store-filled-arrow-right-mobile.svg',
+    heartDesktop: '/assets/icons/store-filled-heart-desktop.svg',
+    heartMobile: '/assets/icons/store-filled-heart-mobile.svg',
+    itemLocationDesktop: '/assets/icons/store-filled-item-location-desktop.svg',
+    itemLocationMobile: '/assets/icons/store-filled-item-location-mobile.svg',
+    locationDesktop: '/assets/icons/store-filled-location-desktop.svg',
+    locationMobile: '/assets/icons/store-filled-location-mobile.svg',
+    menuDotsDesktop: '/assets/icons/store-filled-menu-dots-desktop.svg',
+    starDesktop: '/assets/icons/store-filled-star-desktop.svg',
+    starMobile: '/assets/icons/store-filled-star-mobile.svg',
+    tabListingsDesktop: '/assets/icons/store-filled-tab-listings-desktop.svg',
+    tabListingsMobile: '/assets/icons/store-filled-tab-listings-mobile.svg',
+    tabReviewsDesktop: '/assets/icons/store-filled-tab-reviews-desktop.svg',
+    tabReviewsMobile: '/assets/icons/store-filled-tab-reviews-mobile.svg',
+    reviewSortArrowDesktop: '/assets/icons/store-reviews-sort-arrow-desktop.svg',
+    reviewSortArrowMobile: '/assets/icons/store-reviews-sort-arrow-mobile.svg',
+    reviewStarFilled: '/assets/icons/store-reviews-star-filled.svg',
+    reviewStarEmpty: '/assets/icons/store-reviews-star-empty.svg',
+    reviewStarsDesktop: '/assets/images/store-reviews-stars-desktop.svg',
+    reviewStarsMobile: '/assets/images/store-reviews-stars-mobile.svg',
+    verifyDesktop: '/assets/icons/store-filled-verify-desktop.svg',
+    verifyMobile: '/assets/icons/store-filled-verify-mobile.svg',
+  } as const;
 
-  activeTab = signal('listings');
-  showEditModal = signal(false);
-  showAddListingModal = signal(false);
-  showPromoteStoreModal = signal(false);
-  mobileStoreFilter = signal('All');
-  
-  isOwner = signal(true);
+  readonly activeTab = signal<StoreTab>('listings');
+  readonly activeChip = signal<string>('All');
+  readonly showEditModal = signal(false);
+  readonly showAddListingModal = signal(false);
+  readonly showPromoteStoreModal = signal(false);
 
-  store = signal<any>({
+  readonly store = signal<StoreProfile>({
     id: '1',
     name: 'The Vine Collections',
-    logo: 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png',
-    banner: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1200&h=400&fit=crop',
+    logo: '/assets/images/store-filled-logo-desktop.png',
+    mobileLogo: '/assets/images/store-filled-logo-mobile.png',
+    banner: '/assets/images/store-filled-banner-desktop.png',
+    mobileBanner: '/assets/images/store-filled-banner-mobile.png',
     isVerified: true,
     products: '1,456',
-    sales: '10.2k',
     followers: '2.5k',
     rating: '4.8',
     dateCreated: '16 Feb, 2024',
-    whatsappNumber: '+2348012345678',
-    callNumber: '+2348012345678',
+    dateJoined: '16 Feb, 2024',
+    promoted: true,
     location: 'Ikeja, Lagos',
-    email: 'contact@vinecollections.com'
+    whatsappNumber: '0816 939 7444',
+    callNumber: '0816 939 7444',
   });
 
-  products = signal<Listing[]>([
+  readonly desktopSections = signal<ProductSection[]>([
     {
-      id: 'p1',
-      title: 'iPhone 15 Pro Max - 256GB - Blue Titanium',
-      price: '₦1,850,000',
-      images: ['https://images.unsplash.com/photo-1696446701796-da61225697cc?w=400&h=400&fit=crop'],
-      location: 'Ikeja, Lagos',
-      timeAgo: '2 hours ago',
-      isVerified: true,
-      category: 'Mobiles'
-    } as any,
-    {
-      id: 'p2',
-      title: 'iPhone 14 Pro - 128GB - Deep Purple',
-      price: '₦1,250,000',
-      images: ['https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=400&h=400&fit=crop'],
-      location: 'Ikeja, Lagos',
-      timeAgo: '5 hours ago',
-      isVerified: true,
-      category: 'Mobiles'
-    } as any,
-    {
-      id: 'p3',
-      title: 'iPad Pro 12.9 M2 Chip - 512GB',
-      price: '₦1,450,000',
-      images: ['https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&h=400&fit=crop'],
-      location: 'Ikeja, Lagos',
-      timeAgo: '1 day ago',
-      category: 'iPads'
-    } as any,
-    {
-      id: 'p4',
-      title: 'Mercedes Benz GLE 450 - 2024 Model',
-      price: '₦145,000,000',
-      images: ['https://images.unsplash.com/photo-1614162692292-7ac56d777ac1?w=400&h=400&fit=crop'],
-      location: 'Ikeja, Lagos',
-      timeAgo: '3 hours ago',
-      isVerified: true,
-      category: 'Cars'
-    } as any,
-    {
-      id: 'p5',
-      title: 'Toyota Camry XSE - 2023 Model',
-      price: '₦45,000,000',
-      images: ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400&h=400&fit=crop'],
-      location: 'Victoria Island, Lagos',
-      timeAgo: '1 day ago',
-      category: 'Cars'
-    } as any
-  ]);
-
-
-  reviews = signal<Review[]>([
-    {
-      author: 'Amaka Eze',
-      avatar: 'https://i.pravatar.cc/150?u=amaka',
-      rating: 5,
-      text: 'I bought the iPhone 15 Pro Max from this store and the experience was seamless. The packaging was top-notch and the delivery was faster than expected. Communication with the vendor was also very professional.',
-      date: 'August 14, 2025',
-      images: [
-        'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=400&h=400&fit=crop',
-        'https://images.unsplash.com/photo-1696426319110-388902506b72?w=400&h=400&fit=crop',
-        'https://images.unsplash.com/photo-1695200388933-722102143cc9?w=400&h=400&fit=crop',
-        'https://images.unsplash.com/photo-1695653422718-97d25c1abc19?w=400&h=400&fit=crop'
-      ]
+      id: 'Phones & Laptops',
+      title: 'Phones & Laptops',
+      viewAllLabel: 'View all (3,341)',
+      items: [
+        {
+          id: 'd-1',
+          title: 'Iphone 17 pro max',
+          image: '/assets/images/store-filled-item-01.png',
+          price: '₦2,500,000',
+          location: 'Ikeja, Lagos',
+          showCarousel: true,
+        },
+        {
+          id: 'd-2',
+          title: 'Logitech ergonomic mouse',
+          image: '/assets/images/store-filled-item-02.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+        },
+        {
+          id: 'd-3',
+          title: 'RGB keyboard',
+          image: '/assets/images/store-filled-item-03.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+        },
+        {
+          id: 'd-4',
+          title: 'Iphone X (64 gig)',
+          image: '/assets/images/store-filled-item-04.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+          condition: 'Used',
+          isVerified: true,
+          discount: '-22%',
+          originalPrice: '₦35,000',
+        },
+        {
+          id: 'd-5',
+          title: 'Ergonomic chair',
+          image: '/assets/images/store-filled-item-05.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+          condition: 'New',
+        },
+      ],
     },
     {
-      author: 'Tunde Afolayan',
-      avatar: 'https://i.pravatar.cc/150?u=tunde',
-      rating: 4,
-      text: 'Good pricing and quality products. Happy with my purchase.',
-      date: 'July 28, 2025'
-    }
+      id: 'Men',
+      title: 'Men',
+      viewAllLabel: 'View all (3,341)',
+      items: [
+        {
+          id: 'd-6',
+          title: 'Corporate shirt',
+          image: '/assets/images/store-filled-item-06.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+        },
+        {
+          id: 'd-7',
+          title: 'Mclaren sports car',
+          image: '/assets/images/store-filled-item-07.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+        },
+        {
+          id: 'd-8',
+          title: 'Nike sneaker',
+          image: '/assets/images/store-filled-item-08.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+          isVerified: true,
+        },
+        {
+          id: 'd-9',
+          title: 'Sauvage perfume',
+          image: '/assets/images/store-filled-item-09.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+        },
+        {
+          id: 'd-10',
+          title: 'Luxury wrist watch',
+          image: '/assets/images/store-filled-item-10.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+        },
+      ],
+    },
   ]);
 
-  protected readonly mobileStoreFilters = computed(() => {
-    const categories = Array.from(
-      new Set(this.products().map((product) => ((product as Listing & { category?: string }).category ?? 'Other'))),
-    );
+  readonly mobileSections = signal<ProductSection[]>([
+    {
+      id: 'Phones & Laptops',
+      title: 'Phones & Laptops',
+      viewAllLabel: 'View all (3,341)',
+      items: [
+        {
+          id: 'm-1',
+          title: 'Nike sneaker',
+          image: '/assets/images/store-filled-item-08.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+          condition: 'Used',
+          isVerified: true,
+        },
+        {
+          id: 'm-2',
+          title: 'Bone straight wig',
+          image: '/assets/images/store-filled-item-11.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+          condition: 'Used',
+          showCarousel: true,
+        },
+        {
+          id: 'm-3',
+          title: 'Iphone X (64 gig)',
+          image: '/assets/images/store-filled-item-04.png',
+          price: '₦35,000',
+          originalPrice: '₦35,000',
+          location: 'Ikeja, Lagos',
+          condition: 'Used',
+          isVerified: true,
+          discount: '-22%',
+        },
+        {
+          id: 'm-4',
+          title: 'Ergonomic chair',
+          image: '/assets/images/store-filled-item-05.png',
+          price: 'Free',
+          location: 'Ikeja, Lagos',
+          condition: 'New',
+          isVerified: true,
+        },
+      ],
+    },
+    {
+      id: 'Men',
+      title: 'Men',
+      viewAllLabel: 'View all (3,341)',
+      items: [
+        {
+          id: 'm-5',
+          title: 'Nike sneaker',
+          image: '/assets/images/store-filled-item-08.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+          condition: 'Used',
+          isVerified: true,
+        },
+        {
+          id: 'm-6',
+          title: 'Bone straight wig',
+          image: '/assets/images/store-filled-item-11.png',
+          price: '₦35,000',
+          location: 'Ikeja, Lagos',
+          condition: 'Used',
+          showCarousel: true,
+        },
+        {
+          id: 'm-7',
+          title: 'Iphone X (64 gig)',
+          image: '/assets/images/store-filled-item-04.png',
+          price: '₦35,000',
+          originalPrice: '₦35,000',
+          location: 'Ikeja, Lagos',
+          condition: 'Used',
+          isVerified: true,
+          discount: '-22%',
+        },
+        {
+          id: 'm-8',
+          title: 'Ergonomic chair',
+          image: '/assets/images/store-filled-item-05.png',
+          price: 'Free',
+          location: 'Ikeja, Lagos',
+          condition: 'New',
+          isVerified: true,
+        },
+      ],
+    },
+  ]);
 
-    return ['All', ...categories];
+  readonly reviews = signal<StoreReviewCardData[]>([
+    {
+      author: 'Mary Jane',
+      avatar: '/assets/images/store-reviews-avatar-mary.jpg',
+      rating: 4,
+      text: 'Contacted the seller. Went to their office to purchase the item and their hospitality was okay. Truly reliable. And he’s a funny man 😂',
+      desktopDate: 'August 14, 2025',
+      mobileDate: 'August 2025',
+    },
+    {
+      author: 'Apeli Obubra',
+      avatar: '/assets/images/store-reviews-avatar-apeli.jpg',
+      rating: 4,
+      text: 'Straightforward guy! easy transaction great goods',
+      desktopDate: 'August 14, 2025',
+      mobileDate: 'August 2025',
+    },
+    {
+      author: 'Ibiso Amiesimaka',
+      avatar: '/assets/images/store-reviews-avatar-ibiso.png',
+      rating: 4,
+      text: 'infact it was amazing if everyone is like this Nigeria will be better than this i advice everybody that wants to by laptop should call this man',
+      desktopDate: 'August 14, 2025',
+      mobileDate: 'August 2025',
+      galleryOverflowCount: 6,
+      galleryImages: [
+        '/assets/images/store-reviews-gallery-1.png',
+        '/assets/images/store-reviews-gallery-2.png',
+        '/assets/images/store-reviews-gallery-3.png',
+        '/assets/images/store-reviews-gallery-4.png',
+        '/assets/images/store-reviews-gallery-5.png',
+        '/assets/images/store-reviews-gallery-6.png',
+      ],
+    },
+  ]);
+
+  protected readonly desktopStats = computed(() => [
+    { label: 'Followers', value: this.store().followers },
+    { label: 'Listings', value: this.store().products },
+    { label: 'Rating', value: this.store().rating, highlightIcon: 'star' as const },
+    { label: 'Date created', value: this.store().dateCreated },
+  ]);
+
+  protected readonly mobileStats = computed(() => [
+    { label: 'Followers', value: this.store().followers },
+    { label: 'Products', value: this.store().products },
+    { label: 'Rating', value: this.store().rating, highlightIcon: 'star' as const },
+    { label: 'Date joined', value: this.store().dateJoined },
+  ]);
+
+  protected readonly filteredDesktopSections = computed(() => {
+    const chip = this.activeChip();
+    const sections = this.desktopSections();
+    return chip === 'All' ? sections : sections.filter((section) => section.id === chip);
   });
 
-  protected readonly mobileProductGroups = computed(() => {
-    const selectedFilter = this.mobileStoreFilter();
-    const items = selectedFilter === 'All'
-      ? this.products()
-      : this.products().filter((product) => ((product as Listing & { category?: string }).category ?? 'Other') === selectedFilter);
-
-    const grouped = new Map<string, Listing[]>();
-    for (const product of items) {
-      const category = ((product as Listing & { category?: string }).category ?? 'Other');
-      const existing = grouped.get(category) ?? [];
-      existing.push(product);
-      grouped.set(category, existing);
-    }
-
-    return Array.from(grouped.entries()).map(([name, groupedItems]) => ({
-      name,
-      items: groupedItems,
-    }));
+  protected readonly filteredMobileSections = computed(() => {
+    const chip = this.activeChip();
+    const sections = this.mobileSections();
+    return chip === 'All' ? sections : sections.filter((section) => section.id === chip);
   });
 
   protected readonly reviewDistribution = [
@@ -497,7 +1183,15 @@ export class StoreDetailsDashboardComponent {
     { stars: 1, percentage: 2 },
   ] as const;
 
-  protected readonly reviewTags = [
+  protected readonly desktopReviewTags = [
+    { label: 'Timely response', count: 16 },
+    { label: 'Safety', count: 7 },
+    { label: 'Credibility', count: 7 },
+    { label: 'Manners', count: 7 },
+    { label: 'Hospitality', count: 7 },
+  ] as const;
+
+  protected readonly mobileReviewTags = [
     { label: 'Fast response', count: 16 },
     { label: 'Friendly', count: 7 },
     { label: 'Smooth transaction', count: 7 },
@@ -505,32 +1199,48 @@ export class StoreDetailsDashboardComponent {
     { label: 'Honest pricing', count: 7 },
   ] as const;
 
-  constructor() {}
+  protected readonly reviewStarsRange = [1, 2, 3, 4, 5] as const;
 
-  openEditModal() {
+  protected readonly desktopTabIndicatorTransform = computed(() =>
+    this.activeTab() === 'listings' ? 'translateX(8px)' : 'translateX(109px)',
+  );
+
+  protected readonly mobileTabIndicatorTransform = computed(() =>
+    this.activeTab() === 'listings' ? 'translateX(12px)' : 'translateX(114px)',
+  );
+
+  openEditModal(): void {
     this.showEditModal.set(true);
   }
 
-  onSaveStore(updatedStore: any) {
-    this.store.update(prev => ({ ...prev, ...updatedStore }));
+  onSaveStore(updatedStore: Partial<StoreProfile>): void {
+    this.store.update((previousStore) => ({ ...previousStore, ...updatedStore }));
     this.showEditModal.set(false);
   }
 
-  onPublishListing(data: any) {
-    const newProduct: Listing = {
-      id: 'p' + (this.products().length + 1),
+  onPublishListing(data: ListingData): void {
+    const product: StoreProduct = {
+      id: `desktop-${Date.now()}`,
       title: data.name,
-      price: data.currency === 'NGN' ? `₦${data.price.toLocaleString()}` : `$${data.price.toLocaleString()}`,
-      images: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'],
+      image: '/assets/images/store-filled-item-12.png',
+      price:
+        data.currency === 'NGN'
+          ? `₦${data.price.toLocaleString()}`
+          : `$${data.price.toLocaleString()}`,
       location: this.store().location,
-      timeAgo: 'Just now',
-      isVerified: true
+      condition: 'New',
     };
-    this.products.update(p => [newProduct, ...p]);
-    this.showAddListingModal.set(false);
-  }
 
-  protected reviewStars(rating: number): boolean[] {
-    return Array.from({ length: 5 }, (_, index) => index < rating);
+    this.desktopSections.update((sections) =>
+      sections.map((section, index) =>
+        index === 0 ? { ...section, items: [product, ...section.items] } : section,
+      ),
+    );
+    this.mobileSections.update((sections) =>
+      sections.map((section, index) =>
+        index === 0 ? { ...section, items: [product, ...section.items] } : section,
+      ),
+    );
+    this.showAddListingModal.set(false);
   }
 }
