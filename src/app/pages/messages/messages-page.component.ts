@@ -25,6 +25,9 @@ interface Conversation {
 interface StoreOption {
   id: string;
   label: string;
+  subtitle?: string;
+  variant: 'all' | 'store' | 'profile';
+  avatar?: string;
 }
 
 @Component({
@@ -44,42 +47,67 @@ interface StoreOption {
           @if (!isBuyerView()) {
             <button
               type="button"
+              (click)="openStoreSelector()"
               class="flex h-12 w-[296px] items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
+              aria-haspopup="dialog"
+              [attr.aria-expanded]="isStoreSelectorOpen()"
             >
               <span class="flex items-center gap-2">
                 <span class="relative h-8 w-[68px] shrink-0">
-                  <img
-                    [ngSrc]="assets.selectorAvatarOne"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <img
-                    [ngSrc]="assets.selectorAvatarTwo"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <img
-                    [ngSrc]="assets.selectorAvatarThree"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <span
-                    class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                  >
+                  @if (selectedStore().variant === 'all') {
                     <img
-                      [ngSrc]="assets.selectorStoreIconDesktop"
-                      width="21"
-                      height="16"
+                      [ngSrc]="assets.selectorAvatarOne"
+                      width="32"
+                      height="32"
                       alt=""
-                      class="h-4 w-[21px]"
+                      class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
                     />
-                  </span>
+                    <img
+                      [ngSrc]="assets.selectorAvatarTwo"
+                      width="32"
+                      height="32"
+                      alt=""
+                      class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                    />
+                    <img
+                      [ngSrc]="assets.selectorAvatarThree"
+                      width="32"
+                      height="32"
+                      alt=""
+                      class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                    />
+                    <span
+                      class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                    >
+                      <img
+                        [ngSrc]="assets.selectorStoreIconDesktop"
+                        width="21"
+                        height="16"
+                        alt=""
+                        class="h-4 w-[21px]"
+                      />
+                    </span>
+                  } @else if (selectedStore().variant === 'store') {
+                    <span
+                      class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
+                    >
+                      <img
+                        [ngSrc]="assets.selectorStoreIconDesktop"
+                        width="21"
+                        height="16"
+                        alt=""
+                        class="h-4 w-[21px]"
+                      />
+                    </span>
+                  } @else {
+                    <img
+                      [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
+                      width="32"
+                      height="32"
+                      alt=""
+                      class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
+                    />
+                  }
                 </span>
 
                 <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
@@ -375,42 +403,67 @@ interface StoreOption {
           @if (!isBuyerView()) {
             <button
               type="button"
+              (click)="openStoreSelector()"
               class="mt-6 flex h-12 w-full items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2"
+              aria-haspopup="dialog"
+              [attr.aria-expanded]="isStoreSelectorOpen()"
             >
               <span class="flex items-center gap-2">
                 <span class="relative h-8 w-[68px] shrink-0">
-                  <img
-                    [ngSrc]="assets.selectorAvatarOne"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <img
-                    [ngSrc]="assets.selectorAvatarTwo"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <img
-                    [ngSrc]="assets.selectorAvatarThree"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <span
-                    class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                  >
+                  @if (selectedStore().variant === 'all') {
                     <img
-                      [ngSrc]="assets.selectorStoreIconMobile"
-                      width="21"
-                      height="16"
+                      [ngSrc]="assets.selectorAvatarOne"
+                      width="32"
+                      height="32"
                       alt=""
-                      class="h-4 w-[21px]"
+                      class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
                     />
-                  </span>
+                    <img
+                      [ngSrc]="assets.selectorAvatarTwo"
+                      width="32"
+                      height="32"
+                      alt=""
+                      class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                    />
+                    <img
+                      [ngSrc]="assets.selectorAvatarThree"
+                      width="32"
+                      height="32"
+                      alt=""
+                      class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                    />
+                    <span
+                      class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                    >
+                      <img
+                        [ngSrc]="assets.selectorStoreIconMobile"
+                        width="21"
+                        height="16"
+                        alt=""
+                        class="h-4 w-[21px]"
+                      />
+                    </span>
+                  } @else if (selectedStore().variant === 'store') {
+                    <span
+                      class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
+                    >
+                      <img
+                        [ngSrc]="assets.selectorStoreIconMobile"
+                        width="21"
+                        height="16"
+                        alt=""
+                        class="h-4 w-[21px]"
+                      />
+                    </span>
+                  } @else {
+                    <img
+                      [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
+                      width="32"
+                      height="32"
+                      alt=""
+                      class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
+                    />
+                  }
                 </span>
 
                 <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
@@ -643,41 +696,259 @@ interface StoreOption {
         <footer
           class="absolute inset-x-0 bottom-0 border-t border-[#EEEEEE] bg-white px-[15px] py-[8px]"
         >
-          <div class="flex h-[46px] items-center gap-4">
-            @if (!hasDraftMessage()) {
-              <button type="button" class="shrink-0">
-                <img [ngSrc]="assets.galleryMobile" width="24" height="24" alt="" class="h-6 w-6" />
-              </button>
-            }
-
+          @if (isRecordingVoice()) {
             <div
-              class="flex h-[46px] min-w-0 flex-1 items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] pl-[13px]"
-              [class.pr-[13px]]="!hasDraftMessage()"
-              [class.pr-1]="hasDraftMessage()"
+              class="mx-auto flex h-[46px] w-full max-w-[350px] items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] px-[2.4px]"
             >
-              <input
-                type="text"
-                [value]="draftMessage()"
-                (input)="updateDraftMessage($event)"
-                placeholder="Type a message..."
-                class="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#2D2D2D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
-              />
+              <button
+                type="button"
+                aria-label="Cancel recording"
+                (click)="stopVoiceRecording()"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white"
+              >
+                <img
+                  [ngSrc]="assets.recordingCancelMobile"
+                  width="24"
+                  height="24"
+                  alt=""
+                  class="h-6 w-6 -rotate-45"
+                />
+              </button>
 
+              <span class="ml-[11px] text-[14px] font-medium leading-5 text-[#FF2524]">
+                Recording...
+              </span>
+
+              <div class="ml-auto flex items-center gap-2 pr-[14px]">
+                <span class="w-[33px] text-[14px] leading-5 text-[#666666]">0:06</span>
+                <img
+                  [ngSrc]="assets.recordingMicMobile"
+                  width="20"
+                  height="20"
+                  alt=""
+                  class="h-5 w-5"
+                />
+              </div>
+
+              <button
+                type="button"
+                aria-label="Send voice note"
+                (click)="stopVoiceRecording()"
+                class="flex h-10 w-[58px] shrink-0 items-center justify-center rounded-full bg-[#6453D9]"
+              >
+                <img
+                  [ngSrc]="assets.recordingSendMobile"
+                  width="24"
+                  height="24"
+                  alt=""
+                  class="h-6 w-6"
+                />
+              </button>
+            </div>
+          } @else {
+            <div class="flex h-[46px] items-center gap-4">
               @if (!hasDraftMessage()) {
-                <button type="button" class="shrink-0">
-                  <img [ngSrc]="assets.micMobile" width="24" height="24" alt="" class="h-6 w-6" />
-                </button>
-              } @else {
-                <button
-                  type="button"
-                  class="flex h-10 w-[58px] shrink-0 items-center justify-center rounded-full bg-[#6453D9]"
-                >
-                  <img [ngSrc]="assets.sendMobile" width="24" height="24" alt="" class="h-6 w-6" />
+                <button type="button" aria-label="Open gallery" class="shrink-0">
+                  <img
+                    [ngSrc]="assets.galleryMobile"
+                    width="24"
+                    height="24"
+                    alt=""
+                    class="h-6 w-6"
+                  />
                 </button>
               }
+
+              <div
+                class="flex h-[46px] min-w-0 flex-1 items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] pl-[13px]"
+                [class.pr-[13px]]="!hasDraftMessage()"
+                [class.pr-1]="hasDraftMessage()"
+              >
+                <input
+                  type="text"
+                  [value]="draftMessage()"
+                  (input)="updateDraftMessage($event)"
+                  placeholder="Type a message..."
+                  class="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#2D2D2D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
+                />
+
+                @if (!hasDraftMessage()) {
+                  <button
+                    type="button"
+                    aria-label="Record voice note"
+                    (click)="startVoiceRecording()"
+                    class="shrink-0"
+                  >
+                    <img [ngSrc]="assets.micMobile" width="24" height="24" alt="" class="h-6 w-6" />
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    aria-label="Send message"
+                    class="flex h-10 w-[58px] shrink-0 items-center justify-center rounded-full bg-[#6453D9]"
+                  >
+                    <img
+                      [ngSrc]="assets.sendMobile"
+                      width="24"
+                      height="24"
+                      alt=""
+                      class="h-6 w-6"
+                    />
+                  </button>
+                }
+              </div>
             </div>
-          </div>
+          }
         </footer>
+      </section>
+    }
+
+    @if (isStoreSelectorOpen() && !isBuyerView()) {
+      <section
+        class="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(13,13,13,0.18)] md:items-start md:bg-[rgba(13,13,13,0.08)] md:px-6 md:pt-[86px]"
+        aria-label="Select store"
+        role="dialog"
+        aria-modal="true"
+      >
+        <button
+          type="button"
+          (click)="closeStoreSelector()"
+          aria-label="Close store selector"
+          class="absolute inset-0"
+        ></button>
+
+        <div
+          class="relative z-[1] w-full rounded-t-[36px] bg-white px-4 pb-10 pt-20 md:w-[366px] md:rounded-[36px] md:px-4 md:pb-8 md:shadow-[0_20px_40px_rgba(0,0,0,0.08)]"
+        >
+          <div
+            class="absolute left-1/2 top-[11px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB]"
+          ></div>
+
+          <button
+            type="button"
+            (click)="closeStoreSelector()"
+            aria-label="Close store selector"
+            class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+          >
+            <img
+              [ngSrc]="assets.storeSelectorClose"
+              width="24"
+              height="24"
+              alt=""
+              class="h-6 w-6"
+            />
+          </button>
+
+          <label class="flex h-10 items-center gap-2 rounded-full bg-[#FAFAFA] px-3">
+            <img [ngSrc]="assets.searchMobile" width="16" height="16" alt="" class="h-4 w-4" />
+            <input
+              type="text"
+              [value]="storeSearchTerm()"
+              (input)="updateStoreSearch($event)"
+              placeholder="Search stores"
+              class="w-full bg-transparent text-[14px] leading-5 text-[#0D0D0D] outline-none placeholder:text-[#777777]"
+            />
+          </label>
+
+          <div class="mt-4 space-y-4">
+            @for (store of filteredStoreOptions(); track store.id) {
+              <button
+                type="button"
+                (click)="selectStore(store.id)"
+                class="flex w-full items-center justify-between text-left"
+              >
+                <span class="flex min-w-0 items-center gap-2">
+                  @if (store.variant === 'all') {
+                    <span class="relative h-[19px] w-10 shrink-0">
+                      <img
+                        [ngSrc]="assets.selectorAvatarOne"
+                        width="19"
+                        height="19"
+                        alt=""
+                        class="absolute left-0 top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
+                      />
+                      <img
+                        [ngSrc]="assets.selectorAvatarTwo"
+                        width="19"
+                        height="19"
+                        alt=""
+                        class="absolute left-[7px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
+                      />
+                      <img
+                        [ngSrc]="assets.selectorAvatarThree"
+                        width="19"
+                        height="19"
+                        alt=""
+                        class="absolute left-[14px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
+                      />
+                      <span
+                        class="absolute left-[21px] top-0 flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                      >
+                        <img
+                          [ngSrc]="assets.selectorStoreIconMobile"
+                          width="12"
+                          height="10"
+                          alt=""
+                          class="h-[10px] w-3"
+                        />
+                      </span>
+                    </span>
+
+                    <span class="text-[16px] font-medium leading-5 text-[#0D0D0D]">
+                      {{ store.label }}
+                    </span>
+                  } @else {
+                    <span
+                      class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
+                      [class.bg-[#3D785F]]="store.id === 'vine'"
+                      [class.bg-white]="store.id === 'eden'"
+                      [class.bg-[#F3F3F3]]="store.id === 'personal'"
+                    >
+                      @if (store.id === 'vine') {
+                        <img
+                          [ngSrc]="assets.selectorStoreIconMobile"
+                          width="24"
+                          height="18"
+                          alt=""
+                          class="h-[18px] w-6"
+                        />
+                      } @else {
+                        <img
+                          [ngSrc]="store.avatar ?? assets.storeSelectorEden"
+                          width="40"
+                          height="40"
+                          alt=""
+                          class="h-10 w-10 object-cover"
+                        />
+                      }
+                    </span>
+
+                    <span class="min-w-0">
+                      <span class="block truncate text-[16px] font-medium leading-5 text-[#1A1B1D]">
+                        {{ store.label }}
+                      </span>
+                      <span class="mt-1 block truncate text-[12px] leading-5 text-[#8C8C8C]">
+                        {{ store.subtitle }}
+                      </span>
+                    </span>
+                  }
+                </span>
+
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center">
+                  @if (selectedStoreId() === store.id) {
+                    <img
+                      [ngSrc]="assets.storeSelectorCheck"
+                      width="24"
+                      height="24"
+                      alt=""
+                      class="h-6 w-6"
+                    />
+                  }
+                </span>
+              </button>
+            }
+          </div>
+        </div>
       </section>
     }
   `,
@@ -730,11 +1001,18 @@ export class MessagesPageComponent implements OnDestroy {
     bryanBadgeMobile: '/assets/icons/chats-bryan-badge-mobile.svg',
     micDesktop: '/assets/icons/chats-mic-desktop.svg',
     micMobile: '/assets/icons/chats-mic-mobile.svg',
+    recordingCancelMobile: '/assets/icons/chats-recording-cancel-mobile.svg',
+    recordingMicMobile: '/assets/icons/chats-recording-mic-mobile.svg',
+    recordingSendMobile: '/assets/icons/chats-recording-send-mobile.svg',
     searchDesktop: '/assets/icons/chats-search-desktop.svg',
     searchMobile: '/assets/icons/chats-search-mobile.svg',
-    selectorAvatarOne: '/assets/images/chats-selector-avatar-1.png',
-    selectorAvatarThree: '/assets/images/chats-store-badge-desktop.png',
-    selectorAvatarTwo: '/assets/images/chats-selector-avatar-2.png',
+    selectorAvatarOne: '/assets/images/chats-store-selector-avatar-1.png',
+    selectorAvatarThree: '/assets/images/chats-store-selector-avatar-3.png',
+    selectorAvatarTwo: '/assets/images/chats-store-selector-avatar-2.png',
+    storeSelectorCheck: '/assets/icons/chats-store-selector-check.svg',
+    storeSelectorClose: '/assets/icons/chats-store-selector-close.svg',
+    storeSelectorEden: '/assets/images/chats-store-selector-eden.png',
+    storeSelectorPersonal: '/assets/images/chats-store-selector-personal.png',
     selectorStoreIconDesktop: '/assets/icons/chats-selector-store-icon-desktop.svg',
     selectorStoreIconMobile: '/assets/icons/chats-selector-store-icon-mobile.svg',
     sendMobile: '/assets/icons/chats-send-mobile.svg',
@@ -742,16 +1020,37 @@ export class MessagesPageComponent implements OnDestroy {
   } as const;
 
   readonly isMobileConversationOpen = signal(false);
+  readonly isRecordingVoice = signal(false);
+  readonly isStoreSelectorOpen = signal(false);
   readonly activeChatId = signal('2');
   readonly draftMessage = signal('');
+  readonly storeSearchTerm = signal('');
   readonly selectedStoreId = signal('all');
   readonly isBuyerView = computed(() => this.router.url.startsWith('/buyer'));
   readonly hasDraftMessage = computed(() => this.draftMessage().trim().length > 0);
 
   readonly storeOptions: readonly StoreOption[] = [
-    { id: 'all', label: 'All stores (4)' },
-    { id: 'vine', label: 'The Vine Collections' },
-    { id: 'personal', label: 'Personal profile' },
+    { id: 'all', label: 'All stores (4)', variant: 'all' },
+    {
+      id: 'vine',
+      label: 'The Vine Collections',
+      subtitle: 'Ikeja, Lagos',
+      variant: 'store',
+    },
+    {
+      id: 'eden',
+      label: 'Eden Organics',
+      subtitle: 'Warri, Delta',
+      variant: 'profile',
+      avatar: '/assets/images/chats-store-selector-eden.png',
+    },
+    {
+      id: 'personal',
+      label: 'Personal profile',
+      subtitle: 'Bryan Odjede',
+      variant: 'profile',
+      avatar: '/assets/images/chats-store-selector-personal.png',
+    },
   ];
 
   readonly conversations = signal<Conversation[]>([
@@ -794,6 +1093,26 @@ export class MessagesPageComponent implements OnDestroy {
       'All stores (4)',
   );
 
+  readonly selectedStore = computed(
+    () =>
+      this.storeOptions.find((store) => store.id === this.selectedStoreId()) ??
+      this.storeOptions[0],
+  );
+
+  readonly filteredStoreOptions = computed(() => {
+    const query = this.storeSearchTerm().trim().toLowerCase();
+
+    if (!query) {
+      return this.storeOptions;
+    }
+
+    return this.storeOptions.filter((store) =>
+      [store.label, store.subtitle]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLowerCase().includes(query)),
+    );
+  });
+
   readonly activeDesktopConversation = computed(
     () =>
       this.conversations().find((conversation) => conversation.id === this.activeChatId()) ??
@@ -808,6 +1127,8 @@ export class MessagesPageComponent implements OnDestroy {
 
   protected openMobileConversation(chatId: string): void {
     this.activeChatId.set(chatId);
+    this.isRecordingVoice.set(false);
+    this.isStoreSelectorOpen.set(false);
     this.isMobileConversationOpen.set(true);
 
     if (!this.mobileConversationOverlayOpen) {
@@ -817,6 +1138,7 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   protected closeMobileConversation(): void {
+    this.isRecordingVoice.set(false);
     this.isMobileConversationOpen.set(false);
 
     if (this.mobileConversationOverlayOpen) {
@@ -828,6 +1150,33 @@ export class MessagesPageComponent implements OnDestroy {
   protected updateDraftMessage(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     this.draftMessage.set(input?.value ?? '');
+  }
+
+  protected openStoreSelector(): void {
+    this.isStoreSelectorOpen.set(true);
+  }
+
+  protected closeStoreSelector(): void {
+    this.isStoreSelectorOpen.set(false);
+    this.storeSearchTerm.set('');
+  }
+
+  protected selectStore(storeId: string): void {
+    this.selectedStoreId.set(storeId);
+    this.closeStoreSelector();
+  }
+
+  protected updateStoreSearch(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    this.storeSearchTerm.set(input?.value ?? '');
+  }
+
+  protected startVoiceRecording(): void {
+    this.isRecordingVoice.set(true);
+  }
+
+  protected stopVoiceRecording(): void {
+    this.isRecordingVoice.set(false);
   }
 
   ngOnDestroy(): void {

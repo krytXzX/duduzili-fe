@@ -8,7 +8,7 @@ import { AdminDashboardLayoutComponent } from './components/layout/admin-dashboa
 // Mock guard
 const isLoggedin = () => {
   return true;
-}
+};
 export const routes: Routes = [
   // Home (Specific match for empty path)
   {
@@ -29,57 +29,49 @@ export const routes: Routes = [
       {
         path: 'wishlist',
         loadComponent: () =>
-          import('./pages/buyer/wishlist-page.component').then(
-            (m) => m.BuyerWishlistPageComponent
-          ),
+          import('./pages/buyer/wishlist-page.component').then((m) => m.BuyerWishlistPageComponent),
       },
       {
         path: 'chats',
         loadComponent: () =>
-          import('./pages/messages/messages-page.component').then(
-            (m) => m.MessagesPageComponent
-          ),
+          import('./pages/messages/messages-page.component').then((m) => m.MessagesPageComponent),
       },
       {
         path: 'followed-stores',
         loadComponent: () =>
           import('./pages/buyer/followed-stores-page.component').then(
-            (m) => m.BuyerFollowedStoresPageComponent
+            (m) => m.BuyerFollowedStoresPageComponent,
           ),
       },
       {
         path: 'followed-stores/:id',
         loadComponent: () =>
           import('./pages/buyer/followed-store-details-page.component').then(
-            (m) => m.BuyerFollowedStoreDetailsPageComponent
+            (m) => m.BuyerFollowedStoreDetailsPageComponent,
           ),
       },
       {
         path: 'recently-viewed',
         loadComponent: () =>
           import('./pages/buyer/recently-viewed-page.component').then(
-            (m) => m.BuyerRecentlyViewedPageComponent
+            (m) => m.BuyerRecentlyViewedPageComponent,
           ),
       },
       {
         path: 'settings',
         loadComponent: () =>
-          import('./pages/settings/settings-page.component').then(
-            (m) => m.SettingsPageComponent
-          ),
+          import('./pages/settings/settings-page.component').then((m) => m.SettingsPageComponent),
       },
       {
         path: 'more',
         loadComponent: () =>
-          import('./pages/more/more-page.component').then(
-            (m) => m.MorePageComponent
-          ),
+          import('./pages/more/more-page.component').then((m) => m.MorePageComponent),
       },
       {
         path: 'notifications',
         loadComponent: () =>
           import('./pages/notifications/notifications-page.component').then(
-            (m) => m.NotificationsPageComponent
+            (m) => m.NotificationsPageComponent,
           ),
       },
     ],
@@ -87,9 +79,7 @@ export const routes: Routes = [
   {
     path: 'admin/invite',
     loadComponent: () =>
-      import('./pages/admin/admin-home-page.component').then(
-        (m) => m.AdminHomePageComponent
-      ),
+      import('./pages/admin/admin-home-page.component').then((m) => m.AdminHomePageComponent),
   },
   {
     path: 'admin',
@@ -105,144 +95,130 @@ export const routes: Routes = [
         path: 'home',
         loadComponent: () =>
           import('./pages/admin/admin-dashboard-home-page.component').then(
-            (m) => m.AdminDashboardHomePageComponent
+            (m) => m.AdminDashboardHomePageComponent,
           ),
       },
       {
         path: 'users',
         loadComponent: () =>
-          import('./pages/admin/admin-users-page.component').then(
-            (m) => m.AdminUsersPageComponent
-          ),
+          import('./pages/admin/admin-users-page.component').then((m) => m.AdminUsersPageComponent),
       },
       {
         path: 'users/:id',
         loadComponent: () =>
           import('./pages/admin/admin-user-details-page.component').then(
-            (m) => m.AdminUserDetailsPageComponent
+            (m) => m.AdminUserDetailsPageComponent,
           ),
       },
       {
         path: 'listings',
         loadComponent: () =>
           import('./pages/admin/admin-listings-page.component').then(
-            (m) => m.AdminListingsPageComponent
+            (m) => m.AdminListingsPageComponent,
           ),
       },
       {
         path: 'stores',
         loadComponent: () =>
           import('./pages/admin/admin-stores-page.component').then(
-            (m) => m.AdminStoresPageComponent
+            (m) => m.AdminStoresPageComponent,
           ),
       },
       {
         path: 'stores/:id',
         loadComponent: () =>
           import('./pages/admin/admin-store-details-page.component').then(
-            (m) => m.AdminStoreDetailsPageComponent
+            (m) => m.AdminStoreDetailsPageComponent,
           ),
       },
       {
         path: 'listings/:id',
         loadComponent: () =>
           import('./pages/admin/admin-listing-details-page.component').then(
-            (m) => m.AdminListingDetailsPageComponent
+            (m) => m.AdminListingDetailsPageComponent,
           ),
       },
       {
         path: 'ads',
         loadComponent: () =>
-          import('./pages/ads/ads-page.component').then(
-            (m) => m.AdsPageComponent
-          ),
+          import('./pages/ads/ads-page.component').then((m) => m.AdsPageComponent),
       },
       {
         path: 'ads/plans',
         loadComponent: () =>
           import('./pages/admin/admin-ads-plans-page.component').then(
-            (m) => m.AdminAdsPlansPageComponent
+            (m) => m.AdminAdsPlansPageComponent,
           ),
       },
       {
         path: 'ads/running',
         loadComponent: () =>
           import('./pages/admin/admin-running-ads-page.component').then(
-            (m) => m.AdminRunningAdsPageComponent
+            (m) => m.AdminRunningAdsPageComponent,
           ),
       },
       {
         path: 'ads/approvals',
         loadComponent: () =>
           import('./pages/admin/admin-ads-approvals-page.component').then(
-            (m) => m.AdminAdsApprovalsPageComponent
+            (m) => m.AdminAdsApprovalsPageComponent,
           ),
       },
       {
         path: 'ads/transactions',
         loadComponent: () =>
           import('./pages/admin/admin-ads-transactions-page.component').then(
-            (m) => m.AdminAdsTransactionsPageComponent
+            (m) => m.AdminAdsTransactionsPageComponent,
           ),
       },
       {
         path: 'kyc-requests',
         loadComponent: () =>
           import('./pages/admin/admin-kyc-requests-page.component').then(
-            (m) => m.AdminKycRequestsPageComponent
+            (m) => m.AdminKycRequestsPageComponent,
           ),
       },
       {
         path: 'reports',
         loadComponent: () =>
           import('./pages/admin/admin-reports-page.component').then(
-            (m) => m.AdminReportsPageComponent
+            (m) => m.AdminReportsPageComponent,
           ),
       },
       {
         path: 'analytics',
         loadComponent: () =>
           import('./pages/admin/admin-analytics-page.component').then(
-            (m) => m.AdminAnalyticsPageComponent
+            (m) => m.AdminAnalyticsPageComponent,
           ),
       },
       {
         path: 'audit-log',
         loadComponent: () =>
           import('./pages/admin/admin-audit-log-page.component').then(
-            (m) => m.AdminAuditLogPageComponent
+            (m) => m.AdminAuditLogPageComponent,
           ),
       },
       {
         path: 'team-management',
         loadComponent: () =>
           import('./pages/admin/admin-team-management-page.component').then(
-            (m) => m.AdminTeamManagementPageComponent
+            (m) => m.AdminTeamManagementPageComponent,
           ),
       },
       {
         path: 'settings',
         loadComponent: () =>
-          import('./pages/settings/settings-page.component').then(
-            (m) => m.SettingsPageComponent
-          ),
+          import('./pages/settings/settings-page.component').then((m) => m.SettingsPageComponent),
       },
       {
         path: 'notifications',
         loadComponent: () =>
           import('./pages/notifications/notifications-page.component').then(
-            (m) => m.NotificationsPageComponent
+            (m) => m.NotificationsPageComponent,
           ),
       },
     ],
-  },
-  {
-    path: 'more',
-    canActivate: [isLoggedin],
-    loadComponent: () =>
-      import('./pages/more/more-page.component').then(
-        (m) => m.MorePageComponent
-      ),
   },
   // Dashboard Routes
   {
@@ -253,128 +229,113 @@ export const routes: Routes = [
       {
         path: 'listings',
         loadComponent: () =>
-          import('./pages/listings/listings-page.component').then(
-            (m) => m.ListingsPageComponent
-          ),
+          import('./pages/listings/listings-page.component').then((m) => m.ListingsPageComponent),
       },
       {
         path: 'listings/:id',
         loadComponent: () =>
           import('./pages/listings/listing-details-page').then(
-            (m) => m.ListingDetailsPageComponent
+            (m) => m.ListingDetailsPageComponent,
           ),
       },
       {
         path: 'my-stores',
         loadComponent: () =>
-          import('./pages/my-stores/my-stores-page.component').then(
-            (m) => m.MyStoresPageComponent
-          ),
+          import('./pages/my-stores/my-stores-page.component').then((m) => m.MyStoresPageComponent),
         pathMatch: 'full',
       },
       {
         path: 'my-stores/:id',
         loadComponent: () =>
           import('./pages/store/store-details-dashboard.component').then(
-            (m) => m.StoreDetailsDashboardComponent
+            (m) => m.StoreDetailsDashboardComponent,
           ),
       },
       {
         path: 'messages',
         loadComponent: () =>
-          import('./pages/messages/messages-page.component').then(
-            (m) => m.MessagesPageComponent
-          ),
+          import('./pages/messages/messages-page.component').then((m) => m.MessagesPageComponent),
       },
       {
         path: 'requests',
         loadComponent: () =>
-          import('./pages/requests/requests-page.component').then(
-            (m) => m.RequestsPageComponent
-          ),
+          import('./pages/requests/requests-page.component').then((m) => m.RequestsPageComponent),
       },
       {
         path: 'requests/offers',
         loadComponent: () =>
           import('./pages/requests/offers/offers-page.component').then(
-            (m) => m.OffersPageComponent
+            (m) => m.OffersPageComponent,
           ),
       },
       {
         path: 'requests/callbacks',
         loadComponent: () =>
           import('./pages/requests/callbacks/callbacks-page.component').then(
-            (m) => m.CallbacksPageComponent
+            (m) => m.CallbacksPageComponent,
           ),
+      },
+      {
+        path: 'more',
+        loadComponent: () =>
+          import('./pages/more/more-page.component').then((m) => m.MorePageComponent),
       },
       {
         path: 'promotions',
         loadComponent: () =>
           import('./pages/promotions/banner-promotions-page.component').then(
-            (m) => m.BannerPromotionsPageComponent
+            (m) => m.BannerPromotionsPageComponent,
           ),
       },
       {
         path: 'ads',
         loadComponent: () =>
-          import('./pages/ads/ads-page.component').then(
-            (m) => m.AdsPageComponent
-          ),
+          import('./pages/ads/ads-page.component').then((m) => m.AdsPageComponent),
       },
       {
         path: 'ads/plans',
         loadComponent: () =>
-          import('./pages/ads/plans-page.component').then(
-            (m) => m.AdsPlansPageComponent
-          ),
+          import('./pages/ads/plans-page.component').then((m) => m.AdsPlansPageComponent),
       },
       {
         path: 'ads/running',
         loadComponent: () =>
-          import('./pages/ads/running-ads-page.component').then(
-            (m) => m.RunningAdsPageComponent
-          ),
+          import('./pages/ads/running-ads-page.component').then((m) => m.RunningAdsPageComponent),
       },
       {
         path: 'ads/running/:id',
         loadComponent: () =>
-          import('./pages/ads/ad-details-page.component').then(
-            (m) => m.AdDetailsPageComponent
-          ),
+          import('./pages/ads/ad-details-page.component').then((m) => m.AdDetailsPageComponent),
       },
       {
         path: 'ads/billing-history',
         loadComponent: () =>
           import('./pages/ads/billing-history-page.component').then(
-            (m) => m.BillingHistoryPageComponent
+            (m) => m.BillingHistoryPageComponent,
           ),
       },
       {
         path: 'analytics',
         loadComponent: () =>
           import('./pages/admin/admin-analytics-page.component').then(
-            (m) => m.AdminAnalyticsPageComponent
+            (m) => m.AdminAnalyticsPageComponent,
           ),
       },
       {
         path: 'wallet',
         loadComponent: () =>
-          import('./pages/wallet/wallet-page.component').then(
-            (m) => m.WalletPageComponent
-          ),
+          import('./pages/wallet/wallet-page.component').then((m) => m.WalletPageComponent),
       },
       {
         path: 'settings',
         loadComponent: () =>
-          import('./pages/settings/settings-page.component').then(
-            (m) => m.SettingsPageComponent
-          ),
+          import('./pages/settings/settings-page.component').then((m) => m.SettingsPageComponent),
       },
       {
         path: 'notifications',
         loadComponent: () =>
           import('./pages/notifications/notifications-page.component').then(
-            (m) => m.NotificationsPageComponent
+            (m) => m.NotificationsPageComponent,
           ),
       },
     ],
@@ -383,37 +344,29 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./layouts/auth/auth-layout.component').then(
-        (m) => m.AuthLayoutComponent
-      ),
+      import('./layouts/auth/auth-layout.component').then((m) => m.AuthLayoutComponent),
     children: [
       {
         path: 'sign-in',
         loadComponent: () =>
-          import('./pages/sign-in/sign-in-page').then(
-            (module) => module.SignInPageComponent
-          ),
+          import('./pages/sign-in/sign-in-page').then((module) => module.SignInPageComponent),
       },
       {
         path: 'sign-up',
         loadComponent: () =>
-          import('./pages/sign-up/sign-up-page').then(
-            (m) => m.SignUpPageComponent
-          ),
+          import('./pages/sign-up/sign-up-page').then((m) => m.SignUpPageComponent),
       },
       {
         path: 'forgot-password',
         loadComponent: () =>
           import('./pages/forgot-password/forgot-password-page').then(
-            (m) => m.ForgotPasswordPageComponent
+            (m) => m.ForgotPasswordPageComponent,
           ),
       },
       {
         path: 'two-factor',
         loadComponent: () =>
-          import('./pages/two-factor/two-factor-page').then(
-            (m) => m.TwoFactorPageComponent
-          ),
+          import('./pages/two-factor/two-factor-page').then((m) => m.TwoFactorPageComponent),
       },
     ],
   },
@@ -421,27 +374,23 @@ export const routes: Routes = [
   {
     path: 'category',
     loadComponent: () =>
-      import('./pages/category/category-page.component').then(
-        (m) => m.CategoryPageComponent
-      ),
+      import('./pages/category/category-page.component').then((m) => m.CategoryPageComponent),
   },
   {
     path: 'product/:id',
     loadComponent: () =>
-      import('./pages/product/product-page.component').then(
-        (m) => m.ProductPageComponent
-      ),
+      import('./pages/product/product-page.component').then((m) => m.ProductPageComponent),
   },
   {
     path: 'terms-of-service',
     loadComponent: () =>
       import('./pages/terms-of-service/terms-of-service-page.component').then(
-        (m) => m.TermsOfServicePageComponent
+        (m) => m.TermsOfServicePageComponent,
       ),
   },
   // Catch-all (Optional, but good for stability)
   {
     path: '**',
     redirectTo: '',
-  }
+  },
 ];

@@ -40,9 +40,11 @@ export interface EditableStoreUpdate {
         (click)="close.emit()"
       ></button>
 
-      <div class="relative hidden h-full items-center justify-center px-6 lg:flex">
+      <div
+        class="relative hidden h-full items-center justify-center overflow-y-auto px-6 py-6 lg:flex"
+      >
         <div
-          class="relative h-[968px] w-full max-w-[600px] overflow-hidden rounded-2xl bg-white shadow-[0_24px_72px_rgba(18,24,35,0.18)]"
+          class="relative flex max-h-[calc(100dvh-48px)] w-full max-w-[600px] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_24px_72px_rgba(18,24,35,0.18)]"
         >
           <header class="flex h-20 items-center justify-between px-6">
             <h2 class="text-[28px] font-semibold leading-10 text-[#0D0D0D]">Edit store</h2>
@@ -56,11 +58,7 @@ export interface EditableStoreUpdate {
             </button>
           </header>
 
-          <form
-            [formGroup]="editForm"
-            (ngSubmit)="onSubmit()"
-            class="flex h-[calc(100%-80px)] flex-col"
-          >
+          <form [formGroup]="editForm" (ngSubmit)="onSubmit()" class="flex min-h-0 flex-1 flex-col">
             <div class="flex-1 overflow-y-auto px-6 pb-8 pt-[10px]">
               <section class="space-y-6">
                 <div class="space-y-[7px]">
