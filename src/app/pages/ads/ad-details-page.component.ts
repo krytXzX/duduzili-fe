@@ -1,5 +1,12 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -39,7 +46,7 @@ interface AdDetail {
 
 @Component({
   selector: 'app-ad-details-page',
-  imports: [CommonModule, RouterLink, NgIcon],
+  imports: [CommonModule, RouterLink, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({
       heroPause,
@@ -54,439 +61,443 @@ interface AdDetail {
     }),
   ],
   template: `
-    <div class="mx-auto w-full max-w-[420px] bg-[#F7F7FA] px-4 pt-4 pb-8 md:hidden">
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <a
-            routerLink="/ads/running"
-            aria-label="Back to running ads"
-            class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
-          >
-            <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
-          </a>
-          <h1 class="text-[15px] font-semibold tracking-[-0.03em] text-[#202335]">Ad details</h1>
-        </div>
+    <div class="mx-auto w-full max-w-[420px] bg-[#F7F7FA] px-4 pb-32 pt-4 md:hidden">
+      @if (ad().kind === 'banner') {
+        <div class="rounded-[32px] bg-white px-4 pb-6 pt-4">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <a
+                routerLink="/ads/running"
+                aria-label="Back to running ads"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
+              >
+                <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
+              </a>
+              <h1 class="text-[15px] font-semibold tracking-[-0.03em] text-[#202335]">
+                Ad details
+              </h1>
+            </div>
 
-        <button
-          type="button"
-          (click)="toggleMobileActionMenu()"
-          class="inline-flex h-8 w-8 items-center justify-center text-[#4D5260]"
-          aria-label="Open ad actions"
-        >
-          <ng-icon name="heroEllipsisHorizontal" class="text-[18px]"></ng-icon>
-        </button>
-      </div>
-
-      <div class="mt-5">
-        <div class="w-full max-w-[164px] overflow-hidden rounded-[14px] border border-[#ECEEF3] bg-[#F8F8FA] shadow-[0_16px_28px_-24px_rgba(17,24,39,0.35)]">
-          <img [src]="ad().image" [alt]="ad().title" class="aspect-[2.05/1] w-full object-cover">
-        </div>
-
-        <div class="mt-3 flex flex-wrap items-center gap-2">
-          <h2 class="text-[15px] font-semibold tracking-[-0.03em] text-[#202335]">{{ ad().title }}</h2>
-          <span class="inline-flex items-center gap-1 rounded-full text-[10px] font-medium" [class.text-[#2D9D48]]="currentStatus() === 'Active'" [class.text-[#6E5AE6]]="currentStatus() === 'Paused'" [class.text-[#D69600]]="currentStatus() === 'Pending approval'" [class.text-[#E14B4B]]="currentStatus() === 'Declined'" [class.text-[#6A6F78]]="currentStatus() === 'Expired'">
-            <span class="h-1.5 w-1.5 rounded-full" [class.bg-[#2DCA54]]="currentStatus() === 'Active'" [class.bg-[#6E5AE6]]="currentStatus() === 'Paused'" [class.bg-[#D69600]]="currentStatus() === 'Pending approval'" [class.bg-[#E14B4B]]="currentStatus() === 'Declined'" [class.bg-[#8F96A3]]="currentStatus() === 'Expired'"></span>
-            {{ currentStatus() }}
-          </span>
-        </div>
-
-        <div
-          class="mt-3 rounded-[12px] px-3 py-3 text-[10px] leading-4"
-          [class.bg-[#FFF8D9]]="currentStatus() === 'Active' || currentStatus() === 'Paused'"
-          [class.text-[#6F7154]]="currentStatus() === 'Active' || currentStatus() === 'Paused'"
-          [class.bg-[#FFF8D9]]="currentStatus() === 'Pending approval'"
-          [class.text-[#6F7154]]="currentStatus() === 'Pending approval'"
-          [class.bg-[#FFF1F1]]="currentStatus() === 'Declined'"
-          [class.text-[#A44646]]="currentStatus() === 'Declined'"
-          [class.bg-[#FFF8D9]]="currentStatus() === 'Expired'"
-          [class.text-[#6F7154]]="currentStatus() === 'Expired'"
-        >
-          @if (currentStatus() === 'Active') {
-            <p>Your banner will be promoted across Duduzili until it expires on {{ ad().expiresOn }}.</p>
-          } @else if (currentStatus() === 'Paused') {
-            <p>Your banner ad can resume views after you restart this promotion.</p>
-          } @else if (currentStatus() === 'Pending approval') {
-            <p>Your banner is under review and will go live once it is approved.</p>
-          } @else if (currentStatus() === 'Declined') {
-            <p>Reason: The Ad is misleading.</p>
-          } @else {
-            <p>This banner promotion has expired. You can create a new one anytime.</p>
-          }
-        </div>
-      </div>
-
-      <div class="mt-5 grid grid-cols-3 border-y border-[#F0F1F4] py-4">
-        @for (metric of ad().metrics; track metric.label) {
-          <div class="border-r border-[#F0F1F4] px-2 last:border-r-0">
-            <p class="inline-flex items-center gap-1 text-[9px] text-[#9BA0AA]">
-              {{ metric.label }}
-              @if (metric.info) {
-                <span class="flex h-3 w-3 items-center justify-center rounded-full bg-[#D7DAE1] text-[8px] font-bold text-white">i</span>
-              }
-            </p>
-            <p class="mt-1 text-[13px] font-semibold text-[#24262D]">{{ metric.value }}</p>
+            <button
+              type="button"
+              (click)="toggleMobileActionMenu()"
+              class="inline-flex h-8 w-8 items-center justify-center text-[#4D5260]"
+              aria-label="Open ad actions"
+            >
+              <ng-icon name="heroEllipsisHorizontal" class="text-[18px]"></ng-icon>
+            </button>
           </div>
-        }
-      </div>
 
-      <section class="mt-4 rounded-[22px] border border-[#ECEEF3] bg-white p-3 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)]">
-        <div class="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-full border border-[#E7EAF0] bg-white px-3 py-2 text-[10px] font-medium text-[#3F444C]"
-          >
-            <ng-icon name="heroCalendarDays" class="text-[12px]"></ng-icon>
-            Last 7 days
-            <ng-icon name="heroChevronDown" class="text-[11px] text-[#9BA0AA]"></ng-icon>
-          </button>
+          <div class="mt-5">
+            <div class="relative h-[161px] w-[287px] overflow-hidden rounded-[24px]">
+              <img
+                [ngSrc]="bannerHeroImage"
+                width="287"
+                height="161"
+                [alt]="ad().title"
+                class="h-full w-full rounded-[24px] object-cover"
+              />
+              <button
+                type="button"
+                (click)="openDestinationModal()"
+                class="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_0_rgba(202,202,202,0.25)]"
+                aria-label="Edit destination link"
+              >
+                <img [ngSrc]="bannerDetailsExportIcon" width="16" height="16" alt="" />
+              </button>
+            </div>
 
-          <div class="flex items-center gap-3 text-[10px] text-[#5B6068]">
-            <span class="inline-flex items-center gap-1.5">
-              <span class="h-1 w-3 rounded-full bg-[#6E5AE6]"></span>
-              Views
-            </span>
-            <span class="inline-flex items-center gap-1.5">
-              <span class="h-1 w-3 rounded-full bg-[#F3C433]"></span>
-              Clicks
-            </span>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <h2 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">{{ ad().title }}</h2>
+              <span class="inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1">
+                <img [ngSrc]="bannerDetailsStatusIcon" width="14" height="14" alt="" />
+                <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">Active</span>
+              </span>
+            </div>
+
+            <div
+              class="mt-4 inline-flex max-w-full items-center gap-2 rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px]"
+            >
+              <img [ngSrc]="bannerDetailsInfoIcon" width="24" height="24" alt="" class="shrink-0" />
+              <p class="text-[14px] leading-5 text-[#1F1F1F]">
+                Your banner will be promoted across Duduzili until it expires on
+                {{ ad().expiresOn }}.
+              </p>
+            </div>
+
+            <div class="mt-4 flex flex-col gap-3">
+              <button
+                type="button"
+                (click)="openDestinationModal()"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-black"
+              >
+                <img [ngSrc]="bannerDetailsEditIcon" width="14" height="14" alt="" />
+                Edit destination link
+              </button>
+              <button
+                type="button"
+                (click)="togglePaused()"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-black"
+              >
+                <img [ngSrc]="bannerDetailsPauseIcon" width="14" height="14" alt="" />
+                {{ currentStatus() === 'Paused' ? 'Resume Ad' : 'Pause Ad' }}
+              </button>
+            </div>
           </div>
-        </div>
 
-        <h3 class="mt-4 text-[13px] font-medium text-[#565B63]">Performance Overview</h3>
+          <div class="mt-6 grid grid-cols-3 border-y border-[#F0F1F4] py-4">
+            @for (metric of ad().metrics; track metric.label) {
+              <div class="border-r border-[#F0F1F4] px-2 last:border-r-0">
+                <p class="inline-flex items-center gap-1 text-[11px] text-[rgba(26,27,29,0.5)]">
+                  {{ metric.label }}
+                  @if (metric.info) {
+                    <img [ngSrc]="bannerDetailsInfoCircleIcon" width="16" height="16" alt="" />
+                  }
+                </p>
+                <p class="mt-1 text-[18px] font-semibold text-[#1A1B1D]">{{ metric.value }}</p>
+              </div>
+            }
+          </div>
 
-        <div class="mt-3">
-          <svg viewBox="0 0 900 420" class="h-auto w-full overflow-visible">
-            <g stroke="#EEF0F4" stroke-width="1">
-              <line x1="40" y1="40" x2="40" y2="360"></line>
-              <line x1="40" y1="360" x2="870" y2="360"></line>
-            </g>
-
-            <g fill="#A5AAB3" font-size="22" font-weight="500">
-              <text x="10" y="360">0</text>
-              <text x="2" y="280">250</text>
-              <text x="2" y="200">250</text>
-              <text x="2" y="120">250</text>
-              <text x="2" y="40">500</text>
-            </g>
-
-            <g fill="#A5AAB3" font-size="18" font-weight="500">
-              <text x="52" y="388">Jan</text>
-              <text x="120" y="388">Feb</text>
-              <text x="190" y="388">Mar</text>
-              <text x="262" y="388">Apr</text>
-              <text x="334" y="388">May</text>
-              <text x="405" y="388">Jun</text>
-              <text x="478" y="388">Jul</text>
-              <text x="550" y="388">Aug</text>
-              <text x="622" y="388">Sep</text>
-              <text x="694" y="388">Oct</text>
-              <text x="766" y="388">Nov</text>
-              <text x="838" y="388">Dec</text>
-            </g>
-
-            <line x1="345" y1="108" x2="345" y2="348" stroke="#D8DBE2" stroke-dasharray="4 4"></line>
-
-            <path
-              d="M 60 355 C 80 310, 105 275, 135 270 C 165 265, 190 300, 220 250 C 250 200, 280 185, 320 205 C 350 220, 375 275, 410 245 C 445 215, 470 180, 510 210 C 550 240, 575 315, 620 292 C 665 269, 690 185, 730 118 C 770 78, 805 58, 850 38"
-              fill="none"
-              stroke="#7A6AF1"
-              stroke-linecap="round"
-              stroke-width="6"
-            ></path>
-
-            <path
-              d="M 60 330 C 88 345, 118 338, 145 280 C 172 222, 205 246, 240 235 C 275 224, 315 248, 345 320 C 375 350, 412 320, 448 268 C 484 216, 520 198, 555 238 C 590 278, 625 336, 660 306 C 695 276, 730 230, 760 222 C 790 214, 820 228, 842 232"
-              fill="none"
-              stroke="#F5C23A"
-              stroke-linecap="round"
-              stroke-width="6"
-            ></path>
-
-            <circle cx="345" cy="205" r="7" fill="#7A6AF1"></circle>
-
-            <g transform="translate(350,110)">
-              <rect width="250" height="92" rx="14" fill="#050505"></rect>
-              <text x="16" y="24" fill="#FFFFFF" font-size="14" font-weight="600">02 May, 2026</text>
-              <rect x="16" y="38" width="10" height="4" rx="2" fill="#7A6AF1"></rect>
-              <text x="34" y="44" fill="#FFFFFF" font-size="13">Views</text>
-              <text x="178" y="44" fill="#FFFFFF" font-size="13">100,000</text>
-              <rect x="16" y="62" width="10" height="4" rx="2" fill="#F5C23A"></rect>
-              <text x="34" y="68" fill="#FFFFFF" font-size="13">Clicks</text>
-              <text x="188" y="68" fill="#FFFFFF" font-size="13">50,000</text>
-            </g>
-          </svg>
-        </div>
-      </section>
-    </div>
-
-    <div class="hidden h-full flex-col rounded-[32px] border border-gray-100/60 bg-white px-6 py-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] sm:px-8 md:flex">
-      <nav class="flex items-center gap-2 text-[11px] font-semibold text-[#B0B4BD]">
-        <a routerLink="/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
-        <span>/</span>
-        <a routerLink="/ads/running" class="transition-colors hover:text-[#6B5CF0]">Running Ads</a>
-        <span>/</span>
-        <span class="text-[#5B5F67]">Ad details</span>
-      </nav>
-
-      <header class="mt-5 flex flex-col gap-5 border-b border-[#F0F1F4] pb-8 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          @if (ad().kind === 'banner') {
-            <div class="w-full max-w-[214px]">
-              <div class="relative h-[120px] w-[214px] overflow-hidden rounded-[22px] border border-[#ECEEF3] bg-[#F8F8FA] shadow-[0_16px_28px_-20px_rgba(17,24,39,0.35)]">
-                <img [src]="ad().image" [alt]="ad().title" class="h-full w-full object-cover">
+          <section class="mt-6 rounded-[24px] border border-[#EFEFEF] bg-white p-4">
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center justify-between gap-3">
+                <h3 class="text-[18px] font-semibold text-[rgba(13,13,13,0.6)]">
+                  Performance Overview
+                </h3>
                 <button
                   type="button"
-                  (click)="openDestinationModal()"
-                  class="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#59606B] shadow-sm transition hover:bg-[#FAFAFC]"
-                  aria-label="Open destination link editor"
+                  class="inline-flex items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 py-2 text-[12px] font-medium text-black"
                 >
-                  <ng-icon name="heroLink" class="text-base"></ng-icon>
+                  <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
+                  Last 7 days
+                  <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
                 </button>
               </div>
 
-              <div class="mt-3 flex flex-wrap items-center gap-3">
-                <h1 class="text-[20px] font-black tracking-tight text-[#1A1C21]">{{ ad().title }}</h1>
-                <span
-                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold"
-                  [class.bg-[#EAF8EC]]="currentStatus() === 'Active'"
-                  [class.text-[#2D9D48]]="currentStatus() === 'Active'"
-                  [class.bg-[#F4F4F6]]="currentStatus() !== 'Active'"
-                  [class.text-[#686D76]]="currentStatus() !== 'Active'"
-                >
-                  <span
-                    class="h-2 w-2 rounded-full"
-                    [class.bg-[#2DCA54]]="currentStatus() === 'Active'"
-                    [class.bg-[#8F96A3]]="currentStatus() !== 'Active'"
-                  ></span>
-                  {{ currentStatus() }}
+              <div class="flex items-center gap-5 text-[12px] text-[#181818]">
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="h-1.5 w-4 rounded-[4px] bg-[#6453D9]"></span>
+                  Views
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="h-1.5 w-4 rounded-[4px] bg-[#FACD38]"></span>
+                  Clicks
                 </span>
               </div>
             </div>
-          } @else {
-            <div class="flex items-start gap-4">
-              @if (ad().kind === 'listing') {
-                <img [src]="ad().image" [alt]="ad().title" class="h-14 w-14 rounded-[16px] object-cover">
-              } @else {
-                <span
-                  class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[20px] font-black text-white"
-                  [style.background]="ad().logoTone"
-                >
-                  {{ ad().initials }}
-                </span>
-              }
 
-              <div>
-                <div class="flex flex-wrap items-center gap-3">
-                  <h1 class="text-[20px] font-black tracking-tight text-[#1A1C21]">{{ ad().title }}</h1>
-                  <span
-                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold"
-                    [class.bg-[#EAF8EC]]="currentStatus() === 'Active'"
-                    [class.text-[#2D9D48]]="currentStatus() === 'Active'"
-                    [class.bg-[#F4F4F6]]="currentStatus() !== 'Active'"
-                    [class.text-[#686D76]]="currentStatus() !== 'Active'"
+            <div class="mt-4">
+              <svg viewBox="0 0 900 420" class="h-auto w-full overflow-visible">
+                <g stroke="#EEF0F4" stroke-width="1">
+                  <line x1="40" y1="40" x2="40" y2="360"></line>
+                  <line x1="40" y1="360" x2="870" y2="360"></line>
+                </g>
+
+                <g fill="#A5AAB3" font-size="22" font-weight="500">
+                  <text x="10" y="360">0</text>
+                  <text x="2" y="280">250</text>
+                  <text x="2" y="200">250</text>
+                  <text x="2" y="120">250</text>
+                  <text x="2" y="40">500</text>
+                </g>
+
+                <g fill="#A5AAB3" font-size="18" font-weight="500">
+                  <text x="52" y="388">Jan</text>
+                  <text x="120" y="388">Feb</text>
+                  <text x="190" y="388">Mar</text>
+                  <text x="262" y="388">Apr</text>
+                  <text x="334" y="388">May</text>
+                  <text x="405" y="388">Jun</text>
+                  <text x="478" y="388">Jul</text>
+                  <text x="550" y="388">Aug</text>
+                  <text x="622" y="388">Sep</text>
+                  <text x="694" y="388">Oct</text>
+                  <text x="766" y="388">Nov</text>
+                  <text x="838" y="388">Dec</text>
+                </g>
+
+                <line
+                  x1="345"
+                  y1="108"
+                  x2="345"
+                  y2="348"
+                  stroke="#D8DBE2"
+                  stroke-dasharray="4 4"
+                ></line>
+
+                <path
+                  d="M 60 355 C 80 310, 105 275, 135 270 C 165 265, 190 300, 220 250 C 250 200, 280 185, 320 205 C 350 220, 375 275, 410 245 C 445 215, 470 180, 510 210 C 550 240, 575 315, 620 292 C 665 269, 690 185, 730 118 C 770 78, 805 58, 850 38"
+                  fill="none"
+                  stroke="#7A6AF1"
+                  stroke-linecap="round"
+                  stroke-width="6"
+                ></path>
+
+                <path
+                  d="M 60 330 C 88 345, 118 338, 145 280 C 172 222, 205 246, 240 235 C 275 224, 315 248, 345 320 C 375 350, 412 320, 448 268 C 484 216, 520 198, 555 238 C 590 278, 625 336, 660 306 C 695 276, 730 230, 760 222 C 790 214, 820 228, 842 232"
+                  fill="none"
+                  stroke="#F5C23A"
+                  stroke-linecap="round"
+                  stroke-width="6"
+                ></path>
+
+                <circle cx="345" cy="205" r="7" fill="#7A6AF1"></circle>
+
+                <g transform="translate(350,110)">
+                  <rect width="250" height="92" rx="14" fill="#050505"></rect>
+                  <text x="16" y="24" fill="#FFFFFF" font-size="14" font-weight="600">
+                    02 May, 2026
+                  </text>
+                  <rect x="16" y="38" width="10" height="4" rx="2" fill="#7A6AF1"></rect>
+                  <text x="34" y="44" fill="#FFFFFF" font-size="13">Views</text>
+                  <text x="178" y="44" fill="#FFFFFF" font-size="13">100,000</text>
+                  <rect x="16" y="62" width="10" height="4" rx="2" fill="#F5C23A"></rect>
+                  <text x="34" y="68" fill="#FFFFFF" font-size="13">Clicks</text>
+                  <text x="188" y="68" fill="#FFFFFF" font-size="13">50,000</text>
+                </g>
+              </svg>
+            </div>
+          </section>
+        </div>
+      } @else {
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <a
+              routerLink="/ads/running"
+              aria-label="Back to running ads"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
+            >
+              <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
+            </a>
+            <h1 class="text-[15px] font-semibold tracking-[-0.03em] text-[#202335]">Ad details</h1>
+          </div>
+        </div>
+
+        <div class="mt-5 rounded-[24px] bg-white p-4 text-[14px] text-[#626771]">
+          This view is currently optimized for banner ads.
+        </div>
+      }
+    </div>
+
+    <div class="hidden h-full md:flex">
+      @if (ad().kind === 'banner') {
+        <div
+          class="flex h-full w-full flex-col rounded-[32px] border border-[#F1F1F4] bg-white px-8 pb-8 pt-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]"
+        >
+          <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#9E9E9E]">
+            <a routerLink="/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
+            <span>/</span>
+            <a routerLink="/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+              >Running Ads</a
+            >
+            <span>/</span>
+            <span class="text-[#181818]">Ad details</span>
+          </nav>
+
+          <section class="mt-6 border-b border-[#F0F1F4] pb-6">
+            <div class="flex items-start justify-between gap-6">
+              <div class="flex flex-col gap-4">
+                <div class="relative h-[161px] w-[287px] overflow-hidden rounded-[24px]">
+                  <img
+                    [ngSrc]="bannerHeroImage"
+                    width="287"
+                    height="161"
+                    [alt]="ad().title"
+                    class="h-full w-full rounded-[24px] object-cover"
+                  />
+                  <button
+                    type="button"
+                    (click)="openDestinationModal()"
+                    class="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_0_rgba(202,202,202,0.25)]"
+                    aria-label="Edit destination link"
                   >
-                    <span
-                      class="h-2 w-2 rounded-full"
-                      [class.bg-[#2DCA54]]="currentStatus() === 'Active'"
-                      [class.bg-[#8F96A3]]="currentStatus() !== 'Active'"
-                    ></span>
-                    {{ currentStatus() }}
+                    <img [ngSrc]="bannerDetailsExportIcon" width="16" height="16" alt="" />
+                  </button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                  <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">
+                    {{ ad().title }}
+                  </h1>
+                  <span class="inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1">
+                    <img [ngSrc]="bannerDetailsStatusIcon" width="14" height="14" alt="" />
+                    <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">Active</span>
                   </span>
                 </div>
+              </div>
 
-                @if (ad().kind === 'listing') {
-                  <p class="mt-1 text-[18px] font-semibold text-[#8A8F98]">{{ ad().price }}</p>
-                } @else if (ad().kind === 'store') {
-                  <div class="mt-1 inline-flex items-center gap-2 text-[16px] font-medium text-[#7E848E]">
-                    <span class="h-2 w-2 rounded-full bg-[#8D929B]"></span>
-                    {{ ad().activeListings }}
-                  </div>
-                }
+              <div class="flex items-center gap-3">
+                <button
+                  type="button"
+                  (click)="openDestinationModal()"
+                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#0D0D0D]"
+                >
+                  <img [ngSrc]="bannerDetailsEditIcon" width="14" height="14" alt="" />
+                  Edit destination link
+                </button>
+                <button
+                  type="button"
+                  (click)="togglePaused()"
+                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#0D0D0D]"
+                >
+                  <img [ngSrc]="bannerDetailsPauseIcon" width="14" height="14" alt="" />
+                  {{ currentStatus() === 'Paused' ? 'Resume Ad' : 'Pause Ad' }}
+                </button>
               </div>
             </div>
-          }
-        </div>
 
-        <div class="flex items-center gap-3">
-          @if (ad().kind === 'banner') {
-            <button
-              type="button"
-              (click)="openDestinationModal()"
-              class="inline-flex items-center gap-2 rounded-full border border-[#E7EAF0] bg-white px-5 py-3 text-[15px] font-semibold text-[#333842] transition hover:bg-[#FAFAFC]"
+            <div
+              class="mt-4 inline-flex max-w-[695px] items-center gap-2 rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px]"
             >
-              <ng-icon name="heroLink" class="text-base"></ng-icon>
-              Edit destination link
-            </button>
-          }
+              <img [ngSrc]="bannerDetailsInfoIcon" width="24" height="24" alt="" class="shrink-0" />
+              <p class="text-[14px] leading-5 text-[#1F1F1F]">
+                Your banner will be promoted across Duduzili until it expires on
+                {{ ad().expiresOn }}.
+              </p>
+            </div>
+          </section>
 
-          <button
-            type="button"
-            (click)="togglePaused()"
-            class="inline-flex items-center gap-2 rounded-full border border-[#E7EAF0] bg-white px-5 py-3 text-[15px] font-semibold text-[#333842] transition hover:bg-[#FAFAFC]"
-          >
-            <ng-icon name="heroPause" class="text-base"></ng-icon>
-            {{ currentStatus() === 'Paused' ? 'Resume Ad' : 'Pause Ad' }}
-          </button>
+          <div class="mt-6 grid grid-cols-3 border-b border-[#F0F1F4] pb-6">
+            @for (metric of ad().metrics; track metric.label) {
+              <div class="border-r border-[#F0F1F4] px-4 first:pl-0 last:border-r-0 last:pr-0">
+                <p
+                  class="inline-flex items-center gap-1 text-[14px] font-medium leading-5 text-[rgba(24,24,24,0.5)]"
+                >
+                  {{ metric.label }}
+                  @if (metric.info) {
+                    <img [ngSrc]="bannerDetailsInfoCircleIcon" width="16" height="16" alt="" />
+                  }
+                </p>
+                <p class="mt-1 text-[24px] font-semibold leading-8 text-[#1A1B1D]">
+                  {{ metric.value }}
+                </p>
+              </div>
+            }
+          </div>
 
-          @if (ad().kind !== 'banner') {
-            <div class="relative">
+          <section class="mt-6 flex-1 rounded-[32px] border border-[#EFEFEF] bg-white p-6">
+            <div class="flex items-start justify-between gap-6">
+              <div>
+                <h2 class="text-[24px] font-medium leading-8 text-[rgba(13,13,13,0.6)]">
+                  Performance Overview
+                </h2>
+                <div class="mt-4 flex items-center gap-6 text-[14px] leading-5 text-[#181818]">
+                  <span class="inline-flex items-center gap-2">
+                    <span class="h-1.5 w-4 rounded-[4px] bg-[#6453D9]"></span>
+                    Views
+                  </span>
+                  <span class="inline-flex items-center gap-2">
+                    <span class="h-1.5 w-4 rounded-[4px] bg-[#FACD38]"></span>
+                    Clicks
+                  </span>
+                </div>
+              </div>
+
               <button
                 type="button"
-                (click)="isMenuOpen.update(value => !value)"
-                class="flex h-11 w-11 items-center justify-center rounded-full border border-[#E7EAF0] bg-white text-[#69707B] transition hover:bg-[#FAFAFC]"
-                aria-haspopup="menu"
-                [attr.aria-expanded]="isMenuOpen()"
+                class="inline-flex items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 py-2.5 text-[14px] font-medium text-black"
               >
-                <ng-icon name="heroEllipsisHorizontal" class="text-lg"></ng-icon>
+                <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
+                Last 7 days
+                <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
               </button>
-
-              @if (isMenuOpen()) {
-                <div
-                  class="absolute right-0 top-[calc(100%+12px)] z-10 w-[180px] rounded-[22px] border border-[#ECEEF3] bg-white p-2 shadow-[0_24px_44px_-24px_rgba(17,24,39,0.4)]"
-                  role="menu"
-                >
-                  <button
-                    type="button"
-                    role="menuitem"
-                    class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-[15px] font-medium text-[#2E333B] transition hover:bg-[#F8F8FA]"
-                  >
-                    <ng-icon name="heroEye" class="text-base text-[#6D727C]"></ng-icon>
-                    {{ ad().kind === 'store' ? 'View store' : 'View listing' }}
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-[15px] font-medium text-[#2E333B] transition hover:bg-[#F8F8FA]"
-                  >
-                    <ng-icon name="heroShare" class="text-base text-[#6D727C]"></ng-icon>
-                    {{ ad().kind === 'store' ? 'Share store' : 'Share listing' }}
-                  </button>
-                </div>
-              }
             </div>
-          }
+
+            <div class="mt-6">
+              <svg viewBox="0 0 900 420" class="h-auto w-full overflow-visible">
+                <g stroke="#EEF0F4" stroke-width="1">
+                  <line x1="40" y1="40" x2="40" y2="360"></line>
+                  <line x1="40" y1="360" x2="870" y2="360"></line>
+                </g>
+
+                <g fill="#A5AAB3" font-size="12" font-weight="500">
+                  <text x="10" y="360">0</text>
+                  <text x="2" y="280">250</text>
+                  <text x="2" y="200">250</text>
+                  <text x="2" y="120">250</text>
+                  <text x="2" y="40">500</text>
+                </g>
+
+                <g fill="#A5AAB3" font-size="12" font-weight="500">
+                  <text x="52" y="388">Jan</text>
+                  <text x="120" y="388">Feb</text>
+                  <text x="190" y="388">Mar</text>
+                  <text x="262" y="388">Apr</text>
+                  <text x="334" y="388">May</text>
+                  <text x="405" y="388">Jun</text>
+                  <text x="478" y="388">Jul</text>
+                  <text x="550" y="388">Aug</text>
+                  <text x="622" y="388">Sep</text>
+                  <text x="694" y="388">Oct</text>
+                  <text x="766" y="388">Nov</text>
+                  <text x="838" y="388">Dec</text>
+                </g>
+
+                <line
+                  x1="345"
+                  y1="108"
+                  x2="345"
+                  y2="348"
+                  stroke="#D8DBE2"
+                  stroke-dasharray="4 4"
+                ></line>
+
+                <path
+                  d="M 60 355 C 80 310, 105 275, 135 270 C 165 265, 190 300, 220 250 C 250 200, 280 185, 320 205 C 350 220, 375 275, 410 245 C 445 215, 470 180, 510 210 C 550 240, 575 315, 620 292 C 665 269, 690 185, 730 118 C 770 78, 805 58, 850 38"
+                  fill="none"
+                  stroke="#7A6AF1"
+                  stroke-linecap="round"
+                  stroke-width="3"
+                ></path>
+
+                <path
+                  d="M 60 330 C 88 345, 118 338, 145 280 C 172 222, 205 246, 240 235 C 275 224, 315 248, 345 320 C 375 350, 412 320, 448 268 C 484 216, 520 198, 555 238 C 590 278, 625 336, 660 306 C 695 276, 730 230, 760 222 C 790 214, 820 228, 842 232"
+                  fill="none"
+                  stroke="#F5C23A"
+                  stroke-linecap="round"
+                  stroke-width="3"
+                ></path>
+
+                <circle cx="345" cy="205" r="4" fill="#7A6AF1"></circle>
+                <circle cx="842" cy="232" r="4" fill="#F5C23A"></circle>
+                <circle cx="850" cy="38" r="4" fill="#7A6AF1"></circle>
+
+                <g transform="translate(350,110)">
+                  <rect width="190" height="70" rx="12" fill="#050505"></rect>
+                  <text x="12" y="18" fill="#FFFFFF" font-size="12" font-weight="600">
+                    02 May, 2026
+                  </text>
+                  <rect x="12" y="28" width="8" height="3" rx="1.5" fill="#7A6AF1"></rect>
+                  <text x="26" y="33" fill="#FFFFFF" font-size="11">Views</text>
+                  <text x="132" y="33" fill="#FFFFFF" font-size="11">100,000</text>
+                  <rect x="12" y="48" width="8" height="3" rx="1.5" fill="#F5C23A"></rect>
+                  <text x="26" y="53" fill="#FFFFFF" font-size="11">Clicks</text>
+                  <text x="140" y="53" fill="#FFFFFF" font-size="11">50,000</text>
+                </g>
+              </svg>
+            </div>
+          </section>
         </div>
-      </header>
-
-      <div class="mt-6 inline-flex max-w-[620px] items-start gap-3 rounded-[16px] bg-[#FFFBE5] px-5 py-4 text-[#59592E]">
-        <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EEE82C] text-[#6C6B00]">!</span>
-        <p class="text-[14px] font-semibold">
-          {{ ad().noticePrefix }} until it expires on {{ ad().expiresOn }}.
-        </p>
-      </div>
-
-      <div
-        [class]="ad().metrics.length === 4
-          ? 'mt-8 grid gap-4 border-y border-[#F0F1F4] py-5 md:grid-cols-4'
-          : 'mt-8 grid gap-4 border-y border-[#F0F1F4] py-5 md:grid-cols-3'"
-      >
-        @for (metric of ad().metrics; track metric.label) {
-          <div class="border-[#F0F1F4] md:border-r last:border-r-0 md:pr-5">
-            <p class="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#9BA0AA]">
-              {{ metric.label }}
-              @if (metric.info) {
-                <span class="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#D7DAE1] text-[9px] font-bold text-white">
-                  i
-                </span>
-              }
-            </p>
-            <p class="mt-1 text-[18px] font-black text-[#24262D]">{{ metric.value }}</p>
-          </div>
-        }
-      </div>
-
-      <section class="mt-6 flex-1 rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <h2 class="text-[18px] font-black text-[#565B63] sm:text-[22px]">Performance Overview</h2>
-
-          <div class="flex items-center gap-5">
-            <div class="flex items-center gap-5 text-[14px] font-medium text-[#5B6068]">
-              <span class="inline-flex items-center gap-2">
-                <span class="h-1.5 w-4 rounded-full bg-[#6E5AE6]"></span>
-                Views
-              </span>
-              <span class="inline-flex items-center gap-2">
-                <span class="h-1.5 w-4 rounded-full bg-[#F3C433]"></span>
-                Clicks
-              </span>
-            </div>
-
-            <button
-              type="button"
-              class="inline-flex items-center gap-2 rounded-full border border-[#E7EAF0] bg-white px-4 py-2.5 text-[14px] font-medium text-[#3F444C]"
+      } @else {
+        <div
+          class="flex h-full w-full flex-col rounded-[32px] border border-[#F1F1F4] bg-white px-8 py-6 text-[15px] text-[#626771] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]"
+        >
+          <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#9E9E9E]">
+            <a routerLink="/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
+            <span>/</span>
+            <a routerLink="/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+              >Running Ads</a
             >
-              <ng-icon name="heroCalendarDays" class="text-base"></ng-icon>
-              Last 7 days
-              <ng-icon name="heroChevronDown" class="text-sm text-[#9BA0AA]"></ng-icon>
-            </button>
+            <span>/</span>
+            <span class="text-[#181818]">Ad details</span>
+          </nav>
+
+          <div class="mt-6 rounded-[24px] bg-[#F7F7FA] p-5">
+            This view is currently optimized for banner ads.
           </div>
         </div>
-
-        <div class="mt-6">
-          <svg viewBox="0 0 900 420" class="h-auto w-full overflow-visible">
-            <g stroke="#EEF0F4" stroke-width="1">
-              <line x1="40" y1="40" x2="40" y2="360"></line>
-              <line x1="40" y1="360" x2="870" y2="360"></line>
-            </g>
-
-            <g fill="#A5AAB3" font-size="12" font-weight="500">
-              <text x="10" y="360">0</text>
-              <text x="2" y="280">250</text>
-              <text x="2" y="200">250</text>
-              <text x="2" y="120">250</text>
-              <text x="2" y="40">500</text>
-            </g>
-
-            <g fill="#A5AAB3" font-size="12" font-weight="500">
-              <text x="52" y="388">Jan</text>
-              <text x="120" y="388">Feb</text>
-              <text x="190" y="388">Mar</text>
-              <text x="262" y="388">Apr</text>
-              <text x="334" y="388">May</text>
-              <text x="405" y="388">Jun</text>
-              <text x="478" y="388">Jul</text>
-              <text x="550" y="388">Aug</text>
-              <text x="622" y="388">Sep</text>
-              <text x="694" y="388">Oct</text>
-              <text x="766" y="388">Nov</text>
-              <text x="838" y="388">Dec</text>
-            </g>
-
-            <line x1="345" y1="108" x2="345" y2="348" stroke="#D8DBE2" stroke-dasharray="4 4"></line>
-
-            <path
-              d="M 60 355 C 80 310, 105 275, 135 270 C 165 265, 190 300, 220 250 C 250 200, 280 185, 320 205 C 350 220, 375 275, 410 245 C 445 215, 470 180, 510 210 C 550 240, 575 315, 620 292 C 665 269, 690 185, 730 118 C 770 78, 805 58, 850 38"
-              fill="none"
-              stroke="#7A6AF1"
-              stroke-linecap="round"
-              stroke-width="3"
-            ></path>
-
-            <path
-              d="M 60 330 C 88 345, 118 338, 145 280 C 172 222, 205 246, 240 235 C 275 224, 315 248, 345 320 C 375 350, 412 320, 448 268 C 484 216, 520 198, 555 238 C 590 278, 625 336, 660 306 C 695 276, 730 230, 760 222 C 790 214, 820 228, 842 232"
-              fill="none"
-              stroke="#F5C23A"
-              stroke-linecap="round"
-              stroke-width="3"
-            ></path>
-
-            <circle cx="345" cy="205" r="4" fill="#7A6AF1"></circle>
-            <circle cx="842" cy="232" r="4" fill="#F5C23A"></circle>
-            <circle cx="850" cy="38" r="4" fill="#7A6AF1"></circle>
-
-            <g transform="translate(350,110)">
-              <rect width="190" height="70" rx="12" fill="#050505"></rect>
-              <text x="12" y="18" fill="#FFFFFF" font-size="12" font-weight="600">02 May, 2026</text>
-              <rect x="12" y="28" width="8" height="3" rx="1.5" fill="#7A6AF1"></rect>
-              <text x="26" y="33" fill="#FFFFFF" font-size="11">Views</text>
-              <text x="132" y="33" fill="#FFFFFF" font-size="11">100,000</text>
-              <rect x="12" y="48" width="8" height="3" rx="1.5" fill="#F5C23A"></rect>
-              <text x="26" y="53" fill="#FFFFFF" font-size="11">Clicks</text>
-              <text x="140" y="53" fill="#FFFFFF" font-size="11">50,000</text>
-            </g>
-          </svg>
-        </div>
-      </section>
+      }
     </div>
 
     @if (isDestinationModalOpen()) {
@@ -502,7 +513,11 @@ interface AdDetail {
 
           <div class="flex items-start justify-between gap-4">
             <div>
-              <h2 class="text-[18px] font-semibold tracking-[-0.03em] text-[#1A1C21] md:text-[22px] md:font-black md:tracking-tight">Edit destination link</h2>
+              <h2
+                class="text-[18px] font-semibold tracking-[-0.03em] text-[#1A1C21] md:text-[22px] md:font-black md:tracking-tight"
+              >
+                Edit destination link
+              </h2>
               <p class="mt-2 text-[12px] text-[#626771] md:mt-3 md:text-[15px] md:font-medium">
                 Choose where buyers will be taken when they click your banner.
               </p>
@@ -519,18 +534,23 @@ interface AdDetail {
           </div>
 
           <div class="mt-6 md:mt-10">
-            <label for="destination-link" class="mb-2 block text-[11px] font-medium text-[#7B8089] md:text-[14px] md:font-semibold">
+            <label
+              for="destination-link"
+              class="mb-2 block text-[11px] font-medium text-[#7B8089] md:text-[14px] md:font-semibold"
+            >
               Destination link
             </label>
 
-            <div class="flex items-center gap-3 rounded-[14px] border border-[#E7EAF0] bg-white px-3 py-3 md:rounded-[18px] md:px-4">
+            <div
+              class="flex items-center gap-3 rounded-[14px] border border-[#E7EAF0] bg-white px-3 py-3 md:rounded-[18px] md:px-4"
+            >
               <input
                 id="destination-link"
                 type="url"
                 [value]="editedDestinationUrl()"
                 (input)="updateEditedDestinationUrl($event)"
                 class="min-w-0 flex-1 bg-transparent text-[12px] font-medium text-[#4B4F57] outline-none placeholder:text-[#B3B6BE] md:text-[14px]"
-              >
+              />
               <button
                 type="button"
                 (click)="editedDestinationUrl.set('')"
@@ -563,7 +583,11 @@ interface AdDetail {
     }
 
     @if (isMobileActionMenuOpen()) {
-      <div class="fixed inset-0 z-[220] bg-black/20 md:hidden" (click)="closeMobileActionMenu()" aria-hidden="true"></div>
+      <div
+        class="fixed inset-0 z-[220] bg-black/20 md:hidden"
+        (click)="closeMobileActionMenu()"
+        aria-hidden="true"
+      ></div>
 
       <section
         class="fixed bottom-24 left-1/2 z-[230] w-[270px] -translate-x-1/2 rounded-[22px] border border-[#ECEEF3] bg-white p-2 shadow-[0_24px_44px_-24px_rgba(17,24,39,0.4)] md:hidden"
@@ -598,6 +622,15 @@ interface AdDetail {
 export class AdDetailsPageComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  readonly bannerHeroImage = 'assets/images/banner-details-hero.png';
+  readonly bannerDetailsEditIcon = 'assets/icons/banner-details-edit.svg';
+  readonly bannerDetailsPauseIcon = 'assets/icons/banner-details-pause.svg';
+  readonly bannerDetailsExportIcon = 'assets/icons/banner-details-export.svg';
+  readonly bannerDetailsInfoIcon = 'assets/icons/banner-details-info.svg';
+  readonly bannerDetailsStatusIcon = 'assets/icons/banner-details-status.svg';
+  readonly bannerDetailsInfoCircleIcon = 'assets/icons/banner-details-info-circle.svg';
+  readonly bannerDetailsCalendarIcon = 'assets/icons/banner-details-calendar.svg';
+  readonly bannerDetailsArrowDownIcon = 'assets/icons/banner-details-arrow-down.svg';
 
   readonly adId = signal(this.route.snapshot.paramMap.get('id') ?? 'other-1');
   readonly isMenuOpen = signal(false);
@@ -812,7 +845,7 @@ export class AdDetailsPageComponent implements OnDestroy {
   }
 
   togglePaused(): void {
-    this.currentStatus.update(status => (status === 'Paused' ? 'Active' : 'Paused'));
+    this.currentStatus.update((status) => (status === 'Paused' ? 'Active' : 'Paused'));
   }
 
   toggleMobileActionMenu(): void {
@@ -866,7 +899,7 @@ export class AdDetailsPageComponent implements OnDestroy {
   }
 
   saveDestinationUrl(): void {
-    this.destinationUrlOverrides.update(overrides => ({
+    this.destinationUrlOverrides.update((overrides) => ({
       ...overrides,
       [this.adId()]: this.editedDestinationUrl().trim(),
     }));

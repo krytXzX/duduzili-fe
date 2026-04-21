@@ -117,10 +117,17 @@ interface BannerPromotion {
                     </div>
 
                     @if (promotion.showMobileSponsor) {
-                      <div
-                        class="absolute bottom-[20px] left-[17.2px] rounded-[859.951px] bg-black/50 px-[6.88px] py-[3.44px] text-left text-[12.039px] font-medium leading-[13.759px] text-white backdrop-blur-[1.72px]"
-                      >
-                        {{ promotion.sponsorLabel }}
+                      <div [class]="mobileStatusBadgeClass(promotion)">
+                        @if (statusBadgeIcon(promotion.status); as icon) {
+                          <img
+                            [ngSrc]="icon"
+                            width="14"
+                            height="14"
+                            alt=""
+                            class="h-[14px] w-[14px] shrink-0"
+                          />
+                        }
+                        {{ statusBadgeLabel(promotion) }}
                       </div>
                     }
                   </div>
@@ -269,10 +276,17 @@ interface BannerPromotion {
                         </div>
 
                         @if (promotion.showDesktopSponsor !== false) {
-                          <div
-                            class="absolute bottom-5 left-5 rounded-[1000px] bg-black/50 px-2 py-1 text-[14px] font-medium leading-4 text-white backdrop-blur-[2px]"
-                          >
-                            {{ promotion.sponsorLabel }}
+                          <div [class]="desktopStatusBadgeClass(promotion)">
+                            @if (statusBadgeIcon(promotion.status); as icon) {
+                              <img
+                                [ngSrc]="icon"
+                                width="14"
+                                height="14"
+                                alt=""
+                                class="h-[14px] w-[14px] shrink-0"
+                              />
+                            }
+                            {{ statusBadgeLabel(promotion) }}
                           </div>
                         }
                       </div>
@@ -368,6 +382,10 @@ interface BannerPromotion {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BannerPromotionsPageComponent {
+  readonly pausedBadgeIcon = '/assets/icons/banner-status-paused.svg';
+  readonly pendingApprovalBadgeIcon = '/assets/icons/banner-status-pending-approval.svg';
+  readonly declinedBadgeIcon = '/assets/icons/banner-status-declined.svg';
+
   readonly tabs: PromotionTab[] = [
     { label: 'Active', value: 'active' },
     { label: 'Paused', value: 'paused' },
@@ -481,6 +499,58 @@ export class BannerPromotionsPageComponent {
 
   countByStatus(status: PromotionStatus): number {
     return this.tabCounts[status];
+  }
+
+  statusBadgeLabel(promotion: BannerPromotion): string {
+    switch (promotion.status) {
+      case 'paused':
+        return 'Paused';
+      case 'pending approval':
+        return 'Pending approval';
+      case 'declined':
+        return 'Declined';
+      default:
+        return promotion.sponsorLabel;
+    }
+  }
+
+  statusBadgeIcon(status: PromotionStatus): string | null {
+    switch (status) {
+      case 'paused':
+        return this.pausedBadgeIcon;
+      case 'pending approval':
+        return this.pendingApprovalBadgeIcon;
+      case 'declined':
+        return this.declinedBadgeIcon;
+      default:
+        return null;
+    }
+  }
+
+  mobileStatusBadgeClass(promotion: BannerPromotion): string {
+    switch (promotion.status) {
+      case 'paused':
+        return 'absolute bottom-[20px] left-[17.2px] inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1 text-[12px] font-semibold leading-4 text-[#4787FE]';
+      case 'pending approval':
+        return 'absolute bottom-[20px] left-[17.2px] inline-flex items-center gap-1 rounded-[8px] bg-[#F9F9F9] px-2 py-1 text-[12px] font-semibold leading-4 text-[#EE9C2E]';
+      case 'declined':
+        return 'absolute bottom-[20px] left-[17.2px] inline-flex items-center gap-1 rounded-[8px] bg-[#FDF6FA] px-2 py-1 text-[12px] font-semibold leading-4 text-[#FF2524]';
+      default:
+        return 'absolute bottom-[20px] left-[17.2px] rounded-[859.951px] bg-black/50 px-[6.88px] py-[3.44px] text-left text-[12.039px] font-medium leading-[13.759px] text-white backdrop-blur-[1.72px]';
+    }
+  }
+
+  desktopStatusBadgeClass(promotion: BannerPromotion): string {
+    switch (promotion.status) {
+      case 'paused':
+        return 'absolute bottom-5 left-5 inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1 text-[12px] font-semibold leading-4 text-[#4787FE]';
+      case 'pending approval':
+        return 'absolute bottom-5 left-5 inline-flex items-center gap-1 rounded-[8px] bg-[#F9F9F9] px-2 py-1 text-[12px] font-semibold leading-4 text-[#EE9C2E]';
+      case 'declined':
+        return 'absolute bottom-5 left-5 inline-flex items-center gap-1 rounded-[8px] bg-[#FDF6FA] px-2 py-1 text-[12px] font-semibold leading-4 text-[#FF2524]';
+      default:
+        return 'absolute bottom-5 left-5 rounded-[1000px] bg-black/50 px-2 py-1 text-[14px] font-medium leading-4 text-white backdrop-blur-[2px]';
+    }
   }
 
   onCreateBannerAd(payload: CreateBannerAdPayload): void {

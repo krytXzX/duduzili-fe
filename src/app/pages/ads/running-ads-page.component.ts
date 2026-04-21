@@ -1,435 +1,525 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroPlus, heroChevronLeft, heroChevronRight } from '@ng-icons/heroicons/outline';
 import { CreateBannerAdModalComponent } from '../promotions/components/create-banner-ad-modal.component';
-import { CreateAdType, CreateAdTypeModalComponent } from './components/create-ad-type-modal.component';
-import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
-import { BannerPromotionCardComponent, BannerPromotionCardData } from '../../components/ads/banner-promotion-card.component';
+import {
+  CreateAdType,
+  CreateAdTypeModalComponent,
+} from './components/create-ad-type-modal.component';
 
 type AdPlacement = 'promoted listings' | 'store promotions' | 'banner ads';
-type AdStatus = 'active' | 'paused' | 'expired' | 'pending approval';
-type ListingCategory = 'other listings' | 'automobile listings' | 'property listings';
+type AdStatus = 'active' | 'paused' | 'expired';
+type PlanMetric = 'current plan' | 'automobile listings' | 'property listings' | 'other listings';
 
-interface SummaryStat {
-  label: string;
-  value: string;
+interface PlacementTab {
+  readonly label: string;
+  readonly value: AdPlacement;
+  readonly activeIcon: string;
+  readonly inactiveIcon: string;
 }
 
-interface BannerRunningAd extends BannerPromotionCardData {
-  status: AdStatus;
+interface StatusTab {
+  readonly label: string;
+  readonly value: AdStatus;
 }
 
-interface RunningAd {
-  id: string;
-  title: string;
-  price: string;
-  views: string;
-  clicks: string;
-  saves: string;
-  expiresOn: string;
-  status: AdStatus;
-  placement: AdPlacement;
-  category: ListingCategory;
-  image: string;
-  subtitle?: string;
-  logoLabel?: string;
-  logoTone?: string;
+interface PlanSummaryItem {
+  readonly label: PlanMetric;
+  readonly value: string;
+}
+
+interface ListingCard {
+  readonly id: string;
+  readonly title: string;
+  readonly imageSrc: string;
+  readonly expiresOn: string;
+  readonly price: string;
+  readonly oldPrice?: string;
+  readonly discount?: string;
+  readonly tag?: string;
+  readonly views: string;
+  readonly clicks: string;
+  readonly messages: string;
+  readonly calls: string;
+}
+
+interface ListingSection {
+  readonly id: string;
+  readonly title: string;
+  readonly viewAllCount?: string;
+  readonly cards: readonly ListingCard[];
 }
 
 @Component({
   selector: 'app-running-ads-page',
   imports: [
     CommonModule,
-    NgIcon,
     NgOptimizedImage,
     RouterLink,
-    StoreCardComponent,
-    BannerPromotionCardComponent,
     CreateBannerAdModalComponent,
     CreateAdTypeModalComponent,
   ],
-  providers: [provideIcons({ heroPlus, heroChevronLeft, heroChevronRight })],
   template: `
-    <div class="mx-auto w-full max-w-[420px] bg-[#F7F7FA] px-4 pt-4 pb-8 md:hidden">
+    <div class="mx-auto w-full max-w-[390px] bg-white px-5 pb-[124px] pt-4 md:hidden">
       <div class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
           <a
             routerLink="/ads"
             aria-label="Back to Ads"
-            class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-[100px] bg-[#F3F3F3]"
           >
-            <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
+            <img [ngSrc]="arrowLeftIcon" width="20" height="20" alt="" class="h-5 w-5" />
           </a>
-          <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">Running Ads</h1>
+          <h1 class="text-[20px] font-semibold leading-[1.2] text-black">Running Ads</h1>
         </div>
 
         <button
           type="button"
           (click)="isCreateAdTypeModalOpen.set(true)"
-          class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#6653E4] text-white shadow-[0_14px_28px_-18px_rgba(102,83,228,0.9)]"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-[64px] border border-white bg-[#6453D9] shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5]"
           aria-label="Create ad"
         >
-          <ng-icon name="heroPlus" class="text-[14px]"></ng-icon>
+          <img [ngSrc]="addIcon" width="18" height="18" alt="" class="h-[18px] w-[18px]" />
         </button>
       </div>
 
-      <div class="mt-5 grid grid-cols-3 gap-3 border-y border-[#F0F1F4] py-4">
-        @for (stat of mobileSummaryStats(); track stat.label) {
-          <div class="border-r border-[#F0F1F4] pr-2 last:border-r-0">
-            <p class="text-[9px] text-[#A0A4AD]">{{ stat.label }}</p>
-            <p class="mt-1 text-[12px] font-semibold text-[#2B2F36]">{{ stat.value }}</p>
-          </div>
-        }
+      <div class="mt-5 overflow-hidden rounded-[12px] border border-[#EDEDED]">
+        <div class="grid grid-cols-4 bg-white">
+          @for (item of planSummary; track item.label) {
+            <div class="border-r border-[#EDEDED] px-4 py-2.5 last:border-r-0">
+              <p class="text-[14px] font-medium leading-none text-[rgba(26,27,29,0.5)]">
+                {{ summaryLabel(item.label) }}
+              </p>
+              <p class="mt-2 text-[18px] font-semibold leading-6 text-[#1A1B1D]">
+                {{ item.value }}
+              </p>
+            </div>
+          }
+        </div>
       </div>
 
-      <div class="mt-4 flex items-center gap-4 overflow-x-auto border-b border-[#F0F0F2] pb-3 text-[11px] font-medium [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        @for (tab of placementTabs; track tab.value) {
-          <button
-            type="button"
-            (click)="activePlacement.set(tab.value); resetMobilePlacementState(tab.value)"
-            class="inline-flex shrink-0 items-center gap-1.5 border-b pb-2 transition"
-            [class.border-[#6C5CE7]]="activePlacement() === tab.value"
-            [class.text-[#6C5CE7]]="activePlacement() === tab.value"
-            [class.border-transparent]="activePlacement() !== tab.value"
-            [class.text-[#9CA1AA]]="activePlacement() !== tab.value"
-          >
-            <span class="h-2 w-2 rounded-full" [class.bg-[#6C5CE7]]="activePlacement() === tab.value" [class.bg-[#D4D8E1]]="activePlacement() !== tab.value"></span>
-            {{ tab.label }}
-          </button>
-        }
-      </div>
-
-      @if (mobileStatusTabs().length > 0) {
-        <div class="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          @for (tab of mobileStatusTabs(); track tab.value) {
+      <div class="mt-6 border-b border-[#EAEAEA]">
+        <div
+          class="flex items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          @for (tab of placementTabs; track tab.value) {
             <button
               type="button"
-              (click)="activeStatus.set(tab.value)"
-              class="shrink-0 rounded-full px-3 py-1.5 text-[10px] font-medium transition"
-              [class.bg-[#1F2024]]="activeStatus() === tab.value"
-              [class.text-white]="activeStatus() === tab.value"
-              [class.bg-[#F4F4F6]]="activeStatus() !== tab.value"
-              [class.text-[#4B4F57]]="activeStatus() !== tab.value"
+              (click)="activePlacement.set(tab.value)"
+              class="flex shrink-0 flex-col gap-[6px]"
             >
-              {{ tab.label }}({{ countByStatus(tab.value) }})
+              <span class="inline-flex items-center gap-1 rounded-[8px] px-3 py-1">
+                <img
+                  [ngSrc]="activePlacement() === tab.value ? tab.activeIcon : tab.inactiveIcon"
+                  width="16"
+                  height="16"
+                  alt=""
+                  class="h-4 w-4"
+                />
+                <span
+                  [class]="
+                    activePlacement() === tab.value
+                      ? 'text-[16px] font-medium leading-6 text-[#6453D9]'
+                      : 'text-[16px] font-medium leading-6 text-[#959595]'
+                  "
+                >
+                  {{ tab.label }}
+                </span>
+              </span>
+              <span
+                [class]="
+                  activePlacement() === tab.value
+                    ? 'h-[2px] w-full rounded-[25px] bg-[#6453D9]'
+                    : 'h-px w-full rounded-[25px] bg-transparent'
+                "
+              ></span>
             </button>
           }
         </div>
-      }
+      </div>
 
-      @if (mobileShowsUpgradeState()) {
-        <div class="flex min-h-[56vh] flex-col items-center justify-center px-6 text-center">
-          <div class="relative mb-8 h-[150px] w-full max-w-[180px] opacity-70">
-            <img
-              ngSrc="assets/images/empty_state.svg"
-              alt="Upgrade required"
-              fill
-              class="object-contain"
-            >
-          </div>
-
-          <h2 class="text-[16px] font-semibold leading-tight tracking-[-0.03em] text-[#24262D]">
-            {{ mobileUpgradeTitle() }}
-          </h2>
-
-          <p class="mt-2 text-[11px] text-[#9297A1]">
-            {{ mobileUpgradeDescription() }}
-          </p>
-
+      <div
+        class="mt-6 flex gap-[10px] overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        @for (tab of statusTabs; track tab.value) {
           <button
             type="button"
-            (click)="navigateToPlans()"
-            class="mt-6 rounded-full bg-[#F2F3F5] px-6 py-2.5 text-[11px] font-medium text-[#2F333B]"
+            (click)="activeStatus.set(tab.value)"
+            [class]="statusButtonClass(tab.value)"
           >
-            Upgrade plan
+            {{ tab.label }} ({{ countByStatus(tab.value) }})
           </button>
+        }
+      </div>
+
+      @if (activePlacement() === 'promoted listings') {
+        <div class="mt-8 space-y-8">
+          @for (section of mobileSections(); track section.id) {
+            <section>
+              <div class="mb-4 flex items-end justify-between gap-4">
+                <h2 class="text-[20px] font-medium leading-6 text-[#1F1F1F]">
+                  {{ section.title }}
+                </h2>
+
+                @if (section.viewAllCount) {
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1 text-[14px] font-medium leading-6 text-[#1F1F1F]"
+                  >
+                    View all ({{ section.viewAllCount }})
+                    <img [ngSrc]="arrowRightIcon" width="16" height="16" alt="" class="h-4 w-4" />
+                  </button>
+                }
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                @for (card of section.cards; track card.id) {
+                  <a
+                    [routerLink]="['/ads/running', card.id]"
+                    class="overflow-hidden rounded-[13.451px] border border-[#EAEAEA] bg-white p-[2.242px]"
+                  >
+                    <div class="relative overflow-hidden rounded-[11.21px]">
+                      <img
+                        [ngSrc]="card.imageSrc"
+                        width="170"
+                        height="159"
+                        [alt]="card.title"
+                        class="h-[159px] w-full rounded-[11.21px] object-cover"
+                      />
+
+                      <div
+                        class="absolute left-[6.73px] top-[6.73px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[10px] font-medium leading-4 text-[#4E3E07]"
+                      >
+                        Active until: {{ card.expiresOn }}
+                      </div>
+
+                      @if (card.discount) {
+                        <div
+                          class="absolute left-[6.73px] top-[29.76px] rounded-[8px] bg-[#E9FF7C] px-[6px] py-[2px] text-[10px] font-medium leading-4 text-[#4E3E07]"
+                        >
+                          {{ card.discount }}
+                        </div>
+                      }
+                    </div>
+
+                    <div class="px-[2.242px] pb-[8.407px] pt-[8px]">
+                      <div class="flex items-center justify-between gap-2">
+                        <p class="line-clamp-1 text-[13px] leading-[1.1] text-[#1F1F1F]">
+                          {{ card.title }}
+                        </p>
+                        @if (card.tag) {
+                          <span
+                            class="rounded-[1000px] bg-[#F0F0F0] px-[6px] py-[2px] text-[10px] leading-none text-[#1F1F1F]"
+                          >
+                            {{ card.tag }}
+                          </span>
+                        }
+                      </div>
+
+                      <div class="mt-2 flex flex-wrap items-center gap-1">
+                        <p class="text-[14px] font-medium leading-[13.451px] text-[#1F1F1F]">
+                          {{ card.price }}
+                        </p>
+                        @if (card.oldPrice) {
+                          <p class="text-[12px] leading-4 text-[#888888] line-through">
+                            {{ card.oldPrice }}
+                          </p>
+                        }
+                      </div>
+
+                      <div
+                        class="mt-2 flex flex-wrap items-center gap-[10px] text-[12px] text-[#959595]"
+                      >
+                        <span class="inline-flex items-center gap-[2px]">
+                          <img [ngSrc]="eyeIcon" width="12" height="12" alt="" class="h-3 w-3" />
+                          {{ card.views }}
+                        </span>
+                        <span class="inline-flex items-center gap-[2px]">
+                          <img [ngSrc]="clickIcon" width="12" height="12" alt="" class="h-3 w-3" />
+                          {{ card.clicks }}
+                        </span>
+                        <span class="inline-flex items-center gap-[2px]">
+                          <img
+                            [ngSrc]="messagesIcon"
+                            width="12"
+                            height="12"
+                            alt=""
+                            class="h-3 w-3"
+                          />
+                          {{ card.messages }}
+                        </span>
+                        <span class="inline-flex items-center gap-[2px]">
+                          <img [ngSrc]="callIcon" width="12" height="12" alt="" class="h-3 w-3" />
+                          {{ card.calls }}
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                }
+              </div>
+            </section>
+          }
         </div>
-      } @else if (!mobileHasVisibleContent()) {
-        <div class="flex min-h-[56vh] flex-col items-center justify-center px-6 text-center">
+      } @else {
+        <div class="flex min-h-[52vh] flex-col items-center justify-center px-6 text-center">
           <div class="relative mb-8 h-[150px] w-full max-w-[180px] opacity-70">
             <img
               ngSrc="assets/images/empty_state.svg"
               alt="No running ads"
               fill
               class="object-contain"
-            >
+            />
           </div>
-
-          <h2 class="text-[16px] font-semibold leading-tight tracking-[-0.03em] text-[#24262D]">
-            {{ emptyStateTitle() }}
+          <h2 class="text-[18px] font-medium leading-6 text-[#24262D]">
+            {{ placementEmptyTitle() }}
           </h2>
-
-          <p class="mt-2 text-[11px] text-[#9297A1]">
-            {{ emptyStateDescription() }}
-          </p>
-
-          <button
-            type="button"
-            (click)="isCreateAdTypeModalOpen.set(true)"
-            class="mt-6 rounded-full bg-[#F2F3F5] px-6 py-2.5 text-[11px] font-medium text-[#2F333B]"
-          >
-            {{ emptyStateActionLabel() }}
-          </button>
+          <p class="mt-2 text-[14px] leading-5 text-[#9297A1]">{{ placementEmptyDescription() }}</p>
         </div>
-      } @else if (activePlacement() === 'banner ads') {
-        <section class="mt-4 space-y-4">
-          @for (banner of visibleBannerAds(); track banner.id) {
-            <app-banner-promotion-card [card]="banner"></app-banner-promotion-card>
-          }
-        </section>
-      } @else if (activePlacement() === 'store promotions') {
-        <section class="mt-4 grid grid-cols-2 gap-3">
-          @for (store of promotedStores(); track store.id) {
-            <app-store-card [store]="store" [showFavorite]="false"></app-store-card>
-          }
-        </section>
-      } @else {
-        @for (section of mobileSectionedAds(); track section.category) {
-          <section class="mt-5">
-            <div class="mb-3 flex items-center justify-between">
-              <h2 class="text-[15px] font-semibold tracking-[-0.03em] text-[#23262D]">{{ section.label }}</h2>
-              @if ($index === 0) {
-                <button type="button" class="text-[10px] font-medium text-[#4B4F57]">View all (3,341)</button>
-              }
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              @for (ad of section.items; track ad.id) {
-                <article
-                  [routerLink]="['/ads/running', ad.id]"
-                  class="cursor-pointer overflow-hidden rounded-[18px] border border-[#ECEEF3] bg-white shadow-[0_12px_24px_-24px_rgba(17,24,39,0.55)]"
-                >
-                  <div class="relative m-2 aspect-[0.92] overflow-hidden rounded-[14px]">
-                    <img [src]="ad.image" [alt]="ad.title" class="h-full w-full object-cover">
-                    <div class="absolute left-1.5 top-1.5 rounded-full bg-[#F2F5A7] px-1.5 py-1 text-[8px] font-bold text-[#6A6B1F]">
-                      Active until {{ ad.expiresOn }}
-                    </div>
-                  </div>
-
-                  <div class="px-2.5 pb-3">
-                    <h3 class="line-clamp-1 text-[11px] font-medium text-[#2A2D34]">{{ ad.title }}</h3>
-                    <p class="mt-1 text-[13px] font-semibold text-[#2A2D34]">{{ ad.price }}</p>
-
-                    <div class="mt-2 flex flex-wrap items-center gap-2 text-[9px] text-[#ADB1B9]">
-                      <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>{{ ad.views }}</span>
-                      <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>{{ ad.clicks }}</span>
-                      <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>{{ ad.saves }}</span>
-                    </div>
-                  </div>
-                </article>
-              }
-            </div>
-          </section>
-        }
       }
     </div>
 
-    <div class="hidden h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] md:flex">
-      <div class="flex items-center justify-between border-b border-[#F0F0F2] px-8 py-6">
-        <h1 class="text-[20px] font-black tracking-tight text-[#1A1C21]">Ads &gt; Running Ads</h1>
+    <div class="hidden h-full flex-col md:flex">
+      <div class="mb-6 flex items-center justify-between gap-4 px-2">
+        <h1 class="text-[24px] font-medium leading-none text-[#0D0D0D]">Running Ads</h1>
 
         <button
           type="button"
           (click)="isCreateAdTypeModalOpen.set(true)"
-          class="inline-flex items-center gap-2 rounded-full bg-[#6653E4] px-5 py-3 text-[13px] font-semibold text-white shadow-[0_14px_28px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
+          class="inline-flex h-10 items-center justify-center gap-2 rounded-[64px] border border-white bg-[#6453D9] px-5 shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5]"
         >
-          <ng-icon name="heroPlus" class="text-sm"></ng-icon>
-          Create Ad
+          <img [ngSrc]="addIcon" width="18" height="18" alt="" class="h-[18px] w-[18px]" />
+          <span class="text-[14px] font-medium leading-5 text-white">Create ad</span>
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto px-8 py-6">
-        <div class="grid gap-4 rounded-[18px] border border-[#EFF0F4] bg-white px-5 py-4 md:grid-cols-2 xl:grid-cols-6">
-          @for (stat of summaryStats; track stat.label) {
-            <div class="border-[#EFF0F4] md:border-r last:border-r-0 md:pr-5">
-              <p class="text-[11px] font-medium text-[#A0A4AD]">{{ stat.label }}</p>
-              <p class="mt-1 text-[13px] font-semibold text-[#2B2F36]">{{ stat.value }}</p>
-            </div>
-          }
+      <div
+        class="flex h-full flex-col rounded-[32px] border border-[#F1F1F4] bg-white px-[17px] pb-10 pt-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]"
+      >
+        <div class="border-b border-[#EAEAEA]">
+          <div class="flex items-center gap-2">
+            @for (tab of placementTabs; track tab.value) {
+              <button
+                type="button"
+                (click)="activePlacement.set(tab.value)"
+                class="flex flex-col gap-[6px]"
+              >
+                <span class="inline-flex items-center gap-1 rounded-[8px] px-3 py-1">
+                  <img
+                    [ngSrc]="activePlacement() === tab.value ? tab.activeIcon : tab.inactiveIcon"
+                    width="16"
+                    height="16"
+                    alt=""
+                    class="h-4 w-4"
+                  />
+                  <span
+                    [class]="
+                      activePlacement() === tab.value
+                        ? 'text-[16px] font-medium leading-6 text-[#6453D9]'
+                        : 'text-[16px] font-medium leading-6 text-[#959595]'
+                    "
+                  >
+                    {{ tab.label }}
+                  </span>
+                </span>
+                <span
+                  [class]="
+                    activePlacement() === tab.value
+                      ? 'h-[2px] w-full rounded-[25px] bg-[#6453D9]'
+                      : 'h-px w-full rounded-[25px] bg-transparent'
+                  "
+                ></span>
+              </button>
+            }
+          </div>
         </div>
 
-        <div class="mt-5 flex flex-wrap items-center gap-5 border-b border-[#F0F0F2] pb-4">
-          @for (tab of placementTabs; track tab.value) {
+        <div class="mt-6 flex gap-[10px]">
+          @for (tab of statusTabs; track tab.value) {
             <button
               type="button"
-              (click)="activePlacement.set(tab.value)"
-              class="inline-flex items-center gap-1.5 text-[13px] font-semibold transition"
-              [class.text-[#6C5CE7]]="activePlacement() === tab.value"
-              [class.text-[#9CA1AA]]="activePlacement() !== tab.value"
+              (click)="activeStatus.set(tab.value)"
+              [class]="statusButtonClass(tab.value)"
             >
-              <span
-                class="h-2 w-2 rounded-full"
-                [class.bg-[#6C5CE7]]="activePlacement() === tab.value"
-                [class.bg-[#D4D8E1]]="activePlacement() !== tab.value"
-              ></span>
-              {{ tab.label }}
+              {{ tab.label }} ({{ countByStatus(tab.value) }})
             </button>
           }
         </div>
 
-        @if (hasVisibleContent()) {
-          <div class="mt-4 flex flex-wrap gap-3">
-            @for (tab of statusTabs; track tab.value) {
-              <button
-                type="button"
-                (click)="activeStatus.set(tab.value)"
-                class="rounded-full px-4 py-2 text-[13px] font-semibold transition"
-                [class.bg-[#1F2024]]="activeStatus() === tab.value"
-                [class.text-white]="activeStatus() === tab.value"
-                [class.bg-[#F4F4F6]]="activeStatus() !== tab.value"
-                [class.text-[#4B4F57]]="activeStatus() !== tab.value"
-              >
-                {{ tab.label }}({{ countByStatus(tab.value) }})
-              </button>
-            }
-          </div>
+        @if (activePlacement() === 'promoted listings') {
+          <div class="mt-10 space-y-[37px]">
+            @for (section of desktopSections(); track section.id) {
+              <section>
+                <div class="mb-4 flex items-center justify-between gap-4">
+                  <h2 class="text-[20px] font-medium leading-6 text-[#1F1F1F]">
+                    {{ section.title }}
+                  </h2>
 
-          @if (activePlacement() === 'banner ads') {
-            <section class="mt-8">
-              <div class="grid max-w-4xl gap-5 xl:grid-cols-2">
-                @for (banner of visibleBannerAds(); track banner.id) {
-                  <app-banner-promotion-card [card]="banner"></app-banner-promotion-card>
-                }
-              </div>
-            </section>
-          } @else if (activePlacement() === 'store promotions') {
-            <section class="mt-8">
-              <div class="mb-4 flex items-center justify-between">
-                <h2 class="text-[18px] font-bold tracking-tight text-[#23262D]">Featured stores</h2>
-
-                <div class="flex items-center gap-3">
-                  <button type="button" class="text-[13px] font-semibold text-[#4B4F57]">
-                    View all (28)
-                  </button>
-                  <button
-                    type="button"
-                    class="flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF3] text-[#A0A4AD] transition hover:bg-[#F8F8FA]"
-                  >
-                    <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
-                  </button>
-                  <button
-                    type="button"
-                    class="flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF3] text-[#A0A4AD] transition hover:bg-[#F8F8FA]"
-                  >
-                    <ng-icon name="heroChevronRight" class="text-sm"></ng-icon>
-                  </button>
-                </div>
-              </div>
-
-              <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                @for (store of promotedStores(); track store.id) {
-                  <app-store-card [store]="store" [showFavorite]="false"></app-store-card>
-                }
-              </div>
-            </section>
-          } @else {
-            @for (section of sectionedAds(); track section.category) {
-              <section class="mt-8">
-                <div class="mb-4 flex items-center justify-between">
-                  <h2 class="text-[18px] font-bold tracking-tight text-[#23262D]">{{ section.label }}</h2>
-
-                  @if ($index === 0) {
-                    <div class="flex items-center gap-3">
-                      <button type="button" class="text-[13px] font-semibold text-[#4B4F57]">
-                        View all (3,341)
-                      </button>
+                  @if (section.viewAllCount) {
+                    <div class="flex items-center gap-[25px]">
                       <button
                         type="button"
-                        class="flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF3] text-[#A0A4AD] transition hover:bg-[#F8F8FA]"
+                        class="inline-flex items-center gap-1 text-[16px] font-medium leading-6 text-[#1F1F1F]"
                       >
-                        <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
+                        View all ({{ section.viewAllCount }})
+                        <img
+                          [ngSrc]="arrowRightIcon"
+                          width="16"
+                          height="16"
+                          alt=""
+                          class="h-4 w-4"
+                        />
                       </button>
-                      <button
-                        type="button"
-                        class="flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF3] text-[#A0A4AD] transition hover:bg-[#F8F8FA]"
-                      >
-                        <ng-icon name="heroChevronRight" class="text-sm"></ng-icon>
-                      </button>
+
+                      @if (section.cards.length > 1) {
+                        <div class="flex items-center gap-3">
+                          <button
+                            type="button"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-[80px] border border-[#EAEAEA] bg-white shadow-[0px_3.2px_6.4px_rgba(202,202,202,0.25)]"
+                          >
+                            <img
+                              [ngSrc]="arrowLeftIcon"
+                              width="16"
+                              height="16"
+                              alt=""
+                              class="h-4 w-4 opacity-30"
+                            />
+                          </button>
+                          <button
+                            type="button"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-[80px] border border-[#EAEAEA] bg-white shadow-[0px_3.2px_6.4px_rgba(202,202,202,0.25)]"
+                          >
+                            <img
+                              [ngSrc]="arrowRightIcon"
+                              width="16"
+                              height="16"
+                              alt=""
+                              class="h-4 w-4"
+                            />
+                          </button>
+                        </div>
+                      }
                     </div>
                   }
                 </div>
 
-                <div class="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
-                  @for (ad of section.items; track ad.id) {
-                    <article
-                      [routerLink]="['/ads/running', ad.id]"
-                      class="cursor-pointer overflow-hidden rounded-[20px] border border-[#ECEEF3] bg-white shadow-[0_12px_24px_-24px_rgba(17,24,39,0.55)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_32px_-24px_rgba(17,24,39,0.4)]"
+                <div
+                  class="grid gap-5"
+                  [style.gridTemplateColumns]="desktopGridTemplate(section.cards.length)"
+                >
+                  @for (card of section.cards; track card.id) {
+                    <a
+                      [routerLink]="['/ads/running', card.id]"
+                      class="overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white p-1"
                     >
-                      <div class="relative m-2 aspect-[0.92] overflow-hidden rounded-[18px]">
-                        <img [src]="ad.image" [alt]="ad.title" class="h-full w-full object-cover">
-                        <div class="absolute left-2 top-2 rounded-full bg-[#F2F5A7] px-2 py-1 text-[10px] font-bold text-[#6A6B1F]">
-                          Active until {{ ad.expiresOn }}
+                      <div class="relative overflow-hidden rounded-[20px]">
+                        <img
+                          [ngSrc]="card.imageSrc"
+                          [priority]="
+                            card.imageSrc === '/assets/images/running-ads-desktop-iphone17.png'
+                          "
+                          width="202"
+                          height="224"
+                          [alt]="card.title"
+                          class="h-[224px] w-full rounded-[20px] object-cover"
+                        />
+
+                        <div
+                          class="absolute left-[7.2px] top-[7px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]"
+                        >
+                          Active until: {{ card.expiresOn }}
                         </div>
 
-                        @if (section.items.length > 1 && ($first || $last) && section.category === 'other listings') {
-                          <button
-                            type="button"
-                            class="absolute left-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#7F838C] shadow-sm"
+                        @if (card.discount) {
+                          <div
+                            class="absolute left-[7.2px] top-[31px] rounded-[8px] bg-[#E9FF7C] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]"
                           >
-                            <ng-icon name="heroChevronLeft" class="text-xs"></ng-icon>
-                          </button>
-                          <button
-                            type="button"
-                            class="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#7F838C] shadow-sm"
-                          >
-                            <ng-icon name="heroChevronRight" class="text-xs"></ng-icon>
-                          </button>
+                            {{ card.discount }}
+                          </div>
                         }
                       </div>
 
-                      <div class="px-3 pb-3">
-                        <h3 class="line-clamp-1 text-[13px] font-medium text-[#2A2D34]">{{ ad.title }}</h3>
-                        <p class="mt-1 text-[15px] font-semibold text-[#2A2D34]">{{ ad.price }}</p>
+                      <div class="px-1 pb-3 pt-3">
+                        <div class="flex items-center justify-between gap-2">
+                          <p class="line-clamp-1 text-[14px] leading-5 text-[#1F1F1F]">
+                            {{ card.title }}
+                          </p>
+                          @if (card.tag) {
+                            <span
+                              class="rounded-[1000px] bg-[#F0F0F0] px-[6px] py-[2px] text-[10px] leading-none text-[#1F1F1F]"
+                            >
+                              {{ card.tag }}
+                            </span>
+                          }
+                        </div>
 
-                        <div class="mt-2 flex items-center gap-3 text-[11px] font-medium text-[#ADB1B9]">
-                          <span class="inline-flex items-center gap-1">
-                            <span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>
-                            {{ ad.views }}
+                        <div class="mt-1 flex flex-wrap items-center gap-1">
+                          <p class="text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                            {{ card.price }}
+                          </p>
+                          @if (card.oldPrice) {
+                            <p class="text-[12px] leading-4 text-[#888888] line-through">
+                              {{ card.oldPrice }}
+                            </p>
+                          }
+                        </div>
+
+                        <div
+                          class="mt-2 flex flex-wrap items-center gap-[10px] text-[12px] text-[#959595]"
+                        >
+                          <span class="inline-flex items-center gap-[2px]">
+                            <img [ngSrc]="eyeIcon" width="12" height="12" alt="" class="h-3 w-3" />
+                            {{ card.views }}
                           </span>
-                          <span class="inline-flex items-center gap-1">
-                            <span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>
-                            {{ ad.clicks }}
+                          <span class="inline-flex items-center gap-[2px]">
+                            <img
+                              [ngSrc]="clickIcon"
+                              width="12"
+                              height="12"
+                              alt=""
+                              class="h-3 w-3"
+                            />
+                            {{ card.clicks }}
                           </span>
-                          <span class="inline-flex items-center gap-1">
-                            <span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>
-                            {{ ad.saves }}
+                          <span class="inline-flex items-center gap-[2px]">
+                            <img
+                              [ngSrc]="messagesIcon"
+                              width="12"
+                              height="12"
+                              alt=""
+                              class="h-3 w-3"
+                            />
+                            {{ card.messages }}
+                          </span>
+                          <span class="inline-flex items-center gap-[2px]">
+                            <img [ngSrc]="callIcon" width="12" height="12" alt="" class="h-3 w-3" />
+                            {{ card.calls }}
                           </span>
                         </div>
                       </div>
-                    </article>
+                    </a>
                   }
                 </div>
               </section>
             }
-          }
+          </div>
         } @else {
-          <div class="flex min-h-[560px] flex-col items-center justify-center px-6 text-center">
-            <div class="relative mb-10 h-[240px] w-full max-w-[340px] opacity-70">
-              <img
-                ngSrc="assets/images/empty_state.svg"
-                alt="No running ads"
-                fill
-                class="object-contain"
-                priority
-              >
+          <div class="flex min-h-[420px] flex-1 items-center justify-center px-6 text-center">
+            <div>
+              <div class="relative mx-auto mb-8 h-[180px] w-full max-w-[240px] opacity-70">
+                <img
+                  ngSrc="assets/images/empty_state.svg"
+                  alt="No running ads"
+                  fill
+                  class="object-contain"
+                />
+              </div>
+              <h2 class="text-[20px] font-medium leading-6 text-[#24262D]">
+                {{ placementEmptyTitle() }}
+              </h2>
+              <p class="mt-2 text-[15px] leading-6 text-[#9297A1]">
+                {{ placementEmptyDescription() }}
+              </p>
             </div>
-
-            <h2 class="text-[24px] font-bold tracking-tight text-[#24262D]">
-              {{ emptyStateTitle() }}
-            </h2>
-
-            <p class="mt-2 text-[15px] font-medium text-[#9297A1]">
-              {{ emptyStateDescription() }}
-            </p>
-
-            <button
-              type="button"
-              class="mt-8 rounded-full bg-[#F2F3F5] px-7 py-3 text-[15px] font-semibold text-[#2F333B] transition hover:bg-[#E8EAF0] focus:outline-none focus:ring-4 focus:ring-gray-200"
-            >
-              {{ emptyStateActionLabel() }}
-            </button>
           </div>
         }
       </div>
@@ -454,25 +544,47 @@ interface RunningAd {
 })
 export class RunningAdsPageComponent {
   private readonly router = inject(Router);
-  readonly summaryStats: SummaryStat[] = [
-    { label: 'Current plan', value: 'Enterprise' },
-    { label: 'Automobile listings', value: 'Unlimited' },
-    { label: 'Property listings', value: 'Unlimited' },
-    { label: 'Other listings', value: 'Unlimited' },
-    { label: 'Store', value: 'Unlimited' },
-    { label: 'Banner', value: '3/5 left' },
+
+  readonly arrowLeftIcon = '/assets/icons/running-ads-arrow-left.svg';
+  readonly arrowRightIcon = '/assets/icons/running-ads-arrow-right.svg';
+  readonly addIcon = '/assets/icons/running-ads-add.svg';
+  readonly eyeIcon = '/assets/icons/running-ads-eye.svg';
+  readonly clickIcon = '/assets/icons/running-ads-click.svg';
+  readonly messagesIcon = '/assets/icons/running-ads-messages.svg';
+  readonly callIcon = '/assets/icons/running-ads-call.svg';
+
+  readonly placementTabs: readonly PlacementTab[] = [
+    {
+      label: 'Promoted Listings',
+      value: 'promoted listings',
+      activeIcon: '/assets/icons/running-ads-tab-promoted.svg',
+      inactiveIcon: '/assets/icons/running-ads-tab-promoted.svg',
+    },
+    {
+      label: 'Store Promotions',
+      value: 'store promotions',
+      activeIcon: '/assets/icons/running-ads-tab-store.svg',
+      inactiveIcon: '/assets/icons/running-ads-tab-store.svg',
+    },
+    {
+      label: 'Banner Ads',
+      value: 'banner ads',
+      activeIcon: '/assets/icons/running-ads-tab-banner.svg',
+      inactiveIcon: '/assets/icons/running-ads-tab-banner.svg',
+    },
   ];
 
-  readonly placementTabs = [
-    { label: 'Promoted Listings', value: 'promoted listings' as const },
-    { label: 'Store Promotions', value: 'store promotions' as const },
-    { label: 'Banner Ads', value: 'banner ads' as const },
+  readonly statusTabs: readonly StatusTab[] = [
+    { label: 'Active', value: 'active' },
+    { label: 'Paused', value: 'paused' },
+    { label: 'Expired', value: 'expired' },
   ];
 
-  readonly statusTabs = [
-    { label: 'Active', value: 'active' as const },
-    { label: 'Paused', value: 'paused' as const },
-    { label: 'Expired', value: 'expired' as const },
+  readonly planSummary: readonly PlanSummaryItem[] = [
+    { label: 'current plan', value: 'Free' },
+    { label: 'automobile listings', value: '3/5 left' },
+    { label: 'property listings', value: '3/5 left' },
+    { label: 'other listings', value: '3/5 left' },
   ];
 
   readonly activePlacement = signal<AdPlacement>('promoted listings');
@@ -480,417 +592,324 @@ export class RunningAdsPageComponent {
   readonly isCreateAdTypeModalOpen = signal(false);
   readonly isCreateBannerModalOpen = signal(false);
 
-  readonly bannerAds = signal<BannerRunningAd[]>([
-    {
-      id: 'banner-1',
-      status: 'active',
-      title: 'Super shopping day',
-      subtitle: 'Flash sale',
-      primaryFigure: '99',
-      secondaryFigure: 'RM9.99',
-      expiresOn: '24 May, 2025',
-      sponsorLabel: 'Sponsored',
-      views: '1K',
-      clicks: '500',
-      cardTone: 'linear-gradient(135deg, #FFD95A 0%, #FF8A1F 42%, #F75A1D 100%)',
-      textTone: '#FFFFFF',
-      accentTone: 'linear-gradient(135deg, #2244E8 0%, #3A6AF0 100%)',
-      badgeTone: '#EAF6A2',
-      imagePreview: 'assets/images/image-1-1.jpg',
-      route: ['/ads/running', 'banner-1'],
-    },
-    {
-      id: 'banner-2',
-      status: 'active',
-      title: 'Save up to',
-      subtitle: 'Starts July 8',
-      primaryFigure: '76',
-      secondaryFigure: 'Prime day deals',
-      expiresOn: '24 May, 2025',
-      sponsorLabel: 'Sponsored',
-      views: '1K',
-      clicks: '500',
-      cardTone: 'linear-gradient(135deg, #6AB5FF 0%, #3292FF 52%, #1E79F2 100%)',
-      textTone: '#FDFEFE',
-      accentTone: 'linear-gradient(135deg, #FF9B22 0%, #FFCF59 100%)',
-      badgeTone: '#DDEB94',
-      imagePreview: 'assets/images/image-2-1.jpg',
-      route: ['/ads/running', 'banner-2'],
-    },
-    {
-      id: 'banner-3',
-      status: 'paused',
-      title: 'Weekend gadget drop',
-      subtitle: 'Paused campaign',
-      primaryFigure: '48',
-      secondaryFigure: 'Restart anytime',
-      expiresOn: '18 May, 2025',
-      sponsorLabel: 'Paused',
-      views: '650',
-      clicks: '112',
-      cardTone: 'linear-gradient(135deg, #D8DCE5 0%, #B2B8C7 100%)',
-      textTone: '#2A303A',
-      accentTone: 'linear-gradient(135deg, #5F6A7E 0%, #8F99AD 100%)',
-      badgeTone: '#EEF1AF',
-      imagePreview: 'assets/images/image-3-1.jpg',
-      route: ['/ads/running', 'banner-3'],
-    },
-    {
-      id: 'banner-4',
-      status: 'pending approval',
-      title: 'Back to school deals',
-      subtitle: 'Campaign ended',
-      primaryFigure: '54',
-      secondaryFigure: 'Create again',
-      expiresOn: '19 April, 2025',
-      sponsorLabel: 'Expired',
-      views: '1.8K',
-      clicks: '612',
-      cardTone: 'linear-gradient(135deg, #D7EEFF 0%, #A6D7FF 55%, #7ABFFF 100%)',
-      textTone: '#11314A',
-      accentTone: 'linear-gradient(135deg, #2B6CB9 0%, #5AA7FF 100%)',
-      badgeTone: '#EDF5AE',
-      route: ['/ads/running', 'banner-4'],
-    },
-  ]);
-
-  readonly ads = signal<RunningAd[]>([
-    {
-      id: 'other-1',
-      title: 'Iphone 17 pro max',
-      price: '₦2,500,000',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '24 May, 2025',
-      status: 'active',
-      placement: 'promoted listings',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=600&h=700&fit=crop',
-    },
-    {
-      id: 'other-2',
-      title: 'Logitech ergonomic mouse',
-      price: '₦35,000',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '24 May, 2025',
-      status: 'active',
-      placement: 'promoted listings',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=600&h=700&fit=crop',
-    },
-    {
-      id: 'other-3',
-      title: 'RGB keyboard',
-      price: '₦35,000',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '24 May, 2025',
-      status: 'active',
-      placement: 'promoted listings',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=600&h=700&fit=crop',
-    },
-    {
-      id: 'other-4',
-      title: 'Iphone X (64 gig)',
-      price: '₦35,000',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '24 May, 2025',
-      status: 'active',
-      placement: 'promoted listings',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=700&fit=crop',
-    },
-    {
-      id: 'other-5',
-      title: 'Ergonomic chair',
-      price: '₦35,000',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '24 May, 2025',
-      status: 'active',
-      placement: 'promoted listings',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&h=700&fit=crop',
-    },
-    {
-      id: 'auto-1',
-      title: 'Maserati',
-      price: '₦35,000',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '24 May, 2025',
-      status: 'active',
-      placement: 'promoted listings',
-      category: 'automobile listings',
-      image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&h=700&fit=crop',
-    },
-    {
-      id: 'property-1',
-      title: 'Nike sneaker',
-      price: '₦35,000',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '24 May, 2025',
-      status: 'active',
-      placement: 'promoted listings',
-      category: 'property listings',
-      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=700&fit=crop',
-    },
-    {
-      id: 'other-paused',
-      title: 'Standing lamp',
-      price: '₦58,000',
-      views: '840',
-      clicks: '210',
-      saves: '16',
-      expiresOn: '11 Jun, 2025',
-      status: 'paused',
-      placement: 'promoted listings',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&h=700&fit=crop',
-    },
-    {
-      id: 'other-expired',
-      title: 'Wireless headset',
-      price: '₦45,000',
-      views: '1.2K',
-      clicks: '380',
-      saves: '28',
-      expiresOn: '03 Mar, 2025',
-      status: 'expired',
-      placement: 'promoted listings',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=700&fit=crop',
-    },
-    {
-      id: 'store-1',
-      title: 'The Vine Collections',
-      price: '',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '24 March, 2026',
-      status: 'active',
-      placement: 'store promotions',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=640&h=360&fit=crop',
-      subtitle: '43 active listings',
-      logoLabel: 'V',
-      logoTone: 'linear-gradient(135deg, #4A8F67 0%, #F0C76C 100%)',
-    },
-    {
-      id: 'store-2',
-      title: 'New Age Properties',
-      price: '',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '24 March, 2026',
-      status: 'active',
-      placement: 'store promotions',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=640&h=360&fit=crop',
-      subtitle: '43 active listings',
-      logoLabel: 'N',
-      logoTone: 'linear-gradient(135deg, #101713 0%, #83D95E 100%)',
-    },
-    {
-      id: 'store-3',
-      title: 'Snap Thrifts',
-      price: '',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '24 March, 2026',
-      status: 'paused',
-      placement: 'store promotions',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=640&h=360&fit=crop',
-      subtitle: '43 active listings',
-      logoLabel: 'S',
-      logoTone: 'linear-gradient(135deg, #3DBF6C 0%, #62D68A 100%)',
-    },
-    {
-      id: 'store-4',
-      title: 'goMelon',
-      price: '',
-      views: '1K',
-      clicks: '500',
-      saves: '41',
-      expiresOn: '03 March, 2026',
-      status: 'expired',
-      placement: 'store promotions',
-      category: 'other listings',
-      image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=640&h=360&fit=crop',
-      subtitle: '43 active listings',
-      logoLabel: 'g',
-      logoTone: 'linear-gradient(135deg, #FF7B2F 0%, #FFB266 100%)',
-    },
-  ]);
-
-  readonly filteredAds = computed(() =>
-    this.ads().filter(
-      ad => ad.placement === this.activePlacement() && ad.status === this.activeStatus(),
-    ),
-  );
-
-  readonly sectionedAds = computed(() => {
-    const sections: Array<{ category: ListingCategory; label: string; items: RunningAd[] }> = [
-      { category: 'other listings', label: 'Other listings', items: [] },
-      { category: 'automobile listings', label: 'Automobile listings', items: [] },
-      { category: 'property listings', label: 'Property listings', items: [] },
-    ];
-
-    return sections
-      .map(section => ({
-        ...section,
-        items: this.filteredAds().filter(ad => ad.category === section.category),
-      }))
-      .filter(section => section.items.length > 0);
-  });
-
-  readonly visibleBannerAds = computed(() =>
-    this.bannerAds().filter(ad => ad.status === this.activeStatus()),
-  );
-
-  readonly hasVisibleContent = computed(() =>
-    this.activePlacement() === 'banner ads'
-      ? this.visibleBannerAds().length > 0
-      : this.filteredAds().length > 0,
-  );
-
-  readonly promotedStores = computed<Store[]>(() =>
-    this.filteredAds().map(ad => ({
-      id: ad.id,
-      name: ad.title,
-      logo: this.storeLogoMap[ad.id] ?? 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png',
-      banner: ad.image,
-      followers: '0',
-      metaLabel: ad.subtitle ?? '43 active listings',
-      activeUntil: ad.expiresOn,
-      isVerified: true,
-      route: ['/ads/running', ad.id],
-    })),
-  );
-
-  readonly mobileStatusTabs = computed(() => {
-    if (this.activePlacement() === 'banner ads') {
-      return [
-        { label: 'Active', value: 'active' as const },
-        { label: 'Paused', value: 'paused' as const },
-        { label: 'Pending approval', value: 'pending approval' as const },
-      ];
-    }
-
-    return this.statusTabs;
-  });
-
-  readonly mobileSummaryStats = computed(() => {
-    if (this.activePlacement() === 'store promotions' || this.activePlacement() === 'banner ads') {
-      const hasAccess = this.activeStatus() === 'active';
-      return [
-        { label: 'Current plan', value: hasAccess ? 'Enterprise' : 'Free' },
-        { label: this.activePlacement() === 'store promotions' ? 'Store promotions' : 'Banner ads', value: hasAccess ? 'Unlimited' : '0/5 left' },
-        { label: 'Promoted listings', value: hasAccess ? 'Unlimited' : '3/5 left' },
-      ];
-    }
-
-    return [
-      { label: 'Current plan', value: 'Free' },
-      { label: 'Automobile listings', value: '3/5 left' },
-      { label: 'Property listings', value: '3/5 left' },
-    ];
-  });
-
-  readonly mobileShowsUpgradeState = computed(() =>
-    (this.activePlacement() === 'store promotions' || this.activePlacement() === 'banner ads') &&
-    this.activeStatus() !== 'active',
-  );
-
-  readonly mobileHasVisibleContent = computed(() =>
-    this.activePlacement() === 'banner ads'
-      ? this.visibleBannerAds().length > 0
-      : this.activePlacement() === 'store promotions'
-        ? this.promotedStores().length > 0
-        : this.filteredAds().length > 0,
-  );
-
-  readonly mobileSectionedAds = computed(() => {
-    const sections: Array<{ category: ListingCategory; label: string; items: RunningAd[] }> = [
-      { category: 'other listings', label: 'Phones & Laptops', items: [] },
-      { category: 'automobile listings', label: 'Automobile listings', items: [] },
-      { category: 'property listings', label: 'Property listings', items: [] },
-    ];
-
-    return sections
-      .map(section => ({
-        ...section,
-        items: this.filteredAds().filter(ad => ad.category === section.category),
-      }))
-      .filter(section => section.items.length > 0);
-  });
-
-  private readonly storeLogoMap: Record<string, string> = {
-    'store-1': 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png',
-    'store-2': 'https://cdn-icons-png.flaticon.com/512/1047/1047648.png',
-    'store-3': 'https://cdn-icons-png.flaticon.com/512/2813/2813401.png',
-    'store-4': 'https://cdn-icons-png.flaticon.com/512/3126/3126040.png',
+  private readonly mobileSectionsByStatus: Record<AdStatus, readonly ListingSection[]> = {
+    active: [
+      {
+        id: 'phones-laptops',
+        title: 'Phones & Laptops',
+        viewAllCount: '3,341',
+        cards: [
+          {
+            id: 'mobile-1',
+            title: 'Nike sneaker',
+            imageSrc: '/assets/images/running-ads-mobile-sneaker.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+          {
+            id: 'mobile-2',
+            title: 'Bone straight wig',
+            imageSrc: '/assets/images/running-ads-mobile-wig.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+          {
+            id: 'other-4',
+            title: 'Iphone X (64 gig)',
+            imageSrc: '/assets/images/running-ads-mobile-iphone.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            oldPrice: '₦35,000',
+            discount: '-22%',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+          {
+            id: 'other-5',
+            title: 'Ergonomic chair',
+            imageSrc: '/assets/images/running-ads-mobile-chair.png',
+            expiresOn: '24 May, 2025',
+            price: 'Free',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+        ],
+      },
+      {
+        id: 'automobile',
+        title: 'Automobile listings',
+        cards: [
+          {
+            id: 'auto-1',
+            title: 'Nike sneaker',
+            imageSrc: '/assets/images/running-ads-mobile-sneaker.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+        ],
+      },
+      {
+        id: 'property',
+        title: 'Property listings',
+        cards: [
+          {
+            id: 'property-1',
+            title: 'Ergonomic chair',
+            imageSrc: '/assets/images/running-ads-mobile-chair.png',
+            expiresOn: '24 May, 2025',
+            price: 'Free',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+        ],
+      },
+    ],
+    paused: [
+      {
+        id: 'paused',
+        title: 'Phones & Laptops',
+        cards: [
+          {
+            id: 'other-paused',
+            title: 'Ergonomic chair',
+            imageSrc: '/assets/images/running-ads-mobile-chair.png',
+            expiresOn: '24 May, 2025',
+            price: 'Free',
+            tag: 'Used',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+        ],
+      },
+    ],
+    expired: [
+      {
+        id: 'expired',
+        title: 'Phones & Laptops',
+        cards: [
+          {
+            id: 'other-expired',
+            title: 'Iphone X (64 gig)',
+            imageSrc: '/assets/images/running-ads-mobile-iphone.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            oldPrice: '₦35,000',
+            discount: '-22%',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+        ],
+      },
+    ],
   };
 
-  readonly emptyStateTitle = computed(() => {
-    switch (this.activePlacement()) {
-      case 'store promotions':
-        return 'You can’t feature stores on the Free plan';
-      case 'banner ads':
-        return 'You don’t have any running banner ads';
-      default:
-        return 'You don’t have any running promoted listings';
-    }
-  });
+  private readonly desktopSectionsByStatus: Record<AdStatus, readonly ListingSection[]> = {
+    active: [
+      {
+        id: 'other',
+        title: 'Other listings',
+        viewAllCount: '3,341',
+        cards: [
+          {
+            id: 'other-1',
+            title: 'Iphone 17 pro max',
+            imageSrc: '/assets/images/running-ads-desktop-iphone17.png',
+            expiresOn: '24 May, 2025',
+            price: '₦2,500,000',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+          {
+            id: 'other-2',
+            title: 'Logitech ergonomic mouse',
+            imageSrc: '/assets/images/running-ads-desktop-mouse.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+          {
+            id: 'other-3',
+            title: 'RGB keyboard',
+            imageSrc: '/assets/images/running-ads-desktop-keyboard.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+          {
+            id: 'other-4',
+            title: 'Iphone X (64 gig)',
+            imageSrc: '/assets/images/running-ads-desktop-iphonex.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+          {
+            id: 'other-5',
+            title: 'Ergonomic chair',
+            imageSrc: '/assets/images/running-ads-desktop-chair.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+        ],
+      },
+      {
+        id: 'automobile',
+        title: 'Automobile listings',
+        cards: [
+          {
+            id: 'auto-1',
+            title: 'Maserati',
+            imageSrc: '/assets/images/running-ads-desktop-car.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+        ],
+      },
+      {
+        id: 'property',
+        title: 'Property listings',
+        cards: [
+          {
+            id: 'property-1',
+            title: 'Nike sneaker',
+            imageSrc: '/assets/images/running-ads-desktop-sneaker.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+        ],
+      },
+    ],
+    paused: [
+      {
+        id: 'paused',
+        title: 'Other listings',
+        cards: [
+          {
+            id: 'other-paused',
+            title: 'Ergonomic chair',
+            imageSrc: '/assets/images/running-ads-desktop-chair.png',
+            expiresOn: '24 May, 2025',
+            price: 'Free',
+            tag: 'Used',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+        ],
+      },
+    ],
+    expired: [
+      {
+        id: 'expired',
+        title: 'Other listings',
+        cards: [
+          {
+            id: 'other-expired',
+            title: 'Iphone X (64 gig)',
+            imageSrc: '/assets/images/running-ads-desktop-iphonex.png',
+            expiresOn: '24 May, 2025',
+            price: '₦35,000',
+            oldPrice: '₦35,000',
+            discount: '-22%',
+            views: '1K',
+            clicks: '500',
+            messages: '41',
+            calls: '8',
+          },
+        ],
+      },
+    ],
+  };
 
-  readonly emptyStateDescription = computed(() => {
-    switch (this.activePlacement()) {
-      case 'store promotions':
-        return 'Upgrade plan to feature your store(s)';
-      case 'banner ads':
-        return 'Create a banner ad to start promoting placements here.';
-      default:
-        return 'Create an ad to start promoting your listings here.';
-    }
-  });
-
-  readonly emptyStateActionLabel = computed(() =>
-    this.activePlacement() === 'store promotions' ? 'Upgrade plan' : 'Create Ad',
-  );
-
-  readonly mobileUpgradeTitle = computed(() =>
-    this.activePlacement() === 'store promotions'
-      ? 'You can’t feature stores on the Free plan'
-      : 'You can’t post banner on the Free plan',
-  );
-
-  readonly mobileUpgradeDescription = computed(() =>
-    this.activePlacement() === 'store promotions'
-      ? 'Upgrade plan to feature your store(s)'
-      : 'Upgrade your plan to post banner',
-  );
+  readonly mobileSections = computed(() => this.mobileSectionsByStatus[this.activeStatus()]);
+  readonly desktopSections = computed(() => this.desktopSectionsByStatus[this.activeStatus()]);
 
   countByStatus(status: AdStatus): number {
-    if (this.activePlacement() === 'banner ads') {
-      return this.bannerAds().filter(ad => ad.status === status).length;
-    }
+    return this.desktopSectionsByStatus[status].reduce(
+      (total, section) => total + section.cards.length,
+      0,
+    );
+  }
 
-    return this.ads().filter(ad => ad.placement === this.activePlacement() && ad.status === status).length;
+  summaryLabel(label: PlanMetric): string {
+    switch (label) {
+      case 'current plan':
+        return 'Current plan';
+      case 'automobile listings':
+        return 'Automobile listings';
+      case 'property listings':
+        return 'Property listings';
+      default:
+        return 'Other listings';
+    }
+  }
+
+  statusButtonClass(status: AdStatus): string {
+    return this.activeStatus() === status
+      ? 'inline-flex h-10 items-center justify-center rounded-[16px] bg-[#1A1A1A] px-4 text-[14px] font-medium leading-5 text-white'
+      : 'inline-flex h-10 items-center justify-center rounded-[16px] bg-[#F4F4F4] px-4 text-[14px] font-medium leading-5 text-black';
+  }
+
+  desktopGridTemplate(count: number): string {
+    return `repeat(${count}, 196px)`;
+  }
+
+  placementEmptyTitle(): string {
+    return this.activePlacement() === 'store promotions'
+      ? 'Store promotions will appear here'
+      : 'Banner ads will appear here';
+  }
+
+  placementEmptyDescription(): string {
+    return this.activePlacement() === 'store promotions'
+      ? 'Switch back to promoted listings or create a store promotion to populate this section.'
+      : 'Switch back to promoted listings or create a banner ad to populate this section.';
   }
 
   handleCreateAdTypeSelection(type: CreateAdType): void {
@@ -903,24 +922,14 @@ export class RunningAdsPageComponent {
         break;
       case 'store':
         this.activePlacement.set('store promotions');
-        this.activeStatus.set('active');
         break;
       default:
         this.activePlacement.set('promoted listings');
-        this.activeStatus.set('active');
         break;
-    }
-  }
-
-  resetMobilePlacementState(placement: AdPlacement): void {
-    this.activeStatus.set('active');
-    if (placement === 'banner ads') {
-      this.activeStatus.set('active');
     }
   }
 
   navigateToPlans(): void {
     void this.router.navigateByUrl('/ads/plans');
   }
-
 }

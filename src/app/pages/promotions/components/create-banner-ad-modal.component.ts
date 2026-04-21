@@ -36,9 +36,11 @@ interface BoostingPlan {
   id: string;
   label: string;
   price: string;
-  unit: string;
-  billing: string;
+  desktopUnit?: string;
+  desktopBilling: string;
+  mobileBilling: string;
   savings?: string;
+  mobileSavingsTone?: 'yellow' | 'gray';
 }
 
 @Component({
@@ -59,141 +61,217 @@ interface BoostingPlan {
     }),
   ],
   template: `
-    <div class="fixed inset-0 z-[200] md:bg-black/20 md:p-3 md:backdrop-blur-[2px]" (click)="handleBackdropClick()">
+    <div
+      class="fixed inset-0 z-[200] md:bg-black/20 md:p-3 md:backdrop-blur-[2px]"
+      (click)="handleBackdropClick()"
+    >
       <div class="h-full w-full md:flex md:items-center md:justify-center">
         <div
-          class="flex h-full w-full flex-col overflow-hidden bg-white md:max-h-[92vh] md:max-w-[1280px] md:rounded-[32px] md:shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]"
+          class="flex h-full w-full flex-col overflow-hidden bg-white md:rounded-[32px] md:shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]"
+          [class.md:h-[760px]]="step() === 1"
+          [class.md:max-h-[760px]]="step() === 1"
+          [class.md:max-h-[92vh]]="step() !== 1"
+          [class.md:max-w-[1440px]]="step() === 1"
+          [class.md:max-w-[1280px]]="step() !== 1"
           (click)="$event.stopPropagation()"
         >
           <div class="flex h-full flex-col md:hidden">
             @switch (step()) {
               @case (1) {
                 <div class="flex min-h-0 flex-1 flex-col">
-                  <header class="flex items-center justify-between px-4 pb-4 pt-5">
+                  <header class="flex items-center justify-between px-4 pb-3 pt-3.5">
                     <button
                       type="button"
                       (click)="close.emit()"
-                      class="inline-flex items-center gap-2 text-[13px] font-medium text-[#202335]"
+                      class="inline-flex items-center gap-2 text-left text-[#1A1B1D]"
                       aria-label="Close create ad modal"
                     >
-                      <ng-icon name="heroXMark" class="text-[16px]"></ng-icon>
-                      Create Ad
+                      <span
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5]"
+                      >
+                        <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
+                      </span>
+                      <span class="text-[16px] font-medium leading-6">Create Ad</span>
                     </button>
 
                     <button
                       type="button"
                       (click)="openPreview()"
-                      class="text-[11px] font-medium text-[#202335]"
+                      class="text-[14px] font-medium leading-5 text-[#1A1B1D] underline underline-offset-[3px]"
                     >
                       Preview
                     </button>
                   </header>
 
-                  <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-5">
-                    <h1 class="text-[15px] font-semibold tracking-[-0.03em] text-[#202335]">Configure Banner Ad</h1>
+                  <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-2">
+                    <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">
+                      Configure Banner Ad
+                    </h1>
 
-                    <div class="mt-3 flex gap-3 rounded-[12px] bg-[#FFF8D9] px-3 py-3 text-[#5A5B33]">
-                      <div class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#EEE82C] text-[#6C6B00]">
-                        <ng-icon name="heroExclamationTriangle" class="text-[13px]"></ng-icon>
-                      </div>
+                    <div
+                      class="mt-4 flex gap-2 rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px] text-[#5A5B33]"
+                    >
+                      <img
+                        [ngSrc]="createBannerInfoIcon"
+                        width="24"
+                        height="24"
+                        alt=""
+                        class="mt-0.5 h-6 w-6 shrink-0 self-start object-contain"
+                      />
                       <div>
-                        <p class="text-[10px] font-semibold text-[#36361D]">Approval Required</p>
-                        <p class="mt-1 text-[10px] leading-4 text-[#6F7154]">
+                        <p class="text-[14px] font-medium leading-5 text-[#212103]">
+                          Approval Required
+                        </p>
+                        <p class="mt-1 text-[12px] leading-[18px] text-[#373737]">
                           All banner ads are reviewed by the Duduzili team before going live.
                         </p>
                       </div>
                     </div>
 
-                    <form [formGroup]="bannerForm" class="mt-4 space-y-5">
+                    <form [formGroup]="bannerForm" class="mt-6 space-y-9">
                       <section>
-                        <h2 class="text-[12px] font-semibold text-[#202335]">General information</h2>
+                        <h2 class="text-[18px] font-semibold leading-[21.6px] text-[#000000]">
+                          General information
+                        </h2>
 
-                        <div class="mt-3 space-y-3">
+                        <div class="mt-5 space-y-5">
                           <div>
-                            <label for="mobile-banner-title" class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">Ad Title</label>
+                            <label
+                              for="mobile-banner-title"
+                              class="mb-2 block text-[14px] font-medium leading-[16.8px] text-[#5A5A5A]"
+                              >Ad Title</label
+                            >
                             <input
                               id="mobile-banner-title"
                               type="text"
                               formControlName="title"
-                              placeholder="eg Christmas Sale Banner"
-                              class="h-10 w-full rounded-[10px] border border-[#E7E8EC] bg-white px-3 text-[12px] text-[#202335] outline-none transition placeholder:text-[#B3B6BE] focus:border-[#7B6BF2] focus:ring-2 focus:ring-[#7B6BF2]/10"
-                            >
+                              placeholder="e.g Christmas Sale Banner"
+                              class="h-12 w-full rounded-[8px] border border-[#EAEAEA] bg-white px-3 text-[14px] text-[#0D0D0D] outline-none transition placeholder:tracking-[-0.01em] placeholder:text-[rgba(13,13,13,0.4)] focus:border-[#6453D9] focus:ring-2 focus:ring-[#6453D9]/10"
+                            />
                           </div>
 
                           <div>
-                            <label for="mobile-destination-url" class="mb-1.5 block text-[10px] font-medium text-[#6D7280]">
+                            <label
+                              for="mobile-destination-url"
+                              class="mb-2 block text-[14px] font-medium leading-[16.8px] text-[#5A5A5A]"
+                            >
                               Destination URL
-                              <span class="font-normal text-[#A3A6AE]">(where users will go when they click the banner)</span>
+                              <span class="font-normal text-[#8F8F8F]"
+                                >(where users will go when they click the banner)</span
+                              >
                             </label>
                             <input
                               id="mobile-destination-url"
                               type="url"
                               formControlName="destinationUrl"
-                              class="h-10 w-full rounded-[10px] border border-[#E7E8EC] bg-white px-3 text-[12px] text-[#202335] outline-none transition placeholder:text-[#B3B6BE] focus:border-[#7B6BF2] focus:ring-2 focus:ring-[#7B6BF2]/10"
-                            >
+                              class="h-12 w-full rounded-[8px] border border-[#EAEAEA] bg-white px-3 text-[14px] text-[#0D0D0D] outline-none transition focus:border-[#6453D9] focus:ring-2 focus:ring-[#6453D9]/10"
+                            />
                           </div>
                         </div>
                       </section>
 
                       <section>
-                        <h2 class="text-[12px] font-semibold text-[#202335]">Choose banner type</h2>
+                        <h2 class="text-[18px] font-semibold leading-[21.6px] text-[#000000]">
+                          Choose banner type
+                        </h2>
 
-                        <div class="mt-3 grid grid-cols-2 gap-2">
+                        <div class="mt-5 flex flex-wrap gap-3">
                           @for (option of bannerTypeOptions; track option.value) {
                             <label
-                              class="flex cursor-pointer items-center gap-2 rounded-[10px] border px-2.5 py-2 text-[10px] transition"
-                              [class.border-[#7868F3]]="bannerType() === option.value"
-                              [class.bg-[#F7F5FF]]="bannerType() === option.value"
-                              [class.text-[#4D447E]]="bannerType() === option.value"
-                              [class.border-[#EAEBEF]]="bannerType() !== option.value"
-                              [class.text-[#747986]]="bannerType() !== option.value"
+                              (click)="setBannerType(option.value)"
+                              class="flex min-w-[151px] cursor-pointer items-center gap-2 rounded-[12px] border px-3 py-3 transition"
+                              [class.border-[#6453D9]]="selectedBannerType() === option.value"
+                              [class.bg-[#F9F7FF]]="selectedBannerType() === option.value"
+                              [class.border-[#EAEAEA]]="selectedBannerType() !== option.value"
+                              [class.bg-[#FAFAFA]]="selectedBannerType() !== option.value"
+                              [style.border-width.px]="
+                                selectedBannerType() === option.value ? 1.5 : 1
+                              "
                             >
                               <input
                                 type="radio"
-                                class="h-3.5 w-3.5 accent-[#7868F3]"
+                                class="sr-only"
                                 formControlName="bannerType"
                                 [value]="option.value"
+                                [checked]="selectedBannerType() === option.value"
+                              />
+                              <span
+                                class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border"
+                                [class.border-[#6453D9]]="selectedBannerType() === option.value"
+                                [class.border-[#D9D9D9]]="selectedBannerType() !== option.value"
                               >
-                              <span>{{ option.label }}</span>
+                                @if (selectedBannerType() === option.value) {
+                                  <span class="h-2 w-2 rounded-full bg-[#6453D9]"></span>
+                                }
+                              </span>
+                              <span class="text-[14px] leading-5 text-[#1F1F1F]">{{
+                                option.label
+                              }}</span>
                             </label>
                           }
                         </div>
                       </section>
 
                       <section>
-                        <h2 class="text-[12px] font-semibold text-[#202335]">Banner image</h2>
-                        <p class="mt-1 text-[10px] text-[#A3A6AE]">Recommended dimension: 1080 x 90</p>
+                        <h2 class="text-[18px] font-semibold leading-6 text-[#0D0D0D]">
+                          {{ bannerTypeUploadLabel() }}
+                        </h2>
+                        <p class="mt-1 text-[14px] leading-5 text-[rgba(13,13,13,0.8)]">
+                          {{ bannerTypeUploadRecommendation() }}
+                        </p>
 
-                        <div class="mt-3">
+                        <div class="mt-5">
                           <input
                             #mobileFileInput
                             type="file"
-                            accept="image/png,image/jpeg"
+                            [accept]="bannerTypeUploadAccept()"
                             class="sr-only"
                             (change)="onFileSelected($event)"
-                          >
+                          />
 
                           <button
                             type="button"
                             (click)="mobileFileInput.click()"
-                            class="flex min-h-[104px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8DBE2] bg-[#FBFBFC] px-4 py-5 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10"
+                            class="flex min-h-[126px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8D8D8] bg-[#F9F9F9] px-4 py-5 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10"
                           >
                             @if (imagePreview()) {
                               <div class="flex w-full max-w-[240px] flex-col items-center gap-3">
-                                <div class="w-full overflow-hidden rounded-[12px] border border-[#E6E8ED] bg-white p-1.5 shadow-sm">
-                                  <img [src]="imagePreview()!" alt="Selected banner preview" class="h-auto w-full rounded-[10px] object-cover">
+                                <div
+                                  class="w-full overflow-hidden rounded-[12px] border border-[#E6E8ED] bg-white p-1.5 shadow-sm"
+                                >
+                                  <img
+                                    [src]="imagePreview()!"
+                                    alt="Selected banner preview"
+                                    class="h-auto w-full rounded-[10px] object-cover"
+                                  />
                                 </div>
-                                <span class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-[11px] font-medium text-[#3A3D45] shadow-sm">
-                                  <ng-icon name="heroArrowUpTray" class="text-[13px]"></ng-icon>
+                                <span
+                                  class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-[#000000] shadow-[0_4px_8px_0_rgba(202,202,202,0.25)]"
+                                >
+                                  <img
+                                    [ngSrc]="bannerTypeUploadIcon()"
+                                    width="14"
+                                    height="14"
+                                    alt=""
+                                  />
                                   Change file
                                 </span>
                               </div>
                             } @else {
-                              <span class="inline-flex items-center gap-2 rounded-full border border-[#E6E8ED] bg-white px-4 py-2 text-[11px] font-medium text-[#3A3D45] shadow-sm">
-                                <ng-icon name="heroArrowUpTray" class="text-[13px]"></ng-icon>
+                              <span
+                                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-[#000000] shadow-[0_4px_8px_0_rgba(202,202,202,0.25)]"
+                              >
+                                <img
+                                  [ngSrc]="bannerTypeUploadIcon()"
+                                  width="14"
+                                  height="14"
+                                  alt=""
+                                />
                                 Add file
                               </span>
-                              <span class="mt-2 text-[10px] text-[#B0B4BD]">PNG, JPEG under 7MB</span>
+                              <span class="mt-3 text-[12px] tracking-[-0.01em] text-[#848484]">{{
+                                bannerTypeUploadHelper()
+                              }}</span>
                             }
                           </button>
                         </div>
@@ -201,22 +279,24 @@ interface BoostingPlan {
                     </form>
                   </div>
 
-                  <footer class="flex items-center gap-3 border-t border-[#F1F2F4] px-4 py-3">
-                    <button
-                      type="button"
-                      (click)="close.emit()"
-                      class="flex-1 rounded-full bg-[#F2F3F5] px-4 py-3 text-[12px] font-medium text-[#454A54]"
-                    >
-                      Back
-                    </button>
-                    <button
-                      type="button"
-                      (click)="submitForm()"
-                      [disabled]="bannerForm.invalid"
-                      class="flex-1 rounded-full bg-[#6B5BE7] px-4 py-3 text-[12px] font-medium text-white shadow-[0_16px_34px_-18px_rgba(107,91,231,0.9)] disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none"
-                    >
-                      Promote banner
-                    </button>
+                  <footer class="border-t border-[#EDEDED] bg-white px-5 py-[10px]">
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="close.emit()"
+                        class="h-[52px] min-w-0 flex-1 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A]"
+                      >
+                        Back
+                      </button>
+                      <button
+                        type="button"
+                        (click)="submitForm()"
+                        [disabled]="bannerForm.invalid"
+                        class="h-[52px] w-[205px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none"
+                      >
+                        Promote store
+                      </button>
+                    </div>
                   </footer>
                 </div>
               }
@@ -246,19 +326,31 @@ interface BoostingPlan {
                   </header>
 
                   <div class="flex flex-1 flex-col items-center justify-center px-4 pb-6 pt-2">
-                    <p class="text-[10px] text-[#A3A6AE]">This is how your banner ad will appear to buyers</p>
+                    <p class="text-[10px] text-[#A3A6AE]">
+                      This is how your banner ad will appear to buyers
+                    </p>
 
                     <div class="mt-6 flex items-center gap-5 text-[#707583]">
-                      <button type="button" class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#E5E7ED]">
+                      <button
+                        type="button"
+                        class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#E5E7ED]"
+                      >
                         <ng-icon name="heroMagnifyingGlassMinus" class="text-[13px]"></ng-icon>
                       </button>
-                      <button type="button" class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#E5E7ED]">
+                      <button
+                        type="button"
+                        class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#E5E7ED]"
+                      >
                         <ng-icon name="heroMagnifyingGlassPlus" class="text-[13px]"></ng-icon>
                       </button>
                     </div>
 
-                    <div class="mt-6 w-[210px] overflow-hidden rounded-[24px] border border-[#ECEEF4] bg-white p-2 shadow-[0_18px_40px_-28px_rgba(31,36,48,0.3)]">
-                      <div class="overflow-hidden rounded-[18px] border border-[#ECEDEF] bg-[#FCFCFD]">
+                    <div
+                      class="mt-6 w-[210px] overflow-hidden rounded-[24px] border border-[#ECEEF4] bg-white p-2 shadow-[0_18px_40px_-28px_rgba(31,36,48,0.3)]"
+                    >
+                      <div
+                        class="overflow-hidden rounded-[18px] border border-[#ECEDEF] bg-[#FCFCFD]"
+                      >
                         <div class="flex items-center justify-between bg-[#1D1E22] px-2.5 py-1">
                           <div class="h-1.5 w-1.5 rounded-full bg-white"></div>
                           <div class="h-1.5 w-14 rounded-full bg-white/25"></div>
@@ -275,24 +367,47 @@ interface BoostingPlan {
                             }
                           </div>
 
-                          <div class="overflow-hidden rounded-[10px] border border-[#ECEDEF] bg-white">
-                            <div class="relative aspect-[3.85/1] w-full" [style.background]="previewBannerBackground()">
+                          <div
+                            class="overflow-hidden rounded-[10px] border border-[#ECEDEF] bg-white"
+                          >
+                            <div
+                              class="relative aspect-[3.85/1] w-full"
+                              [style.background]="previewBannerBackground()"
+                            >
                               @if (imagePreview()) {
-                                <img [src]="imagePreview()!" alt="Banner artwork preview" class="absolute inset-0 h-full w-full object-cover">
+                                <img
+                                  [src]="imagePreview()!"
+                                  alt="Banner artwork preview"
+                                  class="absolute inset-0 h-full w-full object-cover"
+                                />
                               } @else {
-                                <div class="absolute inset-y-0 left-0 flex w-[58%] flex-col justify-center px-2 text-white">
-                                  <span class="text-[0.3rem] font-black uppercase tracking-[0.18em] opacity-85">Sponsored</span>
-                                  <span class="mt-0.5 text-[0.58rem] font-black leading-none">{{ previewHeadline() }}</span>
-                                  <span class="mt-1 text-[0.34rem] font-semibold uppercase tracking-[0.1em] opacity-90">{{ previewSubline() }}</span>
+                                <div
+                                  class="absolute inset-y-0 left-0 flex w-[58%] flex-col justify-center px-2 text-white"
+                                >
+                                  <span
+                                    class="text-[0.3rem] font-black uppercase tracking-[0.18em] opacity-85"
+                                    >Sponsored</span
+                                  >
+                                  <span class="mt-0.5 text-[0.58rem] font-black leading-none">{{
+                                    previewHeadline()
+                                  }}</span>
+                                  <span
+                                    class="mt-1 text-[0.34rem] font-semibold uppercase tracking-[0.1em] opacity-90"
+                                    >{{ previewSubline() }}</span
+                                  >
                                 </div>
                               }
 
-                              <div class="absolute left-1 top-1 rounded-full bg-[#23252C]/70 px-1.5 py-0.5 text-[0.28rem] font-semibold text-white backdrop-blur-sm">
+                              <div
+                                class="absolute left-1 top-1 rounded-full bg-[#23252C]/70 px-1.5 py-0.5 text-[0.28rem] font-semibold text-white backdrop-blur-sm"
+                              >
                                 Sponsored
                               </div>
                             </div>
 
-                            <div class="flex items-center gap-3 px-2 py-1 text-[0.42rem] font-medium text-[#A3A6AE]">
+                            <div
+                              class="flex items-center gap-3 px-2 py-1 text-[0.42rem] font-medium text-[#A3A6AE]"
+                            >
                               <span class="inline-flex items-center gap-1">
                                 <span class="h-1 w-1 rounded-full bg-[#D0D4DC]"></span>
                                 1K
@@ -304,7 +419,9 @@ interface BoostingPlan {
                             </div>
                           </div>
 
-                          <div class="h-9 rounded-t-[10px] bg-[linear-gradient(180deg,#F2F0FF_0%,#EFEAFF_45%,#E5DEFF_100%)] opacity-80"></div>
+                          <div
+                            class="h-9 rounded-t-[10px] bg-[linear-gradient(180deg,#F2F0FF_0%,#EFEAFF_45%,#E5DEFF_100%)] opacity-80"
+                          ></div>
                         </div>
                       </div>
                     </div>
@@ -321,66 +438,88 @@ interface BoostingPlan {
               }
 
               @case (3) {
-                <div class="relative flex min-h-0 flex-1 flex-col overflow-y-auto bg-[linear-gradient(180deg,#B5A9FF_0%,#EEE9FF_24%,#FFFFFF_42%)] px-4 pb-4 pt-4">
-                  <button
-                    type="button"
-                    (click)="step.set(1)"
-                    class="absolute left-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#1A1C21]"
-                    aria-label="Back to form"
-                  >
-                    <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
-                  </button>
+                <div
+                  class="relative flex min-h-0 flex-1 flex-col overflow-y-auto rounded-t-[32px] bg-white"
+                >
+                  <div
+                    class="absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,#83A0FF_0%,rgba(255,255,255,0)_100%)]"
+                  ></div>
 
                   <button
                     type="button"
                     (click)="close.emit()"
-                    class="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#1A1C21]"
+                    class="absolute right-4 top-3 z-20 inline-flex h-10 w-10 items-center justify-center pointer-events-auto md:hidden"
                     aria-label="Close plan selection"
                   >
-                    <ng-icon name="heroXMark" class="text-[16px]"></ng-icon>
+                    <img
+                      [ngSrc]="bannerPlanCloseIcon"
+                      width="24"
+                      height="24"
+                      alt=""
+                      class="-rotate-45"
+                    />
                   </button>
 
-                  <div class="pt-10 text-center">
-                    <h2 class="text-[16px] font-semibold leading-tight tracking-[-0.03em] text-[#17181D]">
-                      Choose a boosting plan to proceed🚀
-                    </h2>
-                    <p class="mt-2 text-[11px] text-[#7F828B]">Give your banner more visibility</p>
-                  </div>
+                  <div class="relative px-4 pb-6 pt-[84px]">
+                    <div class="mx-auto w-[266px] text-center">
+                      <h2 class="text-[24px] font-medium leading-[1.1] text-[#1A1B1D]">
+                        Choose a boosting plan to proceed 🚀
+                      </h2>
+                      <p class="mt-1 text-[14px] leading-5 text-[#979797]">
+                        Give your store more visibility
+                      </p>
+                    </div>
 
-                  <div class="mt-6 space-y-3">
-                    @for (plan of boostingPlans; track plan.id) {
-                      <button
-                        type="button"
-                        (click)="selectedPlanId.set(plan.id)"
-                        class="relative flex w-full items-start justify-between rounded-[16px] border bg-white px-4 py-3 text-left"
-                        [class.border-[#6955F2]]="selectedPlanId() === plan.id"
-                        [class.shadow-[0_16px_38px_-28px_rgba(105,85,242,0.8)]]="selectedPlanId() === plan.id"
-                        [class.border-[#E7E8EC]]="selectedPlanId() !== plan.id"
-                      >
-                        <div>
-                          <h3 class="text-[13px] font-medium text-[#1B1D23]">{{ plan.label }}</h3>
-                          <p class="mt-1 text-[10px] text-[#8B8F98]">{{ plan.billing }}</p>
-                        </div>
+                    <div class="mt-10 space-y-5">
+                      @for (plan of mobilePlanCards(); track plan.id) {
+                        <button
+                          type="button"
+                          (click)="selectedPlanId.set(plan.id)"
+                          class="relative flex h-[84px] w-full items-center justify-between rounded-[20px] border bg-white px-[15px] text-left"
+                          [class.border-2]="selectedPlanId() === plan.id"
+                          [class.border-[#357FF6]]="selectedPlanId() === plan.id"
+                          [class.bg-[#FAFAFF]]="selectedPlanId() === plan.id"
+                          [class.border-[#E5E5E5]]="selectedPlanId() !== plan.id"
+                        >
+                          <div>
+                            <h3 class="text-[20px] font-medium leading-5 text-[#272727]">
+                              {{ plan.label }}
+                            </h3>
+                            <p class="mt-1 text-[16px] leading-5 text-[#979797]">
+                              {{ plan.mobileBilling }}
+                            </p>
+                          </div>
 
-                        <div class="text-right">
+                          <p class="text-right text-[16px] font-medium leading-5 text-[#272727]">
+                            <span class="line-through">N</span>{{ plan.price }}
+                          </p>
+
                           @if (plan.savings) {
-                            <span class="mb-2 inline-flex rounded-full bg-[#F1F7AA] px-1.5 py-0.5 text-[8px] font-semibold text-[#6A7414]">
+                            <span
+                              class="absolute -top-[10px] right-[7px] rounded-[8px] px-[6px] py-[2px] text-[12px] font-medium leading-4"
+                              [class.bg-[#F1FFAC]]="plan.mobileSavingsTone === 'yellow'"
+                              [class.text-[#4E3E07]]="plan.mobileSavingsTone === 'yellow'"
+                              [class.bg-[#EAEAEA]]="plan.mobileSavingsTone === 'gray'"
+                              [class.font-semibold]="plan.mobileSavingsTone === 'gray'"
+                              [class.text-[#0D0D0D]]="plan.mobileSavingsTone === 'gray'"
+                            >
                               Save {{ plan.savings }}
                             </span>
                           }
-                          <div class="text-[13px] font-medium text-[#1B1D23]">{{ plan.price }}</div>
-                        </div>
-                      </button>
-                    }
-                  </div>
+                        </button>
+                      }
+                    </div>
 
-                  <button
-                    type="button"
-                    (click)="goToPaymentStep()"
-                    class="mt-6 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
-                  >
-                    Proceed
-                  </button>
+                    <div class="mt-[84px] rounded-t-[24px] bg-white pb-3">
+                      <button
+                        type="button"
+                        (click)="goToPaymentStep()"
+                        class="w-full rounded-[64px] border border-white bg-[#6453D9] px-6 py-3.5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_0_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8]"
+                      >
+                        Proceed
+                      </button>
+                    </div>
+                  </div>
                 </div>
               }
 
@@ -409,11 +548,21 @@ interface BoostingPlan {
                   </header>
 
                   <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-5">
-                    <div class="rounded-[18px] bg-[#FAFAFB] p-4 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]">
-                      <h2 class="text-[15px] font-semibold leading-tight tracking-[-0.03em] text-[#1A1C21]">{{ selectedPlanSummary().title }}</h2>
-                      <p class="mt-1 text-[10px] text-[#8B8F98]">{{ selectedPlanSummary().billing }}</p>
+                    <div
+                      class="rounded-[18px] bg-[#FAFAFB] p-4 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]"
+                    >
+                      <h2
+                        class="text-[15px] font-semibold leading-tight tracking-[-0.03em] text-[#1A1C21]"
+                      >
+                        {{ selectedPlanSummary().title }}
+                      </h2>
+                      <p class="mt-1 text-[10px] text-[#8B8F98]">
+                        {{ selectedPlanSummary().billing }}
+                      </p>
 
-                      <div class="mt-4 space-y-3 border-t border-[#E3E5EA] pt-4 text-[11px] text-[#595E68]">
+                      <div
+                        class="mt-4 space-y-3 border-t border-[#E3E5EA] pt-4 text-[11px] text-[#595E68]"
+                      >
                         <div class="flex items-center justify-between gap-4">
                           <span>Weekly subscription</span>
                           <span>{{ selectedPlanSummary().subscriptionAmount }}</span>
@@ -422,25 +571,31 @@ interface BoostingPlan {
                           <span>VAT (7.5%)</span>
                           <span>{{ selectedPlanSummary().vatAmount }}</span>
                         </div>
-                        <div class="flex items-center justify-between gap-4 text-[12px] font-semibold text-[#1A1C21]">
+                        <div
+                          class="flex items-center justify-between gap-4 text-[12px] font-semibold text-[#1A1C21]"
+                        >
                           <span>Total due today</span>
                           <span>{{ selectedPlanSummary().totalAmount }}</span>
                         </div>
                       </div>
 
-                      <label class="mt-4 flex cursor-pointer items-center gap-2 text-[10px] text-[#424750]">
+                      <label
+                        class="mt-4 flex cursor-pointer items-center gap-2 text-[10px] text-[#424750]"
+                      >
                         <input
                           type="checkbox"
                           [checked]="isRecurring()"
                           (change)="isRecurring.set(!isRecurring())"
                           class="h-3.5 w-3.5 rounded border-[#D3D6DE] text-[#6955F2] focus:ring-[#6955F2]/20"
-                        >
+                        />
                         <span>Mark this payment as recurring</span>
                       </label>
                     </div>
 
                     <div class="mt-6">
-                      <h3 class="text-[13px] font-medium text-[#1A1C21]">Select your payment method</h3>
+                      <h3 class="text-[13px] font-medium text-[#1A1C21]">
+                        Select your payment method
+                      </h3>
 
                       <div class="mt-3 space-y-3">
                         <button
@@ -452,10 +607,19 @@ interface BoostingPlan {
                           [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
                         >
                           <div class="flex items-start gap-2.5">
-                            <ng-icon name="heroWallet" class="mt-0.5 text-[16px] text-[#272A31]"></ng-icon>
-                            <p class="text-[11px] font-medium text-[#1A1C21]">Wallet (Balance: N250,000)</p>
+                            <ng-icon
+                              name="heroWallet"
+                              class="mt-0.5 text-[16px] text-[#272A31]"
+                            ></ng-icon>
+                            <p class="text-[11px] font-medium text-[#1A1C21]">
+                              Wallet (Balance: N250,000)
+                            </p>
                           </div>
-                          <span class="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border" [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'" [class.border-[#D9DBE2]]="selectedPaymentId() !== 'wallet'">
+                          <span
+                            class="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border"
+                            [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
+                            [class.border-[#D9DBE2]]="selectedPaymentId() !== 'wallet'"
+                          >
                             @if (selectedPaymentId() === 'wallet') {
                               <span class="h-2 w-2 rounded-full bg-[#6955F2]"></span>
                             }
@@ -471,10 +635,17 @@ interface BoostingPlan {
                           [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
                         >
                           <div class="flex items-start gap-2.5">
-                            <ng-icon name="heroGlobeAlt" class="mt-0.5 text-[16px] text-[#272A31]"></ng-icon>
+                            <ng-icon
+                              name="heroGlobeAlt"
+                              class="mt-0.5 text-[16px] text-[#272A31]"
+                            ></ng-icon>
                             <p class="text-[11px] font-medium text-[#1A1C21]">Online</p>
                           </div>
-                          <span class="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border" [class.border-[#6955F2]]="selectedPaymentId() === 'online'" [class.border-[#D9DBE2]]="selectedPaymentId() !== 'online'">
+                          <span
+                            class="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border"
+                            [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
+                            [class.border-[#D9DBE2]]="selectedPaymentId() !== 'online'"
+                          >
                             @if (selectedPaymentId() === 'online') {
                               <span class="h-2 w-2 rounded-full bg-[#6955F2]"></span>
                             }
@@ -492,55 +663,51 @@ interface BoostingPlan {
                     </button>
 
                     <p class="mt-4 text-[9px] leading-4 text-[#6D727C]">
-                      By clicking on Confirm and pay, you accept the <span class="text-[#6653E4]">Terms of Use</span>,
-                      confirm that you will abide by the Safety Tips and declare that this posting does not include any Prohibited Items.
+                      By clicking on Confirm and pay, you accept the
+                      <span class="text-[#6653E4]">Terms of Use</span>, confirm that you will abide
+                      by the Safety Tips and declare that this posting does not include any
+                      Prohibited Items.
                     </p>
                   </div>
                 </div>
               }
 
               @default {
-                <div class="flex flex-1 flex-col items-center justify-center px-5 py-10 text-center">
-                  <div class="relative mb-7 h-28 w-32 overflow-hidden rounded-[18px] bg-linear-to-b from-[#86E0FF] via-[#F8FBFF] to-[#E8E5FF] shadow-[0_22px_40px_-30px_rgba(33,41,67,0.55)]">
-                    <div class="flex items-center gap-1 px-3 py-2">
-                      <span class="h-2.5 w-2.5 rounded-full bg-[#FF6B57]"></span>
-                      <span class="h-2.5 w-2.5 rounded-full bg-[#FFBF2F]"></span>
-                      <span class="h-2.5 w-2.5 rounded-full bg-[#28C840]"></span>
-                    </div>
-                    <div class="absolute left-2 top-[44%] text-2xl text-[#C4BDD8]">‹</div>
-                    <div class="absolute right-2 top-[44%] text-2xl text-[#C4BDD8]">›</div>
-                    <div class="absolute left-1/2 top-[46%] h-12 w-[70px] -translate-x-1/2 -translate-y-1/2 rounded-[8px] bg-linear-to-br from-[#FFE787] via-[#FFC33C] to-[#FFB300] shadow-[0_10px_18px_-12px_rgba(60,35,0,0.45)]">
-                      <div class="absolute left-1/2 top-[42%] h-6 w-6 -translate-x-1/2 -translate-y-1/2 rotate-[12deg] rounded-[6px] bg-white/80"></div>
-                    </div>
-                    <div class="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
-                      <span class="h-3 w-3 rounded-full bg-[#A59BBE] shadow-inner"></span>
-                      <span class="h-3 w-3 rounded-full bg-[#C8C0D8] shadow-inner"></span>
-                      <span class="h-3 w-3 rounded-full bg-[#A59BBE] shadow-inner"></span>
-                    </div>
-                  </div>
+                <div class="flex flex-1 items-center justify-center px-5 py-10 text-center">
+                  <div class="w-full max-w-[350px]">
+                    <img
+                      [ngSrc]="bannerReviewSuccessMobileImage"
+                      width="150"
+                      height="150"
+                      alt="Banner submitted for review"
+                      class="mx-auto h-[150px] w-[150px]"
+                    />
 
-                  <h2 class="text-[15px] font-semibold leading-tight tracking-[-0.03em] text-[#1A1C21]">Banner submitted for review</h2>
+                    <h2 class="mt-6 text-[28px] font-semibold leading-[1.1] text-[#0D0D0D]">
+                      Banner submitted for review
+                    </h2>
 
-                  <p class="mt-4 text-[11px] leading-5 text-[#8E929B]">
-                    Your banner ad has been submitted and is awaiting approval from the Duduzili team.
-                    Once approved, it will start appearing across the platform.
-                  </p>
+                    <p class="mt-2 text-[16px] leading-6 text-[#747474]">
+                      Your banner ad has been submitted and is awaiting approval from the Duduzili
+                      team. Once approved, it will start appearing across the platform.
+                    </p>
 
-                  <div class="mt-8 flex w-full flex-col gap-3">
-                    <button
-                      type="button"
-                      (click)="resetFlow()"
-                      class="rounded-full bg-[#F3F3F5] px-5 py-3 text-[12px] font-medium text-[#353A43]"
-                    >
-                      Create another Ad
-                    </button>
-                    <button
-                      type="button"
-                      (click)="finishAndClose()"
-                      class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
-                    >
-                      View running Ads
-                    </button>
+                    <div class="mt-11 flex w-full flex-col gap-3">
+                      <button
+                        type="button"
+                        (click)="resetFlow()"
+                        class="h-[52px] rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A]"
+                      >
+                        Create another Ad
+                      </button>
+                      <button
+                        type="button"
+                        (click)="finishAndClose()"
+                        class="h-[52px] rounded-[64px] border border-white bg-[#6453D9] px-6 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                      >
+                        View running Ads
+                      </button>
+                    </div>
                   </div>
                 </div>
               }
@@ -549,83 +716,131 @@ interface BoostingPlan {
 
           <div class="hidden h-full flex-col md:flex">
             @if (step() === 1) {
-              <header class="flex items-center gap-5 border-b border-[#F1F2F4] bg-white px-6 py-5">
+              <header
+                class="flex items-center gap-[30px] bg-white/80 px-8 py-[15px] backdrop-blur-[2.5px]"
+              >
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2] focus:outline-none focus:ring-4 focus:ring-gray-200"
+                  class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5] text-[#0D0D0D] transition hover:bg-[#EFEFF2] focus:outline-none focus:ring-4 focus:ring-gray-200"
                   aria-label="Close create ad modal"
                 >
-                  <ng-icon name="heroXMark" class="text-xl"></ng-icon>
+                  <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
                 </button>
 
-                <h1 class="text-[1.55rem] font-bold tracking-tight text-[#24262D]">Create Ad</h1>
+                <h1 class="text-[20px] font-semibold leading-7 text-[#0D0D0D]">Create Ad</h1>
               </header>
 
               <div class="flex-1 overflow-y-auto">
-                <div class="mx-auto grid max-w-[1320px] gap-10 px-6 py-8 xl:grid-cols-[minmax(0,1fr)_360px] xl:px-10">
-                  <section class="max-w-[720px]">
-                    <h2 class="text-[2rem] font-black tracking-tight text-[#24262D]">Configure Banner Ad</h2>
+                <div
+                  class="grid h-full grid-cols-[552px_476px] justify-center gap-[109px] px-[193px] py-[10px]"
+                >
+                  <section class="w-[552px] pt-[22px]">
+                    <h2 class="text-[32px] font-semibold leading-10 text-[#1A1B1D]">
+                      Configure Banner Ad
+                    </h2>
 
-                    <div class="mt-4 flex gap-3 rounded-[18px] bg-[#FFFBE5] px-5 py-4 text-[#5A5B33]">
-                      <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#EEE82C] text-[#6C6B00]">
-                        <ng-icon name="heroExclamationTriangle" class="text-base"></ng-icon>
-                      </div>
+                    <div
+                      class="mt-3 flex gap-2 rounded-[12px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px] text-[#5A5B33]"
+                    >
+                      <img
+                        [ngSrc]="createBannerInfoIcon"
+                        width="28"
+                        height="28"
+                        alt=""
+                        class="mt-0.5 h-7 w-7 shrink-0 self-start object-contain"
+                      />
                       <div>
-                        <p class="text-[13px] font-bold text-[#36361D]">Approval Required</p>
-                        <p class="mt-1 max-w-xl text-[13px] font-medium leading-6 text-[#6F7154]">
-                          All banner ads are reviewed by our team before going live to ensure quality and compliance.
-                          Review typically takes 24-48 hours.
+                        <p class="text-[16px] font-medium leading-5 text-[#212103]">
+                          Approval Required
+                        </p>
+                        <p class="mt-1 max-w-[480px] text-[14px] leading-5 text-[#373737]">
+                          All banner ads are reviewed by our team before going live to ensure
+                          quality and compliance. Review typically takes 24-48 hours.
                         </p>
                       </div>
                     </div>
 
                     <form [formGroup]="bannerForm" class="mt-8 space-y-8">
                       <section>
-                        <h3 class="text-[1.55rem] font-bold tracking-tight text-[#24262D]">General information</h3>
+                        <h3 class="text-[20px] font-semibold leading-6 text-[#0D0D0D]">
+                          General information
+                        </h3>
 
                         <div class="mt-5 space-y-5">
                           <div>
-                            <label for="banner-title" class="mb-2 block text-sm font-semibold text-[#61656E]">Ad Title</label>
+                            <label
+                              for="banner-title"
+                              class="mb-2 block text-[14px] font-medium leading-[16.8px] text-[#5A5A5A]"
+                              >Ad Title</label
+                            >
                             <input
                               id="banner-title"
                               type="text"
                               formControlName="title"
-                              placeholder="eg Christmas Sale Banner"
-                              class="w-full rounded-[14px] border border-[#E7E8EC] bg-white px-4 py-3.5 text-sm font-medium text-[#24262D] outline-none transition placeholder:text-[#B3B6BE] focus:border-[#7B6BF2] focus:ring-4 focus:ring-[#7B6BF2]/10"
-                            >
+                              placeholder="e.g Christmas Sale Banner"
+                              class="h-10 w-full rounded-[8px] border border-[#EAEAEA] bg-white px-3 text-[14px] text-[#0D0D0D] outline-none transition placeholder:tracking-[-0.01em] placeholder:text-[rgba(13,13,13,0.4)] focus:border-[#6453D9] focus:ring-2 focus:ring-[#6453D9]/10"
+                            />
                           </div>
 
                           <div>
-                            <label for="destination-url" class="mb-2 block text-sm font-semibold text-[#61656E]">
+                            <label
+                              for="destination-url"
+                              class="mb-2 block text-[14px] font-medium leading-[16.8px] text-[#5A5A5A]"
+                            >
                               Destination URL
-                              <span class="font-medium text-[#A3A6AE]">(where users will go when they click the banner)</span>
+                              <span class="font-normal text-[#8F8F8F]"
+                                >(where users will go when they click the banner)</span
+                              >
                             </label>
                             <input
                               id="destination-url"
                               type="url"
                               formControlName="destinationUrl"
-                              class="w-full rounded-[14px] border border-[#E7E8EC] bg-white px-4 py-3.5 text-sm font-medium text-[#24262D] outline-none transition placeholder:text-[#B3B6BE] focus:border-[#7B6BF2] focus:ring-4 focus:ring-[#7B6BF2]/10"
-                            >
+                              class="h-10 w-full rounded-[8px] border border-[#EAEAEA] bg-white px-3 text-[14px] text-[#0D0D0D] outline-none transition focus:border-[#6453D9] focus:ring-2 focus:ring-[#6453D9]/10"
+                            />
                           </div>
                         </div>
                       </section>
 
                       <section>
-                        <h3 class="text-[1.55rem] font-bold tracking-tight text-[#24262D]">Choose banner type</h3>
+                        <h3 class="text-[20px] font-semibold leading-6 text-[#000000]">
+                          Choose banner type
+                        </h3>
 
-                        <div class="mt-5 flex flex-col gap-3 sm:flex-row">
+                        <div class="mt-5 flex gap-3">
                           @for (option of bannerTypeOptions; track option.value) {
                             <label
-                              class="flex min-w-[220px] cursor-pointer items-center gap-3 rounded-[14px] border px-4 py-4 transition"
-                              [class.border-[#7868F3]]="bannerType() === option.value"
-                              [class.bg-[#F7F5FF]]="bannerType() === option.value"
-                              [class.text-[#4D447E]]="bannerType() === option.value"
-                              [class.border-[#EAEBEF]]="bannerType() !== option.value"
-                              [class.text-[#747986]]="bannerType() !== option.value"
+                              (click)="setBannerType(option.value)"
+                              class="flex w-[218px] cursor-pointer items-center gap-2 rounded-[12px] px-3 py-3 transition"
+                              [class.border-[#6453D9]]="selectedBannerType() === option.value"
+                              [class.bg-[#F9F7FF]]="selectedBannerType() === option.value"
+                              [class.border]="selectedBannerType() !== option.value"
+                              [class.border-[#EAEAEA]]="selectedBannerType() !== option.value"
+                              [class.bg-[#FAFAFA]]="selectedBannerType() !== option.value"
+                              [style.border-width.px]="
+                                selectedBannerType() === option.value ? 1.5 : 1
+                              "
                             >
-                              <input type="radio" class="h-4 w-4 accent-[#7868F3]" formControlName="bannerType" [value]="option.value">
-                              <span class="text-[15px] font-medium">{{ option.label }}</span>
+                              <input
+                                type="radio"
+                                class="sr-only"
+                                formControlName="bannerType"
+                                [value]="option.value"
+                                [checked]="selectedBannerType() === option.value"
+                              />
+                              <span
+                                class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border"
+                                [class.border-[#6453D9]]="selectedBannerType() === option.value"
+                                [class.border-[#D9D9D9]]="selectedBannerType() !== option.value"
+                              >
+                                @if (selectedBannerType() === option.value) {
+                                  <span class="h-2 w-2 rounded-full bg-[#6453D9]"></span>
+                                }
+                              </span>
+                              <span class="text-[16px] leading-5 text-[#1F1F1F]">{{
+                                option.label
+                              }}</span>
                             </label>
                           }
                         </div>
@@ -633,40 +848,66 @@ interface BoostingPlan {
 
                       <section>
                         <div>
-                          <h3 class="text-[1.55rem] font-bold tracking-tight text-[#24262D]">Banner image</h3>
-                          <p class="mt-1 text-[13px] font-medium text-[#7A7F8C]">Recommended dimension: 1080 x 90</p>
+                          <h3 class="text-[20px] font-semibold leading-6 text-[#0D0D0D]">
+                            {{ bannerTypeUploadLabel() }}
+                          </h3>
+                          <p class="mt-1 text-[14px] leading-5 text-[rgba(13,13,13,0.8)]">
+                            {{ bannerTypeUploadRecommendation() }}
+                          </p>
                         </div>
 
                         <div class="mt-5">
                           <input
                             #fileInput
                             type="file"
-                            accept="image/png,image/jpeg"
+                            [accept]="bannerTypeUploadAccept()"
                             class="sr-only"
                             (change)="onFileSelected($event)"
-                          >
+                          />
 
                           <button
                             type="button"
                             (click)="fileInput.click()"
-                            class="flex min-h-[210px] w-full flex-col items-center justify-center rounded-[20px] border border-dashed border-[#D8DBE2] bg-[#FBFBFC] px-6 py-10 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-4 focus:ring-[#7868F3]/10"
+                            class="flex min-h-[138px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8D8D8] bg-[#F9F9F9] px-6 py-10 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10"
                           >
                             @if (imagePreview()) {
                               <div class="flex w-full max-w-[460px] flex-col items-center gap-4">
-                                <div class="w-full overflow-hidden rounded-[18px] border border-[#E6E8ED] bg-white p-2 shadow-sm">
-                                  <img [src]="imagePreview()!" alt="Selected banner preview" class="h-auto w-full rounded-[14px] object-cover">
+                                <div
+                                  class="w-full overflow-hidden rounded-[18px] border border-[#E6E8ED] bg-white p-2 shadow-sm"
+                                >
+                                  <img
+                                    [src]="imagePreview()!"
+                                    alt="Selected banner preview"
+                                    class="h-auto w-full rounded-[14px] object-cover"
+                                  />
                                 </div>
-                                <span class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#3A3D45] shadow-sm">
-                                  <ng-icon name="heroArrowUpTray" class="text-base"></ng-icon>
+                                <span
+                                  class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-[#000000] shadow-[0_4px_8px_0_rgba(202,202,202,0.25)]"
+                                >
+                                  <img
+                                    [ngSrc]="bannerTypeUploadIcon()"
+                                    width="14"
+                                    height="14"
+                                    alt=""
+                                  />
                                   Change file
                                 </span>
                               </div>
                             } @else {
-                              <span class="inline-flex items-center gap-2 rounded-full border border-[#E6E8ED] bg-white px-5 py-3 text-sm font-semibold text-[#3A3D45] shadow-sm">
-                                <ng-icon name="heroArrowUpTray" class="text-base"></ng-icon>
+                              <span
+                                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-[#000000] shadow-[0_4px_8px_0_rgba(202,202,202,0.25)]"
+                              >
+                                <img
+                                  [ngSrc]="bannerTypeUploadIcon()"
+                                  width="14"
+                                  height="14"
+                                  alt=""
+                                />
                                 Add file
                               </span>
-                              <span class="mt-4 text-sm font-medium text-[#B0B4BD]">PNG, JPEG under 7MB</span>
+                              <span class="mt-3 text-[12px] tracking-[-0.01em] text-[#848484]">{{
+                                bannerTypeUploadHelper()
+                              }}</span>
                             }
                           </button>
                         </div>
@@ -674,51 +915,51 @@ interface BoostingPlan {
                     </form>
                   </section>
 
-                  <aside class="flex flex-col rounded-[28px] bg-[#FAFAFB] p-5 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]">
+                  <aside class="flex h-[691px] flex-col rounded-[24px] bg-[#F8F8F8] px-4 py-4">
                     <div>
-                      <h3 class="text-[1.55rem] font-bold tracking-tight text-[#24262D]">Preview</h3>
-                      <p class="mt-1 text-[13px] font-medium text-[#A3A6AE]">This is how your banner ad will appear to buyers</p>
+                      <h3 class="text-[20px] font-semibold leading-7 text-[#1F1F1F]">Preview</h3>
+                      <p class="mt-0.5 text-[14px] leading-5 text-[#959595]">
+                        This is how your banner ad will appear to buyers
+                      </p>
                     </div>
 
-                    <div class="mt-7 flex justify-center gap-3">
+                    <div class="mt-4 flex justify-center gap-[7px]">
                       <button
                         type="button"
                         (click)="previewMode.set('desktop')"
                         [attr.aria-pressed]="previewMode() === 'desktop'"
-                        class="flex h-11 w-11 items-center justify-center rounded-full border bg-white transition focus:outline-none focus:ring-4 focus:ring-[#7868F3]/10"
-                        [class.border-[#7868F3]]="previewMode() === 'desktop'"
-                        [class.text-[#7868F3]]="previewMode() === 'desktop'"
-                        [class.border-[#DCDDDF]]="previewMode() !== 'desktop'"
-                        [class.text-[#7D8089]]="previewMode() !== 'desktop'"
+                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-[0_4px_8px_0_rgba(202,202,202,0.25)] transition focus:outline-none focus:ring-4 focus:ring-[#7868F3]/10"
+                        [class.border]="previewMode() === 'desktop'"
+                        [class.border-[#EAEAEA]]="previewMode() === 'desktop'"
                       >
-                        <ng-icon name="heroComputerDesktop" class="text-lg"></ng-icon>
+                        <img [ngSrc]="createBannerMonitorIcon" width="16" height="16" alt="" />
                       </button>
                       <button
                         type="button"
                         (click)="previewMode.set('mobile')"
                         [attr.aria-pressed]="previewMode() === 'mobile'"
-                        class="flex h-11 w-11 items-center justify-center rounded-full border bg-white transition focus:outline-none focus:ring-4 focus:ring-[#7868F3]/10"
-                        [class.border-[#7868F3]]="previewMode() === 'mobile'"
-                        [class.text-[#7868F3]]="previewMode() === 'mobile'"
-                        [class.border-[#DCDDDF]]="previewMode() !== 'mobile'"
-                        [class.text-[#7D8089]]="previewMode() !== 'mobile'"
+                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-[0_4px_8px_0_rgba(202,202,202,0.25)] transition focus:outline-none focus:ring-4 focus:ring-[#7868F3]/10"
+                        [class.border]="previewMode() === 'mobile'"
+                        [class.border-[#EAEAEA]]="previewMode() === 'mobile'"
                       >
-                        <ng-icon name="heroDevicePhoneMobile" class="text-lg"></ng-icon>
+                        <img [ngSrc]="createBannerMobileIcon" width="16" height="16" alt="" />
                       </button>
                     </div>
 
-                    <div class="mt-6 flex flex-1 items-center justify-center">
+                    <div class="mt-4 flex flex-1 items-center justify-center">
                       <div
-                        class="rounded-[26px] bg-white p-4 shadow-[0_22px_60px_-40px_rgba(19,27,45,0.35)]"
+                        class="rounded-[12px] bg-[#FCFCFC] p-3 shadow-[0_12px_24px_0_rgba(192,192,192,0.25)]"
                         [class.w-full]="previewMode() === 'desktop'"
-                        [class.max-w-[344px]]="previewMode() === 'desktop'"
-                        [class.w-[258px]]="previewMode() === 'mobile'"
+                        [class.max-w-[342px]]="previewMode() === 'desktop'"
+                        [class.w-[242px]]="previewMode() === 'mobile'"
                       >
-                        <div class="overflow-hidden rounded-[20px] border border-[#ECEDEF] bg-[#FCFCFD]">
+                        <div
+                          class="overflow-hidden rounded-[12px] border border-[#ECEDEF] bg-[#FCFCFD]"
+                        >
                           <div class="flex items-center justify-between bg-[#1D1E22] px-3 py-1.5">
                             <div class="flex items-center gap-2">
                               <div class="h-2.5 w-2.5 rounded-full bg-white"></div>
-                              <span class="text-[0.5rem] font-bold text-white">Duduzili</span>
+                              <span class="text-[0.45rem] font-bold text-white">Duduzili</span>
                             </div>
                             <div class="flex items-center gap-1">
                               <div class="h-1.5 w-10 rounded-full bg-white/25"></div>
@@ -726,8 +967,8 @@ interface BoostingPlan {
                             </div>
                           </div>
 
-                          <div class="space-y-4 bg-white p-3">
-                            <div class="grid grid-cols-5 gap-2 opacity-35 blur-[1.4px]">
+                          <div class="space-y-3 bg-white p-3">
+                            <div class="grid grid-cols-4 gap-2 opacity-35 blur-[1.4px]">
                               @for (item of skeletonItems; track item) {
                                 <div class="space-y-1.5">
                                   <div class="aspect-square rounded-[10px] bg-[#ECEEF2]"></div>
@@ -737,31 +978,89 @@ interface BoostingPlan {
                               }
                             </div>
 
-                            <div class="overflow-hidden rounded-[10px] border border-[#ECEDEF] bg-white">
-                              <div class="relative aspect-[3.85/1] w-full" [style.background]="previewBannerBackground()">
+                            <div
+                              class="overflow-hidden rounded-[10px] border border-[#ECEDEF] bg-white"
+                            >
+                              <div
+                                class="relative aspect-[3.85/1] w-full"
+                                [style.background]="previewBannerBackground()"
+                              >
                                 @if (imagePreview()) {
-                                  <img [src]="imagePreview()!" alt="Banner artwork preview" class="absolute inset-0 h-full w-full object-cover">
+                                  <img
+                                    [src]="imagePreview()!"
+                                    alt="Banner artwork preview"
+                                    class="absolute inset-0 h-full w-full object-cover"
+                                  />
                                 } @else {
-                                  <div class="absolute inset-y-0 left-0 flex w-[58%] flex-col justify-center px-3 text-white">
-                                    <span class="text-[0.42rem] font-black uppercase tracking-[0.18em] opacity-85">Sponsored</span>
-                                    <span class="mt-1 text-[0.9rem] font-black leading-none">{{ previewHeadline() }}</span>
-                                    <span class="mt-1 text-[0.5rem] font-semibold uppercase tracking-[0.1em] opacity-90">{{ previewSubline() }}</span>
+                                  <div
+                                    class="absolute inset-y-0 left-0 flex w-[58%] flex-col justify-center px-3 text-white"
+                                  >
+                                    <span
+                                      class="text-[0.42rem] font-black uppercase tracking-[0.18em] opacity-85"
+                                      >Sponsored</span
+                                    >
+                                    <span class="mt-1 text-[0.9rem] font-black leading-none">{{
+                                      previewHeadline()
+                                    }}</span>
+                                    <span
+                                      class="mt-1 text-[0.5rem] font-semibold uppercase tracking-[0.1em] opacity-90"
+                                      >{{ previewSubline() }}</span
+                                    >
                                   </div>
                                 }
 
-                                <div class="absolute left-1.5 top-1.5 rounded-full bg-[#23252C]/70 px-1.5 py-0.5 text-[0.36rem] font-semibold text-white backdrop-blur-sm">
+                                <div
+                                  class="absolute left-1.5 top-1.5 rounded-full bg-[#23252C]/70 px-1.5 py-0.5 text-[0.36rem] font-semibold text-white backdrop-blur-sm"
+                                >
                                   Sponsored
                                 </div>
                               </div>
 
-                              <div class="flex items-center gap-3 px-2 py-1.5 text-[0.52rem] font-medium text-[#A3A6AE]">
-                                <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-[#D0D4DC]"></span>1K</span>
-                                <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-[#D0D4DC]"></span>500</span>
+                              <div
+                                class="flex items-center gap-3 px-2 py-1.5 text-[0.52rem] font-medium text-[#A3A6AE]"
+                              >
+                                <span class="inline-flex items-center gap-1"
+                                  ><span class="h-1.5 w-1.5 rounded-full bg-[#D0D4DC]"></span
+                                  >1K</span
+                                >
+                                <span class="inline-flex items-center gap-1"
+                                  ><span class="h-1.5 w-1.5 rounded-full bg-[#D0D4DC]"></span
+                                  >500</span
+                                >
                               </div>
                             </div>
 
-                            <div class="relative h-12 overflow-hidden rounded-b-[14px]">
-                              <img ngSrc="assets/images/Duduzili.png" alt="Duduzili footer artwork" fill class="object-cover object-top opacity-80">
+                            <div class="grid grid-cols-3 gap-1.5">
+                              <img
+                                ngSrc="assets/images/banner-promotions-card-orange.png"
+                                width="95"
+                                height="53"
+                                alt=""
+                                class="h-auto w-full rounded-[6px] object-cover"
+                              />
+                              <img
+                                ngSrc="assets/images/banner-promotions-card-blue.png"
+                                width="95"
+                                height="53"
+                                alt=""
+                                class="h-auto w-full rounded-[6px] object-cover"
+                              />
+                              <img
+                                ngSrc="assets/images/banner-promotions-card-orange.png"
+                                width="95"
+                                height="53"
+                                alt=""
+                                class="h-auto w-full rounded-[6px] object-cover opacity-75"
+                              />
+                            </div>
+
+                            <div class="relative h-16 overflow-hidden rounded-b-[14px]">
+                              <img
+                                ngSrc="assets/images/Duduzili.png"
+                                alt="Duduzili footer artwork"
+                                fill
+                                class="object-cover object-top opacity-80"
+                              />
                             </div>
                           </div>
                         </div>
@@ -771,84 +1070,115 @@ interface BoostingPlan {
                 </div>
               </div>
 
-              <footer class="border-t border-[#F1F2F4] bg-white px-6 py-5">
-                <div class="mx-auto flex max-w-[1320px] justify-end gap-3">
-                  <button type="button" (click)="close.emit()" class="rounded-full bg-[#F2F3F5] px-6 py-3.5 text-sm font-bold text-[#454A54] transition hover:bg-[#E8E9ED] focus:outline-none focus:ring-4 focus:ring-gray-200">
+              <footer class="bg-white/80 px-6 py-[13px] backdrop-blur-[2.5px]">
+                <div class="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    (click)="close.emit()"
+                    class="h-11 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] transition hover:bg-[#E8E9ED] focus:outline-none focus:ring-4 focus:ring-gray-200"
+                  >
                     Back
                   </button>
                   <button
                     type="button"
                     (click)="submitForm()"
                     [disabled]="bannerForm.invalid"
-                    class="rounded-full bg-[#6B5BE7] px-7 py-3.5 text-sm font-bold text-white shadow-[0_16px_34px_-18px_rgba(107,91,231,0.9)] transition hover:bg-[#5F50DE] focus:outline-none focus:ring-4 focus:ring-[#6B5BE7]/20 disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none"
+                    class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5F50DE] focus:outline-none focus:ring-4 focus:ring-[#6B5BE7]/20 disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none"
                   >
                     Submit for approval
                   </button>
                 </div>
               </footer>
             } @else if (step() === 3) {
-              <div class="relative flex h-full flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <div class="relative bg-linear-to-b from-[#B5A9FF] via-[#EEE9FF] to-white px-10 pb-18 pt-10 text-center">
+              <div
+                class="relative flex h-full flex-col overflow-hidden rounded-[32px] border border-[#D7D7D7] bg-white shadow-[0_0_12px_4px_rgba(180,180,180,0.17)] animate-in fade-in slide-in-from-bottom-4 duration-300"
+              >
+                <div
+                  class="absolute inset-x-0 top-0 h-[199px] rounded-t-[24px] bg-[linear-gradient(180deg,#ACA0F9_0%,rgba(255,255,255,0)_100%)]"
+                ></div>
+                <div class="relative flex h-full flex-col">
                   <button
                     type="button"
                     (click)="close.emit()"
-                    class="absolute right-8 top-8 flex h-10 w-10 items-center justify-center rounded-full text-[#1A1C21] transition hover:bg-white/60 focus:outline-none focus:ring-4 focus:ring-white/40"
+                    class="absolute right-6 top-4 flex h-10 w-10 items-center justify-center text-[#1A1C21] transition hover:bg-white/60 focus:outline-none focus:ring-4 focus:ring-white/40"
                   >
-                    <ng-icon name="heroXMark" class="text-2xl"></ng-icon>
+                    <img
+                      [ngSrc]="bannerPlanCloseIcon"
+                      width="24"
+                      height="24"
+                      alt=""
+                      class="-rotate-45"
+                    />
                   </button>
 
-                  <div class="mx-auto max-w-xl pt-16">
-                    <h2 class="text-[2rem] font-black leading-[1.02] tracking-tight text-[#17181D]">Choose a boosting plan to proceed🚀</h2>
-                    <p class="mt-3 text-[0.95rem] font-medium text-[#7F828B]">Give your banner more visibility</p>
+                  <div class="mx-auto max-w-[510px] px-6 pb-10 pt-[110px] text-center">
+                    <h2 class="text-[36px] font-semibold leading-[1.1] text-[#0D0D0D]">
+                      Choose a boosting plan to proceed 🚀
+                    </h2>
+                    <p class="mt-2 text-[16px] leading-6 text-[#747474]">
+                      Give your banner more visibility
+                    </p>
                   </div>
-                </div>
 
-                <div class="flex-1 overflow-y-auto px-10 pb-12">
-                  <div class="-mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    @for (plan of boostingPlans; track plan.id) {
+                  <div class="flex-1 px-[39px] pb-8">
+                    <div class="grid grid-cols-4 gap-[18px]">
+                      @for (plan of desktopPlanCards(); track plan.id) {
+                        <button
+                          type="button"
+                          (click)="selectedPlanId.set(plan.id)"
+                          class="relative h-[225px] rounded-[20px] border text-left transition-all"
+                          [class.border-2]="selectedPlanId() === plan.id"
+                          [class.border-[#6453D9]]="selectedPlanId() === plan.id"
+                          [class.bg-[rgba(100,83,217,0.04)]]="selectedPlanId() === plan.id"
+                          [class.border-[#E4E4E4]]="selectedPlanId() !== plan.id"
+                          [class.bg-white]="selectedPlanId() !== plan.id"
+                        >
+                          <h3
+                            class="absolute left-[18px] top-[18px] w-[224px] text-[20px] font-medium leading-5 text-[#0D0D0D]"
+                          >
+                            {{ plan.label }}
+                          </h3>
+
+                          <div class="absolute bottom-[18px] left-[18px]">
+                            @if (plan.savings) {
+                              <span
+                                class="absolute -top-7 left-0 inline-flex rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]"
+                                >Save {{ plan.savings }}</span
+                              >
+                            }
+
+                            <p class="text-[28px] font-medium leading-[1.2] text-[#1F1F1F]">
+                              <span class="line-through">N</span>{{ plan.price
+                              }}<span class="text-[18px] text-[#939393]"
+                                >/{{ plan.desktopUnit }}</span
+                              >
+                            </p>
+                            <p class="text-[14px] leading-[1.2] text-[#1B1B1B]">
+                              {{ plan.desktopBilling }}
+                            </p>
+                          </div>
+                        </button>
+                      }
+                    </div>
+
+                    <div class="mt-[66px] flex justify-center">
                       <button
                         type="button"
-                        (click)="selectedPlanId.set(plan.id)"
-                        class="flex min-h-[225px] flex-col justify-between rounded-[26px] border bg-white p-6 text-left transition-all"
-                        [class.border-[#6955F2]]="selectedPlanId() === plan.id"
-                        [class.bg-[#F8F6FF]]="selectedPlanId() === plan.id"
-                        [class.shadow-[0_16px_38px_-28px_rgba(105,85,242,0.8)]]="selectedPlanId() === plan.id"
-                        [class.border-[#E7E8EC]]="selectedPlanId() !== plan.id"
+                        (click)="goToPaymentStep()"
+                        class="h-10 w-[445px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
                       >
-                        <div>
-                          <h3 class="text-[1rem] font-semibold tracking-tight text-[#1B1D23]">{{ plan.label }}</h3>
-                        </div>
-
-                        <div>
-                          @if (plan.savings) {
-                            <span class="mb-4 inline-flex rounded-full bg-[#F1F7AA] px-2.5 py-1 text-xs font-semibold text-[#6A7414]">Save {{ plan.savings }}</span>
-                          }
-
-                          <div class="flex items-baseline gap-1 text-[#1B1D23]">
-                            <span class="text-[1.8rem] font-black leading-none">{{ plan.price }}</span>
-                            <span class="text-[0.875rem] font-medium text-[#8B8F98]">/{{ plan.unit }}</span>
-                          </div>
-                          <p class="mt-1 text-[0.875rem] font-medium text-[#666B74]">{{ plan.billing }}</p>
-                        </div>
+                        Proceed
                       </button>
-                    }
-                  </div>
-
-                  <div class="mt-16 flex justify-center">
-                    <button
-                      type="button"
-                      (click)="goToPaymentStep()"
-                      class="w-full max-w-[460px] rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
-                    >
-                      Proceed
-                    </button>
+                    </div>
                   </div>
                 </div>
               </div>
             } @else if (step() === 4) {
               <div class="grid h-full gap-6 p-8 lg:grid-cols-[minmax(0,1fr)_480px]">
                 <section class="min-w-0 pt-4">
-                  <h2 class="text-[1.8rem] font-bold tracking-tight text-[#1A1C21]">Select your payment method</h2>
+                  <h2 class="text-[1.8rem] font-bold tracking-tight text-[#1A1C21]">
+                    Select your payment method
+                  </h2>
 
                   <div class="mt-8 space-y-4">
                     <button
@@ -860,10 +1190,18 @@ interface BoostingPlan {
                       [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
                     >
                       <div class="flex items-start gap-3">
-                        <span class="mt-0.5 text-[#272A31]"><ng-icon name="heroWallet" class="text-lg"></ng-icon></span>
-                        <p class="text-[0.95rem] font-medium text-[#1A1C21]">Wallet (Balance: N250,000)</p>
+                        <span class="mt-0.5 text-[#272A31]"
+                          ><ng-icon name="heroWallet" class="text-lg"></ng-icon
+                        ></span>
+                        <p class="text-[0.95rem] font-medium text-[#1A1C21]">
+                          Wallet (Balance: N250,000)
+                        </p>
                       </div>
-                      <span class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border" [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'" [class.border-[#D9DBE2]]="selectedPaymentId() !== 'wallet'">
+                      <span
+                        class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border"
+                        [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
+                        [class.border-[#D9DBE2]]="selectedPaymentId() !== 'wallet'"
+                      >
                         @if (selectedPaymentId() === 'wallet') {
                           <span class="h-2.5 w-2.5 rounded-full bg-[#6955F2]"></span>
                         }
@@ -879,10 +1217,16 @@ interface BoostingPlan {
                       [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
                     >
                       <div class="flex items-start gap-3">
-                        <span class="mt-0.5 text-[#272A31]"><ng-icon name="heroGlobeAlt" class="text-lg"></ng-icon></span>
+                        <span class="mt-0.5 text-[#272A31]"
+                          ><ng-icon name="heroGlobeAlt" class="text-lg"></ng-icon
+                        ></span>
                         <p class="text-[0.95rem] font-medium text-[#1A1C21]">Online</p>
                       </div>
-                      <span class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border" [class.border-[#6955F2]]="selectedPaymentId() === 'online'" [class.border-[#D9DBE2]]="selectedPaymentId() !== 'online'">
+                      <span
+                        class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border"
+                        [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
+                        [class.border-[#D9DBE2]]="selectedPaymentId() !== 'online'"
+                      >
                         @if (selectedPaymentId() === 'online') {
                           <span class="h-2.5 w-2.5 rounded-full bg-[#6955F2]"></span>
                         }
@@ -891,7 +1235,9 @@ interface BoostingPlan {
                   </div>
                 </section>
 
-                <aside class="relative rounded-[28px] bg-[#FAFAFB] p-8 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]">
+                <aside
+                  class="relative rounded-[28px] bg-[#FAFAFB] p-8 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]"
+                >
                   <button
                     type="button"
                     (click)="close.emit()"
@@ -900,8 +1246,14 @@ interface BoostingPlan {
                     <ng-icon name="heroXMark" class="text-xl"></ng-icon>
                   </button>
 
-                  <h3 class="pr-14 text-[2.65rem] font-medium leading-none tracking-tight text-[#1A1C21]">{{ selectedPlanSummary().title }}</h3>
-                  <p class="mt-3 text-[0.95rem] font-medium text-[#8B8F98]">{{ selectedPlanSummary().billing }}</p>
+                  <h3
+                    class="pr-14 text-[2.65rem] font-medium leading-none tracking-tight text-[#1A1C21]"
+                  >
+                    {{ selectedPlanSummary().title }}
+                  </h3>
+                  <p class="mt-3 text-[0.95rem] font-medium text-[#8B8F98]">
+                    {{ selectedPlanSummary().billing }}
+                  </p>
 
                   <div class="mt-8 h-px bg-[#E3E5EA]"></div>
 
@@ -914,7 +1266,9 @@ interface BoostingPlan {
                       <span>VAT (7.5%)</span>
                       <span>{{ selectedPlanSummary().vatAmount }}</span>
                     </div>
-                    <div class="flex items-center justify-between gap-4 pt-2 text-[1.05rem] font-semibold text-[#1A1C21]">
+                    <div
+                      class="flex items-center justify-between gap-4 pt-2 text-[1.05rem] font-semibold text-[#1A1C21]"
+                    >
                       <span>Total due today</span>
                       <span>{{ selectedPlanSummary().totalAmount }}</span>
                     </div>
@@ -922,8 +1276,15 @@ interface BoostingPlan {
 
                   <div class="mt-8 h-px bg-[#E3E5EA]"></div>
 
-                  <label class="mt-8 flex cursor-pointer items-center gap-3 text-[0.95rem] font-medium text-[#424750]">
-                    <input type="checkbox" [checked]="isRecurring()" (change)="isRecurring.set(!isRecurring())" class="h-4 w-4 rounded border-[#D3D6DE] text-[#6955F2] focus:ring-[#6955F2]/20">
+                  <label
+                    class="mt-8 flex cursor-pointer items-center gap-3 text-[0.95rem] font-medium text-[#424750]"
+                  >
+                    <input
+                      type="checkbox"
+                      [checked]="isRecurring()"
+                      (change)="isRecurring.set(!isRecurring())"
+                      class="h-4 w-4 rounded border-[#D3D6DE] text-[#6955F2] focus:ring-[#6955F2]/20"
+                    />
                     <span>Mark this payment as recurring</span>
                   </label>
 
@@ -937,46 +1298,53 @@ interface BoostingPlan {
 
                   <p class="mt-10 text-[0.875rem] leading-6 text-[#6D727C]">
                     By clicking on Confirm and pay, you accept the
-                    <span class="text-[#6653E4]">Terms of Use</span>, confirm that you will abide by the
-                    Safety Tips and declare that this posting does not include any Prohibited Items.
+                    <span class="text-[#6653E4]">Terms of Use</span>, confirm that you will abide by
+                    the Safety Tips and declare that this posting does not include any Prohibited
+                    Items.
                   </p>
                 </aside>
               </div>
             } @else {
-              <div class="flex h-full flex-col items-center justify-center px-6 py-10 text-center animate-in fade-in zoom-in-95 duration-300">
-                <div class="relative mb-8 h-36 w-40 overflow-hidden rounded-[18px] bg-linear-to-b from-[#86E0FF] via-[#F8FBFF] to-[#E8E5FF] shadow-[0_22px_40px_-30px_rgba(33,41,67,0.55)]">
-                  <div class="flex items-center gap-1 px-3 py-2">
-                    <span class="h-3 w-3 rounded-full bg-[#FF6B57]"></span>
-                    <span class="h-3 w-3 rounded-full bg-[#FFBF2F]"></span>
-                    <span class="h-3 w-3 rounded-full bg-[#28C840]"></span>
-                  </div>
-                  <div class="absolute left-3 top-14 text-4xl text-[#C4BDD8]">‹</div>
-                  <div class="absolute right-3 top-14 text-4xl text-[#C4BDD8]">›</div>
-                  <div class="absolute left-1/2 top-[46%] h-16 w-[88px] -translate-x-1/2 -translate-y-1/2 rounded-[8px] bg-linear-to-br from-[#FFE787] via-[#FFC33C] to-[#FFB300] shadow-[0_10px_18px_-12px_rgba(60,35,0,0.45)]">
-                    <div class="absolute left-1/2 top-[42%] h-8 w-8 -translate-x-1/2 -translate-y-1/2 rotate-[12deg] rounded-[6px] bg-white/80"></div>
-                  </div>
-                  <div class="absolute bottom-6 left-6 h-1.5 w-7 rounded-full bg-white/75"></div>
-                  <div class="absolute bottom-3 left-6 flex gap-2">
-                    <span class="h-4 w-4 rounded-full bg-[#A59BBE] shadow-inner"></span>
-                    <span class="h-4 w-4 rounded-full bg-[#C8C0D8] shadow-inner"></span>
-                    <span class="h-4 w-4 rounded-full bg-[#A59BBE] shadow-inner"></span>
-                  </div>
-                </div>
+              <div
+                class="flex h-full flex-col items-center justify-center px-6 py-10 text-center animate-in fade-in zoom-in-95 duration-300"
+              >
+                <div class="flex flex-col items-center gap-8">
+                  <div class="flex flex-col items-center gap-6">
+                    <img
+                      [ngSrc]="bannerReviewSuccessDesktopImage"
+                      width="180"
+                      height="180"
+                      alt="Banner submitted for review"
+                      class="h-[180px] w-[180px]"
+                    />
 
-                <h2 class="text-[2rem] font-black tracking-tight text-[#1A1C21]">Banner submitted for review</h2>
+                    <div class="flex flex-col items-center gap-3">
+                      <h2 class="w-[546px] text-[32px] font-semibold leading-[1.1] text-[#0D0D0D]">
+                        Banner submitted for review
+                      </h2>
+                      <p class="w-[562px] text-[16px] leading-6 text-[#747474]">
+                        Your banner ad has been submitted and is awaiting approval from the Duduzili
+                        team. Once approved, it will start appearing across the platform.
+                      </p>
+                    </div>
+                  </div>
 
-                <p class="mt-4 max-w-[620px] text-[0.95rem] font-medium leading-7 text-[#8E929B]">
-                  Your banner ad has been submitted and is awaiting approval from the Duduzili team.
-                  Once approved, it will start appearing across the platform.
-                </p>
-
-                <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-                  <button type="button" (click)="resetFlow()" class="rounded-full bg-[#F3F3F5] px-6 py-3.5 text-sm font-semibold text-[#353A43] transition hover:bg-[#E9EAF0] focus:outline-none focus:ring-4 focus:ring-gray-200">
-                    Create another Ad
-                  </button>
-                  <button type="button" (click)="finishAndClose()" class="rounded-full bg-[#6653E4] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20">
-                    View running Ads
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      (click)="resetFlow()"
+                      class="h-11 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A]"
+                    >
+                      Create another Ad
+                    </button>
+                    <button
+                      type="button"
+                      (click)="finishAndClose()"
+                      class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                    >
+                      View running Ads
+                    </button>
+                  </div>
                 </div>
               </div>
             }
@@ -1000,10 +1368,42 @@ export class CreateBannerAdModalComponent implements OnDestroy {
   ] as const;
 
   readonly boostingPlans: BoostingPlan[] = [
-    { id: '1-day', label: 'Promote for 1 day', price: '₦100', unit: 'day', billing: 'Billed daily' },
-    { id: '7-days', label: 'Promote for 7 days', price: '₦500', unit: 'week', billing: 'Billed weekly' },
-    { id: '14-days', label: 'Promote for 14 days', price: '₦700', unit: 'bi-weekly', billing: 'Billed bi-weekly', savings: '20%' },
-    { id: '30-days', label: 'Promote for 30 days', price: '₦1,000', unit: 'month', billing: 'Billed every six months', savings: '60%' },
+    {
+      id: '1-day',
+      label: 'Promote for 1 day',
+      price: '100',
+      desktopUnit: 'day',
+      desktopBilling: 'Billed daily',
+      mobileBilling: 'Billed daily',
+    },
+    {
+      id: '7-days',
+      label: 'Promote for 7 days',
+      price: '500',
+      desktopUnit: 'week',
+      desktopBilling: 'Billed weekly',
+      mobileBilling: 'Billed weekly',
+    },
+    {
+      id: '14-days',
+      label: 'Promote for 14 days',
+      price: '700',
+      desktopUnit: 'bi-wekkly',
+      desktopBilling: 'Billed bi-weekly',
+      mobileBilling: 'Billed bi-weekly',
+      savings: '20%',
+      mobileSavingsTone: 'yellow',
+    },
+    {
+      id: '30-days',
+      label: 'Promote for 30 days',
+      price: '1,000',
+      desktopUnit: 'month',
+      desktopBilling: 'Billed monthly',
+      mobileBilling: 'Billed every six months',
+      savings: '60%',
+      mobileSavingsTone: 'gray',
+    },
   ];
 
   readonly skeletonItems = [1, 2, 3, 4];
@@ -1013,6 +1413,16 @@ export class CreateBannerAdModalComponent implements OnDestroy {
   readonly isRecurring = signal(false);
   readonly previewMode = signal<'desktop' | 'mobile'>('desktop');
   readonly imagePreview = signal<string | null>(null);
+  readonly createBannerInfoIcon = 'assets/icons/banner-create-info.svg';
+  readonly createBannerGalleryAddIcon = 'assets/icons/banner-create-gallery-add.svg';
+  readonly createBannerVideoAddIcon = 'assets/icons/banner-create-video-add.svg';
+  readonly bannerPlanCloseIcon = 'assets/icons/banner-plan-close-glyph.svg';
+  readonly createBannerMonitorIcon = 'assets/icons/banner-create-monitor.svg';
+  readonly createBannerMobileIcon = 'assets/icons/banner-create-mobile.svg';
+  readonly createBannerRadioSelectedIcon = 'assets/icons/banner-create-radio-selected.svg';
+  readonly createBannerRadioUnselectedIcon = 'assets/icons/banner-create-radio-unselected.svg';
+  readonly bannerReviewSuccessDesktopImage = 'assets/images/banner-review-success-desktop.png';
+  readonly bannerReviewSuccessMobileImage = 'assets/images/banner-review-success-mobile.png';
 
   readonly bannerForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
@@ -1020,16 +1430,35 @@ export class CreateBannerAdModalComponent implements OnDestroy {
     bannerType: this.fb.nonNullable.control<'image' | 'video'>('image', Validators.required),
   });
 
-  readonly bannerType = computed(() => this.bannerForm.controls.bannerType.value);
+  readonly selectedBannerType = signal<'image' | 'video'>('image');
   readonly previewHeadline = computed(() => {
     const title = this.bannerForm.controls.title.value.trim();
     return title ? this.truncate(title, 20) : 'Christmas Sale';
   });
+  readonly bannerTypeUploadLabel = computed(() =>
+    this.selectedBannerType() === 'video' ? 'Banner video' : 'Banner image',
+  );
+  readonly bannerTypeUploadRecommendation = computed(() =>
+    this.selectedBannerType() === 'video'
+      ? 'Recommended size: 1080 x 90'
+      : 'Recommended dimension: 1080 x 90',
+  );
+  readonly bannerTypeUploadHelper = computed(() =>
+    this.selectedBannerType() === 'video' ? 'MP4, GIF under 7MB' : 'PNG, JPEG under 7MB',
+  );
+  readonly bannerTypeUploadAccept = computed(() =>
+    this.selectedBannerType() === 'video' ? 'video/mp4,image/gif' : 'image/png,image/jpeg',
+  );
+  readonly bannerTypeUploadIcon = computed(() =>
+    this.selectedBannerType() === 'video'
+      ? this.createBannerVideoAddIcon
+      : this.createBannerGalleryAddIcon,
+  );
   readonly previewSubline = computed(() =>
-    this.bannerType() === 'video' ? 'Video banner ad' : 'Image banner ad',
+    this.selectedBannerType() === 'video' ? 'Video banner ad' : 'Image banner ad',
   );
   readonly previewBannerBackground = computed(() =>
-    this.bannerType() === 'video'
+    this.selectedBannerType() === 'video'
       ? 'linear-gradient(135deg, #5F7CFA 0%, #2E91FF 45%, #28C6F0 100%)'
       : 'linear-gradient(135deg, #FFCC4B 0%, #FF8A1F 42%, #F35B22 100%)',
   );
@@ -1071,6 +1500,7 @@ export class CreateBannerAdModalComponent implements OnDestroy {
   });
 
   constructor() {
+    this.selectedPlanId.set(this.defaultPlanIdForViewport());
     this.mobileOverlayService.openMobileModal();
   }
 
@@ -1093,6 +1523,21 @@ export class CreateBannerAdModalComponent implements OnDestroy {
     }
 
     this.imagePreview.set(URL.createObjectURL(file));
+  }
+
+  setBannerType(value: 'image' | 'video'): void {
+    this.selectedBannerType.set(value);
+    this.bannerForm.controls.bannerType.setValue(value);
+    this.bannerForm.controls.bannerType.markAsDirty();
+    this.bannerForm.controls.bannerType.markAsTouched();
+  }
+
+  desktopPlanCards(): BoostingPlan[] {
+    return this.boostingPlans;
+  }
+
+  mobilePlanCards(): BoostingPlan[] {
+    return this.boostingPlans;
   }
 
   openPreview(): void {
@@ -1138,9 +1583,10 @@ export class CreateBannerAdModalComponent implements OnDestroy {
       destinationUrl: '',
       bannerType: 'image',
     });
+    this.selectedBannerType.set('image');
     this.imagePreview.set(null);
     this.previewMode.set('desktop');
-    this.selectedPlanId.set('14-days');
+    this.selectedPlanId.set(this.defaultPlanIdForViewport());
     this.selectedPaymentId.set('wallet');
     this.isRecurring.set(false);
     this.step.set(1);
@@ -1148,5 +1594,13 @@ export class CreateBannerAdModalComponent implements OnDestroy {
 
   private truncate(value: string, maxLength: number): string {
     return value.length > maxLength ? `${value.slice(0, maxLength - 1)}...` : value;
+  }
+
+  private defaultPlanIdForViewport(): string {
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      return '7-days';
+    }
+
+    return '14-days';
   }
 }
