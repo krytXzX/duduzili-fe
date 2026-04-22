@@ -50,6 +50,14 @@ interface StoreItem {
   activeListings: string;
 }
 
+interface StorePromotionOption {
+  id: string;
+  name: string;
+  coverImage: string;
+  logoImage: string;
+  activeListings: string;
+}
+
 @Component({
   selector: 'app-create-ad-type-modal',
   imports: [CommonModule, NgOptimizedImage, NgIcon],
@@ -415,257 +423,294 @@ interface StoreItem {
               </footer>
             </div>
           } @else if (step() === 'configure-store') {
-            <header class="px-5 pt-4">
-              <div class="flex items-center justify-between text-[#1F2230]">
+            <header class="px-4 pb-4 pt-[10px]">
+              <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <button
                     type="button"
                     (click)="step.set('type')"
-                    class="inline-flex h-6 w-6 items-center justify-center rounded-full text-[#4A4F5E]"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5] text-[#1A1B1D]"
                     aria-label="Back"
                   >
-                    <ng-icon name="heroXMark" class="text-[16px]"></ng-icon>
+                    <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
                   </button>
-                  <h1 class="text-[16px] font-medium">Create Ad</h1>
+                  <h1 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">Create Ad</h1>
                 </div>
 
                 <button
                   type="button"
                   (click)="openStorePreview()"
-                  class="text-[11px] font-medium text-[#1F2230] underline underline-offset-2"
+                  class="text-[14px] font-medium leading-5 text-[#1A1B1D] underline underline-offset-2"
                 >
                   Preview
                 </button>
               </div>
 
               <div class="mt-5 grid grid-cols-2 gap-2">
-                <span class="h-[2px] rounded-full bg-[#6B5CF0]"></span>
-                <span class="h-[2px] rounded-full bg-[#6B5CF0]"></span>
+                <span class="h-[2px] rounded-full bg-[#6453D9]"></span>
+                <span class="h-[2px] rounded-full bg-[#6453D9]"></span>
               </div>
             </header>
 
-            <div class="flex-1 overflow-y-auto px-4 pt-5 pb-6">
-              <h2 class="text-[16px] font-semibold leading-tight tracking-[-0.03em] text-[#232632]">
-                Select a Store to promote
-              </h2>
-              <p class="mt-1 text-[11px] text-[#8F95A3]">
-                Choose a store and set your promotion preferences
+            <div class="flex-1 overflow-y-auto px-5 pb-6 pt-4">
+              <h2 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">Configure Store Ad</h2>
+              <p class="mt-0.5 text-[14px] leading-6 text-[rgba(26,27,29,0.7)]">
+                Promote your store to attract more customers
               </p>
 
               <section class="mt-5">
-                <h3 class="text-[13px] font-semibold text-[#232632]">Select store to promote</h3>
+                <h3 class="text-[18px] font-semibold leading-[1.2] text-black">
+                  Select store to promote
+                </h3>
 
                 <div
-                  class="mt-3 flex items-start gap-3 rounded-[14px] bg-[#FFFBE5] px-4 py-3 text-[#59592E]"
+                  class="mt-3 flex items-start gap-2 rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px] text-[#1F1F1F]"
                 >
                   <div
                     class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#EEE82C] text-[#6C6B00]"
                   >
                     <ng-icon name="heroExclamationTriangle" class="text-[12px]"></ng-icon>
                   </div>
-                  <p class="text-[11px] font-medium leading-4">
+                  <p class="text-[12px] font-medium leading-5">
                     Your store will be promoted across Duduzili until it expires on 24 March, 2026.
                   </p>
                 </div>
 
-                <div class="mt-4 space-y-3">
-                  @for (store of stores; track store.id) {
+                <div class="mt-5 grid grid-cols-2 gap-2">
+                  @for (store of mobileStorePromotionOptions; track store.id) {
                     <button
                       type="button"
                       (click)="selectedStoreId.set(store.id)"
-                      class="flex w-full items-center gap-3 rounded-[16px] border bg-white px-3 py-3 text-left transition"
-                      [class.border-[#6B5CF0]]="selectedStoreId() === store.id"
-                      [class.bg-[#FBFAFF]]="selectedStoreId() === store.id"
-                      [class.border-[#E8EAF0]]="selectedStoreId() !== store.id"
+                      class="relative overflow-hidden rounded-[13.746px] border bg-white text-left transition"
+                      [class.border-[#6453D9]]="selectedStoreId() === store.id"
+                      [style.border-width.px]="selectedStoreId() === store.id ? 2 : 0.573"
+                      [class.border-[#EAEAEA]]="selectedStoreId() !== store.id"
                     >
-                      <img
-                        [src]="store.image"
-                        [alt]="store.name"
-                        class="h-12 w-12 rounded-full object-cover"
-                      />
-
-                      <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-1.5">
-                          <p class="truncate text-[13px] font-semibold text-[#24262D]">
-                            {{ store.name }}
-                          </p>
-                          <span class="h-2 w-2 rounded-full bg-[#6B5CF0]"></span>
-                        </div>
-                        <p class="mt-1 text-[10px] text-[#8A909A]">{{ store.activeListings }}</p>
+                      <div class="relative h-[90px] overflow-hidden rounded-t-[11.455px]">
+                        <img
+                          [ngSrc]="store.coverImage"
+                          [alt]="store.name"
+                          width="171"
+                          height="90"
+                          class="h-full w-full object-cover"
+                        />
+                        <div
+                          class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0.54%,rgba(255,255,255,0.12)_40%,rgba(255,255,255,0.95)_93.47%)]"
+                        ></div>
+                        <span
+                          class="absolute right-[9px] top-[8px] inline-flex h-6 w-6 items-center justify-center rounded-full border-2 bg-white/20 backdrop-blur-[2px]"
+                          [class.border-[#8F7AF8]]="selectedStoreId() === store.id"
+                          [class.border-white/70]="selectedStoreId() !== store.id"
+                          aria-hidden="true"
+                        >
+                          @if (selectedStoreId() === store.id) {
+                            <span class="h-3 w-3 rounded-full bg-[#6453D9] shadow-[0_0_0_2px_rgba(255,255,255,0.55)]"></span>
+                          }
+                        </span>
                       </div>
 
-                      <span
-                        class="inline-flex h-5 w-5 items-center justify-center rounded-full border"
-                        [class.border-[#6B5CF0]]="selectedStoreId() === store.id"
-                        [class.bg-[#6B5CF0]]="selectedStoreId() === store.id"
-                        [class.border-[#D9DCE3]]="selectedStoreId() !== store.id"
-                        [class.bg-white]="selectedStoreId() !== store.id"
-                      >
-                        @if (selectedStoreId() === store.id) {
-                          <span class="text-[11px] font-bold text-white">✓</span>
-                        }
-                      </span>
+                      <div class="relative px-[10px] pb-[10px] pt-0">
+                        <div class="-mt-[31px]">
+                          <img
+                            [ngSrc]="store.logoImage"
+                            [alt]="store.name + ' logo'"
+                            width="42"
+                            height="42"
+                            class="h-[42px] w-[42px] rounded-full border-[2.291px] border-white object-cover shadow-[0_4px_10px_rgba(0,0,0,0.12)]"
+                          />
+                        </div>
+
+                        <div class="mt-2 space-y-[2px]">
+                          <div class="flex items-center gap-[2px]">
+                            <p class="truncate text-[12px] font-medium leading-[13.746px] text-[#1F1F1F]">
+                              {{ store.name }}
+                            </p>
+                            <img
+                              ngSrc="/assets/icons/store-filled-verify-mobile.svg"
+                              width="12"
+                              height="12"
+                              alt=""
+                              class="h-3 w-3 shrink-0"
+                            />
+                          </div>
+
+                          <div class="flex items-center gap-[2px] text-[10px] text-[#959595]">
+                            <span class="h-[10px] w-[10px] rounded-[3px] border border-[#B3B3B3]"></span>
+                            <span>{{ store.activeListings }}</span>
+                          </div>
+                        </div>
+                      </div>
                     </button>
                   }
                 </div>
               </section>
             </div>
 
-            <footer class="border-t border-[#F1F2F4] px-4 py-4">
-              <div class="grid grid-cols-2 gap-3">
+            <footer class="mt-auto border-t border-[#EDEDED] bg-white px-5 py-[12px]">
+              <div class="grid grid-cols-[minmax(0,1fr)_205px] gap-[6px]">
                 <button
                   type="button"
                   (click)="step.set('type')"
-                  class="rounded-full bg-[#F2F3F5] px-5 py-4 text-[14px] font-semibold text-[#2F333B]"
+                  class="h-[52px] rounded-[82px] bg-[#F5F5F5] px-5 text-[16px] font-medium tracking-[-0.5px] text-[#05061A]"
                 >
                   Back
                 </button>
                 <button
                   type="button"
-                  (click)="openStorePreview()"
-                  class="rounded-full bg-[#6653E4] px-5 py-4 text-[14px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+                  (click)="completeStorePromotion()"
+                  class="h-[52px] rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
                 >
                   Promote store
                 </button>
               </div>
             </footer>
           } @else if (step() === 'store-preview') {
-            <div class="flex flex-1 flex-col bg-white">
-              <div class="px-4 pt-3">
-                <div class="mx-auto h-1 w-14 rounded-full bg-[#E7E7EA]"></div>
+            <div class="flex flex-1 flex-col overflow-hidden rounded-t-[36px] bg-white">
+              <div class="relative px-4 pt-[11px]">
+                <div class="mx-auto h-1 w-[50px] rounded-full bg-[#EBEBEB]"></div>
 
-                <div class="relative mt-4 flex items-center justify-center">
-                  <h2 class="text-[16px] font-semibold text-[#232632]">Preview</h2>
-                  <button
-                    type="button"
-                    (click)="step.set('configure-store')"
-                    class="absolute right-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF3] text-[#4A4F5E]"
-                    aria-label="Close preview"
-                  >
-                    <ng-icon name="heroXMark" class="text-[16px]"></ng-icon>
-                  </button>
-                </div>
-
-                <p class="mt-1 text-center text-[11px] text-[#A3A7B4]">
-                  This is how your store ad will appear to buyers
-                </p>
-
-                <div class="mt-5 flex items-center justify-center gap-3">
-                  <button
-                    type="button"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#7868F3] bg-white text-[#7868F3]"
-                    aria-label="Desktop preview"
-                  >
-                    <span class="h-3 w-4 rounded-[3px] border-2 border-current"></span>
-                  </button>
-                  <button
-                    type="button"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#7D8089]"
-                    aria-label="Mobile preview"
-                  >
-                    <span class="h-4 w-2.5 rounded-[3px] border-2 border-current"></span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  (click)="step.set('configure-store')"
+                  class="absolute right-4 top-4 inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#4A4F5E] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                  aria-label="Close preview"
+                >
+                  <ng-icon name="heroXMark" class="text-[22px]"></ng-icon>
+                </button>
               </div>
 
-              <div class="flex-1 overflow-y-auto px-4 pt-4 pb-6">
-                <div
-                  class="mx-auto w-full max-w-[290px] rounded-[24px] border border-[#ECEDEF] bg-white p-3 shadow-[0_22px_60px_-40px_rgba(19,27,45,0.35)]"
-                >
-                  <div class="overflow-hidden rounded-[18px] border border-[#ECEDEF] bg-[#FCFCFD]">
-                    <div class="flex items-center justify-between bg-[#1D1E22] px-3 py-1.5">
-                      <div class="flex items-center gap-2">
-                        <div class="h-2 w-2 rounded-full bg-white"></div>
-                        <span class="text-[0.45rem] font-bold text-white">Duduzili</span>
-                      </div>
-                      <div class="flex items-center gap-1">
-                        <div class="h-1.5 w-8 rounded-full bg-white/25"></div>
-                        <div class="h-2.5 w-5 rounded-full bg-white"></div>
-                      </div>
-                    </div>
+              <div class="flex-1 overflow-y-auto px-4 pb-8 pt-[54px]">
+                <div class="mx-auto max-w-[334px]">
+                  <div class="text-center">
+                    <h2 class="text-[20px] font-semibold leading-7 text-[#1F1F1F]">Preview</h2>
+                    <p class="mt-1 text-[14px] leading-5 text-[#959595]">
+                      This is how your store ad will appear to buyers
+                    </p>
+                  </div>
 
-                    <div class="space-y-3 bg-white p-3">
-                      <div class="grid grid-cols-5 gap-1.5 opacity-35 blur-[1.4px]">
-                        @for (item of [1, 2, 3, 4, 5]; track item) {
-                          <div class="space-y-1">
-                            <div class="aspect-square rounded-[8px] bg-[#ECEEF2]"></div>
-                            <div class="h-1 rounded-full bg-[#ECEEF2]"></div>
-                            <div class="h-1 w-2/3 rounded-full bg-[#ECEEF2]"></div>
+                  <div class="mt-4 flex items-center justify-center gap-[7px]">
+                    <button
+                      type="button"
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#3D3D3D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                      aria-label="Desktop preview"
+                    >
+                      <span class="h-4 w-4 rounded-[3px] border border-current"></span>
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#3D3D3D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                      aria-label="Mobile preview"
+                    >
+                      <span class="h-4 w-2.5 rounded-[3px] border border-current"></span>
+                    </button>
+                  </div>
+
+                  <div
+                    class="mt-4 h-[514px] overflow-hidden rounded-[12px] border border-[#EAEAEA] bg-[#FCFCFC] shadow-[0_12px_24px_rgba(192,192,192,0.25)]"
+                  >
+                    <div class="relative h-full overflow-hidden">
+                      <div class="mx-auto w-[294px] rounded-[24px] bg-[#1A1A1A] px-[6px] py-[2px]">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-[6px]">
+                            <div class="h-[6px] w-[26px] rounded-full bg-white/90"></div>
                           </div>
-                        }
+                          <div class="flex items-center gap-1">
+                            <div class="h-[4px] w-[58px] rounded-full bg-white/20"></div>
+                            <div class="h-[8px] w-5 rounded-full bg-white"></div>
+                          </div>
+                        </div>
                       </div>
 
-                      <div>
-                        <p class="mb-1.5 text-[0.42rem] font-bold text-[#7D8089]">
-                          Featured stores
-                        </p>
-                        <div class="grid grid-cols-4 gap-1.5">
-                          @for (store of stores; track store.id) {
-                            <div class="space-y-1">
-                              <div class="h-8 overflow-hidden rounded-[6px] bg-[#F5F7FB]">
-                                <img
-                                  [src]="store.image"
-                                  [alt]="store.name"
-                                  class="h-full w-full object-cover opacity-80"
-                                />
-                              </div>
-                              <div class="h-1 w-7 rounded-full bg-[#E5E7EC]"></div>
+                      <div class="px-[17px] pb-0 pt-[18px]">
+                        <div class="grid grid-cols-4 gap-[6px] opacity-35 blur-[4px]">
+                          @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track item) {
+                            <div class="space-y-[3px]">
+                              <div class="aspect-[0.9] rounded-[6px] bg-[#EFEFEF]"></div>
+                              <div class="h-[4px] rounded-full bg-[#EFEFEF]"></div>
+                              <div class="h-[4px] w-2/3 rounded-full bg-[#EFEFEF]"></div>
                             </div>
                           }
                         </div>
-                      </div>
 
-                      <div class="grid grid-cols-[1.2fr_0.95fr] gap-3 pt-1">
-                        <div>
-                          <div
-                            class="flex items-center gap-1 text-[0.42rem] font-bold text-[#24262D]"
-                          >
-                            <div class="h-2 w-2 rounded-full bg-[#24262D]"></div>
-                            Duduzili
-                          </div>
-                          <div class="mt-1.5 space-y-1 opacity-60">
-                            <div class="h-1 w-20 rounded-full bg-[#E5E7EC]"></div>
-                            <div class="h-1 w-16 rounded-full bg-[#E5E7EC]"></div>
+                        <div class="mt-9">
+                          <p class="text-[7px] font-medium text-[#2A2A2A]">Featured stores</p>
+                          <div class="mt-[6px] grid grid-cols-4 gap-[6px]">
+                            @for (store of mobileStorePromotionOptions; track store.id) {
+                              <div class="overflow-hidden rounded-[6px] border border-[#F0F0F0] bg-white">
+                                <img
+                                  [ngSrc]="store.coverImage"
+                                  [alt]="store.name"
+                                  width="70"
+                                  height="50"
+                                  class="h-[50px] w-full object-cover"
+                                />
+                              </div>
+                            }
                           </div>
                         </div>
+                      </div>
 
-                        <div class="grid grid-cols-2 gap-2">
-                          <div>
-                            <p class="text-[0.42rem] font-bold text-[#24262D]">Social</p>
-                            <div class="mt-1.5 space-y-1 opacity-60">
-                              <div class="h-1 w-6 rounded-full bg-[#E5E7EC]"></div>
-                              <div class="h-1 w-6 rounded-full bg-[#E5E7EC]"></div>
-                              <div class="h-1 w-6 rounded-full bg-[#E5E7EC]"></div>
+                      <div class="absolute bottom-[58px] left-[24px] right-[24px] grid grid-cols-[1.05fr_1fr] gap-5">
+                        <div>
+                          <div class="h-[6px] w-[28px] rounded-full bg-[#36394A]"></div>
+                          <div class="mt-[4px] h-[4px] w-[82px] rounded-full bg-[#BFC3CC]"></div>
+                          <div class="mt-[3px] h-[4px] w-[72px] rounded-full bg-[#D7DAE0]"></div>
+
+                          <div class="mt-[18px] flex items-start gap-[4px]">
+                            <div class="h-9 w-9 rounded-[6px] bg-[#252525]"></div>
+                            <div class="space-y-[4px]">
+                              <div class="h-[16px] w-[70px] rounded-[4px] border border-[#D8D8D8] bg-white"></div>
+                              <div class="h-[16px] w-[70px] rounded-[4px] border border-[#D8D8D8] bg-white"></div>
                             </div>
                           </div>
-                          <div>
-                            <p class="text-[0.42rem] font-bold text-[#24262D]">Resources</p>
-                            <div class="mt-1.5 space-y-1 opacity-60">
-                              <div class="h-1 w-7 rounded-full bg-[#E5E7EC]"></div>
-                              <div class="h-1 w-6 rounded-full bg-[#E5E7EC]"></div>
-                              <div class="h-1 w-5 rounded-full bg-[#E5E7EC]"></div>
+
+                          <div class="mt-[10px] h-[4px] w-[74px] rounded-full bg-[#D7DAE0]"></div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                          <div class="space-y-[4px]">
+                            <div class="h-[5px] w-[20px] rounded-full bg-[#36394A]"></div>
+                            <div class="h-[4px] w-[28px] rounded-full bg-[#D7DAE0]"></div>
+                            <div class="h-[4px] w-[22px] rounded-full bg-[#D7DAE0]"></div>
+                            <div class="h-[4px] w-[24px] rounded-full bg-[#D7DAE0]"></div>
+                          </div>
+                          <div class="space-y-[4px]">
+                            <div class="h-[5px] w-[28px] rounded-full bg-[#36394A]"></div>
+                            <div class="h-[4px] w-[36px] rounded-full bg-[#D7DAE0]"></div>
+                            <div class="h-[4px] w-[31px] rounded-full bg-[#D7DAE0]"></div>
+                            <div class="h-[4px] w-[24px] rounded-full bg-[#D7DAE0]"></div>
+                          </div>
+
+                          <div class="col-span-2 mt-2 flex items-end justify-end gap-[4px]">
+                            <div class="space-y-[3px]">
+                              <div class="h-[5px] w-[74px] rounded-full bg-[#36394A]"></div>
+                              <div class="h-[12px] w-[74px] rounded-[3px] border border-[#E6E6E8] bg-white"></div>
                             </div>
+                            <div class="mb-[1px] h-[10px] w-[34px] rounded-full bg-[#6453D9]"></div>
                           </div>
                         </div>
                       </div>
 
                       <div
-                        class="h-8 rounded-b-[12px] bg-linear-to-r from-[#EFEAFF] via-[#F6F4FF] to-[#EDE8FF]"
+                        class="absolute bottom-0 left-0 right-0 h-[159px] bg-[linear-gradient(180deg,rgba(123,106,217,0)_32.621%,rgba(123,106,217,0.2)_100%),linear-gradient(90deg,#fff_0%,#fff_100%)]"
+                      >
+                        <div
+                          class="absolute bottom-[-14px] left-1/2 -translate-x-1/2 text-center text-[68px] font-extrabold leading-none tracking-[3.4px] text-[#EFEEF9] opacity-90"
+                        >
+                          Duduzili
+                        </div>
+                      </div>
+
+                      <div
+                        class="pointer-events-none absolute inset-x-0 top-[30px] h-[205px] bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.5)_48.984%,rgba(255,255,255,0)_100%)] backdrop-blur-[6px]"
+                      ></div>
+                      <div
+                        class="pointer-events-none absolute right-0 top-[234px] h-[119px] w-[245px] bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.5)_48.984%,rgba(255,255,255,0)_100%)] backdrop-blur-[6px]"
                       ></div>
                     </div>
                   </div>
                 </div>
               </div>
-
-              <footer class="border-t border-[#F1F2F4] px-4 py-4">
-                <button
-                  type="button"
-                  (click)="completeStorePromotion()"
-                  class="w-full rounded-full bg-[#6653E4] px-6 py-4 text-[14px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
-                >
-                  Promote store
-                </button>
-              </footer>
             </div>
           } @else if (step() === 'listing-success') {
             <div class="flex flex-1 flex-col justify-center px-5 pb-6 text-center">
@@ -708,52 +753,62 @@ interface StoreItem {
               </div>
             </div>
           } @else if (step() === 'store-success') {
-            <div class="flex flex-1 flex-col items-center justify-center px-8 text-center">
-              <div class="relative mb-8 h-36 w-28">
+            <div class="flex flex-1 flex-col items-center justify-center px-5 pb-8 pt-6 text-center">
+              <div class="relative h-[150px] w-[150px]">
                 <div
-                  class="absolute left-1/2 top-[16px] h-8 w-9 -translate-x-1/2 rounded-t-[12px] bg-[#FF5A36]"
+                  class="absolute left-1/2 top-[18px] h-[30px] w-[40px] -translate-x-1/2 rounded-t-[10px] bg-[#FF6B42]"
                 ></div>
-                <div class="absolute left-1/2 top-[16px] flex -translate-x-1/2">
-                  <span class="h-10 w-3.5 rounded-b-[10px] bg-[#FF5A36]"></span>
-                  <span class="h-10 w-3.5 rounded-b-[10px] bg-[#FFB33C]"></span>
-                  <span class="h-10 w-3.5 rounded-b-[10px] bg-[#FF5A36]"></span>
-                  <span class="h-10 w-3.5 rounded-b-[10px] bg-[#FFB33C]"></span>
-                  <span class="h-10 w-3.5 rounded-b-[10px] bg-[#FF5A36]"></span>
+                <div class="absolute left-1/2 top-[18px] flex -translate-x-1/2">
+                  <span class="h-[36px] w-[12px] rounded-b-[12px] bg-[#FF5A36]"></span>
+                  <span class="h-[36px] w-[12px] rounded-b-[12px] bg-[#FFB33C]"></span>
+                  <span class="h-[36px] w-[12px] rounded-b-[12px] bg-[#FF3E28]"></span>
+                  <span class="h-[36px] w-[12px] rounded-b-[12px] bg-[#FFB33C]"></span>
+                  <span class="h-[36px] w-[12px] rounded-b-[12px] bg-[#FF6B42]"></span>
                 </div>
                 <div
-                  class="absolute left-1/2 top-[47px] h-[94px] w-[58px] -translate-x-1/2 rounded-[14px] bg-linear-to-b from-[#7D6A85] to-[#5F4F68]"
+                  class="absolute left-1/2 top-[44px] h-[92px] w-[84px] -translate-x-1/2 rounded-[10px] bg-linear-to-b from-[#8A798B] to-[#6C5A74]"
                 ></div>
                 <div
-                  class="absolute left-1/2 top-[55px] h-[68px] w-[44px] -translate-x-1/2 rounded-[8px] bg-[#F7F0FF]"
+                  class="absolute left-1/2 top-[66px] h-[56px] w-[58px] -translate-x-1/2 rounded-[6px] bg-[#F7F1FF]"
                 ></div>
                 <div
-                  class="absolute left-1/2 top-[82px] h-7 w-14 -translate-x-1/2 rounded-[6px] bg-linear-to-r from-[#FF7E66] to-[#D11F1F]"
+                  class="absolute left-1/2 top-[76px] flex h-[30px] w-[59px] -translate-x-1/2 items-center justify-center gap-[3px] rounded-[5px] bg-[linear-gradient(291deg,#B20E0E_2.19%,#FF8989_97.71%)] px-[3px]"
+                >
+                  <span class="h-[5px] w-[5px] rounded-full bg-white/90"></span>
+                  <span class="text-[11.75px] font-bold tracking-[0.01em] text-white">ACTIVE</span>
+                </div>
+                <div
+                  class="absolute left-1/2 top-[120px] h-[10px] w-[20px] -translate-x-1/2 rounded-full border border-white/10 bg-[#75617D]"
                 ></div>
               </div>
 
-              <h2 class="text-[18px] font-semibold leading-tight tracking-[-0.03em] text-[#1A1C21]">
-                Store promotion is now active 🚀
-              </h2>
+              <div class="mt-6 flex w-full max-w-[350px] flex-col items-center gap-2 text-center">
+                <h2 class="text-[28px] font-semibold leading-[1.1] text-[#0D0D0D]">
+                  Store promotion is now active 🚀
+                </h2>
 
-              <p class="mt-3 text-[13px] leading-6 text-[#8F95A3]">
-                Your store
-                <span class="font-semibold text-[#4B4F57]">{{ selectedStoreName() }}</span> is now
-                promoted across Duduzili. Promotion ends on
-                <span class="font-semibold text-[#4B4F57]">27 April 2026</span>.
-              </p>
+                <p class="text-[16px] leading-6 text-[#747474]">
+                  Your store
+                  <span class="font-medium text-[#121212]"> {{ selectedStoreName() }}</span> is now
+                  promoted across Duduzili.
+                  <br />
+                  Promotion ends on
+                  <span class="font-medium text-[#151515]"> 27 April 2026.</span>
+                </p>
+              </div>
 
-              <div class="mt-8 w-full space-y-3">
+              <div class="mt-11 w-full space-y-3">
                 <button
                   type="button"
                   (click)="resetStoreFlow()"
-                  class="w-full rounded-full bg-[#F2F3F5] px-6 py-4 text-[14px] font-semibold text-[#2F333B]"
+                  class="h-[52px] w-full rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.5px] text-[#05061A]"
                 >
                   Create another Ad
                 </button>
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="w-full rounded-full bg-[#6653E4] px-6 py-4 text-[14px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+                  class="h-[52px] w-full rounded-full border border-white bg-[#6453D9] px-6 text-[16px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
                 >
                   View running Ads
                 </button>
@@ -1240,209 +1295,210 @@ interface StoreItem {
                     </div>
                   </section>
                 } @else if (step() === 'configure-store') {
-                  <div class="grid gap-10 xl:grid-cols-[minmax(0,1fr)_360px]">
-                    <section class="max-w-[720px]">
-                      <h2 class="text-[2rem] font-black tracking-tight text-[#24262D]">
-                        Configure Store Ad
-                      </h2>
-                      <p class="mt-2 text-[15px] font-medium text-[#A1A6AF]">
-                        Promote your store to attract more customers
-                      </p>
+                  <div class="flex min-h-[720px] flex-col">
+                    <div class="grid gap-14 xl:grid-cols-[580px_340px]">
+                      <section class="w-full max-w-[580px]">
+                        <h2 class="text-[32px] font-semibold leading-10 text-[#1A1B1D]">
+                          Configure Store Ad
+                        </h2>
+                        <p class="mt-3 text-[16px] leading-6 text-[rgba(26,27,29,0.5)]">
+                          Promote your store to attract more customers
+                        </p>
 
-                      <section class="mt-8">
-                        <h3 class="text-[18px] font-bold tracking-tight text-[#24262D]">
-                          Select store to promote
-                        </h3>
+                        <section class="mt-8">
+                          <h3 class="text-[20px] font-semibold leading-6 text-[#0D0D0D]">
+                            Select store to promote
+                          </h3>
 
-                        <div
-                          class="mt-4 flex items-start gap-3 rounded-[16px] bg-[#FFFBE5] px-5 py-4 text-[#59592E]"
-                        >
                           <div
-                            class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EEE82C] text-[#6C6B00]"
+                            class="mt-5 flex items-center gap-2 rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px] text-[#1F1F1F]"
                           >
-                            <ng-icon name="heroExclamationTriangle" class="text-sm"></ng-icon>
-                          </div>
-                          <p class="text-[14px] font-semibold">
-                            Your store will be promoted across Duduzili until it expires on 24
-                            March, 2026.
-                          </p>
-                        </div>
-
-                        <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                          @for (store of stores; track store.id) {
-                            <button
-                              type="button"
-                              (click)="selectedStoreId.set(store.id)"
-                              class="overflow-hidden rounded-[22px] border bg-white text-left transition-all"
-                              [class.border-[#6B5CF0]]="selectedStoreId() === store.id"
-                              [class.shadow-[inset_0_0_0_1px_rgba(107,92,240,0.12)]]="
-                                selectedStoreId() === store.id
-                              "
-                              [class.border-[#E8EAF0]]="selectedStoreId() !== store.id"
+                            <div
+                              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#EEE82C] text-[#6C6B00]"
                             >
-                              <div class="relative h-[132px] overflow-hidden">
-                                <img
-                                  [src]="store.image"
-                                  [alt]="store.name"
-                                  class="h-full w-full object-cover"
-                                />
-                                <div
-                                  class="absolute inset-0 bg-linear-to-t from-white via-white/30 to-transparent"
-                                ></div>
-                                <span
-                                  class="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full border-2 bg-white/90"
-                                  [class.border-[#6B5CF0]]="selectedStoreId() === store.id"
-                                  [class.border-white/60]="selectedStoreId() !== store.id"
-                                >
-                                  @if (selectedStoreId() === store.id) {
-                                    <span class="h-2.5 w-2.5 rounded-full bg-[#6B5CF0]"></span>
-                                  }
-                                </span>
-                              </div>
+                              <ng-icon
+                                name="heroExclamationTriangle"
+                                class="text-[12px]"
+                              ></ng-icon>
+                            </div>
+                            <p class="text-[14px] font-medium leading-5">
+                              Your store will be promoted across Duduzili until it expires on 24
+                              March, 2026.
+                            </p>
+                          </div>
 
-                              <div class="flex items-center gap-3 px-4 pb-4">
-                                <span
-                                  class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[20px] font-bold text-white shadow-[0_16px_24px_-18px_rgba(0,0,0,0.45)]"
-                                  [style.background]="store.logoTone"
-                                >
-                                  {{ store.logoLabel }}
-                                </span>
-                                <div class="min-w-0">
-                                  <div class="flex items-center gap-1.5">
-                                    <p class="truncate text-[15px] font-semibold text-[#24262D]">
-                                      {{ store.name }}
-                                    </p>
-                                    <span class="h-2 w-2 rounded-full bg-[#6B5CF0]"></span>
-                                  </div>
-                                  <p class="mt-1 text-[13px] font-medium text-[#8A909A]">
-                                    {{ store.activeListings }}
-                                  </p>
+                          <div class="mt-4 grid gap-5 sm:grid-cols-2">
+                            @for (store of desktopStorePromotionOptions; track store.id) {
+                              <button
+                                type="button"
+                                (click)="selectedStoreId.set(store.id)"
+                                class="overflow-hidden rounded-[24px] border bg-white text-left transition"
+                                [class.border-[#6453D9]]="selectedStoreId() === store.id"
+                                [style.border-width.px]="selectedStoreId() === store.id ? 2 : 1"
+                                [class.border-[#EAEAEA]]="selectedStoreId() !== store.id"
+                              >
+                                <div class="relative h-[158px] overflow-hidden rounded-t-[20px]">
+                                  <img
+                                    [ngSrc]="store.coverImage"
+                                    [alt]="store.name"
+                                    width="280"
+                                    height="158"
+                                    class="h-full w-full object-cover"
+                                  />
+                                  <div
+                                    class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0.54%,rgba(255,255,255,0.12)_39%,rgba(255,255,255,0.96)_93.47%)]"
+                                  ></div>
+                                  <span
+                                    class="absolute right-[10px] top-[10px] inline-flex h-6 w-6 items-center justify-center rounded-full border-2 bg-white/20 backdrop-blur-[2px]"
+                                    [class.border-[#8E79F8]]="selectedStoreId() === store.id"
+                                    [class.border-white/70]="selectedStoreId() !== store.id"
+                                    aria-hidden="true"
+                                  >
+                                    @if (selectedStoreId() === store.id) {
+                                      <span class="h-3 w-3 rounded-full bg-[#6453D9] shadow-[0_0_0_2px_rgba(255,255,255,0.55)]"></span>
+                                    }
+                                  </span>
                                 </div>
-                              </div>
-                            </button>
-                          }
-                        </div>
-                      </section>
-                    </section>
 
-                    <aside
-                      class="flex flex-col rounded-[28px] bg-[#FAFAFB] p-5 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]"
-                    >
-                      <div>
-                        <h3 class="text-[1.55rem] font-bold tracking-tight text-[#24262D]">
-                          Preview
-                        </h3>
-                        <p class="mt-1 text-[13px] font-medium text-[#A3A6AE]">
+                                <div class="relative px-[18px] pb-[18px] pt-0">
+                                  <div class="-mt-[37px]">
+                                    <img
+                                      [ngSrc]="store.logoImage"
+                                      [alt]="store.name + ' logo'"
+                                      width="74"
+                                      height="74"
+                                      class="h-[74px] w-[74px] rounded-full border-4 border-white object-cover shadow-[0_8px_18px_rgba(0,0,0,0.12)]"
+                                    />
+                                  </div>
+
+                                  <div class="mt-[7px] space-y-0.5">
+                                    <div class="flex items-center gap-1">
+                                      <p class="truncate text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                                        {{ store.name }}
+                                      </p>
+                                      <img
+                                        ngSrc="/assets/icons/store-filled-verify-desktop.svg"
+                                        width="14"
+                                        height="14"
+                                        alt=""
+                                        class="h-[14px] w-[14px] shrink-0"
+                                      />
+                                    </div>
+
+                                    <div class="flex items-center gap-1 text-[14px] text-[#777777]">
+                                      <span class="h-[14px] w-[14px] rounded-[4px] border border-[#B3B3B3]"></span>
+                                      <span>{{ store.activeListings }}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </button>
+                            }
+                          </div>
+                        </section>
+                      </section>
+
+                      <aside class="rounded-[28px] bg-[#FAFAFA] px-[11px] pb-5 pt-4">
+                        <h3 class="text-[32px] font-semibold leading-10 text-[#1A1B1D]">Preview</h3>
+                        <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">
                           This is how your store ad will appear to buyers
                         </p>
-                      </div>
 
-                      <div class="mt-7 flex justify-center gap-3">
-                        <button
-                          type="button"
-                          class="flex h-11 w-11 items-center justify-center rounded-full border border-[#7868F3] bg-white text-[#7868F3]"
-                        >
-                          <span class="h-3.5 w-5 rounded-[3px] border-2 border-current"></span>
-                        </button>
-                        <button
-                          type="button"
-                          class="flex h-11 w-11 items-center justify-center rounded-full border border-[#DCDDDF] bg-white text-[#7D8089]"
-                        >
-                          <span class="h-5 w-3 rounded-[3px] border-2 border-current"></span>
-                        </button>
-                      </div>
-
-                      <div class="mt-6 flex flex-1 items-center justify-center">
-                        <div
-                          class="w-full max-w-[344px] rounded-[26px] bg-white p-4 shadow-[0_22px_60px_-40px_rgba(19,27,45,0.35)]"
-                        >
-                          <div
-                            class="overflow-hidden rounded-[20px] border border-[#ECEDEF] bg-[#FCFCFD]"
+                        <div class="mt-[18px] flex items-center justify-center gap-3">
+                          <button
+                            type="button"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E7E7E7] bg-white text-[#5B5B5B]"
+                            aria-label="Desktop preview"
                           >
-                            <div class="flex items-center justify-between bg-[#1D1E22] px-3 py-1.5">
+                            <span class="h-[14px] w-[18px] rounded-[4px] border border-current"></span>
+                          </button>
+                          <button
+                            type="button"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E7E7E7] bg-white text-[#5B5B5B]"
+                            aria-label="Mobile preview"
+                          >
+                            <span class="h-[16px] w-[9px] rounded-[3px] border border-current"></span>
+                          </button>
+                        </div>
+
+                        <div class="mt-[14px] rounded-[22px] bg-white px-[14px] pb-[16px] pt-[12px]">
+                          <div class="overflow-hidden rounded-[16px] border border-[#F1F1F1] bg-white">
+                            <div class="flex items-center justify-between bg-[#1D1E22] px-3 py-[5px]">
                               <div class="flex items-center gap-2">
-                                <div class="h-2.5 w-2.5 rounded-full bg-white"></div>
-                                <span class="text-[0.5rem] font-bold text-white">Duduzili</span>
+                                <div class="h-[6px] w-[6px] rounded-full bg-white"></div>
+                                <span class="text-[6px] font-bold text-white">Duduzili</span>
                               </div>
                               <div class="flex items-center gap-1">
-                                <div class="h-1.5 w-10 rounded-full bg-white/25"></div>
-                                <div class="h-3 w-6 rounded-full bg-white"></div>
+                                <div class="h-[4px] w-[58px] rounded-full bg-white/25"></div>
+                                <div class="h-[8px] w-[20px] rounded-full bg-white"></div>
                               </div>
                             </div>
 
-                            <div class="space-y-4 bg-white p-3">
-                              <div class="grid grid-cols-5 gap-2 opacity-35 blur-[1.4px]">
-                                @for (item of [1, 2, 3, 4, 5]; track item) {
+                            <div class="bg-white px-3 pb-3 pt-[10px]">
+                              <div class="grid grid-cols-4 gap-[10px] opacity-25 blur-[4px]">
+                                @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track item) {
                                   <div class="space-y-1.5">
-                                    <div class="aspect-square rounded-[10px] bg-[#ECEEF2]"></div>
-                                    <div class="h-1.5 rounded-full bg-[#ECEEF2]"></div>
-                                    <div class="h-1.5 w-2/3 rounded-full bg-[#ECEEF2]"></div>
+                                    <div class="aspect-[0.88] rounded-[8px] bg-[#ECECEC]"></div>
+                                    <div class="h-[4px] rounded-full bg-[#ECECEC]"></div>
+                                    <div class="h-[4px] w-2/3 rounded-full bg-[#ECECEC]"></div>
                                   </div>
                                 }
                               </div>
 
-                              <div>
-                                <p class="mb-2 text-[0.48rem] font-bold text-[#7D8089]">
-                                  Featured stores
-                                </p>
-                                <div class="grid grid-cols-4 gap-2">
-                                  @for (store of stores; track store.id) {
-                                    <div class="space-y-1.5">
-                                      <div class="h-10 overflow-hidden rounded-[8px] bg-[#F5F7FB]">
-                                        <img
-                                          [src]="store.image"
-                                          [alt]="store.name"
-                                          class="h-full w-full object-cover opacity-80"
-                                        />
-                                      </div>
-                                      <div class="h-1.5 w-8 rounded-full bg-[#E5E7EC]"></div>
+                              <div class="mt-5">
+                                <p class="text-[6px] font-semibold text-[#6E7076]">Featured stores</p>
+                                <div class="mt-2 grid grid-cols-4 gap-[6px]">
+                                  @for (store of desktopStorePromotionOptions; track store.id) {
+                                    <div class="h-[32px] overflow-hidden rounded-[6px] bg-[#F5F7FB]">
+                                      <img
+                                        [ngSrc]="store.coverImage"
+                                        [alt]="store.name"
+                                        width="64"
+                                        height="32"
+                                        class="h-full w-full object-cover opacity-75"
+                                      />
                                     </div>
                                   }
                                 </div>
                               </div>
 
-                              <div class="grid grid-cols-[1.25fr_0.95fr] gap-4 pt-1">
+                              <div class="mt-5 grid grid-cols-[1.2fr_0.95fr] gap-4">
                                 <div>
-                                  <div
-                                    class="flex items-center gap-1.5 text-[0.48rem] font-bold text-[#24262D]"
-                                  >
-                                    <div class="h-2.5 w-2.5 rounded-full bg-[#24262D]"></div>
-                                    Duduzili
-                                  </div>
-                                  <div class="mt-2 space-y-1 opacity-60">
-                                    <div class="h-1.5 w-24 rounded-full bg-[#E5E7EC]"></div>
-                                    <div class="h-1.5 w-20 rounded-full bg-[#E5E7EC]"></div>
+                                  <div class="h-[6px] w-12 rounded-full bg-[#1A1B1D]"></div>
+                                  <div class="mt-2 space-y-1 opacity-45">
+                                    <div class="h-[4px] w-20 rounded-full bg-[#DADCE2]"></div>
+                                    <div class="h-[4px] w-12 rounded-full bg-[#DADCE2]"></div>
                                   </div>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-3">
-                                  <div>
-                                    <p class="text-[0.48rem] font-bold text-[#24262D]">Social</p>
-                                    <div class="mt-2 space-y-1.5 opacity-60">
-                                      <div class="h-1.5 w-8 rounded-full bg-[#E5E7EC]"></div>
-                                      <div class="h-1.5 w-8 rounded-full bg-[#E5E7EC]"></div>
-                                      <div class="h-1.5 w-8 rounded-full bg-[#E5E7EC]"></div>
-                                    </div>
+                                  <div class="space-y-1.5 opacity-45">
+                                    <div class="h-[5px] w-8 rounded-full bg-[#1A1B1D]"></div>
+                                    <div class="h-[4px] w-6 rounded-full bg-[#DADCE2]"></div>
+                                    <div class="h-[4px] w-6 rounded-full bg-[#DADCE2]"></div>
                                   </div>
-                                  <div>
-                                    <p class="text-[0.48rem] font-bold text-[#24262D]">Resources</p>
-                                    <div class="mt-2 space-y-1.5 opacity-60">
-                                      <div class="h-1.5 w-10 rounded-full bg-[#E5E7EC]"></div>
-                                      <div class="h-1.5 w-9 rounded-full bg-[#E5E7EC]"></div>
-                                      <div class="h-1.5 w-7 rounded-full bg-[#E5E7EC]"></div>
-                                    </div>
+                                  <div class="space-y-1.5 opacity-45">
+                                    <div class="h-[5px] w-10 rounded-full bg-[#1A1B1D]"></div>
+                                    <div class="h-[4px] w-7 rounded-full bg-[#DADCE2]"></div>
+                                    <div class="h-[4px] w-6 rounded-full bg-[#DADCE2]"></div>
                                   </div>
                                 </div>
                               </div>
 
                               <div
-                                class="h-10 rounded-b-[14px] bg-linear-to-r from-[#EFEAFF] via-[#F6F4FF] to-[#EDE8FF]"
-                              ></div>
+                                class="mt-4 h-[78px] rounded-b-[16px] bg-[linear-gradient(180deg,rgba(123,106,217,0)_32.62%,rgba(123,106,217,0.2)_100%),linear-gradient(90deg,#fff_0%,#fff_100%)]"
+                              >
+                                <div
+                                  class="pt-4 text-center text-[40px] font-extrabold tracking-[2px] text-[#EFEAFD] shadow-[0_2px_4px_rgba(169,169,169,0.25)]"
+                                >
+                                  Duduzili
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </aside>
+                      </aside>
+                    </div>
+
                   </div>
                 } @else if (step() === 'listing-success') {
                   <div
@@ -1494,58 +1550,61 @@ interface StoreItem {
                   <div
                     class="flex min-h-[640px] flex-col items-center justify-center px-6 text-center"
                   >
-                    <div class="relative mb-8 h-40 w-32">
+                    <div class="relative h-[180px] w-[180px]">
                       <div
-                        class="absolute left-1/2 top-[18px] h-9 w-10 -translate-x-1/2 rounded-t-[12px] bg-[#FF5A36]"
+                        class="absolute left-1/2 top-[24px] h-[36px] w-[48px] -translate-x-1/2 rounded-t-[12px] bg-[#FF6B42]"
                       ></div>
-                      <div class="absolute left-1/2 top-[18px] flex -translate-x-1/2">
-                        <span class="h-11 w-4 rounded-b-[10px] bg-[#FF5A36]"></span>
-                        <span class="h-11 w-4 rounded-b-[10px] bg-[#FFB33C]"></span>
-                        <span class="h-11 w-4 rounded-b-[10px] bg-[#FF5A36]"></span>
-                        <span class="h-11 w-4 rounded-b-[10px] bg-[#FFB33C]"></span>
-                        <span class="h-11 w-4 rounded-b-[10px] bg-[#FF5A36]"></span>
+                      <div class="absolute left-1/2 top-[24px] flex -translate-x-1/2">
+                        <span class="h-[44px] w-[14px] rounded-b-[14px] bg-[#FF5A36]"></span>
+                        <span class="h-[44px] w-[14px] rounded-b-[14px] bg-[#FFB33C]"></span>
+                        <span class="h-[44px] w-[14px] rounded-b-[14px] bg-[#FF3E28]"></span>
+                        <span class="h-[44px] w-[14px] rounded-b-[14px] bg-[#FFB33C]"></span>
+                        <span class="h-[44px] w-[14px] rounded-b-[14px] bg-[#FF6B42]"></span>
                       </div>
                       <div
-                        class="absolute left-1/2 top-[52px] h-[102px] w-[62px] -translate-x-1/2 rounded-[14px] bg-linear-to-b from-[#7D6A85] to-[#5F4F68] shadow-[0_22px_30px_-18px_rgba(0,0,0,0.45)]"
+                        class="absolute left-1/2 top-[54px] h-[110px] w-[84px] -translate-x-1/2 rounded-[14px] bg-linear-to-b from-[#8A798B] to-[#6C5A74]"
                       ></div>
                       <div
-                        class="absolute left-1/2 top-[60px] h-[74px] w-[48px] -translate-x-1/2 rounded-[8px] bg-[#F7F0FF]"
+                        class="absolute left-1/2 top-[76px] h-[60px] w-[62px] -translate-x-1/2 rounded-[8px] bg-[#F7F1FF]"
                       ></div>
                       <div
-                        class="absolute left-1/2 top-[88px] h-8 w-14 -translate-x-1/2 rounded-[6px] bg-linear-to-r from-[#FF7E66] to-[#D11F1F] shadow-[0_16px_20px_-18px_rgba(209,31,31,0.7)]"
-                      ></div>
-                      <span
-                        class="absolute left-1/2 top-[97px] -translate-x-1/2 text-[10px] font-bold text-white"
-                        >ACTIVE</span
+                        class="absolute left-1/2 top-[90px] flex h-[36px] w-[71px] -translate-x-1/2 items-center justify-center gap-1 rounded-[6px] bg-[linear-gradient(291deg,#B20E0E_2.19%,#FF8989_97.71%)] px-1"
                       >
+                        <span class="h-[6px] w-[6px] rounded-full bg-white/90"></span>
+                        <span class="text-[14px] font-bold text-white">ACTIVE</span>
+                      </div>
                       <div
-                        class="absolute left-1/2 top-[139px] h-3 w-7 -translate-x-1/2 rounded-full bg-[#75617D]"
+                        class="absolute left-1/2 top-[156px] h-[10px] w-[28px] -translate-x-1/2 rounded-full border border-white/10 bg-[#75617D]"
                       ></div>
                     </div>
 
-                    <h2 class="text-[2rem] font-black tracking-tight text-[#1A1C21]">
-                      Store promotion is now active 🚀
-                    </h2>
+                    <div class="mt-8 flex w-full max-w-[546px] flex-col items-center gap-3">
+                      <h2 class="w-full text-[32px] font-semibold leading-[1.1] text-[#0D0D0D]">
+                        Store promotion is now active 🚀
+                      </h2>
 
-                    <p class="mt-3 max-w-[620px] text-[15px] font-medium leading-7 text-[#9297A1]">
-                      Your store
-                      <span class="font-semibold text-[#4B4F57]">{{ selectedStoreName() }}</span> is
-                      now promoted across Duduzili. Promotion ends on
-                      <span class="font-semibold text-[#4B4F57]">27 April 2026</span>.
-                    </p>
+                      <p class="max-w-[536px] text-[16px] leading-6 text-[#747474]">
+                        Your store
+                        <span class="font-medium text-[#252525]"> {{ selectedStoreName() }}</span>
+                        is now promoted across Duduzili.
+                        <br />
+                        Promotion ends on
+                        <span class="font-medium text-[#040404]"> 27 April 2026.</span>
+                      </p>
+                    </div>
 
-                    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+                    <div class="mt-8 flex items-center gap-2">
                       <button
                         type="button"
                         (click)="resetStoreFlow()"
-                        class="rounded-full bg-[#F2F3F5] px-7 py-3 text-[15px] font-semibold text-[#2F333B] transition hover:bg-[#E8EAF0] focus:outline-none focus:ring-4 focus:ring-gray-200"
+                        class="flex h-[44px] items-center justify-center rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.5px] text-[#05061A] transition hover:bg-[#ECECEC] focus:outline-none focus:ring-4 focus:ring-gray-200"
                       >
                         Create another Ad
                       </button>
                       <button
                         type="button"
                         (click)="close.emit()"
-                        class="rounded-full bg-[#6653E4] px-7 py-3 text-[15px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
+                        class="flex h-10 items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5E4ED1] focus:outline-none focus:ring-4 focus:ring-[#6453D9]/20"
                       >
                         View running Ads
                       </button>
@@ -1630,7 +1689,7 @@ export class CreateAdTypeModalComponent {
     'listing-3',
     'listing-4',
   ]);
-  readonly selectedStoreId = signal('store-1');
+  readonly selectedStoreId = signal('store-promo-vine');
   readonly listingSearch = signal('');
   readonly isStoreFilterOpen = signal(false);
   readonly mobileSelectedStoreIds = signal<string[]>([]);
@@ -1768,6 +1827,76 @@ export class CreateAdTypeModalComponent {
       activeListings: '43 active listings',
     },
   ];
+
+  readonly desktopStorePromotionOptions: readonly StorePromotionOption[] = [
+    {
+      id: 'store-promo-vine',
+      name: 'The Vine Collections',
+      coverImage: '/assets/images/store-vine-cover-desktop.png',
+      logoImage: '/assets/images/store-vine-logo-desktop.png',
+      activeListings: '43 active listings',
+    },
+    {
+      id: 'store-promo-newage',
+      name: 'New Age Properties',
+      coverImage: '/assets/images/store-newage-cover-desktop.png',
+      logoImage: '/assets/images/store-newage-logo-desktop.png',
+      activeListings: '43 active listings',
+    },
+    {
+      id: 'store-promo-snap',
+      name: 'Snap Thrifts',
+      coverImage: '/assets/images/store-snap-cover-desktop.png',
+      logoImage: '/assets/images/store-snap-logo-desktop.png',
+      activeListings: '43 active listings',
+    },
+    {
+      id: 'store-promo-gomelon',
+      name: 'goMelon',
+      coverImage: '/assets/images/store-gomelon-cover-desktop.png',
+      logoImage: '/assets/images/store-gomelon-logo-desktop.png',
+      activeListings: '43 active listings',
+    },
+  ];
+
+  readonly mobileStorePromotionOptions: readonly StorePromotionOption[] = [
+    {
+      id: 'store-promo-vine',
+      name: 'The Vine Collections',
+      coverImage: '/assets/images/store-vine-cover-mobile.png',
+      logoImage: '/assets/images/store-vine-logo-mobile.png',
+      activeListings: '43 active listings',
+    },
+    {
+      id: 'store-promo-eden',
+      name: 'Eden Organics',
+      coverImage: '/assets/images/store-eden-cover-mobile.png',
+      logoImage: '/assets/images/store-eden-logo-mobile.png',
+      activeListings: '43 active listings',
+    },
+    {
+      id: 'store-promo-snap',
+      name: 'Snap Thrifts',
+      coverImage: '/assets/images/store-snap-cover-mobile.png',
+      logoImage: '/assets/images/store-snap-logo-mobile.png',
+      activeListings: '43 active listings',
+    },
+    {
+      id: 'store-promo-gomelon',
+      name: 'goMelon',
+      coverImage: '/assets/images/store-gomelon-cover-mobile.png',
+      logoImage: '/assets/images/store-gomelon-logo-mobile.png',
+      activeListings: '43 active listings',
+    },
+  ];
+
+  readonly selectedPromotedStore = computed(
+    () =>
+      [
+        ...this.desktopStorePromotionOptions,
+        ...this.mobileStorePromotionOptions,
+      ].find((store) => store.id === this.selectedStoreId()) ?? this.desktopStorePromotionOptions[0],
+  );
 
   readonly filteredListings = computed(() =>
     this.listings.filter((listing) => listing.kind === this.selectedListingCategory()),
@@ -1940,13 +2069,11 @@ export class CreateAdTypeModalComponent {
   resetStoreFlow(): void {
     this.step.set('type');
     this.selectedType.set('store');
+    this.selectedStoreId.set('store-promo-vine');
   }
 
   selectedStoreName(): string {
-    return (
-      this.stores.find((store) => store.id === this.selectedStoreId())?.name ??
-      'The Vine Collections'
-    );
+    return this.selectedPromotedStore().name;
   }
 
   adTypeArtwork(type: CreateAdType): string {

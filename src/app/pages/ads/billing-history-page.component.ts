@@ -1,125 +1,230 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroChevronDown,
   heroChevronLeft,
   heroChevronRight,
-  heroMagnifyingGlass,
 } from '@ng-icons/heroicons/outline';
 
-type BillingStatus = 'successful' | 'failed';
+type BillingStatus = 'successful' | 'failed' | 'pending';
 type TransactionType = 'all' | 'subscription' | 'renewal';
-type BillingDateFilter = 'all' | 'feb-2025' | 'mar-2025';
+type BillingDateFilter = 'all' | 'feb-2025' | 'mar-2025' | 'apr-2025';
 
 interface BillingRecord {
   id: string;
-  transactionType: TransactionType;
+  transactionType: Exclude<TransactionType, 'all'>;
   plan: string;
   amount: string;
   date: string;
-  dateKey: BillingDateFilter;
+  dateKey: Exclude<BillingDateFilter, 'all'>;
   status: BillingStatus;
 }
 
 @Component({
   selector: 'app-billing-history-page',
-  imports: [CommonModule, NgIcon],
+  imports: [RouterLink, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({
       heroChevronDown,
       heroChevronLeft,
       heroChevronRight,
-      heroMagnifyingGlass,
     }),
   ],
   template: `
-    <div class="flex h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]">
-      <div class="border-b border-[#F0F0F2] px-8 py-6">
-        <h1 class="text-[20px] font-black tracking-tight text-[#1A1C21]">Ads &gt; Billing history</h1>
-      </div>
+    <div class="bg-white md:hidden">
+      <div class="px-5 pb-28">
+        <div class="flex h-[54px] items-center">
+          <a
+            routerLink="/ads"
+            aria-label="Back to ads"
+            class="inline-flex items-center gap-3 text-black"
+          >
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F3F3F3]">
+              <ng-icon name="heroChevronLeft" class="text-[18px]"></ng-icon>
+            </span>
+            <span class="text-[20px] font-semibold leading-6 tracking-[-0.03em]">
+              Billing history
+            </span>
+          </a>
+        </div>
 
-      <div class="flex flex-1 flex-col px-4 py-5 sm:px-8 sm:py-6">
-        <div class="overflow-hidden rounded-[26px] border border-[#ECEEF3] bg-white">
-          <div class="flex flex-col gap-4 border-b border-[#F1F2F4] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-            <div class="flex flex-wrap gap-3">
+        <div class="mt-5 flex items-center gap-5">
+          <label
+            class="flex h-10 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-4 text-[#9B9B9B]"
+          >
+            <img
+              [ngSrc]="assets.searchIcon"
+              width="16"
+              height="16"
+              alt=""
+              class="h-4 w-4 shrink-0"
+            >
+            <input
+              type="search"
+              [value]="searchQuery()"
+              (input)="updateSearchQuery($event)"
+              aria-label="Search billing history"
+              placeholder="Search"
+              class="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#1A1B1D] outline-none placeholder:text-[#A1A1A1]"
+            >
+          </label>
+
+          <button
+            type="button"
+            (click)="cycleTransactionType()"
+            class="inline-flex h-6 w-6 items-center justify-center"
+            aria-label="Change transaction type filter"
+          >
+            <img [ngSrc]="assets.filterIcon" width="24" height="24" alt="">
+          </button>
+        </div>
+
+        <section class="mt-6">
+          @for (record of visibleRecords(); track record.id) {
+            <article class="border-b border-[#EBEBEB] py-3 first:pt-0">
+              <div class="flex items-start justify-between gap-4">
+                <h2 class="text-[18px] font-semibold leading-6 tracking-[-0.03em] text-[#1A1B1D]">
+                  {{ record.plan }}
+                </h2>
+
+                <span [class]="statusBadgeClass(record.status)">
+                  @if (statusIcon(record.status); as icon) {
+                    <img
+                      [ngSrc]="icon"
+                      width="14"
+                      height="14"
+                      alt=""
+                      class="h-[14px] w-[14px]"
+                    >
+                  } @else {
+                    <span class="h-[14px] w-[14px] rounded-full bg-[#D98A00]"></span>
+                  }
+                  {{ statusLabel(record.status) }}
+                </span>
+              </div>
+
+              <dl class="mt-4 space-y-3">
+                <div class="flex items-center justify-between gap-4">
+                  <dt class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Transaction ID</dt>
+                  <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                    {{ record.id }}
+                  </dd>
+                </div>
+
+                <div class="flex items-center justify-between gap-4">
+                  <dt class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Amount</dt>
+                  <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                    {{ record.amount }}
+                  </dd>
+                </div>
+
+                <div class="flex items-center justify-between gap-4">
+                  <dt class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Date</dt>
+                  <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                    {{ record.date }}
+                  </dd>
+                </div>
+              </dl>
+            </article>
+          }
+        </section>
+      </div>
+    </div>
+
+    <div class="hidden h-full md:block">
+      <div class="flex h-full flex-col rounded-[16px] border border-[#F0F0F0] bg-white">
+        <div class="flex items-center justify-between gap-5 border-b border-[#F0F0F0] px-[14px] py-[14px]">
+          <div class="flex flex-wrap items-center gap-8">
+            <div class="flex flex-wrap items-center gap-8">
               <button
                 type="button"
                 (click)="cycleTransactionType()"
-                class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                aria-label="Change transaction type filter"
               >
                 {{ transactionTypeLabel() }}
-                <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
+                <ng-icon name="heroChevronDown" class="text-[15px]"></ng-icon>
               </button>
 
               <button
                 type="button"
                 (click)="cycleDateFilter()"
-                class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                aria-label="Change date filter"
               >
                 {{ dateFilterLabel() }}
-                <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
+                <ng-icon name="heroChevronDown" class="text-[15px]"></ng-icon>
               </button>
 
               <button
                 type="button"
                 (click)="cycleStatusFilter()"
-                class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                aria-label="Change status filter"
               >
                 {{ statusFilterLabel() }}
-                <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
+                <ng-icon name="heroChevronDown" class="text-[15px]"></ng-icon>
               </button>
             </div>
-
-            <label class="relative block w-full max-w-[250px]">
-              <ng-icon
-                name="heroMagnifyingGlass"
-                class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A2A7B0]"
-              ></ng-icon>
-              <input
-                type="text"
-                [value]="searchQuery()"
-                (input)="updateSearchQuery($event)"
-                placeholder="Search"
-                class="w-full rounded-full bg-[#FAFAFB] py-3 pl-11 pr-4 text-[14px] font-medium text-[#2A2D34] outline-none placeholder:text-[#B5BAC4] focus:ring-2 focus:ring-[#6B5CF0]/10"
-              >
-            </label>
           </div>
 
+          <label
+            class="flex h-10 w-full max-w-[224px] items-center gap-2 rounded-full bg-[#FAFAFA] px-3 text-[#777777]"
+          >
+            <img
+              [ngSrc]="assets.searchIcon"
+              width="16"
+              height="16"
+              alt=""
+              class="h-4 w-4 shrink-0"
+            >
+            <input
+              type="search"
+              [value]="searchQuery()"
+              (input)="updateSearchQuery($event)"
+              aria-label="Search billing history"
+              placeholder="Search"
+              class="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#1A1B1D] outline-none placeholder:text-[#777777]"
+            >
+          </label>
+        </div>
+
+        <div class="flex flex-1 flex-col">
           <div class="overflow-x-auto">
-            <table class="w-full min-w-[760px]">
-              <thead class="border-b border-[#F1F2F4] bg-[#FAFAFB] text-left">
-                <tr class="text-[12px] font-semibold text-[#9AA0AA]">
-                  <th class="px-8 py-4">Transaction Id</th>
-                  <th class="px-4 py-4">Plan</th>
-                  <th class="px-4 py-4">Amount</th>
-                  <th class="px-4 py-4">Date</th>
-                  <th class="px-4 py-4">Status</th>
+            <table class="w-full min-w-[860px] border-collapse">
+              <thead>
+                <tr class="h-10 bg-[#FAFAFA] text-left text-[12px] font-medium text-[rgba(26,27,29,0.6)]">
+                  <th class="px-[34px]">Transaction Id</th>
+                  <th class="px-4">Plan</th>
+                  <th class="px-4">Amount</th>
+                  <th class="px-4">Date</th>
+                  <th class="px-4">Status</th>
                 </tr>
               </thead>
+
               <tbody>
-                @for (record of visibleRecords(); track record.id + record.plan) {
-                  <tr class="border-b border-[#F4F5F7] last:border-b-0">
-                    <td class="px-8 py-5 text-[14px] font-medium text-[#555A64]">{{ record.id }}</td>
-                    <td class="px-4 py-5 text-[14px] font-medium text-[#555A64]">{{ record.plan }}</td>
-                    <td class="px-4 py-5 text-[14px] font-semibold text-[#555A64]">{{ record.amount }}</td>
-                    <td class="px-4 py-5 text-[14px] font-medium text-[#555A64]">{{ record.date }}</td>
-                    <td class="px-4 py-5">
-                      <span
-                        class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold"
-                        [class.bg-[#EDF9EF]]="record.status === 'successful'"
-                        [class.text-[#2FB04A]]="record.status === 'successful'"
-                        [class.bg-[#FFF0F0]]="record.status === 'failed'"
-                        [class.text-[#FF4B4B]]="record.status === 'failed'"
-                      >
-                        <span
-                          class="flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                          [class.bg-[#2FB04A]]="record.status === 'successful'"
-                          [class.bg-[#FF4B4B]]="record.status === 'failed'"
-                        >
-                          {{ record.status === 'successful' ? '✓' : '!' }}
-                        </span>
-                        {{ record.status === 'successful' ? 'Successful' : 'Failed' }}
+                @for (record of visibleRecords(); track record.id) {
+                  <tr class="h-[56px] border-b border-[#F0F0F0] text-[14px] text-[#1A1B1D] last:border-b-0">
+                    <td class="px-[34px]">{{ record.id }}</td>
+                    <td class="px-4">{{ record.plan }}</td>
+                    <td class="px-4 font-medium">{{ record.amount }}</td>
+                    <td class="px-4">{{ record.date }}</td>
+                    <td class="px-4">
+                      <span [class]="statusBadgeClass(record.status)">
+                        @if (statusIcon(record.status); as icon) {
+                          <img
+                            [ngSrc]="icon"
+                            width="14"
+                            height="14"
+                            alt=""
+                            class="h-[14px] w-[14px]"
+                          >
+                        } @else {
+                          <span class="h-[14px] w-[14px] rounded-full bg-[#D98A00]"></span>
+                        }
+                        {{ statusLabel(record.status) }}
                       </span>
                     </td>
                   </tr>
@@ -127,28 +232,39 @@ interface BillingRecord {
               </tbody>
             </table>
           </div>
-        </div>
 
-        <div class="mt-auto flex items-center justify-between px-2 pt-6">
-          <p class="text-[14px] font-semibold text-[#646A73]">{{ visibleRecords().length }} results</p>
+          <div class="mt-auto flex items-center justify-between px-4 pb-4 pt-6">
+            <p class="text-[16px] leading-6 text-[#1A1B1D]">
+              {{ visibleRecords().length }} <span class="text-[rgba(26,27,29,0.5)]">results</span>
+            </p>
 
-          <div class="flex items-center gap-2 text-[14px] font-medium text-[#B2B7C0]">
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white transition hover:bg-[#FAFAFC]"
-            >
-              <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
-            </button>
-            <span class="flex h-8 min-w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white px-3 text-[#7A808A]">
-              1
-            </span>
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white transition hover:bg-[#FAFAFC]"
-            >
-              <ng-icon name="heroChevronRight" class="text-sm"></ng-icon>
-            </button>
-            <span class="ml-2">of 12</span>
+            <div class="flex items-center gap-2 text-[16px] leading-6 text-[#1C1F1D] opacity-50">
+              <div class="flex items-end gap-[5px]">
+                <button
+                  type="button"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                  aria-label="Previous page"
+                >
+                  <ng-icon name="heroChevronLeft" class="text-[14px]"></ng-icon>
+                </button>
+
+                <span
+                  class="inline-flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-[14px] text-[14px] font-medium shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                >
+                  1
+                </span>
+
+                <button
+                  type="button"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                  aria-label="Next page"
+                >
+                  <ng-icon name="heroChevronRight" class="text-[14px]"></ng-icon>
+                </button>
+              </div>
+
+              <span>of 12</span>
+            </div>
           </div>
         </div>
       </div>
@@ -158,6 +274,13 @@ interface BillingRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BillingHistoryPageComponent {
+  readonly assets = {
+    searchIcon: '/assets/icons/billing-history-search.svg',
+    filterIcon: '/assets/icons/billing-history-filter.svg',
+    successIcon: '/assets/icons/billing-history-success.svg',
+    failedIcon: '/assets/icons/billing-history-failed.svg',
+  } as const;
+
   readonly records = signal<BillingRecord[]>([
     {
       id: '74785GH830X',
@@ -169,7 +292,7 @@ export class BillingHistoryPageComponent {
       status: 'successful',
     },
     {
-      id: '74785GH830Y',
+      id: '74785GH830X',
       transactionType: 'renewal',
       plan: 'Premium Plan',
       amount: '₦25,000.00',
@@ -178,7 +301,7 @@ export class BillingHistoryPageComponent {
       status: 'successful',
     },
     {
-      id: '74785GH830Z',
+      id: '74785GH830X',
       transactionType: 'subscription',
       plan: 'Business Plan',
       amount: '₦25,000.00',
@@ -187,7 +310,7 @@ export class BillingHistoryPageComponent {
       status: 'failed',
     },
     {
-      id: '74785GH831A',
+      id: '74785GH830X',
       transactionType: 'renewal',
       plan: 'Enterprise Plan',
       amount: '₦25,000.00',
@@ -196,13 +319,13 @@ export class BillingHistoryPageComponent {
       status: 'successful',
     },
     {
-      id: '74785GH831B',
+      id: '74785GH830X',
       transactionType: 'subscription',
-      plan: 'Pro Plan',
+      plan: 'Starter Plan',
       amount: '₦25,000.00',
-      date: '03 Mar, 2025',
-      dateKey: 'mar-2025',
-      status: 'successful',
+      date: '14 Feb, 2025',
+      dateKey: 'feb-2025',
+      status: 'pending',
     },
   ]);
 
@@ -213,17 +336,17 @@ export class BillingHistoryPageComponent {
 
   readonly visibleRecords = computed(() =>
     this.records().filter(record => {
+      const query = this.searchQuery().trim().toLowerCase();
       const matchesSearch =
-        this.searchQuery().trim() === '' ||
-        record.id.toLowerCase().includes(this.searchQuery().toLowerCase()) ||
-        record.plan.toLowerCase().includes(this.searchQuery().toLowerCase());
+        query === '' ||
+        record.id.toLowerCase().includes(query) ||
+        record.plan.toLowerCase().includes(query) ||
+        record.amount.toLowerCase().includes(query);
 
       const matchesType =
         this.transactionType() === 'all' || record.transactionType === this.transactionType();
 
-      const matchesDate =
-        this.dateFilter() === 'all' || record.dateKey === this.dateFilter();
-
+      const matchesDate = this.dateFilter() === 'all' || record.dateKey === this.dateFilter();
       const matchesStatus =
         this.statusFilter() === 'all' || record.status === this.statusFilter();
 
@@ -248,6 +371,8 @@ export class BillingHistoryPageComponent {
         return 'Feb 2025';
       case 'mar-2025':
         return 'Mar 2025';
+      case 'apr-2025':
+        return 'Apr 2025';
       default:
         return 'Date';
     }
@@ -259,6 +384,8 @@ export class BillingHistoryPageComponent {
         return 'Successful';
       case 'failed':
         return 'Failed';
+      case 'pending':
+        return 'Pending';
       default:
         return 'Status';
     }
@@ -276,14 +403,49 @@ export class BillingHistoryPageComponent {
   }
 
   cycleDateFilter(): void {
-    const order: BillingDateFilter[] = ['all', 'feb-2025', 'mar-2025'];
+    const order: BillingDateFilter[] = ['all', 'feb-2025', 'mar-2025', 'apr-2025'];
     const currentIndex = order.indexOf(this.dateFilter());
     this.dateFilter.set(order[(currentIndex + 1) % order.length]);
   }
 
   cycleStatusFilter(): void {
-    const order: Array<'all' | BillingStatus> = ['all', 'successful', 'failed'];
+    const order: Array<'all' | BillingStatus> = ['all', 'successful', 'failed', 'pending'];
     const currentIndex = order.indexOf(this.statusFilter());
     this.statusFilter.set(order[(currentIndex + 1) % order.length]);
+  }
+
+  statusLabel(status: BillingStatus): string {
+    switch (status) {
+      case 'successful':
+        return 'Successful';
+      case 'failed':
+        return 'Failed';
+      default:
+        return 'Pending';
+    }
+  }
+
+  statusIcon(status: BillingStatus): string | null {
+    if (status === 'successful') {
+      return this.assets.successIcon;
+    }
+
+    if (status === 'failed') {
+      return this.assets.failedIcon;
+    }
+
+    return null;
+  }
+
+  statusBadgeClass(status: BillingStatus): string {
+    if (status === 'successful') {
+      return 'inline-flex h-6 items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-[6px] text-[12px] font-semibold leading-4 text-[#25AD32]';
+    }
+
+    if (status === 'failed') {
+      return 'inline-flex h-6 items-center gap-1 rounded-[8px] bg-[#FDF6FA] px-2 py-[6px] text-[12px] font-semibold leading-4 text-[#FF2524]';
+    }
+
+    return 'inline-flex h-6 items-center gap-1 rounded-[8px] bg-[#FFF7E8] px-2 py-[6px] text-[12px] font-semibold leading-4 text-[#D98A00]';
   }
 }

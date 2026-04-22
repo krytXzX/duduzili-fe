@@ -1,7 +1,10 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { CreateBannerAdModalComponent } from '../promotions/components/create-banner-ad-modal.component';
+import {
+  CreateBannerAdModalComponent,
+  CreateBannerAdPayload,
+} from '../promotions/components/create-banner-ad-modal.component';
 import {
   CreateAdType,
   CreateAdTypeModalComponent,
@@ -33,7 +36,8 @@ interface ListingCard {
   readonly title: string;
   readonly imageSrc: string;
   readonly expiresOn: string;
-  readonly price: string;
+  readonly price?: string;
+  readonly subtitle?: string;
   readonly oldPrice?: string;
   readonly discount?: string;
   readonly tag?: string;
@@ -152,7 +156,7 @@ interface ListingSection {
         }
       </div>
 
-      @if (activePlacement() === 'promoted listings') {
+      @if (mobileSections().length) {
         <div class="mt-8 space-y-8">
           @for (section of mobileSections(); track section.id) {
             <section>
@@ -203,29 +207,42 @@ interface ListingSection {
                     </div>
 
                     <div class="px-[2.242px] pb-[8.407px] pt-[8px]">
-                      <div class="flex items-center justify-between gap-2">
-                        <p class="line-clamp-1 text-[13px] leading-[1.1] text-[#1F1F1F]">
-                          {{ card.title }}
-                        </p>
+                      <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0 flex-1">
+                          <p class="line-clamp-1 text-[13px] leading-[1.1] text-[#1F1F1F]">
+                            {{ card.title }}
+                          </p>
+                          @if (card.subtitle) {
+                            <p class="mt-1 line-clamp-1 text-[12px] leading-4 text-[#777777]">
+                              {{ card.subtitle }}
+                            </p>
+                          }
+                        </div>
                         @if (card.tag) {
                           <span
-                            class="rounded-[1000px] bg-[#F0F0F0] px-[6px] py-[2px] text-[10px] leading-none text-[#1F1F1F]"
+                            class="shrink-0 rounded-[1000px] bg-[#F0F0F0] px-[6px] py-[2px] text-[10px] leading-none text-[#1F1F1F]"
                           >
                             {{ card.tag }}
                           </span>
                         }
                       </div>
 
-                      <div class="mt-2 flex flex-wrap items-center gap-1">
-                        <p class="text-[14px] font-medium leading-[13.451px] text-[#1F1F1F]">
-                          {{ card.price }}
-                        </p>
-                        @if (card.oldPrice) {
-                          <p class="text-[12px] leading-4 text-[#888888] line-through">
-                            {{ card.oldPrice }}
+                      @if (card.price) {
+                        <div class="mt-2 flex flex-wrap items-center gap-1">
+                          <p class="text-[14px] font-medium leading-[13.451px] text-[#1F1F1F]">
+                            {{ card.price }}
                           </p>
-                        }
-                      </div>
+                          @if (card.oldPrice) {
+                            <p class="text-[12px] leading-4 text-[#888888] line-through">
+                              {{ card.oldPrice }}
+                            </p>
+                          }
+                        </div>
+                      }
+
+                      @if (!card.price && card.subtitle) {
+                        <div class="mt-2 h-[2px] w-10 rounded-full bg-[#F0F0F0]"></div>
+                      }
 
                       <div
                         class="mt-2 flex flex-wrap items-center gap-[10px] text-[12px] text-[#959595]"
@@ -345,7 +362,7 @@ interface ListingSection {
           }
         </div>
 
-        @if (activePlacement() === 'promoted listings') {
+      @if (desktopSections().length) {
           <div class="mt-10 space-y-[37px]">
             @for (section of desktopSections(); track section.id) {
               <section>
@@ -439,29 +456,42 @@ interface ListingSection {
                       </div>
 
                       <div class="px-1 pb-3 pt-3">
-                        <div class="flex items-center justify-between gap-2">
-                          <p class="line-clamp-1 text-[14px] leading-5 text-[#1F1F1F]">
-                            {{ card.title }}
-                          </p>
+                        <div class="flex items-start justify-between gap-2">
+                          <div class="min-w-0 flex-1">
+                            <p class="line-clamp-1 text-[14px] leading-5 text-[#1F1F1F]">
+                              {{ card.title }}
+                            </p>
+                            @if (card.subtitle) {
+                              <p class="mt-1 line-clamp-1 text-[12px] leading-4 text-[#777777]">
+                                {{ card.subtitle }}
+                              </p>
+                            }
+                          </div>
                           @if (card.tag) {
                             <span
-                              class="rounded-[1000px] bg-[#F0F0F0] px-[6px] py-[2px] text-[10px] leading-none text-[#1F1F1F]"
+                              class="shrink-0 rounded-[1000px] bg-[#F0F0F0] px-[6px] py-[2px] text-[10px] leading-none text-[#1F1F1F]"
                             >
                               {{ card.tag }}
                             </span>
                           }
                         </div>
 
-                        <div class="mt-1 flex flex-wrap items-center gap-1">
-                          <p class="text-[16px] font-medium leading-6 text-[#1F1F1F]">
-                            {{ card.price }}
-                          </p>
-                          @if (card.oldPrice) {
-                            <p class="text-[12px] leading-4 text-[#888888] line-through">
-                              {{ card.oldPrice }}
+                        @if (card.price) {
+                          <div class="mt-1 flex flex-wrap items-center gap-1">
+                            <p class="text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                              {{ card.price }}
                             </p>
-                          }
-                        </div>
+                            @if (card.oldPrice) {
+                              <p class="text-[12px] leading-4 text-[#888888] line-through">
+                                {{ card.oldPrice }}
+                              </p>
+                            }
+                          </div>
+                        }
+
+                        @if (!card.price && card.subtitle) {
+                          <div class="mt-2 h-[2px] w-12 rounded-full bg-[#F0F0F0]"></div>
+                        }
 
                         <div
                           class="mt-2 flex flex-wrap items-center gap-[10px] text-[12px] text-[#959595]"
@@ -535,7 +565,7 @@ interface ListingSection {
     @if (isCreateBannerModalOpen()) {
       <app-create-banner-ad-modal
         (close)="isCreateBannerModalOpen.set(false)"
-        (submit)="isCreateBannerModalOpen.set(false)"
+        (submit)="handleCreateBannerAd($event)"
       ></app-create-banner-ad-modal>
     }
   `,
@@ -592,7 +622,11 @@ export class RunningAdsPageComponent {
   readonly isCreateAdTypeModalOpen = signal(false);
   readonly isCreateBannerModalOpen = signal(false);
 
-  private readonly mobileSectionsByStatus: Record<AdStatus, readonly ListingSection[]> = {
+  private readonly mobileSectionsByPlacement: Record<
+    AdPlacement,
+    Record<AdStatus, readonly ListingSection[]>
+  > = {
+    'promoted listings': {
     active: [
       {
         id: 'phones-laptops',
@@ -723,9 +757,158 @@ export class RunningAdsPageComponent {
         ],
       },
     ],
+    },
+    'store promotions': {
+      active: [
+        {
+          id: 'store-mobile-active',
+          title: 'Fashion & Lifestyle Stores',
+          cards: [
+            {
+              id: 'store-1',
+              title: 'The Vine Collections',
+              subtitle: '43 active listings',
+              imageSrc: '/assets/images/store-vine-cover-mobile.png',
+              expiresOn: '24 May, 2025',
+              views: '9.2K',
+              clicks: '1.4K',
+              messages: '121',
+              calls: '31',
+            },
+            {
+              id: 'store-3',
+              title: 'Snap Thrifts',
+              subtitle: '31 active listings',
+              imageSrc: '/assets/images/store-snap-cover-mobile.png',
+              expiresOn: '18 Jun, 2025',
+              views: '6.8K',
+              clicks: '870',
+              messages: '94',
+              calls: '16',
+            },
+          ],
+        },
+      ],
+      paused: [
+        {
+          id: 'store-mobile-paused',
+          title: 'Paused store promotions',
+          cards: [
+            {
+              id: 'store-2',
+              title: 'New Age Properties',
+              subtitle: '43 active listings',
+              imageSrc: '/assets/images/store-newage-cover-desktop.png',
+              expiresOn: '09 Jul, 2025',
+              tag: 'Paused',
+              views: '3.1K',
+              clicks: '402',
+              messages: '28',
+              calls: '7',
+            },
+          ],
+        },
+      ],
+      expired: [
+        {
+          id: 'store-mobile-expired',
+          title: 'Expired store promotions',
+          cards: [
+            {
+              id: 'store-4',
+              title: 'goMelon',
+              subtitle: '19 active listings',
+              imageSrc: '/assets/images/store-gomelon-cover-mobile.png',
+              expiresOn: '03 Mar, 2025',
+              tag: 'Expired',
+              views: '1.4K',
+              clicks: '180',
+              messages: '12',
+              calls: '4',
+            },
+          ],
+        },
+      ],
+    },
+    'banner ads': {
+      active: [
+        {
+          id: 'banner-mobile-active',
+          title: 'Active banner ads',
+          cards: [
+            {
+              id: 'banner-1',
+              title: 'Christmas Sale Banner',
+              subtitle: 'Homepage hero placement',
+              imageSrc: '/assets/images/banner-promotions-card-orange.png',
+              expiresOn: '24 May, 2025',
+              views: '12K',
+              clicks: '1.9K',
+              messages: '88',
+              calls: '13',
+            },
+            {
+              id: 'banner-2',
+              title: 'Prime Deals Banner',
+              subtitle: 'Category banner placement',
+              imageSrc: '/assets/images/banner-promotions-card-blue.png',
+              expiresOn: '30 May, 2025',
+              views: '10K',
+              clicks: '1.2K',
+              messages: '64',
+              calls: '10',
+            },
+          ],
+        },
+      ],
+      paused: [
+        {
+          id: 'banner-mobile-paused',
+          title: 'Paused banner ads',
+          cards: [
+            {
+              id: 'banner-3',
+              title: 'Weekend Gadget Banner',
+              subtitle: 'Search results placement',
+              imageSrc: '/assets/images/banner-details-hero.png',
+              expiresOn: '18 May, 2025',
+              tag: 'Paused',
+              views: '2.8K',
+              clicks: '340',
+              messages: '14',
+              calls: '2',
+            },
+          ],
+        },
+      ],
+      expired: [
+        {
+          id: 'banner-mobile-expired',
+          title: 'Expired banner ads',
+          cards: [
+            {
+              id: 'banner-6',
+              title: 'Lifestyle Refresh Banner',
+              subtitle: 'Feed insertion placement',
+              imageSrc: '/assets/images/banner-promotions-card-blue.png',
+              expiresOn: '03 May, 2025',
+              tag: 'Expired',
+              views: '1.1K',
+              clicks: '94',
+              messages: '5',
+              calls: '1',
+            },
+          ],
+        },
+      ],
+    },
   };
 
-  private readonly desktopSectionsByStatus: Record<AdStatus, readonly ListingSection[]> = {
+  private readonly desktopSectionsByPlacement: Record<
+    AdPlacement,
+    Record<AdStatus, readonly ListingSection[]>
+  > = {
+    'promoted listings': {
     active: [
       {
         id: 'other',
@@ -865,13 +1048,197 @@ export class RunningAdsPageComponent {
         ],
       },
     ],
+    },
+    'store promotions': {
+      active: [
+        {
+          id: 'store-desktop-active',
+          title: 'Featured store promotions',
+          viewAllCount: '248',
+          cards: [
+            {
+              id: 'store-1',
+              title: 'The Vine Collections',
+              subtitle: '43 active listings',
+              imageSrc: '/assets/images/store-vine-cover-desktop.png',
+              expiresOn: '24 May, 2025',
+              views: '9.2K',
+              clicks: '1.4K',
+              messages: '121',
+              calls: '31',
+            },
+            {
+              id: 'store-2',
+              title: 'New Age Properties',
+              subtitle: '43 active listings',
+              imageSrc: '/assets/images/store-newage-cover-desktop.png',
+              expiresOn: '10 Jun, 2025',
+              views: '7.1K',
+              clicks: '934',
+              messages: '66',
+              calls: '12',
+            },
+            {
+              id: 'store-3',
+              title: 'Snap Thrifts',
+              subtitle: '31 active listings',
+              imageSrc: '/assets/images/store-snap-cover-desktop.png',
+              expiresOn: '18 Jun, 2025',
+              views: '6.8K',
+              clicks: '870',
+              messages: '94',
+              calls: '16',
+            },
+            {
+              id: 'store-4',
+              title: 'goMelon',
+              subtitle: '19 active listings',
+              imageSrc: '/assets/images/store-gomelon-cover-desktop.png',
+              expiresOn: '28 Jun, 2025',
+              views: '4.4K',
+              clicks: '510',
+              messages: '33',
+              calls: '8',
+            },
+          ],
+        },
+      ],
+      paused: [
+        {
+          id: 'store-desktop-paused',
+          title: 'Paused store promotions',
+          cards: [
+            {
+              id: 'store-2',
+              title: 'New Age Properties',
+              subtitle: '43 active listings',
+              imageSrc: '/assets/images/store-newage-cover-desktop.png',
+              expiresOn: '10 Jun, 2025',
+              tag: 'Paused',
+              views: '3.1K',
+              clicks: '402',
+              messages: '28',
+              calls: '7',
+            },
+          ],
+        },
+      ],
+      expired: [
+        {
+          id: 'store-desktop-expired',
+          title: 'Expired store promotions',
+          cards: [
+            {
+              id: 'store-4',
+              title: 'goMelon',
+              subtitle: '19 active listings',
+              imageSrc: '/assets/images/store-gomelon-cover-desktop.png',
+              expiresOn: '03 Mar, 2025',
+              tag: 'Expired',
+              views: '1.4K',
+              clicks: '180',
+              messages: '12',
+              calls: '4',
+            },
+          ],
+        },
+      ],
+    },
+    'banner ads': {
+      active: [
+        {
+          id: 'banner-desktop-active',
+          title: 'Active banner ads',
+          viewAllCount: '128',
+          cards: [
+            {
+              id: 'banner-1',
+              title: 'Christmas Sale Banner',
+              subtitle: 'Homepage hero placement',
+              imageSrc: '/assets/images/banner-promotions-card-orange.png',
+              expiresOn: '24 May, 2025',
+              views: '12K',
+              clicks: '1.9K',
+              messages: '88',
+              calls: '13',
+            },
+            {
+              id: 'banner-2',
+              title: 'Prime Deals Banner',
+              subtitle: 'Category banner placement',
+              imageSrc: '/assets/images/banner-promotions-card-blue.png',
+              expiresOn: '30 May, 2025',
+              views: '10K',
+              clicks: '1.2K',
+              messages: '64',
+              calls: '10',
+            },
+            {
+              id: 'banner-4',
+              title: 'Home Office Banner',
+              subtitle: 'Feed insertion placement',
+              imageSrc: '/assets/images/banner-details-hero.png',
+              expiresOn: '03 Jun, 2025',
+              views: '8.2K',
+              clicks: '950',
+              messages: '51',
+              calls: '9',
+            },
+          ],
+        },
+      ],
+      paused: [
+        {
+          id: 'banner-desktop-paused',
+          title: 'Paused banner ads',
+          cards: [
+            {
+              id: 'banner-3',
+              title: 'Weekend Gadget Banner',
+              subtitle: 'Search results placement',
+              imageSrc: '/assets/images/banner-details-hero.png',
+              expiresOn: '18 May, 2025',
+              tag: 'Paused',
+              views: '2.8K',
+              clicks: '340',
+              messages: '14',
+              calls: '2',
+            },
+          ],
+        },
+      ],
+      expired: [
+        {
+          id: 'banner-desktop-expired',
+          title: 'Expired banner ads',
+          cards: [
+            {
+              id: 'banner-6',
+              title: 'Lifestyle Refresh Banner',
+              subtitle: 'Feed insertion placement',
+              imageSrc: '/assets/images/banner-promotions-card-blue.png',
+              expiresOn: '03 May, 2025',
+              tag: 'Expired',
+              views: '1.1K',
+              clicks: '94',
+              messages: '5',
+              calls: '1',
+            },
+          ],
+        },
+      ],
+    },
   };
 
-  readonly mobileSections = computed(() => this.mobileSectionsByStatus[this.activeStatus()]);
-  readonly desktopSections = computed(() => this.desktopSectionsByStatus[this.activeStatus()]);
+  readonly mobileSections = computed(
+    () => this.mobileSectionsByPlacement[this.activePlacement()][this.activeStatus()],
+  );
+  readonly desktopSections = computed(
+    () => this.desktopSectionsByPlacement[this.activePlacement()][this.activeStatus()],
+  );
 
   countByStatus(status: AdStatus): number {
-    return this.desktopSectionsByStatus[status].reduce(
+    return this.desktopSectionsByPlacement[this.activePlacement()][status].reduce(
       (total, section) => total + section.cards.length,
       0,
     );
@@ -927,6 +1294,11 @@ export class RunningAdsPageComponent {
         this.activePlacement.set('promoted listings');
         break;
     }
+  }
+
+  handleCreateBannerAd(_payload: CreateBannerAdPayload): void {
+    this.activePlacement.set('banner ads');
+    this.isCreateBannerModalOpen.set(false);
   }
 
   navigateToPlans(): void {

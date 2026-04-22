@@ -294,7 +294,7 @@ interface BoostingPlan {
                         [disabled]="bannerForm.invalid"
                         class="h-[52px] w-[205px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none"
                       >
-                        Promote store
+                        Submit for approval
                       </button>
                     </div>
                   </footer>
@@ -733,9 +733,9 @@ interface BoostingPlan {
 
               <div class="flex-1 overflow-y-auto">
                 <div
-                  class="grid h-full grid-cols-[552px_476px] justify-center gap-[109px] px-[193px] py-[10px]"
+                  class="mx-auto grid h-full max-w-[1220px] grid-cols-[minmax(0,1fr)_360px] gap-8 px-8 py-[10px] xl:grid-cols-[552px_400px] xl:gap-12 xl:px-12 2xl:grid-cols-[552px_476px] 2xl:gap-[72px] 2xl:px-20"
                 >
-                  <section class="w-[552px] pt-[22px]">
+                  <section class="min-w-0 pt-[22px]">
                     <h2 class="text-[32px] font-semibold leading-10 text-[#1A1B1D]">
                       Configure Banner Ad
                     </h2>
@@ -812,7 +812,7 @@ interface BoostingPlan {
                           @for (option of bannerTypeOptions; track option.value) {
                             <label
                               (click)="setBannerType(option.value)"
-                              class="flex w-[218px] cursor-pointer items-center gap-2 rounded-[12px] px-3 py-3 transition"
+                              class="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-[12px] px-3 py-3 transition"
                               [class.border-[#6453D9]]="selectedBannerType() === option.value"
                               [class.bg-[#F9F7FF]]="selectedBannerType() === option.value"
                               [class.border]="selectedBannerType() !== option.value"
@@ -838,7 +838,7 @@ interface BoostingPlan {
                                   <span class="h-2 w-2 rounded-full bg-[#6453D9]"></span>
                                 }
                               </span>
-                              <span class="text-[16px] leading-5 text-[#1F1F1F]">{{
+                              <span class="truncate text-[16px] leading-5 text-[#1F1F1F]">{{
                                 option.label
                               }}</span>
                             </label>
@@ -915,7 +915,7 @@ interface BoostingPlan {
                     </form>
                   </section>
 
-                  <aside class="flex h-[691px] flex-col rounded-[24px] bg-[#F8F8F8] px-4 py-4">
+                  <aside class="flex min-w-0 flex-col rounded-[24px] bg-[#F8F8F8] px-4 py-4">
                     <div>
                       <h3 class="text-[20px] font-semibold leading-7 text-[#1F1F1F]">Preview</h3>
                       <p class="mt-0.5 text-[14px] leading-5 text-[#959595]">
@@ -950,7 +950,8 @@ interface BoostingPlan {
                       <div
                         class="rounded-[12px] bg-[#FCFCFC] p-3 shadow-[0_12px_24px_0_rgba(192,192,192,0.25)]"
                         [class.w-full]="previewMode() === 'desktop'"
-                        [class.max-w-[342px]]="previewMode() === 'desktop'"
+                        [class.max-w-[320px]]="previewMode() === 'desktop'"
+                        [class.xl:max-w-[342px]]="previewMode() === 'desktop'"
                         [class.w-[242px]]="previewMode() === 'mobile'"
                       >
                         <div

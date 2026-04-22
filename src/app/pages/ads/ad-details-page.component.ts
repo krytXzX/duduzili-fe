@@ -38,6 +38,7 @@ interface AdDetail {
   noticePrefix: string;
   image?: string;
   price?: string;
+  lastUpdated?: string;
   initials?: string;
   logoTone?: string;
   activeListings?: string;
@@ -255,6 +256,347 @@ interface AdDetail {
                   <rect x="16" y="62" width="10" height="4" rx="2" fill="#F5C23A"></rect>
                   <text x="34" y="68" fill="#FFFFFF" font-size="13">Clicks</text>
                   <text x="188" y="68" fill="#FFFFFF" font-size="13">50,000</text>
+                </g>
+              </svg>
+            </div>
+          </section>
+        </div>
+      } @else if (ad().kind === 'store') {
+        <div class="bg-white px-5 pb-14 pt-2">
+          <div class="flex items-center justify-between gap-3 py-3">
+            <div class="flex items-center gap-3">
+              <a
+                routerLink="/ads/running"
+                aria-label="Back to running ads"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
+              >
+                <img [ngSrc]="listingBackIcon" width="20" height="20" alt="" />
+              </a>
+              <h1 class="text-[20px] font-semibold leading-[1.2] tracking-[-0.03em] text-black">
+                Ad details
+              </h1>
+            </div>
+
+            <button
+              type="button"
+              (click)="toggleMobileActionMenu()"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1A1B1D]"
+              aria-label="Open ad actions"
+            >
+              <ng-icon name="heroEllipsisHorizontal" class="text-[20px]"></ng-icon>
+            </button>
+          </div>
+
+          <section class="pt-3">
+            <div class="flex items-center gap-3">
+              <div
+                class="relative h-[54px] w-[54px] shrink-0 overflow-hidden rounded-full border-[2.919px] border-white bg-[#3D785F]"
+              >
+                <img
+                  [ngSrc]="ad().image || storeFallbackLogo"
+                  width="54"
+                  height="54"
+                  [alt]="ad().title"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+
+              <div class="min-w-0">
+                <h2
+                  class="truncate text-[18px] font-semibold leading-[1.3] tracking-[-0.03em] text-[#1A1B1D]"
+                >
+                  {{ ad().title }}
+                </h2>
+                <div class="mt-1 flex items-center gap-1 text-[14px] text-[#777777]">
+                  <img [ngSrc]="storeListingsIcon" width="14" height="14" alt="" />
+                  <span>{{ ad().activeListings }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6" [class]="listingStatusPillClass()">
+              <img [ngSrc]="listingStatusIcon()" width="14" height="14" alt="" />
+              <span [class]="listingStatusLabelClass()">{{ currentStatus() }}</span>
+            </div>
+
+            <div
+              class="mt-4 flex items-center gap-2 rounded-[18px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px]"
+            >
+              <img [ngSrc]="bannerDetailsInfoIcon" width="24" height="24" alt="" class="shrink-0" />
+              <p class="text-[14px] font-medium leading-6 text-[#1F1F1F]">
+                {{ ad().noticePrefix }} until it expires on {{ ad().expiresOn }}.
+              </p>
+            </div>
+          </section>
+
+          <div class="mt-6 border-y border-[#EDEDED] py-2">
+            <div class="grid grid-cols-3 gap-4">
+              @for (metric of ad().metrics; track metric.label) {
+                <div class="border-r border-[#EDEDED] pr-4 last:border-r-0 last:pr-0">
+                  <p class="text-[14px] font-medium text-[rgba(26,27,29,0.5)]">{{ metric.label }}</p>
+                  <p class="mt-1 text-[18px] font-semibold text-[#1A1B1D]">{{ metric.value }}</p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <section class="mt-6 rounded-[16px] border border-[#EBEBEB] bg-white p-2">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex flex-col gap-4">
+                <button
+                  type="button"
+                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-black"
+                >
+                  <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
+                  Last 7 days
+                  <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
+                </button>
+
+                <h3 class="text-[18px] font-semibold leading-6 text-[rgba(13,13,13,0.4)]">
+                  Performance Overview
+                </h3>
+              </div>
+
+              <div class="flex items-center gap-3 pt-1 text-[14px] text-[#181818]">
+                <span class="inline-flex items-center gap-1">
+                  <span class="h-1 w-3 rounded-[4px] bg-[#6453D9]"></span>
+                  Views
+                </span>
+                <span class="inline-flex items-center gap-1">
+                  <span class="h-1 w-3 rounded-[4px] bg-[#F4C12B]"></span>
+                  Clicks
+                </span>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <svg viewBox="0 0 332 250" class="h-auto w-full overflow-visible">
+                <g stroke="#EEF0F4" stroke-width="1">
+                  <line x1="18" y1="18" x2="18" y2="220"></line>
+                  <line x1="18" y1="220" x2="322" y2="220"></line>
+                </g>
+
+                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
+                  <text x="0" y="24">500</text>
+                  <text x="0" y="122">250</text>
+                  <text x="8" y="214">0</text>
+                </g>
+
+                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
+                  <text x="20" y="234">21-12-2024</text>
+                  <text x="292" y="234">Today</text>
+                </g>
+
+                <line
+                  x1="124"
+                  y1="96"
+                  x2="124"
+                  y2="220"
+                  stroke="#D8DBE2"
+                  stroke-dasharray="4 4"
+                ></line>
+
+                <path
+                  d="M 18 198 C 38 160, 62 178, 85 146 C 108 114, 128 136, 148 120 C 168 104, 189 160, 208 174 C 227 188, 248 156, 272 120 C 292 88, 307 66, 322 48"
+                  fill="none"
+                  stroke="#6453D9"
+                  stroke-linecap="round"
+                  stroke-width="1.6"
+                ></path>
+
+                <path
+                  d="M 18 196 C 42 214, 65 152, 88 144 C 111 136, 133 196, 156 186 C 179 176, 201 126, 225 140 C 248 154, 270 194, 294 150 C 307 136, 316 142, 322 144"
+                  fill="none"
+                  stroke="#F4C12B"
+                  stroke-linecap="round"
+                  stroke-width="1.6"
+                ></path>
+
+                <circle cx="124" cy="124" r="3" fill="#6453D9"></circle>
+                <circle cx="124" cy="168" r="3" fill="#D8B63A"></circle>
+                <circle cx="322" cy="48" r="3" fill="#6453D9"></circle>
+                <circle cx="322" cy="144" r="3" fill="#F4C12B"></circle>
+
+                <g transform="translate(126,32)">
+                  <rect width="214" height="85" rx="9" fill="#000000"></rect>
+                  <text x="10" y="18" fill="#FFFFFF" font-size="14" font-weight="400">
+                    02 May, 2026
+                  </text>
+                  <rect x="10" y="31" width="8" height="4" rx="2" fill="#357FF6"></rect>
+                  <text x="22" y="36" fill="#A4A4A4" font-size="14">Views</text>
+                  <text x="158" y="36" fill="#FFFFFF" font-size="14">100,000</text>
+                  <rect x="10" y="55" width="8" height="4" rx="2" fill="#FACD38"></rect>
+                  <text x="22" y="60" fill="#A4A4A4" font-size="14">Clicks</text>
+                  <text x="158" y="60" fill="#FFFFFF" font-size="14">50,000</text>
+                </g>
+              </svg>
+            </div>
+          </section>
+        </div>
+      } @else if (ad().kind === 'listing') {
+        <div class="bg-white px-5 pb-14 pt-2">
+          <div class="flex items-center justify-between gap-3 py-3">
+            <div class="flex items-center gap-3">
+              <a
+                routerLink="/ads/running"
+                aria-label="Back to running ads"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
+              >
+                <img [ngSrc]="listingBackIcon" width="20" height="20" alt="" />
+              </a>
+              <h1 class="text-[20px] font-semibold leading-[1.2] tracking-[-0.03em] text-black">
+                Ad details
+              </h1>
+            </div>
+
+            <button
+              type="button"
+              (click)="toggleMobileActionMenu()"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1A1B1D]"
+              aria-label="Open ad actions"
+            >
+              <ng-icon name="heroEllipsisHorizontal" class="text-[20px]"></ng-icon>
+            </button>
+          </div>
+
+          <section class="pt-3">
+            <div class="flex items-center gap-3">
+              <div class="relative h-[54px] w-[54px] shrink-0 overflow-hidden rounded-[10.8px] bg-[#EFEFEF]">
+                <img
+                  [ngSrc]="ad().image || listingPrimaryImage"
+                  width="54"
+                  height="54"
+                  [alt]="ad().title"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+
+              <div class="min-w-0">
+                <h2
+                  class="truncate text-[18px] font-semibold leading-[1.3] tracking-[-0.03em] text-[#1A1B1D]"
+                >
+                  {{ ad().title }}
+                </h2>
+                <p class="mt-1 text-[13px] leading-[1.2] text-[#8A8A8A]">
+                  Last updated on: {{ ad().lastUpdated }}
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-6" [class]="listingStatusPillClass()">
+              <img [ngSrc]="listingStatusIcon()" width="14" height="14" alt="" />
+              <span [class]="listingStatusLabelClass()">{{ currentStatus() }}</span>
+            </div>
+
+            <div
+              class="mt-4 flex items-center gap-2 rounded-[18px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px]"
+            >
+              <img [ngSrc]="bannerDetailsInfoIcon" width="24" height="24" alt="" class="shrink-0" />
+              <p class="text-[14px] font-medium leading-6 text-[#1F1F1F]">
+                {{ ad().noticePrefix }} until it expires on {{ ad().expiresOn }}.
+              </p>
+            </div>
+          </section>
+
+          <div class="mt-6 -mx-5 overflow-x-auto border-y border-[#EDEDED] px-5 py-[9px]">
+            <div class="flex min-w-[430px]">
+              @for (metric of ad().metrics; track metric.label) {
+                <div class="min-w-[110px] border-r border-[#EDEDED] pr-5 last:border-r-0 last:pr-0">
+                  <p class="text-[14px] font-medium text-[rgba(26,27,29,0.5)]">{{ metric.label }}</p>
+                  <p class="mt-1 text-[18px] font-semibold text-[#1A1B1D]">{{ metric.value }}</p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <section class="mt-6 rounded-[16px] border border-[#EBEBEB] bg-white p-2">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex flex-col gap-4">
+                <button
+                  type="button"
+                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-black"
+                >
+                  <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
+                  Last 7 days
+                  <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
+                </button>
+
+                <h3 class="text-[18px] font-semibold leading-6 text-[rgba(13,13,13,0.4)]">
+                  Performance Overview
+                </h3>
+              </div>
+
+              <div class="flex items-center gap-3 pt-1 text-[14px] text-[#181818]">
+                <span class="inline-flex items-center gap-1">
+                  <span class="h-1 w-3 rounded-[4px] bg-[#6453D9]"></span>
+                  Views
+                </span>
+                <span class="inline-flex items-center gap-1">
+                  <span class="h-1 w-3 rounded-[4px] bg-[#F4C12B]"></span>
+                  Clicks
+                </span>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <svg viewBox="0 0 332 250" class="h-auto w-full overflow-visible">
+                <g stroke="#EEF0F4" stroke-width="1">
+                  <line x1="18" y1="18" x2="18" y2="220"></line>
+                  <line x1="18" y1="220" x2="322" y2="220"></line>
+                </g>
+
+                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
+                  <text x="0" y="24">500</text>
+                  <text x="0" y="122">250</text>
+                  <text x="8" y="214">0</text>
+                </g>
+
+                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
+                  <text x="20" y="234">21-12-2024</text>
+                  <text x="292" y="234">Today</text>
+                </g>
+
+                <line
+                  x1="124"
+                  y1="96"
+                  x2="124"
+                  y2="220"
+                  stroke="#D8DBE2"
+                  stroke-dasharray="4 4"
+                ></line>
+
+                <path
+                  d="M 18 198 C 38 160, 62 178, 85 146 C 108 114, 128 136, 148 120 C 168 104, 189 160, 208 174 C 227 188, 248 156, 272 120 C 292 88, 307 66, 322 48"
+                  fill="none"
+                  stroke="#6453D9"
+                  stroke-linecap="round"
+                  stroke-width="1.6"
+                ></path>
+
+                <path
+                  d="M 18 196 C 42 214, 65 152, 88 144 C 111 136, 133 196, 156 186 C 179 176, 201 126, 225 140 C 248 154, 270 194, 294 150 C 307 136, 316 142, 322 144"
+                  fill="none"
+                  stroke="#F4C12B"
+                  stroke-linecap="round"
+                  stroke-width="1.6"
+                ></path>
+
+                <circle cx="124" cy="124" r="3" fill="#6453D9"></circle>
+                <circle cx="124" cy="168" r="3" fill="#D8B63A"></circle>
+                <circle cx="322" cy="48" r="3" fill="#6453D9"></circle>
+                <circle cx="322" cy="144" r="3" fill="#F4C12B"></circle>
+
+                <g transform="translate(126,32)">
+                  <rect width="214" height="85" rx="9" fill="#000000"></rect>
+                  <text x="10" y="18" fill="#FFFFFF" font-size="14" font-weight="400">
+                    02 May, 2026
+                  </text>
+                  <rect x="10" y="31" width="8" height="4" rx="2" fill="#357FF6"></rect>
+                  <text x="22" y="36" fill="#A4A4A4" font-size="14">Views</text>
+                  <text x="158" y="36" fill="#FFFFFF" font-size="14">100,000</text>
+                  <rect x="10" y="55" width="8" height="4" rx="2" fill="#FACD38"></rect>
+                  <text x="22" y="60" fill="#A4A4A4" font-size="14">Clicks</text>
+                  <text x="158" y="60" fill="#FFFFFF" font-size="14">50,000</text>
                 </g>
               </svg>
             </div>
@@ -479,6 +821,445 @@ interface AdDetail {
             </div>
           </section>
         </div>
+      } @else if (ad().kind === 'store') {
+        <div
+          class="flex h-full w-full flex-col rounded-[24px] border border-[#F4F4F4] bg-white px-5 pb-8 pt-[14px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] xl:px-6"
+        >
+          <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#959595]">
+            <a routerLink="/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
+            <span>/</span>
+            <a routerLink="/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+              >Running Ads</a
+            >
+            <span>/</span>
+            <span class="text-[#1F1F1F]">Ad details</span>
+          </nav>
+
+          <section class="border-b border-[#F0F1F4] pb-9 pt-7">
+            <div class="flex items-start justify-between gap-6">
+              <div class="flex min-w-0 flex-col gap-4">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="relative h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full border-[3.243px] border-white bg-[#3D785F]"
+                  >
+                    <img
+                      [ngSrc]="ad().image || storeFallbackLogo"
+                      width="60"
+                      height="60"
+                      [alt]="ad().title"
+                      class="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-3">
+                      <h1
+                        class="truncate text-[24px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D]"
+                      >
+                        {{ ad().title }}
+                      </h1>
+                      <div class="shrink-0" [class]="listingStatusPillClass()">
+                        <img [ngSrc]="listingStatusIcon()" width="14" height="14" alt="" />
+                        <span [class]="listingStatusLabelClass()">{{ currentStatus() }}</span>
+                      </div>
+                    </div>
+
+                    <div class="mt-1 flex items-center gap-1 text-[14px] text-[#777777]">
+                      <img [ngSrc]="storeListingsIcon" width="14" height="14" alt="" />
+                      <span>{{ ad().activeListings }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="inline-flex max-w-[540px] items-center gap-2 rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px]"
+                >
+                  <img
+                    [ngSrc]="bannerDetailsInfoIcon"
+                    width="24"
+                    height="24"
+                    alt=""
+                    class="shrink-0"
+                  />
+                  <p class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
+                    {{ ad().noticePrefix }} until it expires on {{ ad().expiresOn }}.
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex shrink-0 items-center gap-3">
+                <button
+                  type="button"
+                  (click)="togglePaused()"
+                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#0D0D0D]"
+                >
+                  <img [ngSrc]="listingPauseIcon" width="14" height="14" alt="" />
+                  {{ pauseActionLabel() }}
+                </button>
+                <button
+                  type="button"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                  aria-label="More ad actions"
+                >
+                  <ng-icon name="heroEllipsisHorizontal" class="text-[18px] text-[#0D0D0D]"></ng-icon>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <div class="grid grid-cols-3 border-b border-[#F0F1F4] py-5">
+            @for (metric of ad().metrics; track metric.label) {
+              <div class="border-r border-[#F0F1F4] pr-10 last:border-r-0 last:pr-0">
+                <p class="text-[16px] font-medium text-[rgba(26,27,29,0.5)]">{{ metric.label }}</p>
+                <p class="mt-2 text-[20px] font-semibold text-[#1A1B1D]">{{ metric.value }}</p>
+              </div>
+            }
+          </div>
+
+          <section
+            class="mt-6 flex-1 rounded-[24px] border border-[#EFEFEF] bg-white px-3 pb-4 pt-4 xl:px-4"
+          >
+            <div class="flex items-start justify-between gap-6">
+              <h2 class="text-[24px] font-semibold leading-6 text-[rgba(13,13,13,0.6)]">
+                Performance Overview
+              </h2>
+
+              <div class="flex items-center gap-5">
+                <div class="flex items-center gap-5 text-[16px] text-[#181818]">
+                  <span class="inline-flex items-center gap-1">
+                    <span class="h-1.5 w-4 rounded-[4px] bg-[#6453D9]"></span>
+                    Views
+                  </span>
+                  <span class="inline-flex items-center gap-1">
+                    <span class="h-1.5 w-4 rounded-[4px] bg-[#FACD38]"></span>
+                    Clicks
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-black"
+                >
+                  <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
+                  Last 7 days
+                  <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <svg viewBox="0 0 1035 430" class="h-auto w-full overflow-visible">
+                <g stroke="#EEF0F4" stroke-width="1">
+                  <line x1="28" y1="48" x2="28" y2="388"></line>
+                  <line x1="28" y1="388" x2="1001" y2="388"></line>
+                </g>
+
+                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
+                  <text x="0" y="52">500</text>
+                  <text x="0" y="150">250</text>
+                  <text x="0" y="248">250</text>
+                  <text x="0" y="346">250</text>
+                  <text x="8" y="384">0</text>
+                </g>
+
+                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
+                  <text x="50" y="412">Jan</text>
+                  <text x="137" y="412">Feb</text>
+                  <text x="226" y="412">Mar</text>
+                  <text x="314" y="412">Apr</text>
+                  <text x="401" y="412">May</text>
+                  <text x="488" y="412">Jun</text>
+                  <text x="575" y="412">Jul</text>
+                  <text x="663" y="412">Aug</text>
+                  <text x="751" y="412">Sep</text>
+                  <text x="838" y="412">Oct</text>
+                  <text x="925" y="412">Nov</text>
+                  <text x="1010" y="412">Dec</text>
+                </g>
+
+                <line
+                  x1="393"
+                  y1="132"
+                  x2="393"
+                  y2="372"
+                  stroke="#D8DBE2"
+                  stroke-dasharray="4 4"
+                ></line>
+
+                <path
+                  d="M 58 364 C 82 308, 116 279, 154 274 C 192 269, 223 300, 257 248 C 291 196, 324 180, 362 201 C 392 218, 420 273, 457 244 C 494 215, 526 178, 564 208 C 602 238, 637 314, 683 290 C 729 266, 762 180, 804 118 C 846 76, 903 40, 976 12"
+                  fill="none"
+                  stroke="#6453D9"
+                  stroke-linecap="round"
+                  stroke-width="2"
+                ></path>
+
+                <path
+                  d="M 44 332 C 76 351, 108 345, 144 278 C 180 211, 214 243, 250 232 C 286 221, 325 245, 360 320 C 395 349, 433 319, 470 267 C 507 215, 544 196, 582 236 C 620 276, 655 334, 692 304 C 729 274, 764 228, 801 220 C 838 212, 886 224, 968 228"
+                  fill="none"
+                  stroke="#FACD38"
+                  stroke-linecap="round"
+                  stroke-width="2"
+                ></path>
+
+                <circle cx="393" cy="203" r="3.5" fill="#6453D9"></circle>
+                <circle cx="393" cy="320" r="3.5" fill="#D4B03E"></circle>
+                <circle cx="976" cy="12" r="3.5" fill="#6453D9"></circle>
+                <circle cx="968" cy="228" r="3.5" fill="#FACD38"></circle>
+
+                <g transform="translate(396,98)">
+                  <rect width="214" height="85" rx="9" fill="#000000"></rect>
+                  <text x="10" y="18" fill="#FFFFFF" font-size="14" font-weight="400">
+                    02 May, 2026
+                  </text>
+                  <rect x="10" y="31" width="8" height="4" rx="2" fill="#357FF6"></rect>
+                  <text x="22" y="36" fill="#A4A4A4" font-size="14">Views</text>
+                  <text x="158" y="36" fill="#FFFFFF" font-size="14">100,000</text>
+                  <rect x="10" y="55" width="8" height="4" rx="2" fill="#FACD38"></rect>
+                  <text x="22" y="60" fill="#A4A4A4" font-size="14">Clicks</text>
+                  <text x="158" y="60" fill="#FFFFFF" font-size="14">50,000</text>
+                </g>
+              </svg>
+            </div>
+          </section>
+        </div>
+      } @else if (ad().kind === 'listing') {
+        <div
+          class="flex h-full w-full flex-col rounded-[24px] border border-[#F4F4F4] bg-white px-5 pb-8 pt-[14px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] xl:px-6"
+        >
+          <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#959595]">
+            <a routerLink="/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
+            <span>/</span>
+            <a routerLink="/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+              >Running Ads</a
+            >
+            <span>/</span>
+            <span class="text-[#1F1F1F]">Ad details</span>
+          </nav>
+
+          <section class="border-b border-[#F0F1F4] pb-9 pt-7">
+            <div class="flex items-start justify-between gap-6">
+              <div class="flex min-w-0 flex-col gap-4">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="relative h-[60px] w-[60px] shrink-0 overflow-hidden rounded-[12px] bg-[#EFEFEF]"
+                  >
+                    <img
+                      [ngSrc]="ad().image || listingPrimaryImage"
+                      width="60"
+                      height="60"
+                      [alt]="ad().title"
+                      class="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-3">
+                      <h1
+                        class="truncate text-[24px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D]"
+                      >
+                        {{ ad().title }}
+                      </h1>
+                      <div class="shrink-0" [class]="listingStatusPillClass()">
+                        <img [ngSrc]="listingStatusIcon()" width="14" height="14" alt="" />
+                        <span [class]="listingStatusLabelClass()">{{ currentStatus() }}</span>
+                      </div>
+                    </div>
+
+                    <p class="mt-1 text-[14px] text-[#777777]">
+                      <span class="line-through">₦</span>{{ ad().price?.replace('₦', '') }}
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  class="inline-flex max-w-[540px] items-center gap-2 rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px]"
+                >
+                  <img
+                    [ngSrc]="bannerDetailsInfoIcon"
+                    width="24"
+                    height="24"
+                    alt=""
+                    class="shrink-0"
+                  />
+                  <p class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
+                    {{ ad().noticePrefix }} until it expires on {{ ad().expiresOn }}.
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex shrink-0 items-center gap-3">
+                <button
+                  type="button"
+                  (click)="togglePaused()"
+                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#0D0D0D]"
+                >
+                  <img [ngSrc]="listingPauseIcon" width="14" height="14" alt="" />
+                  {{ pauseActionLabel() }}
+                </button>
+                <div class="relative">
+                  <button
+                    type="button"
+                    (click)="toggleDesktopActionMenu()"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                    aria-label="More ad actions"
+                    [attr.aria-expanded]="isDesktopActionMenuOpen()"
+                    aria-haspopup="menu"
+                  >
+                    <ng-icon
+                      name="heroEllipsisHorizontal"
+                      class="text-[18px] text-[#0D0D0D]"
+                    ></ng-icon>
+                  </button>
+
+                  @if (isDesktopActionMenuOpen()) {
+                    <div
+                      class="absolute right-0 top-[calc(100%+10px)] z-[260] w-[140px] rounded-[16px] border border-[#F0F0F0] bg-white p-[10px] shadow-[0_6.65px_5.32px_rgba(0,0,0,0.03),0_2.767px_2.214px_rgba(0,0,0,0.02)]"
+                      role="menu"
+                      aria-label="Listing actions"
+                    >
+                      <button
+                        type="button"
+                        (click)="closeDesktopActionMenu()"
+                        class="flex h-8 w-full items-center gap-[6px] rounded-[8px] bg-white px-2 text-left text-[14px] font-medium text-[rgba(13,13,13,0.87)]"
+                        role="menuitem"
+                      >
+                        <img [ngSrc]="listingViewIcon" width="14" height="14" alt="" />
+                        <span>View listing</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        (click)="closeDesktopActionMenu()"
+                        class="mt-1 flex h-8 w-full items-center gap-[6px] rounded-[8px] bg-white px-2 text-left text-[14px] font-medium text-[rgba(13,13,13,0.87)]"
+                        role="menuitem"
+                      >
+                        <img [ngSrc]="listingShareIcon" width="14" height="14" alt="" />
+                        <span>Share listing</span>
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="grid grid-cols-4 border-b border-[#F0F1F4] py-5">
+            @for (metric of ad().metrics; track metric.label) {
+              <div class="border-r border-[#F0F1F4] pr-10 last:border-r-0 last:pr-0">
+                <p class="text-[16px] font-medium text-[rgba(26,27,29,0.5)]">{{ metric.label }}</p>
+                <p class="mt-2 text-[20px] font-semibold text-[#1A1B1D]">{{ metric.value }}</p>
+              </div>
+            }
+          </div>
+
+          <section
+            class="mt-6 flex-1 rounded-[24px] border border-[#EFEFEF] bg-white px-3 pb-4 pt-4 xl:px-4"
+          >
+            <div class="flex items-start justify-between gap-6">
+              <h2 class="text-[24px] font-semibold leading-6 text-[rgba(13,13,13,0.6)]">
+                Performance Overview
+              </h2>
+
+              <div class="flex items-center gap-5">
+                <div class="flex items-center gap-5 text-[16px] text-[#181818]">
+                  <span class="inline-flex items-center gap-1">
+                    <span class="h-1.5 w-4 rounded-[4px] bg-[#6453D9]"></span>
+                    Views
+                  </span>
+                  <span class="inline-flex items-center gap-1">
+                    <span class="h-1.5 w-4 rounded-[4px] bg-[#FACD38]"></span>
+                    Clicks
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-black"
+                >
+                  <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
+                  Last 7 days
+                  <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <svg viewBox="0 0 1035 430" class="h-auto w-full overflow-visible">
+                <g stroke="#EEF0F4" stroke-width="1">
+                  <line x1="28" y1="48" x2="28" y2="388"></line>
+                  <line x1="28" y1="388" x2="1001" y2="388"></line>
+                </g>
+
+                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
+                  <text x="0" y="52">500</text>
+                  <text x="0" y="150">250</text>
+                  <text x="0" y="248">250</text>
+                  <text x="0" y="346">250</text>
+                  <text x="8" y="384">0</text>
+                </g>
+
+                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
+                  <text x="50" y="412">Jan</text>
+                  <text x="137" y="412">Feb</text>
+                  <text x="226" y="412">Mar</text>
+                  <text x="314" y="412">Apr</text>
+                  <text x="401" y="412">May</text>
+                  <text x="488" y="412">Jun</text>
+                  <text x="575" y="412">Jul</text>
+                  <text x="663" y="412">Aug</text>
+                  <text x="751" y="412">Sep</text>
+                  <text x="838" y="412">Oct</text>
+                  <text x="925" y="412">Nov</text>
+                  <text x="1010" y="412">Dec</text>
+                </g>
+
+                <line
+                  x1="393"
+                  y1="132"
+                  x2="393"
+                  y2="372"
+                  stroke="#D8DBE2"
+                  stroke-dasharray="4 4"
+                ></line>
+
+                <path
+                  d="M 58 364 C 82 308, 116 279, 154 274 C 192 269, 223 300, 257 248 C 291 196, 324 180, 362 201 C 392 218, 420 273, 457 244 C 494 215, 526 178, 564 208 C 602 238, 637 314, 683 290 C 729 266, 762 180, 804 118 C 846 76, 903 40, 976 12"
+                  fill="none"
+                  stroke="#6453D9"
+                  stroke-linecap="round"
+                  stroke-width="2"
+                ></path>
+
+                <path
+                  d="M 44 332 C 76 351, 108 345, 144 278 C 180 211, 214 243, 250 232 C 286 221, 325 245, 360 320 C 395 349, 433 319, 470 267 C 507 215, 544 196, 582 236 C 620 276, 655 334, 692 304 C 729 274, 764 228, 801 220 C 838 212, 886 224, 968 228"
+                  fill="none"
+                  stroke="#FACD38"
+                  stroke-linecap="round"
+                  stroke-width="2"
+                ></path>
+
+                <circle cx="393" cy="203" r="3.5" fill="#6453D9"></circle>
+                <circle cx="393" cy="320" r="3.5" fill="#D4B03E"></circle>
+                <circle cx="976" cy="12" r="3.5" fill="#6453D9"></circle>
+                <circle cx="968" cy="228" r="3.5" fill="#FACD38"></circle>
+
+                <g transform="translate(396,98)">
+                  <rect width="214" height="85" rx="9" fill="#000000"></rect>
+                  <text x="10" y="18" fill="#FFFFFF" font-size="14" font-weight="400">
+                    02 May, 2026
+                  </text>
+                  <rect x="10" y="31" width="8" height="4" rx="2" fill="#357FF6"></rect>
+                  <text x="22" y="36" fill="#A4A4A4" font-size="14">Views</text>
+                  <text x="158" y="36" fill="#FFFFFF" font-size="14">100,000</text>
+                  <rect x="10" y="55" width="8" height="4" rx="2" fill="#FACD38"></rect>
+                  <text x="22" y="60" fill="#A4A4A4" font-size="14">Clicks</text>
+                  <text x="158" y="60" fill="#FFFFFF" font-size="14">50,000</text>
+                </g>
+              </svg>
+            </div>
+          </section>
+        </div>
       } @else {
         <div
           class="flex h-full w-full flex-col rounded-[32px] border border-[#F1F1F4] bg-white px-8 py-6 text-[15px] text-[#626771] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]"
@@ -589,31 +1370,109 @@ interface AdDetail {
         aria-hidden="true"
       ></div>
 
-      <section
-        class="fixed bottom-24 left-1/2 z-[230] w-[270px] -translate-x-1/2 rounded-[22px] border border-[#ECEEF3] bg-white p-2 shadow-[0_24px_44px_-24px_rgba(17,24,39,0.4)] md:hidden"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Ad actions"
-      >
-        <button
-          type="button"
-          (click)="openDestinationModal()"
-          class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-[13px] font-medium text-[#2E333B] transition hover:bg-[#F8F8FA]"
+      @if (ad().kind === 'listing') {
+        <section
+          class="fixed inset-x-0 bottom-0 z-[230] rounded-t-[36px] bg-white px-4 pb-7 pt-3 shadow-[0_-24px_44px_-24px_rgba(17,24,39,0.24)] md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Ad actions"
         >
-          <ng-icon name="heroLink" class="text-[14px] text-[#6D727C]"></ng-icon>
-          Edit destination link
-        </button>
-        @if (currentStatus() === 'Paused' || currentStatus() === 'Active') {
-          <button
-            type="button"
-            (click)="togglePausedFromMenu()"
-            class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-[13px] font-medium text-[#2E333B] transition hover:bg-[#F8F8FA]"
-          >
-            <ng-icon name="heroPause" class="text-[14px] text-[#6D727C]"></ng-icon>
-            {{ currentStatus() === 'Paused' ? 'Resume Ad' : 'Pause Ad' }}
-          </button>
-        }
-      </section>
+          <div class="flex items-start justify-between">
+            <div class="flex-1 pt-1">
+              <div class="mx-auto h-1 w-[50px] rounded-full bg-[#EBEBEB]"></div>
+            </div>
+
+            <button
+              type="button"
+              (click)="closeMobileActionMenu()"
+              class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#434455] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+              aria-label="Close ad actions"
+            >
+              <img [ngSrc]="listingCloseIcon" width="24" height="24" alt="" />
+            </button>
+          </div>
+
+          <div class="mt-3 space-y-1 pb-1">
+            <button
+              type="button"
+              (click)="togglePausedFromMenu()"
+              class="flex h-8 w-full items-center gap-[10px] rounded-[8px] px-2 text-left text-[16px] font-medium text-[#0D0D0D]"
+            >
+              @if (currentStatus() === 'Paused') {
+                <svg
+                  viewBox="0 0 20 20"
+                  class="h-5 w-5 shrink-0 stroke-[#434455]"
+                  fill="none"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 5.6L14.2 10 7 14.4V5.6Z"></path>
+                </svg>
+              } @else {
+                <img [ngSrc]="listingPauseIcon" width="20" height="20" alt="" class="shrink-0" />
+              }
+              <span>{{ pauseActionLabel() }}</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="closeMobileActionMenu()"
+              class="flex h-8 w-full items-center gap-[10px] rounded-[8px] px-2 text-left text-[16px] font-medium text-[rgba(13,13,13,0.87)]"
+            >
+              <img [ngSrc]="listingShareIcon" width="20" height="20" alt="" class="shrink-0" />
+              <span>Share listing</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="closeMobileActionMenu()"
+              class="flex h-8 w-full items-center gap-[10px] rounded-[8px] px-2 text-left text-[16px] font-medium text-[rgba(13,13,13,0.87)]"
+            >
+              <img [ngSrc]="listingViewIcon" width="20" height="20" alt="" class="shrink-0" />
+              <span>View listing</span>
+            </button>
+          </div>
+        </section>
+      } @else {
+        <section
+          class="fixed bottom-24 left-1/2 z-[230] w-[270px] -translate-x-1/2 rounded-[22px] border border-[#ECEEF3] bg-white p-2 shadow-[0_24px_44px_-24px_rgba(17,24,39,0.4)] md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Ad actions"
+        >
+          @if (ad().kind === 'banner') {
+            <button
+              type="button"
+              (click)="openDestinationModal()"
+              class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-[13px] font-medium text-[#2E333B] transition hover:bg-[#F8F8FA]"
+            >
+              <ng-icon name="heroLink" class="text-[14px] text-[#6D727C]"></ng-icon>
+              Edit destination link
+            </button>
+          }
+          @if (currentStatus() === 'Paused' || currentStatus() === 'Active') {
+            <button
+              type="button"
+              (click)="togglePausedFromMenu()"
+              class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-[13px] font-medium text-[#2E333B] transition hover:bg-[#F8F8FA]"
+            >
+              <img [ngSrc]="listingPauseIcon" width="14" height="14" alt="" />
+              {{ pauseActionLabel() }}
+            </button>
+          }
+        </section>
+      }
+    }
+
+    @if (isDesktopActionMenuOpen()) {
+      <button
+        type="button"
+        class="fixed inset-0 z-[250] hidden cursor-default bg-transparent md:block"
+        (click)="closeDesktopActionMenu()"
+        aria-label="Close listing actions"
+      ></button>
     }
   `,
   host: { class: 'block h-full' },
@@ -622,6 +1481,15 @@ interface AdDetail {
 export class AdDetailsPageComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  readonly listingPrimaryImage = 'assets/images/listing-iphone-17-pro-max-figma.png';
+  readonly listingSecondaryImage = 'assets/images/listing-logitech-mouse-figma.png';
+  readonly storeFallbackLogo = 'assets/images/store-vine-logo-mobile.png';
+  readonly storeListingsIcon = 'assets/icons/running-ads-tab-store.svg';
+  readonly listingBackIcon = 'assets/icons/listing-details-back.svg';
+  readonly listingCloseIcon = 'assets/icons/listing-details-close.svg';
+  readonly listingPauseIcon = 'assets/icons/listing-details-action-pause.svg';
+  readonly listingShareIcon = 'assets/icons/listing-details-action-share.svg';
+  readonly listingViewIcon = 'assets/icons/listing-details-eye.svg';
   readonly bannerHeroImage = 'assets/images/banner-details-hero.png';
   readonly bannerDetailsEditIcon = 'assets/icons/banner-details-edit.svg';
   readonly bannerDetailsPauseIcon = 'assets/icons/banner-details-pause.svg';
@@ -635,9 +1503,28 @@ export class AdDetailsPageComponent implements OnDestroy {
   readonly adId = signal(this.route.snapshot.paramMap.get('id') ?? 'other-1');
   readonly isMenuOpen = signal(false);
   readonly isMobileActionMenuOpen = signal(false);
+  readonly isDesktopActionMenuOpen = signal(false);
   readonly isDestinationModalOpen = signal(false);
   readonly editedDestinationUrl = signal('');
   readonly destinationUrlOverrides = signal<Record<string, string>>({});
+  readonly listingStatusIcon = computed(() =>
+    this.currentStatus() === 'Paused'
+      ? 'assets/icons/listing-details-status-pause.svg'
+      : this.bannerDetailsStatusIcon,
+  );
+  readonly listingStatusPillClass = computed(() =>
+    this.currentStatus() === 'Paused'
+      ? 'inline-flex items-center gap-1 rounded-[8px] bg-[#F3F0FF] px-2 py-1'
+      : 'inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1',
+  );
+  readonly listingStatusLabelClass = computed(() =>
+    this.currentStatus() === 'Paused'
+      ? 'text-[12px] font-semibold leading-4 text-[#5E44EE]'
+      : 'text-[12px] font-semibold leading-4 text-[#25AD32]',
+  );
+  readonly pauseActionLabel = computed(() =>
+    this.currentStatus() === 'Paused' ? 'Resume Ad' : 'Pause Ad',
+  );
 
   private readonly adMap: Record<string, AdDetail> = {
     'other-1': {
@@ -645,8 +1532,9 @@ export class AdDetailsPageComponent implements OnDestroy {
       kind: 'listing',
       title: 'Iphone 17 pro max',
       price: '₦1,500,000',
+      lastUpdated: '24 January, 2026',
       status: 'Active',
-      image: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=200&h=200&fit=crop',
+      image: 'assets/images/listing-iphone-17-pro-max-figma.png',
       expiresOn: '24 March, 2026',
       noticePrefix: 'Your listing will be promoted across Duduzili',
       metrics: [
@@ -661,8 +1549,9 @@ export class AdDetailsPageComponent implements OnDestroy {
       kind: 'listing',
       title: 'Logitech ergonomic mouse',
       price: '₦35,000',
+      lastUpdated: '24 January, 2026',
       status: 'Active',
-      image: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=200&h=200&fit=crop',
+      image: 'assets/images/listing-logitech-mouse-figma.png',
       expiresOn: '24 March, 2026',
       noticePrefix: 'Your listing will be promoted across Duduzili',
       metrics: [
@@ -678,6 +1567,7 @@ export class AdDetailsPageComponent implements OnDestroy {
       title: 'The Vine Collections',
       activeListings: '43 active listings',
       status: 'Active',
+      image: 'assets/images/store-vine-logo-mobile.png',
       initials: 'V',
       logoTone: 'linear-gradient(135deg, #4A8F67 0%, #F0C76C 100%)',
       expiresOn: '24 March, 2026',
@@ -694,6 +1584,7 @@ export class AdDetailsPageComponent implements OnDestroy {
       title: 'New Age Properties',
       activeListings: '43 active listings',
       status: 'Active',
+      image: 'assets/images/store-newage-logo-desktop.png',
       initials: 'N',
       logoTone: 'linear-gradient(135deg, #101713 0%, #83D95E 100%)',
       expiresOn: '24 March, 2026',
@@ -710,6 +1601,7 @@ export class AdDetailsPageComponent implements OnDestroy {
       title: 'Snap Thrifts',
       activeListings: '43 active listings',
       status: 'Paused',
+      image: 'assets/images/store-snap-logo-mobile.png',
       initials: 'S',
       logoTone: 'linear-gradient(135deg, #3DBF6C 0%, #62D68A 100%)',
       expiresOn: '24 March, 2026',
@@ -726,6 +1618,7 @@ export class AdDetailsPageComponent implements OnDestroy {
       title: 'goMelon',
       activeListings: '43 active listings',
       status: 'Expired',
+      image: 'assets/images/store-gomelon-logo-mobile.png',
       initials: 'g',
       logoTone: 'linear-gradient(135deg, #FF7B2F 0%, #FFB266 100%)',
       expiresOn: '03 March, 2026',
@@ -856,6 +1749,14 @@ export class AdDetailsPageComponent implements OnDestroy {
 
     this.mobileOverlayService.openMobileModal();
     this.isMobileActionMenuOpen.set(true);
+  }
+
+  toggleDesktopActionMenu(): void {
+    this.isDesktopActionMenuOpen.update((open) => !open);
+  }
+
+  closeDesktopActionMenu(): void {
+    this.isDesktopActionMenuOpen.set(false);
   }
 
   closeMobileActionMenu(): void {

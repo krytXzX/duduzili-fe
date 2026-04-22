@@ -1,278 +1,568 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  heroBanknotes,
-  heroChevronDown,
-  heroChevronLeft,
-  heroChevronRight,
-  heroBuildingLibrary,
-  heroClipboardDocument,
-  heroMagnifyingGlass,
-  heroPlus,
-  heroUser,
-  heroXMark,
-} from '@ng-icons/heroicons/outline';
+import { NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 type WalletStatus = 'successful' | 'failed';
 type WalletTransactionType = 'all' | 'wallet funding' | 'subscription payment';
 type WalletDateFilter = 'all' | 'feb-2025' | 'mar-2025';
 
 interface WalletTransaction {
-  id: string;
   amount: string;
   type: Exclude<WalletTransactionType, 'all'>;
   date: string;
-  dateKey: WalletDateFilter;
+  dateKey: Exclude<WalletDateFilter, 'all'>;
+  status: WalletStatus;
+}
+
+interface MobileWalletTransaction {
+  icon: string;
+  title: string;
+  date: string;
+  amount: string;
   status: WalletStatus;
 }
 
 @Component({
   selector: 'app-wallet-page',
-  imports: [CommonModule, NgIcon],
-  providers: [
-    provideIcons({
-      heroChevronDown,
-      heroChevronLeft,
-      heroChevronRight,
-      heroMagnifyingGlass,
-      heroPlus,
-      heroXMark,
-      heroClipboardDocument,
-      heroBuildingLibrary,
-      heroUser,
-      heroBanknotes,
-    }),
-  ],
+  imports: [NgOptimizedImage, RouterLink],
   template: `
-    <div class="flex h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]">
-      <div class="flex flex-col gap-4 border-b border-[#F0F0F2] px-8 py-6 lg:flex-row lg:items-center lg:justify-between">
-        <h1 class="text-[20px] font-black tracking-tight text-[#1A1C21]">Wallet</h1>
+    <div class="md:hidden">
+      <div class="px-5 pb-28">
+        <div class="flex h-[54px] items-center justify-between gap-4">
+          <a
+            routerLink="/more"
+            aria-label="Back to more"
+            class="inline-flex items-center gap-2 text-black"
+          >
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F3F3F3]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M11.5 5L6.5 10L11.5 15"
+                  stroke="#141414"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span class="text-[20px] font-semibold leading-6 tracking-[-0.03em] text-black">
+              Wallet
+            </span>
+          </a>
 
-        <button
-          type="button"
-          (click)="isFundWalletModalOpen.set(true)"
-          class="inline-flex items-center gap-2 self-start rounded-full bg-[#6653E4] px-5 py-3 text-[13px] font-semibold text-white shadow-[0_14px_28px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
-        >
-          <ng-icon name="heroPlus" class="text-sm"></ng-icon>
-          Fund wallet
-        </button>
-      </div>
+          <button
+            type="button"
+            (click)="openFundWallet()"
+            class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-white bg-[#6453D9] px-4 text-[16px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+          >
+            <img [ngSrc]="assets.addIcon" width="18" height="18" alt="" class="h-[18px] w-[18px]">
+            Fund wallet
+          </button>
+        </div>
 
-      <div class="flex-1 overflow-y-auto px-4 py-5 sm:px-8 sm:py-6">
-        <section>
-          <h2 class="max-w-[460px] text-[34px] font-medium leading-[1.2] tracking-tight text-[#2A2D34]">
+        <div class="mt-12">
+          <h1 class="max-w-[350px] text-[32px] font-medium leading-[1.3] text-[#414141]">
             You currently have
-            <span class="font-black text-[#8E939D]">₦0.00</span>
+            <span class="font-bold text-[#959595] line-through">N</span><span class="font-bold text-[#959595]">0.00</span>
             in your wallet
-          </h2>
-        </section>
+          </h1>
+        </div>
 
-        <section class="mt-12">
-          <h3 class="text-[18px] font-black tracking-tight text-[#1A1C21]">Transaction history</h3>
-
-          <div class="mt-4 overflow-hidden rounded-[26px] border border-[#ECEEF3] bg-white">
-            <div class="flex flex-col gap-4 border-b border-[#F1F2F4] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-              <div class="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  (click)="cycleTransactionType()"
-                  class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
-                >
-                  {{ transactionTypeLabel() }}
-                  <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
-                </button>
-
-                <button
-                  type="button"
-                  (click)="cycleDateFilter()"
-                  class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
-                >
-                  {{ dateFilterLabel() }}
-                  <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
-                </button>
-
-                <button
-                  type="button"
-                  (click)="cycleStatusFilter()"
-                  class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
-                >
-                  {{ statusFilterLabel() }}
-                  <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
-                </button>
-              </div>
+        <section class="mt-8">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-[16px] font-medium leading-5 text-[#4D4845]">Transaction history</h2>
+              <p class="mt-1 text-[12px] leading-4 text-[#928F8B]">23 total</p>
             </div>
 
-            <div class="overflow-x-auto">
-              <table class="w-full min-w-[760px]">
-                <thead class="border-b border-[#F1F2F4] bg-[#FAFAFB] text-left">
-                  <tr class="text-[12px] font-semibold text-[#9AA0AA]">
-                    <th class="px-8 py-4">Amount</th>
-                    <th class="px-4 py-4">Transaction type</th>
-                    <th class="px-4 py-4">Date</th>
-                    <th class="px-4 py-4">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (transaction of visibleTransactions(); track transaction.id) {
-                    <tr class="border-b border-[#F4F5F7] last:border-b-0">
-                      <td class="px-8 py-5 text-[14px] font-semibold text-[#555A64]">{{ transaction.amount }}</td>
-                      <td class="px-4 py-5 text-[14px] font-medium text-[#555A64]">{{ transaction.type | titlecase }}</td>
-                      <td class="px-4 py-5 text-[14px] font-medium text-[#555A64]">{{ transaction.date }}</td>
-                      <td class="px-4 py-5">
-                        <span
-                          class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold"
-                          [class.bg-[#EDF9EF]]="transaction.status === 'successful'"
-                          [class.text-[#2FB04A]]="transaction.status === 'successful'"
-                          [class.bg-[#FFF0F0]]="transaction.status === 'failed'"
-                          [class.text-[#FF4B4B]]="transaction.status === 'failed'"
-                        >
-                          <span
-                            class="flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                            [class.bg-[#2FB04A]]="transaction.status === 'successful'"
-                            [class.bg-[#FF4B4B]]="transaction.status === 'failed'"
-                          >
-                            {{ transaction.status === 'successful' ? '✓' : '!' }}
-                          </span>
-                          {{ transaction.status === 'successful' ? 'Successful' : 'Failed' }}
-                        </span>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
+            <a
+              href="#"
+              class="text-[16px] font-medium leading-5 text-[#6453D9] underline underline-offset-2"
+            >
+              See all
+            </a>
+          </div>
+
+          <div class="mt-6 space-y-6">
+            @for (transaction of mobileTransactions; track transaction.title + transaction.date) {
+              <article class="flex items-center gap-3">
+                <div class="relative h-10 w-10 shrink-0 rounded-full border border-[#F4F4F2] bg-white">
+                  <img
+                    [ngSrc]="transaction.icon"
+                    width="24"
+                    height="24"
+                    alt=""
+                    class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
+                  >
+                  <span
+                    class="absolute left-[21px] top-[21px] inline-flex h-[22px] w-[22px] items-center justify-center overflow-hidden rounded-full bg-white shadow-[0_3px_9px_rgba(172,172,172,0.25)]"
+                  >
+                    <img
+                      [ngSrc]="assets.mobileDirectionIcon"
+                      width="14"
+                      height="14"
+                      alt=""
+                      class="h-[14px] w-[14px]"
+                    >
+                  </span>
+                </div>
+
+                <div class="flex min-w-0 flex-1 items-start justify-between gap-4">
+                  <div class="min-w-0">
+                    <p class="truncate text-[14px] font-medium leading-5 text-[#4D4845]">
+                      {{ transaction.title }}
+                    </p>
+                    <p class="mt-1 text-[12px] leading-4 text-[#928F8B]">{{ transaction.date }}</p>
+                  </div>
+
+                  <div class="text-right">
+                    <p class="text-[14px] font-medium leading-5 text-[#215B44]">
+                      {{ transaction.amount }}
+                    </p>
+                    <p
+                      class="mt-1 text-[12px] leading-4"
+                      [class.text-[#50BD5A]]="transaction.status === 'successful'"
+                      [class.text-[#FF2524]]="transaction.status === 'failed'"
+                    >
+                      {{ transaction.status === 'successful' ? 'Successful' : 'Failed' }}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            }
           </div>
         </section>
+      </div>
+    </div>
 
-        <div class="mt-auto flex items-center justify-between px-2 pt-6">
-          <p class="text-[14px] font-semibold text-[#646A73]">{{ visibleTransactions().length }} results</p>
+    <div class="hidden h-full md:block">
+      <div class="flex h-full flex-col rounded-[24px] bg-white">
+        <div class="px-4 pb-0 pt-[72px]">
+          <div class="flex items-start justify-between gap-6">
+            <h1 class="max-w-[468px] pt-[21px] text-[40px] font-medium leading-[1.3] text-[#414141]">
+              You currently have
+              <span class="font-bold text-[#959595] line-through">N</span><span class="font-bold text-[#959595]">0.00</span>
+              in your wallet
+            </h1>
 
-          <div class="flex items-center gap-2 text-[14px] font-medium text-[#B2B7C0]">
             <button
               type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white transition hover:bg-[#FAFAFC]"
+              (click)="openFundWallet()"
+              class="inline-flex h-12 shrink-0 items-center gap-2 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
             >
-              <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
+              <img [ngSrc]="assets.addIcon" width="18" height="18" alt="" class="h-[18px] w-[18px]">
+              Fund wallet
             </button>
-            <span class="flex h-8 min-w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white px-3 text-[#7A808A]">
-              1
-            </span>
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white transition hover:bg-[#FAFAFC]"
-            >
-              <ng-icon name="heroChevronRight" class="text-sm"></ng-icon>
-            </button>
-            <span class="ml-2">of 12</span>
+          </div>
+
+          <section class="mt-9">
+            <h2 class="text-[20px] font-medium leading-[1.2] text-[#0D0D0D]">Transaction history</h2>
+
+            <div class="mt-4 rounded-[16px] border border-[#F0F0F0] bg-white">
+              <div class="flex items-center justify-between px-[15px] py-[15px]">
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    (click)="cycleTransactionType()"
+                    class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                  >
+                    {{ transactionTypeLabel() }}
+                    <img [ngSrc]="assets.arrowDownIcon" width="16" height="16" alt="" class="h-4 w-4">
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="cycleDateFilter()"
+                    class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                  >
+                    {{ dateFilterLabel() }}
+                    <img [ngSrc]="assets.arrowDownIcon" width="16" height="16" alt="" class="h-4 w-4">
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="cycleStatusFilter()"
+                    class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                  >
+                    {{ statusFilterLabel() }}
+                    <img [ngSrc]="assets.arrowDownIcon" width="16" height="16" alt="" class="h-4 w-4">
+                  </button>
+                </div>
+              </div>
+
+              <div class="border-t border-[#F4F4F4] bg-[#FAFAFA]">
+                <div class="grid grid-cols-[1.1fr_1.35fr_1fr_0.9fr] gap-6 px-[35px] py-[11px] text-[12px] font-medium leading-[normal] text-[rgba(26,27,29,0.6)]">
+                  <span>Amount</span>
+                  <span>Transaction type</span>
+                  <span>Date</span>
+                  <span>Status</span>
+                </div>
+              </div>
+
+              <div>
+                @for (transaction of visibleTransactions(); track transaction.amount + transaction.type + transaction.date) {
+                  <div
+                    class="grid min-h-[60px] grid-cols-[1.1fr_1.35fr_1fr_0.9fr] gap-6 items-center border-t border-[#F0F0F0] px-[35px] py-4 text-[14px] leading-5 text-[#1A1B1D] first:border-t-0"
+                  >
+                    <span class="font-medium">{{ transaction.amount }}</span>
+                    <span>{{ transaction.type === 'wallet funding' ? 'Wallet funding' : 'Subscription payment' }}</span>
+                    <span>{{ transaction.date }}</span>
+                    <span>
+                      <span [class]="statusBadgeClass(transaction.status)">
+                        <img
+                          [ngSrc]="transaction.status === 'successful' ? assets.successIcon : assets.failedIcon"
+                          width="14"
+                          height="14"
+                          alt=""
+                          class="h-[14px] w-[14px]"
+                        >
+                        {{ transaction.status === 'successful' ? 'Successful' : 'Failed' }}
+                      </span>
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="mt-auto flex items-center justify-between px-4 pb-4 pt-10 text-[16px] leading-[normal]">
+          <p class="text-[#1A1B1D]">5 <span class="text-[rgba(26,27,29,0.5)]">results</span></p>
+
+          <div class="flex items-center gap-2 text-[#1C1F1D] opacity-50">
+            <div class="flex items-end gap-[5px]">
+              <button
+                type="button"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                aria-label="Previous page"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M11.5 5L6.5 10L11.5 15"
+                    stroke="#1C1F1D"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+
+              <span
+                class="inline-flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-[14px] text-[14px] font-medium shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+              >
+                1
+              </span>
+
+              <button
+                type="button"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                aria-label="Next page"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M8.5 5L13.5 10L8.5 15"
+                    stroke="#1C1F1D"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <span>of 12</span>
           </div>
         </div>
       </div>
     </div>
 
-    @if (isFundWalletModalOpen()) {
+    @if (isFundWalletOpen()) {
       <div
-        class="fixed inset-0 z-[220] flex items-center justify-center bg-black/20 p-4 backdrop-blur-[2px]"
-        (click)="isFundWalletModalOpen.set(false)"
+        class="fixed inset-0 z-[220] bg-black/20 backdrop-blur-[2px]"
+        (click)="closeFundWallet()"
       >
-        <div
-          class="w-full max-w-[560px] rounded-[28px] bg-white px-6 py-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:px-8 sm:py-7"
-          (click)="$event.stopPropagation()"
-        >
-          <div class="flex items-start justify-between gap-4">
-            <h2 class="text-[22px] font-black tracking-tight text-[#1A1C21]">Fund wallet</h2>
-
-            <button
-              type="button"
-              (click)="isFundWalletModalOpen.set(false)"
-              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] shadow-sm transition hover:bg-[#EFEFF2]"
-              aria-label="Close fund wallet modal"
-            >
-              <ng-icon name="heroXMark" class="text-xl"></ng-icon>
-            </button>
-          </div>
-
-          <div class="mt-8 overflow-hidden rounded-[24px] bg-[#FCFCFD] p-5 shadow-[inset_0_0_0_1px_rgba(236,238,243,1)]">
-            <p class="max-w-[360px] text-[14px] font-medium leading-7 text-[#5E636D]">
-              Transfer to the account details below and your wallet will be funded instantly ⚡
-            </p>
-
-            <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_132px] lg:items-end">
-              <div class="space-y-6">
-                <div class="flex items-center gap-4">
-                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#F2F3F5] text-[#555A64]">
-                    <ng-icon name="heroClipboardDocument" class="text-xl"></ng-icon>
-                  </div>
-                  <div>
-                    <p class="text-[14px] font-medium text-[#9DA2AB]">Account number</p>
-                    <div class="mt-1 flex items-center gap-2">
-                      <span class="text-[21px] font-medium tracking-tight text-[#20242B]">3105500602</span>
-                      <button
-                        type="button"
-                        class="text-[#6B5CF0] transition hover:text-[#5945DB]"
-                        aria-label="Copy account number"
-                      >
-                        <ng-icon name="heroClipboardDocument" class="text-lg"></ng-icon>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-4">
-                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#F2F3F5] text-[#555A64]">
-                    <ng-icon name="heroBuildingLibrary" class="text-xl"></ng-icon>
-                  </div>
-                  <div>
-                    <p class="text-[14px] font-medium text-[#9DA2AB]">Bank name</p>
-                    <p class="mt-1 text-[17px] font-medium tracking-tight text-[#20242B]">Wema Bank</p>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-4">
-                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#F2F3F5] text-[#555A64]">
-                    <ng-icon name="heroUser" class="text-xl"></ng-icon>
-                  </div>
-                  <div>
-                    <p class="text-[14px] font-medium text-[#9DA2AB]">Name</p>
-                    <p class="mt-1 text-[17px] font-medium tracking-tight text-[#20242B]">Bryan Odjede</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="relative mx-auto h-[126px] w-[132px]">
-                <div class="absolute right-0 top-5 h-[86px] w-[104px] rounded-[18px] bg-linear-to-br from-[#7D6AF6] to-[#5C44DF] shadow-[0_22px_30px_-20px_rgba(92,68,223,0.7)]"></div>
-                <div class="absolute right-[20px] top-0 h-12 w-12 rotate-[45deg] rounded-[10px] bg-[#7D6AF6]"></div>
-                <div class="absolute right-[82px] top-[18px] h-8 w-8 rounded-full border border-[#DADCF4] bg-white/70"></div>
-                <div class="absolute right-[58px] top-[18px] h-8 w-8 rounded-full border border-[#DADCF4] bg-white/50"></div>
-                <div class="absolute right-[60px] top-[56px] flex h-7 w-12 items-center justify-center rounded-[8px] bg-[#E9EAF5] text-[#666B74] shadow-sm">
-                  <span class="h-2.5 w-2.5 rounded-full bg-[#8F96A3]"></span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="my-7 flex items-center gap-4 text-[#7D828B]">
-            <span class="h-px flex-1 bg-[#E7EAF0]"></span>
-            <span class="text-[14px] font-medium">OR</span>
-            <span class="h-px flex-1 bg-[#E7EAF0]"></span>
-          </div>
-
-          <button
-            type="button"
-            class="flex w-full items-center justify-between rounded-[22px] border border-[#ECEEF3] bg-white px-5 py-4 text-left transition hover:bg-[#FAFAFC]"
+        <div class="hidden h-full items-center justify-center p-6 md:flex">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wallet-fund-title-desktop"
+            class="w-full max-w-[550px] rounded-[16px] bg-[#FAFAFA] shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]"
+            (click)="$event.stopPropagation()"
           >
-            <div class="flex items-center gap-4">
-              <div class="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#F2F3F5] text-[#4D8DF7]">
-                <ng-icon name="heroBanknotes" class="text-xl"></ng-icon>
-              </div>
-              <div>
-                <p class="text-[16px] font-semibold text-[#20242B]">Pay online</p>
-                <p class="mt-1 text-[14px] font-medium text-[#9DA2AB]">Fund your wallet via Paystack</p>
-              </div>
+            <div class="flex items-center justify-between px-6 pb-5 pt-5">
+              <h2
+                id="wallet-fund-title-desktop"
+                class="text-[24px] font-bold leading-5 tracking-[-0.03em] text-[#0D0D0D]"
+              >
+                Fund wallet
+              </h2>
+
+              <button
+                type="button"
+                (click)="closeFundWallet()"
+                aria-label="Close fund wallet modal"
+                class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+              >
+                <img [ngSrc]="assets.fundWalletCloseIcon" width="24" height="24" alt="" class="h-6 w-6">
+              </button>
             </div>
 
-            <span class="text-[24px] font-light text-[#8C919A]">›</span>
-          </button>
+            <div class="px-6 pb-6">
+              <div class="space-y-6">
+                <section class="overflow-hidden rounded-[16px] bg-white p-3">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="max-w-[292px]">
+                      <p class="text-[14px] leading-5 text-[rgba(13,13,13,0.7)]">
+                        Transfer to the account details below and your wallet will be funded instantly
+                        <span aria-hidden="true"> ⚡️</span>
+                      </p>
+
+                      <div class="mt-[22px] space-y-[26px]">
+                        <div class="flex items-center gap-3">
+                          <div class="flex h-12 w-12 items-center justify-center rounded-[10px] bg-[#F6F6F6]">
+                            <img [ngSrc]="assets.fundWalletHashtagIcon" width="24" height="24" alt="" class="h-6 w-6">
+                          </div>
+
+                          <div>
+                            <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Account number</p>
+                            <div class="mt-0.5 flex items-center gap-1.5">
+                              <p class="text-[24px] font-medium leading-[1.2] tracking-[-0.03em] text-[#1A1B1D]">
+                                {{ fundWallet.accountNumber }}
+                              </p>
+                              <button
+                                type="button"
+                                (click)="copyAccountNumber()"
+                                [attr.aria-label]="hasCopiedAccount() ? 'Account number copied' : 'Copy account number'"
+                                class="inline-flex h-7 w-7 items-center justify-center rounded-full"
+                              >
+                                <img [ngSrc]="assets.fundWalletCopyIcon" width="20" height="20" alt="" class="h-5 w-5">
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                          <div class="flex h-12 w-12 items-center justify-center rounded-[10px] bg-[#F6F6F6]">
+                            <img [ngSrc]="assets.fundWalletBankIcon" width="24" height="24" alt="" class="h-6 w-6">
+                          </div>
+
+                          <div>
+                            <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Bank name</p>
+                            <p class="mt-0.5 text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                              {{ fundWallet.bankName }}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                          <div class="flex h-12 w-12 items-center justify-center rounded-[10px] bg-[#F6F6F6]">
+                            <img [ngSrc]="assets.fundWalletUserIcon" width="24" height="24" alt="" class="h-6 w-6">
+                          </div>
+
+                          <div>
+                            <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Name</p>
+                            <p class="mt-0.5 text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                              {{ fundWallet.accountName }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <img
+                      [ngSrc]="assets.fundWalletIllustration"
+                      width="184"
+                      height="184"
+                      alt=""
+                      class="mt-[44px] h-[184px] w-[184px] shrink-0 object-contain"
+                    >
+                  </div>
+                </section>
+
+                <div class="flex items-center justify-center gap-6">
+                  <span class="h-px w-[100px] bg-[#E1E1E1]"></span>
+                  <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.8)]">OR</span>
+                  <span class="h-px w-[100px] bg-[#E1E1E1]"></span>
+                </div>
+
+                <button
+                  type="button"
+                  class="flex h-[67px] w-full items-center justify-between rounded-[16px] bg-white px-[6px] py-[6px] text-left"
+                >
+                  <span class="flex items-center gap-3">
+                    <span class="flex h-[55px] w-[55px] items-center justify-center rounded-[10px] bg-[#F6F6F6]">
+                      <img
+                        [ngSrc]="assets.fundWalletPayOnlineImage"
+                        width="42"
+                        height="42"
+                        alt=""
+                        class="h-[42px] w-[42px] object-contain"
+                      >
+                    </span>
+
+                    <span class="block">
+                      <span class="block text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                        Pay online
+                      </span>
+                      <span class="block text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">
+                        Fund your wallet via Paystack
+                      </span>
+                    </span>
+                  </span>
+
+                  <img
+                    [ngSrc]="assets.fundWalletArrowRightIcon"
+                    width="20"
+                    height="20"
+                    alt=""
+                    class="mr-4 h-5 w-5"
+                  >
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="flex h-full items-end md:hidden">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wallet-fund-title-mobile"
+            class="w-full rounded-t-[36px] bg-[#FAFAFA] px-4 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-[11px]"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="relative">
+              <span class="mx-auto block h-1 w-[50px] rounded-full bg-[#EBEBEB]"></span>
+
+              <button
+                type="button"
+                (click)="closeFundWallet()"
+                aria-label="Close fund wallet bottom sheet"
+                class="absolute right-0 top-[5px] inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+              >
+                <img [ngSrc]="assets.fundWalletCloseIcon" width="24" height="24" alt="" class="h-6 w-6">
+              </button>
+            </div>
+
+            <div class="mt-10">
+              <h2
+                id="wallet-fund-title-mobile"
+                class="text-[24px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D]"
+              >
+                Fund wallet
+              </h2>
+
+              <div class="mt-5 space-y-6">
+                <section class="overflow-hidden rounded-[16px] bg-white p-3">
+                  <p class="max-w-[306px] text-[14px] leading-5 text-[rgba(13,13,13,0.7)]">
+                    Transfer to the account details below and your wallet will be funded instantly
+                    <span aria-hidden="true"> ⚡️</span>
+                  </p>
+
+                  <div class="mt-[22px] flex items-end justify-between gap-4">
+                    <div class="min-w-0 flex-1 space-y-[26px]">
+                      <div class="flex items-center gap-3">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[10px] bg-[#F6F6F6]">
+                          <img [ngSrc]="assets.fundWalletHashtagIcon" width="24" height="24" alt="" class="h-6 w-6">
+                        </div>
+
+                        <div class="min-w-0">
+                          <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Account number</p>
+                          <div class="mt-0.5 flex items-center gap-1.5">
+                            <p class="truncate text-[24px] font-medium leading-[1.2] tracking-[-0.03em] text-[#1A1B1D]">
+                              {{ fundWallet.accountNumber }}
+                            </p>
+                            <button
+                              type="button"
+                              (click)="copyAccountNumber()"
+                              [attr.aria-label]="hasCopiedAccount() ? 'Account number copied' : 'Copy account number'"
+                              class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                            >
+                              <img [ngSrc]="assets.fundWalletCopyIcon" width="20" height="20" alt="" class="h-5 w-5">
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-3">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[10px] bg-[#F6F6F6]">
+                          <img [ngSrc]="assets.fundWalletBankIcon" width="24" height="24" alt="" class="h-6 w-6">
+                        </div>
+
+                        <div>
+                          <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Bank name</p>
+                          <p class="mt-0.5 text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                            {{ fundWallet.bankName }}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-3">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[10px] bg-[#F6F6F6]">
+                          <img [ngSrc]="assets.fundWalletUserIcon" width="24" height="24" alt="" class="h-6 w-6">
+                        </div>
+
+                        <div>
+                          <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Name</p>
+                          <p class="mt-0.5 text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                            {{ fundWallet.accountName }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <img
+                      [ngSrc]="assets.fundWalletIllustration"
+                      width="146"
+                      height="146"
+                      alt=""
+                      class="mb-[-12px] h-[146px] w-[146px] shrink-0 object-contain"
+                    >
+                  </div>
+                </section>
+
+                <div class="flex items-center justify-center gap-6">
+                  <span class="h-px w-[100px] bg-[#E1E1E1]"></span>
+                  <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.8)]">OR</span>
+                  <span class="h-px w-[100px] bg-[#E1E1E1]"></span>
+                </div>
+
+                <button
+                  type="button"
+                  class="flex h-[67px] w-full items-center justify-between rounded-[16px] bg-white px-[6px] py-[6px] text-left"
+                >
+                  <span class="flex items-center gap-3">
+                    <span class="flex h-[55px] w-[55px] items-center justify-center rounded-[10px] bg-[#F6F6F6]">
+                      <img
+                        [ngSrc]="assets.fundWalletPayOnlineImage"
+                        width="42"
+                        height="42"
+                        alt=""
+                        class="h-[42px] w-[42px] object-contain"
+                      >
+                    </span>
+
+                    <span class="block">
+                      <span class="block text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                        Pay online
+                      </span>
+                      <span class="block text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">
+                        Fund your wallet via Paystack
+                      </span>
+                    </span>
+                  </span>
+
+                  <img
+                    [ngSrc]="assets.fundWalletArrowRightIcon"
+                    width="16"
+                    height="16"
+                    alt=""
+                    class="mr-2 h-4 w-4"
+                  >
+                </button>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     }
@@ -281,10 +571,32 @@ interface WalletTransaction {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WalletPageComponent {
-  readonly isFundWalletModalOpen = signal(false);
+  readonly assets = {
+    successIcon: '/assets/icons/wallet-status-success.svg',
+    failedIcon: '/assets/icons/wallet-status-failed.svg',
+    arrowDownIcon: '/assets/icons/wallet-mobile-direction.svg',
+    addIcon: '/assets/icons/wallet-add.svg',
+    mobileDirectionIcon: '/assets/icons/wallet-mobile-direction.svg',
+    mobileFundingIcon: '/assets/images/wallet-mobile-funding.png',
+    mobileSubscriptionIcon: '/assets/images/wallet-mobile-subscription.png',
+    fundWalletCloseIcon: '/assets/icons/wallet-fund-close.svg',
+    fundWalletHashtagIcon: '/assets/icons/wallet-fund-hashtag.svg',
+    fundWalletCopyIcon: '/assets/icons/wallet-fund-copy.svg',
+    fundWalletBankIcon: '/assets/icons/wallet-fund-bank.svg',
+    fundWalletUserIcon: '/assets/icons/wallet-fund-user.svg',
+    fundWalletArrowRightIcon: '/assets/icons/wallet-fund-arrow-right.svg',
+    fundWalletIllustration: '/assets/images/wallet-fund-illustration.png',
+    fundWalletPayOnlineImage: '/assets/images/wallet-fund-pay-online.png',
+  } as const;
+
+  readonly fundWallet = {
+    accountNumber: '3105500602',
+    bankName: 'Wema Bank',
+    accountName: 'Bryan Odjede',
+  } as const;
+
   readonly transactions = signal<WalletTransaction[]>([
     {
-      id: 'wallet-1',
       amount: '₦25,000.00',
       type: 'wallet funding',
       date: '14 Feb, 2025',
@@ -292,7 +604,6 @@ export class WalletPageComponent {
       status: 'successful',
     },
     {
-      id: 'wallet-2',
       amount: '₦25,000.00',
       type: 'subscription payment',
       date: '14 Feb, 2025',
@@ -300,7 +611,6 @@ export class WalletPageComponent {
       status: 'successful',
     },
     {
-      id: 'wallet-3',
       amount: '₦25,000.00',
       type: 'wallet funding',
       date: '14 Feb, 2025',
@@ -308,38 +618,49 @@ export class WalletPageComponent {
       status: 'failed',
     },
     {
-      id: 'wallet-4',
       amount: '₦25,000.00',
       type: 'subscription payment',
       date: '14 Feb, 2025',
       dateKey: 'feb-2025',
       status: 'successful',
     },
+  ]);
+
+  readonly mobileTransactions: readonly MobileWalletTransaction[] = [
     {
-      id: 'wallet-5',
-      amount: '₦40,000.00',
-      type: 'wallet funding',
-      date: '03 Mar, 2025',
-      dateKey: 'mar-2025',
+      icon: '/assets/images/wallet-mobile-funding.png',
+      title: 'Wallet funding',
+      date: 'Today',
+      amount: '₦16,500',
       status: 'successful',
     },
-  ]);
+    {
+      icon: '/assets/images/wallet-mobile-subscription.png',
+      title: 'Subscription payment',
+      date: 'Yesterday',
+      amount: '₦2,000',
+      status: 'failed',
+    },
+    {
+      icon: '/assets/images/wallet-mobile-funding.png',
+      title: 'Wallet funding',
+      date: 'June 7, 2:30PM',
+      amount: '₦5,000',
+      status: 'successful',
+    },
+  ];
 
   readonly transactionType = signal<WalletTransactionType>('all');
   readonly dateFilter = signal<WalletDateFilter>('all');
   readonly statusFilter = signal<'all' | WalletStatus>('all');
+  readonly isFundWalletOpen = signal(false);
+  readonly hasCopiedAccount = signal(false);
 
   readonly visibleTransactions = computed(() =>
     this.transactions().filter(transaction => {
-      const matchesType =
-        this.transactionType() === 'all' || transaction.type === this.transactionType();
-
-      const matchesDate =
-        this.dateFilter() === 'all' || transaction.dateKey === this.dateFilter();
-
-      const matchesStatus =
-        this.statusFilter() === 'all' || transaction.status === this.statusFilter();
-
+      const matchesType = this.transactionType() === 'all' || transaction.type === this.transactionType();
+      const matchesDate = this.dateFilter() === 'all' || transaction.dateKey === this.dateFilter();
+      const matchesStatus = this.statusFilter() === 'all' || transaction.status === this.statusFilter();
       return matchesType && matchesDate && matchesStatus;
     }),
   );
@@ -393,5 +714,28 @@ export class WalletPageComponent {
     const order: Array<'all' | WalletStatus> = ['all', 'successful', 'failed'];
     const currentIndex = order.indexOf(this.statusFilter());
     this.statusFilter.set(order[(currentIndex + 1) % order.length]);
+  }
+
+  openFundWallet(): void {
+    this.hasCopiedAccount.set(false);
+    this.isFundWalletOpen.set(true);
+  }
+
+  closeFundWallet(): void {
+    this.hasCopiedAccount.set(false);
+    this.isFundWalletOpen.set(false);
+  }
+
+  copyAccountNumber(): void {
+    void globalThis.navigator?.clipboard?.writeText(this.fundWallet.accountNumber);
+    this.hasCopiedAccount.set(true);
+  }
+
+  statusBadgeClass(status: WalletStatus): string {
+    if (status === 'successful') {
+      return 'inline-flex h-6 items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-[6px] text-[12px] font-semibold leading-4 text-[#25AD32]';
+    }
+
+    return 'inline-flex h-6 items-center gap-1 rounded-[8px] bg-[#FDF6FA] px-2 py-[6px] text-[12px] font-semibold leading-4 text-[#FF2524]';
   }
 }

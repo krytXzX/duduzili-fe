@@ -1,182 +1,467 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroCalendarDays, heroChevronDown } from '@ng-icons/heroicons/outline';
+import { NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 interface SummaryMetric {
   label: string;
   value: string;
 }
 
-interface StoreOption {
-  id: string;
-  name: string;
-  logo: string;
-}
-
 interface DistributionItem {
   label: string;
   value: string;
   color: string;
+  width: string;
+}
+
+interface ChartBar {
+  label: string;
+  desktopHeight: number;
+  mobileHeight: number;
+  highlight?: boolean;
+  faded?: boolean;
+}
+
+interface StoreAvatar {
+  src: string;
+  alt: string;
 }
 
 @Component({
   selector: 'app-analytics-page',
-  imports: [CommonModule, NgIcon],
-  providers: [provideIcons({ heroCalendarDays, heroChevronDown })],
+  imports: [NgOptimizedImage, RouterLink],
   template: `
-    <div class="flex h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]">
-      <div class="flex flex-col gap-4 border-b border-[#F0F0F2] px-8 py-6 lg:flex-row lg:items-center lg:justify-between">
-        <h1 class="text-[20px] font-black tracking-tight text-[#1A1C21]">Analytics</h1>
-
-        <button
-          type="button"
-          (click)="cycleStoreSelection()"
-          class="inline-flex items-center gap-3 self-start rounded-full border border-[#ECEEF3] bg-white px-3 py-2.5 shadow-sm transition hover:bg-[#FAFAFC]"
-        >
-          <div class="flex -space-x-3">
-            @for (store of visibleStores(); track store.id) {
-              <img
-                [src]="store.logo"
-                [alt]="store.name"
-                class="h-8 w-8 rounded-full border-2 border-white object-cover"
-              >
-            }
-          </div>
-          <span class="text-[14px] font-semibold text-[#50555E]">{{ selectedStoreLabel() }}</span>
-          <ng-icon name="heroChevronDown" class="text-sm text-[#A4A8B1]"></ng-icon>
-        </button>
-      </div>
-
-      <div class="flex-1 overflow-y-auto px-4 py-5 sm:px-8 sm:py-6">
-        <div class="grid gap-4 border-b border-[#F0F1F4] pb-5 md:grid-cols-2 xl:grid-cols-4">
-          @for (metric of summaryMetrics; track metric.label) {
-            <div class="border-[#F0F1F4] xl:border-r last:border-r-0 xl:pr-5">
-              <p class="text-[13px] font-medium text-[#9BA0AA]">{{ metric.label }}</p>
-              <p class="mt-1 text-[18px] font-black text-[#24262D]">{{ metric.value }}</p>
-            </div>
-          }
+    <div class="md:hidden">
+      <div class="px-4 pb-28">
+        <div class="flex h-[54px] items-center">
+          <a
+            routerLink="/more"
+            aria-label="Back to more"
+            class="inline-flex items-center gap-2 text-black"
+          >
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F3F3F3]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M11.5 5L6.5 10L11.5 15"
+                  stroke="#141414"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span class="text-[20px] font-semibold leading-6 tracking-[-0.03em] text-black">
+              Analytics
+            </span>
+          </a>
         </div>
 
-        <section class="mt-6 rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6">
-          <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p class="text-[13px] font-semibold text-[#A2A7B0]">Total sold items</p>
-              <h2 class="mt-1 text-[24px] font-black tracking-tight text-[#1A1C21]">100,500</h2>
-              <span class="mt-3 inline-flex rounded-full bg-[#EBF8EF] px-3 py-1 text-[12px] font-semibold text-[#2FB04A]">
-                ↑ 28% vs last month
-              </span>
-            </div>
+        <div class="mt-[25px] overflow-x-auto border-y border-[#EDEDED] py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div class="flex min-w-max items-center gap-8 pr-8">
+            @for (metric of summaryMetrics; track metric.label) {
+              <div class="flex min-w-[72px] flex-col gap-1">
+                <p class="text-[14px] font-medium leading-[normal] text-[rgba(26,27,29,0.5)]">
+                  {{ metric.label }}
+                </p>
+                <p class="text-[18px] font-semibold leading-[normal] text-[#1A1B1D]">
+                  {{ metric.value }}
+                </p>
+              </div>
+            }
+          </div>
+        </div>
 
-            <button
-              type="button"
-              class="inline-flex items-center gap-2 self-start rounded-full border border-[#E7EAF0] bg-white px-4 py-2.5 text-[14px] font-medium text-[#3F444C]"
+        <section class="mt-4 rounded-[20px] border border-[#EBEBEB] bg-white px-[11px] pb-4 pt-[11px]">
+          <button
+            type="button"
+            class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white pl-3 pr-4 text-[14px] font-medium leading-5 text-black"
+          >
+            <img [ngSrc]="assets.calendarIcon" width="14" height="14" alt="" class="h-[14px] w-[14px]">
+            Last 7 days
+            <img [ngSrc]="assets.arrowDownIcon" width="14" height="14" alt="" class="h-[14px] w-[14px]">
+          </button>
+
+          <div class="mt-7">
+            <p class="text-[14px] font-semibold leading-6 text-[rgba(13,13,13,0.4)]">
+              Total sold items
+            </p>
+            <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">100,500</p>
+            <span
+              class="mt-[9px] inline-flex h-6 items-center gap-1 rounded-[100px] bg-[rgba(39,165,81,0.06)] px-2 py-[6px] text-[12px] font-normal leading-4 text-[#27A551]"
             >
-              <ng-icon name="heroCalendarDays" class="text-base"></ng-icon>
-              Last 7 days
-              <ng-icon name="heroChevronDown" class="text-sm text-[#9BA0AA]"></ng-icon>
-            </button>
+              <img [ngSrc]="assets.arrowUpIcon" width="12" height="12" alt="" class="h-3 w-3">
+              28% vs last month
+            </span>
           </div>
 
-          <div class="mt-8">
-            <svg viewBox="0 0 900 320" class="h-auto w-full overflow-visible">
-              <g fill="#A8AEB8" font-size="12" font-weight="500">
-                <text x="8" y="258">0</text>
-                <text x="0" y="178">250</text>
-                <text x="0" y="98">500</text>
-              </g>
+          <div class="mt-6">
+            <div class="relative h-[220px]">
+              <div class="absolute left-0 top-0 flex h-[188px] flex-col justify-between text-[11px] text-[#1A1B1D]">
+                <span>500</span>
+                <span>250</span>
+                <span>0</span>
+              </div>
 
-              @for (month of months; track month.label) {
-                <g>
-                  <rect
-                    [attr.x]="month.x"
-                    [attr.y]="240 - month.height"
-                    width="38"
-                    [attr.height]="month.height"
-                    rx="6"
-                    [attr.fill]="month.highlight ? '#7A6AE6' : '#DCD9F7'"
-                    [attr.opacity]="month.highlight ? '1' : '0.75'"
-                  ></rect>
-                  <text
-                    [attr.x]="month.x + 9"
-                    y="274"
-                    fill="#A8AEB8"
-                    font-size="12"
-                    font-weight="500"
-                  >
-                    {{ month.label }}
-                  </text>
-                </g>
-              }
+              <div
+                class="absolute left-[74px] top-[76px] z-10 flex h-[35px] w-[151px] items-center justify-between rounded-[12px] border border-[#EEEEEE] bg-black px-[10px] shadow-[0_4px_12px_rgba(63,63,63,0.25)]"
+              >
+                <div class="flex items-center gap-1 text-[16px] text-[#D4D4D4]">
+                  <span class="h-[2px] w-1 rounded-[2px] bg-[#6453D9]"></span>
+                  <span>Aug</span>
+                  <span>2025</span>
+                </div>
+                <span class="text-[16px] text-white">128</span>
+              </div>
 
-              <g transform="translate(286,78)">
-                <rect width="136" height="32" rx="10" fill="#090909"></rect>
-                <circle cx="14" cy="16" r="3" fill="#7A6AE6"></circle>
-                <text x="22" y="20" fill="#FFFFFF" font-size="12">Aug 2025</text>
-                <text x="102" y="20" fill="#FFFFFF" font-size="12">128</text>
-              </g>
-            </svg>
+              <div class="absolute bottom-6 left-6 right-0 border-t border-[#ECECEC]"></div>
+
+              <div class="absolute bottom-[42px] left-[26px] right-0 flex items-end justify-between">
+                @for (bar of chartBars; track bar.label) {
+                  <span
+                    class="rounded-t-[4px]"
+                    [class.w-4]="!bar.highlight"
+                    [class.w-6]="bar.highlight"
+                    [class.rounded-[6px]]="bar.highlight"
+                    [style.height.px]="bar.mobileHeight"
+                    [style.opacity]="bar.highlight ? '1' : bar.faded ? '0.15' : '0.2'"
+                    style="background: linear-gradient(180deg, #6453D9 0%, #CFC8FD 100%);"
+                  ></span>
+                }
+              </div>
+
+              <div class="absolute bottom-0 left-[22px] right-0 flex items-center justify-between text-[10px] text-[rgba(13,13,13,0.4)]">
+                @for (bar of chartBars; track bar.label) {
+                  <span>{{ bar.label.toUpperCase() }}</span>
+                }
+              </div>
+            </div>
           </div>
         </section>
 
-        <div class="mt-5 grid gap-4 xl:grid-cols-3">
-          <section class="rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6">
-            <p class="text-[13px] font-semibold text-[#A2A7B0]">Most viewed listing</p>
+        <section class="mt-4 rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] pb-4 pt-[15px]">
+          <p class="text-[14px] font-medium leading-[normal] text-[rgba(13,13,13,0.5)]">
+            Most viewed listing
+          </p>
 
-            <div class="mt-6 flex flex-col items-center text-center">
-              <div class="overflow-hidden rounded-[18px] border border-[#ECEEF3] bg-white shadow-[0_14px_28px_-22px_rgba(17,24,39,0.35)]">
+          <div class="mt-4 flex flex-col items-center">
+            <div
+              class="rounded-[10.46px] border border-[#EAEAEA] bg-white px-[1.7px] pb-[6.5px] pt-[1.7px] shadow-[0_4.721px_9.443px_rgba(192,192,192,0.25)]"
+            >
+              <div class="overflow-hidden rounded-[8.716px] border border-[#EAEAEA] bg-[#EFEFEF]">
                 <img
-                  src="https://images.unsplash.com/photo-1696446701796-da61225697cc?w=220&h=260&fit=crop"
+                  [ngSrc]="assets.mostViewedImage"
+                  width="82"
+                  height="98"
                   alt="Most viewed listing"
-                  class="h-[112px] w-[82px] object-cover"
+                  class="h-[97px] w-[82px] object-cover"
                 >
               </div>
-
-              <p class="mt-6 text-[16px] font-medium leading-7 text-[#6C717B]">
-                This item has been viewed
-              </p>
-              <p class="text-[20px] font-black text-[#1A1C21]">34,002 times</p>
-            </div>
-          </section>
-
-          <section class="rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6">
-            <p class="text-[13px] font-semibold text-[#A2A7B0]">Average response time</p>
-
-            <div class="flex h-full min-h-[230px] flex-col items-center justify-center text-center">
-              <h3 class="text-[32px] font-black tracking-tight text-[#111317]">06 hrs</h3>
-              <p class="mt-5 max-w-[240px] text-[14px] font-medium leading-6 text-[#9BA0AA]">
-                How quickly you respond to buyer inquiries. Faster responses increase your chances of selling.
-              </p>
-            </div>
-          </section>
-
-          <section class="rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6">
-            <p class="text-[13px] font-semibold text-[#A2A7B0]">Listings distribution</p>
-
-            <div class="mt-5 overflow-hidden rounded-full bg-[#F2F4F8]">
-              <div class="flex h-1.5 w-full">
-                <span class="w-[48%] bg-[#34B54A]"></span>
-                <span class="w-[31%] bg-[#4C86F5]"></span>
-                <span class="w-[21%] bg-[#F3A233]"></span>
+              <div class="px-[1.7px] pt-[5.2px]">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-[6.1px] leading-[8.7px] text-[#1F1F1F]">Iphone 17 pro max</span>
+                  <span class="rounded-[435px] bg-[#F0F0F0] px-[3.5px] py-[0.9px] text-[5.23px] leading-[6.97px] text-[#1F1F1F]">
+                    New
+                  </span>
+                </div>
+                <div class="mt-[1.7px] flex items-center gap-[1px]">
+                  <span class="text-[6.973px] leading-[10.46px] text-[#1F1F1F]">₦</span>
+                  <span class="text-[6.973px] leading-[10.46px] text-[#1F1F1F]">2,500,000</span>
+                </div>
               </div>
             </div>
 
-            <div class="mt-6 space-y-5">
-              @for (item of distributionItems; track item.label) {
-                <div class="flex items-center justify-between gap-4">
-                  <div class="flex items-center gap-3">
-                    <span class="h-3 w-3 rounded-full" [style.background]="item.color"></span>
-                    <span class="text-[14px] font-medium text-[#7A808A]">{{ item.label }}</span>
-                  </div>
-                  <span class="text-[14px] font-semibold text-[#454A53]">{{ item.value }}</span>
+            <p class="mt-6 max-w-[246px] text-center text-[17px] font-medium leading-[1.3] text-[rgba(13,13,13,0.5)]">
+              This item has been viewed <span class="text-[#0D0D0D]">34,002</span> times
+            </p>
+          </div>
+        </section>
+
+        <section class="mt-4 rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] pb-4 pt-[15px] text-center">
+          <p class="text-left text-[14px] font-medium leading-[normal] text-[rgba(13,13,13,0.5)]">
+            Average response time
+          </p>
+
+          <div class="mt-10 flex flex-col items-center gap-[5px]">
+            <p class="text-[64px] font-medium leading-[normal] text-[#0D0D0D]">06 hrs</p>
+            <p class="max-w-[287px] text-[12px] leading-[normal] text-[rgba(13,13,13,0.5)]">
+              How quickly you respond to buyer inquiries. Faster responses increase your chances of selling.
+            </p>
+          </div>
+        </section>
+
+        <section class="mt-4 rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] pb-[17px] pt-[15px]">
+          <p class="text-[14px] font-medium leading-[normal] text-[rgba(13,13,13,0.5)]">
+            Listings distribution
+          </p>
+
+          <div class="mt-6 flex items-center gap-0.5">
+            @for (item of distributionItems; track item.label) {
+              <span
+                class="h-1 rounded-[14px]"
+                [style.width]="item.width"
+                [style.background]="item.color"
+              ></span>
+            }
+          </div>
+
+          <div class="mt-6 space-y-6">
+            @for (item of distributionItems; track item.label) {
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-[10px]">
+                  <span class="h-3 w-3 rounded-[22px]" [style.background]="item.color"></span>
+                  <span class="text-[14px] leading-[normal] text-[rgba(13,13,13,0.5)]">
+                    {{ item.label }}
+                  </span>
                 </div>
-              }
+                <span class="text-[14px] font-medium leading-[normal] text-[#0D0D0D]">
+                  {{ item.value }}
+                </span>
+              </div>
+            }
+          </div>
+
+          <a
+            href="#"
+            class="mt-5 inline-flex text-[14px] font-medium leading-5 text-[#6453D9] underline"
+          >
+            View more
+          </a>
+        </section>
+      </div>
+    </div>
+
+    <div class="hidden h-full md:block">
+      <div class="flex h-full flex-col rounded-[24px] bg-white">
+        <div class="flex items-center justify-between border-b border-[#EEEEEE] px-4 py-3">
+          <h1 class="text-[24px] font-medium leading-[normal] text-[#0D0D0D]">Analytics</h1>
+
+          <button
+            type="button"
+            (click)="cycleStoreSelection()"
+            class="inline-flex h-11 items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white p-2 pr-3 w-[347px]"
+            aria-label="Change store selection"
+          >
+            <span class="flex items-center gap-2">
+              <span class="relative h-8 w-[68px]">
+                @for (store of visibleStores(); track store.alt; let i = $index) {
+                  <span
+                    class="absolute top-0 inline-flex h-8 w-8 overflow-hidden rounded-full border-[1.3px] border-white bg-white"
+                    [style.left.px]="i * 12"
+                  >
+                    @if (store.src) {
+                      <img
+                        [ngSrc]="store.src"
+                        width="32"
+                        height="32"
+                        [alt]="store.alt"
+                        class="h-8 w-8 object-cover"
+                      >
+                    } @else {
+                      <span class="flex h-full w-full items-center justify-center bg-[#3D785F]">
+                        <img
+                          [ngSrc]="assets.storeBadgeIcon"
+                          width="20"
+                          height="20"
+                          alt=""
+                          class="h-5 w-5"
+                        >
+                      </span>
+                    }
+                  </span>
+                }
+              </span>
+              <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
+                {{ selectedStoreLabel() }}
+              </span>
+            </span>
+
+            <span class="flex items-center gap-[10px]">
+              <span class="h-[17px] w-px rotate-180 bg-[#E8E8E8]"></span>
+              <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#EDEDED]">
+                <img [ngSrc]="assets.arrowDownIcon" width="16" height="16" alt="" class="h-4 w-4">
+              </span>
+            </span>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-[19px] pb-5 pt-[17px]">
+          <div class="grid grid-cols-4 border-y border-[#EDEDED] py-4">
+            @for (metric of summaryMetrics; track metric.label) {
+              <div class="flex min-h-[57px] flex-col justify-between pr-4">
+                <p class="text-[16px] font-medium leading-[normal] text-[rgba(26,27,29,0.5)]">
+                  {{ metric.label }}
+                </p>
+                <p
+                  class="text-[#1A1B1D] leading-[normal]"
+                  [class.text-[24px]]="$first"
+                  [class.text-[20px]]="!$first"
+                  [class.font-semibold]="true"
+                >
+                  {{ metric.value }}
+                </p>
+              </div>
+            }
+          </div>
+
+          <section class="mt-[25px] rounded-[24px] border border-[#EFEFEF] bg-white p-[15px]">
+            <div class="flex items-start justify-between gap-4">
+              <div class="w-[293px]">
+                <p class="text-[14px] font-semibold leading-6 text-[rgba(13,13,13,0.4)]">
+                  Total sold items
+                </p>
+                <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">100,500</p>
+                <span
+                  class="mt-[9px] inline-flex h-6 items-center gap-1 rounded-[100px] bg-[rgba(39,165,81,0.06)] px-2 py-[6px] text-[12px] text-[#27A551]"
+                >
+                  <img [ngSrc]="assets.arrowUpIcon" width="12" height="12" alt="" class="h-3 w-3">
+                  28% vs last month
+                </span>
+              </div>
+
+              <button
+                type="button"
+                class="inline-flex h-10 items-center justify-center gap-3 rounded-[64px] border border-[#EAEAEA] bg-white pl-3 pr-4 text-[14px] font-medium text-black"
+              >
+                <span class="flex items-center gap-1">
+                  <img [ngSrc]="assets.calendarIcon" width="14" height="14" alt="" class="h-[14px] w-[14px]">
+                  Last 7 days
+                </span>
+                <img [ngSrc]="assets.arrowDownIcon" width="14" height="14" alt="" class="h-[14px] w-[14px]">
+              </button>
             </div>
 
-            <button type="button" class="mt-7 text-[15px] font-semibold text-[#6B5CF0] underline underline-offset-2">
-              View more
-            </button>
+            <div class="mt-8">
+              <div class="relative h-[288px]">
+                <div class="absolute left-[1px] top-[34px] flex h-[188px] flex-col justify-between text-[11px] text-[rgba(0,0,0,0.7)]">
+                  <span>500</span>
+                  <span>250</span>
+                  <span>0</span>
+                </div>
+
+                <div
+                  class="absolute left-[303px] top-[36px] z-10 flex h-[35px] w-[151px] items-center justify-between rounded-[12px] border border-[#EEEEEE] bg-black px-[10px] shadow-[0_4px_12px_rgba(63,63,63,0.25)]"
+                >
+                  <div class="flex items-center gap-1 text-[16px] text-[#D4D4D4]">
+                    <span class="h-[2px] w-1 rounded-[2px] bg-[#6453D9]"></span>
+                    <span>Aug</span>
+                    <span>2025</span>
+                  </div>
+                  <span class="text-[16px] text-white">128</span>
+                </div>
+
+                <div class="absolute bottom-[34px] left-[44px] right-[5px] border-t border-[#ECECEC]"></div>
+
+                <div class="absolute bottom-[34px] left-[52px] right-[7px] flex items-end justify-between">
+                  @for (bar of chartBars; track bar.label) {
+                    <span
+                      class="w-11 rounded-[4px]"
+                      [style.height.px]="bar.desktopHeight"
+                      [style.opacity]="bar.highlight ? '1' : '0.2'"
+                      style="background: linear-gradient(180deg, #6453D9 0%, #CFC8FD 100%);"
+                    ></span>
+                  }
+                </div>
+
+                <div class="absolute bottom-0 left-[61px] right-0 flex items-center justify-between text-[10px] text-[rgba(0,0,0,0.5)]">
+                  @for (bar of chartBars; track bar.label) {
+                    <span>{{ bar.label }}</span>
+                  }
+                </div>
+              </div>
+            </div>
           </section>
+
+          <div class="mt-5 grid grid-cols-3 gap-5">
+            <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] pb-4 pt-[15px]">
+              <p class="text-[14px] font-medium leading-[normal] text-[rgba(13,13,13,0.5)]">
+                Most viewed listing
+              </p>
+
+              <div class="mt-[18px] flex flex-col items-center">
+                <div
+                  class="rounded-[10.46px] border border-[#EAEAEA] bg-white px-[1.7px] pb-[6.5px] pt-[1.7px] shadow-[0_4.721px_9.443px_rgba(192,192,192,0.25)]"
+                >
+                  <div class="overflow-hidden rounded-[8.716px] border border-[#EAEAEA] bg-[#EFEFEF]">
+                    <img
+                      [ngSrc]="assets.mostViewedImage"
+                      width="82"
+                      height="98"
+                      alt="Most viewed listing"
+                      class="h-[97px] w-[82px] object-cover"
+                    >
+                  </div>
+                  <div class="px-[1.7px] pt-[5.2px]">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="text-[6.1px] leading-[8.7px] text-[#1F1F1F]">Iphone 17 pro max</span>
+                      <span class="rounded-[435px] bg-[#F0F0F0] px-[3.5px] py-[0.9px] text-[5.23px] leading-[6.97px] text-[#1F1F1F]">
+                        New
+                      </span>
+                    </div>
+                    <div class="mt-[1.7px] flex items-center gap-[1px]">
+                      <span class="text-[6.973px] leading-[10.46px] text-[#1F1F1F]">₦</span>
+                      <span class="text-[6.973px] leading-[10.46px] text-[#1F1F1F]">2,500,000</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p class="mt-[21px] max-w-[246px] text-center text-[17px] font-medium leading-[1.3] text-[rgba(13,13,13,0.5)]">
+                  This item has been viewed <span class="text-[#0D0D0D]">34,002</span> times
+                </p>
+              </div>
+            </section>
+
+            <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] pb-4 pt-[15px] text-center">
+              <p class="text-left text-[14px] font-medium leading-[normal] text-[rgba(13,13,13,0.5)]">
+                Average response time
+              </p>
+
+              <div class="mt-[43px] flex flex-col items-center gap-[5px]">
+                <p class="text-[64px] font-medium leading-[normal] text-[#0D0D0D]">06 hrs</p>
+                <p class="max-w-[287px] text-[12px] leading-[normal] text-[rgba(13,13,13,0.5)]">
+                  How quickly you respond to buyer inquiries. Faster responses increase your chances of selling.
+                </p>
+              </div>
+            </section>
+
+            <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] pb-[17px] pt-[15px]">
+              <p class="text-[14px] font-medium leading-[normal] text-[rgba(13,13,13,0.5)]">
+                Listings distribution
+              </p>
+
+              <div class="mt-[18px] flex items-center gap-0.5">
+                @for (item of distributionItems; track item.label) {
+                  <span
+                    class="h-1 rounded-[14px]"
+                    [style.width]="item.width"
+                    [style.background]="item.color"
+                  ></span>
+                }
+              </div>
+
+              <div class="mt-6 space-y-6">
+                @for (item of distributionItems; track item.label) {
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-[10px]">
+                      <span class="h-3 w-3 rounded-[22px]" [style.background]="item.color"></span>
+                      <span class="text-[14px] leading-[normal] text-[rgba(13,13,13,0.5)]">
+                        {{ item.label }}
+                      </span>
+                    </div>
+                    <span class="text-[14px] font-medium leading-[normal] text-[#0D0D0D]">
+                      {{ item.value }}
+                    </span>
+                  </div>
+                }
+              </div>
+
+              <a
+                href="#"
+                class="mt-[18px] inline-flex text-[14px] font-medium leading-5 text-[#6453D9] underline"
+              >
+                View more
+              </a>
+            </section>
+          </div>
         </div>
       </div>
     </div>
@@ -185,61 +470,53 @@ interface DistributionItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnalyticsPageComponent {
-  readonly stores: StoreOption[] = [
-    {
-      id: 'store-1',
-      name: 'The Vine Collections',
-      logo: 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png',
-    },
-    {
-      id: 'store-2',
-      name: 'Eden Organics',
-      logo: 'https://cdn-icons-png.flaticon.com/512/1047/1047648.png',
-    },
-    {
-      id: 'store-3',
-      name: 'Amazing Fragrances',
-      logo: 'https://cdn-icons-png.flaticon.com/512/3126/3126040.png',
-    },
-    {
-      id: 'store-4',
-      name: 'The Gift Shop',
-      logo: 'https://cdn-icons-png.flaticon.com/512/2813/2813401.png',
-    },
-  ];
+  readonly assets = {
+    arrowUpIcon: '/assets/icons/analytics-arrow-up.svg',
+    calendarIcon: '/assets/icons/analytics-calendar.svg',
+    arrowDownIcon: '/assets/icons/analytics-arrow-down.svg',
+    storeBadgeIcon: '/assets/icons/analytics-store-badge.svg',
+    mostViewedImage: '/assets/images/analytics-most-viewed-phone.png',
+  } as const;
 
-  readonly selectedStoreMode = signal<'all' | 'single'>('all');
-
-  readonly summaryMetrics: SummaryMetric[] = [
+  readonly summaryMetrics: readonly SummaryMetric[] = [
     { label: 'Total listings', value: '108' },
     { label: 'Total views', value: '750,000' },
     { label: 'Total saves', value: '562' },
     { label: 'Total messages', value: '24' },
   ];
 
-  readonly months = [
-    { label: 'Jan', x: 34, height: 90, highlight: false },
-    { label: 'Feb', x: 108, height: 64, highlight: false },
-    { label: 'Mar', x: 182, height: 38, highlight: false },
-    { label: 'Apr', x: 256, height: 58, highlight: false },
-    { label: 'May', x: 330, height: 128, highlight: true },
-    { label: 'Jun', x: 404, height: 62, highlight: false },
-    { label: 'Jul', x: 478, height: 90, highlight: false },
-    { label: 'Aug', x: 552, height: 92, highlight: false },
-    { label: 'Sep', x: 626, height: 62, highlight: false },
-    { label: 'Oct', x: 700, height: 68, highlight: false },
-    { label: 'Nov', x: 774, height: 54, highlight: false },
-    { label: 'Dec', x: 848, height: 92, highlight: false },
+  readonly distributionItems: readonly DistributionItem[] = [
+    { label: 'Sold', value: '2,000,000', color: '#25AD32', width: '48%' },
+    { label: 'Available', value: '1,200,000', color: '#4787FE', width: '24%' },
+    { label: 'Paused', value: '800,000', color: '#EE9C2E', width: '28%' },
   ];
 
-  readonly distributionItems: DistributionItem[] = [
-    { label: 'Sold', value: '2,000,000', color: '#34B54A' },
-    { label: 'Available', value: '1,200,000', color: '#4C86F5' },
-    { label: 'Paused', value: '800,000', color: '#F3A233' },
+  readonly chartBars: readonly ChartBar[] = [
+    { label: 'Jan', desktopHeight: 104, mobileHeight: 26 },
+    { label: 'Feb', desktopHeight: 77, mobileHeight: 109 },
+    { label: 'Mar', desktopHeight: 48, mobileHeight: 45 },
+    { label: 'Apr', desktopHeight: 72, mobileHeight: 76 },
+    { label: 'May', desktopHeight: 144, mobileHeight: 96, highlight: true },
+    { label: 'Jun', desktopHeight: 76, mobileHeight: 45, faded: true },
+    { label: 'Jul', desktopHeight: 104, mobileHeight: 168, faded: true },
+    { label: 'Aug', desktopHeight: 104, mobileHeight: 67, faded: true },
+    { label: 'Sep', desktopHeight: 76, mobileHeight: 45, faded: true },
+    { label: 'Oct', desktopHeight: 81, mobileHeight: 141 },
+    { label: 'Nov', desktopHeight: 67, mobileHeight: 52 },
+    { label: 'Dec', desktopHeight: 104, mobileHeight: 30 },
   ];
+
+  readonly stores = signal<readonly StoreAvatar[]>([
+    { src: '/assets/images/analytics-store-avatar-1.png', alt: 'Store avatar one' },
+    { src: '/assets/images/analytics-store-avatar-2.png', alt: 'Store avatar two' },
+    { src: '/assets/images/analytics-store-avatar-3.png', alt: 'Store avatar three' },
+    { src: '', alt: 'Store badge' },
+  ]);
+
+  readonly selectedStoreMode = signal<'all' | 'single'>('all');
 
   readonly visibleStores = computed(() =>
-    this.selectedStoreMode() === 'all' ? this.stores.slice(0, 3) : [this.stores[0]],
+    this.selectedStoreMode() === 'all' ? this.stores() : this.stores().slice(0, 1),
   );
 
   readonly selectedStoreLabel = computed(() =>

@@ -317,8 +317,8 @@ export const routes: Routes = [
       {
         path: 'analytics',
         loadComponent: () =>
-          import('./pages/admin/admin-analytics-page.component').then(
-            (m) => m.AdminAnalyticsPageComponent,
+          import('./pages/analytics/analytics-page.component').then(
+            (m) => m.AnalyticsPageComponent,
           ),
       },
       {
