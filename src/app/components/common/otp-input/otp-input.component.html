@@ -1,9 +1,9 @@
-<div class="flex w-full items-center justify-center gap-[11.573px]" (paste)="handlePaste($event)">
-  <div class="flex items-center gap-[6.613px]">
+<div [class]="containerClass()" (paste)="handlePaste($event)">
+  <div [class]="groupClass()">
     @for (field of otpFields().slice(0, halfLength()); track $index) {
       <input
         #digitInput
-        class="h-[57.864px] w-[49.598px] border bg-[#f3f3f3] text-center text-[24px] leading-none font-semibold tracking-[-0.36px] text-[#1a1b1d] transition-[background-color,border-color,box-shadow] focus:bg-white focus-visible:border-[#6453d9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+        [class]="inputClass()"
         [style.borderRadius]="fieldBorderRadius($index)"
         [style.borderColor]="submitted() && !field ? '#d24b4b' : 'transparent'"
         type="text"
@@ -19,14 +19,14 @@
   </div>
 
   @if (length() >= 4 && length() % 2 === 0) {
-    <span class="block h-px w-[9.92px] bg-[#cfcfd4]" aria-hidden="true"></span>
+    <span [class]="separatorClass()" aria-hidden="true"></span>
   }
 
-  <div class="flex items-center gap-[6.613px]">
+  <div [class]="groupClass()">
     @for (field of otpFields().slice(halfLength()); track $index) {
       <input
         #digitInput
-        class="h-[57.864px] w-[49.598px] border bg-[#f3f3f3] text-center text-[24px] leading-none font-semibold tracking-[-0.36px] text-[#1a1b1d] transition-[background-color,border-color,box-shadow] focus:bg-white focus-visible:border-[#6453d9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+        [class]="inputClass()"
         [style.borderRadius]="fieldBorderRadius($index + halfLength())"
         [style.borderColor]="submitted() && !field ? '#d24b4b' : 'transparent'"
         type="text"

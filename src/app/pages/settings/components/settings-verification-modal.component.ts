@@ -1,71 +1,112 @@
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroChevronLeft, heroXMark } from '@ng-icons/heroicons/outline';
 import { OtpInputComponent } from '../../../components/common/otp-input/otp-input.component';
 
 @Component({
   selector: 'app-settings-verification-modal',
-  imports: [CommonModule, NgIcon, OtpInputComponent],
-  providers: [provideIcons({ heroChevronLeft, heroXMark })],
+  imports: [CommonModule, NgOptimizedImage, OtpInputComponent],
   template: `
-    <div class="fixed inset-0 z-[220] flex items-center justify-center bg-black/20 p-4 backdrop-blur-[2px]" (click)="close.emit()">
-      <div class="w-full max-w-[390px] rounded-[20px] bg-white p-4 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]" (click)="$event.stopPropagation()">
-        <div class="flex items-start justify-between gap-4">
-          <button
-            type="button"
-            (click)="back.emit()"
-            class="inline-flex items-center gap-1 text-[11px] font-medium text-[#7C818A]"
-          >
-            <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
-            Back
-          </button>
+    <div
+      class="fixed inset-0 z-[220] flex items-end justify-center bg-black/20 md:items-center"
+      (click)="close.emit()"
+    >
+      <div
+        class="relative flex h-[451px] w-full max-w-[390px] flex-col overflow-hidden rounded-t-[36px] bg-white shadow-[0_-24px_70px_-42px_rgba(19,27,45,0.45)] md:h-[450px] md:max-w-[600px] md:rounded-[16px] md:shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-verification-title"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="absolute left-1/2 top-[10px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB] md:hidden"></div>
 
-          <button
-            type="button"
-            (click)="close.emit()"
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-[#F7F7F8] text-[#6B7079] transition hover:bg-[#EFEFF2]"
-            aria-label="Close modal"
+        <button
+          type="button"
+          (click)="close.emit()"
+          class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6"
+          aria-label="Close verification"
+        >
+          <img
+            ngSrc="/assets/icons/settings/verification-modal-close.svg"
+            width="24"
+            height="24"
+            alt=""
+            aria-hidden="true"
           >
-            <ng-icon name="heroXMark" class="text-sm"></ng-icon>
-          </button>
+        </button>
+
+        <button
+          type="button"
+          (click)="back.emit()"
+          class="absolute left-4 top-[26px] z-10 flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] text-[#1F1F1F] transition hover:bg-[#ECECEC] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:left-8 md:w-auto md:gap-1 md:bg-transparent md:px-0 md:text-[14px] md:font-medium md:leading-5"
+          aria-label="Back to phone number"
+        >
+          <img
+            ngSrc="/assets/icons/settings/verification-back.svg"
+            width="14"
+            height="14"
+            alt=""
+            aria-hidden="true"
+            class="h-5 w-5 md:h-[14px] md:w-[14px]"
+          >
+          <span class="hidden md:inline">Back</span>
+        </button>
+
+        <div class="flex-1 px-4 pt-[85px] md:px-[43px] md:pt-20">
+          <div class="max-w-[325px] md:max-w-[515px]">
+            <div class="space-y-1.5 md:space-y-3">
+              <h3
+                id="settings-verification-title"
+                class="text-[24px] font-semibold leading-8 text-[#1A1B1D]"
+              >
+                We sent you a code
+              </h3>
+              <p class="text-[16px] leading-6 text-[#5A5A5A] md:text-[14px] md:leading-5">
+                <span>Enter verification code we sent to </span>
+                <strong class="font-semibold text-[#1F1F1F] md:inline">{{ destination() }}</strong>
+              </p>
+            </div>
+
+            <div class="mt-10 md:mt-9">
+              <app-otp-input
+                [length]="6"
+                variant="settingsVerification"
+                [submitted]="submitted()"
+                (codeChange)="otpValue.set($event)"
+                (codeFilled)="otpValue.set($event)"
+              ></app-otp-input>
+            </div>
+
+            <div class="mt-[18px] text-[14.525px] font-medium leading-normal tracking-[-0.218px] md:mt-5 md:text-[16px] md:tracking-[-0.24px]">
+              <p class="md:hidden">
+                <span class="text-[rgba(26,27,29,0.5)]">Resend code in </span>
+                <span class="text-[#1A1B1D]">00:28</span>
+              </p>
+              <p class="hidden md:block">
+                <span class="text-[rgba(26,27,29,0.5)]">Didn’t get a code? </span>
+                <button type="button" class="text-[#7F5EFF] transition hover:text-[#6548DF]">Resend</button>
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div class="mt-4">
-          <h3 class="text-[16px] font-black tracking-tight text-[#1A1C21]">We sent you a code</h3>
-          <p class="mt-2 text-[11px] font-medium leading-5 text-[#98A0AA]">
-            Enter verification code we sent to {{ destination() }}
-          </p>
-        </div>
-
-        <div class="mt-4">
-          <app-otp-input
-            [length]="6"
-            [submitted]="submitted()"
-            (codeChange)="otpValue.set($event)"
-            (codeFilled)="otpValue.set($event)"
-          ></app-otp-input>
-        </div>
-
-        <p class="mt-5 text-[10px] font-medium text-[#A3A8B1]">
-          Didn’t get your code? <button type="button" class="text-[#6B5CF0]">Resend</button>
-        </p>
-
-        <div class="mt-8 grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            (click)="close.emit()"
-            class="rounded-full border border-[#E7EAF0] bg-white px-4 py-2.5 text-[11px] font-semibold text-[#2F333B] transition hover:bg-[#FAFAFC]"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            (click)="confirmCode()"
-            class="rounded-full bg-[#6653E4] px-4 py-2.5 text-[11px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
-          >
-            Confirm and update
-          </button>
+        <div class="border-t border-[#F5F5F5] bg-white px-4 pb-[26px] pt-2.5 md:border-t-0 md:px-[43px] md:pb-[50px] md:pt-0">
+          <div class="grid gap-3 md:grid-cols-2">
+            <button
+              type="button"
+              (click)="close.emit()"
+              class="hidden h-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-black transition hover:bg-[#FAFAFA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:flex"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              (click)="confirmCode()"
+              class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:text-[14px] md:leading-5"
+            >
+              <span class="md:hidden">Update</span>
+              <span class="hidden md:inline">Confirm and update</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -82,7 +123,7 @@ export class SettingsVerificationModalComponent {
   protected readonly otpValue = signal('');
   protected readonly submitted = signal(false);
 
-  confirmCode(): void {
+  protected confirmCode(): void {
     this.submitted.set(true);
 
     if (this.otpValue().length !== 6) {

@@ -1,131 +1,202 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroChevronLeft, heroXMark } from '@ng-icons/heroicons/outline';
 import { OtpInputComponent } from '../../../components/common/otp-input/otp-input.component';
 
 export type TwoFactorMethod = 'sms' | 'email' | 'app';
 
 @Component({
   selector: 'app-settings-two-factor-modal',
-  imports: [CommonModule, NgIcon, OtpInputComponent],
-  providers: [provideIcons({ heroChevronLeft, heroXMark })],
+  imports: [CommonModule, NgOptimizedImage, OtpInputComponent],
   template: `
-    <div class="fixed inset-0 z-[220] flex items-center justify-center bg-black/20 p-4 backdrop-blur-[2px]" (click)="close.emit()">
-      <div class="w-full max-w-[600px] rounded-[28px] bg-white px-6 py-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:px-10 sm:py-8" (click)="$event.stopPropagation()">
-        <div class="flex items-start justify-between gap-4">
-          @if (showBack()) {
+    <div class="fixed inset-0 z-[220] flex items-end justify-center bg-black/20 md:items-center" (click)="close.emit()">
+        @if (isVerificationStep()) {
+          <div
+            [class]="verificationDialogClass()"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="two-factor-verification-title"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="absolute left-1/2 top-[10px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB] md:hidden"></div>
+
             <button
               type="button"
-              (click)="goBack()"
-              class="inline-flex items-center gap-1 text-[13px] font-medium text-[#4C515A]"
+              (click)="close.emit()"
+              class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6"
+              aria-label="Close 2FA modal"
             >
-              <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
-              Back
+              <img
+                ngSrc="/assets/icons/settings/two-factor-modal-close.svg"
+                width="24"
+                height="24"
+                alt=""
+                aria-hidden="true"
+              >
             </button>
-          } @else {
-            <span></span>
-          }
 
-          <button
-            type="button"
-            (click)="close.emit()"
-            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] shadow-sm transition hover:bg-[#EFEFF2]"
-            aria-label="Close 2FA modal"
-          >
-            <ng-icon name="heroXMark" class="text-xl"></ng-icon>
-          </button>
-        </div>
-
-        @if (isVerificationStep()) {
-          <div class="mt-4">
-            <h2 class="text-[22px] font-black tracking-tight text-[#1A1C21]">{{ verificationTitle() }}</h2>
-            <p class="mt-3 max-w-[430px] text-[14px] font-medium leading-7 text-[#686D76]">
-              {{ verificationDescriptionPrefix() }}
-              <span class="font-semibold text-[#1A1C21]">{{ destination() }}</span>
-            </p>
-          </div>
-
-          <div class="mt-6">
-            <app-otp-input
-              [length]="6"
-              [submitted]="submitted()"
-              (codeChange)="otpValue.set($event)"
-              (codeFilled)="otpValue.set($event)"
-            ></app-otp-input>
-          </div>
-
-          @if (method() !== 'app') {
-            <p class="mt-5 text-[13px] font-medium text-[#6E737C]">
-              Didn’t get a code?
-              <button type="button" class="text-[#6B5CF0]">Resend</button>
-            </p>
-          }
-
-          <button
-            type="button"
-            (click)="verifyAndComplete()"
-            class="mt-10 w-full rounded-full bg-[#6653E4] px-4 py-3.5 text-[15px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
-          >
-            Verify and set up
-          </button>
-        } @else {
-          <div class="mt-4">
-            <h2 class="text-[22px] font-black tracking-tight text-[#1A1C21]">Use an authenticator app</h2>
-            <p class="mt-3 max-w-[470px] text-[14px] font-medium leading-7 text-[#686D76]">
-              Use a free authenticator app such as Google Authenticator, Microsoft Authenticator) to set up your account
-            </p>
-          </div>
-
-          @if (appStep() === 'qr') {
-            <div class="mt-8 flex flex-col items-center">
-              <div class="grid grid-cols-9 gap-1 rounded-[8px] bg-white p-2">
-                @for (row of qrPattern; track $index; let rowIndex = $index) {
-                  @for (cell of row.split(''); track $index; let colIndex = $index) {
-                    <span
-                      class="h-5 w-5"
-                      [class.bg-black]="cell === '1'"
-                      [class.bg-white]="cell !== '1'"
-                    ></span>
-                  }
-                }
-              </div>
-
+            @if (showBack()) {
               <button
                 type="button"
-                (click)="appStep.set('manual')"
-                class="mt-6 text-[14px] font-medium text-[#6B5CF0]"
+                (click)="goBack()"
+                class="absolute left-4 top-[26px] z-10 flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] text-[#1F1F1F] transition hover:bg-[#ECECEC] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:left-8 md:w-auto md:gap-1 md:bg-transparent md:px-0 md:text-[14px] md:font-medium md:leading-5"
+                aria-label="Back to authenticator setup"
               >
-                Can’t scan? Enter manually
+                <img
+                  ngSrc="/assets/icons/settings/two-factor-modal-back.svg"
+                  width="14"
+                  height="14"
+                  alt=""
+                  aria-hidden="true"
+                  class="h-5 w-5 md:h-[14px] md:w-[14px]"
+                >
+                <span class="hidden md:inline">Back</span>
+              </button>
+            }
+
+            <div class="flex-1 px-4 pt-[85px] md:px-[43px] md:pt-20">
+              <div class="max-w-[325px] md:max-w-[515px]">
+                <div class="space-y-1.5 md:space-y-3">
+                  <h2
+                    id="two-factor-verification-title"
+                    class="text-[24px] font-semibold leading-8 text-[#1A1B1D]"
+                  >
+                    {{ verificationTitle() }}
+                  </h2>
+                  @if (method() === 'app') {
+                    <p class="text-[16px] leading-6 text-[#5A5A5A] md:text-[14px] md:leading-5">
+                      {{ verificationDescriptionPrefix() }}
+                    </p>
+                  } @else {
+                    <p class="text-[16px] leading-6 text-[#5A5A5A] md:text-[14px] md:leading-5">
+                      <span>{{ verificationDescriptionPrefix() }}</span>
+                      <strong
+                        class="font-semibold text-[#1F1F1F]"
+                        [class.block]="method() !== 'email'"
+                        [class.inline]="method() === 'email'"
+                      >
+                        {{ destination() }}
+                      </strong>
+                    </p>
+                  }
+                </div>
+
+                <div class="mt-10 md:mt-9">
+                  <app-otp-input
+                    [length]="6"
+                    variant="settingsVerification"
+                    [submitted]="submitted()"
+                    (codeChange)="otpValue.set($event)"
+                    (codeFilled)="otpValue.set($event)"
+                  ></app-otp-input>
+                </div>
+
+                @if (method() !== 'app') {
+                  <div class="mt-[18px] text-[14.525px] font-medium leading-normal tracking-[-0.218px] md:mt-5 md:text-[16px] md:tracking-[-0.24px]">
+                    <p>
+                      <span class="text-[rgba(26,27,29,0.5)]">Didn’t get a code? </span>
+                      <button type="button" class="text-[#7F5EFF] transition hover:text-[#6548DF]">Resend</button>
+                    </p>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="border-t border-[#F5F5F5] bg-white px-4 pb-[26px] pt-2.5 md:border-t-0 md:px-[43px] md:pb-8 md:pt-0">
+              <button
+                type="button"
+                (click)="verifyAndComplete()"
+                class="mx-auto flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:w-[440px] md:text-[14px] md:leading-5"
+              >
+                Verify and set up
               </button>
             </div>
-          } @else {
-            <div class="mt-8">
-              <div class="rounded-[16px] border border-[#E8EAF0] bg-white px-6 py-4 text-[22px] tracking-[0.18em] text-[#2A2D34]">
-                0xju-jkhy-pdor-jieu-lyrq
-              </div>
+          </div>
+        } @else {
+          <div
+            class="relative flex h-[617px] w-full max-w-[390px] flex-col overflow-hidden rounded-t-[36px] bg-white shadow-[0_-24px_70px_-42px_rgba(19,27,45,0.45)] md:h-[617px] md:max-w-[600px] md:rounded-[16px] md:shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="two-factor-app-title"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="absolute left-1/2 top-[10px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB] md:hidden"></div>
 
-              <div class="mt-6 text-center">
-                <button
-                  type="button"
-                  (click)="appStep.set('qr')"
-                  class="text-[14px] font-medium text-[#6B5CF0]"
-                >
-                  Scan QR code instead
-                </button>
+            <button
+              type="button"
+              (click)="close.emit()"
+              class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6"
+              aria-label="Close 2FA modal"
+            >
+              <img
+                ngSrc="/assets/icons/settings/two-factor-modal-close.svg"
+                width="24"
+                height="24"
+                alt=""
+                aria-hidden="true"
+              >
+            </button>
+
+            <div class="flex-1 px-4 pt-[85px] md:px-[43px] md:pt-20">
+              <div class="mx-auto flex max-w-[325px] flex-col items-center gap-9 md:max-w-[515px]">
+                <div class="w-full space-y-3">
+                  <h2
+                    id="two-factor-app-title"
+                    class="text-[24px] font-semibold leading-8 text-[#1A1B1D]"
+                  >
+                    Use an authenticator app
+                  </h2>
+                  <p class="text-[14px] leading-5 text-[#5A5A5A]">
+                    Use a free authenticator app such as Google Authenticator, Microsoft Authenticator) to scan this QR code to set up your account
+                  </p>
+                </div>
+
+                @if (appStep() === 'qr') {
+                  <div class="flex w-[256px] flex-col items-center gap-[9px]">
+                    <img
+                      ngSrc="/assets/images/settings/two-factor-qr.svg"
+                      width="256"
+                      height="256"
+                      alt="Authenticator setup QR code"
+                      priority
+                    >
+                    <button
+                      type="button"
+                      (click)="appStep.set('manual')"
+                      class="w-full text-center text-[14px] font-medium leading-normal text-[#6453D9] transition hover:text-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
+                    >
+                      Can’t scan? Enter manually
+                    </button>
+                  </div>
+                } @else {
+                  <div class="flex w-full flex-col items-center gap-4">
+                    <div class="flex h-[50px] w-full items-center justify-center overflow-hidden rounded-[15px] border border-[#F0F0F0] px-4">
+                      <p class="text-center text-[24px] leading-[1.3] tracking-[4.8px] text-[#0D0D0D]">
+                        0xju-jkhy-pdor-jieu-lyrq
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="appStep.set('qr')"
+                      class="w-full text-center text-[14px] font-medium leading-normal text-[#6453D9] transition hover:text-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
+                    >
+                      Scan QR code instead
+                    </button>
+                  </div>
+                }
               </div>
             </div>
-          }
 
-          <button
-            type="button"
-            (click)="appStep.set('verify')"
-            class="mt-12 w-full rounded-full bg-[#6653E4] px-4 py-3.5 text-[15px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
-          >
-            Confirm
-          </button>
+            <div class="border-t border-[#F5F5F5] bg-white px-4 pb-[26px] pt-2.5 md:border-t-0 md:px-[43px] md:pb-8 md:pt-0">
+              <button
+                type="button"
+                (click)="appStep.set('verify')"
+                class="mx-auto flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:w-[440px] md:text-[14px] md:leading-5"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
         }
-      </div>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -140,18 +211,6 @@ export class SettingsTwoFactorModalComponent {
   readonly appStep = signal<'qr' | 'manual' | 'verify'>('qr');
   readonly otpValue = signal('');
   readonly submitted = signal(false);
-
-  readonly qrPattern = [
-    '111000111',
-    '101101101',
-    '111010111',
-    '000111000',
-    '101011101',
-    '110101011',
-    '111010101',
-    '101111001',
-    '111001111',
-  ];
 
   readonly isVerificationStep = computed(
     () => this.method() === 'sms' || this.method() === 'email' || this.appStep() === 'verify',
@@ -168,6 +227,14 @@ export class SettingsTwoFactorModalComponent {
       ? 'Please enter your 6-digit authentication code from your authenticator app'
       : 'To set up 2FA, you are required to enter the 6 digit code we sent to ',
   );
+
+  protected verificationDialogClass(): string {
+    const base = 'relative flex w-full max-w-[390px] flex-col overflow-hidden rounded-t-[36px] bg-white shadow-[0_-24px_70px_-42px_rgba(19,27,45,0.45)] md:max-w-[600px] md:rounded-[16px] md:shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]';
+
+    return this.method() === 'app'
+      ? `${base} h-[451px] md:h-[395px]`
+      : `${base} h-[451px] md:h-[450px]`;
+  }
 
   goBack(): void {
     this.appStep.set('qr');

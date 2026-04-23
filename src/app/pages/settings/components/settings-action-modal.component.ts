@@ -1,66 +1,129 @@
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroChevronDown, heroXMark } from '@ng-icons/heroicons/outline';
 
 @Component({
   selector: 'app-settings-action-modal',
-  imports: [CommonModule, NgIcon],
-  providers: [provideIcons({ heroChevronDown, heroXMark })],
+  imports: [CommonModule, NgOptimizedImage],
   template: `
-    <div class="fixed inset-0 z-[220] flex items-center justify-center bg-black/20 p-4 backdrop-blur-[2px]" (click)="close.emit()">
-      <div class="w-full max-w-[390px] rounded-[20px] bg-white p-4 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]" (click)="$event.stopPropagation()">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <h3 class="text-[16px] font-black tracking-tight text-[#1A1C21]">{{ title() }}</h3>
-            <p class="mt-2 max-w-[310px] text-[11px] font-medium leading-5 text-[#98A0AA]">{{ description() }}</p>
-          </div>
+    <div
+      class="fixed inset-0 z-[220] flex items-end justify-center bg-black/20 md:items-center"
+      (click)="close.emit()"
+    >
+      <div
+        class="settings-action-dialog relative flex w-full max-w-[390px] flex-col overflow-hidden rounded-t-[36px] bg-white shadow-[0_-24px_70px_-42px_rgba(19,27,45,0.45)] md:max-w-[600px] md:rounded-[16px] md:shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-labelledby]="modalTitleId"
+        [style.--dialog-mobile-height.px]="dialogMobileHeight()"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="absolute left-1/2 top-[10px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB] md:hidden"></div>
 
-          <button
-            type="button"
-            (click)="close.emit()"
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-[#F7F7F8] text-[#6B7079] transition hover:bg-[#EFEFF2]"
-            aria-label="Close modal"
+        <button
+          type="button"
+          (click)="close.emit()"
+          class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#333436] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6"
+          aria-label="Close modal"
+        >
+          <img
+            [ngSrc]="closeIconSrc()"
+            width="24"
+            height="24"
+            alt=""
+            aria-hidden="true"
           >
-            <ng-icon name="heroXMark" class="text-sm"></ng-icon>
-          </button>
+        </button>
+
+        <div class="flex-1 px-4 pt-[85px] md:px-[43px] md:pt-[39px]">
+          <div class="max-w-[334px] md:max-w-[515px]">
+            <div class="space-y-1.5 md:space-y-3">
+              <h3
+                [id]="modalTitleId"
+                class="text-[24px] font-semibold leading-8 text-[#1A1B1D]"
+              >
+                {{ title() }}
+              </h3>
+              <p class="text-[16px] leading-6 text-[#656565] md:text-[14px] md:leading-5 md:text-[#5A5A5A]">
+                {{ description() }}
+              </p>
+            </div>
+
+            <div class="mt-8 md:mt-9">
+              <label
+                for="settings-modal-input"
+                class="mb-1.5 block text-[14px] font-medium leading-5 text-[#6A6A6A] md:mb-1 md:text-[#777777]"
+              >
+                <span class="md:hidden">{{ mobileFieldLabel() }}</span>
+                <span class="hidden md:inline">{{ fieldLabel() }}</span>
+              </label>
+
+              <div class="flex h-11 items-center gap-2 rounded-[10px] border border-[#E6E6E8] bg-white px-3 py-1.5 md:h-10 md:rounded-[16px] md:border-[#EFEFEF] md:pl-4 md:pr-2 md:py-0.5">
+                <input
+                  id="settings-modal-input"
+                  [type]="inputType()"
+                  [value]="value()"
+                  (input)="onInput($event)"
+                  class="min-w-0 flex-1 bg-transparent text-[16px] leading-6 text-[#252628] outline-none placeholder:text-[#A8A8A8] md:text-[14px] md:leading-5 md:text-[#434455]"
+                >
+
+                @if (value()) {
+                  <button
+                    type="button"
+                    (click)="clearValue()"
+                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F6F6F6] transition hover:bg-[#EEEEEE] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
+                    aria-label="Clear value"
+                  >
+                    <img
+                      [ngSrc]="clearIconSrc()"
+                      width="8"
+                      height="8"
+                      alt=""
+                      aria-hidden="true"
+                    >
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="mt-5">
-          <label for="settings-modal-input" class="mb-2 block text-[11px] font-medium text-[#A3A8B1]">{{ fieldLabel() }}</label>
-          <div class="flex items-center gap-2 rounded-[12px] border border-[#E8EAF0] bg-white px-3 py-2.5">
-            <input
-              id="settings-modal-input"
-              [type]="inputType()"
-              [value]="value()"
-              (input)="onInput($event)"
-              class="min-w-0 flex-1 bg-transparent text-[12px] font-medium text-[#2A2D34] outline-none placeholder:text-[#B5BAC4]"
+        <div class="border-t border-[#F5F5F5] bg-white px-4 pb-[26px] pt-2.5 md:border-t-0 md:px-[43px] md:pb-[67px] md:pt-0">
+          <div class="grid gap-3 md:grid-cols-2">
+            <button
+              type="button"
+              (click)="close.emit()"
+              class="hidden h-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-black transition hover:bg-[#FAFAFA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:flex"
             >
-            @if (showDropdown()) {
-              <ng-icon name="heroChevronDown" class="text-sm text-[#B0B4BD]"></ng-icon>
-            }
+              Cancel
+            </button>
+            <button
+              type="button"
+              (click)="confirm.emit()"
+              class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:text-[14px] md:leading-5"
+            >
+              @if (isPhoneInput() && confirmLabel() === 'Add number') {
+                <span class="md:hidden">Send verification code</span>
+                <span class="hidden md:inline">Add number</span>
+              } @else {
+                {{ confirmLabel() }}
+              }
+            </button>
           </div>
-        </div>
-
-        <div class="mt-8 grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            (click)="close.emit()"
-            class="rounded-full border border-[#E7EAF0] bg-white px-4 py-2.5 text-[11px] font-semibold text-[#2F333B] transition hover:bg-[#FAFAFC]"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            (click)="confirm.emit()"
-            class="rounded-full bg-[#6653E4] px-4 py-2.5 text-[11px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
-          >
-            {{ confirmLabel() }}
-          </button>
         </div>
       </div>
     </div>
   `,
+  styles: [`
+    .settings-action-dialog {
+      height: var(--dialog-mobile-height);
+    }
+
+    @media (min-width: 768px) {
+      .settings-action-dialog {
+        height: 376px;
+      }
+    }
+  `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsActionModalComponent {
@@ -76,7 +139,65 @@ export class SettingsActionModalComponent {
   readonly confirm = output<void>();
   readonly valueChange = output<string>();
 
-  onInput(event: Event): void {
+  protected readonly modalTitleId = 'settings-action-modal-title';
+
+  protected mobileFieldLabel(): string {
+    if (this.isPhoneInput()) {
+      return 'Number';
+    }
+
+    return this.fieldLabel().toLowerCase() === 'full name' ? 'Name' : this.fieldLabel();
+  }
+
+  protected isPhoneInput(): boolean {
+    return this.inputType() === 'tel';
+  }
+
+  protected isEmailInput(): boolean {
+    return this.inputType() === 'email';
+  }
+
+  protected dialogMobileHeight(): number {
+    if (this.isPhoneInput()) {
+      return 451;
+    }
+
+    if (this.isEmailInput()) {
+      return 419;
+    }
+
+    return 407;
+  }
+
+  protected closeIconSrc(): string {
+    if (this.isPhoneInput()) {
+      return '/assets/icons/settings/phone-modal-close.svg';
+    }
+
+    if (this.isEmailInput()) {
+      return '/assets/icons/settings/email-modal-close.svg';
+    }
+
+    return '/assets/icons/settings/modal-close.svg';
+  }
+
+  protected clearIconSrc(): string {
+    if (this.isPhoneInput()) {
+      return '/assets/icons/settings/phone-input-clear.svg';
+    }
+
+    if (this.isEmailInput()) {
+      return '/assets/icons/settings/email-input-clear.svg';
+    }
+
+    return '/assets/icons/settings/input-clear.svg';
+  }
+
+  protected clearValue(): void {
+    this.valueChange.emit('');
+  }
+
+  protected onInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.valueChange.emit(input.value);
   }

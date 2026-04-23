@@ -1,5 +1,6 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroAdjustmentsHorizontal,
@@ -9,6 +10,7 @@ import {
   heroEye,
   heroLockClosed,
   heroShieldCheck,
+  heroUser,
 } from '@ng-icons/heroicons/outline';
 import { SettingsNavComponent, SettingsTab } from './components/settings-nav.component';
 import {
@@ -36,7 +38,9 @@ type VerificationMode = 'email' | 'call' | 'whatsapp' | null;
   selector: 'app-settings-page',
   imports: [
     CommonModule,
+    NgOptimizedImage,
     NgIcon,
+    RouterLink,
     SettingsNavComponent,
     ProfileSettingsPanelComponent,
     SettingsActionModalComponent,
@@ -52,16 +56,324 @@ type VerificationMode = 'email' | 'call' | 'whatsapp' | null;
       heroAdjustmentsHorizontal,
       heroDevicePhoneMobile,
       heroEnvelope,
+      heroUser,
     }),
   ],
   template: `
-    <div class="flex h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]">
-      <div class="border-b border-[#F0F0F2] px-8 py-6">
-        <h1 class="text-[20px] font-black tracking-tight text-[#1A1C21]">Account settings</h1>
-      </div>
+    <div class="min-h-full bg-white md:hidden">
+      @if (mobileSettingsStep() === 'menu') {
+        <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pb-32">
+          <div class="flex h-[54px] items-center gap-3">
+            <a
+              routerLink="/buyer/more"
+              class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+              aria-label="Back to more"
+            >
+              <img ngSrc="/assets/icons/settings/mobile-back.svg" width="20" height="20" alt="" aria-hidden="true">
+            </a>
+            <h1 class="text-[20px] font-semibold leading-[1.2] text-black">Account settings</h1>
+          </div>
 
-      <div class="flex-1 overflow-y-auto px-4 py-5 sm:px-8 sm:py-6">
-        <div class="grid gap-8 xl:grid-cols-[200px_minmax(0,1fr)]">
+          <div class="mt-5 flex flex-col gap-5">
+            @for (item of mobileMenuItems; track item.id) {
+              <button
+                type="button"
+                (click)="openMobileMenuItem(item.id)"
+                class="flex w-full items-center justify-between gap-4 text-left text-[rgba(13,13,13,0.8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+              >
+                <span class="flex items-center gap-3">
+                  <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[#303030]">
+                    <img [ngSrc]="item.iconSrc" width="15" height="15" alt="" aria-hidden="true">
+                  </span>
+                  <span class="text-[16px] font-medium leading-5">{{ item.label }}</span>
+                </span>
+                <img ngSrc="/assets/icons/settings/mobile-chevron-right.svg" width="16" height="16" alt="" aria-hidden="true">
+              </button>
+            }
+          </div>
+
+          <div class="my-9 h-px bg-[#EDEDED]"></div>
+
+          <button
+            type="button"
+            class="flex w-full items-center justify-between gap-4 text-left text-[rgba(13,13,13,0.8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+          >
+            <span class="flex items-center gap-3">
+              <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[#303030]">
+                <img ngSrc="/assets/icons/settings/mobile-logout.svg" width="15" height="15" alt="" aria-hidden="true">
+              </span>
+              <span class="text-[16px] font-medium leading-5">Logout</span>
+            </span>
+            <img ngSrc="/assets/icons/settings/mobile-chevron-right.svg" width="16" height="16" alt="" aria-hidden="true">
+          </button>
+
+          <div class="my-8 flex items-center gap-2">
+            <span class="h-px flex-1 bg-[#EFEFEF]"></span>
+            <span class="inline-flex items-center gap-2 text-[14px] font-medium leading-5 text-[#A2A2A2]">
+              <img ngSrc="/assets/icons/settings/mobile-danger.svg" width="16" height="16" alt="" aria-hidden="true">
+              Danger zone
+            </span>
+            <span class="h-px flex-1 bg-[#EFEFEF]"></span>
+          </div>
+
+          <button
+            type="button"
+            class="flex w-full items-center justify-between gap-4 text-left text-[rgba(13,13,13,0.8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+          >
+            <span class="flex items-center gap-3">
+              <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[#303030]">
+                <img ngSrc="/assets/icons/settings/mobile-trash.svg" width="15" height="15" alt="" aria-hidden="true">
+              </span>
+              <span class="text-[16px] font-medium leading-5">Delete account</span>
+            </span>
+            <img ngSrc="/assets/icons/settings/mobile-chevron-right.svg" width="16" height="16" alt="" aria-hidden="true">
+          </button>
+        </div>
+      } @else if (mobileSettingsStep() === 'profile') {
+        <div class="mx-auto min-h-screen w-full max-w-[390px] px-4 pb-32 pt-0">
+          <header class="relative -mx-4 h-[146px] px-4">
+            <div class="flex h-[45px] items-center gap-4">
+              <button
+                type="button"
+                (click)="mobileSettingsStep.set('menu')"
+                class="inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                aria-label="Back to account settings"
+              >
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M12.5 15 7.5 10l5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <p class="text-[20px] font-semibold leading-[1.2] text-black">Account settings</p>
+            </div>
+
+            <div class="absolute bottom-0 left-4 right-4">
+              <h1 class="text-[25px] font-semibold leading-[1.2] text-[#1A1B1D]">Profile settings</h1>
+              <p class="mt-2 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
+                Manage your account preferences and personal information.
+              </p>
+            </div>
+          </header>
+
+          <app-profile-settings-panel
+            [profile]="profile()"
+            mode="details-only"
+            (action)="openModal($event)"
+          ></app-profile-settings-panel>
+        </div>
+      } @else if (mobileSettingsStep() === 'security') {
+        <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pb-56 pt-0">
+          <header>
+            <div class="flex h-[45px] items-center">
+              <button
+                type="button"
+                (click)="mobileSettingsStep.set('menu')"
+                class="inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                aria-label="Back to account settings"
+              >
+                <img ngSrc="/assets/icons/settings/security-back.svg" width="20" height="20" alt="" aria-hidden="true">
+              </button>
+            </div>
+
+            <div class="mt-4">
+              <h1 class="text-[25px] font-semibold leading-[1.2] text-[#1A1B1D]">Security</h1>
+              <p class="mt-2 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
+                Update password and/or enable 2FA for enhanced account security
+              </p>
+            </div>
+          </header>
+
+          <div class="mt-[33px]">
+            <div class="flex h-[43px] items-center border-b border-[#EAEAEA]">
+              <button
+                type="button"
+                (click)="securityTab.set('password')"
+                class="inline-flex h-full items-center gap-2 border-b-2 px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.6)] transition"
+                [class.border-[#6453D9]]="securityTab() === 'password'"
+                [class.text-[#6453D9]]="securityTab() === 'password'"
+                [class.border-transparent]="securityTab() !== 'password'"
+              >
+                <img ngSrc="/assets/icons/settings/security-lock.svg" width="16" height="16" alt="" aria-hidden="true">
+                Password
+              </button>
+
+              <button
+                type="button"
+                (click)="securityTab.set('2fa')"
+                class="inline-flex h-full items-center gap-2 border-b-2 px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.6)] transition"
+                [class.border-[#6453D9]]="securityTab() === '2fa'"
+                [class.text-[#6453D9]]="securityTab() === '2fa'"
+                [class.border-transparent]="securityTab() !== '2fa'"
+              >
+                <img ngSrc="/assets/icons/settings/security-key.svg" width="16" height="16" alt="" aria-hidden="true">
+                2-Factor Auth
+              </button>
+            </div>
+
+            @if (securityTab() === 'password') {
+              <div class="mt-[31px]">
+                <h2 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Change password</h2>
+
+                <div class="mt-[29px] space-y-[31px]">
+                  <div>
+                    <label for="mobile-current-password" class="mb-[7px] block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                      Enter current password
+                    </label>
+                    <input
+                      id="mobile-current-password"
+                      type="password"
+                      [value]="currentPassword()"
+                      class="h-11 w-full rounded-lg border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none focus:border-[#6453D9]"
+                    >
+                  </div>
+
+                  <div>
+                    <label for="mobile-new-password" class="mb-[7px] block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                      Enter new password
+                    </label>
+                    <div class="flex h-11 items-center gap-2 rounded-lg border border-[#6453D9] bg-white px-4">
+                      <input
+                        id="mobile-new-password"
+                        [type]="showNewPassword() ? 'text' : 'password'"
+                        [value]="newPassword()"
+                        (input)="updateNewPassword($event)"
+                        class="min-w-0 flex-1 bg-transparent text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none"
+                      >
+                      <button
+                        type="button"
+                        (click)="showNewPassword.update(value => !value)"
+                        class="inline-flex h-5 w-5 items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
+                        aria-label="Toggle password visibility"
+                      >
+                        <img ngSrc="/assets/icons/settings/security-eye.svg" width="20" height="20" alt="" aria-hidden="true">
+                      </button>
+                    </div>
+
+                    <div class="mt-[15px] flex items-center justify-between gap-4">
+                      <p class="text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">Password strength</p>
+                      <div class="flex gap-1.5">
+                        @for (segment of passwordStrengthSegments(); track $index) {
+                          <span class="h-1 w-10 rounded-full" [style.background]="segment"></span>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="mt-[15px] flex flex-wrap gap-2">
+                      @for (item of passwordChecks(); track item.label) {
+                        <span class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#F3F3F3] bg-white px-3 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
+                          <img
+                            [ngSrc]="item.passed ? '/assets/icons/settings/security-check.svg' : '/assets/icons/settings/security-close-circle.svg'"
+                            width="16"
+                            height="16"
+                            alt=""
+                            aria-hidden="true"
+                          >
+                          {{ item.label }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="mobile-confirm-password" class="mb-[7px] block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                      Confirm new password
+                    </label>
+                    <input
+                      id="mobile-confirm-password"
+                      type="password"
+                      [value]="confirmPassword()"
+                      (input)="updateConfirmPassword($event)"
+                      class="h-11 w-full rounded-lg border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none focus:border-[#6453D9]"
+                    >
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="mt-6">
+                <div>
+                  <h2 class="text-[20px] font-semibold leading-7 text-[#0D0D0D]">Select an authentication method</h2>
+                  <p class="mt-1 text-[14px] leading-5 text-[rgba(13,13,13,0.6)]">
+                    Turning this on will require an additional verification code when you log in from an untrusted device.
+                  </p>
+                </div>
+
+                <div class="mt-7 flex flex-col gap-5">
+                  @for (method of authenticationMethods; track method.id) {
+                    <button
+                      type="button"
+                      (click)="selectedAuthMethod.set(method.id)"
+                      class="relative h-[103px] w-full rounded-[20px] border bg-white text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                      [class.border-[#357FF6]]="selectedAuthMethod() === method.id"
+                      [class.border-2]="selectedAuthMethod() === method.id"
+                      [class.bg-[#F9F7FF]]="selectedAuthMethod() === method.id"
+                      [class.border-[#EBEBEB]]="selectedAuthMethod() !== method.id"
+                      [attr.aria-pressed]="selectedAuthMethod() === method.id"
+                    >
+                      <span class="absolute left-2.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#E6E6E6] bg-white">
+                        <img [ngSrc]="method.iconSrc" width="24" height="24" alt="" aria-hidden="true">
+                      </span>
+                      <span class="absolute left-[70px] right-[42px] top-1/2 flex -translate-y-1/2 flex-col gap-1">
+                        <span class="text-[16px] font-medium leading-6 text-[#0D0D0D]">
+                          {{ method.label }}
+                          @if (method.meta) {
+                            <span class="font-normal text-[rgba(13,13,13,0.5)]">{{ method.meta }}</span>
+                          }
+                        </span>
+                        <span class="text-[12px] leading-4 text-[rgba(13,13,13,0.5)]">{{ method.description }}</span>
+                      </span>
+                      <span
+                        class="absolute right-2.5 top-[29px] flex h-5 w-5 items-center justify-center rounded-full border bg-white"
+                        [class.border-[#357FF6]]="selectedAuthMethod() === method.id"
+                        [class.border-[#DADADA]]="selectedAuthMethod() !== method.id"
+                      >
+                        @if (selectedAuthMethod() === method.id) {
+                          <span class="h-3 w-3 rounded-full bg-[#357FF6]"></span>
+                        }
+                      </span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (securityTab() === 'password') {
+            <div class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3">
+              <button
+                type="button"
+                class="h-[52px] w-full rounded-[100px] bg-[#6453D9] text-[14px] font-semibold leading-5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+              >
+                Update and logout
+              </button>
+              <button
+                type="button"
+                (click)="resetPasswordForm()"
+                class="mt-3 h-[52px] w-full rounded-[100px] bg-[#F4F4F4] text-[14px] font-semibold leading-5 text-[rgba(26,27,29,0.8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+              >
+                Discard changes
+              </button>
+            </div>
+          } @else {
+            <div class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3">
+              <button
+                type="button"
+                (click)="isTwoFactorModalOpen.set(true)"
+                class="h-[52px] w-full rounded-[100px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+              >
+                Confirm and update
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="hidden h-full flex-col rounded-[32px] bg-white md:flex">
+      <header class="border-b border-[#F0F0F2] px-8 py-6">
+        <h1 class="text-[20px] font-semibold leading-[1.2] text-[#1A1B1D]">Account settings</h1>
+      </header>
+
+      <div class="flex-1 overflow-y-auto px-4 py-5">
+        <div class="grid items-start gap-12 xl:grid-cols-[261px_579px] xl:gap-[115px]">
           <app-settings-nav
             [activeTab]="activeTab()"
             (tabChange)="activeTab.set($event)"
@@ -74,107 +386,97 @@ type VerificationMode = 'email' | 'call' | 'whatsapp' | null;
                 (action)="openModal($event)"
               ></app-profile-settings-panel>
             } @else if (activeTab() === 'security') {
-              <section>
-                <h2 class="text-[20px] font-black tracking-tight text-[#1A1C21]">Security</h2>
-                <p class="mt-1 text-[12px] font-medium text-[#A2A7B0]">
+              <section class="w-full max-w-[545px]">
+                <h2 class="text-[28px] font-semibold leading-10 text-[#1A1B1D]">Security</h2>
+                <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
                   Update password and/or enable 2FA for enhanced account security
                 </p>
 
-                <div class="mt-8 max-w-[520px]">
-                  <div class="flex items-center gap-8 border-b border-[#ECEEF3]">
+                <div class="mt-8 max-w-[468px]">
+                  <div class="flex h-10 items-center border-b border-[#EAEAEA]">
                     <button
                       type="button"
                       (click)="securityTab.set('password')"
-                      class="inline-flex items-center gap-2 border-b-2 px-3 py-3 text-[13px] font-semibold transition"
-                      [class.border-[#6B5CF0]]="securityTab() === 'password'"
-                      [class.text-[#6B5CF0]]="securityTab() === 'password'"
+                      class="inline-flex h-full items-center gap-2 border-b-2 px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.6)] transition"
+                      [class.border-[#6453D9]]="securityTab() === 'password'"
+                      [class.text-[#6453D9]]="securityTab() === 'password'"
                       [class.border-transparent]="securityTab() !== 'password'"
-                      [class.text-[#A2A7B0]]="securityTab() !== 'password'"
                     >
-                      <ng-icon name="heroLockClosed" class="text-sm"></ng-icon>
+                      <img ngSrc="/assets/icons/settings/security-lock.svg" width="16" height="16" alt="" aria-hidden="true">
                       Password
                     </button>
 
                     <button
                       type="button"
                       (click)="securityTab.set('2fa')"
-                      class="inline-flex items-center gap-2 border-b-2 px-3 py-3 text-[13px] font-semibold transition"
-                      [class.border-[#6B5CF0]]="securityTab() === '2fa'"
-                      [class.text-[#6B5CF0]]="securityTab() === '2fa'"
+                      class="inline-flex h-full items-center gap-2 border-b-2 px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.6)] transition"
+                      [class.border-[#6453D9]]="securityTab() === '2fa'"
+                      [class.text-[#6453D9]]="securityTab() === '2fa'"
                       [class.border-transparent]="securityTab() !== '2fa'"
-                      [class.text-[#A2A7B0]]="securityTab() !== '2fa'"
                     >
-                      <ng-icon name="heroShieldCheck" class="text-sm"></ng-icon>
+                      <img ngSrc="/assets/icons/settings/security-key.svg" width="16" height="16" alt="" aria-hidden="true">
                       2-Factor Authentication
                     </button>
                   </div>
 
                   @if (securityTab() === 'password') {
                     <div class="mt-8">
-                      <h3 class="text-[18px] font-black tracking-tight text-[#1A1C21]">Change password</h3>
+                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Change password</h3>
 
-                      <div class="mt-5 space-y-6">
+                      <div class="mt-8 space-y-8">
                         <div>
-                          <label for="current-password" class="mb-2 block text-[13px] font-semibold text-[#6F747D]">
+                          <label for="current-password" class="mb-2 block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
                             Enter current password
                           </label>
                           <input
                             id="current-password"
                             type="password"
                             [value]="currentPassword()"
-                            class="w-full rounded-[12px] border border-[#E8EAF0] bg-white px-4 py-3 text-[13px] font-medium text-[#2A2D34] outline-none"
+                            class="h-8 w-full rounded-lg border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none focus:border-[#6453D9]"
                           >
                         </div>
 
                         <div>
-                          <label for="new-password" class="mb-2 block text-[13px] font-semibold text-[#6F747D]">
+                          <label for="new-password" class="mb-2 block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
                             Enter new password
                           </label>
-                          <div class="flex items-center gap-2 rounded-[12px] border border-[#6B5CF0] bg-white px-4 py-3">
+                          <div class="flex h-8 items-center gap-2 rounded-lg border border-[#6453D9] bg-white px-3">
                             <input
                               id="new-password"
                               [type]="showNewPassword() ? 'text' : 'password'"
                               [value]="newPassword()"
                               (input)="updateNewPassword($event)"
-                              class="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-[#2A2D34] outline-none"
+                              class="min-w-0 flex-1 bg-transparent text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none"
                             >
                             <button
                               type="button"
                               (click)="showNewPassword.update(value => !value)"
-                              class="text-[#969BA5] transition hover:text-[#6B5CF0]"
+                              class="inline-flex h-5 w-5 items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
                               aria-label="Toggle password visibility"
                             >
-                              <ng-icon name="heroEye" class="text-base"></ng-icon>
+                              <img ngSrc="/assets/icons/settings/security-eye.svg" width="20" height="20" alt="" aria-hidden="true">
                             </button>
                           </div>
 
-                          <div class="mt-3">
-                            <p class="text-[12px] font-medium text-[#A2A7B0]">Password strength</p>
-                            <div class="mt-2 flex gap-1.5">
+                          <div class="mt-4 flex items-center justify-between gap-4">
+                            <p class="text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">Password strength</p>
+                            <div class="flex gap-1.5">
                               @for (segment of passwordStrengthSegments(); track $index) {
-                                <span class="h-1.5 w-8 rounded-full" [style.background]="segment"></span>
+                                <span class="h-1 w-10 rounded-full" [style.background]="segment"></span>
                               }
                             </div>
                           </div>
 
                           <div class="mt-4 flex flex-wrap gap-2">
                             @for (item of passwordChecks(); track item.label) {
-                              <span
-                                class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-medium"
-                                [class.border-[#E4F3E8]]="item.passed"
-                                [class.bg-[#F5FCF7]]="item.passed"
-                                [class.text-[#6F747D]]="item.passed"
-                                [class.border-[#ECEEF3]]="!item.passed"
-                                [class.bg-white]="!item.passed"
-                                [class.text-[#A7ACB5]]="!item.passed"
-                              >
-                                <span
-                                  class="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                                  [class.bg-[#32B34A]]="item.passed"
-                                  [class.bg-[#D8DBE1]]="!item.passed"
+                              <span class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#F3F3F3] bg-white px-3 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
+                                <img
+                                  [ngSrc]="item.passed ? '/assets/icons/settings/security-check.svg' : '/assets/icons/settings/security-close-circle.svg'"
+                                  width="16"
+                                  height="16"
+                                  alt=""
+                                  aria-hidden="true"
                                 >
-                                  {{ item.passed ? '✓' : '×' }}
-                                </span>
                                 {{ item.label }}
                               </span>
                             }
@@ -182,7 +484,7 @@ type VerificationMode = 'email' | 'call' | 'whatsapp' | null;
                         </div>
 
                         <div>
-                          <label for="confirm-password" class="mb-2 block text-[13px] font-semibold text-[#6F747D]">
+                          <label for="confirm-password" class="mb-2 block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
                             Confirm new password
                           </label>
                           <input
@@ -190,7 +492,7 @@ type VerificationMode = 'email' | 'call' | 'whatsapp' | null;
                             type="password"
                             [value]="confirmPassword()"
                             (input)="updateConfirmPassword($event)"
-                            class="w-full rounded-[12px] border border-[#E8EAF0] bg-white px-4 py-3 text-[13px] font-medium text-[#2A2D34] outline-none"
+                            class="h-8 w-full rounded-lg border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none focus:border-[#6453D9]"
                           >
                         </div>
                       </div>
@@ -199,131 +501,72 @@ type VerificationMode = 'email' | 'call' | 'whatsapp' | null;
                         <button
                           type="button"
                           (click)="resetPasswordForm()"
-                          class="rounded-full border border-[#E7EAF0] bg-white px-4 py-3 text-[13px] font-semibold text-[#2F333B] transition hover:bg-[#FAFAFC]"
+                          class="h-10 rounded-full border border-[#EAEAEA] bg-white px-4 text-[14px] font-semibold leading-5 text-[rgba(26,27,29,0.8)] transition hover:bg-[#FAFAFC] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
                         >
                           Discard
                         </button>
                         <button
                           type="button"
-                          class="rounded-full bg-[#6653E4] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
+                          class="h-10 rounded-full bg-[#6453D9] px-4 text-[14px] font-semibold leading-5 text-white transition hover:bg-[#5945DB] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
                         >
                           Update and logout
                         </button>
                       </div>
                     </div>
                   } @else {
-                    <div class="mt-8 max-w-[520px]">
-                      @if (!isTwoFactorEnabled()) {
-                        <h3 class="text-[18px] font-black tracking-tight text-[#1A1C21]">
+                    <div class="mt-8 w-full">
+                      <div>
+                        <h3 class="text-[20px] font-semibold leading-7 text-[#0D0D0D]">
                           Select an authentication method
                         </h3>
-                        <p class="mt-2 max-w-[470px] text-[13px] font-medium leading-6 text-[#8D929B]">
+                        <p class="mt-1 text-[14px] leading-5 text-[rgba(13,13,13,0.6)]">
                           Turning this on will require an additional verification code when you log in from an untrusted device.
                         </p>
+                      </div>
 
-                        <div class="mt-6 space-y-5">
-                          @for (method of authenticationMethods; track method.id) {
-                            <button
-                              type="button"
-                              (click)="selectedAuthMethod.set(method.id)"
-                              class="flex w-full items-start justify-between rounded-[20px] border px-4 py-5 text-left transition"
-                              [class.border-[#8A7BF6]]="selectedAuthMethod() === method.id"
-                              [class.bg-[#FAF8FF]]="selectedAuthMethod() === method.id"
-                              [class.border-[#ECEEF3]]="selectedAuthMethod() !== method.id"
-                              [class.bg-white]="selectedAuthMethod() !== method.id"
-                            >
-                              <div class="flex items-start gap-4">
-                                <span class="flex h-10 w-10 items-center justify-center rounded-full border border-[#E7EAF0] bg-white text-[#A3A8B1]">
-                                  <ng-icon [name]="method.icon" class="text-base"></ng-icon>
-                                </span>
-                                <div>
-                                  <p class="text-[14px] font-semibold text-[#2A2D34]">
-                                    {{ method.label }}
-                                    @if (method.meta) {
-                                      <span class="font-medium text-[#A3A8B1]">{{ method.meta }}</span>
-                                    }
-                                  </p>
-                                  <p class="mt-1 max-w-[320px] text-[12px] font-medium leading-5 text-[#A3A8B1]">
-                                    {{ method.description }}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <span
-                                class="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 bg-white"
-                                [class.border-[#6B5CF0]]="selectedAuthMethod() === method.id"
-                                [class.border-[#D8DCE3]]="selectedAuthMethod() !== method.id"
-                              >
-                                @if (selectedAuthMethod() === method.id) {
-                                  <span class="h-2.5 w-2.5 rounded-full bg-[#6B5CF0]"></span>
+                      <div class="mt-8 flex flex-col gap-6">
+                        @for (method of authenticationMethods; track method.id) {
+                          <button
+                            type="button"
+                            (click)="selectedAuthMethod.set(method.id)"
+                            class="relative h-[103px] w-full rounded-[20px] border bg-white text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                            [class.border-[#6453D9]]="selectedAuthMethod() === method.id"
+                            [class.bg-[#F9F7FF]]="selectedAuthMethod() === method.id"
+                            [class.border-[#EBEBEB]]="selectedAuthMethod() !== method.id"
+                            [attr.aria-pressed]="selectedAuthMethod() === method.id"
+                          >
+                            <span class="absolute left-[15px] top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#E6E6E6] bg-white">
+                              <img [ngSrc]="method.iconSrc" width="24" height="24" alt="" aria-hidden="true">
+                            </span>
+                            <span class="absolute left-[79px] right-[58px] top-1/2 flex -translate-y-1/2 flex-col gap-1">
+                              <span class="text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                                {{ method.label }}
+                                @if (method.meta) {
+                                  <span class="font-normal text-[#959595]">{{ method.meta }}</span>
                                 }
                               </span>
-                            </button>
-                          }
-                        </div>
-
-                        <button
-                          type="button"
-                          (click)="isTwoFactorModalOpen.set(true)"
-                          class="mt-7 w-full rounded-full bg-[#6653E4] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
-                        >
-                          Turn on
-                        </button>
-                      } @else {
-                        <h3 class="text-[18px] font-black tracking-tight text-[#1A1C21]">
-                          Select an authentication method
-                        </h3>
-                        <p class="mt-2 max-w-[470px] text-[13px] font-medium leading-6 text-[#8D929B]">
-                          Turning this on will require an additional verification code when you log in from an untrusted device.
-                        </p>
-
-                        <div class="mt-8 rounded-[22px] border border-[#8A7BF6] bg-[#FAF8FF] p-5">
-                          <div class="flex items-start justify-between gap-4">
-                            <div class="flex items-start gap-4">
-                              <span class="flex h-12 w-12 items-center justify-center rounded-full border border-[#E7EAF0] bg-white text-[#A3A8B1]">
-                                <ng-icon [name]="activeAuthMethodConfig().icon" class="text-lg"></ng-icon>
-                              </span>
-                              <div>
-                                <div class="flex flex-wrap items-center gap-2">
-                                  <p class="text-[14px] font-semibold text-[#2A2D34]">
-                                    {{ activeAuthMethodConfig().label }}
-                                    @if (activeAuthMethodConfig().meta) {
-                                      <span class="font-medium text-[#A3A8B1]">{{ activeAuthMethodConfig().meta }}</span>
-                                    }
-                                  </p>
-                                </div>
-                                <p class="mt-2 max-w-[350px] text-[12px] font-medium leading-5 text-[#6D727C]">
-                                  {{ activeAuthDescription() }}
-                                </p>
-                              </div>
-                            </div>
-
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-[#E6FAEC] px-3 py-1 text-[12px] font-semibold text-[#2FB04A]">
-                              <span class="flex h-4 w-4 items-center justify-center rounded-full bg-[#2FB04A] text-[10px] font-bold text-white">✓</span>
-                              Active
+                              <span class="text-[12px] leading-4 text-[#959595]">{{ method.description }}</span>
                             </span>
-                          </div>
+                            <span
+                              class="absolute right-[15px] top-[28px] flex h-5 w-5 items-center justify-center rounded-full border bg-white"
+                              [class.border-[#6453D9]]="selectedAuthMethod() === method.id"
+                              [class.border-[#DADADA]]="selectedAuthMethod() !== method.id"
+                            >
+                              @if (selectedAuthMethod() === method.id) {
+                                <span class="h-3 w-3 rounded-full bg-[#6453D9]"></span>
+                              }
+                            </span>
+                          </button>
+                        }
+                      </div>
 
-                          <div class="mt-5 border-t border-[#E6E0FF] pt-4 text-[13px] font-medium text-[#8E939D]">
-                            Enabled on February 7, 2026
-                          </div>
-                        </div>
-
-                        <div class="mt-8 flex items-start gap-3 rounded-[18px] bg-[#FFFEF0] px-5 py-4">
-                          <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EEE82C] text-[#6C6B00]">!</span>
-                          <p class="max-w-[460px] text-[13px] font-semibold leading-6 text-[#9A9800]">
-                            Keep your phone number secure. If you lose access, you may be locked out of your account
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          (click)="isTurnOffTwoFactorModalOpen.set(true)"
-                          class="mt-10 w-full rounded-full bg-[#FF2A2A] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(255,42,42,0.9)] transition hover:bg-[#F01B1B]"
-                        >
-                          Turn off
-                        </button>
-                      }
+                      <button
+                        type="button"
+                        (click)="isTwoFactorModalOpen.set(true)"
+                        class="mt-8 h-10 w-full rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5945DB] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                      >
+                        Turn on
+                      </button>
                     </div>
                   }
                 </div>
@@ -545,6 +788,7 @@ type VerificationMode = 'email' | 'call' | 'whatsapp' | null;
 })
 export class SettingsPageComponent {
   readonly activeTab = signal<SettingsTab>('profile');
+  readonly mobileSettingsStep = signal<'menu' | 'profile' | 'security'>('menu');
   readonly securityTab = signal<'password' | '2fa'>('password');
   readonly notificationsTab = signal<'method' | 'preferences'>('method');
   readonly currentPassword = signal('password123');
@@ -572,7 +816,7 @@ export class SettingsPageComponent {
     email: 'bryan@email.com',
     callNumber: '',
     whatsappNumber: '',
-    firstName: 'Bryan Odjede',
+    fullName: 'Bryan Odjede',
   });
 
   readonly modalMode = signal<ModalMode>(null);
@@ -595,7 +839,7 @@ export class SettingsPageComponent {
     const passedCount = this.passwordChecks().filter(item => item.passed).length;
 
     return Array.from({ length: 4 }, (_, index) =>
-      index < passedCount ? '#F0C529' : '#ECEEF3',
+      index < passedCount ? '#FCD53F' : '#F0F0F0',
     );
   });
   readonly authenticationMethods = [
@@ -605,6 +849,7 @@ export class SettingsPageComponent {
       meta: '(+234 816 *** 7454)',
       description: 'Use your mobile phone to receive a text message with an authentication code to enter when you log in.',
       icon: 'heroDevicePhoneMobile',
+      iconSrc: '/assets/icons/settings/two-factor-call.svg',
     },
     {
       id: 'email' as const,
@@ -612,6 +857,7 @@ export class SettingsPageComponent {
       meta: '',
       description: 'Use your email to receive a verification code to enter when you log in.',
       icon: 'heroEnvelope',
+      iconSrc: '/assets/icons/settings/two-factor-sms.svg',
     },
     {
       id: 'app' as const,
@@ -619,6 +865,7 @@ export class SettingsPageComponent {
       meta: '',
       description: 'Install an app to generate your verification code',
       icon: 'heroShieldCheck',
+      iconSrc: '/assets/icons/settings/two-factor-shield.svg',
     },
   ];
   readonly notificationMethods = [
@@ -670,6 +917,26 @@ export class SettingsPageComponent {
       description: 'Receive summaries and insights on how your listings and ads are performing',
     },
   ];
+  readonly mobileMenuItems = [
+    { id: 'profile' as const, label: 'Profile settings', iconSrc: '/assets/icons/settings/mobile-profile.svg' },
+    { id: 'security' as const, label: 'Security', iconSrc: '/assets/icons/settings/mobile-security.svg' },
+    { id: 'notifications' as const, label: 'Notifications', iconSrc: '/assets/icons/settings/mobile-notifications.svg' },
+  ];
+
+  openMobileMenuItem(tab: SettingsTab): void {
+    this.activeTab.set(tab);
+
+    if (tab === 'profile') {
+      this.mobileSettingsStep.set('profile');
+      return;
+    }
+
+    if (tab === 'security') {
+      this.securityTab.set('password');
+      this.mobileSettingsStep.set('security');
+    }
+  }
+
   readonly twoFactorDestination = computed(() => {
     switch (this.selectedAuthMethod()) {
       case 'email':
@@ -701,7 +968,7 @@ export class SettingsPageComponent {
       case 'name':
         return {
           title: 'Update full name',
-          description: 'Please update to the full name as it appears on your bank certificate.',
+          description: 'Please update to the full name as it appears on your birth certificate.',
           fieldLabel: 'Full name',
           value: this.modalValue(),
           inputType: 'text' as const,
@@ -711,7 +978,7 @@ export class SettingsPageComponent {
       case 'call-add':
         return {
           title: 'Add call number',
-          description: 'You’ll use this number for notifications, calls and recover your account when necessary',
+          description: 'You’ll use this number to get notifications, calls and recover your account when necessary. We’ll send you a code to confirm this.',
           fieldLabel: 'Phone number',
           value: this.modalValue(),
           inputType: 'tel' as const,
@@ -751,7 +1018,7 @@ export class SettingsPageComponent {
       case 'email':
         return {
           title: 'Update email',
-          description: 'You’ll use this email for notifications, log in and recover your account',
+          description: 'You’ll use this email to get notifications, sign in and recover your account when necessary',
           fieldLabel: 'Email',
           value: this.modalValue() || profile.email,
           inputType: 'email' as const,
@@ -785,7 +1052,7 @@ export class SettingsPageComponent {
     switch (action) {
       case 'edit-name':
         this.modalMode.set('name');
-        this.modalValue.set(profile.firstName);
+        this.modalValue.set(profile.fullName);
         break;
       case 'edit-email':
         this.modalMode.set('email');
@@ -805,7 +1072,7 @@ export class SettingsPageComponent {
   handleModalConfirm(): void {
     switch (this.modalMode()) {
       case 'name':
-        this.profile.update(profile => ({ ...profile, firstName: this.modalValue() }));
+        this.profile.update(profile => ({ ...profile, fullName: this.modalValue() }));
         this.showToast('Profile updated successfully');
         this.modalMode.set(null);
         break;

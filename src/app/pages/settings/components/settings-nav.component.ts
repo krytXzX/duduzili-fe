@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroUser, heroShieldCheck, heroBell } from '@ng-icons/heroicons/outline';
+import { heroBell, heroShieldCheck, heroUser } from '@ng-icons/heroicons/outline';
 
 export type SettingsTab = 'profile' | 'security' | 'notifications';
 
@@ -10,20 +10,21 @@ export type SettingsTab = 'profile' | 'security' | 'notifications';
   imports: [CommonModule, NgIcon],
   providers: [provideIcons({ heroUser, heroShieldCheck, heroBell })],
   template: `
-    <section class="rounded-[20px] border border-[#EEF0F4] bg-white p-4">
-      <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#B4B8C0]">Select page</p>
+    <section class="w-[261px] rounded-[16px] border border-[#EFEFEF] bg-white p-4">
+      <p class="px-2.5 text-[12px] uppercase leading-4 text-[rgba(143,143,143,0.7)]">Select menu</p>
 
-      <div class="space-y-1">
+      <div class="mt-3 flex flex-col gap-3">
         @for (item of items; track item.id) {
           <button
             type="button"
             (click)="tabChange.emit(item.id)"
-            class="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-left text-[13px] font-medium transition hover:bg-[#F8F9FB]"
-            [class.bg-[#F4F5F8]]="activeTab() === item.id"
-            [class.text-[#2A2D34]]="activeTab() === item.id"
-            [class.text-[#9297A1]]="activeTab() !== item.id"
+            class="flex h-8 w-full items-center gap-2 rounded-[8px] px-2.5 py-1 text-left text-[14px] leading-5 transition hover:bg-[#F4F4F4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+            [class.bg-[#F4F4F4]]="activeTab() === item.id"
+            [class.font-medium]="activeTab() === item.id"
+            [class.text-[#1F1F1F]]="activeTab() === item.id"
+            [class.text-[rgba(13,13,13,0.4)]]="activeTab() !== item.id"
           >
-            <ng-icon [name]="item.icon" class="text-sm"></ng-icon>
+            <ng-icon [name]="item.icon" class="text-base"></ng-icon>
             {{ item.label }}
           </button>
         }
