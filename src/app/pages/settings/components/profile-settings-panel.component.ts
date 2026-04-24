@@ -105,6 +105,27 @@ type ProfilePanelMode = 'full' | 'details-only';
           </div>
         </div>
       </div>
+
+      @if (mode() === 'full') {
+        <div class="mt-8 hidden md:block">
+          <div class="mb-5 flex items-center gap-2">
+            <span class="h-px flex-1 bg-[#EFEFEF]"></span>
+            <span class="inline-flex items-center gap-2 text-[14px] font-medium leading-5 text-[#A2A2A2]">
+              <img ngSrc="/assets/icons/settings/mobile-danger.svg" width="16" height="16" alt="" aria-hidden="true">
+              Danger zone
+            </span>
+            <span class="h-px flex-1 bg-[#EFEFEF]"></span>
+          </div>
+
+          <button
+            type="button"
+            (click)="deleteRequest.emit()"
+            class="flex h-11 items-center justify-center rounded-full border border-[#FF7B7B] bg-[linear-gradient(180deg,#FF6B73_0%,#FF5E67_100%)] px-5 text-[14px] font-semibold leading-5 text-white shadow-[0_6px_16px_rgba(255,95,103,0.22)] transition duration-200 hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#FF7680_0%,#FF6871_100%)] hover:shadow-[0_10px_22px_rgba(255,95,103,0.28)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5E67] focus-visible:ring-offset-2"
+          >
+            Delete / deactivate account
+          </button>
+        </div>
+      }
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -113,6 +134,7 @@ export class ProfileSettingsPanelComponent {
   readonly profile = input.required<ProfileSettingsData>();
   readonly mode = input<ProfilePanelMode>('full');
   readonly action = output<ProfileAction>();
+  readonly deleteRequest = output<void>();
 
   protected detailRows(): Array<{
     label: string;

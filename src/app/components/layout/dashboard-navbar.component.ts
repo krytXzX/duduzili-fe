@@ -209,6 +209,63 @@ type SellerMenuEntry = {
         </div>
       </div>
     </header>
+
+    @if (isLogoutConfirmOpen()) {
+      <div
+        class="fixed inset-0 z-[220] hidden items-center justify-center bg-black/40 p-4 lg:flex"
+        (click)="isLogoutConfirmOpen.set(false)"
+      >
+        <div
+          class="relative w-full max-w-[430px] overflow-hidden rounded-[24px] bg-white px-6 pb-10 pt-8 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="seller-logout-confirm-title"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="flex flex-col items-center text-center">
+            <div class="relative h-[121px] w-[121px]">
+              <div class="absolute inset-0 rounded-full bg-[#FFF1F1]"></div>
+              <div class="absolute left-1/2 top-[15px] h-[91px] w-[91px] -translate-x-1/2 rounded-full bg-[#FFD9D9]"></div>
+              <div class="absolute left-1/2 top-[35px] flex h-[52px] w-[52px] -translate-x-1/2 items-center justify-center rounded-[18px] bg-[#FF3131] shadow-[0_10px_24px_rgba(255,49,49,0.18)]">
+                <svg class="h-7 w-7" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+                  <path
+                    d="M14 9.15v5.95"
+                    stroke="white"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                  />
+                  <circle cx="14" cy="18.25" r="1.4" fill="white"/>
+                </svg>
+              </div>
+            </div>
+
+            <h3 id="seller-logout-confirm-title" class="mt-[14px] text-[24px] font-semibold leading-8 text-[#1F2230]">
+              Are you sure?
+            </h3>
+            <p class="mt-3 max-w-[332px] text-[16px] leading-[1.2] text-[#5E5E5E]">
+              Logging out will temporarily hide all your personal data, including matches and dates. To see again, simply log back in to your account.
+            </p>
+          </div>
+
+          <div class="mt-9 space-y-3">
+            <button
+              type="button"
+              (click)="confirmLogout()"
+              class="flex h-[52px] w-full items-center justify-center rounded-full border border-[#FF7B7B] bg-[linear-gradient(180deg,#FF6B73_0%,#FF5E67_100%)] px-5 text-[16px] font-semibold leading-6 text-white shadow-[0_6px_16px_rgba(255,95,103,0.32)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5E67] focus-visible:ring-offset-2"
+            >
+              Log out
+            </button>
+            <button
+              type="button"
+              (click)="isLogoutConfirmOpen.set(false)"
+              class="flex h-[52px] w-full items-center justify-center rounded-full bg-[#F5F5F5] px-5 text-[16px] font-semibold leading-6 text-[#171717] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [`
     :host {
@@ -235,6 +292,7 @@ export class DashboardNavbarComponent {
 
   readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
+  readonly isLogoutConfirmOpen = signal(false);
 
   updateSearchQuery(value: string): void {
     this.searchQuery.set(value);
@@ -269,6 +327,11 @@ export class DashboardNavbarComponent {
 
   logOut(): void {
     this.closeAccountMenu();
+    this.isLogoutConfirmOpen.set(true);
+  }
+
+  confirmLogout(): void {
+    this.isLogoutConfirmOpen.set(false);
     void this.router.navigate(['/sign-in']);
   }
 }
