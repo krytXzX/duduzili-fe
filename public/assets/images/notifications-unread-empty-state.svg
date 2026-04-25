@@ -1,0 +1,26 @@
+<svg width="176" height="152" viewBox="0 0 176 152" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="88" cy="76" r="76" fill="#FAFAFA"/>
+  <g opacity="0.95">
+    <path d="M49.847 92.43C48.249 91.887 47.387 90.162 47.921 88.56L58.258 57.547C58.792 55.945 60.519 55.073 62.117 55.625L78.347 61.199C79.946 61.742 80.808 63.467 80.273 65.069L69.937 96.082C69.403 97.685 67.675 98.556 66.077 98.004L49.847 92.43Z" fill="#F5F0F0" stroke="#BEB8BA" stroke-width="1.2"/>
+    <path d="M63.364 68.224L59.352 80.258" stroke="#BEB8BA" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M67.22 73.238L55.486 69.141" stroke="#BEB8BA" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M56.36 88.285C60.511 86.997 64.03 88.419 66.76 91.177" stroke="#D6CFD1" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(70 20) rotate(24 38 48)">
+    <rect x="7.5" y="8.5" width="61" height="86" rx="10.5" fill="#F9F7F7" stroke="#BBB5B7"/>
+    <path d="M7 21C7 15.477 11.477 11 17 11H60C65.523 11 70 15.477 70 21V30H7V21Z" fill="#C9C3C5"/>
+    <rect x="16" y="38" width="12" height="12" rx="2.5" fill="#FFFFFF" stroke="#E7E4E5"/>
+    <rect x="32" y="38" width="12" height="12" rx="2.5" fill="#FFFFFF" stroke="#E7E4E5"/>
+    <rect x="48" y="38" width="12" height="12" rx="2.5" fill="#FFFFFF" stroke="#E7E4E5"/>
+    <rect x="16" y="54" width="12" height="12" rx="2.5" fill="#FFFFFF" stroke="#E7E4E5"/>
+    <rect x="32" y="54" width="12" height="12" rx="2.5" fill="#FFFFFF" stroke="#E7E4E5"/>
+    <rect x="48" y="54" width="12" height="12" rx="2.5" fill="#FFFFFF" stroke="#E7E4E5"/>
+    <rect x="16" y="70" width="12" height="12" rx="2.5" fill="#FFFFFF" stroke="#E7E4E5"/>
+    <rect x="32" y="70" width="12" height="12" rx="2.5" fill="#FFFFFF" stroke="#E7E4E5"/>
+    <rect x="48" y="70" width="12" height="12" rx="2.5" fill="#FFFFFF" stroke="#E7E4E5"/>
+  </g>
+  <g opacity="0.9" stroke="#B8B1B3" stroke-width="1.6" stroke-linecap="round">
+    <path d="M27 103L30.325 111L38 114.5L30.325 118L27 126L23.675 118L16 114.5L23.675 111L27 103Z"/>
+    <path d="M149 40L151.9 47L159 49.9L151.9 52.8L149 60L146.1 52.8L139 49.9L146.1 47L149 40Z"/>
+  </g>
+</svg>
