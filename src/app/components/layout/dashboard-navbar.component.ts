@@ -322,7 +322,7 @@ export class DashboardNavbarComponent {
 
   switchToBuyerMode(): void {
     this.closeAccountMenu();
-    void this.router.navigate(['/buyer']);
+    void this.router.navigate(['/buyer/home']);
   }
 
   logOut(): void {

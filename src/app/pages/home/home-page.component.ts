@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, input, signal, viewChild } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
@@ -37,6 +37,8 @@ type HomePromotion = {
 export class HomePageComponent {
   private readonly categoryRail = viewChild<ElementRef<HTMLDivElement>>('categoryRail');
 
+  readonly showPublicChrome = input(true);
+  readonly showBottomNav = input(true);
   readonly showAppDownloadBanner = signal(true);
   readonly showMobileMenu = signal(false);
 

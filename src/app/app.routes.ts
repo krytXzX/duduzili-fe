@@ -17,14 +17,14 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: 'buyer',
+    path: '',
     component: BuyerDashboardLayoutComponent,
     canActivate: [isLoggedin],
     children: [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'chats',
+        redirectTo: 'home',
       },
       {
         path: 'wishlist',
@@ -222,7 +222,7 @@ export const routes: Routes = [
   },
   // Dashboard Routes
   {
-    path: '',
+    path: 'seller',
     component: DashboardLayoutComponent,
     canActivate: [isLoggedin],
     children: [
@@ -367,6 +367,26 @@ export const routes: Routes = [
         path: 'two-factor',
         loadComponent: () =>
           import('./pages/two-factor/two-factor-page').then((m) => m.TwoFactorPageComponent),
+      },
+    ],
+  },
+  {
+    path: 'home',
+    loadComponent: () =>
+      import('./pages/home/buyer-signed-in-home-page.component').then(
+        (m) => m.BuyerSignedInHomePageComponent,
+      ),
+  },
+  {
+    path: 'seller',
+    canActivate: [isLoggedin],
+    children: [
+      {
+        path: 'home',
+        loadComponent: () =>
+          import('./pages/home/seller-signed-in-home-page.component').then(
+            (m) => m.SellerSignedInHomePageComponent,
+          ),
       },
     ],
   },
