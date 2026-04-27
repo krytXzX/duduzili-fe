@@ -67,7 +67,7 @@ interface ProductSection {
   template: `
     <section class="min-h-full px-6 py-6 md:px-8">
       <nav class="mb-6 flex items-center gap-3 text-sm text-[#8C8C92]">
-        <a routerLink="/buyer/followed-stores" class="transition-colors hover:text-[#5932EA]">
+        <a routerLink="/followed-stores" class="transition-colors hover:text-[#5932EA]">
           Followed vendors
         </a>
         <span>/</span>
@@ -782,7 +782,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   openInAppChat() {
     this.showContactMenu.set(false);
-    void this.router.navigate(['/buyer/chats']);
+    void this.router.navigate(['/chats']);
   }
 
   openWhatsApp() {

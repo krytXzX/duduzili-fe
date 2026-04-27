@@ -55,7 +55,7 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
         <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pb-32">
           <div class="flex h-[54px] items-center gap-3">
             <a
-              routerLink="/buyer/more"
+              routerLink="/more"
               class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
               aria-label="Back to more"
             >

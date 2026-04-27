@@ -2,51 +2,99 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroChevronDown, heroMapPin } from '@ng-icons/heroicons/outline';
+import {
+  heroBars3,
+  heroChevronRight,
+  heroMagnifyingGlass,
+} from '@ng-icons/heroicons/outline';
+
+type BuyerMenuEntry = {
+  readonly label: string;
+  readonly iconSrc: string;
+  readonly route: string;
+};
 
 @Component({
   selector: 'app-buyer-dashboard-navbar',
   imports: [CommonModule, RouterLink, NgOptimizedImage, NgIcon],
   providers: [
     provideIcons({
-      heroChevronDown,
-      heroMapPin,
+      heroBars3,
+      heroChevronRight,
+      heroMagnifyingGlass,
     }),
   ],
   template: `
-    <header class="flex h-12 items-center justify-between overflow-hidden rounded-[100px] bg-[#1A1A1A] py-[9px] pl-6 pr-2 text-white">
-      <div class="flex min-w-0 items-center gap-6">
-        <a routerLink="/" class="block transition-opacity hover:opacity-90" aria-label="Duduzili home">
-          <img
-            ngSrc="/assets/icons/home-logo-light.svg"
-            alt="Duduzili"
-            width="112"
-            height="26"
-            priority
-            class="h-[26px] w-auto object-contain"
-          />
-        </a>
+    <header class="flex h-16 items-center justify-between rounded-full bg-black px-6 text-white shadow-lg">
+      <a
+        routerLink="/home"
+        class="group flex items-center transition-opacity hover:opacity-90"
+        aria-label="Duduzili home"
+      >
+        <img
+          ngSrc="assets/icons/seller-shell-logo.svg"
+          alt="Duduzili"
+          width="112"
+          height="26"
+          priority
+          class="h-[26px] w-auto object-contain"
+        />
+      </a>
 
-        <button
-          type="button"
-          class="hidden h-10 w-[176px] items-center justify-between rounded-full bg-[#2F2F2F] py-1 pl-3 pr-1 text-white md:inline-flex"
-          aria-label="Select location"
-        >
-          <span class="flex items-center gap-1 text-[14px] font-semibold tracking-[0.14px]">
-            <ng-icon name="heroMapPin" class="text-[16px] text-[#FF3B30]"></ng-icon>
-            All of Nigeria
-          </span>
-          <span class="flex h-8 w-10 items-center justify-center rounded-full bg-[#515151]">
-            <ng-icon name="heroChevronDown" class="text-[16px] text-white"></ng-icon>
-          </span>
-        </button>
+      <div class="group mx-6 hidden max-w-lg flex-1 md:block">
+        <div class="relative">
+          <div class="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+            <ng-icon
+              name="heroMagnifyingGlass"
+              class="text-white/40 transition-colors group-focus-within:text-white"
+            ></ng-icon>
+          </div>
+
+          <input
+            type="text"
+            [value]="searchQuery()"
+            #buyerSearchInput
+            (input)="updateSearchQuery(buyerSearchInput.value)"
+            (keydown.enter)="runSearch()"
+            placeholder="Search products, stores, or categories"
+            class="w-full rounded-full border-none bg-white/10 py-2 pl-12 pr-20 text-sm text-white outline-none transition-all placeholder:text-white/40 focus:bg-white/20 focus:ring-0"
+          />
+
+          @if (searchQuery()) {
+            <button
+              type="button"
+              (click)="clearSearch()"
+              class="absolute inset-y-0 right-10 flex items-center text-white/30 transition hover:text-white/60"
+              aria-label="Clear search"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fill-rule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          }
+
+          <button
+            type="button"
+            (click)="runSearch()"
+            class="absolute inset-y-0 right-3 flex items-center"
+            aria-label="Search"
+          >
+            <div class="flex h-6 w-6 items-center justify-center rounded-lg border border-white/5 bg-white/10 transition hover:bg-white/15">
+              <ng-icon name="heroChevronRight" class="text-xs text-white/60"></ng-icon>
+            </div>
+          </button>
+        </div>
       </div>
 
-      <div class="flex items-center gap-0.5">
+      <div class="flex items-center gap-6">
         <button
           type="button"
           (click)="switchToSellerMode()"
-          class="hidden h-10 items-center justify-center rounded-[64px] px-[14px] text-[14px] font-medium leading-5 text-white transition hover:bg-white/5 sm:inline-flex"
+          class="hidden text-xs font-semibold tracking-wide text-white/80 transition-colors hover:text-white sm:block"
         >
           Switch to seller mode
         </button>
@@ -64,90 +112,106 @@ import { heroChevronDown, heroMapPin } from '@ng-icons/heroicons/outline';
           <button
             type="button"
             (click)="toggleAccountMenu()"
-            class="relative z-50 flex h-10 w-[78px] items-center rounded-[24px] bg-white p-1 text-[#1C274C] transition hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            class="relative z-50 flex items-center gap-2 rounded-full border border-white/10 bg-white p-1 pr-3 text-[#15162B] transition-all hover:bg-white/90"
             aria-haspopup="menu"
             [attr.aria-expanded]="isAccountMenuOpen()"
             aria-label="Open buyer account menu"
           >
-            <img
-              ngSrc="/assets/images/seller-menu-avatar.png"
-              width="32"
-              height="32"
-              alt=""
-              aria-hidden="true"
-              class="h-8 w-8 rounded-full object-cover"
-            />
-            <img
-              ngSrc="/assets/images/Outline/Essentional, UI/Hamburger Menu.svg"
-              width="20"
-              height="20"
-              alt=""
-              aria-hidden="true"
-              class="ml-4 h-5 w-5"
-            />
+            <div class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full ring-2 ring-white/10">
+              <img
+                ngSrc="assets/images/seller-menu-avatar.png"
+                alt=""
+                width="28"
+                height="28"
+                class="h-7 w-7 object-cover"
+              />
+            </div>
+            <ng-icon name="heroBars3" class="text-lg text-[#15162B]"></ng-icon>
           </button>
 
           @if (isAccountMenuOpen()) {
             <div
-              class="absolute right-0 top-[calc(100%+12px)] z-50 flex w-[305px] flex-col gap-[10px] overflow-hidden rounded-[24px] bg-white py-4 text-[#15162B] shadow-[0_6.65px_5.32px_rgba(0,0,0,0.03),0_2.767px_2.214px_rgba(0,0,0,0.02)]"
+              class="absolute right-0 top-[calc(100%+12px)] z-50 w-[304px] overflow-hidden rounded-[24px] border border-black/[0.03] bg-white py-4 text-[#15162B] shadow-[0_6.65px_5.32px_rgba(0,0,0,0.03),0_2.767px_2.214px_rgba(0,0,0,0.02)]"
               role="menu"
               aria-label="Buyer account menu"
             >
               <div class="flex flex-col gap-6">
                 <div class="flex items-center gap-1.5 px-3">
-                  <img
-                    ngSrc="/assets/images/seller-menu-avatar.png"
-                    width="36"
-                    height="36"
-                    alt=""
-                    aria-hidden="true"
-                    class="h-9 w-9 rounded-full object-cover"
-                  />
-                  <div class="min-w-0 leading-none">
-                    <p class="truncate text-[14px] font-medium tracking-[-0.07px] text-[#15162B]">Bryan Odjede</p>
-                    <p class="mt-0.5 truncate text-[10px] font-normal text-[#72737F]">Buyer mode</p>
+                  <div class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full">
+                    <img
+                      ngSrc="assets/images/seller-menu-avatar.png"
+                      alt=""
+                      width="36"
+                      height="36"
+                      class="h-9 w-9 object-cover"
+                    />
+                  </div>
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-medium tracking-[-0.07px] text-[#15162B]">Bryan Odjede</p>
+                    <p class="truncate text-[10px] font-normal text-[#72737F]">Buyer mode</p>
                   </div>
                 </div>
 
                 <div class="flex flex-col gap-3">
                   <div class="flex flex-col gap-2">
-                    <button type="button" (click)="goToBuyerRoute('/buyer/chats')" class="flex h-7 w-full items-center gap-2 rounded-[8px] bg-white px-3 py-2.5 text-left text-[14px] font-medium text-[#15162B] transition hover:bg-[#F7F8FA]" role="menuitem">
-                      <img ngSrc="/assets/icons/buyer-menu/messages.svg" width="16" height="16" alt="" aria-hidden="true" class="h-4 w-4 shrink-0" />
-                      <span>Chats</span>
-                    </button>
-                    <button type="button" (click)="goToBuyerRoute('/buyer/wishlist')" class="flex h-7 w-full items-center gap-2 rounded-[8px] bg-white px-3 py-2.5 text-left text-[14px] font-medium text-[#15162B] transition hover:bg-[#F7F8FA]" role="menuitem">
-                      <img ngSrc="/assets/icons/buyer-menu/heart.svg" width="16" height="16" alt="" aria-hidden="true" class="h-4 w-4 shrink-0" />
-                      <span>Wishlist</span>
-                    </button>
-                    <button type="button" (click)="goToBuyerRoute('/buyer/followed-stores')" class="flex h-7 w-full items-center gap-2 rounded-[8px] bg-white px-3 py-2.5 text-left text-[14px] font-medium text-[#15162B] transition hover:bg-[#F7F8FA]" role="menuitem">
-                      <img ngSrc="/assets/icons/buyer-menu/shop.svg" width="16" height="16" alt="" aria-hidden="true" class="h-4 w-4 shrink-0" />
-                      <span>Followed stores</span>
-                    </button>
-                    <button type="button" (click)="goToBuyerRoute('/buyer/recently-viewed')" class="flex h-7 w-full items-center gap-2 rounded-[8px] bg-white px-3 py-2.5 text-left text-[14px] font-medium text-[#15162B] transition hover:bg-[#F7F8FA]" role="menuitem">
-                      <img ngSrc="/assets/icons/buyer-menu/global-search.svg" width="16" height="16" alt="" aria-hidden="true" class="h-4 w-4 shrink-0" />
-                      <span>Recently viewed</span>
-                    </button>
-                    <button type="button" (click)="goToBuyerRoute('/buyer/settings')" class="flex h-7 w-full items-center gap-2 rounded-[8px] bg-white px-3 py-2.5 text-left text-[14px] font-medium text-[#15162B] transition hover:bg-[#F7F8FA]" role="menuitem">
-                      <img ngSrc="/assets/icons/buyer-menu/setting-2.svg" width="16" height="16" alt="" aria-hidden="true" class="h-4 w-4 shrink-0" />
-                      <span>Account settings</span>
-                    </button>
-                    <button type="button" (click)="goToBuyerRoute('/buyer/notifications')" class="flex h-7 w-full items-center gap-2 rounded-[8px] bg-white px-3 py-2.5 text-left text-[14px] font-medium text-[#15162B] transition hover:bg-[#F7F8FA]" role="menuitem">
-                      <img ngSrc="/assets/icons/buyer-menu/notification-bing.svg" width="16" height="16" alt="" aria-hidden="true" class="h-4 w-4 shrink-0" />
-                      <span>Notifications</span>
-                    </button>
+                    @for (item of buyerMenuEntries; track item.label) {
+                      <button
+                        type="button"
+                        (click)="goToBuyerRoute(item.route)"
+                        class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#F7F8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15162B]"
+                        role="menuitem"
+                      >
+                        <img
+                          [ngSrc]="item.iconSrc"
+                          alt=""
+                          width="16"
+                          height="16"
+                          class="h-4 w-4 shrink-0"
+                        />
+                        <span class="text-sm font-medium leading-none tracking-[-0.08px] text-[#15162B]">
+                          {{ item.label }}
+                        </span>
+                      </button>
+                    }
                   </div>
 
                   <div class="flex flex-col gap-3">
-                    <div class="h-px w-full bg-[#E9EAF0]"></div>
+                    <div class="h-px w-full bg-[#E8E8EB]"></div>
 
-                    <button type="button" (click)="switchToSellerMode()" class="flex h-7 w-full items-center gap-2 rounded-[8px] bg-white px-3 py-2.5 text-left text-[14px] font-medium text-[#15162B] transition hover:bg-[#F7F8FA]" role="menuitem">
-                      <img ngSrc="/assets/icons/buyer-menu/arrow-swap-horizontal.svg" width="16" height="16" alt="" aria-hidden="true" class="h-4 w-4 shrink-0" />
-                      <span>Switch to seller mode</span>
+                    <button
+                      type="button"
+                      (click)="switchToSellerMode()"
+                      class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#F7F8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15162B]"
+                      role="menuitem"
+                    >
+                      <img
+                        ngSrc="assets/icons/buyer-menu/arrow-swap-horizontal.svg"
+                        alt=""
+                        width="16"
+                        height="16"
+                        class="h-4 w-4 shrink-0"
+                      />
+                      <span class="text-sm font-medium leading-none tracking-[-0.08px] text-[#15162B]">
+                        Switch to seller mode
+                      </span>
                     </button>
 
-                    <button type="button" (click)="logOut()" class="flex h-7 w-full items-center gap-2 rounded-[8px] bg-white px-3 py-2.5 text-left text-[14px] font-medium text-[#FF2524] transition hover:bg-[#FFF5F5]" role="menuitem">
-                      <img ngSrc="/assets/icons/buyer-menu/logout.svg" width="16" height="16" alt="" aria-hidden="true" class="h-4 w-4 shrink-0" />
-                      <span>Log out</span>
+                    <button
+                      type="button"
+                      (click)="logOut()"
+                      class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#FFF5F5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF2524]"
+                      role="menuitem"
+                    >
+                      <img
+                        ngSrc="assets/icons/buyer-menu/logout.svg"
+                        alt=""
+                        width="16"
+                        height="16"
+                        class="h-4 w-4 shrink-0"
+                      />
+                      <span class="text-sm font-medium leading-none tracking-[-0.08px] text-[#FF2524]">
+                        Log out
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -162,7 +226,61 @@ import { heroChevronDown, heroMapPin } from '@ng-icons/heroicons/outline';
 })
 export class BuyerDashboardNavbarComponent {
   private readonly router = inject(Router);
+
+  readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
+
+  protected readonly buyerRoutes = {
+    chats: '/chats',
+    wishlist: '/wishlist',
+    followedStores: '/followed-stores',
+    recentlyViewed: '/recently-viewed',
+    settings: '/settings',
+    notifications: '/notifications',
+    sellerHome: '/seller/home',
+    signIn: '/sign-in',
+  } as const;
+
+  protected readonly buyerMenuEntries: readonly BuyerMenuEntry[] = [
+    {
+      label: 'Chats',
+      iconSrc: '/assets/icons/buyer-menu/messages.svg',
+      route: this.buyerRoutes.chats,
+    },
+    {
+      label: 'Wishlist',
+      iconSrc: '/assets/icons/buyer-menu/heart.svg',
+      route: this.buyerRoutes.wishlist,
+    },
+    {
+      label: 'Followed stores',
+      iconSrc: '/assets/icons/buyer-menu/shop.svg',
+      route: this.buyerRoutes.followedStores,
+    },
+    {
+      label: 'Recently viewed',
+      iconSrc: '/assets/icons/buyer-menu/global-search.svg',
+      route: this.buyerRoutes.recentlyViewed,
+    },
+    {
+      label: 'Account settings',
+      iconSrc: '/assets/icons/buyer-menu/setting-2.svg',
+      route: this.buyerRoutes.settings,
+    },
+    {
+      label: 'Notifications',
+      iconSrc: '/assets/icons/buyer-menu/notification-bing.svg',
+      route: this.buyerRoutes.notifications,
+    },
+  ];
+
+  updateSearchQuery(value: string): void {
+    this.searchQuery.set(value);
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+  }
 
   toggleAccountMenu(): void {
     this.isAccountMenuOpen.update((value) => !value);
@@ -172,6 +290,11 @@ export class BuyerDashboardNavbarComponent {
     this.isAccountMenuOpen.set(false);
   }
 
+  runSearch(): void {
+    const query = this.searchQuery().trim() || 'iPhone';
+    void this.router.navigate(['/category'], { queryParams: { q: query } });
+  }
+
   goToBuyerRoute(path: string): void {
     this.closeAccountMenu();
     void this.router.navigateByUrl(path);
@@ -179,11 +302,11 @@ export class BuyerDashboardNavbarComponent {
 
   switchToSellerMode(): void {
     this.closeAccountMenu();
-    void this.router.navigate(['/home']);
+    void this.router.navigateByUrl(this.buyerRoutes.sellerHome);
   }
 
   logOut(): void {
     this.closeAccountMenu();
-    void this.router.navigate(['/sign-in']);
+    void this.router.navigateByUrl(this.buyerRoutes.signIn);
   }
 }

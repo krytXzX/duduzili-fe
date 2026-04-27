@@ -67,7 +67,7 @@ export class BuyerFollowedStoresPageComponent {
       followers: '0',
       metaLabel: 'Ikeja, Lagos',
       isVerified: true,
-      route: ['/buyer/followed-stores', 'bf1'],
+      route: ['/followed-stores', 'bf1'],
     },
     {
       id: 'bf2',
@@ -77,7 +77,7 @@ export class BuyerFollowedStoresPageComponent {
       followers: '0',
       metaLabel: 'Ikeja, Lagos',
       isVerified: true,
-      route: ['/buyer/followed-stores', 'bf2'],
+      route: ['/followed-stores', 'bf2'],
     },
     {
       id: 'bf3',
@@ -87,7 +87,7 @@ export class BuyerFollowedStoresPageComponent {
       followers: '0',
       metaLabel: 'Ikeja, Lagos',
       isVerified: true,
-      route: ['/buyer/followed-stores', 'bf3'],
+      route: ['/followed-stores', 'bf3'],
     },
     {
       id: 'bf4',
@@ -97,7 +97,7 @@ export class BuyerFollowedStoresPageComponent {
       followers: '0',
       metaLabel: 'Ikeja, Lagos',
       isVerified: true,
-      route: ['/buyer/followed-stores', 'bf4'],
+      route: ['/followed-stores', 'bf4'],
     },
     {
       id: 'bf5',
@@ -107,7 +107,7 @@ export class BuyerFollowedStoresPageComponent {
       followers: '0',
       metaLabel: 'Ikeja, Lagos',
       isVerified: true,
-      route: ['/buyer/followed-stores', 'bf5'],
+      route: ['/followed-stores', 'bf5'],
     },
     {
       id: 'bf6',
@@ -117,7 +117,7 @@ export class BuyerFollowedStoresPageComponent {
       followers: '0',
       metaLabel: 'Ikeja, Lagos',
       isVerified: true,
-      route: ['/buyer/followed-stores', 'bf6'],
+      route: ['/followed-stores', 'bf6'],
     },
     {
       id: 'bf7',
@@ -127,7 +127,7 @@ export class BuyerFollowedStoresPageComponent {
       followers: '0',
       metaLabel: 'Ikeja, Lagos',
       isVerified: true,
-      route: ['/buyer/followed-stores', 'bf7'],
+      route: ['/followed-stores', 'bf7'],
     },
   ]);
 

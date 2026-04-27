@@ -50,17 +50,18 @@ export class SignInPageComponent {
   protected readonly primaryActionLabel = computed(() => 'Continue with email');
   protected readonly isEmailEmpty = computed(() => this.emailValue().trim().length === 0);
   protected readonly isPasswordEmpty = computed(() => this.passwordValue().trim().length === 0);
-  protected readonly isPrimaryActionDisabled = computed(() =>
-    this.isCheckingEmail() ||
-    (!this.isEmailValidated() && (this.isEmailEmpty() || this.emailControl.invalid)) ||
-    (this.isEmailValidated() && this.isPasswordEmpty()),
+  protected readonly isPrimaryActionDisabled = computed(
+    () =>
+      this.isCheckingEmail() ||
+      (!this.isEmailValidated() && (this.isEmailEmpty() || this.emailControl.invalid)) ||
+      (this.isEmailValidated() && this.isPasswordEmpty()),
   );
 
   protected continueWithEmail(): void {
     if (this.isEmailValidated()) {
       this.submitted.set(true);
       if (this.loginForm.valid) {
-        this.router.navigate(['/listings']);
+        this.router.navigate(['/home']);
       }
       return;
     }

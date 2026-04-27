@@ -29,7 +29,7 @@ import {
     <aside class="flex h-full flex-col overflow-y-auto bg-inherit p-8">
       <nav class="space-y-1">
         <a
-          routerLink="/buyer/chats"
+          routerLink="/chats"
           routerLinkActive="bg-white rounded-xl text-[#1A1C21] shadow-sm"
           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
         >
@@ -37,7 +37,7 @@ import {
           Chats
         </a>
         <a
-          routerLink="/buyer/wishlist"
+          routerLink="/wishlist"
           routerLinkActive="bg-white rounded-xl text-[#1A1C21] shadow-sm"
           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
         >
@@ -45,7 +45,7 @@ import {
           Wishlist
         </a>
         <a
-          routerLink="/buyer/followed-stores"
+          routerLink="/followed-stores"
           routerLinkActive="bg-white rounded-xl text-[#1A1C21] shadow-sm"
           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
         >
@@ -53,7 +53,7 @@ import {
           Followed stores
         </a>
         <a
-          routerLink="/buyer/recently-viewed"
+          routerLink="/recently-viewed"
           routerLinkActive="bg-white rounded-xl text-[#1A1C21] shadow-sm"
           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
         >
@@ -61,7 +61,7 @@ import {
           Recently viewed
         </a>
         <a
-          routerLink="/buyer/settings"
+          routerLink="/settings"
           routerLinkActive="bg-white rounded-xl text-[#1A1C21] shadow-sm"
           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
         >
@@ -69,7 +69,7 @@ import {
           Account settings
         </a>
         <a
-          routerLink="/buyer/notifications"
+          routerLink="/notifications"
           routerLinkActive="bg-white rounded-xl text-[#1A1C21] shadow-sm"
           class="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
         >

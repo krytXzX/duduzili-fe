@@ -1,673 +1,926 @@
 <div class="min-h-screen bg-white">
-  <app-navbar [showSearch]="true" />
+  <div class="hidden px-4 pt-4 md:block md:px-6 lg:px-8">
+    <app-buyer-dashboard-navbar class="mx-auto block w-full max-w-[1238px]" />
+  </div>
 
-  <main class="mx-auto max-w-7xl px-4 py-8 sm:py-10">
-    <div class="grid grid-cols-1 gap-14">
-      <section class="grid grid-cols-1 gap-8 lg:grid-cols-[86px_minmax(0,1fr)_320px] xl:grid-cols-[86px_minmax(0,1fr)_340px] items-start">
-        <div class="order-2 flex gap-3 overflow-x-auto pb-1 lg:order-1 lg:flex-col lg:overflow-visible">
-          @for (img of product().images; track $index) {
-          <button type="button" (click)="setGalleryIndex($index)" class="aspect-square w-16 shrink-0 overflow-hidden rounded-[18px] border bg-white p-1 transition-all lg:w-20" [class.border-indigo-600]="$index === currentGalleryIndex()" [class.border-gray-100]="$index !== currentGalleryIndex()">
-            <img [src]="img" class="h-full w-full rounded-lg object-cover">
+  <header class="border-b border-[#F1F1F1] bg-white md:hidden">
+    <div class="mx-auto flex w-full max-w-[390px] items-center justify-between px-5 py-4">
+      <a routerLink="/home" class="text-[20px] font-black tracking-[-0.02em] text-[#36394A]">
+        Duduzili
+      </a>
+
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 rounded-full bg-[#F3F3F3] px-3 py-2 text-[13px] font-medium text-[#373737]">
+          <svg class="h-4 w-4 text-[#7B7B7B]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          All Nigeria
+        </div>
+
+        <div
+          class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white"
+          [style.background]="initialsGradient()"
+        >
+          {{ store().initials }}
+        </div>
+      </div>
+    </div>
+
+    <div class="mx-auto flex w-full max-w-[390px] items-center justify-between px-5 py-3">
+      <a
+        routerLink="/home"
+        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3] text-[#1F1F1F]"
+        aria-label="Go back"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12.5 15 7.5 10l5-5" />
+        </svg>
+      </a>
+
+      <button
+        type="button"
+        (click)="toggleListingActionsMenu()"
+        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3] text-[#1F1F1F]"
+        aria-label="Product actions"
+        [attr.aria-expanded]="isListingActionsMenuOpen()"
+        aria-haspopup="menu"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path
+            d="M10 3.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"
+          />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="mx-auto flex w-full max-w-[1240px] flex-col gap-12 px-5 py-6 md:px-6 md:py-8 lg:px-8">
+    <section class="grid grid-cols-1 gap-8 lg:grid-cols-[100px_minmax(0,552px)_360px] lg:gap-10">
+      <div class="hidden flex-col gap-3 lg:flex">
+        @for (image of product().images; track image.src; let index = $index) {
+          <button
+            type="button"
+            (click)="setGalleryIndex(index)"
+            class="relative aspect-square overflow-hidden rounded-[20px] border bg-[#EFEFEF] p-1 transition-all"
+            [class.border-black]="currentGalleryIndex() === index"
+            [class.border-[#EAEAEA]]="currentGalleryIndex() !== index"
+            [attr.aria-label]="'View gallery image ' + (index + 1)"
+          >
+            <img
+              [ngSrc]="image.src"
+              [alt]="image.alt"
+              width="100"
+              height="100"
+              class="h-full w-full rounded-[16px] object-cover"
+            />
+
+            @if (image.eyebrow) {
+              <div class="absolute inset-0 flex flex-col items-center justify-center rounded-[16px] bg-white/55 px-3 text-center backdrop-blur-[1px]">
+                <span class="text-[10px] font-medium text-[#505050]">{{ image.eyebrow }}</span>
+              </div>
+            }
           </button>
-          }
-        </div>
+        }
+      </div>
 
-        <div class="order-1 relative overflow-hidden rounded-[34px] bg-[#F3F3F5] p-4 shadow-sm lg:order-2">
-          <div class="absolute left-4 top-4 z-10 flex flex-col gap-2">
-            <div class="flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#36394A] shadow-sm">
-              <div class="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              Verified
-            </div>
-            <div class="w-fit rounded-full bg-white px-3 py-1 text-[10px] font-bold uppercase text-gray-600 shadow-sm">{{ product().condition }}</div>
-            <div class="w-fit rounded-full bg-[#DDF26A] px-3 py-1 text-[10px] font-black text-[#5F6800] shadow-sm">-{{ product().discount }}</div>
-          </div>
-
-          <div class="absolute right-4 top-4 z-10 flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-[11px] font-medium text-gray-500 shadow-sm">
-            {{ product().views }}
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12a9 9 0 1018 0 9 9 0 00-18 0zm9-4v4l3 3" />
-            </svg>
-          </div>
-
-          <img [src]="currentMainImage()" class="h-full w-full object-contain p-6 lg:p-10">
-
-          <div class="absolute inset-x-3 top-1/2 z-10 flex -translate-y-1/2 justify-between lg:inset-x-4">
-            <button type="button" (click)="prevImage()" class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md transition-all hover:bg-gray-50 lg:h-10 lg:w-10">
-              <svg class="h-5 w-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button type="button" (click)="nextImage()" class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md transition-all hover:bg-gray-50 lg:h-10 lg:w-10">
-              <svg class="h-5 w-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <aside class="order-3 space-y-6">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <img [src]="store().logo" class="h-10 w-10 rounded-full border border-gray-100 object-cover">
-              <div>
-                <div class="flex items-center gap-1.5">
-                  <span class="text-sm font-semibold text-[#36394A]">{{ store().name }}</span>
-                  <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                  </svg>
-                </div>
-                <div class="flex items-center gap-1 text-[11px] text-gray-400">
-                  <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                  </svg>
-                  {{ store().location }}
-                </div>
-              </div>
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center justify-between lg:hidden">
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-[50px] w-[50px] items-center justify-center rounded-full text-sm font-semibold text-white"
+              [style.background]="initialsGradient()"
+            >
+              {{ store().initials }}
             </div>
 
-            <div class="relative">
-              <button type="button" (click)="toggleListingActionsMenu()" class="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-[#F4F4F6]" aria-label="More product actions" [attr.aria-expanded]="isListingActionsMenuOpen()" aria-haspopup="menu">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4z" />
+            <div>
+              <div class="flex items-center gap-1.5">
+                <p class="text-[18px] font-medium text-[#1F1F1F]">{{ store().name }}</p>
+                @if (store().isVerified) {
+                  <svg class="h-[14px] w-[14px] text-[#6453D9]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 10-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                }
+              </div>
+
+              <div class="mt-1 flex items-center gap-1 text-[14px] text-[#777777]">
+                <svg class="h-[14px] w-[14px]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
+                {{ store().location }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:hidden">
+          <div class="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none]">
+            @for (image of product().images; track image.src; let index = $index) {
+              <button
+                type="button"
+                (click)="setGalleryIndex(index)"
+                class="relative h-[350px] w-[315px] shrink-0 snap-start overflow-hidden rounded-[20px] bg-[#EFEFEF] transition"
+                [class.ring-2]="currentGalleryIndex() === index"
+                [class.ring-[#1F1F1F]]="currentGalleryIndex() === index"
+                [attr.aria-label]="'Select gallery image ' + (index + 1)"
+              >
+                <img
+                  [ngSrc]="image.src"
+                  [alt]="image.alt"
+                  width="315"
+                  height="350"
+                  class="h-full w-full object-cover"
+                />
+
+                @if (image.eyebrow) {
+                  <div class="absolute inset-0 flex flex-col items-center justify-center bg-white/45 px-6 text-center backdrop-blur-[1px]">
+                    <span class="text-[18px] font-medium text-[#505050]">{{ image.eyebrow }}</span>
+                  </div>
+                }
               </button>
+            }
+          </div>
+        </div>
 
-              @if (isListingActionsMenuOpen()) {
-              <button type="button" class="fixed inset-0 z-10 cursor-default" (click)="closeListingActionsMenu()" aria-label="Close listing actions menu"></button>
+        <div class="relative hidden overflow-hidden rounded-[32px] bg-[#EFEFEF] lg:block">
+          <button
+            type="button"
+            class="absolute left-5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+            (click)="prevImage()"
+            aria-label="Previous image"
+          >
+            <svg class="h-5 w-5 text-[#1F1F1F]" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12.5 15 7.5 10l5-5" />
+            </svg>
+          </button>
 
-              <div class="absolute right-0 top-[calc(100%+10px)] z-20 w-[248px] overflow-hidden rounded-[20px] border border-gray-100 bg-white py-2 shadow-[0_18px_40px_-24px_rgba(17,24,39,0.35)]" role="menu" aria-label="Listing actions">
-                <button type="button" (click)="shareListing()" class="flex w-full items-center gap-3 px-5 py-3 text-left text-[14px] font-medium text-[#2E323B] transition hover:bg-[#F8F8FA]" role="menuitem">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#7B8088]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.684 13.342C9.886 12.511 11.38 12 13 12c1.62 0 3.114.511 4.316 1.342M15 6.5v7m0 0l-3-3m3 3l3-3M6 10.5v7m0 0l-3-3m3 3l3-3" />
-                  </svg>
-                  Share listing
-                </button>
+          <button
+            type="button"
+            class="absolute right-5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+            (click)="nextImage()"
+            aria-label="Next image"
+          >
+            <svg class="h-5 w-5 text-[#1F1F1F]" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7.5 5 12.5 10l-5 5" />
+            </svg>
+          </button>
 
-                <button type="button" (click)="reportListingUnavailable()" class="flex w-full items-center gap-3 px-5 py-3 text-left text-[14px] font-medium text-[#FF3B30] transition hover:bg-[#FFF5F5]" role="menuitem">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#FF3B30]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.172 9.172a4 4 0 015.656 5.656m-5.656-5.656L6.343 6.343m8.485 8.485l2.829 2.829M7 12a5 5 0 008.536 3.536A5 5 0 108.464 8.464" />
-                  </svg>
-                  Report listing as unavailable
-                </button>
+          <button
+            type="button"
+            class="absolute right-5 top-5 z-10 inline-flex items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 py-2 text-sm text-[#2D2D2D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+          >
+            <span>{{ product().likes }}</span>
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="m12 21-1.45-1.32C5.4 15.05 2 11.97 2 8.2 2 5.12 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6.04 6.04 0 0116.5 3C19.58 3 22 5.12 22 8.2c0 3.77-3.4 6.85-8.55 11.49L12 21z"
+              />
+            </svg>
+          </button>
 
-                <button type="button" (click)="reportSeller()" class="flex w-full items-center gap-3 px-5 py-3 text-left text-[14px] font-medium text-[#FF3B30] transition hover:bg-[#FFF5F5]" role="menuitem">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#FF3B30]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 8h2a2 2 0 012 2v8a2 2 0 01-2 2h-8a2 2 0 01-2-2v-2m8-8V6a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h2m10-8l-6 6m0 0H8m3 0v-3" />
-                  </svg>
-                  Report seller
-                </button>
-              </div>
-              }
+          <div class="absolute left-5 top-5 z-10 flex flex-col gap-2">
+            <span class="inline-flex items-center gap-2 rounded-[8px] border border-[#EAEAEA] bg-white px-4 py-2 text-sm font-semibold text-black">
+              <svg class="h-4 w-4 text-[#6453D9]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 10-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Verified
+            </span>
+            <span class="inline-flex w-fit rounded-full border border-[#EAEAEA] bg-white px-4 py-1.5 text-sm font-medium text-black">
+              {{ product().condition }}
+            </span>
+            <span class="inline-flex w-fit rounded-full bg-[#E9FF7C] px-4 py-1.5 text-sm font-medium text-[#4E3E07]">
+              {{ product().discount }}
+            </span>
+          </div>
+
+          <img
+            [ngSrc]="currentGalleryImage().src"
+            [alt]="currentGalleryImage().alt"
+            width="552"
+            height="668"
+            priority
+            class="h-[668px] w-full object-cover"
+          />
+        </div>
+
+        <div class="lg:hidden">
+          <div class="space-y-1.5">
+            <h1 class="text-[28px] font-medium leading-[40px] text-[#1F1F1F]">{{ product().name }}</h1>
+            <div class="flex items-start gap-2">
+              <span class="text-[20px] leading-6 text-[#1F1F1F]">{{ product().price }}</span>
+              <span class="pt-0.5 text-[16px] leading-6 text-[#888888] line-through">{{ product().oldPrice }}</span>
             </div>
+            <p class="text-[14px] leading-5 text-[#777777]">Last updated on: {{ product().lastUpdated }}</p>
+          </div>
+
+          <div class="mt-6 space-y-4">
+            <div>
+              <h2 class="text-[20px] font-medium leading-6 text-[#1F1F1F]">Description:</h2>
+              <p class="mt-1 text-[16px] leading-6 text-[#5A5A5A]">{{ product().description }}</p>
+            </div>
+
+            <div>
+              <h2 class="text-[20px] font-medium leading-6 text-[#1F1F1F]">Delivery options:</h2>
+              <ul class="mt-1 list-disc pl-6 text-[16px] leading-6 text-[#5A5A5A]">
+                @for (option of product().deliveryOptions; track option) {
+                  <li>{{ option }}</li>
+                }
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="flex flex-col gap-6">
+        <div class="hidden items-center justify-between lg:flex">
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white"
+              [style.background]="initialsGradient()"
+            >
+              {{ store().initials }}
+            </div>
+
+            <div>
+              <div class="flex items-center gap-1.5">
+                <p class="text-[14px] font-medium text-[#1F1F1F]">{{ store().name }}</p>
+                @if (store().isVerified) {
+                  <svg class="h-[14px] w-[14px] text-[#6453D9]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 10-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                }
+              </div>
+
+              <div class="mt-1 flex items-center gap-1 text-[12px] text-[#777777]">
+                <svg class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                {{ store().location }}
+              </div>
+            </div>
+          </div>
+
+          <div class="relative">
+            <button
+              type="button"
+              (click)="toggleListingActionsMenu()"
+              class="flex h-9 w-9 items-center justify-center rounded-full text-[#1F1F1F] transition hover:bg-[#F4F4F4]"
+              aria-label="More listing actions"
+              [attr.aria-expanded]="isListingActionsMenuOpen()"
+              aria-haspopup="menu"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path
+                  d="M10 3.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="hidden space-y-4 lg:block">
+          <div>
+            <h1 class="text-[24px] font-medium leading-8 text-[#1F1F1F]">{{ product().name }}</h1>
+            <div class="mt-1 flex items-center gap-2">
+              <span class="text-[20px] leading-6 text-[#1F1F1F]">{{ product().price }}</span>
+              <span class="text-[16px] leading-6 text-[#888888] line-through">{{ product().oldPrice }}</span>
+            </div>
+            <p class="mt-1 text-[12px] leading-5 text-[#777777]">Last updated on: {{ product().lastUpdated }}</p>
           </div>
 
           <div>
-            <h1 class="mb-1 text-[21px] font-semibold text-[#1A1C21] lg:text-[24px]">{{ product().name }}</h1>
-            <div class="flex items-baseline gap-2">
-              <span class="text-[21px] font-semibold text-[#1A1C21]">{{ product().price }}</span>
-              <span class="text-sm text-gray-400 line-through">{{ product().oldPrice }}</span>
-            </div>
-            <p class="mt-1 text-xs text-gray-400">Last updated on: 24 January, 2026</p>
+            <h2 class="text-[18px] font-medium leading-6 text-[#1F1F1F]">Description:</h2>
+            <p class="mt-1 text-[14px] leading-6 text-[#5A5A5A]">{{ product().description }}</p>
           </div>
 
-          <div class="space-y-3">
-            <h3 class="text-[18px] font-medium text-[#1A1C21]">Description:</h3>
-            <p class="text-sm leading-7 text-gray-600">{{ product().description }}</p>
-          </div>
-
-          <div class="space-y-3">
-            <h3 class="text-[18px] font-medium text-[#1A1C21]">Delivery options:</h3>
-            <ul class="space-y-2 text-sm text-gray-600">
-              @for (opt of product().deliveryOptions; track opt) {
-              <li class="flex items-start gap-3">
-                <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400"></span>
-                {{ opt }}
-              </li>
+          <div>
+            <h2 class="text-[18px] font-medium leading-6 text-[#1F1F1F]">Delivery options:</h2>
+            <ul class="mt-1 list-disc pl-5 text-[14px] leading-6 text-[#5A5A5A]">
+              @for (option of product().deliveryOptions; track option) {
+                <li>{{ option }}</li>
               }
             </ul>
           </div>
+        </div>
 
-          <div class="grid gap-3 pt-2">
-            <button type="button" (click)="isMessageVendorModalOpen.set(true)" class="rounded-full bg-indigo-600 py-3 text-sm font-medium text-white shadow-[0_16px_30px_-18px_rgba(99,102,241,0.8)] transition-all hover:bg-indigo-700">
-              Message vendor
+        <div class="flex flex-col gap-3">
+          <button
+            type="button"
+            (click)="isMessageVendorModalOpen.set(true)"
+            class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8]"
+          >
+            Message vendor
+          </button>
+
+          <button
+            type="button"
+            (click)="openCallVendorModal()"
+            class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#1F1F1F] text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(54,54,54,0.4),0_0_0_1px_#0B0B0B]"
+          >
+            Call vendor
+          </button>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              (click)="openMakeOfferModal()"
+              class="flex h-[52px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-4 text-[13px] font-medium text-[#1F1F1F]"
+            >
+              Make an offer
             </button>
-            <button type="button" (click)="openCallVendorModal()" class="rounded-full bg-[#1B1C20] py-3 text-sm font-medium text-white transition-all hover:bg-black">Call vendor</button>
-            <div class="grid grid-cols-2 gap-3">
-              <button type="button" (click)="openMakeOfferModal()" class="rounded-full border border-gray-200 bg-white px-4 py-3 text-xs font-medium text-[#36394A] transition-all hover:bg-gray-50">
-                Make an offer
-              </button>
-              <button type="button" (click)="openRequestCallbackModal()" class="rounded-full border border-gray-200 bg-white px-4 py-3 text-xs font-medium text-[#36394A] transition-all hover:bg-gray-50">
-                Request call back
-              </button>
+
+            <button
+              type="button"
+              (click)="openRequestCallbackModal()"
+              class="flex h-[52px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-4 text-[13px] font-medium text-[#1F1F1F]"
+            >
+              Request call back
+            </button>
+          </div>
+        </div>
+
+        <section class="rounded-[24px] border border-[#EAEAEA] bg-white p-5">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-[20px] font-normal leading-6 text-[#1F1F1F]">Reviews</h2>
+              <div class="mt-2 text-[36px] leading-none text-[#1F1F1F]">4.8</div>
+              <p class="mt-1 text-[11px] text-[#777777]">237 ratings</p>
             </div>
+
+            <button
+              type="button"
+              class="flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#7B7B7B] transition hover:bg-[#F7F7F7]"
+              aria-label="See more reviews"
+            >
+              <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M7.5 5 12.5 10l-5 5" />
+              </svg>
+            </button>
           </div>
 
-          <section class="overflow-hidden rounded-[28px] border border-gray-100 bg-white p-6 shadow-sm">
-            <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-[18px] font-medium text-[#1A1C21]">Reviews</h3>
-              <button type="button" (click)="nextReview()" class="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 text-gray-500 transition-all hover:bg-gray-50">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
+          <div class="mt-2 flex gap-1 text-[#E5D038]">
+            @for (star of ratingStars; track star) {
+              <svg class="h-[14px] w-[14px]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path
+                  d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.08 3.29a1 1 0 00.95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.81 2.03a1 1 0 00-.36 1.12l1.07 3.29c.3.92-.75 1.69-1.54 1.12l-2.8-2.04a1 1 0 00-1.18 0l-2.8 2.04c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 00-.36-1.12L2.98 8.72c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 00.95-.69l1.07-3.29z"
+                />
+              </svg>
+            }
+          </div>
 
-            <div class="mb-4">
-              <div class="text-[34px] font-semibold text-[#1A1C21]">4.8</div>
-              <p class="text-[11px] text-gray-400">237 ratings</p>
-              <div class="mt-2 flex gap-1 text-yellow-400">
-                @for (i of [1,2,3,4,5]; track i) {
-                <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                }
-              </div>
-            </div>
-
-            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              @for (review of compactReviews(); track review.author) {
-              <div class="rounded-[18px] border border-gray-100 bg-[#FAFAFC] p-4">
-                <p class="line-clamp-4 text-[12px] leading-5 text-gray-600">{{ review.text }}</p>
-                <div class="mt-3 flex gap-1 text-yellow-400">
-                  @for (i of [1,2,3,4,5]; track i) {
-                  <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
+          <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            @for (review of compactReviews(); track review.author) {
+              <article class="rounded-[16px] border border-[#EAEAEA] bg-white p-4">
+                <p class="line-clamp-4 text-[12px] leading-5 text-[#5A5A5A]">{{ review.text }}</p>
+                <div class="mt-3 flex gap-1 text-[#E5D038]">
+                  @for (star of ratingStars; track star) {
+                    <svg class="h-[12px] w-[12px]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path
+                        d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.08 3.29a1 1 0 00.95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.81 2.03a1 1 0 00-.36 1.12l1.07 3.29c.3.92-.75 1.69-1.54 1.12l-2.8-2.04a1 1 0 00-1.18 0l-2.8 2.04c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 00-.36-1.12L2.98 8.72c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 00.95-.69l1.07-3.29z"
+                      />
+                    </svg>
                   }
                 </div>
-                <p class="mt-2 text-[11px] text-gray-400">{{ review.author }} • {{ review.date }}</p>
+                <p class="mt-2 text-[11px] text-[#A0A0A0]">{{ review.author }}, {{ review.date }}</p>
+              </article>
+            }
+          </div>
+        </section>
+
+        <section
+          class="relative overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white px-[15px] pb-[18px] pt-[15px]"
+          style="background-image: linear-gradient(16.81deg, rgba(255,255,255,0) 57.337%, rgba(255,230,184,0.75) 87.346%);"
+        >
+          <div class="absolute right-[17px] top-[15px] flex h-12 w-12 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]">
+            <span class="text-[26px] leading-none" aria-hidden="true">💡</span>
+          </div>
+
+          <h2 class="max-w-[191px] text-[28px] font-normal leading-[40px] text-[#1F1F1F]">Safety tips</h2>
+
+          <ul class="mt-[38px] list-disc pl-[21px] text-[14px] leading-5 text-[#1F1F1F]">
+            @for (tip of safetyTips; track tip) {
+              <li class="pl-0.5">{{ tip }}</li>
+            }
+          </ul>
+        </section>
+
+        <section class="overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white">
+          <div class="relative h-[158px] overflow-hidden rounded-t-[20px] bg-[#FCEECE]">
+            <img
+              [ngSrc]="store().bannerImage"
+              [alt]="store().name + ' banner'"
+              width="405"
+              height="158"
+              class="h-full w-full object-cover"
+            />
+            <div class="absolute inset-0 bg-[linear-gradient(0deg,rgba(255,235,191,0)_0%,rgba(255,235,191,0.86)_100%)]"></div>
+            <div class="absolute inset-x-0 bottom-0 h-[99px] bg-[linear-gradient(180deg,rgba(255,255,255,0)_0.54%,#FFFFFF_93.47%)]"></div>
+          </div>
+
+          <div class="px-[19px] pb-[19px]">
+            <div class="-mt-[34px] flex flex-col gap-6">
+              <div
+                class="relative z-10 flex h-[74px] w-[74px] items-center justify-center rounded-full border-4 border-white bg-[#3D785F] text-[#FFEBBF] shadow-sm"
+              >
+                <svg class="h-11 w-11" viewBox="0 0 44 44" fill="currentColor" aria-hidden="true">
+                  <ellipse cx="14" cy="15" rx="6.5" ry="10.5" transform="rotate(-35 14 15)"></ellipse>
+                  <ellipse cx="30" cy="15" rx="6.5" ry="10.5" transform="rotate(35 30 15)"></ellipse>
+                  <ellipse cx="14" cy="30" rx="6.5" ry="10.5" transform="rotate(35 14 30)"></ellipse>
+                  <ellipse cx="30" cy="30" rx="6.5" ry="10.5" transform="rotate(-35 30 30)"></ellipse>
+                </svg>
               </div>
-              }
-            </div>
-          </section>
 
-          <section class="relative overflow-hidden rounded-[28px] border border-[#F2E4BE] bg-[#FFF8E7] p-6">
-            <div class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#E3B100] shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <h3 class="mb-4 text-[18px] font-medium text-[#1A1C21]">Safety tips</h3>
-            <ul class="space-y-3 text-sm leading-6 text-gray-600">
-              <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400"></span>Avoid paying in advance, even for delivery</li>
-              <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400"></span>Meet with the seller at a safe public place</li>
-              <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400"></span>Inspect the item and ensure it is exactly what you want</li>
-              <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400"></span>Make sure that the packed item is the one you inspected</li>
-              <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400"></span>Only pay if you are satisfied</li>
-            </ul>
-          </section>
-
-          <section class="overflow-hidden rounded-[28px] border border-gray-100 bg-white shadow-sm">
-            <div class="h-24 bg-linear-to-r from-[#92C7F7] via-[#D9EEF7] to-[#F6C29F]"></div>
-            <div class="px-6 pb-6">
-              <div class="-mt-7 inline-flex rounded-full border-4 border-white bg-white">
-                <img [src]="store().logo" class="h-14 w-14 rounded-full object-cover">
-              </div>
-
-              <div class="mt-3">
+              <div class="space-y-[7px]">
                 <div class="flex items-center gap-1.5">
-                  <h3 class="text-[18px] font-medium text-[#1A1C21]">{{ store().name }}</h3>
-                  <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                  </svg>
+                  <h2 class="text-[18px] font-medium leading-6 text-[#1F1F1F]">{{ store().name }}</h2>
+                  @if (store().isVerified) {
+                    <svg class="h-[14px] w-[14px] text-[#6453D9]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 10-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  }
                 </div>
-                <div class="mt-1 flex items-center gap-1 text-[11px] text-gray-400">
-                  <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                <div class="flex items-center gap-1 text-[14px] leading-5 text-[#777777]">
+                  <svg class="h-[14px] w-[14px]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                      clip-rule="evenodd"
+                    />
                   </svg>
                   {{ store().location }}
                 </div>
               </div>
 
-              <div class="mt-5 grid grid-cols-4 gap-2 border-y border-gray-100 py-4 text-center">
-                <div>
-                  <p class="text-[10px] uppercase text-gray-400">Followers</p>
-                  <p class="mt-1 text-sm font-semibold text-[#1A1C21]">{{ store().followers }}</p>
+              <div class="grid grid-cols-4 divide-x divide-[#E5E5E5] self-stretch">
+                <div class="px-1 text-left">
+                  <p class="text-[12px] leading-4 text-[#777777]">Followers</p>
+                  <p class="mt-1 text-[14px] font-medium leading-5 text-[#1F1F1F]">{{ store().followers }}</p>
                 </div>
-                <div>
-                  <p class="text-[10px] uppercase text-gray-400">Products</p>
-                  <p class="mt-1 text-sm font-semibold text-[#1A1C21]">{{ store().products }}</p>
+
+                <div class="px-3 text-left">
+                  <p class="text-[12px] leading-4 text-[#777777]">Products</p>
+                  <p class="mt-1 text-[14px] font-medium leading-5 text-[#1F1F1F]">{{ store().products }}</p>
                 </div>
-                <div>
-                  <p class="text-[10px] uppercase text-gray-400">Rating</p>
-                  <p class="mt-1 text-sm font-semibold text-[#1A1C21]">{{ store().rating }} ★</p>
+
+                <div class="px-3 text-left">
+                  <p class="text-[12px] leading-4 text-[#777777]">Rating</p>
+                  <div class="mt-1 flex items-center gap-1">
+                    <span class="text-[14px] font-medium leading-5 text-[#1F1F1F]">{{ store().rating }}</span>
+                    <svg class="h-[14px] w-[14px] text-[#D7D63D]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path
+                        d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.08 3.29a1 1 0 00.95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.81 2.03a1 1 0 00-.36 1.12l1.07 3.29c.3.92-.75 1.69-1.54 1.12l-2.8-2.04a1 1 0 00-1.18 0l-2.8 2.04c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 00-.36-1.12L2.98 8.72c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 00.95-.69l1.07-3.29z"
+                      />
+                    </svg>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-[10px] uppercase text-gray-400">Joined</p>
-                  <p class="mt-1 text-[11px] font-semibold text-[#1A1C21]">{{ store().joined }}</p>
+
+                <div class="px-3 text-left">
+                  <p class="text-[12px] leading-4 text-[#777777]">Date joined</p>
+                  <p class="mt-1 whitespace-nowrap text-[14px] font-medium leading-5 text-[#1F1F1F]">{{ store().joined }}</p>
                 </div>
               </div>
 
-              <div class="mt-5 grid grid-cols-2 gap-3">
-                <button class="rounded-full bg-[#F4F4F6] py-3 text-sm font-medium text-[#1A1C21] transition-all hover:bg-[#ECECF0]">View profile</button>
-                <button class="rounded-full bg-white py-3 text-sm font-medium text-[#6B5CF0] ring-1 ring-[#E5E7EB] transition-all hover:bg-[#F8F7FF]">Follow vendor</button>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  class="h-10 rounded-full bg-[#F4F4F4] px-4 text-[14px] font-medium text-[#2D2D2D] transition hover:bg-[#ECECEC]"
+                >
+                  View profile
+                </button>
+                <button
+                  type="button"
+                  class="h-10 rounded-full bg-[#F4F4F4] px-4 text-[14px] font-medium text-[#2D2D2D] transition hover:bg-[#ECECEC]"
+                >
+                  Follow vendor
+                </button>
               </div>
             </div>
-          </section>
-        </aside>
-      </section>
+          </div>
+        </section>
+      </aside>
+    </section>
 
-      <section>
-        <div class="mb-6 flex items-center justify-between">
-          <h2 class="text-[21px] font-medium text-[#1A1C21]">More from {{ store().name }}</h2>
-          <button class="rounded-full bg-[#F4F4F6] px-4 py-2 text-xs font-medium text-gray-500 transition-all hover:bg-[#ECECF0]">See all</button>
+    <section>
+      <div class="mb-5 flex items-center justify-between gap-4">
+        <div>
+          <h2 class="text-[24px] font-medium text-[#1F1F1F]">More from {{ store().name }}</h2>
         </div>
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-          @for (listing of moreFromSeller(); track listing.id) {
+
+        <button
+          type="button"
+          class="rounded-full bg-[#F3F3F3] px-4 py-2 text-[12px] font-medium text-[#777777] transition hover:bg-[#ECECEC]"
+        >
+          See all
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        @for (listing of moreFromSeller(); track listing.id) {
           <app-listing-card [listing]="listing" />
+        }
+      </div>
+    </section>
+
+    <section>
+      <div class="mb-5 flex items-center justify-between gap-4">
+        <h2 class="text-[24px] font-medium text-[#1F1F1F]">Explore related items</h2>
+
+        <button
+          type="button"
+          class="rounded-full bg-[#F3F3F3] px-4 py-2 text-[12px] font-medium text-[#777777] transition hover:bg-[#ECECEC]"
+        >
+          See all
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          @for (listing of relatedItems(); track listing.id) {
+            <app-listing-card [listing]="listing" />
           }
         </div>
-      </section>
 
-      <section>
-        <div class="mb-6 flex items-center justify-between">
-          <h2 class="text-[21px] font-medium text-[#1A1C21]">Explore related items</h2>
-          <button class="rounded-full bg-[#F4F4F6] px-4 py-2 text-xs font-medium text-gray-500 transition-all hover:bg-[#ECECF0]">See all</button>
-        </div>
-
-        <div class="space-y-6">
-          <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-            @for (listing of relatedItems(); track listing.id) {
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          @for (listing of moreFromSeller(); track listing.id) {
             <app-listing-card [listing]="listing" />
-            }
-          </div>
-          <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-            @for (listing of moreFromSeller(); track listing.id) {
-            <app-listing-card [listing]="listing" />
-            }
-          </div>
+          }
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   </main>
 
   <app-footer />
 </div>
 
+@if (isListingActionsMenuOpen()) {
+  <button
+    type="button"
+    class="fixed inset-0 z-40 cursor-default bg-transparent"
+    (click)="closeListingActionsMenu()"
+    aria-label="Close listing actions menu"
+  ></button>
+
+  <div
+    class="fixed right-5 top-[124px] z-50 w-[260px] overflow-hidden rounded-[20px] border border-[#EAEAEA] bg-white py-2 shadow-[0_18px_40px_-24px_rgba(17,24,39,0.35)] md:absolute md:right-6 md:top-[186px] lg:right-[calc((100vw-1240px)/2+32px)] lg:top-[194px]"
+    role="menu"
+    aria-label="Listing actions"
+  >
+    <button
+      type="button"
+      (click)="shareListing()"
+      class="flex w-full items-center gap-3 px-5 py-3 text-left text-[14px] font-medium text-[#2E323B] transition hover:bg-[#F8F8FA]"
+      role="menuitem"
+    >
+      <svg class="h-4 w-4 text-[#7B8088]" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.8"
+          d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14"
+        />
+      </svg>
+      Share listing
+    </button>
+
+    <button
+      type="button"
+      (click)="openReportModal('listing')"
+      class="flex w-full items-center gap-3 px-5 py-3 text-left text-[14px] font-medium text-[#FF3B30] transition hover:bg-[#FFF5F5]"
+      role="menuitem"
+    >
+      <svg class="h-4 w-4 text-[#FF3B30]" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.8"
+          d="M12 9v3.75m0 3h.008M3 5.75h18L18.5 20H5.5L3 5.75z"
+        />
+      </svg>
+      Report listing as unavailable
+    </button>
+
+    <button
+      type="button"
+      (click)="openReportModal('seller')"
+      class="flex w-full items-center gap-3 px-5 py-3 text-left text-[14px] font-medium text-[#FF3B30] transition hover:bg-[#FFF5F5]"
+      role="menuitem"
+    >
+      <svg class="h-4 w-4 text-[#FF3B30]" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.8"
+          d="M15 9l-6 6m0-6 6 6M12 3a9 9 0 100 18 9 9 0 000-18z"
+        />
+      </svg>
+      Report seller
+    </button>
+  </div>
+}
+
 @if (isMessageVendorModalOpen()) {
-<div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]" (click)="isMessageVendorModalOpen.set(false)">
-  <div class="max-h-[calc(100dvh-2rem)] w-full max-w-[560px] overflow-y-auto rounded-[28px] bg-white p-6 text-center shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8" (click)="$event.stopPropagation()">
-    <div class="mb-6 flex justify-end">
-      <button type="button" (click)="isMessageVendorModalOpen.set(false)" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]" aria-label="Close message vendor modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+  <div
+    class="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] md:items-center md:p-4"
+    (click)="isMessageVendorModalOpen.set(false)"
+  >
+    <div
+      class="relative w-full rounded-t-[36px] bg-white px-4 pb-8 pt-4 text-center shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] md:max-w-[550px] md:rounded-[32px] md:px-6 md:pb-10 md:pt-5"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="mx-auto mb-5 h-1 w-[50px] rounded-full bg-[#EBEBEB] md:hidden"></div>
+
+      <button
+        type="button"
+        (click)="isMessageVendorModalOpen.set(false)"
+        class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#434455] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#FAFAFA] md:right-5 md:top-5"
+        aria-label="Close message vendor modal"
+      >
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M6 18 18 6M6 6l12 12" />
         </svg>
       </button>
-    </div>
 
-    <div class="mx-auto mb-6 flex h-28 w-28 items-center justify-center sm:h-32 sm:w-32">
-      <div class="relative h-full w-full">
-        <div class="absolute left-3 top-0 h-16 w-16 rotate-[18deg] rounded-[10px] bg-linear-to-br from-[#6BE2A4] to-[#1197A5] shadow-[0_18px_30px_-18px_rgba(17,24,39,0.35)] sm:h-20 sm:w-20"></div>
-        <div class="absolute left-8 top-4 h-0 w-0 border-b-[38px] border-l-[24px] border-r-[24px] border-b-[#1CB9C6] border-l-transparent border-r-transparent sm:left-10 sm:top-5 sm:border-b-[46px] sm:border-l-[28px] sm:border-r-[28px]"></div>
-        <div class="absolute bottom-2 right-2 h-14 w-14 rotate-[18deg] rounded-[10px] bg-linear-to-br from-[#FFD85C] to-[#FF9C2B] shadow-[0_18px_30px_-18px_rgba(17,24,39,0.35)] sm:h-16 sm:w-16"></div>
-        <div class="absolute bottom-4 right-0 h-0 w-0 border-b-[34px] border-l-[22px] border-r-[22px] border-b-[#FFBE2F] border-l-transparent border-r-transparent sm:border-b-[40px] sm:border-l-[25px] sm:border-r-[25px]"></div>
+      <div class="mx-auto mt-6 flex w-full max-w-[502px] flex-col items-center gap-8 md:mt-10">
+        <div class="flex w-full max-w-[451px] flex-col items-center gap-8">
+          <img
+            ngSrc="/assets/images/message-vendor-illustration.png"
+            alt=""
+            width="126"
+            height="126"
+            class="h-[126px] w-[126px]"
+            aria-hidden="true"
+          />
+
+          <div class="flex w-full flex-col items-center gap-3 text-center">
+            <h2 class="text-[28px] font-semibold leading-none tracking-[-0.02em] text-[#15162B]">Message vendor</h2>
+            <p class="max-w-[408px] text-[14px] leading-[1.5] tracking-[-0.5px] text-[#48484A]">
+              You can message the vendor directly on the Duduzili platform or on WhatsApp
+            </p>
+          </div>
+        </div>
+
+        <div class="w-full space-y-4">
+          <a
+            routerLink="/messages"
+            (click)="isMessageVendorModalOpen.set(false)"
+            class="flex h-[52px] w-full items-center justify-center rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.5px] text-[#05061A] transition hover:bg-[#ECECEC] md:h-[50px]"
+          >
+            Message in-app
+          </a>
+
+          <a
+            [href]="whatsappLink()"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex h-[52px] w-full items-center justify-center gap-2 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.5px] text-[#05061A] transition hover:bg-[#ECECEC] md:h-[50px]"
+          >
+            <svg class="h-5 w-5 shrink-0 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M20 12a8 8 0 0 1-11.72 7.05L4 20l1.02-4.08A8 8 0 1 1 20 12Z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M9.4 8.8c.2-.4.42-.41.6-.42h.51c.17.01.4.07.55.42l.72 1.72c.08.18.08.4-.03.58l-.5.79c-.1.16-.08.36.03.5.33.45.94 1.17 1.95 1.68.16.08.35.05.49-.07l.77-.65a.7.7 0 0 1 .64-.12l1.67.57c.28.1.4.3.42.55l.03.47c.01.23-.08.45-.27.6-.43.34-1.05.66-1.78.61-1.05-.07-2.25-.55-3.74-1.93-1.56-1.45-2.17-2.79-2.32-3.87-.1-.71.17-1.35.47-1.83Z"
+              />
+            </svg>
+            <span class="hidden md:inline">Message on WhatsApp ({{ store().whatsappNumber }})</span>
+            <span class="md:hidden">WhatsApp ({{ store().whatsappNumber }})</span>
+          </a>
+        </div>
       </div>
     </div>
-
-    <h2 class="text-[28px] font-black tracking-tight text-[#22253A] sm:text-[30px]">Message vendor</h2>
-    <p class="mx-auto mt-3 max-w-[420px] text-[15px] leading-7 text-[#676C75]">
-      You can message the vendor directly on the Duduzili platform or on WhatsApp
-    </p>
-
-    <div class="mt-10 space-y-4">
-      <a routerLink="/messages" (click)="isMessageVendorModalOpen.set(false)" class="flex min-h-[56px] items-center justify-center rounded-full bg-[#F4F4F6] px-6 text-[16px] font-medium text-[#1F2430] transition hover:bg-[#ECECF0]">
-        Message in-app
-      </a>
-
-      <a [href]="whatsappLink()" target="_blank" rel="noopener noreferrer" class="flex min-h-[56px] items-center justify-center gap-2 rounded-full bg-[#F4F4F6] px-6 text-[16px] font-medium text-[#1F2430] transition hover:bg-[#ECECF0]">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#1F2430]" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M20.52 3.48A11.8 11.8 0 0012.07 0C5.5 0 .16 5.34.16 11.91c0 2.1.55 4.15 1.6 5.96L0 24l6.3-1.65a11.85 11.85 0 005.76 1.47h.01c6.56 0 11.91-5.35 11.91-11.91 0-3.18-1.24-6.17-3.46-8.43zm-8.45 18.3h-.01a9.9 9.9 0 01-5.04-1.38l-.36-.21-3.74.98 1-3.64-.24-.37a9.86 9.86 0 01-1.52-5.25c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 012.9 6.99c0 5.45-4.44 9.89-9.88 9.89zm5.43-7.42c-.3-.15-1.78-.88-2.06-.98-.28-.1-.48-.15-.68.15-.2.3-.78.97-.95 1.16-.17.2-.35.22-.64.07-.3-.15-1.24-.46-2.37-1.47-.88-.79-1.48-1.77-1.65-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.44-.52.15-.17.2-.3.3-.49.1-.2.05-.37-.02-.52-.08-.15-.68-1.64-.93-2.24-.25-.6-.5-.5-.68-.51h-.58c-.2 0-.52.08-.8.37-.27.3-1.05 1.02-1.05 2.49s1.08 2.88 1.23 3.08c.15.2 2.12 3.24 5.13 4.54.72.31 1.28.5 1.71.64.72.23 1.37.2 1.88.12.57-.08 1.78-.73 2.03-1.43.25-.7.25-1.31.17-1.43-.07-.12-.27-.2-.57-.35z" />
-        </svg>
-        Message on WhatsApp ({{ store().whatsappNumber }})
-      </a>
-    </div>
   </div>
-</div>
 }
 
 @if (isCallVendorModalOpen()) {
-<div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]" (click)="closeCallVendorModal()">
-  <div class="max-h-[calc(100dvh-2rem)] w-full max-w-[560px] overflow-y-auto rounded-[28px] bg-white p-6 text-center shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8" (click)="$event.stopPropagation()">
-    <div class="mb-6 flex justify-end">
-      <button type="button" (click)="closeCallVendorModal()" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]" aria-label="Close call vendor modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-
-    <div class="mx-auto mb-6 flex h-28 w-28 items-center justify-center sm:h-32 sm:w-32">
-      <div class="relative h-full w-full">
-        <div class="absolute left-6 top-7 h-14 w-14 rounded-[22px] bg-linear-to-br from-[#B7F352] to-[#3EAF47] shadow-[inset_0_-12px_20px_rgba(0,0,0,0.12)] sm:h-16 sm:w-16"></div>
-        <div class="absolute right-4 top-3 flex flex-col gap-2">
-          <span class="h-2 w-8 rotate-[20deg] rounded-full bg-[#FFD56A]"></span>
-          <span class="h-2 w-10 rotate-[20deg] rounded-full bg-[#FFD56A]"></span>
-          <span class="h-2 w-8 rotate-[20deg] rounded-full bg-[#FFD56A]"></span>
-        </div>
+  <div
+    class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+    (click)="closeCallVendorModal()"
+  >
+    <div
+      class="w-full max-w-[460px] rounded-[28px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="mb-5 flex items-center justify-between gap-4">
+        <h2 class="text-[24px] font-semibold text-[#1F2430]">Call vendor</h2>
+        <button
+          type="button"
+          (click)="closeCallVendorModal()"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]"
+          aria-label="Close call vendor modal"
+        >
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
-    </div>
 
-    <h2 class="text-[28px] font-black tracking-tight text-[#22253A] sm:text-[30px]">Call vendor</h2>
-    <p class="mx-auto mt-3 max-w-[420px] text-[15px] leading-7 text-[#676C75]">
-      You can contact vendor directly by calling their mobile number
-    </p>
+      <p class="text-[15px] leading-7 text-[#676C75]">
+        Call <span class="font-semibold text-[#1F2430]">{{ store().name }}</span> directly on
+        <span class="font-semibold text-[#1F2430]">{{ store().whatsappNumber }}</span>.
+      </p>
 
-    <div class="mt-10">
-      <a [href]="phoneCallLink()" class="flex min-h-[56px] items-center justify-center rounded-full bg-[#F4F4F6] px-6 text-[16px] font-medium text-[#1F2430] transition hover:bg-[#ECECF0]">
-        Call mobile number ({{ store().whatsappNumber }})
+      <a
+        [href]="phoneCallLink()"
+        class="mt-8 flex min-h-[56px] items-center justify-center rounded-full bg-[#1F1F1F] px-6 text-[16px] font-medium text-white transition hover:bg-black"
+      >
+        Call now
       </a>
     </div>
   </div>
-</div>
-}
-
-@if (isRequestCallbackModalOpen()) {
-<div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]" (click)="closeRequestCallbackModal()">
-  <div class="max-h-[calc(100dvh-2rem)] w-full max-w-[560px] overflow-y-auto rounded-[28px] bg-white p-6 text-center shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8" (click)="$event.stopPropagation()">
-    <div class="mb-6 flex justify-end">
-      <button type="button" (click)="closeRequestCallbackModal()" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]" aria-label="Close request callback modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-
-    <div class="mx-auto mb-6 flex h-28 w-28 items-center justify-center sm:h-32 sm:w-32">
-      <div class="relative h-full w-full">
-        <div class="absolute left-8 top-3 h-14 w-14 rotate-[22deg] rounded-[22px] bg-linear-to-br from-[#FF6B77] to-[#B9142A] shadow-[inset_0_-10px_20px_rgba(0,0,0,0.14)] sm:h-16 sm:w-16"></div>
-        <div class="absolute bottom-5 left-6 h-0 w-0 border-b-[28px] border-l-[18px] border-r-[18px] border-b-[#FFB548] border-l-transparent border-r-transparent"></div>
-      </div>
-    </div>
-
-    <h2 class="text-[28px] font-black tracking-tight text-[#22253A] sm:text-[30px]">Request call back</h2>
-    <p class="mx-auto mt-3 max-w-[420px] text-[15px] leading-7 text-[#676C75]">
-      You can send the vendor your call number so they can reach out instead
-    </p>
-
-    <form [formGroup]="requestCallbackForm" (ngSubmit)="submitRequestCallback()" class="mt-10 space-y-6 text-left">
-      <div class="space-y-2">
-        <label for="request-callback-name" class="text-[14px] font-medium text-[#4A4F5B]">Your name</label>
-        <input
-          id="request-callback-name"
-          type="text"
-          formControlName="name"
-          class="h-12 w-full rounded-[14px] border border-[#DFE2E7] px-4 text-[15px] text-[#22253A] outline-none transition focus:border-[#6B5CF0]"
-        />
-      </div>
-
-      <div class="space-y-2">
-        <label for="request-callback-phone" class="text-[14px] font-medium text-[#4A4F5B]">Phone number</label>
-        <input
-          id="request-callback-phone"
-          type="tel"
-          formControlName="phoneNumber"
-          class="h-12 w-full rounded-[14px] border border-[#DFE2E7] px-4 text-[15px] text-[#22253A] outline-none transition focus:border-[#6B5CF0]"
-        />
-      </div>
-
-      <button type="submit" class="w-full rounded-full bg-indigo-600 py-4 text-[16px] font-medium text-white shadow-[0_16px_30px_-18px_rgba(99,102,241,0.8)] transition-all hover:bg-indigo-700">
-        Send details
-      </button>
-    </form>
-  </div>
-</div>
 }
 
 @if (isMakeOfferModalOpen()) {
-<div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]" (click)="closeMakeOfferModal()">
-  <div class="max-h-[calc(100dvh-2rem)] w-full max-w-[560px] overflow-y-auto rounded-[28px] bg-white p-6 text-center shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8" (click)="$event.stopPropagation()">
-    <div class="mb-6 flex justify-end">
-      <button type="button" (click)="closeMakeOfferModal()" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]" aria-label="Close make an offer modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-
-    <div class="mx-auto mb-6 flex h-28 w-28 items-center justify-center sm:h-32 sm:w-32">
-      <div class="relative h-full w-full">
-        <div class="absolute bottom-3 left-4 h-12 w-20 rounded-t-[18px] rounded-b-[28px] bg-linear-to-br from-[#FFC5B8] to-[#FFA894]"></div>
-        <div class="absolute left-10 top-2 flex h-16 w-16 items-center justify-center rounded-[24px] bg-linear-to-br from-[#FF86A8] to-[#F14B75] shadow-[inset_0_-12px_20px_rgba(255,255,255,0.12)]">
-          <span class="text-[34px] font-black text-white">%</span>
-        </div>
-      </div>
-    </div>
-
-    <h2 class="text-[28px] font-black tracking-tight text-[#22253A] sm:text-[30px]">Make an offer</h2>
-
-    <form [formGroup]="makeOfferForm" (ngSubmit)="submitOffer()" class="mt-10">
-      <p class="text-[15px] leading-7 text-[#676C75]">How much are you offering?</p>
-
-      <div class="mx-auto mt-5 flex max-w-[240px] items-end justify-center gap-3 border-b border-[#AEB3BF] pb-2">
-        <span class="text-[28px] font-semibold text-[#8A909B]">₦</span>
-        <input
-          type="text"
-          inputmode="numeric"
-          formControlName="amount"
-          class="w-[160px] border-0 bg-transparent text-center text-[54px] font-medium leading-none tracking-[-0.04em] text-[#10131A] outline-none"
-          placeholder="0.00"
-          aria-label="Offer amount"
-        />
-      </div>
-
-      <button type="submit" class="mt-12 w-full rounded-full bg-indigo-600 py-4 text-[16px] font-medium text-white shadow-[0_16px_30px_-18px_rgba(99,102,241,0.8)] transition-all hover:bg-indigo-700">
-        Send offer
-      </button>
-    </form>
-  </div>
-</div>
-}
-
-@if (isReportUnavailableModalOpen()) {
-<div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]" (click)="closeReportUnavailableModal()">
-  <div class="max-h-[calc(100dvh-2rem)] w-full max-w-[560px] overflow-y-auto rounded-[28px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8" (click)="$event.stopPropagation()">
-    <div class="mb-6 flex justify-end">
-      <button type="button" (click)="closeReportUnavailableModal()" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]" aria-label="Close report unavailable modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-
-    <div class="mx-auto mb-8 flex justify-center">
-      <div class="relative w-[198px]">
-        <div class="overflow-hidden rounded-[22px] border border-[#E8E9EF] bg-white shadow-[0_18px_35px_-24px_rgba(17,24,39,0.28)]">
-          <div class="aspect-[0.95] bg-[#F3F3F5] p-3">
-            <img [src]="product().images[0]" alt="" class="h-full w-full rounded-[16px] object-cover">
-          </div>
-          <div class="space-y-1.5 px-3.5 py-3">
-            <div class="flex items-start justify-between gap-2">
-              <p class="line-clamp-2 text-[14px] font-medium leading-5 text-[#22253A]">{{ product().name }}</p>
-              <span class="shrink-0 rounded-full bg-[#F3F4F6] px-2 py-0.5 text-[10px] font-medium text-[#6B7280]">{{ product().condition }}</span>
-            </div>
-            <p class="text-[14px] font-semibold text-[#22253A]">{{ product().price }}</p>
-            <div class="flex items-center gap-1 text-[11px] text-[#9AA0AA]">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-              </svg>
-              {{ store().location }}
-            </div>
-          </div>
-        </div>
-
-        <div class="absolute -right-8 top-1/2 flex h-[128px] w-[128px] -translate-y-1/2 items-center justify-center rounded-full border-[10px] border-[#FF2B2B] bg-white/70">
-          <div class="h-[11px] w-[118px] rotate-45 rounded-full bg-[#FF2B2B]"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="text-center">
-      <h2 class="text-[28px] font-black tracking-tight text-[#22253A] sm:text-[30px]">Is this item no longer available? <span aria-hidden="true">😯</span></h2>
-      <p class="mx-auto mt-3 max-w-[470px] text-[15px] leading-7 text-[#676C75]">
-        Report it if it has been sold or is no longer available. We’ll follow up with the seller to confirm.
-      </p>
-    </div>
-
-    <form [formGroup]="reportUnavailableForm" (ngSubmit)="submitUnavailableReport()" class="mt-10 space-y-8">
-      <div class="space-y-3">
-        <label for="report-unavailable-details" class="block text-[14px] font-medium text-[#4A4F5B]">Give more details</label>
-        <textarea
-          id="report-unavailable-details"
-          formControlName="details"
-          rows="4"
-          class="w-full rounded-[14px] border border-[#DFE2E7] px-4 py-3 text-[15px] text-[#22253A] outline-none transition focus:border-[#6B5CF0]"
-        ></textarea>
-      </div>
-
-      <div class="grid grid-cols-2 gap-4">
-        <button type="button" (click)="closeReportUnavailableModal()" class="rounded-full bg-[#F4F4F6] py-4 text-[16px] font-medium text-[#1F2430] transition hover:bg-[#ECECF0]">
-          Cancel
-        </button>
-        <button type="submit" class="rounded-full bg-[#FF2B2B] py-4 text-[16px] font-medium text-white shadow-[0_16px_30px_-18px_rgba(255,43,43,0.7)] transition hover:bg-[#EB1C1C]">
-          Yes, it's not
+  <div
+    class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+    (click)="closeMakeOfferModal()"
+  >
+    <div
+      class="w-full max-w-[520px] rounded-[28px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="mb-5 flex items-center justify-between gap-4">
+        <h2 class="text-[24px] font-semibold text-[#1F2430]">Make an offer</h2>
+        <button
+          type="button"
+          (click)="closeMakeOfferModal()"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]"
+          aria-label="Close make offer modal"
+        >
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
-    </form>
-  </div>
-</div>
-}
 
-@if (isReportUnavailableSuccessModalOpen()) {
-<div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]" (click)="closeReportUnavailableSuccessModal()">
-  <div class="max-h-[calc(100dvh-2rem)] w-full max-w-[560px] overflow-y-auto rounded-[28px] bg-white p-6 text-center shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8" (click)="$event.stopPropagation()">
-    <div class="mb-6 flex justify-end">
-      <button type="button" (click)="closeReportUnavailableSuccessModal()" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]" aria-label="Close report unavailable success modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-
-    <div class="mx-auto mb-8 flex h-32 w-32 items-center justify-center text-[90px] leading-none">
-      🤝
-    </div>
-
-    <h2 class="text-[28px] font-black tracking-tight text-[#22253A] sm:text-[30px]">Thanks for letting us know <span aria-hidden="true">👥</span></h2>
-    <p class="mx-auto mt-3 max-w-[380px] text-[15px] leading-7 text-[#676C75]">
-      We’ll check with the seller to confirm availability.
-    </p>
-
-    <button type="button" (click)="closeReportUnavailableSuccessModal()" class="mt-10 inline-flex min-w-[180px] items-center justify-center rounded-full bg-indigo-600 px-8 py-4 text-[16px] font-medium text-white shadow-[0_16px_30px_-18px_rgba(99,102,241,0.8)] transition hover:bg-indigo-700">
-      Done
-    </button>
-  </div>
-</div>
-}
-
-@if (isReportSellerReasonModalOpen()) {
-<div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]" (click)="closeReportSellerReasonModal()">
-  <div class="max-h-[calc(100dvh-2rem)] w-full max-w-[600px] overflow-y-auto rounded-[28px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8" (click)="$event.stopPropagation()">
-    <div class="mb-8 flex justify-end">
-      <button type="button" (click)="closeReportSellerReasonModal()" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]" aria-label="Close report seller modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-
-    <h2 class="max-w-[520px] text-[28px] font-black tracking-tight text-[#22253A] sm:text-[30px]">Why are you reporting this seller?</h2>
-    <p class="mt-4 max-w-[520px] text-[15px] leading-7 text-[#676C75]">
-      Your feedback helps us keep Duduzili safe. (This won’t be shared with the seller.)
-    </p>
-
-    <form [formGroup]="reportSellerReasonForm" class="mt-12">
-      <div class="divide-y divide-[#E5E7EB] border-y border-[#E5E7EB]">
-        @for (reason of [
-          'Suspected scam or fraud',
-          'Seller is unresponsive after payment',
-          'Selling prohibited or illegal items',
-          'Repeatedly listing sold/unavailable items',
-          'Other reason'
-        ]; track reason) {
-        <label class="flex cursor-pointer items-center justify-between gap-4 py-5">
-          <span class="text-[16px] font-medium text-[#454B57] sm:text-[17px]">{{ reason }}</span>
+      <form class="space-y-5" [formGroup]="makeOfferForm" (ngSubmit)="submitOffer()">
+        <div>
+          <label for="offer-amount" class="mb-2 block text-sm font-medium text-[#1F2430]">
+            Your offer
+          </label>
           <input
-            type="radio"
-            formControlName="reason"
-            [value]="reason"
-            class="h-7 w-7 border border-[#D1D5DB] text-[#6B5CF0] focus:ring-[#6B5CF0]"
+            id="offer-amount"
+            type="text"
+            formControlName="amount"
+            placeholder="Enter amount"
+            class="h-14 w-full rounded-[16px] border border-[#EAEAEA] px-4 text-[15px] text-[#1F2430] outline-none transition focus:border-[#6453D9]"
           />
-        </label>
-        }
-      </div>
+        </div>
 
-      <div class="mt-10 flex justify-end gap-3">
-        <button type="button" (click)="closeReportSellerReasonModal()" class="rounded-full bg-[#F4F4F6] px-8 py-4 text-[16px] font-medium text-[#1F2430] transition hover:bg-[#ECECF0]">
-          Cancel
+        <button
+          type="submit"
+          class="flex min-h-[56px] w-full items-center justify-center rounded-full bg-[#6453D9] px-6 text-[16px] font-medium text-white transition hover:bg-[#5645cb]"
+        >
+          Submit offer
         </button>
-        <button type="button" (click)="goToReportSellerDetails()" class="rounded-full bg-indigo-600 px-8 py-4 text-[16px] font-medium text-white shadow-[0_16px_30px_-18px_rgba(99,102,241,0.8)] transition hover:bg-indigo-700">
-          Next
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
-</div>
 }
 
-@if (isReportSellerDetailsModalOpen()) {
-<div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]" (click)="closeReportSellerDetailsModal()">
-  <div class="max-h-[calc(100dvh-2rem)] w-full max-w-[600px] overflow-y-auto rounded-[28px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8" (click)="$event.stopPropagation()">
-    <div class="mb-8 flex justify-end">
-      <button type="button" (click)="closeReportSellerDetailsModal()" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]" aria-label="Close report seller details modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+@if (isRequestCallbackModalOpen()) {
+  <div
+    class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+    (click)="closeRequestCallbackModal()"
+  >
+    <div
+      class="w-full max-w-[520px] rounded-[28px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="mb-5 flex items-center justify-between gap-4">
+        <h2 class="text-[24px] font-semibold text-[#1F2430]">Request call back</h2>
+        <button
+          type="button"
+          (click)="closeRequestCallbackModal()"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]"
+          aria-label="Close callback modal"
+        >
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form class="space-y-5" [formGroup]="requestCallbackForm" (ngSubmit)="submitRequestCallback()">
+        <div>
+          <label for="callback-name" class="mb-2 block text-sm font-medium text-[#1F2430]">
+            Name
+          </label>
+          <input
+            id="callback-name"
+            type="text"
+            formControlName="name"
+            class="h-14 w-full rounded-[16px] border border-[#EAEAEA] px-4 text-[15px] text-[#1F2430] outline-none transition focus:border-[#6453D9]"
+          />
+        </div>
+
+        <div>
+          <label for="callback-phone" class="mb-2 block text-sm font-medium text-[#1F2430]">
+            Phone number
+          </label>
+          <input
+            id="callback-phone"
+            type="tel"
+            formControlName="phoneNumber"
+            placeholder="0800 000 0000"
+            class="h-14 w-full rounded-[16px] border border-[#EAEAEA] px-4 text-[15px] text-[#1F2430] outline-none transition focus:border-[#6453D9]"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="flex min-h-[56px] w-full items-center justify-center rounded-full bg-[#6453D9] px-6 text-[16px] font-medium text-white transition hover:bg-[#5645cb]"
+        >
+          Request callback
+        </button>
+      </form>
     </div>
-
-    <h2 class="max-w-[520px] text-[28px] font-black tracking-tight text-[#22253A] sm:text-[30px]">Please add more information to help us review this report</h2>
-
-    <form [formGroup]="reportSellerDetailsForm" (ngSubmit)="submitSellerReport()" class="mt-12 space-y-10">
-      <div class="space-y-3">
-        <label for="report-seller-details" class="block text-[14px] font-medium text-[#4A4F5B]">What happened?</label>
-        <textarea
-          id="report-seller-details"
-          formControlName="details"
-          rows="7"
-          class="w-full rounded-[14px] border border-[#DFE2E7] px-4 py-3 text-[15px] text-[#22253A] outline-none transition focus:border-[#6B5CF0]"
-        ></textarea>
-      </div>
-
-      <div class="flex justify-end gap-3">
-        <button type="button" (click)="backToReportSellerReason()" class="rounded-full bg-[#F4F4F6] px-8 py-4 text-[16px] font-medium text-[#1F2430] transition hover:bg-[#ECECF0]">
-          Back
-        </button>
-        <button type="submit" class="rounded-full bg-indigo-600 px-8 py-4 text-[16px] font-medium text-white shadow-[0_16px_30px_-18px_rgba(99,102,241,0.8)] transition hover:bg-indigo-700">
-          Submit
-        </button>
-      </div>
-    </form>
   </div>
-</div>
 }
 
-@if (isReportSellerSuccessModalOpen()) {
-<div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]" (click)="closeReportSellerSuccessModal()">
-  <div class="max-h-[calc(100dvh-2rem)] w-full max-w-[560px] overflow-y-auto rounded-[28px] bg-white p-6 text-center shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8" (click)="$event.stopPropagation()">
-    <div class="mb-6 flex justify-end">
-      <button type="button" (click)="closeReportSellerSuccessModal()" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]" aria-label="Close report seller success modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+@if (isReportModalOpen()) {
+  <div
+    class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+    (click)="closeReportModal()"
+  >
+    <div
+      class="w-full max-w-[520px] rounded-[28px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="mb-5 flex items-center justify-between gap-4">
+        <div>
+          <h2 class="text-[24px] font-semibold text-[#1F2430]">{{ reportModalTitle() }}</h2>
+          <p class="mt-2 text-sm leading-6 text-[#676C75]">{{ reportModalDescription() }}</p>
+        </div>
+
+        <button
+          type="button"
+          (click)="closeReportModal()"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7F8] text-[#525762] transition hover:bg-[#EFEFF2]"
+          aria-label="Close report modal"
+        >
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form class="space-y-5" [formGroup]="reportForm" (ngSubmit)="submitReport()">
+        <div>
+          <label for="report-details" class="mb-2 block text-sm font-medium text-[#1F2430]">
+            Details
+          </label>
+          <textarea
+            id="report-details"
+            rows="5"
+            formControlName="details"
+            placeholder="Tell us what happened"
+            class="w-full rounded-[16px] border border-[#EAEAEA] px-4 py-4 text-[15px] text-[#1F2430] outline-none transition focus:border-[#6453D9]"
+          ></textarea>
+        </div>
+
+        <button
+          type="submit"
+          class="flex min-h-[56px] w-full items-center justify-center rounded-full bg-[#1F1F1F] px-6 text-[16px] font-medium text-white transition hover:bg-black"
+        >
+          Submit report
+        </button>
+      </form>
     </div>
-
-    <div class="mx-auto mb-8 flex h-32 w-32 items-center justify-center text-[90px] leading-none">
-      🤝
-    </div>
-
-    <h2 class="text-[28px] font-black tracking-tight text-[#22253A] sm:text-[30px]">Thank you for keeping Duduzili safe</h2>
-    <p class="mx-auto mt-3 max-w-[410px] text-[15px] leading-7 text-[#676C75]">
-      Our team will review this report and take the necessary steps.
-    </p>
-
-    <button type="button" (click)="closeReportSellerSuccessModal()" class="mt-10 inline-flex min-w-[180px] items-center justify-center rounded-full bg-indigo-600 px-8 py-4 text-[16px] font-medium text-white shadow-[0_16px_30px_-18px_rgba(99,102,241,0.8)] transition hover:bg-indigo-700">
-      Done
-    </button>
   </div>
-</div>
 }
