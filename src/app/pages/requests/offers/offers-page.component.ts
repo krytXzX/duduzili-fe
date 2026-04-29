@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 
@@ -25,14 +25,26 @@ interface OfferRecord {
 
 @Component({
   selector: 'app-offers-page',
-  imports: [CommonModule, NgOptimizedImage, RouterLink],
+  imports: [NgOptimizedImage, RouterLink],
   template: `
-    <div class="flex h-full min-h-0 flex-col bg-white">
+    <div class="flex h-full min-h-0 flex-col bg-white md:bg-[#FFFEFD]">
       <div class="hidden h-full min-h-0 md:flex md:flex-col">
-        <div class="mx-auto flex h-full min-h-0 w-full max-w-[1076px] flex-col pt-[93px]">
-          <div class="flex min-h-0 flex-1 flex-col gap-[321px]">
-            <section class="relative rounded-[16px] border border-[#F0F0F0] bg-white">
-              <div class="flex items-center justify-between px-[15px] pb-[15px] pt-[15px]">
+        <div class="mx-auto flex h-full min-h-0 w-full max-w-[1076px] flex-col">
+          <div class="flex min-h-0 flex-1 flex-col pb-3">
+            <section
+              class="mb-6 flex h-16 items-center rounded-t-[32px] border-b border-[#EEEEEE] bg-white px-4"
+              aria-label="Offers breadcrumb"
+            >
+              <h1 class="text-[24px] font-medium leading-normal text-[#0D0D0D]">
+                <span class="text-[rgba(13,13,13,0.3)]">Requests &gt; </span>
+                <span>Offers</span>
+              </h1>
+            </section>
+
+            <section
+              class="overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white shadow-[0_1px_0_rgba(0,0,0,0.01)]"
+            >
+              <div class="flex items-center justify-between gap-6 px-[15px] pb-[15px] pt-[15px]">
                 <div class="flex items-start gap-2">
                   <button
                     type="button"
@@ -68,10 +80,11 @@ interface OfferRecord {
                 </div>
 
                 <label
-                  class="flex h-10 w-[224px] items-center gap-2 rounded-full bg-[#FAFAFA] px-3"
+                  class="flex h-10 w-full max-w-[224px] items-center gap-2 rounded-full bg-[#FAFAFA] px-3"
                 >
+                  <span class="sr-only">Search offers</span>
                   <img
-                    ngSrc="/assets/icons/offers-search.svg"
+                    ngSrc="/assets/icons/offers-search-desktop-figma.svg"
                     width="16"
                     height="16"
                     alt=""
@@ -82,14 +95,15 @@ interface OfferRecord {
                     [value]="searchTerm()"
                     (input)="updateSearch($event)"
                     placeholder="Search"
+                    aria-label="Search offers"
                     class="w-full bg-transparent text-[14px] leading-5 text-[#1A1B1D] outline-none placeholder:text-[#777777]"
                   />
                 </label>
               </div>
 
-              <div class="overflow-hidden rounded-[16px] border-t border-[#F0F0F0]">
+              <div class="border-t border-[#F0F0F0]">
                 <div
-                  class="grid grid-cols-[180px_150px_260px_205px_124px_72px] items-center bg-[#FAFAFA] px-6 py-[11px]"
+                  class="grid grid-cols-[180px_150px_260px_205px_124px_77px] items-center bg-[#FAFAFA] px-[23px] py-[11px]"
                 >
                   <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
                     Buyer
@@ -106,17 +120,17 @@ interface OfferRecord {
                   <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
                     Date requested
                   </span>
-                  <span></span>
+                  <span aria-hidden="true"></span>
                 </div>
 
                 @for (offer of filteredOffers(); track offer.id) {
                   <button
                     type="button"
                     (click)="openDetails(offer)"
-                    class="grid grid-cols-[180px_150px_260px_205px_124px_72px] items-center border-b border-[#F0F0F0] px-6"
+                    class="grid w-full grid-cols-[180px_150px_260px_205px_124px_77px] items-center border-b border-[#F0F0F0] px-6 text-left transition hover:bg-[#FFFCF7]"
                     [class.border-b-0]="$last"
                   >
-                    <div class="flex h-[74px] items-center gap-2">
+                    <div class="flex min-h-[74px] items-center gap-2">
                       <img
                         [ngSrc]="offer.buyerAvatar"
                         width="32"
@@ -129,16 +143,25 @@ interface OfferRecord {
                       </span>
                     </div>
 
-                    <div class="flex h-[74px] items-center">
-                      <span class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
-                        {{ formatAmount(offer.offerAmount)
-                        }}<span class="text-[rgba(31,31,31,0.5)]">00</span>
+                    <div class="flex min-h-[74px] items-center">
+                      <span
+                        class="flex items-center text-[14px] font-medium leading-5 text-[#1F1F1F]"
+                      >
+                        <img
+                          ngSrc="/assets/icons/offers-naira-figma.svg"
+                          width="14"
+                          height="14"
+                          alt=""
+                          class="mr-[1px] h-[14px] w-[14px]"
+                        />
+                        {{ amountWhole(offer.offerAmount)
+                        }}<span class="text-[rgba(31,31,31,0.5)]">{{ amountFraction() }}</span>
                       </span>
                     </div>
 
-                    <div class="flex h-[74px] items-center gap-2">
+                    <div class="flex min-h-[74px] items-center gap-2">
                       <span
-                        class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[6px] bg-[#EFEFEF]"
+                        class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[6px] border border-[#F0F0F0] bg-[#EFEFEF]"
                       >
                         <img
                           [ngSrc]="offer.listingImage"
@@ -153,7 +176,7 @@ interface OfferRecord {
                       </span>
                     </div>
 
-                    <div class="flex h-[74px] items-center gap-2">
+                    <div class="flex min-h-[74px] items-center gap-2">
                       <span
                         class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full"
                         [class.bg-[#3D785F]]="offer.storeName === 'The Vine Collections'"
@@ -173,18 +196,18 @@ interface OfferRecord {
                       </span>
                     </div>
 
-                    <div class="flex h-[74px] items-center">
+                    <div class="flex min-h-[74px] items-center">
                       <span class="text-[14px] leading-normal text-[#1A1B1D]">
                         {{ offer.dateRequested }}
                       </span>
                     </div>
 
-                    <div class="flex h-[74px] items-center justify-end">
+                    <div class="flex min-h-[74px] items-center justify-end">
                       <span
-                        class="flex h-10 w-10 items-center justify-center rounded-full border border-[#EAEAEA]"
+                        class="flex h-10 w-[52px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white"
                       >
                         <img
-                          ngSrc="/assets/icons/offers-message.svg"
+                          ngSrc="/assets/icons/offers-message-figma.svg"
                           width="16"
                           height="16"
                           alt=""
@@ -206,7 +229,8 @@ interface OfferRecord {
                 <div class="flex items-end gap-[5px]">
                   <button
                     type="button"
-                    class="flex h-8 w-[44px] items-center justify-center rounded-[8px] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                    aria-label="Previous page"
+                    class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
                   >
                     <img
                       ngSrc="/assets/icons/offers-chevron-left.svg"
@@ -218,13 +242,15 @@ interface OfferRecord {
                   </button>
                   <button
                     type="button"
-                    class="flex h-8 w-[44px] items-center justify-center rounded-[8px] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                    aria-current="page"
+                    class="flex h-8 w-[33px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
                   >
                     <span class="text-[14px] font-medium leading-5 text-[#1A1B1D]">1</span>
                   </button>
                   <button
                     type="button"
-                    class="flex h-8 w-[44px] items-center justify-center rounded-[8px] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                    aria-label="Next page"
+                    class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
                   >
                     <img
                       ngSrc="/assets/icons/offers-chevron-right.svg"
@@ -243,118 +269,141 @@ interface OfferRecord {
         </div>
       </div>
 
-      <div class="mx-auto w-full max-w-[390px] px-5 pb-[120px] pt-4 md:hidden">
-        <div class="flex items-center gap-2">
-          <a
-            routerLink="/requests"
-            aria-label="Back to Requests"
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-[#F3F3F3]"
-          >
-            <img
-              ngSrc="/assets/icons/offers-back-mobile.svg"
-              width="20"
-              height="20"
-              alt=""
-              class="h-5 w-5"
-            />
-          </a>
-          <h1 class="text-[20px] font-semibold leading-[1.2] text-black">Offers</h1>
+      <div class="mx-auto w-full max-w-[390px] md:hidden">
+        <div class="flex h-[54px] items-center px-5">
+          <div class="flex items-center gap-2">
+            <a
+              routerLink="/requests"
+              aria-label="Back to Requests"
+              class="flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]"
+            >
+              <img
+                ngSrc="/assets/icons/offers-back-mobile-figma.svg"
+                width="20"
+                height="20"
+                alt=""
+                class="h-5 w-5"
+              />
+            </a>
+            <h1 class="text-[20px] font-semibold leading-[1.2] text-black">Offers</h1>
+          </div>
         </div>
 
-        <div class="mt-10 flex items-center gap-3">
-          <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3">
-            <img
-              ngSrc="/assets/icons/offers-search-mobile.svg"
-              width="16"
-              height="16"
-              alt=""
-              class="h-4 w-4"
-            />
-            <input
-              type="search"
-              [value]="searchTerm()"
-              (input)="updateSearch($event)"
-              placeholder="Search"
-              class="w-full bg-transparent text-[14px] leading-5 text-[#1A1B1D] outline-none placeholder:text-[#777777]"
-            />
-          </label>
+        <div class="bg-white px-5 pb-10 pt-5">
+          <div class="flex items-center gap-3">
+            <label
+              class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3"
+            >
+              <span class="sr-only">Search offers</span>
+              <img
+                ngSrc="/assets/icons/offers-search-mobile-figma.svg"
+                width="16"
+                height="16"
+                alt=""
+                class="h-4 w-4"
+              />
+              <input
+                type="search"
+                [value]="searchTerm()"
+                (input)="updateSearch($event)"
+                placeholder="Search"
+                aria-label="Search offers"
+                class="w-full bg-transparent text-[14px] leading-5 text-[#1A1B1D] outline-none placeholder:text-[#777777]"
+              />
+            </label>
 
-          <button type="button" aria-label="Filter offers" class="shrink-0">
-            <img
-              ngSrc="/assets/icons/offers-filter-mobile.svg"
-              width="24"
-              height="24"
-              alt=""
-              class="h-6 w-6"
-            />
-          </button>
-        </div>
-
-        <div class="mt-6">
-          @for (offer of filteredOffers(); track offer.id) {
             <button
               type="button"
-              (click)="openDetails(offer)"
-              class="block w-full border-b border-[#EBEBEB] py-3 text-left"
+              aria-label="Filter offers"
+              class="flex h-6 w-6 items-center justify-center shrink-0"
             >
-              <div class="flex items-start justify-between">
-                <div class="flex items-center gap-3">
-                  <img
-                    [ngSrc]="offer.buyerAvatar"
-                    width="36"
-                    height="36"
-                    [alt]="offer.buyerName"
-                    class="h-9 w-9 rounded-full object-cover"
-                  />
-                  <p class="text-[16px] font-medium leading-6 text-[rgba(13,13,13,0.8)]">
-                    {{ offer.buyerName }}
-                  </p>
+              <img
+                ngSrc="/assets/icons/offers-filter-mobile-figma.svg"
+                width="22"
+                height="18"
+                alt=""
+                class="h-[18px] w-[22px]"
+              />
+            </button>
+          </div>
+
+          <div class="mt-6">
+            @for (offer of filteredOffers(); track offer.id) {
+              <button
+                type="button"
+                (click)="openDetails(offer)"
+                class="block w-full border-b border-[#EBEBEB] py-3 text-left"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <img
+                      [ngSrc]="offer.buyerAvatar"
+                      width="36"
+                      height="36"
+                      [alt]="offer.buyerName"
+                      class="h-9 w-9 rounded-full object-cover"
+                    />
+                    <p class="text-[16px] font-medium leading-6 text-[rgba(13,13,13,0.8)]">
+                      {{ offer.buyerName }}
+                    </p>
+                  </div>
+
+                  <span
+                    class="flex h-10 w-[54px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white"
+                  >
+                    <img
+                      ngSrc="/assets/icons/offers-message-figma.svg"
+                      width="16"
+                      height="16"
+                      alt=""
+                      class="h-4 w-4"
+                    />
+                  </span>
                 </div>
 
-                <span
-                  class="flex h-10 w-[60px] items-center justify-center rounded-full border border-[#EAEAEA]"
-                >
-                  <img
-                    ngSrc="/assets/icons/offers-message-mobile.svg"
-                    width="16"
-                    height="16"
-                    alt=""
-                    class="h-4 w-4"
-                  />
-                </span>
-              </div>
+                <div class="mt-4 space-y-3">
+                  <div class="flex items-center justify-between gap-4">
+                    <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Listing</span>
+                    <span class="flex items-center gap-2">
+                      <span
+                        class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-[4.2px] bg-[#EFEFEF]"
+                      >
+                        <img
+                          [ngSrc]="offer.listingImage"
+                          width="28"
+                          height="28"
+                          [alt]="offer.listingName"
+                          class="h-7 w-7 object-cover"
+                        />
+                      </span>
+                      <span class="text-[14px] font-medium leading-normal text-[#1A1B1D]">
+                        {{ offer.listingName }}
+                      </span>
+                    </span>
+                  </div>
 
-              <div class="mt-4 space-y-3">
-                <div class="flex items-center justify-between gap-4">
-                  <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Listing</span>
-                  <span class="flex items-center gap-2">
+                  <div class="flex items-center justify-between gap-4">
+                    <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]"
+                      >Offer amount</span
+                    >
                     <span
-                      class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-[4.2px] bg-[#EFEFEF]"
+                      class="flex items-center text-[14px] font-medium leading-5 text-[#1F1F1F]"
                     >
                       <img
-                        [ngSrc]="offer.listingImage"
-                        width="28"
-                        height="28"
-                        [alt]="offer.listingName"
-                        class="h-7 w-7 object-cover"
+                        ngSrc="/assets/icons/offers-naira-figma.svg"
+                        width="14"
+                        height="14"
+                        alt=""
+                        class="mr-[1px] h-[14px] w-[14px]"
                       />
+                      {{ amountWhole(offer.offerAmount)
+                      }}<span class="text-[rgba(31,31,31,0.5)]">{{ amountFraction() }}</span>
                     </span>
-                    <span class="text-[14px] font-medium leading-normal text-[#1A1B1D]">
-                      {{ offer.listingName }}
-                    </span>
-                  </span>
+                  </div>
                 </div>
-
-                <div class="flex items-center justify-between gap-4">
-                  <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Offer amount</span>
-                  <span class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
-                    {{ formatAmount(offer.offerAmount)
-                    }}<span class="text-[rgba(31,31,31,0.5)]">00</span>
-                  </span>
-                </div>
-              </div>
-            </button>
-          }
+              </button>
+            }
+          </div>
         </div>
       </div>
 
@@ -421,9 +470,16 @@ interface OfferRecord {
           <div class="mt-8 space-y-3">
             <div class="flex items-center justify-between gap-4">
               <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Offer amount</span>
-              <span class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
-                {{ formatAmount(offer.offerAmount)
-                }}<span class="text-[rgba(31,31,31,0.5)]">00</span>
+              <span class="flex items-center text-[14px] font-medium leading-5 text-[#1F1F1F]">
+                <img
+                  ngSrc="/assets/icons/offers-naira-figma.svg"
+                  width="14"
+                  height="14"
+                  alt=""
+                  class="mr-[1px] h-[14px] w-[14px]"
+                />
+                {{ amountWhole(offer.offerAmount)
+                }}<span class="text-[rgba(31,31,31,0.5)]">{{ amountFraction() }}</span>
               </span>
             </div>
 
@@ -480,7 +536,7 @@ interface OfferRecord {
         </section>
 
         <section
-          class="fixed inset-x-0 bottom-0 z-[120] rounded-t-[36px] bg-white px-4 pb-9 pt-[34px] md:hidden"
+          class="fixed inset-x-0 bottom-0 z-[120] rounded-t-[36px] bg-white px-4 pt-[34px] md:hidden"
           aria-label="Request details"
           role="dialog"
           aria-modal="true"
@@ -542,9 +598,16 @@ interface OfferRecord {
             <div class="mt-8 space-y-3">
               <div class="flex items-center justify-between gap-4">
                 <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Offer amount</span>
-                <span class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
-                  {{ formatAmount(offer.offerAmount)
-                  }}<span class="text-[rgba(31,31,31,0.5)]">00</span>
+                <span class="flex items-center text-[14px] font-medium leading-5 text-[#1F1F1F]">
+                  <img
+                    ngSrc="/assets/icons/offers-naira-figma.svg"
+                    width="14"
+                    height="14"
+                    alt=""
+                    class="mr-[1px] h-[14px] w-[14px]"
+                  />
+                  {{ amountWhole(offer.offerAmount)
+                  }}<span class="text-[rgba(31,31,31,0.5)]">{{ amountFraction() }}</span>
                 </span>
               </div>
 
@@ -706,8 +769,12 @@ export class OffersPageComponent implements OnDestroy {
     this.selectedOffer.set(null);
   }
 
-  protected formatAmount(amount: number): string {
-    return `₦${amount.toLocaleString('en-NG')}.`;
+  protected amountWhole(amount: number): string {
+    return amount.toLocaleString('en-NG') + '.';
+  }
+
+  protected amountFraction(): string {
+    return '00';
   }
 
   ngOnDestroy(): void {
