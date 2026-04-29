@@ -7,7 +7,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 interface Conversation {
@@ -44,85 +43,83 @@ interface StoreOption {
         >
           <h1 class="text-[24px] font-medium leading-normal text-[#0D0D0D]">Chats</h1>
 
-          @if (!isBuyerView()) {
-            <button
-              type="button"
-              (click)="openStoreSelector()"
-              class="flex h-12 w-[296px] items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
-              aria-haspopup="dialog"
-              [attr.aria-expanded]="isStoreSelectorOpen()"
-            >
-              <span class="flex items-center gap-2">
-                <span class="relative h-8 w-[68px] shrink-0">
-                  @if (selectedStore().variant === 'all') {
+          <button
+            type="button"
+            (click)="openStoreSelector()"
+            class="flex h-12 w-[296px] items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
+            aria-haspopup="dialog"
+            [attr.aria-expanded]="isStoreSelectorOpen()"
+          >
+            <span class="flex items-center gap-2">
+              <span class="relative h-8 w-[68px] shrink-0">
+                @if (selectedStore().variant === 'all') {
+                  <img
+                    [ngSrc]="assets.selectorAvatarOne"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <img
+                    [ngSrc]="assets.selectorAvatarTwo"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <img
+                    [ngSrc]="assets.selectorAvatarThree"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <span
+                    class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                  >
                     <img
-                      [ngSrc]="assets.selectorAvatarOne"
-                      width="32"
-                      height="32"
+                      [ngSrc]="assets.selectorStoreIconDesktop"
+                      width="21"
+                      height="16"
                       alt=""
-                      class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                      class="h-4 w-[21px]"
                     />
+                  </span>
+                } @else if (selectedStore().variant === 'store') {
+                  <span
+                    class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
+                  >
                     <img
-                      [ngSrc]="assets.selectorAvatarTwo"
-                      width="32"
-                      height="32"
+                      [ngSrc]="assets.selectorStoreIconDesktop"
+                      width="21"
+                      height="16"
                       alt=""
-                      class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                      class="h-4 w-[21px]"
                     />
-                    <img
-                      [ngSrc]="assets.selectorAvatarThree"
-                      width="32"
-                      height="32"
-                      alt=""
-                      class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                    />
-                    <span
-                      class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                    >
-                      <img
-                        [ngSrc]="assets.selectorStoreIconDesktop"
-                        width="21"
-                        height="16"
-                        alt=""
-                        class="h-4 w-[21px]"
-                      />
-                    </span>
-                  } @else if (selectedStore().variant === 'store') {
-                    <span
-                      class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
-                    >
-                      <img
-                        [ngSrc]="assets.selectorStoreIconDesktop"
-                        width="21"
-                        height="16"
-                        alt=""
-                        class="h-4 w-[21px]"
-                      />
-                    </span>
-                  } @else {
-                    <img
-                      [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
-                      width="32"
-                      height="32"
-                      alt=""
-                      class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
-                    />
-                  }
-                </span>
-
-                <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
-                  {{ selectedStoreLabel() }}
-                </span>
+                  </span>
+                } @else {
+                  <img
+                    [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
+                  />
+                }
               </span>
 
-              <span class="flex items-center gap-[10px]">
-                <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
-                <span class="rounded-full bg-[#EDEDED] p-1">
-                  <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
-                </span>
+              <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
+                {{ selectedStoreLabel() }}
               </span>
-            </button>
-          }
+            </span>
+
+            <span class="flex items-center gap-[10px]">
+              <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
+              <span class="rounded-full bg-[#EDEDED] p-1">
+                <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
+              </span>
+            </span>
+          </button>
         </header>
 
         <div class="flex min-h-0 flex-1 items-stretch gap-8 px-6 pb-6 pt-6">
@@ -400,85 +397,83 @@ interface StoreOption {
             </button>
           </div>
 
-          @if (!isBuyerView()) {
-            <button
-              type="button"
-              (click)="openStoreSelector()"
-              class="mt-6 flex h-12 w-full items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2"
-              aria-haspopup="dialog"
-              [attr.aria-expanded]="isStoreSelectorOpen()"
-            >
-              <span class="flex items-center gap-2">
-                <span class="relative h-8 w-[68px] shrink-0">
-                  @if (selectedStore().variant === 'all') {
+          <button
+            type="button"
+            (click)="openStoreSelector()"
+            class="mt-6 flex h-12 w-full items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2"
+            aria-haspopup="dialog"
+            [attr.aria-expanded]="isStoreSelectorOpen()"
+          >
+            <span class="flex items-center gap-2">
+              <span class="relative h-8 w-[68px] shrink-0">
+                @if (selectedStore().variant === 'all') {
+                  <img
+                    [ngSrc]="assets.selectorAvatarOne"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <img
+                    [ngSrc]="assets.selectorAvatarTwo"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <img
+                    [ngSrc]="assets.selectorAvatarThree"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                  />
+                  <span
+                    class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                  >
                     <img
-                      [ngSrc]="assets.selectorAvatarOne"
-                      width="32"
-                      height="32"
+                      [ngSrc]="assets.selectorStoreIconMobile"
+                      width="21"
+                      height="16"
                       alt=""
-                      class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                      class="h-4 w-[21px]"
                     />
+                  </span>
+                } @else if (selectedStore().variant === 'store') {
+                  <span
+                    class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
+                  >
                     <img
-                      [ngSrc]="assets.selectorAvatarTwo"
-                      width="32"
-                      height="32"
+                      [ngSrc]="assets.selectorStoreIconMobile"
+                      width="21"
+                      height="16"
                       alt=""
-                      class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                      class="h-4 w-[21px]"
                     />
-                    <img
-                      [ngSrc]="assets.selectorAvatarThree"
-                      width="32"
-                      height="32"
-                      alt=""
-                      class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                    />
-                    <span
-                      class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                    >
-                      <img
-                        [ngSrc]="assets.selectorStoreIconMobile"
-                        width="21"
-                        height="16"
-                        alt=""
-                        class="h-4 w-[21px]"
-                      />
-                    </span>
-                  } @else if (selectedStore().variant === 'store') {
-                    <span
-                      class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
-                    >
-                      <img
-                        [ngSrc]="assets.selectorStoreIconMobile"
-                        width="21"
-                        height="16"
-                        alt=""
-                        class="h-4 w-[21px]"
-                      />
-                    </span>
-                  } @else {
-                    <img
-                      [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
-                      width="32"
-                      height="32"
-                      alt=""
-                      class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
-                    />
-                  }
-                </span>
-
-                <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
-                  {{ selectedStoreLabel() }}
-                </span>
+                  </span>
+                } @else {
+                  <img
+                    [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
+                    width="32"
+                    height="32"
+                    alt=""
+                    class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
+                  />
+                }
               </span>
 
-              <span class="flex items-center gap-[10px]">
-                <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
-                <span class="rounded-full bg-[#EDEDED] p-1">
-                  <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
-                </span>
+              <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
+                {{ selectedStoreLabel() }}
               </span>
-            </button>
-          }
+            </span>
+
+            <span class="flex items-center gap-[10px]">
+              <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
+              <span class="rounded-full bg-[#EDEDED] p-1">
+                <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
+              </span>
+            </span>
+          </button>
 
           <div class="mt-4 space-y-1">
             @for (chat of conversations(); track chat.id) {
@@ -803,7 +798,7 @@ interface StoreOption {
       </section>
     }
 
-    @if (isStoreSelectorOpen() && !isBuyerView()) {
+    @if (isStoreSelectorOpen()) {
       <section
         class="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(13,13,13,0.18)] md:items-start md:bg-[rgba(13,13,13,0.08)] md:px-6 md:pt-[86px]"
         aria-label="Select store"
@@ -975,7 +970,6 @@ interface StoreOption {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessagesPageComponent implements OnDestroy {
-  private readonly router = inject(Router);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private mobileConversationOverlayOpen = false;
 
@@ -1026,7 +1020,6 @@ export class MessagesPageComponent implements OnDestroy {
   readonly draftMessage = signal('');
   readonly storeSearchTerm = signal('');
   readonly selectedStoreId = signal('all');
-  readonly isBuyerView = computed(() => this.router.url.startsWith('/buyer'));
   readonly hasDraftMessage = computed(() => this.draftMessage().trim().length > 0);
 
   readonly storeOptions: readonly StoreOption[] = [
