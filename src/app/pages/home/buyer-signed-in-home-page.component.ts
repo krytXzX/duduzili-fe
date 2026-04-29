@@ -7,10 +7,10 @@ import { HomePageComponent } from './home-page.component';
   selector: 'app-buyer-signed-in-home-page',
   imports: [BuyerDashboardNavbarComponent, WishlistToastComponent, HomePageComponent],
   template: `
-    <div class="flex h-screen flex-col gap-4 bg-gray-100 p-4">
+    <div class="flex h-screen flex-col bg-white">
       <app-buyer-dashboard-navbar class="w-full"></app-buyer-dashboard-navbar>
 
-      <main class="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-[32px] bg-white shadow-sm">
+      <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white">
         <app-home-page [showPublicChrome]="false" [showBottomNav]="false" />
       </main>
     </div>

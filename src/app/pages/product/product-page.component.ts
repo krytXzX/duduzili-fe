@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
-import { FooterComponent } from '../../components/layout/footer.component';
+import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { Review } from '../../components/product/review-card.component';
 
 interface ProductGalleryImage {
@@ -43,6 +43,7 @@ interface StoreDetails {
 }
 
 type ReportSubject = 'listing' | 'seller';
+type SellerReportStep = 1 | 2;
 
 @Component({
   selector: 'app-product-page',
@@ -53,7 +54,7 @@ type ReportSubject = 'listing' | 'seller';
     NgOptimizedImage,
     BuyerDashboardNavbarComponent,
     ListingCardComponent,
-    FooterComponent,
+    HomeFooterComponent,
   ],
   templateUrl: './product-page.component.html',
   host: {
@@ -67,17 +68,32 @@ export class ProductPageComponent {
 
   readonly productId = this.route.snapshot.paramMap.get('id') ?? 'iphone-16-pro';
   readonly isListingActionsMenuOpen = signal(false);
+  readonly listingActionsMenuPosition = signal({ top: 0, left: 0 });
   readonly isMessageVendorModalOpen = signal(false);
   readonly isCallVendorModalOpen = signal(false);
   readonly isRequestCallbackModalOpen = signal(false);
   readonly isMakeOfferModalOpen = signal(false);
   readonly isReportModalOpen = signal(false);
+  readonly isReportSuccessModalOpen = signal(false);
+  readonly isSellerReportSuccessModalOpen = signal(false);
   readonly reportSubject = signal<ReportSubject>('listing');
+  readonly sellerReportStep = signal<SellerReportStep>(1);
+  readonly selectedSellerReportReason = signal<string | null>(null);
   readonly currentGalleryIndex = signal(0);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
   );
+  readonly formattedOfferValue = computed(() => {
+    const rawValue = this.makeOfferForm.controls.amount.value ?? '';
+    const digitsOnly = rawValue.replace(/[^\d]/g, '');
+
+    if (!digitsOnly) {
+      return '0.00';
+    }
+
+    return new Intl.NumberFormat('en-NG').format(Number(digitsOnly));
+  });
   readonly reportModalTitle = computed(() =>
     this.reportSubject() === 'seller' ? 'Report seller' : 'Report listing as unavailable',
   );
@@ -100,6 +116,14 @@ export class ProductPageComponent {
     details: ['', [Validators.required]],
   });
 
+  readonly sellerReportReasons = [
+    'Suspected scam or fraud',
+    'Seller is unresponsive after payment',
+    'Selling prohibited or illegal items',
+    'Repeatedly listing sold/unavailable items',
+    'Other reason',
+  ] as const;
+
   readonly product = signal<ProductDetails>({
     id: this.productId,
     name: 'Iphone 16 pro',
@@ -108,30 +132,26 @@ export class ProductPageComponent {
     discount: '-24%',
     lastUpdated: '24 January, 2026',
     description:
-      'UK used iPhone 16 pro, activated and fully working. Good battery health and clean body with all ports tested.',
+      'UK used iPhone 16 Pro, neatly used and fully working. Good battery health.',
     condition: 'Used',
     likes: '1.2k',
-    deliveryOptions: ['Seller delivery', 'Pickup shop', 'Public location'],
+    deliveryOptions: ['Seller delivery', 'Nation-wide', 'Public location'],
     images: [
       {
-        src: '/assets/images/product_watch_luxury.png',
+        src: '/assets/images/product-mobile-gallery-1.png',
         alt: 'Front view of the featured product',
       },
       {
-        src: '/assets/images/product_keyboard_rgb.png',
+        src: '/assets/images/product-mobile-gallery-2.png',
         alt: 'Side angle of the featured product',
       },
       {
-        src: '/assets/images/product_sneakers_lifestyle.png',
+        src: '/assets/images/product-mobile-gallery-3.png',
         alt: 'What is inside the package',
         eyebrow: "What's inside",
       },
       {
-        src: '/assets/images/fashion_menswear_hero.png',
-        alt: 'Lifestyle angle of the featured product',
-      },
-      {
-        src: '/assets/images/hero_img_4.png',
+        src: '/assets/images/product-mobile-gallery-4.png',
         alt: 'Extra gallery angle of the featured product',
       },
     ],
@@ -314,8 +334,28 @@ export class ProductPageComponent {
     return `linear-gradient(135deg, ${this.store().accentFrom} 0%, ${this.store().accentTo} 100%)`;
   }
 
-  toggleListingActionsMenu(): void {
-    this.isListingActionsMenuOpen.update((value) => !value);
+  toggleListingActionsMenu(event?: MouseEvent): void {
+    if (this.isListingActionsMenuOpen()) {
+      this.closeListingActionsMenu();
+      return;
+    }
+
+    const trigger = event?.currentTarget;
+
+    if (trigger instanceof HTMLElement) {
+      const rect = trigger.getBoundingClientRect();
+      const menuWidth = 260;
+      const horizontalPadding = 20;
+      const maxLeft = Math.max(horizontalPadding, window.innerWidth - menuWidth - horizontalPadding);
+      const nextLeft = Math.min(Math.max(horizontalPadding, rect.right - menuWidth), maxLeft);
+
+      this.listingActionsMenuPosition.set({
+        top: rect.bottom + 8,
+        left: nextLeft,
+      });
+    }
+
+    this.isListingActionsMenuOpen.set(true);
   }
 
   closeListingActionsMenu(): void {
@@ -337,12 +377,25 @@ export class ProductPageComponent {
   openReportModal(subject: ReportSubject): void {
     this.closeListingActionsMenu();
     this.reportSubject.set(subject);
+    if (subject === 'seller') {
+      this.resetSellerReportFlow();
+    }
     this.isReportModalOpen.set(true);
   }
 
   closeReportModal(): void {
     this.isReportModalOpen.set(false);
     this.reportForm.reset({ details: '' });
+    this.resetSellerReportFlow();
+  }
+
+  closeReportSuccessModal(): void {
+    this.isReportSuccessModalOpen.set(false);
+  }
+
+  closeSellerReportSuccessModal(): void {
+    this.isSellerReportSuccessModalOpen.set(false);
+    this.resetSellerReportFlow();
   }
 
   openCallVendorModal(): void {
@@ -367,6 +420,22 @@ export class ProductPageComponent {
 
   closeMakeOfferModal(): void {
     this.isMakeOfferModalOpen.set(false);
+  }
+
+  selectSellerReportReason(reason: string): void {
+    this.selectedSellerReportReason.set(reason);
+  }
+
+  advanceSellerReportStep(): void {
+    if (!this.selectedSellerReportReason()) {
+      return;
+    }
+
+    this.sellerReportStep.set(2);
+  }
+
+  backSellerReportStep(): void {
+    this.sellerReportStep.set(1);
   }
 
   submitRequestCallback(): void {
@@ -395,6 +464,18 @@ export class ProductPageComponent {
       return;
     }
 
+    if (this.reportSubject() === 'listing') {
+      this.closeReportModal();
+      this.isReportSuccessModalOpen.set(true);
+      return;
+    }
+
     this.closeReportModal();
+    this.isSellerReportSuccessModalOpen.set(true);
+  }
+
+  private resetSellerReportFlow(): void {
+    this.sellerReportStep.set(1);
+    this.selectedSellerReportReason.set(null);
   }
 }

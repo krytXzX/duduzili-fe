@@ -6,10 +6,10 @@ import { HomePageComponent } from './home-page.component';
   selector: 'app-seller-signed-in-home-page',
   imports: [DashboardNavbarComponent, HomePageComponent],
   template: `
-    <div class="flex h-screen flex-col gap-4 bg-[#F4F4F4] p-4">
+    <div class="flex h-screen flex-col bg-white">
       <app-dashboard-navbar class="w-full"></app-dashboard-navbar>
 
-      <main class="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-[32px] bg-white shadow-sm">
+      <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white">
         <app-home-page [showPublicChrome]="false" [showBottomNav]="false" />
       </main>
     </div>
