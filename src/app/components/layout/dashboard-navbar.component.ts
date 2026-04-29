@@ -473,16 +473,16 @@ export class DashboardNavbarComponent {
   private readonly router = inject(Router);
 
   readonly sellerMenuEntries: SellerMenuEntry[] = [
-    { label: 'Listings', iconSrc: 'assets/icons/seller-menu-listings.svg', route: '/listings' },
-    { label: 'My Stores', iconSrc: 'assets/icons/seller-menu-stores.svg', route: '/my-stores' },
-    { label: 'Messages', iconSrc: 'assets/icons/seller-menu-messages.svg', route: '/messages' },
-    { label: 'Requests', iconSrc: 'assets/icons/seller-menu-requests.svg', route: '/requests/offers' },
-    { label: 'Banner promotions', iconSrc: 'assets/icons/seller-menu-promotions.svg', route: '/promotions' },
-    { label: 'Ads', iconSrc: 'assets/icons/seller-menu-ads.svg', route: '/ads/plans' },
-    { label: 'Analytics', iconSrc: 'assets/icons/seller-menu-analytics.svg', route: '/analytics' },
-    { label: 'Wallet', iconSrc: 'assets/icons/seller-menu-wallet.svg', route: '/wallet' },
-    { label: 'Account settings', iconSrc: 'assets/icons/seller-menu-settings.svg', route: '/settings' },
-    { label: 'Notifications', iconSrc: 'assets/icons/seller-menu-notifications.svg', route: '/notifications' },
+    { label: 'Listings', iconSrc: 'assets/icons/seller-menu-listings.svg', route: '/seller/listings' },
+    { label: 'My Stores', iconSrc: 'assets/icons/seller-menu-stores.svg', route: '/seller/my-stores' },
+    { label: 'Messages', iconSrc: 'assets/icons/seller-menu-messages.svg', route: '/seller/messages' },
+    { label: 'Requests', iconSrc: 'assets/icons/seller-menu-requests.svg', route: '/seller/requests/offers' },
+    { label: 'Banner promotions', iconSrc: 'assets/icons/seller-menu-promotions.svg', route: '/seller/promotions' },
+    { label: 'Ads', iconSrc: 'assets/icons/seller-menu-ads.svg', route: '/seller/ads/plans' },
+    { label: 'Analytics', iconSrc: 'assets/icons/seller-menu-analytics.svg', route: '/seller/analytics' },
+    { label: 'Wallet', iconSrc: 'assets/icons/seller-menu-wallet.svg', route: '/seller/wallet' },
+    { label: 'Account settings', iconSrc: 'assets/icons/seller-menu-settings.svg', route: '/seller/settings' },
+    { label: 'Notifications', iconSrc: 'assets/icons/seller-menu-notifications.svg', route: '/seller/notifications' },
   ];
 
   readonly searchQuery = signal('');

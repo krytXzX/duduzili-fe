@@ -75,7 +75,7 @@ type SidebarLink = {
               @if (isRequestsExpanded()) {
                 <div class="ml-[19px] space-y-2 border-l border-[#E5E5E5] pl-0">
                   <a
-                    routerLink="/requests/offers"
+                    routerLink="/seller/requests/offers"
                     routerLinkActive="text-[#1F1F1F] bg-white"
                     class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
                   >
@@ -85,7 +85,7 @@ type SidebarLink = {
                     Offers
                   </a>
                   <a
-                    routerLink="/requests/callbacks"
+                    routerLink="/seller/requests/callbacks"
                     routerLinkActive="text-[#1F1F1F] bg-white"
                     class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
                   >
@@ -106,7 +106,7 @@ type SidebarLink = {
           </p>
           <nav class="mt-2 space-y-2">
             <a
-              routerLink="/promotions"
+              routerLink="/seller/promotions"
               routerLinkActive="bg-white text-[#1F1F1F]"
               class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
             >
@@ -166,7 +166,7 @@ type SidebarLink = {
               @if (isAdsExpanded()) {
                 <div class="ml-[19px] space-y-2 border-l border-[#E5E5E5] pl-0">
                   <a
-                    routerLink="/ads/plans"
+                    routerLink="/seller/ads/plans"
                     routerLinkActive="text-[#1F1F1F] bg-white"
                     class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
                   >
@@ -176,7 +176,7 @@ type SidebarLink = {
                     Plans
                   </a>
                   <a
-                    routerLink="/ads/running"
+                    routerLink="/seller/ads/running"
                     routerLinkActive="text-[#1F1F1F] bg-white"
                     class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
                   >
@@ -186,7 +186,7 @@ type SidebarLink = {
                     Running Ads
                   </a>
                   <a
-                    routerLink="/ads/billing-history"
+                    routerLink="/seller/ads/billing-history"
                     routerLinkActive="text-[#1F1F1F] bg-white"
                     class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
                   >
@@ -278,34 +278,34 @@ export class DashboardSidebarComponent {
   private readonly router = inject(Router);
 
   readonly isRequestsExpanded = signal(true);
-  readonly isAdsExpanded = signal(this.router.url.startsWith('/ads'));
+  readonly isAdsExpanded = signal(this.router.url.startsWith('/seller/ads'));
 
   readonly sellingLinks: readonly SidebarLink[] = [
-    { label: 'Listings', route: '/listings', icon: '/assets/icons/seller-sidebar-listings.svg' },
-    { label: 'My Stores', route: '/my-stores', icon: '/assets/icons/seller-sidebar-stores.svg' },
-    { label: 'Chats', route: '/messages', icon: '/assets/icons/seller-sidebar-messages.svg' },
+    { label: 'Listings', route: '/seller/listings', icon: '/assets/icons/seller-sidebar-listings.svg' },
+    { label: 'My Stores', route: '/seller/my-stores', icon: '/assets/icons/seller-sidebar-stores.svg' },
+    { label: 'Chats', route: '/seller/messages', icon: '/assets/icons/seller-sidebar-messages.svg' },
   ];
 
   readonly performanceLinks: readonly SidebarLink[] = [
-    { label: 'Analytics', route: '/analytics', icon: '/assets/icons/seller-sidebar-analytics.svg' },
-    { label: 'Wallet', route: '/wallet', icon: '/assets/icons/seller-sidebar-wallet.svg' },
+    { label: 'Analytics', route: '/seller/analytics', icon: '/assets/icons/seller-sidebar-analytics.svg' },
+    { label: 'Wallet', route: '/seller/wallet', icon: '/assets/icons/seller-sidebar-wallet.svg' },
   ];
 
   readonly accountLinks: readonly SidebarLink[] = [
     {
       label: 'Account settings',
-      route: '/settings',
+      route: '/seller/settings',
       icon: '/assets/icons/seller-sidebar-settings.svg',
     },
     {
       label: 'Notifications',
-      route: '/notifications',
+      route: '/seller/notifications',
       icon: '/assets/icons/seller-sidebar-notifications.svg',
       notificationCount: '20+',
     },
   ];
 
   isAdsRouteActive(): boolean {
-    return this.router.url.startsWith('/ads');
+    return this.router.url.startsWith('/seller/ads');
   }
 }
