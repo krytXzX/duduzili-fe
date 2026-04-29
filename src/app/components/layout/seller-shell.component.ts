@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { DashboardNavbarComponent } from './dashboard-navbar.component';
 import { DashboardSidebarComponent } from './dashboard-sidebar.component';
-import { SellerMobileHeaderComponent } from './seller-mobile-header.component';
 import { MobileBottomNavComponent } from './mobile-bottom-nav.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
@@ -10,19 +9,14 @@ import { MobileOverlayService } from '../../services/mobile-overlay.service';
   imports: [
     DashboardNavbarComponent,
     DashboardSidebarComponent,
-    SellerMobileHeaderComponent,
     MobileBottomNavComponent,
   ],
   template: `
     <div class="flex h-screen flex-col bg-[#f7f7fa] lg:gap-4 lg:bg-[#f4f4f4] lg:p-4">
       @if (showDesktopNavbar()) {
-        <div class="hidden w-full lg:block">
+        <div class="w-full">
           <app-dashboard-navbar ngSkipHydration />
         </div>
-      }
-
-      @if (showMobileHeader()) {
-        <app-seller-mobile-header />
       }
 
       <div class="flex min-h-0 flex-1 overflow-hidden lg:gap-4">
@@ -52,7 +46,6 @@ export class SellerShellComponent {
 
   readonly showDesktopNavbar = input(true);
   readonly showDesktopSidebar = input(true);
-  readonly showMobileHeader = input(true);
   readonly showMobileBottomNav = input(true);
   readonly contentClass = input('');
 
