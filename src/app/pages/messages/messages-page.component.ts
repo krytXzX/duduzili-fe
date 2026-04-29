@@ -385,7 +385,7 @@ interface StoreOption {
 
     <div class="h-full md:hidden">
       @if (!isMobileConversationOpen()) {
-        <section class="px-5 pb-28 pt-[14px]">
+        <section class="px-5 pb-28 pt-0">
           <div class="flex items-center justify-between">
             <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">Chats</h1>
 
@@ -544,8 +544,8 @@ interface StoreOption {
     </div>
 
     @if (isMobileConversationOpen()) {
-      <section class="fixed inset-0 z-[95] bg-white md:hidden">
-        <header class="border-b border-[#EAEAEA] bg-white px-4 pt-[47px]">
+      <section class="fixed inset-0 z-[95] flex flex-col bg-white md:hidden">
+        <header class="border-b border-[#EAEAEA] bg-white px-4 pt-0">
           <div class="flex items-center gap-3 py-[14px]">
             <div class="flex min-w-0 flex-1 items-center">
               <button
@@ -601,7 +601,7 @@ interface StoreOption {
           </div>
         </header>
 
-        <div class="h-[calc(100vh-193px)] overflow-y-auto px-4 pb-8 pt-6 chats-scrollbar">
+        <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-6 chats-scrollbar">
           <p class="text-center text-[12px] leading-4 text-[#6F6F6F]">09/01/2026</p>
 
           <div class="relative mt-6 h-[164px]">
@@ -688,9 +688,7 @@ interface StoreOption {
           </div>
         </div>
 
-        <footer
-          class="absolute inset-x-0 bottom-0 border-t border-[#EEEEEE] bg-white px-[15px] py-[8px]"
-        >
+        <footer class="border-t border-[#EEEEEE] bg-white px-[15px] py-[8px]">
           @if (isRecordingVoice()) {
             <div
               class="mx-auto flex h-[46px] w-full max-w-[350px] items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] px-[2.4px]"
