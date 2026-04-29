@@ -8,15 +8,15 @@ import { WishlistToastComponent } from '../common/wishlist-toast.component';
   selector: 'app-buyer-dashboard-layout',
   imports: [RouterOutlet, BuyerDashboardNavbarComponent, BuyerDashboardSidebarComponent, WishlistToastComponent],
   template: `
-    <div class="flex h-screen flex-col gap-4 bg-gray-100 p-4">
+    <div class="flex h-screen flex-col bg-white lg:gap-4 lg:bg-gray-100 lg:p-4">
       <app-buyer-dashboard-navbar class="w-full"></app-buyer-dashboard-navbar>
 
-      <div class="flex min-h-0 flex-1 gap-4 overflow-hidden">
+      <div class="flex min-h-0 flex-1 overflow-hidden lg:gap-4">
         <aside class="hidden w-64 shrink-0 lg:block">
           <app-buyer-dashboard-sidebar class="h-full"></app-buyer-dashboard-sidebar>
         </aside>
 
-        <main class="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-4xl bg-white shadow-sm">
+        <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white lg:rounded-4xl lg:shadow-sm">
           <router-outlet></router-outlet>
         </main>
       </div>
