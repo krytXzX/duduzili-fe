@@ -29,6 +29,15 @@ interface StoreOption {
   avatar?: string;
 }
 
+interface ReplyTarget {
+  author: string;
+  text: string;
+}
+
+interface MessageMenuTarget extends ReplyTarget {
+  messageId: string;
+}
+
 @Component({
   selector: 'app-messages-page',
   imports: [CommonModule, NgOptimizedImage],
@@ -36,7 +45,12 @@ interface StoreOption {
     class: 'block h-full min-h-0',
   },
   template: `
-    <div class="hidden h-full min-h-0 md:block">
+    <div
+      class="hidden h-full min-h-0 md:block"
+      (contextmenu)="suppressNativeContextMenu($event)"
+      (selectstart)="suppressNativeContextMenu($event)"
+      (dragstart)="suppressNativeContextMenu($event)"
+    >
       <section class="mx-auto flex h-full min-h-0 max-w-[1060px] flex-col overflow-hidden">
         <header
           class="flex h-[69px] shrink-0 items-center justify-between border-b border-[#EEEEEE] px-4"
@@ -239,36 +253,132 @@ interface StoreOption {
                   </div>
                 </div>
 
-                <button type="button" class="rounded-[40px] p-[10px]">
-                  <img
-                    [ngSrc]="assets.searchDesktop"
-                    width="24"
-                    height="24"
-                    alt=""
-                    class="h-6 w-6"
-                  />
-                </button>
+                <div class="relative flex items-center gap-1">
+                  <button type="button" class="rounded-[40px] p-[10px]">
+                    <img
+                      [ngSrc]="assets.searchDesktop"
+                      width="24"
+                      height="24"
+                      alt=""
+                      class="h-6 w-6"
+                    />
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="openProfileMenu()"
+                    class="rounded-[40px] p-[10px]"
+                    aria-haspopup="dialog"
+                    [attr.aria-expanded]="isProfileMenuOpen()"
+                    aria-label="Open chat profile actions"
+                  >
+                    <img
+                      [ngSrc]="assets.moreFigma"
+                      width="20"
+                      height="20"
+                      alt=""
+                      class="h-5 w-5"
+                    />
+                  </button>
+
+                  @if (isProfileMenuOpen()) {
+                    <button
+                      type="button"
+                      (click)="closeProfileMenu()"
+                      aria-label="Close chat profile actions"
+                      class="fixed inset-0 z-[129] hidden md:block"
+                    ></button>
+
+                    <section
+                      class="absolute right-0 top-full z-[130] mt-2 hidden w-[220px] rounded-[20px] border border-[#F2F2F2] bg-white p-2 shadow-[0_20px_40px_rgba(0,0,0,0.08)] md:block"
+                      aria-label="Chat profile actions"
+                      role="dialog"
+                      aria-modal="true"
+                    >
+                      <div class="space-y-1">
+                        <button
+                          type="button"
+                          class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FAFAFA]"
+                        >
+                          <img
+                            [ngSrc]="assets.profileMenuEye"
+                            width="20"
+                            height="20"
+                            alt=""
+                            class="h-5 w-5"
+                          />
+                          <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">
+                            View profile
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FFF7F7]"
+                        >
+                          <img
+                            [ngSrc]="assets.profileMenuFlag"
+                            width="20"
+                            height="20"
+                            alt=""
+                            class="h-5 w-5"
+                          />
+                          <span class="text-[16px] font-medium leading-5 text-[#FF2524]">
+                            Report seller
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          (click)="openClearChatConfirm()"
+                          class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FFF7F7]"
+                        >
+                          <img
+                            [ngSrc]="assets.profileMenuTrash"
+                            width="20"
+                            height="20"
+                            alt=""
+                            class="h-5 w-5"
+                          />
+                          <span class="text-[16px] font-medium leading-5 text-[#FF2524]">
+                            Clear chat
+                          </span>
+                        </button>
+                      </div>
+                    </section>
+                  }
+                </div>
               </div>
             </header>
 
-            <div class="min-h-0 overflow-y-auto px-[23px] py-6 chats-scrollbar">
-              <p class="text-center text-[12px] leading-4 text-[#6F6F6F]">20/02/2024</p>
+            <div
+              class="min-h-0 overflow-y-auto px-[23px] py-6 chats-scrollbar"
+              (contextmenu)="suppressNativeContextMenu($event)"
+            >
+              <p class="text-center text-[12px] leading-4 text-[#6F6F6F]">09/01/2026</p>
 
               <div class="relative mt-6 h-[156px]">
                 <div
                   class="absolute left-0 top-0 max-w-[420px] rounded-[24px] bg-[#F8F8F8] px-[18px] py-3"
+                  (pointerdown)="onMessageLongPressStart($event, 'desktop-top-incoming', 'The Vine Collections', 'Hi just wanted to confirm, would you still be available for the date?')"
+                  (pointerup)="onMessageLongPressEnd($event)"
+                  (pointercancel)="onMessageLongPressCancel($event)"
+                  (contextmenu)="openMessageMenuFromContext($event, 'desktop-top-incoming', 'The Vine Collections', 'Hi just wanted to confirm, would you still be available for the date?')"
                 >
                   <p class="text-[16px] leading-6 text-[#242424]">
-                    Good morning, yes i still have the iphone 17 pro max available
+                    Hi just wanted to confirm, would you still be available for the date?
                   </p>
                 </div>
 
                 <div
                   class="absolute bottom-0 right-0 max-w-[420px] rounded-[24px] bg-[#6453D9] px-[18px] py-3"
+                  (pointerdown)="onMessageLongPressStart($event, 'desktop-top-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
+                  (pointerup)="onMessageLongPressEnd($event)"
+                  (pointercancel)="onMessageLongPressCancel($event)"
+                  (contextmenu)="openMessageMenuFromContext($event, 'desktop-top-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
                 >
                   <p class="text-[16px] leading-6 text-white">
-                    Good day👋🏻. Alright great, i want the orang one with 3 cameras delivered this
-                    weekend
+                    Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you
                   </p>
                 </div>
               </div>
@@ -286,26 +396,37 @@ interface StoreOption {
 
                 <div
                   class="absolute right-[183px] top-[25px] max-w-[420px] rounded-[24px] bg-[#6453D9] px-[18px] py-3 opacity-30"
+                  (pointerdown)="onMessageLongPressStart($event, 'desktop-middle-faded-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
+                  (pointerup)="onMessageLongPressEnd($event)"
+                  (pointercancel)="onMessageLongPressCancel($event)"
+                  (contextmenu)="openMessageMenuFromContext($event, 'desktop-middle-faded-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
                 >
                   <p class="text-[16px] leading-6 text-white">
-                    Good day👋🏻. Alright great, i want the orang one with 3 cameras delivered this
-                    weekend
+                    Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you
                   </p>
                 </div>
 
                 <div
                   class="absolute left-0 top-[84px] max-w-[420px] rounded-[24px] bg-[#F8F8F8] px-[18px] py-3"
+                  (pointerdown)="onMessageLongPressStart($event, 'desktop-middle-incoming', 'The Vine Collections', 'nice nice 😁🥰. Can i see some of the pictures or videos')"
+                  (pointerup)="onMessageLongPressEnd($event)"
+                  (pointercancel)="onMessageLongPressCancel($event)"
+                  (contextmenu)="openMessageMenuFromContext($event, 'desktop-middle-incoming', 'The Vine Collections', 'nice nice 😁🥰. Can i see some of the pictures or videos')"
                 >
                   <p class="text-[16px] leading-6 text-[#262626]">
-                    That’s no problem at all. We can meet at a place of your choosing
+                    nice nice 😁🥰. Can i see some of the pictures or videos
                   </p>
                 </div>
 
                 <div
                   class="absolute left-[173px] top-[168px] max-w-[420px] rounded-[24px] bg-[#6453D9] px-[18px] py-3"
+                  (pointerdown)="onMessageLongPressStart($event, 'desktop-middle-outgoing', 'You', 'Sure, here are some of the pictures.')"
+                  (pointerup)="onMessageLongPressEnd($event)"
+                  (pointercancel)="onMessageLongPressCancel($event)"
+                  (contextmenu)="openMessageMenuFromContext($event, 'desktop-middle-outgoing', 'You', 'Sure, here are some of the pictures.')"
                 >
                   <p class="text-[16px] leading-6 text-white">
-                    Alright. Pls send me some pictures of the phone
+                    Sure, here are some of the pictures.
                   </p>
                 </div>
 
@@ -332,10 +453,98 @@ interface StoreOption {
                     class="absolute left-[34px] top-0 h-[114px] w-[102px] rotate-[16deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
                   />
                 </div>
+
+                @if (isMessageMenuOpen() && isDesktopMessageMenuOpen()) {
+                  <section
+                    class="absolute z-[150] hidden w-[220px] rounded-[16px] border border-[#F2F2F2] bg-white p-2 shadow-[0_18px_30px_rgba(0,0,0,0.12)] md:block"
+                    [style.left]="desktopMessageMenuPosition().left"
+                    [style.top]="desktopMessageMenuPosition().top"
+                    aria-label="Message actions"
+                    role="dialog"
+                    aria-modal="true"
+                  >
+                    <button
+                      type="button"
+                      (click)="triggerReplyFromMenu()"
+                      class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+                    >
+                      <img
+                        [ngSrc]="assets.messageMenuReply"
+                        width="20"
+                        height="20"
+                        alt=""
+                        class="h-5 w-5"
+                      />
+                      <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">Reply</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="copyMessageFromMenu()"
+                      class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+                    >
+                      <img
+                        [ngSrc]="assets.messageMenuCopy"
+                        width="20"
+                        height="20"
+                        alt=""
+                        class="h-5 w-5"
+                      />
+                      <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">Copy</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="deleteMessageFromMenu()"
+                      class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+                    >
+                      <img
+                        [ngSrc]="assets.messageMenuDelete"
+                        width="20"
+                        height="20"
+                        alt=""
+                        class="h-5 w-5"
+                      />
+                      <span class="text-[16px] font-medium leading-5 text-[#FF2524]">Delete</span>
+                    </button>
+                  </section>
+                }
               </div>
             </div>
 
-            <footer class="border-t border-[#EEEEEE] bg-white px-[15px] py-[8px]">
+            <footer class="border-t border-[#EEEEEE] bg-white">
+              @if (isReplyComposerOpen()) {
+                <div class="flex items-start justify-between border-b border-[#EEEEEE] px-[15px] py-[10px]">
+                  <div class="flex min-w-0 items-start gap-[6px]">
+                    <span class="mt-0.5 h-[35px] w-px bg-[#6453D9]"></span>
+                    <div class="min-w-0">
+                      <p class="text-[13px] font-medium leading-4 text-[#6453D9]">
+                        Replying to {{ activeReplyTarget()?.author }}
+                      </p>
+                      <p class="mt-[3px] truncate text-[13px] leading-4 text-[#202020]">
+                        {{ activeReplyTarget()?.text }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    (click)="closeReplyComposer()"
+                    aria-label="Close reply preview"
+                    class="ml-4 flex h-6 w-6 shrink-0 items-center justify-center"
+                  >
+                    <img
+                      [ngSrc]="assets.clearChatClose"
+                      width="24"
+                      height="24"
+                      alt=""
+                      class="h-6 w-6"
+                    />
+                  </button>
+                </div>
+              }
+
+              <div class="px-[15px] py-[8px]">
               <div class="flex items-center gap-5">
                 <div class="flex items-center gap-3">
                   <button type="button">
@@ -377,13 +586,19 @@ interface StoreOption {
                   </button>
                 </div>
               </div>
+              </div>
             </footer>
           </section>
         </div>
       </section>
     </div>
 
-    <div class="h-full md:hidden">
+    <div
+      class="h-full md:hidden"
+      (contextmenu)="suppressNativeContextMenu($event)"
+      (selectstart)="suppressNativeContextMenu($event)"
+      (dragstart)="suppressNativeContextMenu($event)"
+    >
       @if (!isMobileConversationOpen()) {
         <section class="px-5 pb-28 pt-0">
           <div class="flex items-center justify-between">
@@ -544,8 +759,8 @@ interface StoreOption {
     </div>
 
     @if (isMobileConversationOpen()) {
-      <section class="fixed inset-0 z-[95] flex flex-col bg-white md:hidden">
-        <header class="border-b border-[#EAEAEA] bg-white px-4 pt-0">
+      <section class="fixed left-0 top-0 z-[95] flex h-dvh w-screen flex-col overflow-hidden bg-white md:hidden">
+        <header class="shrink-0 border-b border-[#EAEAEA] bg-white px-4 pt-0">
           <div class="flex items-center gap-3 py-[14px]">
             <div class="flex min-w-0 flex-1 items-center">
               <button
@@ -595,30 +810,53 @@ interface StoreOption {
               </div>
             </div>
 
-            <button type="button" class="shrink-0 rounded-[40px] p-[10px]">
-              <img [ngSrc]="assets.searchMobile" width="20" height="20" alt="" class="h-5 w-5" />
-            </button>
+            <div class="flex shrink-0 items-center">
+              <button type="button" class="rounded-[40px] p-[10px]" aria-label="Search chat">
+                <img [ngSrc]="assets.searchMobile" width="20" height="20" alt="" class="h-5 w-5" />
+              </button>
+
+              <button
+                type="button"
+                (click)="openProfileMenu()"
+                class="rounded-[40px] p-[10px]"
+                aria-haspopup="dialog"
+                [attr.aria-expanded]="isProfileMenuOpen()"
+                aria-label="Open chat profile actions"
+              >
+                <img [ngSrc]="assets.moreFigma" width="20" height="20" alt="" class="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </header>
 
-        <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-6 chats-scrollbar">
+        <div
+          class="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-6 chats-scrollbar"
+          (contextmenu)="suppressNativeContextMenu($event)"
+        >
           <p class="text-center text-[12px] leading-4 text-[#6F6F6F]">09/01/2026</p>
 
           <div class="relative mt-6 h-[164px]">
             <div
               class="absolute left-0 top-0 max-w-[280px] rounded-[24px] bg-[#F8F8F8] px-[14px] py-3"
+              (pointerdown)="onMessageLongPressStart($event, 'mobile-top-incoming', 'The Vine Collections', 'Hi just wanted to confirm, would you still be available for the date?')"
+              (pointerup)="onMessageLongPressEnd($event)"
+              (pointercancel)="onMessageLongPressCancel($event)"
+              (contextmenu)="openMessageMenuFromContext($event, 'mobile-top-incoming', 'The Vine Collections', 'Hi just wanted to confirm, would you still be available for the date?')"
             >
               <p class="text-[16px] leading-5 text-[#242424]">
-                Good morning, yes i still have the iphone 17 pro max available
+                Hi just wanted to confirm, would you still be available for the date?
               </p>
             </div>
 
             <div
               class="absolute right-0 top-20 max-w-[300px] rounded-[24px] bg-[#6453D9] px-[14px] py-3"
+              (pointerdown)="onMessageLongPressStart($event, 'mobile-top-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
+              (pointerup)="onMessageLongPressEnd($event)"
+              (pointercancel)="onMessageLongPressCancel($event)"
+              (contextmenu)="openMessageMenuFromContext($event, 'mobile-top-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
             >
               <p class="text-[16px] leading-5 text-white">
-                Good day👋🏻. Alright great, i want the orang one with 3 cameras delivered this
-                weekend
+                Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you
               </p>
             </div>
           </div>
@@ -633,18 +871,25 @@ interface StoreOption {
 
             <div
               class="absolute right-[52px] top-[25px] w-[280px] rounded-[24px] bg-[#6453D9] px-[14px] py-3 opacity-30"
+              (pointerdown)="onMessageLongPressStart($event, 'mobile-middle-faded-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
+              (pointerup)="onMessageLongPressEnd($event)"
+              (pointercancel)="onMessageLongPressCancel($event)"
+              (contextmenu)="openMessageMenuFromContext($event, 'mobile-middle-faded-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
             >
               <p class="text-[16px] leading-5 text-white">
-                Good day👋🏻. Alright great, i want the orang one with 3 cameras delivered this
-                weekend
+                Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you
               </p>
             </div>
 
             <div
               class="absolute left-3 top-[82px] w-[280px] rounded-[24px] bg-[#F8F8F8] px-[14px] py-3"
+              (pointerdown)="onMessageLongPressStart($event, 'mobile-middle-incoming', 'The Vine Collections', 'nice nice 😁🥰. Can i see some of the pictures or videos')"
+              (pointerup)="onMessageLongPressEnd($event)"
+              (pointercancel)="onMessageLongPressCancel($event)"
+              (contextmenu)="openMessageMenuFromContext($event, 'mobile-middle-incoming', 'The Vine Collections', 'nice nice 😁🥰. Can i see some of the pictures or videos')"
             >
               <p class="text-[16px] leading-5 text-[#262626]">
-                That’s no problem at all. We can meet at a place of your choosing
+                nice nice 😁🥰. Can i see some of the pictures or videos
               </p>
             </div>
 
@@ -656,9 +901,13 @@ interface StoreOption {
 
             <div
               class="absolute left-[58px] top-[170px] max-w-[300px] rounded-[24px] bg-[#6453D9] px-[14px] py-3"
+              (pointerdown)="onMessageLongPressStart($event, 'mobile-middle-outgoing', 'You', 'Sure, here are some of the pictures.')"
+              (pointerup)="onMessageLongPressEnd($event)"
+              (pointercancel)="onMessageLongPressCancel($event)"
+              (contextmenu)="openMessageMenuFromContext($event, 'mobile-middle-outgoing', 'You', 'Sure, here are some of the pictures.')"
             >
               <p class="text-[16px] leading-5 text-white">
-                Alright. Pls send me some pictures of the phone
+                Sure, here are some of the pictures.
               </p>
             </div>
 
@@ -688,11 +937,12 @@ interface StoreOption {
           </div>
         </div>
 
-        <footer class="border-t border-[#EEEEEE] bg-white px-[15px] py-[8px]">
+        <footer class="shrink-0 border-t border-[#EEEEEE] bg-white">
           @if (isRecordingVoice()) {
-            <div
-              class="mx-auto flex h-[46px] w-full max-w-[350px] items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] px-[2.4px]"
-            >
+            <div class="px-[15px] py-[8px]">
+              <div
+                class="mx-auto flex h-[46px] w-full max-w-[350px] items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] px-[2.4px]"
+              >
               <button
                 type="button"
                 aria-label="Cancel recording"
@@ -737,8 +987,41 @@ interface StoreOption {
                   class="h-6 w-6"
                 />
               </button>
+              </div>
             </div>
           } @else {
+            @if (isReplyComposerOpen()) {
+              <div class="flex items-start justify-between border-b border-[#EEEEEE] px-[7px] py-[7px]">
+                <div class="flex min-w-0 items-start gap-[6px]">
+                  <span class="mt-[2px] h-[35px] w-px bg-[#6453D9]"></span>
+                  <div class="min-w-0">
+                    <p class="text-[13px] font-medium leading-4 text-[#6453D9]">
+                      Replying to {{ activeReplyTarget()?.author }}
+                    </p>
+                    <p class="mt-[3px] text-[13px] leading-4 text-[#202020]">
+                      {{ activeReplyTarget()?.text }}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  (click)="closeReplyComposer()"
+                  aria-label="Close reply preview"
+                  class="ml-3 flex h-6 w-6 shrink-0 items-center justify-center"
+                >
+                  <img
+                    [ngSrc]="assets.clearChatClose"
+                    width="24"
+                    height="24"
+                    alt=""
+                    class="h-6 w-6"
+                  />
+                </button>
+              </div>
+            }
+
+            <div class="px-[15px] py-[8px]">
             <div class="flex h-[46px] items-center gap-4">
               @if (!hasDraftMessage()) {
                 <button type="button" aria-label="Open gallery" class="shrink-0">
@@ -791,8 +1074,299 @@ interface StoreOption {
                 }
               </div>
             </div>
+            </div>
           }
         </footer>
+      </section>
+    }
+
+    @if (isProfileMenuOpen()) {
+      <section
+        class="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(13,13,13,0.18)] md:hidden"
+        aria-label="Chat profile actions"
+        role="dialog"
+        aria-modal="true"
+      >
+        <button
+          type="button"
+          (click)="closeProfileMenu()"
+          aria-label="Close chat profile actions"
+          class="absolute inset-0"
+        ></button>
+
+        <div class="relative z-[1] w-full rounded-t-[32px] bg-white pb-5">
+          <div class="relative h-6 w-full">
+            <div
+              class="absolute left-1/2 top-[11px] h-1 w-[50px] -translate-x-1/2 rounded-[100px] bg-[#EBEBEB]"
+            ></div>
+          </div>
+
+          <div class="absolute right-5 top-5">
+            <button
+              type="button"
+              (click)="closeProfileMenu()"
+              aria-label="Close profile menu"
+              class="flex h-5 w-5 items-center justify-center"
+            >
+              <img
+                [ngSrc]="assets.profileMenuClose"
+                width="14"
+                height="14"
+                alt=""
+                class="h-[14px] w-[14px]"
+              />
+            </button>
+          </div>
+
+          <div class="px-4 pt-5">
+            <div class="space-y-2">
+              <button
+                type="button"
+                class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+              >
+                <img
+                  [ngSrc]="assets.profileMenuEye"
+                  width="20"
+                  height="20"
+                  alt=""
+                  class="h-5 w-5"
+                />
+                <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">View profile</span>
+              </button>
+
+              <button
+                type="button"
+                class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+              >
+                <img
+                  [ngSrc]="assets.profileMenuFlag"
+                  width="20"
+                  height="20"
+                  alt=""
+                  class="h-5 w-5"
+                />
+                <span class="text-[16px] font-medium leading-5 text-[#FF2524]">Report seller</span>
+              </button>
+
+              <button
+                type="button"
+                (click)="openClearChatConfirm()"
+                class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+              >
+                <img
+                  [ngSrc]="assets.profileMenuTrash"
+                  width="20"
+                  height="20"
+                  alt=""
+                  class="h-5 w-5"
+                />
+                <span class="text-[16px] font-medium leading-5 text-[#FF2524]">Clear chat</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    @if (isMessageMenuOpen()) {
+      <button
+        type="button"
+        (click)="closeMessageMenu()"
+        aria-label="Close message actions"
+        class="fixed inset-0 z-[149] hidden md:block"
+      ></button>
+    }
+
+    @if (isMessageMenuOpen()) {
+      <section
+        class="fixed inset-0 z-[150] flex items-end justify-center bg-[rgba(13,13,13,0.18)] md:hidden"
+        aria-label="Message actions"
+        role="dialog"
+        aria-modal="true"
+      >
+        <button
+          type="button"
+          (click)="closeMessageMenu()"
+          aria-label="Close message actions"
+          class="absolute inset-0"
+        ></button>
+
+        <div class="relative z-[1] w-full rounded-t-[32px] bg-white px-4 pb-6 pt-7">
+          <div
+            class="absolute left-1/2 top-[11px] h-1 w-[50px] -translate-x-1/2 rounded-[100px] bg-[#EBEBEB]"
+          ></div>
+
+          <div class="mx-auto w-full max-w-[334px] space-y-2">
+            <button
+              type="button"
+              (click)="triggerReplyFromMenu()"
+              class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+            >
+              <img [ngSrc]="assets.messageMenuReply" width="20" height="20" alt="" class="h-5 w-5" />
+              <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">Reply</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="copyMessageFromMenu()"
+              class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+            >
+              <img [ngSrc]="assets.messageMenuCopy" width="20" height="20" alt="" class="h-5 w-5" />
+              <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">Copy</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="deleteMessageFromMenu()"
+              class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+            >
+              <img
+                [ngSrc]="assets.messageMenuDelete"
+                width="20"
+                height="20"
+                alt=""
+                class="h-5 w-5"
+              />
+              <span class="text-[16px] font-medium leading-5 text-[#FF2524]">Delete</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    }
+
+    @if (isClearChatConfirmOpen()) {
+      <section
+        class="fixed inset-0 z-[140] hidden items-center justify-center bg-[rgba(13,13,13,0.18)] px-6 md:flex"
+        aria-label="Clear chat confirmation"
+        role="dialog"
+        aria-modal="true"
+      >
+        <button
+          type="button"
+          (click)="closeClearChatConfirm()"
+          aria-label="Close clear chat confirmation"
+          class="absolute inset-0"
+        ></button>
+
+        <div
+          class="relative z-[1] w-full max-w-[460px] rounded-[36px] bg-white px-8 pb-8 pt-8 shadow-[0_20px_40px_rgba(0,0,0,0.12)]"
+        >
+          <button
+            type="button"
+            (click)="closeClearChatConfirm()"
+            aria-label="Close clear chat confirmation"
+            class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+          >
+            <img
+              [ngSrc]="assets.clearChatClose"
+              width="24"
+              height="24"
+              alt=""
+              class="h-6 w-6"
+            />
+          </button>
+
+          <div class="mx-auto max-w-[334px] pt-10 text-center">
+            <div class="space-y-3">
+              <h2 class="text-[28px] font-semibold leading-none tracking-[-0.02em] text-[#15162B]">
+                Remove this chat?
+              </h2>
+              <p class="text-[14px] leading-[1.5] tracking-[-0.5px] text-[#48484A]">
+                This will remove the chat from your inbox and erase the chat history. To stop
+                receiving new messages from this seller, first report this seller, then delete the
+                chat.
+              </p>
+            </div>
+
+            <div class="mt-10 space-y-3">
+              <button
+                type="button"
+                (click)="confirmClearChat()"
+                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#FF2524] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A]"
+              >
+                Remove
+              </button>
+
+              <button
+                type="button"
+                (click)="closeClearChatConfirm()"
+                class="flex h-[52px] w-full items-center justify-center rounded-full bg-[#F7F7F7] px-8 text-[16px] font-semibold leading-6 text-black"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    @if (isClearChatConfirmOpen()) {
+      <section
+        class="fixed inset-0 z-[140] flex items-end justify-center bg-[rgba(13,13,13,0.18)] md:hidden"
+        aria-label="Clear chat confirmation"
+        role="dialog"
+        aria-modal="true"
+      >
+        <button
+          type="button"
+          (click)="closeClearChatConfirm()"
+          aria-label="Close clear chat confirmation"
+          class="absolute inset-0"
+        ></button>
+
+        <div class="relative z-[1] w-full rounded-t-[36px] bg-white pb-9">
+          <div class="relative h-6 w-full">
+            <div
+              class="absolute left-1/2 top-[11px] h-1 w-[50px] -translate-x-1/2 rounded-[100px] bg-[#EBEBEB]"
+            ></div>
+          </div>
+
+          <button
+            type="button"
+            (click)="closeClearChatConfirm()"
+            aria-label="Close clear chat confirmation"
+            class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+          >
+            <img
+              [ngSrc]="assets.clearChatClose"
+              width="24"
+              height="24"
+              alt=""
+              class="h-6 w-6"
+            />
+          </button>
+
+          <div class="mx-auto max-w-[334px] px-4 pt-[71px] text-center">
+            <div class="space-y-3">
+              <h2 class="text-[28px] font-semibold leading-none tracking-[-0.02em] text-[#15162B]">
+                Remove this chat?
+              </h2>
+              <p class="text-[14px] leading-[1.5] tracking-[-0.5px] text-[#48484A]">
+                This will remove the chat from your inbox and erase the chat history. To stop
+                receiving new messages from this seller, first report this seller, then delete the
+                chat.
+              </p>
+            </div>
+
+            <div class="mt-10 space-y-3">
+              <button
+                type="button"
+                (click)="confirmClearChat()"
+                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#FF2524] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A]"
+              >
+                Remove
+              </button>
+
+              <button
+                type="button"
+                (click)="closeClearChatConfirm()"
+                class="flex h-[52px] w-full items-center justify-center rounded-full bg-[#F7F7F7] px-8 text-[16px] font-semibold leading-6 text-black"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
     }
 
@@ -963,6 +1537,12 @@ interface StoreOption {
         background: #e5e5e5;
         border-radius: 999px;
       }
+
+      .chats-scrollbar {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -989,6 +1569,16 @@ export class MessagesPageComponent implements OnDestroy {
     emojiDesktop: '/assets/icons/chats-emoji-desktop.svg',
     galleryDesktop: '/assets/icons/chats-gallery-desktop.svg',
     galleryMobile: '/assets/icons/chats-gallery-mobile.svg',
+    clearChatClose: '/assets/icons/chats-clear-chat-close.svg',
+    messageMenuCopy: '/assets/icons/chats-message-menu-copy.svg',
+    messageMenuDelete: '/assets/icons/chats-message-menu-delete.svg',
+    messageMenuReply: '/assets/icons/chats-message-menu-reply.svg',
+    moreFigma: '/assets/icons/chats-more-mobile-figma.svg',
+    menuDotsMobile: '/assets/icons/store-info-menu-dots.svg',
+    profileMenuClose: '/assets/icons/chats-profile-menu-close.svg',
+    profileMenuEye: '/assets/icons/chats-profile-menu-eye.svg',
+    profileMenuFlag: '/assets/icons/chats-profile-menu-flag.svg',
+    profileMenuTrash: '/assets/icons/chats-profile-menu-trash.svg',
     bryanBadgeDesktop: '/assets/icons/chats-bryan-badge-desktop.svg',
     bryanBadgeMobile: '/assets/icons/chats-bryan-badge-mobile.svg',
     micDesktop: '/assets/icons/chats-mic-desktop.svg',
@@ -1012,6 +1602,12 @@ export class MessagesPageComponent implements OnDestroy {
   } as const;
 
   readonly isMobileConversationOpen = signal(false);
+  readonly isClearChatConfirmOpen = signal(false);
+  readonly isMessageMenuOpen = signal(false);
+  readonly isProfileMenuOpen = signal(false);
+  readonly activeReplyTarget = signal<ReplyTarget | null>(null);
+  readonly messageMenuTarget = signal<MessageMenuTarget | null>(null);
+  readonly isReplyComposerOpen = computed(() => this.activeReplyTarget() !== null);
   readonly isRecordingVoice = signal(false);
   readonly isStoreSelectorOpen = signal(false);
   readonly activeChatId = signal('2');
@@ -1019,6 +1615,7 @@ export class MessagesPageComponent implements OnDestroy {
   readonly storeSearchTerm = signal('');
   readonly selectedStoreId = signal('all');
   readonly hasDraftMessage = computed(() => this.draftMessage().trim().length > 0);
+  private longPressTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly storeOptions: readonly StoreOption[] = [
     { id: 'all', label: 'All stores (4)', variant: 'all' },
@@ -1118,6 +1715,11 @@ export class MessagesPageComponent implements OnDestroy {
 
   protected openMobileConversation(chatId: string): void {
     this.activeChatId.set(chatId);
+    this.isClearChatConfirmOpen.set(false);
+    this.isMessageMenuOpen.set(false);
+    this.isProfileMenuOpen.set(false);
+    this.messageMenuTarget.set(null);
+    this.activeReplyTarget.set(null);
     this.isRecordingVoice.set(false);
     this.isStoreSelectorOpen.set(false);
     this.isMobileConversationOpen.set(true);
@@ -1129,6 +1731,11 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   protected closeMobileConversation(): void {
+    this.isClearChatConfirmOpen.set(false);
+    this.isMessageMenuOpen.set(false);
+    this.isProfileMenuOpen.set(false);
+    this.messageMenuTarget.set(null);
+    this.activeReplyTarget.set(null);
     this.isRecordingVoice.set(false);
     this.isMobileConversationOpen.set(false);
 
@@ -1144,7 +1751,160 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   protected openStoreSelector(): void {
+    this.isClearChatConfirmOpen.set(false);
+    this.isMessageMenuOpen.set(false);
+    this.isProfileMenuOpen.set(false);
+    this.messageMenuTarget.set(null);
     this.isStoreSelectorOpen.set(true);
+  }
+
+  protected openProfileMenu(): void {
+    this.isClearChatConfirmOpen.set(false);
+    this.isMessageMenuOpen.set(false);
+    this.isStoreSelectorOpen.set(false);
+    this.messageMenuTarget.set(null);
+    this.isProfileMenuOpen.set(true);
+  }
+
+  protected closeProfileMenu(): void {
+    this.isProfileMenuOpen.set(false);
+  }
+
+  protected openClearChatConfirm(): void {
+    this.isMessageMenuOpen.set(false);
+    this.isProfileMenuOpen.set(false);
+    this.isStoreSelectorOpen.set(false);
+    this.messageMenuTarget.set(null);
+    this.isClearChatConfirmOpen.set(true);
+  }
+
+  protected closeClearChatConfirm(): void {
+    this.isClearChatConfirmOpen.set(false);
+  }
+
+  protected confirmClearChat(): void {
+    this.isClearChatConfirmOpen.set(false);
+  }
+
+  protected closeReplyComposer(): void {
+    this.activeReplyTarget.set(null);
+  }
+
+  protected onMessageLongPressStart(
+    event: PointerEvent,
+    messageId: string,
+    author: string,
+    text: string,
+  ): void {
+    this.clearLongPressTimer();
+    this.longPressTimer = setTimeout(() => {
+      this.messageMenuTarget.set({ messageId, author, text });
+      this.isMessageMenuOpen.set(true);
+      this.isProfileMenuOpen.set(false);
+      this.isStoreSelectorOpen.set(false);
+      this.isClearChatConfirmOpen.set(false);
+      this.isRecordingVoice.set(false);
+    }, 420);
+
+    (event.currentTarget as HTMLElement | null)?.setPointerCapture(event.pointerId);
+  }
+
+  protected openMessageMenuFromContext(
+    event: MouseEvent,
+    messageId: string,
+    author: string,
+    text: string,
+  ): void {
+    event.preventDefault();
+    this.clearLongPressTimer();
+    this.messageMenuTarget.set({ messageId, author, text });
+    this.isMessageMenuOpen.set(true);
+    this.isProfileMenuOpen.set(false);
+    this.isStoreSelectorOpen.set(false);
+    this.isClearChatConfirmOpen.set(false);
+    this.isRecordingVoice.set(false);
+  }
+
+  protected onMessageLongPressEnd(event: PointerEvent): void {
+    this.clearLongPressTimer();
+    (event.currentTarget as HTMLElement | null)?.releasePointerCapture(event.pointerId);
+  }
+
+  protected onMessageLongPressCancel(event: PointerEvent): void {
+    this.clearLongPressTimer();
+    (event.currentTarget as HTMLElement | null)?.releasePointerCapture(event.pointerId);
+  }
+
+  protected closeMessageMenu(): void {
+    this.isMessageMenuOpen.set(false);
+    this.messageMenuTarget.set(null);
+  }
+
+  protected triggerReplyFromMenu(): void {
+    const target = this.messageMenuTarget();
+    if (!target) {
+      return;
+    }
+
+    this.activeReplyTarget.set({ author: target.author, text: target.text });
+    this.closeMessageMenu();
+  }
+
+  protected async copyMessageFromMenu(): Promise<void> {
+    const target = this.messageMenuTarget();
+    if (!target) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(target.text);
+    } catch {
+      // Ignore clipboard errors when browser permissions are unavailable.
+    }
+
+    this.closeMessageMenu();
+  }
+
+  protected deleteMessageFromMenu(): void {
+    this.closeMessageMenu();
+    this.openClearChatConfirm();
+  }
+
+  protected isMessageMenuTarget(messageId: string): boolean {
+    return this.messageMenuTarget()?.messageId === messageId;
+  }
+
+  protected suppressNativeContextMenu(event: Event): void {
+    event.preventDefault();
+  }
+
+  protected isDesktopMessageMenuOpen(): boolean {
+    const target = this.messageMenuTarget();
+    return this.isMessageMenuOpen() && target !== null && target.messageId.startsWith('desktop-');
+  }
+
+  protected desktopMessageMenuPosition(): { left: string; top: string } {
+    switch (this.messageMenuTarget()?.messageId) {
+      case 'desktop-top-incoming':
+        return { left: '8px', top: '12px' };
+      case 'desktop-top-outgoing':
+        return { left: '278px', top: '92px' };
+      case 'desktop-middle-faded-outgoing':
+        return { left: '232px', top: '118px' };
+      case 'desktop-middle-incoming':
+        return { left: '8px', top: '148px' };
+      case 'desktop-middle-outgoing':
+        return { left: '250px', top: '234px' };
+      default:
+        return { left: '8px', top: '148px' };
+    }
+  }
+
+  private clearLongPressTimer(): void {
+    if (this.longPressTimer !== null) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
   }
 
   protected closeStoreSelector(): void {
@@ -1163,6 +1923,10 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   protected startVoiceRecording(): void {
+    this.isClearChatConfirmOpen.set(false);
+    this.isMessageMenuOpen.set(false);
+    this.isProfileMenuOpen.set(false);
+    this.messageMenuTarget.set(null);
     this.isRecordingVoice.set(true);
   }
 
@@ -1171,6 +1935,7 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.clearLongPressTimer();
     if (this.mobileConversationOverlayOpen) {
       this.mobileOverlayService.closeMobileModal();
       this.mobileConversationOverlayOpen = false;

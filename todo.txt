@@ -4,3 +4,7 @@ Category: admin can add categories name, sub categories and icon.
 
 
 Location: admin should be able to states, cities/town attached to each state.
+
+
+
+Admin should be able to enable and disable KYC
