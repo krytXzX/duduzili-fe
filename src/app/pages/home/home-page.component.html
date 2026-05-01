@@ -182,7 +182,7 @@
       <div class="rounded-[34px] border border-[#dddddd] bg-white px-6 py-2 shadow-[0_12px_30px_rgba(151,150,196,0.18)]">
         <form class="flex items-center justify-between gap-3">
           <label class="sr-only" for="mobile-home-search">Search for products</label>
-          <input id="mobile-home-search" type="search" placeholder="What are you looking for?" class="min-w-0 flex-1 border-none bg-transparent text-base text-[#2c2c2c] outline-none placeholder:text-[#adadad]" />
+          <input id="mobile-home-search" type="search" placeholder="What are you looking for?" class="min-w-0 flex-1 border-none bg-transparent text-base text-[#2c2c2c] outline-none placeholder:text-[#adadad]" (focus)="openMobileSearchOverlay()" />
           <button type="submit" class="flex h-[52px] w-[60px] items-center justify-center rounded-full border border-white bg-[#6453d9] shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]" aria-label="Search">
             <img ngSrc="/assets/icons/home-search.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
           </button>
@@ -420,5 +420,58 @@
 
   @if (showBottomNav()) {
   <app-mobile-bottom-nav listingsRoute="/" [listingsActivePaths]="['/']" messagesRoute="/messages" [messagesActivePaths]="['/messages']" storesRoute="/my-stores" [storesActivePaths]="['/my-stores']" moreRoute="/more" [moreActivePaths]="['/more']" [enableActionSheet]="false" createButtonRoute="/listings" createButtonAriaLabel="Create listing" />
+  }
+
+  @if (isMobileSearchOverlayOpen()) {
+  <section class="fixed inset-0 z-[300] bg-white lg:hidden" aria-label="Search" role="dialog" aria-modal="true">
+    <button type="button" (click)="closeMobileSearchOverlay()" class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]" aria-label="Close search">
+      <img ngSrc="/assets/icons/home-search-overlay/close.svg" alt="" width="24" height="24" class="h-6 w-6" aria-hidden="true" />
+    </button>
+
+    <div class="h-full overflow-y-auto px-5 pb-[220px] pt-[76px]">
+      <div class="space-y-8">
+        <section>
+          <div class="mb-3 flex items-center justify-between">
+            <h2 class="text-[20px] font-medium leading-[1.2] text-[#1A1B1D]">Recent searches</h2>
+            <button type="button" (click)="clearRecentSearchHistory()" class="text-[14px] font-medium leading-5 text-[#01A204] underline">
+              Clear history
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            @for (term of recentSearches(); track term) {
+            <button type="button" (click)="applySearchTerm(term)" class="inline-flex h-11 items-center gap-[10px] rounded-full bg-[#F9F9F9] px-4 text-[14px] font-medium text-[#1A1B1D]">
+              {{ term }}
+              <span (click)="removeRecentSearch(term); $event.stopPropagation()" class="inline-flex h-3 w-[11.7px] items-center justify-center">
+                <img ngSrc="/assets/icons/home-search-overlay/chip-remove.svg" alt="" width="12" height="12" class="h-3 w-[11.7px]" aria-hidden="true" />
+              </span>
+            </button>
+            }
+          </div>
+        </section>
+
+        <section>
+          <h2 class="mb-3 text-[18px] font-medium leading-[1.2] text-[#1A1B1D]">Popular right now</h2>
+          <div class="flex flex-wrap gap-2">
+            @for (term of popularSearches; track term) {
+            <button type="button" (click)="applySearchTerm(term)" class="inline-flex h-11 items-center rounded-full bg-[#F9F9F9] px-4 text-[14px] font-medium text-[#1A1B1D]">
+              {{ term }}
+            </button>
+            }
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="pointer-events-auto fixed inset-x-5 bottom-[max(41px,env(safe-area-inset-bottom))] z-[301]">
+      <div class="h-[126px] rounded-[28px] border border-[#EDEDED] bg-white px-[15px] pt-[13px] shadow-[0_12px_30px_rgba(151,150,196,0.25)]">
+        <form class="relative h-full w-full" (submit)="$event.preventDefault()">
+          <input type="text" [value]="mobileSearchQuery()" (input)="updateMobileSearchQuery($event)" class="h-full w-full bg-transparent pr-[74px] text-[24px] leading-[1.3] text-[#1F1F1F] outline-none" placeholder=" " autofocus />
+          <button type="submit" class="absolute bottom-[15px] right-0 flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full border border-white bg-[#6453D9] shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]" aria-label="Search">
+            <img ngSrc="/assets/icons/home-search-overlay/search.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
   }
 </div>

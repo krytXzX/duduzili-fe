@@ -48,6 +48,23 @@ export class HomePageComponent {
   readonly showBottomNav = input(true);
   readonly showAppDownloadBanner = signal(true);
   readonly showMobileMenu = signal(false);
+  readonly isMobileSearchOverlayOpen = signal(false);
+  readonly mobileSearchQuery = signal('');
+  readonly recentSearches = signal([
+    'bags for men',
+    'watch for men',
+    'male accessories',
+    'necklaces for men',
+  ]);
+  readonly popularSearches = [
+    'bags for men',
+    'watch for men',
+    'male accessories',
+    'necklaces for men',
+    'Toyota camry 2016 model',
+    'Miniflat in Lagos',
+    'shirt for men',
+  ] as const;
 
   readonly categories: HomeCategory[] = [
     { id: 'automotives', label: 'Automotives', icon: '/assets/images/category-automotives.png' },
@@ -339,6 +356,31 @@ export class HomePageComponent {
 
   closeMobileMenu(): void {
     this.showMobileMenu.set(false);
+  }
+
+  openMobileSearchOverlay(): void {
+    this.isMobileSearchOverlayOpen.set(true);
+  }
+
+  closeMobileSearchOverlay(): void {
+    this.isMobileSearchOverlayOpen.set(false);
+  }
+
+  updateMobileSearchQuery(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    this.mobileSearchQuery.set(target?.value ?? '');
+  }
+
+  removeRecentSearch(term: string): void {
+    this.recentSearches.update((current) => current.filter((item) => item !== term));
+  }
+
+  clearRecentSearchHistory(): void {
+    this.recentSearches.set([]);
+  }
+
+  applySearchTerm(term: string): void {
+    this.mobileSearchQuery.set(term);
   }
 
   scrollCategories(): void {
