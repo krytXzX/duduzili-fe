@@ -133,7 +133,7 @@ interface AppNotification {
 
       <div class="hidden h-full flex-col rounded-[32px] bg-white md:flex">
         <div class="flex h-16 items-center border-b border-[#EEEEEE] px-4">
-          <h1 class="text-[24px] font-medium leading-none text-[#0D0D0D] pb-4">Notifications</h1>
+          <h1 class="text-[24px] font-medium leading-none text-[#0D0D0D] py-4">Notifications</h1>
         </div>
 
         <div class="flex min-h-full flex-1 flex-col overflow-y-auto px-4 pb-10 pt-6">
