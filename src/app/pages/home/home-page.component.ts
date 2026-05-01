@@ -3,6 +3,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
+import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 
 type HomeCategory = {
   id: string;
@@ -26,7 +27,13 @@ type HomePromotion = {
 
 @Component({
   selector: 'app-home-page',
-  imports: [NgOptimizedImage, RouterLink, MobileBottomNavComponent, StoreCardComponent],
+  imports: [
+    NgOptimizedImage,
+    RouterLink,
+    MobileBottomNavComponent,
+    StoreCardComponent,
+    ListingCardComponent,
+  ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.css',
   host: {
@@ -314,6 +321,14 @@ export class HomePageComponent {
     },
   ];
 
+  readonly sponsoredListingCards: Listing[] = this.sponsoredListings.map((listing) =>
+    this.toReusableListing(listing),
+  );
+
+  readonly nearbyListingCards: Listing[] = this.nearbyListings.map((listing) =>
+    this.toReusableListing(listing),
+  );
+
   dismissAppDownloadBanner(): void {
     this.showAppDownloadBanner.set(false);
   }
@@ -333,4 +348,17 @@ export class HomePageComponent {
     });
   }
 
+  private toReusableListing(listing: HomeListing): Listing {
+    return {
+      id: listing.id,
+      title: listing.title,
+      price: listing.price,
+      location: listing.location,
+      images: ['/assets/images/home-item-placeholder.png'],
+      timeAgo: listing.badge ?? '',
+      isVerified: listing.tag === 'Verified',
+      discountBadge:
+        listing.tag && listing.tag !== 'Verified' ? listing.tag.toUpperCase() : undefined,
+    };
+  }
 }
