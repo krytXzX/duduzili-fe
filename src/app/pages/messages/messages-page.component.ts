@@ -57,83 +57,210 @@ interface MessageMenuTarget extends ReplyTarget {
         >
           <h1 class="text-[24px] font-medium leading-normal text-[#0D0D0D]">Chats</h1>
 
-          <button
-            type="button"
-            (click)="openStoreSelector()"
-            class="flex h-12 w-[296px] items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
-            aria-haspopup="dialog"
-            [attr.aria-expanded]="isStoreSelectorOpen()"
-          >
-            <span class="flex items-center gap-2">
-              <span class="relative h-8 w-[68px] shrink-0">
-                @if (selectedStore().variant === 'all') {
-                  <img
-                    [ngSrc]="assets.selectorAvatarOne"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <img
-                    [ngSrc]="assets.selectorAvatarTwo"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <img
-                    [ngSrc]="assets.selectorAvatarThree"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <span
-                    class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                  >
+          <div class="relative">
+            <button
+              type="button"
+              (click)="openStoreSelector()"
+              class="flex h-12 w-[296px] items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
+              aria-haspopup="listbox"
+              [attr.aria-expanded]="isStoreSelectorOpen()"
+            >
+              <span class="flex items-center gap-2">
+                <span class="relative h-8 w-[68px] shrink-0">
+                  @if (selectedStore().variant === 'all') {
                     <img
-                      [ngSrc]="assets.selectorStoreIconDesktop"
-                      width="21"
-                      height="16"
+                      [ngSrc]="assets.selectorAvatarOne"
+                      width="32"
+                      height="32"
                       alt=""
-                      class="h-4 w-[21px]"
+                      class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
                     />
-                  </span>
-                } @else if (selectedStore().variant === 'store') {
-                  <span
-                    class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
-                  >
                     <img
-                      [ngSrc]="assets.selectorStoreIconDesktop"
-                      width="21"
-                      height="16"
+                      [ngSrc]="assets.selectorAvatarTwo"
+                      width="32"
+                      height="32"
                       alt=""
-                      class="h-4 w-[21px]"
+                      class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
                     />
-                  </span>
-                } @else {
-                  <img
-                    [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
-                  />
-                }
+                    <img
+                      [ngSrc]="assets.selectorAvatarThree"
+                      width="32"
+                      height="32"
+                      alt=""
+                      class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                    />
+                    <span
+                      class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                    >
+                      <img
+                        [ngSrc]="assets.selectorStoreIconDesktop"
+                        width="21"
+                        height="16"
+                        alt=""
+                        class="h-4 w-[21px]"
+                      />
+                    </span>
+                  } @else if (selectedStore().variant === 'store') {
+                    <span
+                      class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
+                    >
+                      <img
+                        [ngSrc]="assets.selectorStoreIconDesktop"
+                        width="21"
+                        height="16"
+                        alt=""
+                        class="h-4 w-[21px]"
+                      />
+                    </span>
+                  } @else {
+                    <img
+                      [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
+                      width="32"
+                      height="32"
+                      alt=""
+                      class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
+                    />
+                  }
+                </span>
+
+                <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
+                  {{ selectedStoreLabel() }}
+                </span>
               </span>
 
-              <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
-                {{ selectedStoreLabel() }}
+              <span class="flex items-center gap-[10px]">
+                <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
+                <span class="rounded-full bg-[#EDEDED] p-1">
+                  <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
+                </span>
               </span>
-            </span>
+            </button>
 
-            <span class="flex items-center gap-[10px]">
-              <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
-              <span class="rounded-full bg-[#EDEDED] p-1">
-                <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
-              </span>
-            </span>
-          </button>
+            @if (isStoreSelectorOpen()) {
+              <button
+                type="button"
+                (click)="closeStoreSelector()"
+                aria-label="Close store selector"
+                class="fixed inset-0 z-[119] hidden md:block"
+              ></button>
+
+              <section
+                class="absolute right-0 top-[calc(100%+12px)] z-[120] hidden w-[366px] rounded-[24px] border border-[#EAEAEA] bg-white p-4 shadow-[0_20px_40px_rgba(0,0,0,0.08)] md:block"
+                aria-label="Select store"
+                role="listbox"
+              >
+                <label class="flex h-10 items-center gap-2 rounded-full bg-[#FAFAFA] px-3">
+                  <img [ngSrc]="assets.searchDesktop" width="16" height="16" alt="" class="h-4 w-4" />
+                  <input
+                    type="text"
+                    [value]="storeSearchTerm()"
+                    (input)="updateStoreSearch($event)"
+                    placeholder="Search stores"
+                    class="w-full bg-transparent text-[14px] leading-5 text-[#0D0D0D] outline-none placeholder:text-[#777777]"
+                  />
+                </label>
+
+                <div class="mt-4 space-y-4">
+                  @for (store of filteredStoreOptions(); track store.id) {
+                    <button
+                      type="button"
+                      (click)="selectStore(store.id)"
+                      class="flex w-full items-center justify-between text-left"
+                    >
+                      <span class="flex min-w-0 items-center gap-2">
+                        @if (store.variant === 'all') {
+                          <span class="relative h-[19px] w-10 shrink-0">
+                            <img
+                              [ngSrc]="assets.selectorAvatarOne"
+                              width="19"
+                              height="19"
+                              alt=""
+                              class="absolute left-0 top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
+                            />
+                            <img
+                              [ngSrc]="assets.selectorAvatarTwo"
+                              width="19"
+                              height="19"
+                              alt=""
+                              class="absolute left-[7px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
+                            />
+                            <img
+                              [ngSrc]="assets.selectorAvatarThree"
+                              width="19"
+                              height="19"
+                              alt=""
+                              class="absolute left-[14px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
+                            />
+                            <span
+                              class="absolute left-[21px] top-0 flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                            >
+                              <img
+                                [ngSrc]="assets.selectorStoreIconMobile"
+                                width="12"
+                                height="10"
+                                alt=""
+                                class="h-[10px] w-3"
+                              />
+                            </span>
+                          </span>
+
+                          <span class="text-[16px] font-medium leading-5 text-[#0D0D0D]">
+                            {{ store.label }}
+                          </span>
+                        } @else {
+                          <span
+                            class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
+                            [class.bg-[#3D785F]]="store.id === 'vine'"
+                            [class.bg-white]="store.id === 'eden'"
+                            [class.bg-[#F3F3F3]]="store.id === 'personal'"
+                          >
+                            @if (store.id === 'vine') {
+                              <img
+                                [ngSrc]="assets.selectorStoreIconMobile"
+                                width="24"
+                                height="18"
+                                alt=""
+                                class="h-[18px] w-6"
+                              />
+                            } @else {
+                              <img
+                                [ngSrc]="store.avatar ?? assets.storeSelectorEden"
+                                width="40"
+                                height="40"
+                                alt=""
+                                class="h-10 w-10 object-cover"
+                              />
+                            }
+                          </span>
+
+                          <span class="min-w-0">
+                            <span class="block truncate text-[16px] font-medium leading-5 text-[#1A1B1D]">
+                              {{ store.label }}
+                            </span>
+                            <span class="mt-1 block truncate text-[12px] leading-5 text-[#8C8C8C]">
+                              {{ store.subtitle }}
+                            </span>
+                          </span>
+                        }
+                      </span>
+
+                      <span class="flex h-6 w-6 shrink-0 items-center justify-center">
+                        @if (selectedStoreId() === store.id) {
+                          <img
+                            [ngSrc]="assets.storeSelectorCheck"
+                            width="24"
+                            height="24"
+                            alt=""
+                            class="h-6 w-6"
+                          />
+                        }
+                      </span>
+                    </button>
+                  }
+                </div>
+              </section>
+            }
+          </div>
         </header>
 
         <div class="flex min-h-0 flex-1 items-stretch gap-8 px-6 pb-6 pt-6">
@@ -1372,7 +1499,7 @@ interface MessageMenuTarget extends ReplyTarget {
 
     @if (isStoreSelectorOpen()) {
       <section
-        class="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(13,13,13,0.18)] md:items-start md:bg-[rgba(13,13,13,0.08)] md:px-6 md:pt-[86px]"
+        class="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(13,13,13,0.18)] md:hidden"
         aria-label="Select store"
         role="dialog"
         aria-modal="true"
@@ -1384,9 +1511,7 @@ interface MessageMenuTarget extends ReplyTarget {
           class="absolute inset-0"
         ></button>
 
-        <div
-          class="relative z-[1] w-full rounded-t-[36px] bg-white px-4 pb-10 pt-20 md:w-[366px] md:rounded-[36px] md:px-4 md:pb-8 md:shadow-[0_20px_40px_rgba(0,0,0,0.08)]"
-        >
+        <div class="relative z-[1] w-full rounded-t-[36px] bg-white px-4 pb-10 pt-20">
           <div
             class="absolute left-1/2 top-[11px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB]"
           ></div>
