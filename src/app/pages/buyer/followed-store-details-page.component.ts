@@ -225,7 +225,7 @@ interface ProductSection {
             @for (section of mobileSections; track section.title) {
               <section>
                 <div class="mb-4 flex items-center justify-between">
-                  <h2 class="text-[32px] font-medium text-[#1f1f1f]">{{ section.title }}</h2>
+                  <h2 class="text-[20px] font-medium text-[#1f1f1f]">{{ section.title }}</h2>
                   <button type="button" class="flex items-center gap-1 text-[16px] text-[#1f1f1f]">
                     View all (3,341)
                     <ng-icon name="heroChevronRightOutline" class="text-[16px]"></ng-icon>
@@ -255,14 +255,18 @@ interface ProductSection {
               <div class="space-y-2.5">
                 @for (bar of ratingBreakdown; track bar.stars) {
                   <div class="flex items-center gap-2">
-                    <span class="w-6 text-[12px] font-medium text-[#1A1C21]">{{ bar.stars }} ★</span>
+                    <span class="w-6 text-[12px] font-medium text-[#1A1C21]"
+                      >{{ bar.stars }} ★</span
+                    >
                     <div class="h-[5px] flex-1 overflow-hidden rounded-full bg-[#ECEEF4]">
                       <div
                         class="h-full rounded-full bg-[#3A3C43]"
                         [style.width.%]="bar.percentage"
                       ></div>
                     </div>
-                    <span class="w-8 text-right text-[12px] text-[#8C8C92]">{{ bar.percentage }}%</span>
+                    <span class="w-8 text-right text-[12px] text-[#8C8C92]"
+                      >{{ bar.percentage }}%</span
+                    >
                   </div>
                 }
               </div>
@@ -291,7 +295,9 @@ interface ProductSection {
             <p class="text-[16px] font-medium text-[#1A1C21]">This vendor is great at..</p>
             <div class="mt-3 flex flex-wrap gap-2">
               @for (tag of vendorTags; track tag.label) {
-                <div class="rounded-full border border-[#E6E8EF] px-3 py-1.5 text-[12px] text-[#4B5563]">
+                <div
+                  class="rounded-full border border-[#E6E8EF] px-3 py-1.5 text-[12px] text-[#4B5563]"
+                >
                   {{ tag.label }} ({{ tag.count }})
                 </div>
               }
@@ -303,7 +309,9 @@ interface ProductSection {
                   <div class="flex gap-3">
                     <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
                       <img
-                        [src]="review.avatar || 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'"
+                        [src]="
+                          review.avatar || 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
+                        "
                         [alt]="review.author"
                         class="h-full w-full object-cover"
                       />
@@ -328,7 +336,9 @@ interface ProductSection {
                       @if (review.images?.length) {
                         <div class="mt-3 flex flex-wrap gap-2">
                           @for (image of review.images!.slice(0, 4); track $index) {
-                            <div class="h-[68px] w-[68px] overflow-hidden rounded-[10px] bg-[#F3F4F6]">
+                            <div
+                              class="h-[68px] w-[68px] overflow-hidden rounded-[10px] bg-[#F3F4F6]"
+                            >
                               <img [src]="image" alt="" class="h-full w-full object-cover" />
                             </div>
                           }
@@ -367,14 +377,14 @@ interface ProductSection {
               class="relative z-10 -mt-14 flex flex-col gap-6 md:-mt-16 md:flex-row md:items-end md:justify-between"
             >
               <div class="flex flex-1 flex-col gap-5">
-                <div class="flex items-end gap-5">
+                <div class="flex items-end gap-5 w-full">
                   <div
-                    class="h-24 w-24 overflow-hidden rounded-full border-[6px] border-white bg-white shadow-md md:h-28 md:w-28"
+                    class="h-24 w-24 shrink-0 aspect-square overflow-hidden rounded-full border-[6px] border-white bg-white shadow-md md:h-28 md:w-28"
                   >
                     <img
                       [src]="store().logo"
                       [alt]="store().name"
-                      class="h-full w-full object-cover"
+                      class="h-full w-full rounded-full object-cover"
                     />
                   </div>
 
@@ -399,36 +409,36 @@ interface ProductSection {
 
                 <div class="flex flex-wrap items-stretch gap-5 md:gap-0">
                   <div class="pr-5 md:border-r md:border-[#EEF0F4] md:pr-8">
-                    <p class="text-sm text-[#8C8C92]">Followers</p>
-                    <p class="mt-1 text-[18px] font-semibold text-[#1A1C21]">
+                    <p class="text-[13px] text-[#8C8C92]">Followers</p>
+                    <p class="mt-1 text-[16px] font-semibold text-[#1A1C21]">
                       {{ store().stats.followers }}
                     </p>
                   </div>
                   <div class="md:border-r md:border-[#EEF0F4] md:px-8">
-                    <p class="text-sm text-[#8C8C92]">Products</p>
-                    <p class="mt-1 text-[18px] font-semibold text-[#1A1C21]">
+                    <p class="text-[13px] text-[#8C8C92]">Products</p>
+                    <p class="mt-1 text-[16px] font-semibold text-[#1A1C21]">
                       {{ store().stats.products }}
                     </p>
                   </div>
                   <div class="md:border-r md:border-[#EEF0F4] md:px-8">
-                    <p class="text-sm text-[#8C8C92]">Rating</p>
+                    <p class="text-[13px] text-[#8C8C92]">Rating</p>
                     <div class="mt-1 flex items-center gap-1">
-                      <span class="text-[18px] font-semibold text-[#1A1C21]">
+                      <span class="text-[16px] font-semibold text-[#1A1C21]">
                         {{ store().stats.rating }}
                       </span>
                       <ng-icon name="heroStarSolid" class="text-[14px] text-[#E0C419]"></ng-icon>
                     </div>
                   </div>
                   <div class="md:pl-8">
-                    <p class="text-sm text-[#8C8C92]">Date joined</p>
-                    <p class="mt-1 text-[18px] font-semibold text-[#1A1C21]">
+                    <p class="text-[13px] text-[#8C8C92]">Date joined</p>
+                    <p class="mt-1 text-[16px] font-semibold text-[#1A1C21]">
                       {{ store().stats.dateJoined }}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div class="flex flex-wrap items-center gap-3">
+              <div class="flex flex-wrap items-center gap-3 self-end">
                 <button
                   type="button"
                   class="rounded-full bg-[#F3F4F6] px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#EDEEF2]"
@@ -941,7 +951,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
 
-  readonly activeTab = signal<BuyerStoreTab>('reviews');
+  readonly activeTab = signal<BuyerStoreTab>('products');
   readonly activeCategory = signal('All');
   readonly showContactMenu = signal(false);
   readonly showLeaveReviewModal = signal(false);
