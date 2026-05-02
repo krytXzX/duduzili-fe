@@ -463,7 +463,8 @@
     [chatsActivePaths]="['/sign-in']"
     moreRoute="/sign-in"
     [moreActivePaths]="['/sign-in']"
-    searchRoute="/sign-in"
+    [searchOpensOverlay]="true"
+    (searchPressed)="openMobileSearchOverlay()"
     searchButtonAriaLabel="Sign in to search"
   />
   }

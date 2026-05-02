@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
@@ -115,20 +115,38 @@ type NavItem = {
         </div>
 
         @if (variant() === 'buyer') {
-          <a
-            [routerLink]="searchRoute()"
-            [attr.aria-label]="searchButtonAriaLabel()"
-            class="ml-1 inline-flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
-          >
-            <img
-              ngSrc="/assets/icons/buyer-bottom-nav/search.svg"
-              alt=""
-              width="24"
-              height="24"
-              class="h-6 w-6"
-              aria-hidden="true"
-            />
-          </a>
+          @if (searchOpensOverlay()) {
+            <button
+              type="button"
+              (click)="handleSearchAction()"
+              [attr.aria-label]="searchButtonAriaLabel()"
+              class="ml-1 inline-flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
+            >
+              <img
+                ngSrc="/assets/icons/buyer-bottom-nav/search.svg"
+                alt=""
+                width="24"
+                height="24"
+                class="h-6 w-6"
+                aria-hidden="true"
+              />
+            </button>
+          } @else {
+            <a
+              [routerLink]="searchRoute()"
+              [attr.aria-label]="searchButtonAriaLabel()"
+              class="ml-1 inline-flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
+            >
+              <img
+                ngSrc="/assets/icons/buyer-bottom-nav/search.svg"
+                alt=""
+                width="24"
+                height="24"
+                class="h-6 w-6"
+                aria-hidden="true"
+              />
+            </a>
+          }
         } @else {
           <button
             type="button"
@@ -164,6 +182,8 @@ export class MobileBottomNavComponent {
   readonly chatsActivePaths = input<readonly string[]>(['/chats', '/messages']);
   readonly searchRoute = input('/category');
   readonly searchButtonAriaLabel = input('Search');
+  readonly searchOpensOverlay = input(false);
+  readonly searchPressed = output<void>();
 
   readonly listingsRoute = input('/listings');
   readonly listingsActivePaths = input<readonly string[]>(['/listings']);
@@ -268,5 +288,9 @@ export class MobileBottomNavComponent {
     this.closeActionSheet();
     this.mobileOverlayService.requestOpenAddListing();
     void this.router.navigateByUrl('/listings');
+  }
+
+  handleSearchAction(): void {
+    this.searchPressed.emit();
   }
 }
