@@ -32,7 +32,7 @@ import { MobileOverlayService } from '../../services/mobile-overlay.service';
       </div>
 
       @if (showMobileBottomNav() && !mobileOverlayService.isAnyMobileOverlayOpen()) {
-        <app-mobile-bottom-nav />
+        <app-mobile-bottom-nav variant="seller" />
       }
     </div>
   `,

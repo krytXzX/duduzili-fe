@@ -88,10 +88,10 @@ type NavItem = {
     }
 
     <nav
-      class="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-b from-transparent to-white px-5 pb-[18px] pt-5 lg:hidden"
+      class="fixed inset-x-0 bottom-0 z-40 h-[101px] bg-gradient-to-b from-transparent to-white lg:hidden"
       aria-label="Mobile bottom navigation"
     >
-      <div class="mx-auto flex max-w-[390px] items-end gap-1">
+      <div class="mx-auto flex h-full w-[350px] items-end pb-[19px]">
         <div class="flex min-w-0 flex-1 items-center rounded-full border border-[#f4f4f4] bg-white p-1 shadow-[0_4px_12px_rgba(212,212,212,0.25)]">
           @for (item of navItems; track item.label) {
             <a
@@ -114,21 +114,38 @@ type NavItem = {
           }
         </div>
 
-        <button
-          type="button"
-          (click)="handlePrimaryAction()"
-          [attr.aria-label]="createButtonAriaLabel()"
-          class="flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-[#6453d9] shadow-[0_4px_12px_rgba(158,147,255,0.25)] transition hover:bg-[#5c4ad0]"
-        >
-          <img
-            ngSrc="/assets/icons/home-nav-add.svg"
-            alt=""
-            width="24"
-            height="24"
-            class="h-6 w-6"
-            aria-hidden="true"
-          />
-        </button>
+        @if (variant() === 'buyer') {
+          <a
+            [routerLink]="searchRoute()"
+            [attr.aria-label]="searchButtonAriaLabel()"
+            class="ml-1 inline-flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
+          >
+            <img
+              ngSrc="/assets/icons/buyer-bottom-nav/search.svg"
+              alt=""
+              width="24"
+              height="24"
+              class="h-6 w-6"
+              aria-hidden="true"
+            />
+          </a>
+        } @else {
+          <button
+            type="button"
+            (click)="handlePrimaryAction()"
+            [attr.aria-label]="createButtonAriaLabel()"
+            class="ml-1 flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-[#6453d9] shadow-[0_4px_12px_rgba(158,147,255,0.25)] transition hover:bg-[#5c4ad0]"
+          >
+            <img
+              ngSrc="/assets/icons/home-nav-add.svg"
+              alt=""
+              width="24"
+              height="24"
+              class="h-6 w-6"
+              aria-hidden="true"
+            />
+          </button>
+        }
       </div>
     </nav>
   `,
@@ -137,6 +154,16 @@ type NavItem = {
 export class MobileBottomNavComponent {
   private readonly router = inject(Router);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+
+  readonly variant = input<'buyer' | 'seller'>('buyer');
+  readonly exploreRoute = input('/home');
+  readonly exploreActivePaths = input<readonly string[]>(['/home', '/']);
+  readonly wishlistRoute = input('/wishlist');
+  readonly wishlistActivePaths = input<readonly string[]>(['/wishlist']);
+  readonly chatsRoute = input('/chats');
+  readonly chatsActivePaths = input<readonly string[]>(['/chats', '/messages']);
+  readonly searchRoute = input('/category');
+  readonly searchButtonAriaLabel = input('Search');
 
   readonly listingsRoute = input('/listings');
   readonly listingsActivePaths = input<readonly string[]>(['/listings']);
@@ -153,6 +180,35 @@ export class MobileBottomNavComponent {
   readonly isActionSheetOpen = signal(false);
 
   get navItems(): readonly NavItem[] {
+    if (this.variant() === 'buyer') {
+      return [
+        {
+          label: 'Explore',
+          iconSrc: '/assets/icons/buyer-bottom-nav/home.svg',
+          route: this.exploreRoute(),
+          activePaths: this.exploreActivePaths(),
+        },
+        {
+          label: 'Wishlist',
+          iconSrc: '/assets/icons/buyer-bottom-nav/heart.svg',
+          route: this.wishlistRoute(),
+          activePaths: this.wishlistActivePaths(),
+        },
+        {
+          label: 'Chats',
+          iconSrc: '/assets/icons/buyer-bottom-nav/messages.svg',
+          route: this.chatsRoute(),
+          activePaths: this.chatsActivePaths(),
+        },
+        {
+          label: 'More',
+          iconSrc: '/assets/icons/buyer-bottom-nav/more.svg',
+          route: this.moreRoute(),
+          activePaths: this.moreActivePaths(),
+        },
+      ];
+    }
+
     return [
       {
         label: 'Listings',

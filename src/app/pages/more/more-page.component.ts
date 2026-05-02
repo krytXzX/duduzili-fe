@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 
 type BuyerMoreItem = {
   readonly label: string;
@@ -11,7 +12,7 @@ type BuyerMoreItem = {
 
 @Component({
   selector: 'app-more-page',
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [NgOptimizedImage, RouterLink, MobileBottomNavComponent],
   template: `
     <div class="relative min-h-full bg-[#f4f4f4] pb-[120px] md:bg-transparent md:px-6 md:py-8">
       <div class="mx-auto w-full max-w-[390px] md:max-w-5xl md:rounded-[32px] md:border md:border-[#ECECF3] md:bg-white md:px-8 md:py-8 md:shadow-[0_12px_40px_-32px_rgba(23,29,38,0.35)]">
@@ -80,37 +81,7 @@ type BuyerMoreItem = {
         </div>
       </div>
 
-      <nav class="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-b from-transparent to-white px-5 pb-[18px] pt-5 md:hidden" aria-label="Buyer bottom navigation">
-        <div class="mx-auto flex w-full max-w-[390px] items-end gap-1">
-          <div class="flex min-w-0 flex-1 items-center rounded-full border border-[#f4f4f4] bg-white p-1 shadow-[0_4px_12px_rgba(212,212,212,0.25)]">
-            @for (item of bottomNavItems; track item.label) {
-              <a
-                [routerLink]="item.route"
-                class="flex min-w-0 flex-1 flex-col items-center gap-[2px] py-[6px] text-[#5c5c5c]"
-                [class]="item.active ? 'rounded-full bg-[#f5f3ff]' : ''"
-              >
-                <img [ngSrc]="item.icon" alt="" width="22" height="22" class="h-[22px] w-[22px]" aria-hidden="true" />
-                <span class="text-[11px] font-medium" [class]="item.active ? 'text-[#6453d9]' : ''">{{ item.label }}</span>
-              </a>
-            }
-          </div>
-
-          <a
-            routerLink="/category"
-            aria-label="Search"
-            class="inline-flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
-          >
-            <img
-              ngSrc="/assets/icons/more-mobile-figma/search-normal.svg"
-              alt=""
-              width="24"
-              height="24"
-              class="h-6 w-6"
-              aria-hidden="true"
-            />
-          </a>
-        </div>
-      </nav>
+      <app-mobile-bottom-nav />
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -136,11 +107,4 @@ export class MorePageComponent {
       iconBg: '#1969fe',
     },
   ];
-
-  protected readonly bottomNavItems = [
-    { label: 'Explore', route: '/home', icon: '/assets/icons/more-mobile-figma/nav-home.svg', active: false },
-    { label: 'Wishlist', route: '/wishlist', icon: '/assets/icons/more-mobile-figma/nav-heart.svg', active: false },
-    { label: 'Chats', route: '/chats', icon: '/assets/icons/more-mobile-figma/nav-messages.svg', active: false },
-    { label: 'More', route: '/more', icon: '/assets/icons/more-mobile-figma/nav-more.svg', active: true },
-  ] as const;
 }

@@ -453,7 +453,7 @@
   </footer>
 
   @if (showBottomNav()) {
-  <app-mobile-bottom-nav listingsRoute="/" [listingsActivePaths]="['/']" messagesRoute="/messages" [messagesActivePaths]="['/messages']" storesRoute="/my-stores" [storesActivePaths]="['/my-stores']" moreRoute="/more" [moreActivePaths]="['/more']" [enableActionSheet]="false" createButtonRoute="/listings" createButtonAriaLabel="Create listing" />
+  <app-mobile-bottom-nav variant="seller" listingsRoute="/" [listingsActivePaths]="['/']" messagesRoute="/messages" [messagesActivePaths]="['/messages']" storesRoute="/my-stores" [storesActivePaths]="['/my-stores']" moreRoute="/more" [moreActivePaths]="['/more']" [enableActionSheet]="false" createButtonRoute="/listings" createButtonAriaLabel="Create listing" />
   }
 
   @if (isMobileSearchOverlayOpen()) {

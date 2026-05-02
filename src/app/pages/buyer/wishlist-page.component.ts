@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
+import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 
 interface WishlistGroup {
   label: string;
@@ -10,7 +9,7 @@ interface WishlistGroup {
 
 @Component({
   selector: 'app-buyer-wishlist-page',
-  imports: [NgOptimizedImage, RouterLink, ListingCardComponent],
+  imports: [ListingCardComponent, MobileBottomNavComponent],
   template: `
     <section class="min-h-full bg-white">
       <div class="hidden lg:block">
@@ -53,47 +52,7 @@ interface WishlistGroup {
         </div>
       </div>
 
-      <nav
-        class="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-b from-transparent to-white px-5 pb-[18px] pt-5 lg:hidden"
-        aria-label="Buyer bottom navigation"
-      >
-        <div class="mx-auto flex w-full max-w-[390px] items-end gap-1">
-          <div class="flex min-w-0 flex-1 items-center rounded-full border border-[#f4f4f4] bg-white p-1 shadow-[0_4px_12px_rgba(212,212,212,0.25)]">
-            @for (item of bottomNavItems; track item.label) {
-              <a
-                [routerLink]="item.route"
-                class="flex min-w-0 flex-1 flex-col items-center gap-[2px] py-[6px] text-[#5c5c5c]"
-                [class]="item.active ? 'rounded-full bg-[#f5f3ff]' : ''"
-              >
-                <img
-                  [ngSrc]="item.icon"
-                  alt=""
-                  width="22"
-                  height="22"
-                  class="h-[22px] w-[22px]"
-                  aria-hidden="true"
-                />
-                <span class="text-[11px] font-medium" [class]="item.active ? 'text-[#6453d9]' : ''">{{ item.label }}</span>
-              </a>
-            }
-          </div>
-
-          <a
-            routerLink="/category"
-            aria-label="Search"
-            class="inline-flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
-          >
-            <img
-              ngSrc="/assets/icons/chats-search-mobile.svg"
-              alt=""
-              width="24"
-              height="24"
-              class="h-6 w-6"
-              aria-hidden="true"
-            />
-          </a>
-        </div>
-      </nav>
+      <app-mobile-bottom-nav />
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -204,10 +163,4 @@ export class BuyerWishlistPageComponent {
     },
   ]);
 
-  protected readonly bottomNavItems = [
-    { label: 'Explore', route: '/home', icon: '/assets/icons/home-nav-listings.svg', active: false },
-    { label: 'Wishlist', route: '/wishlist', icon: '/assets/icons/buyer-menu/heart.svg', active: true },
-    { label: 'Chats', route: '/chats', icon: '/assets/icons/home-nav-chats.svg', active: false },
-    { label: 'More', route: '/more', icon: '/assets/icons/home-nav-more.svg', active: false },
-  ] as const;
 }
