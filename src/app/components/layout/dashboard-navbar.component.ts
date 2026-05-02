@@ -233,14 +233,14 @@ type SellerMenuEntry = {
               (input)="updateSearchQuery(dashboardSearchInput.value)"
               (keydown.enter)="runSearch()"
               placeholder="Search products, stores, or categories"
-              class="w-full rounded-full border-none bg-white/10 py-2 pl-12 pr-20 text-sm text-white outline-none transition-all placeholder:text-white/40 focus:bg-white/20 focus:ring-0"
+              class="w-full rounded-full border-none bg-white/10 py-2 pl-12 pr-12 text-sm text-white outline-none transition-all placeholder:text-white/40 focus:bg-white/20 focus:ring-0"
             />
 
             @if (searchQuery()) {
               <button
                 type="button"
                 (click)="clearSearch()"
-                class="absolute inset-y-0 right-10 flex items-center text-white/30 transition hover:text-white/60"
+                class="absolute inset-y-0 right-4 flex items-center text-white/30 transition hover:text-white/60"
                 aria-label="Clear search"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -252,19 +252,6 @@ type SellerMenuEntry = {
                 </svg>
               </button>
             }
-
-            <button
-              type="button"
-              (click)="runSearch()"
-              class="absolute inset-y-0 right-3 flex items-center"
-              aria-label="Search"
-            >
-              <div
-                class="flex h-6 w-6 items-center justify-center rounded-lg border border-white/5 bg-white/10 transition hover:bg-white/15"
-              >
-                <ng-icon name="heroChevronRight" class="text-xs text-white/60"></ng-icon>
-              </div>
-            </button>
           </div>
         </div>
 
