@@ -439,7 +439,7 @@ export class BuyerDashboardNavbarComponent {
     recentlyViewed: '/recently-viewed',
     settings: '/settings',
     notifications: '/notifications',
-    sellerHome: '/seller/home',
+    sellerHome: '/seller/listings',
     signIn: '/sign-in',
   } as const;
 

@@ -227,6 +227,11 @@ export const routes: Routes = [
     canActivate: [isLoggedin],
     children: [
       {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'listings',
+      },
+      {
         path: 'listings',
         loadComponent: () =>
           import('./pages/listings/listings-page.component').then((m) => m.ListingsPageComponent),
@@ -376,19 +381,6 @@ export const routes: Routes = [
       import('./pages/home/buyer-signed-in-home-page.component').then(
         (m) => m.BuyerSignedInHomePageComponent,
       ),
-  },
-  {
-    path: 'seller',
-    canActivate: [isLoggedin],
-    children: [
-      {
-        path: 'home',
-        loadComponent: () =>
-          import('./pages/home/seller-signed-in-home-page.component').then(
-            (m) => m.SellerSignedInHomePageComponent,
-          ),
-      },
-    ],
   },
   // Category & Product Routes
   {

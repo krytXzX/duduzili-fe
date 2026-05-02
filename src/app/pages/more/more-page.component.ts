@@ -64,7 +64,7 @@ type BuyerMoreItem = {
 
         <div class="fixed inset-x-0 bottom-[132px] z-30 flex justify-center px-5 md:static md:mt-16 md:px-0">
           <a
-            routerLink="/seller/home"
+            routerLink="/seller/listings"
             class="inline-flex h-[52px] w-full max-w-[277px] items-center justify-center gap-2 rounded-[64px] border border-white bg-[#6453d9] px-5 text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8]"
           >
             <img
