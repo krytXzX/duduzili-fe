@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, ElementRef, input, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
@@ -191,9 +198,9 @@ export class HomePageComponent {
       title: 'Mechanical keyboard',
       price: '₦65,000',
       location: 'Ikeja, Lagos',
-      tag: 'Sponsored',
+      tag: 'Verified',
     },
-    { id: 'n4', title: 'White shirt', price: '₦18,500', location: 'Ikeja, Lagos', tag: 'Premium' },
+    { id: 'n4', title: 'White shirt', price: '₦18,500', location: 'Ikeja, Lagos', tag: 'Verified' },
     { id: 'n5', title: 'Perfume set', price: '₦32,000', location: 'Ikeja, Lagos' },
     {
       id: 'n6',
@@ -245,7 +252,7 @@ export class HomePageComponent {
       title: 'Mechanical keyboard',
       price: '₦65,000',
       location: 'Ikeja, Lagos',
-      tag: 'Sponsored',
+      tag: 'Verified',
     },
   ];
 
