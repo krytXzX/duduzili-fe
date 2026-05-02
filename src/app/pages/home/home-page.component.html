@@ -453,7 +453,19 @@
   </footer>
 
   @if (showBottomNav()) {
-  <app-mobile-bottom-nav variant="seller" listingsRoute="/" [listingsActivePaths]="['/']" messagesRoute="/messages" [messagesActivePaths]="['/messages']" storesRoute="/my-stores" [storesActivePaths]="['/my-stores']" moreRoute="/more" [moreActivePaths]="['/more']" [enableActionSheet]="false" createButtonRoute="/listings" createButtonAriaLabel="Create listing" />
+  <app-mobile-bottom-nav
+    variant="buyer"
+    exploreRoute="/sign-in"
+    [exploreActivePaths]="['/', '/home']"
+    wishlistRoute="/sign-in"
+    [wishlistActivePaths]="['/sign-in']"
+    chatsRoute="/sign-in"
+    [chatsActivePaths]="['/sign-in']"
+    moreRoute="/sign-in"
+    [moreActivePaths]="['/sign-in']"
+    searchRoute="/sign-in"
+    searchButtonAriaLabel="Sign in to search"
+  />
   }
 
   @if (isMobileSearchOverlayOpen()) {
