@@ -94,6 +94,18 @@ interface AdminManagedListing {
   boosted: boolean;
 }
 
+type MobileAdminListingStatus = 'available' | 'sold' | 'draft' | 'suspended';
+
+interface MobileAdminListing {
+  id: string;
+  name: string;
+  thumbnail: string;
+  storeName: string;
+  price: string;
+  status: MobileAdminListingStatus;
+  promoted: boolean;
+}
+
 interface AdminManagedPromotionListing {
   id: string;
   title: string;
@@ -224,22 +236,93 @@ interface AdminUserActivityYearGroup {
           />
         </a>
 
-        <button
-          type="button"
-          (click)="isUserActionsOpen.set(!isUserActionsOpen())"
-          class="flex h-10 w-10 items-center justify-center rounded-full"
-          aria-label="More actions"
-          [attr.aria-expanded]="isUserActionsOpen()"
-        >
-          <img
-            ngSrc="/assets/icons/admin-user-details/menu-dots.svg"
-            width="24"
-            height="24"
-            alt=""
-            class="h-6 w-6"
-            aria-hidden="true"
-          />
-        </button>
+        <div class="relative">
+          @if (isMobileUserActionsOpen()) {
+            <button
+              type="button"
+              class="fixed inset-0 z-10 cursor-default"
+              (click)="isMobileUserActionsOpen.set(false)"
+              aria-label="Close user actions menu"
+            ></button>
+          }
+
+          <button
+            type="button"
+            (click)="isMobileUserActionsOpen.set(!isMobileUserActionsOpen())"
+            class="relative z-20 flex h-10 w-10 items-center justify-center rounded-full"
+            aria-label="More actions"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="isMobileUserActionsOpen()"
+          >
+            <img
+              ngSrc="/assets/icons/admin-user-details/menu-dots.svg"
+              width="24"
+              height="24"
+              alt=""
+              class="h-6 w-6"
+              aria-hidden="true"
+            />
+          </button>
+
+          @if (isMobileUserActionsOpen()) {
+            <div
+              class="fixed right-3 top-[55px] z-20 flex w-[172px] flex-col gap-1 overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white p-[10px] shadow-[0_6.65px_5.32px_0_rgba(0,0,0,0.03),0_2.767px_2.214px_0_rgba(0,0,0,0.02)]"
+              role="menu"
+              aria-label="User actions"
+              (click)="$event.stopPropagation()"
+            >
+              <button
+                type="button"
+                class="flex h-8 items-center gap-1.5 rounded-[8px] bg-white px-2 text-left text-[14px] font-medium leading-5 text-[#292D32]"
+                role="menuitem"
+                (click)="downloadUserData()"
+              >
+                <svg class="h-[14px] w-[14px] shrink-0 text-[#292D32]" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M4.95833 6.41667V2.91667C4.95833 2.27233 5.48066 1.75 6.125 1.75H9.625L12.25 4.375V6.41667" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9.33398 1.75V4.66667H12.2507" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M7 7V11.0833" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+                  <path d="M5.54297 9.625L7.0013 11.0833L8.45964 9.625" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M3.5 12.25H10.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+                </svg>
+                Download data
+              </button>
+
+              <button
+                type="button"
+                class="flex h-8 items-center gap-1.5 rounded-[8px] bg-white px-2 text-left text-[14px] font-medium leading-5 text-[#FF2524]"
+                role="menuitem"
+                (click)="deactivateUser()"
+              >
+                <img
+                  ngSrc="/assets/icons/admin-users/slash.svg"
+                  width="14"
+                  height="14"
+                  alt=""
+                  class="h-[14px] w-[14px] shrink-0"
+                  aria-hidden="true"
+                />
+                Deactivate user
+              </button>
+
+              <button
+                type="button"
+                class="flex h-8 items-center gap-1.5 rounded-[8px] bg-white px-2 text-left text-[14px] font-medium leading-5 text-[#FF2524]"
+                role="menuitem"
+                (click)="banUser()"
+              >
+                <img
+                  ngSrc="/assets/icons/chats-profile-menu-trash.svg"
+                  width="14"
+                  height="14"
+                  alt=""
+                  class="h-[14px] w-[14px] shrink-0"
+                  aria-hidden="true"
+                />
+                Ban user
+              </button>
+            </div>
+          }
+        </div>
       </div>
 
       <div class="mt-4 flex flex-col gap-2">
@@ -466,6 +549,126 @@ interface AdminUserActivityYearGroup {
             </dl>
           </section>
         </div>
+      } @else if (activeTab() === 'listings') {
+        <div class="mt-6 flex flex-col gap-6">
+          <div class="flex items-center gap-3">
+            <label class="relative block flex-1">
+              <img
+                ngSrc="/assets/icons/admin-users/search.svg"
+                width="16"
+                height="16"
+                alt=""
+                class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                aria-hidden="true"
+              />
+              <input
+                type="text"
+                [value]="listingsSearchQuery()"
+                (input)="updateListingsSearchQuery($any($event.target).value)"
+                placeholder="Search"
+                class="h-10 w-full rounded-full bg-[#FAFAFA] py-2 pl-10 pr-4 text-[14px] text-[#1A1B1D] outline-none placeholder:text-[#777777] focus:ring-2 focus:ring-[#6453D9]/10"
+              >
+            </label>
+
+            <button
+              type="button"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-black"
+              aria-label="Filter listings"
+            >
+              <img
+                ngSrc="/assets/icons/admin-users/filter-tuning.svg"
+                width="22"
+                height="18"
+                alt=""
+                class="h-[18px] w-[22px]"
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+
+          <div class="flex flex-col">
+            @for (listing of visibleMobileListings(); track listing.id) {
+              <article class="border-b border-[#EBEBEB] py-3 first:pt-0">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex min-w-0 items-center gap-3">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[6.6px] border border-[#F0F0F0] bg-[#EFEFEF]">
+                      <img
+                        [ngSrc]="listing.thumbnail"
+                        [alt]="listing.name"
+                        width="44"
+                        height="44"
+                        class="h-11 w-11 object-cover"
+                      />
+                    </div>
+
+                    <div class="min-w-0">
+                      <h2 class="truncate text-[16px] font-medium leading-6 text-[#0D0D0D]/80">{{ listing.name }}</h2>
+                      @if (listing.promoted) {
+                        <span class="mt-1 inline-flex items-center gap-1 text-[12px] leading-4 text-[#7F8081]">
+                          <span aria-hidden="true">🚀</span>
+                          Promoted
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  <span
+                    class="inline-flex h-6 shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-semibold leading-4"
+                    [class.bg-[#F9F9F9]]="listing.status === 'available'"
+                    [class.text-[#EE9C2E]]="listing.status === 'available'"
+                    [class.bg-[#EDF9EF]]="listing.status === 'sold'"
+                    [class.text-[#25AD32]]="listing.status === 'sold'"
+                    [class.bg-[#F4F4F4]]="listing.status === 'draft'"
+                    [class.text-[#5A5A5A]]="listing.status === 'draft'"
+                    [class.bg-[#FDF6FA]]="listing.status === 'suspended'"
+                    [class.text-[#FF2524]]="listing.status === 'suspended'"
+                  >
+                    @if (listing.status === 'available') {
+                      <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                        <path d="M7 12.8333C10.2217 12.8333 12.8333 10.2217 12.8333 7C12.8333 3.77834 10.2217 1.16667 7 1.16667C3.77834 1.16667 1.16667 3.77834 1.16667 7C1.16667 10.2217 3.77834 12.8333 7 12.8333Z" fill="currentColor"/>
+                        <path d="M7 3.79166V7L8.75 8.75" stroke="white" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    } @else if (listing.status === 'sold') {
+                      <img
+                        ngSrc="/assets/icons/admin-user-details/tick-circle.svg"
+                        width="14"
+                        height="14"
+                        alt=""
+                        class="h-3.5 w-3.5 shrink-0"
+                        aria-hidden="true"
+                      />
+                    } @else if (listing.status === 'draft') {
+                      <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                        <rect x="1.16667" y="1.16667" width="11.6667" height="11.6667" rx="2.33333" fill="currentColor"/>
+                        <path d="M4.08334 4.66667H9.91667" stroke="white" stroke-width="1.1" stroke-linecap="round"/>
+                        <path d="M4.08334 6.99999H9.91667" stroke="white" stroke-width="1.1" stroke-linecap="round"/>
+                        <path d="M4.08334 9.33333H7.58334" stroke="white" stroke-width="1.1" stroke-linecap="round"/>
+                      </svg>
+                    } @else {
+                      <img
+                        ngSrc="/assets/icons/admin-users/slash.svg"
+                        width="14"
+                        height="14"
+                        alt=""
+                        class="h-3.5 w-3.5 shrink-0"
+                        aria-hidden="true"
+                      />
+                    }
+                    {{ mobileListingStatusLabel(listing.status) }}
+                  </span>
+                </div>
+
+                <dl class="mt-4 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-3 text-[14px] leading-5">
+                  <dt class="text-[#1A1B1D]/50">Store</dt>
+                  <dd class="text-right font-medium text-[#1A1B1D]">{{ listing.storeName }}</dd>
+
+                  <dt class="text-[#1A1B1D]/50">Amount</dt>
+                  <dd class="text-right font-medium text-[#1A1B1D]">{{ listing.price }}</dd>
+                </dl>
+              </article>
+            }
+          </div>
+        </div>
       } @else {
         <div class="mt-8 rounded-[20px] border border-dashed border-[#EAEAEA] p-8 text-center">
           <h2 class="text-[18px] font-semibold text-[#1A1B1D]">{{ activeTabLabel() }}</h2>
@@ -516,6 +719,15 @@ interface AdminUserActivityYearGroup {
           </div>
 
           <div class="relative flex items-center gap-3 self-start">
+            @if (isUserActionsOpen()) {
+              <button
+                type="button"
+                class="fixed inset-0 z-10 cursor-default"
+                (click)="isUserActionsOpen.set(false)"
+                aria-label="Close user actions menu"
+              ></button>
+            }
+
             <button
               type="button"
               class="inline-flex items-center gap-2 rounded-full border border-[#E7EAF0] bg-white px-5 py-3 text-[14px] font-medium text-[#2A2D34] transition hover:bg-[#FAFAFC]"
@@ -539,6 +751,7 @@ interface AdminUserActivityYearGroup {
             @if (isUserActionsOpen()) {
               <div
                 class="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[180px] overflow-hidden rounded-[18px] border border-[#ECEEF3] bg-white py-2 shadow-[0_20px_40px_-28px_rgba(17,24,39,0.45)]"
+                (click)="$event.stopPropagation()"
               >
                 <button
                   type="button"
@@ -1535,6 +1748,7 @@ export class AdminUserDetailsPageComponent {
   );
 
   readonly activeTab = signal<AdminUserDetailsTab>('overview');
+  readonly isMobileUserActionsOpen = signal(false);
   readonly isUserActionsOpen = signal(false);
   readonly userStatusOverride = signal<AdminUserDetailStatus | null>(null);
   readonly activeAdsPlacement = signal<AdminManagedAdPlacement>('promoted listings');
@@ -1580,6 +1794,17 @@ export class AdminUserDetailsPageComponent {
 
       return categoryMatches && storeMatches && statusMatches && searchMatches;
     });
+  });
+
+  readonly visibleMobileListings = computed(() => {
+    const query = this.listingsSearchQuery().trim().toLowerCase();
+    const listings = this.mobileListingsByUser[this.userId()] ?? this.mobileListingsByUser['francis-uche'];
+
+    return listings.filter((listing) =>
+      query === ''
+      || listing.name.toLowerCase().includes(query)
+      || listing.storeName.toLowerCase().includes(query),
+    );
   });
 
   readonly visiblePromotedListingSections = computed(() => {
@@ -1958,6 +2183,78 @@ export class AdminUserDetailsPageComponent {
         storeBackground: 'linear-gradient(135deg, #FFC738 0%, #F2A700 100%)',
         status: 'available',
         boosted: false,
+      },
+    ],
+  };
+
+  readonly mobileListingsByUser: Record<string, MobileAdminListing[]> = {
+    'francis-uche': [
+      {
+        id: 'iphone-17-pro-max-mobile',
+        name: 'Iphone 17 pro max',
+        thumbnail: '/assets/images/admin-user-details/mobile-listings/iphone-17-pro-max.png',
+        storeName: 'The Vine Collections',
+        price: '₦2,500,000.00',
+        status: 'available',
+        promoted: true,
+      },
+      {
+        id: 'logitech-ergonomic-mouse-mobile',
+        name: 'Logitech ergonomic mouse',
+        thumbnail: '/assets/images/admin-user-details/mobile-listings/logitech-ergonomic-mouse.png',
+        storeName: 'Eden Organics',
+        price: '₦150,000.00',
+        status: 'sold',
+        promoted: true,
+      },
+      {
+        id: 'nike-sneaker-mobile',
+        name: 'Nike sneaker',
+        thumbnail: '/assets/images/admin-user-details/mobile-listings/nike-sneaker.png',
+        storeName: 'Amazing Fragrances',
+        price: '₦150,000.00',
+        status: 'draft',
+        promoted: false,
+      },
+      {
+        id: 'bone-straight-wig-mobile',
+        name: 'Bone straight wig',
+        thumbnail: '/assets/images/admin-user-details/mobile-listings/bone-straight-wig.png',
+        storeName: 'Personal account',
+        price: '₦150,000.00',
+        status: 'available',
+        promoted: true,
+      },
+      {
+        id: 'maserati-mobile',
+        name: 'Maserati',
+        thumbnail: '/assets/images/admin-user-details/mobile-listings/maserati.png',
+        storeName: 'The Vine Collections',
+        price: '₦150,000.00',
+        status: 'suspended',
+        promoted: false,
+      },
+    ],
+    'mark-anthony': [
+      {
+        id: 'office-chair-mobile',
+        name: 'Ergonomic chair',
+        thumbnail: '/assets/images/admin-user-details/mobile-listings/logitech-ergonomic-mouse.png',
+        storeName: 'Eden Organics',
+        price: '₦120,000.00',
+        status: 'available',
+        promoted: true,
+      },
+    ],
+    'elle-adebisi': [
+      {
+        id: 'kitchen-utensils-mobile',
+        name: 'Kitchen utensils',
+        thumbnail: '/assets/images/admin-user-details/mobile-listings/bone-straight-wig.png',
+        storeName: 'Amazing Fragrances',
+        price: '₦85,000.00',
+        status: 'sold',
+        promoted: false,
       },
     ],
   };
@@ -2792,13 +3089,20 @@ export class AdminUserDetailsPageComponent {
     this.reportSearchQuery.set(value);
   }
 
+  downloadUserData(): void {
+    this.isMobileUserActionsOpen.set(false);
+    this.isUserActionsOpen.set(false);
+  }
+
   deactivateUser(): void {
     this.userStatusOverride.set('suspended');
+    this.isMobileUserActionsOpen.set(false);
     this.isUserActionsOpen.set(false);
   }
 
   banUser(): void {
     this.userStatusOverride.set('suspended');
+    this.isMobileUserActionsOpen.set(false);
     this.isUserActionsOpen.set(false);
   }
 
@@ -2866,6 +3170,19 @@ export class AdminUserDetailsPageComponent {
         return '■';
       case 'paused':
         return '‖';
+    }
+  }
+
+  mobileListingStatusLabel(status: MobileAdminListingStatus): string {
+    switch (status) {
+      case 'available':
+        return 'Available';
+      case 'sold':
+        return 'Sold';
+      case 'draft':
+        return 'Draft';
+      case 'suspended':
+        return 'Suspended';
     }
   }
 
