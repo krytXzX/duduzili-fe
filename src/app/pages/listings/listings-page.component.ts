@@ -183,30 +183,30 @@ type ListingStat = {
               <div class="grid grid-cols-[40px_1.7fr_1.15fr_1fr_1.5fr_1fr_56px] items-center border-t border-[#f0f0f0] px-[15px] py-3 first:border-t-0">
                 <span class="inline-block h-4 w-4 rounded border border-[#b8b8b8]"></span>
 
-                <a [routerLink]="['/listings', listing.id]" class="flex items-center gap-2 rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
+                <a [routerLink]="['/seller/listings', listing.id]" class="flex items-center gap-2 rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
                   <div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md bg-[#efefef]">
                     <img [ngSrc]="listing.image" [alt]="listing.name" width="44" height="44" class="h-10 w-10 object-cover" />
                   </div>
                   <span class="text-sm font-medium text-[#1a1b1d]">{{ listing.name }}</span>
                 </a>
 
-                <a [routerLink]="['/listings', listing.id]" class="text-sm text-[#1a1b1d] transition-colors hover:text-[#6453d9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
+                <a [routerLink]="['/seller/listings', listing.id]" class="text-sm text-[#1a1b1d] transition-colors hover:text-[#6453d9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
                   {{ listing.category }}
                 </a>
 
-                <a [routerLink]="['/listings', listing.id]" class="flex items-center text-sm font-medium text-[#1f1f1f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
+                <a [routerLink]="['/seller/listings', listing.id]" class="flex items-center text-sm font-medium text-[#1f1f1f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
                   <img ngSrc="/assets/icons/listings-naira.svg" alt="" width="14" height="14" class="mr-0.5 h-[14px] w-[14px]" aria-hidden="true" />
                   {{ listing.priceWhole }}<span class="text-[rgba(31,31,31,0.5)]">{{ listing.priceFraction }}</span>
                 </a>
 
-                <a [routerLink]="['/listings', listing.id]" class="flex items-center gap-2 rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
+                <a [routerLink]="['/seller/listings', listing.id]" class="flex items-center gap-2 rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
                   <div class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#efefef]">
                     <img [ngSrc]="listing.storeLogo" [alt]="listing.store" width="32" height="32" class="h-8 w-8 object-cover" />
                   </div>
                   <span class="text-sm text-[#1a1b1d]">{{ listing.store }}</span>
                 </a>
 
-                <a [routerLink]="['/listings', listing.id]" class="inline-flex w-fit items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]" [class]="desktopStatusClass(listing.status)">
+                <a [routerLink]="['/seller/listings', listing.id]" class="inline-flex w-fit items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]" [class]="desktopStatusClass(listing.status)">
                   <img [ngSrc]="statusIcon(listing.status)" alt="" width="14" height="14" class="h-[14px] w-[14px]" aria-hidden="true" />
                   {{ listing.status }}
                 </a>
@@ -221,7 +221,7 @@ type ListingStat = {
 
         <div class="mt-4 space-y-0 lg:hidden">
           @for (listing of filteredMobileListings(); track listing.id) {
-            <a [routerLink]="['/listings', listing.id]" class="block border-b border-[#ebebeb] py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
+            <a [routerLink]="['/seller/listings', listing.id]" class="block border-b border-[#ebebeb] py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
               <div class="flex items-start justify-between gap-3">
                 <div class="flex items-center gap-3">
                   <div class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-[6.6px] bg-[#efefef]">

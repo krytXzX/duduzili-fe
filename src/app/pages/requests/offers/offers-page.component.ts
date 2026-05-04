@@ -101,35 +101,36 @@ interface OfferRecord {
                 </label>
               </div>
 
-              <div class="border-t border-[#F0F0F0]">
-                <div
-                  class="grid grid-cols-[180px_150px_260px_205px_124px_77px] items-center bg-[#FAFAFA] px-[23px] py-[11px]"
-                >
-                  <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
-                    Buyer
-                  </span>
-                  <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
-                    Offer amount
-                  </span>
-                  <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
-                    Listing
-                  </span>
-                  <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
-                    Store
-                  </span>
-                  <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
-                    Date requested
-                  </span>
-                  <span aria-hidden="true"></span>
-                </div>
-
-                @for (offer of filteredOffers(); track offer.id) {
-                  <button
-                    type="button"
-                    (click)="openDetails(offer)"
-                    class="grid w-full grid-cols-[180px_150px_260px_205px_124px_77px] items-center border-b border-[#F0F0F0] px-6 text-left transition hover:bg-[#FFFCF7]"
-                    [class.border-b-0]="$last"
+              <div class="max-h-[520px] overflow-auto border-t border-[#F0F0F0]">
+                <div class="min-w-[996px]">
+                  <div
+                    class="grid grid-cols-[180px_150px_260px_205px_124px_77px] items-center bg-[#FAFAFA] px-[23px] py-[11px]"
                   >
+                    <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
+                      Buyer
+                    </span>
+                    <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
+                      Offer amount
+                    </span>
+                    <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
+                      Listing
+                    </span>
+                    <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
+                      Store
+                    </span>
+                    <span class="text-[12px] font-medium leading-normal text-[rgba(26,27,29,0.6)]">
+                      Date requested
+                    </span>
+                    <span aria-hidden="true"></span>
+                  </div>
+
+                  @for (offer of filteredOffers(); track offer.id) {
+                    <button
+                      type="button"
+                      (click)="openDetails(offer)"
+                      class="grid w-full grid-cols-[180px_150px_260px_205px_124px_77px] items-center border-b border-[#F0F0F0] px-6 text-left transition hover:bg-[#FFFCF7]"
+                      [class.border-b-0]="$last"
+                    >
                     <div class="flex min-h-[74px] items-center gap-2">
                       <img
                         [ngSrc]="offer.buyerAvatar"
@@ -215,8 +216,9 @@ interface OfferRecord {
                         />
                       </span>
                     </div>
-                  </button>
-                }
+                    </button>
+                  }
+                </div>
               </div>
             </section>
 

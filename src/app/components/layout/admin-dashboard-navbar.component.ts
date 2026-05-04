@@ -5,9 +5,7 @@ import {
   heroArrowRightOnRectangle,
   heroBell,
   heroBars3,
-  heroChevronRight,
   heroCog6Tooth,
-  heroMagnifyingGlass,
   heroUserCircle,
 } from '@ng-icons/heroicons/outline';
 import { NgOptimizedImage } from '@angular/common';
@@ -20,14 +18,12 @@ import { NgOptimizedImage } from '@angular/common';
       heroArrowRightOnRectangle,
       heroBell,
       heroBars3,
-      heroChevronRight,
       heroCog6Tooth,
-      heroMagnifyingGlass,
       heroUserCircle,
     }),
   ],
   template: `
-    <header class="flex flex-wrap items-center gap-3 rounded-[28px] bg-black px-4 py-3 text-white shadow-lg sm:px-6 sm:py-2.5">
+    <header class="relative flex flex-wrap items-center gap-3 rounded-[28px] bg-black px-4 py-3 text-white shadow-lg sm:px-6 sm:py-2.5">
       <div class="flex min-w-0 items-center gap-3">
         <button
           type="button"
@@ -53,13 +49,19 @@ import { NgOptimizedImage } from '@angular/common';
         </a>
       </div>
 
-      <div class="order-3 flex w-full group sm:order-2 sm:mx-2 sm:flex-1 sm:max-w-lg lg:mx-6">
-        <div class="relative w-full">
-          <div class="pointer-events-none absolute inset-y-0 left-4 flex items-center">
-            <ng-icon
-              name="heroMagnifyingGlass"
-              class="text-white/40 transition-colors group-focus-within:text-white"
-            ></ng-icon>
+      <div
+        class="order-3 flex w-full group sm:order-2 sm:mx-2 sm:flex-1 sm:max-w-lg lg:absolute lg:left-1/2 lg:top-1/2 lg:z-10 lg:mx-0 lg:w-[min(32rem,calc(100%-28rem))] lg:max-w-none lg:-translate-x-1/2 lg:-translate-y-1/2"
+      >
+        <div class="relative w-full rounded-[100px] bg-[#2F2F2F] px-3 py-1">
+          <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+            <img
+              ngSrc="/assets/icons/admin-navbar/search-normal.svg"
+              width="18"
+              height="18"
+              alt=""
+              class="h-[18px] w-[18px]"
+              aria-hidden="true"
+            />
           </div>
 
           <input
@@ -69,35 +71,24 @@ import { NgOptimizedImage } from '@angular/common';
             #adminSearchInput
             (input)="updateSearchQuery(adminSearchInput.value)"
             (keydown.enter)="runSearch()"
-            class="w-full rounded-full border-none bg-white/10 py-2 pl-12 pr-20 text-sm text-white outline-none transition-all placeholder:text-white/40 focus:bg-white/20 focus:ring-0"
+            class="h-8 w-full border-none bg-transparent pl-[22px] pr-20 text-[14px] font-normal tracking-[0.01em] text-white/90 outline-none placeholder:text-white/60 focus:ring-0"
+            style="font-family: 'Mona Sans', sans-serif"
           />
-
-          @if (searchQuery()) {
-            <button
-              type="button"
-              (click)="clearSearch()"
-              class="absolute inset-y-0 right-10 flex items-center text-white/30 transition hover:text-white/60"
-              aria-label="Clear search"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fill-rule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </button>
-          }
 
           <button
             type="button"
             (click)="runSearch()"
-            class="absolute inset-y-0 right-3 flex items-center"
+            class="absolute inset-y-1 right-1 flex items-center rounded-[1000px] bg-[#515151] px-2"
             aria-label="Search"
           >
-            <div class="flex h-6 w-6 items-center justify-center rounded-lg border border-white/5 bg-white/10">
-              <ng-icon name="heroChevronRight" class="text-xs text-white/60"></ng-icon>
-            </div>
+            <img
+              ngSrc="/assets/icons/admin-navbar/arrow-right.svg"
+              width="16"
+              height="16"
+              alt=""
+              class="h-4 w-4"
+              aria-hidden="true"
+            />
           </button>
         </div>
       </div>
@@ -175,10 +166,6 @@ export class AdminDashboardNavbarComponent {
 
   updateSearchQuery(value: string): void {
     this.searchQuery.set(value);
-  }
-
-  clearSearch(): void {
-    this.searchQuery.set('');
   }
 
   toggleAccountMenu(): void {

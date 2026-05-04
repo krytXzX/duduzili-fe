@@ -323,7 +323,7 @@ export class MyStoresPageComponent {
       logoImage: '/assets/images/store-vine-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-vine-logo-mobile.png',
       isVerified: true,
-      route: ['/my-stores', 'my-store-1'],
+      route: ['/seller/my-stores', 'my-store-1'],
     },
     {
       id: 'my-store-2',
@@ -334,7 +334,7 @@ export class MyStoresPageComponent {
       logoImage: '/assets/images/store-eden-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-eden-logo-mobile.png',
       isVerified: true,
-      route: ['/my-stores', 'my-store-2'],
+      route: ['/seller/my-stores', 'my-store-2'],
     },
     {
       id: 'my-store-3',
@@ -345,7 +345,7 @@ export class MyStoresPageComponent {
       logoImage: '/assets/images/store-snap-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-snap-logo-mobile.png',
       isVerified: true,
-      route: ['/my-stores', 'my-store-3'],
+      route: ['/seller/my-stores', 'my-store-3'],
     },
     {
       id: 'my-store-4',
@@ -356,7 +356,7 @@ export class MyStoresPageComponent {
       logoImage: '/assets/images/store-gomelon-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-gomelon-logo-mobile.png',
       isVerified: true,
-      route: ['/my-stores', 'my-store-4'],
+      route: ['/seller/my-stores', 'my-store-4'],
     },
     {
       id: 'my-store-5',
@@ -367,7 +367,7 @@ export class MyStoresPageComponent {
       logoImage: '/assets/images/store-amazing-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-amazing-logo-desktop.png',
       isVerified: true,
-      route: ['/my-stores', 'my-store-5'],
+      route: ['/seller/my-stores', 'my-store-5'],
     },
     {
       id: 'my-store-6',
@@ -378,7 +378,7 @@ export class MyStoresPageComponent {
       logoImage: '/assets/images/store-newage-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-newage-logo-desktop.png',
       isVerified: true,
-      route: ['/my-stores', 'my-store-6'],
+      route: ['/seller/my-stores', 'my-store-6'],
     },
     {
       id: 'my-store-7',
@@ -389,7 +389,7 @@ export class MyStoresPageComponent {
       logoImage: '/assets/images/store-swift-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-swift-logo-desktop.png',
       isVerified: true,
-      route: ['/my-stores', 'my-store-7'],
+      route: ['/seller/my-stores', 'my-store-7'],
     },
     {
       id: 'my-store-8',
@@ -400,7 +400,7 @@ export class MyStoresPageComponent {
       logoImage: '/assets/images/store-none-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-none-logo-desktop.png',
       isVerified: true,
-      route: ['/my-stores', 'my-store-8'],
+      route: ['/seller/my-stores', 'my-store-8'],
     },
   ]);
   protected readonly searchQuery = signal('');
@@ -437,7 +437,7 @@ export class MyStoresPageComponent {
       location: 'Ikeja, Lagos',
       followers: '0',
       isVerified: false,
-      route: ['/my-stores'],
+      route: ['/seller/my-stores'],
     };
 
     this.stores.update((previousStores) => [newStore, ...previousStores]);
