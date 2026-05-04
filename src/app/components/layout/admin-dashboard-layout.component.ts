@@ -22,55 +22,57 @@ import { AdminDashboardSidebarComponent } from './admin-dashboard-sidebar.compon
       [class.bg-[#F4F4F4]]="isAdminRoutePrefix('/admin/more')"
       [class.bg-white]="!isAdminRoutePrefix('/admin/more')"
     >
-      <header
-        class="flex h-[72px] shrink-0 items-center justify-between px-5 lg:hidden"
-        [class.bg-[#F4F4F4]]="isAdminRoutePrefix('/admin/more')"
-        [class.bg-white]="!isAdminRoutePrefix('/admin/more')"
-      >
-        <a routerLink="/admin" class="flex items-center" aria-label="Go to admin home">
-          <img
-            ngSrc="/assets/images/admin-mobile-shell/logo.svg"
-            width="112"
-            height="24"
-            alt="Duduzili"
-            priority
-            class="h-6 w-[111px]"
-          />
-        </a>
+      @if (!isAdminUserDetailsRoute()) {
+        <header
+          class="flex h-[72px] shrink-0 items-center justify-between px-5 lg:hidden"
+          [class.bg-[#F4F4F4]]="isAdminRoutePrefix('/admin/more')"
+          [class.bg-white]="!isAdminRoutePrefix('/admin/more')"
+        >
+          <a routerLink="/admin" class="flex items-center" aria-label="Go to admin home">
+            <img
+              ngSrc="/assets/images/admin-mobile-shell/logo.svg"
+              width="112"
+              height="24"
+              alt="Duduzili"
+              priority
+              class="h-6 w-[111px]"
+            />
+          </a>
 
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            (click)="runMobileSearch()"
-            class="flex h-9 w-9 items-center justify-center rounded-full bg-[#F3F3F3]"
-            aria-label="Search"
-          >
-            <img
-              ngSrc="/assets/icons/admin-mobile-shell/search.svg"
-              width="20"
-              height="20"
-              alt=""
-              class="h-5 w-5"
-              aria-hidden="true"
-            />
-          </button>
-          <button
-            type="button"
-            (click)="openSidebar()"
-            class="relative flex h-9 w-9 overflow-hidden rounded-full"
-            aria-label="Open admin menu"
-          >
-            <img
-              ngSrc="/assets/images/admin-mobile-shell/avatar.png"
-              width="36"
-              height="36"
-              alt=""
-              class="absolute left-[-61.11%] top-0 h-[141.67%] w-[259.72%] max-w-none rounded-full"
-              aria-hidden="true"
-            />
-          </button>
-        </div>
-      </header>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              (click)="runMobileSearch()"
+              class="flex h-9 w-9 items-center justify-center rounded-full bg-[#F3F3F3]"
+              aria-label="Search"
+            >
+              <img
+                ngSrc="/assets/icons/admin-mobile-shell/search.svg"
+                width="20"
+                height="20"
+                alt=""
+                class="h-5 w-5"
+                aria-hidden="true"
+              />
+            </button>
+            <button
+              type="button"
+              (click)="openSidebar()"
+              class="relative flex h-9 w-9 overflow-hidden rounded-full"
+              aria-label="Open admin menu"
+            >
+              <img
+                ngSrc="/assets/images/admin-mobile-shell/avatar.png"
+                width="36"
+                height="36"
+                alt=""
+                class="absolute left-[-61.11%] top-0 h-[141.67%] w-[259.72%] max-w-none rounded-full"
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+        </header>
+      }
 
       <app-admin-dashboard-navbar class="hidden w-full lg:block" (menuRequested)="openSidebar()"></app-admin-dashboard-navbar>
 
@@ -102,14 +104,17 @@ import { AdminDashboardSidebarComponent } from './admin-dashboard-sidebar.compon
 
         <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white lg:rounded-[32px] lg:shadow-sm">
           <router-outlet></router-outlet>
-          <div class="h-[152px] lg:hidden" aria-hidden="true"></div>
+          @if (!isAdminUserDetailsRoute()) {
+            <div class="h-[152px] lg:hidden" aria-hidden="true"></div>
+          }
         </main>
       </div>
 
-      <nav
-        class="fixed inset-x-0 bottom-0 z-50 h-[101px] bg-gradient-to-b from-white/0 to-white lg:hidden"
-        aria-label="Admin mobile navigation"
-      >
+      @if (!isAdminUserDetailsRoute()) {
+        <nav
+          class="fixed inset-x-0 bottom-0 z-50 h-[101px] bg-gradient-to-b from-white/0 to-white lg:hidden"
+          aria-label="Admin mobile navigation"
+        >
         <div class="absolute bottom-[19px] left-1/2 flex w-[min(350px,calc(100vw-40px))] -translate-x-1/2 items-center rounded-full border border-[#F4F4F4] bg-white p-1 shadow-[0_4px_12px_rgba(212,212,212,0.25)]">
           <a
             routerLink="/admin"
@@ -192,7 +197,8 @@ import { AdminDashboardSidebarComponent } from './admin-dashboard-sidebar.compon
             More
           </a>
         </div>
-      </nav>
+        </nav>
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -237,6 +243,10 @@ export class AdminDashboardLayoutComponent {
 
   isMoreActive(): boolean {
     return this.isAdminRoutePrefix('/admin/more');
+  }
+
+  isAdminUserDetailsRoute(): boolean {
+    return /^\/admin\/users\/[^/]+$/.test(this.normalizedAdminUrl());
   }
 
   private normalizedAdminUrl(): string {

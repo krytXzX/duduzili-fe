@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
@@ -194,7 +195,7 @@ interface AdminUserActivityYearGroup {
 
 @Component({
   selector: 'app-admin-user-details-page',
-  imports: [RouterLink, NgIcon, StoreCardComponent, BannerPromotionCardComponent],
+  imports: [RouterLink, NgIcon, NgOptimizedImage, StoreCardComponent, BannerPromotionCardComponent],
   providers: [
     provideIcons({
       heroCalendarDays,
@@ -206,7 +207,274 @@ interface AdminUserActivityYearGroup {
     }),
   ],
   template: `
-    <div class="flex h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]">
+    <section class="min-h-full bg-white px-3 pb-8 pt-0 lg:hidden">
+      <div class="flex h-[45px] items-center justify-between">
+        <a
+          routerLink="/admin/users"
+          class="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F4F4]"
+          aria-label="Back to users"
+        >
+          <img
+            ngSrc="/assets/icons/admin-user-details/arrow-left.svg"
+            width="20"
+            height="20"
+            alt=""
+            class="h-5 w-5"
+            aria-hidden="true"
+          />
+        </a>
+
+        <button
+          type="button"
+          (click)="isUserActionsOpen.set(!isUserActionsOpen())"
+          class="flex h-10 w-10 items-center justify-center rounded-full"
+          aria-label="More actions"
+          [attr.aria-expanded]="isUserActionsOpen()"
+        >
+          <img
+            ngSrc="/assets/icons/admin-user-details/menu-dots.svg"
+            width="24"
+            height="24"
+            alt=""
+            class="h-6 w-6"
+            aria-hidden="true"
+          />
+        </button>
+      </div>
+
+      <div class="mt-4 flex flex-col gap-2">
+        <div class="flex items-center gap-3">
+          <img
+            ngSrc="/assets/images/admin-user-details/avatar.png"
+            width="60"
+            height="60"
+            alt=""
+            class="h-[60px] w-[60px] rounded-full object-cover"
+            aria-hidden="true"
+          />
+          <div class="min-w-0">
+            <h1 class="truncate text-[20px] font-semibold leading-8 text-[#1A1B1D]">{{ user().name }}</h1>
+            <p class="truncate text-[14px] font-medium leading-5 text-[#0D0D0D]/40">{{ user().email }}</p>
+          </div>
+        </div>
+
+        <span
+          class="inline-flex h-6 w-fit items-center gap-1 rounded-lg bg-[#F3FBF9] px-2 text-[12px] font-semibold leading-4 text-[#25AD32]"
+        >
+          <img
+            ngSrc="/assets/icons/admin-user-details/tick-circle.svg"
+            width="14"
+            height="14"
+            alt=""
+            class="h-3.5 w-3.5"
+            aria-hidden="true"
+          />
+          Active
+        </span>
+      </div>
+
+      <div class="-mx-3 mt-8 overflow-x-auto border-b border-[#EAEAEA] px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div class="flex w-max items-end">
+          @for (tab of mobileTabs; track tab.id) {
+            <button
+              type="button"
+              (click)="activeTab.set(tab.id)"
+              class="flex flex-col gap-1.5"
+            >
+              <span
+                class="flex items-center gap-1 rounded-lg px-3 py-1 text-[16px] font-medium leading-6"
+                [class.text-[#6453D9]]="activeTab() === tab.id"
+                [class.text-[#959595]]="activeTab() !== tab.id"
+              >
+                <span
+                  class="h-4 w-4"
+                  [style.background-color]="activeTab() === tab.id ? '#6453D9' : '#959595'"
+                  [style.-webkit-mask]="'url(' + tab.icon + ') center / contain no-repeat'"
+                  [style.mask]="'url(' + tab.icon + ') center / contain no-repeat'"
+                  aria-hidden="true"
+                ></span>
+                {{ tab.label }}
+              </span>
+              <span
+                class="h-0.5 rounded-full"
+                [class.bg-[#6453D9]]="activeTab() === tab.id"
+                [class.bg-transparent]="activeTab() !== tab.id"
+              ></span>
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (activeTab() === 'overview') {
+        <div class="mt-8 flex flex-col gap-4">
+          <section class="overflow-hidden rounded-[20px] border border-[#EBEBEB] bg-white p-3">
+            <button
+              type="button"
+              class="flex h-10 items-center gap-3 rounded-full border border-[#EAEAEA] bg-white px-3 pr-4 text-[14px] font-medium leading-5 text-black"
+            >
+              <span class="flex items-center gap-1">
+                <img
+                  ngSrc="/assets/icons/admin-user-details/calendar.svg"
+                  width="14"
+                  height="14"
+                  alt=""
+                  class="h-3.5 w-3.5"
+                  aria-hidden="true"
+                />
+                Last 7 days
+              </span>
+              <img
+                ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
+                width="14"
+                height="14"
+                alt=""
+                class="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+            </button>
+
+            <div class="mt-5">
+              <p class="text-[14px] font-semibold leading-6 text-[#0D0D0D]/40">Total sold items</p>
+              <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">{{ user().totalSoldItems }}</p>
+              <span class="mt-2 inline-flex h-6 items-center gap-1 rounded-full bg-[#27A551]/[0.06] px-2 text-[12px] font-normal leading-4 text-[#27A551]">
+                <img
+                  ngSrc="/assets/icons/admin-user-details/arrow-up.svg"
+                  width="12"
+                  height="12"
+                  alt=""
+                  class="h-3 w-3"
+                  aria-hidden="true"
+                />
+                28% vs last month
+              </span>
+            </div>
+
+            <div class="mt-8 overflow-hidden">
+              <div class="relative h-[172px] min-w-[520px]">
+                <div class="absolute left-0 top-0 text-[10px] text-[#0D0D0D]/40">500</div>
+                <div class="absolute left-0 top-[76px] text-[10px] text-[#0D0D0D]/40">250</div>
+                <div class="absolute bottom-[25px] left-0 text-[10px] text-[#0D0D0D]/40">0</div>
+                <div class="absolute bottom-[42px] left-[34px] flex h-[139px] items-end gap-[22px]">
+                  @for (month of mobileMonths; track month.label) {
+                    <div
+                      class="w-4 rounded-t bg-gradient-to-b"
+                      [class.from-[#6453D9]]="month.highlight"
+                      [class.to-[#CFC8FD]]="month.highlight"
+                      [class.from-[#DCD8F6]]="!month.highlight"
+                      [class.to-[#EFEDFF]]="!month.highlight"
+                      [class.opacity-100]="month.highlight"
+                      [class.opacity-70]="!month.highlight"
+                      [style.height.px]="month.height"
+                    ></div>
+                  }
+                </div>
+                <div class="absolute bottom-0 left-[34px] flex gap-[19px] text-[10px] text-[#0D0D0D]/40">
+                  @for (month of mobileMonths; track month.label) {
+                    <span class="w-5 text-center">{{ month.label }}</span>
+                  }
+                </div>
+                <div class="absolute left-[151px] top-[49px] flex h-8 items-center gap-2 rounded-[10px] bg-black px-2 text-[12px] text-white">
+                  <span class="h-1.5 w-1.5 rounded-full bg-[#6453D9]"></span>
+                  <span>Aug 2025</span>
+                  <span>128</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-[24px] border border-[#EFEFEF] bg-white p-[15px] text-center">
+            <p class="text-left text-[14px] font-medium text-[#0D0D0D]/50">Most viewed listing</p>
+            <div class="mx-auto mt-[18px] w-[100px] rounded-[10px] border border-[#EAEAEA] bg-white p-0.5 shadow-[0_4.7px_4.7px_rgba(192,192,192,0.25)]">
+              <div class="rounded-[8px] border border-[#EAEAEA] bg-[#EFEFEF] p-2">
+                <img
+                  ngSrc="/assets/images/admin-user-details/most-viewed-listing.png"
+                  width="82"
+                  height="82"
+                  alt="Most viewed listing"
+                  class="h-[82px] w-[82px] object-cover"
+                />
+              </div>
+              <div class="px-0.5 py-1 text-left">
+                <div class="flex items-center justify-between gap-1">
+                  <p class="truncate text-[6px] leading-[8.7px] text-[#1F1F1F]">Iphone 17 pro max</p>
+                  <span class="rounded-full bg-[#F0F0F0] px-1 text-[5px] font-medium leading-[7px] text-[#1F1F1F]">New</span>
+                </div>
+                <p class="text-[7px] font-medium leading-[10px] text-[#1F1F1F]">₦2,500,000</p>
+              </div>
+            </div>
+            <p class="mx-auto mt-5 max-w-[246px] text-[17px] font-medium leading-[1.3] text-[#0D0D0D]/50">
+              This item has been viewed <span class="text-[#0D0D0D]">34,002</span> times
+            </p>
+          </section>
+
+          <section class="rounded-[24px] border border-[#EFEFEF] bg-white p-[15px]">
+            <p class="text-[14px] font-medium text-[#0D0D0D]/50">Listings distribution</p>
+            <div class="mt-6 flex h-1 overflow-hidden rounded-full">
+              <span class="w-[51%] bg-[#25AD32]"></span>
+              <span class="w-[26%] bg-[#4787FE]"></span>
+              <span class="flex-1 bg-[#EE9C2E]"></span>
+            </div>
+            <div class="mt-6 flex flex-col gap-6">
+              @for (item of user().distribution; track item.label) {
+                <div class="flex items-center justify-between">
+                  <span class="flex items-center gap-2.5 text-[14px] text-[#0D0D0D]/50">
+                    <span class="h-3 w-3 rounded-full" [style.background]="item.color"></span>
+                    {{ item.label }}
+                  </span>
+                  <span class="text-[14px] font-medium text-[#0D0D0D]">{{ item.value }}</span>
+                </div>
+              }
+            </div>
+            <button type="button" class="mt-6 text-[14px] font-medium leading-5 text-[#6453D9] underline underline-offset-2">
+              View more
+            </button>
+          </section>
+
+          <section class="rounded-[20px] border border-[#EBEBEB] bg-white px-4 py-5">
+            <div class="mb-4 flex items-center gap-2">
+              <img
+                ngSrc="/assets/icons/admin-user-details/user.svg"
+                width="16"
+                height="16"
+                alt=""
+                class="h-4 w-4"
+                aria-hidden="true"
+              />
+              <h2 class="text-[16px] font-semibold leading-6 text-[#0D0D0D]">Details</h2>
+            </div>
+            <dl class="flex flex-col gap-4 text-[14px] leading-5">
+              <div class="flex items-center justify-between gap-4">
+                <dt class="w-[140px] text-[#0D0D0D]/50">Date joined</dt>
+                <dd class="text-right text-[#0D0D0D]">{{ user().dateJoined }}</dd>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <dt class="w-[140px] text-[#0D0D0D]/50">Last signed in</dt>
+                <dd class="text-right text-[#0D0D0D]">{{ user().lastSignedIn }}</dd>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <dt class="w-[140px] text-[#0D0D0D]/50">Name</dt>
+                <dd class="text-right text-[#0D0D0D]">{{ user().name }}</dd>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <dt class="w-[140px] text-[#0D0D0D]/50">Email</dt>
+                <dd class="text-right text-[#0D0D0D]">{{ user().email }}</dd>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <dt class="w-[140px] text-[#0D0D0D]/50">Phone number</dt>
+                <dd class="text-right text-[#0D0D0D]">{{ user().phoneNumber }}</dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+      } @else {
+        <div class="mt-8 rounded-[20px] border border-dashed border-[#EAEAEA] p-8 text-center">
+          <h2 class="text-[18px] font-semibold text-[#1A1B1D]">{{ activeTabLabel() }}</h2>
+          <p class="mt-2 text-[14px] text-[#959595]">This mobile tab is ready for the next pass.</p>
+        </div>
+      }
+    </section>
+
+    <div class="hidden h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] lg:flex">
       <div class="px-6 py-6 sm:px-8">
         <div class="flex flex-wrap items-center gap-2 text-[14px] font-medium text-[#A5A7AE]">
           <a routerLink="/admin/users" class="transition hover:text-[#6B5CF0]">Users</a>
@@ -303,7 +571,13 @@ interface AdminUserActivityYearGroup {
               (click)="activeTab.set(tab.id)"
             >
               <span class="inline-flex items-center gap-2">
-                <span class="text-[16px]">{{ tab.icon }}</span>
+                <span
+                  class="h-4 w-4"
+                  [style.background-color]="activeTab() === tab.id ? '#6B5CF0' : '#8E9199'"
+                  [style.-webkit-mask]="'url(' + tab.icon + ') center / contain no-repeat'"
+                  [style.mask]="'url(' + tab.icon + ') center / contain no-repeat'"
+                  aria-hidden="true"
+                ></span>
                 {{ tab.label }}
               </span>
               @if (activeTab() === tab.id) {
@@ -1389,14 +1663,24 @@ export class AdminUserDetailsPageComponent {
   );
 
   readonly tabs = [
-    { id: 'overview' as const, label: 'Overview', icon: 'ℹ️' },
-    { id: 'listings' as const, label: 'Listings', icon: '📦' },
-    { id: 'stores' as const, label: 'Stores', icon: '🏬' },
-    { id: 'ads' as const, label: 'Ads', icon: '📸' },
-    { id: 'transactions' as const, label: 'Transactions', icon: '💳' },
-    { id: 'reviews' as const, label: 'Reviews', icon: '☆' },
-    { id: 'reports' as const, label: 'Reports', icon: '⚑' },
-    { id: 'activities' as const, label: 'Activities', icon: '🧾' },
+    { id: 'overview' as const, label: 'Overview', icon: '/assets/icons/admin-user-details/info-circle.svg' },
+    { id: 'listings' as const, label: 'Listings', icon: '/assets/icons/admin-user-details/box.svg' },
+    { id: 'stores' as const, label: 'Stores', icon: '/assets/icons/admin-user-details/shop.svg' },
+    { id: 'ads' as const, label: 'Ads', icon: '/assets/icons/admin-user-details/award.svg' },
+    { id: 'transactions' as const, label: 'Transactions', icon: '/assets/icons/admin-user-details/moneys.svg' },
+    { id: 'reviews' as const, label: 'Reviews', icon: '/assets/icons/admin-user-details/star.svg' },
+    { id: 'reports' as const, label: 'Reports', icon: '/assets/icons/admin-user-details/flag.svg' },
+    { id: 'activities' as const, label: 'Activities', icon: '/assets/icons/admin-user-details/document.svg' },
+  ];
+  readonly mobileTabs = [
+    { id: 'overview' as const, label: 'Overview', icon: '/assets/icons/admin-user-details/info-circle.svg' },
+    { id: 'listings' as const, label: 'Listings', icon: '/assets/icons/admin-user-details/box.svg' },
+    { id: 'stores' as const, label: 'Stores', icon: '/assets/icons/admin-user-details/shop.svg' },
+    { id: 'ads' as const, label: 'Ads', icon: '/assets/icons/admin-user-details/award.svg' },
+    { id: 'transactions' as const, label: 'Transactions', icon: '/assets/icons/admin-user-details/moneys.svg' },
+    { id: 'reviews' as const, label: 'Reviews', icon: '/assets/icons/admin-user-details/star.svg' },
+    { id: 'reports' as const, label: 'Reports', icon: '/assets/icons/admin-user-details/flag.svg' },
+    { id: 'activities' as const, label: 'Activities', icon: '/assets/icons/admin-user-details/document.svg' },
   ];
 
   readonly adPlacementTabs = [
@@ -1473,6 +1757,17 @@ export class AdminUserDetailsPageComponent {
     { label: 'Oct', x: 700, height: 68, highlight: false },
     { label: 'Nov', x: 774, height: 54, highlight: false },
     { label: 'Dec', x: 848, height: 92, highlight: false },
+  ];
+  readonly mobileMonths = [
+    { label: 'JAN', height: 26, highlight: false },
+    { label: 'FEB', height: 72, highlight: false },
+    { label: 'MAR', height: 42, highlight: false },
+    { label: 'APR', height: 65, highlight: false },
+    { label: 'MAY', height: 64, highlight: true },
+    { label: 'JUN', height: 42, highlight: false },
+    { label: 'JUL', height: 112, highlight: false },
+    { label: 'AUG', height: 61, highlight: false },
+    { label: 'SEP', height: 38, highlight: false },
   ];
 
   readonly users: Record<string, UserDetail> = {
