@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -30,7 +31,7 @@ interface AdminUser {
 
 @Component({
   selector: 'app-admin-users-page',
-  imports: [NgIcon],
+  imports: [NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({
       heroChevronDown,
@@ -40,7 +41,148 @@ interface AdminUser {
     }),
   ],
   template: `
-    <div class="flex h-full flex-col rounded-[24px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] sm:rounded-[32px]">
+    <section class="min-h-full bg-white px-4 pb-8 pt-2 lg:hidden">
+      <div class="flex h-[54px] items-center">
+        <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">Users</h1>
+      </div>
+
+      <div class="-mx-4 overflow-x-auto px-4 pt-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div class="flex w-max gap-3">
+          @for (card of mobileSummaryCards; track card.id) {
+            <button
+              type="button"
+              (click)="activeSummary.set(card.id)"
+              class="h-[75px] w-[153px] rounded-[10px] px-2.5 text-left transition"
+              [class.border-[1.5px]]="activeSummary() === card.id"
+              [class.border-[#6453D9]]="activeSummary() === card.id"
+              [class.bg-[rgba(100,83,217,0.05)]]="activeSummary() === card.id"
+              [class.bg-[#FAFAFA]]="activeSummary() !== card.id"
+            >
+              <p class="text-[12px] font-normal leading-none text-[#1A1B1D]/50">{{ card.label }}</p>
+              <p
+                class="mt-[22px] text-[20px] font-semibold leading-none"
+                [class.text-[#1A1B1D]]="activeSummary() === card.id"
+                [class.text-[#1A1B1D]/50]="activeSummary() !== card.id"
+              >
+                {{ card.value }}
+              </p>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center gap-3">
+        <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3">
+          <img
+            ngSrc="/assets/icons/admin-users/search.svg"
+            width="16"
+            height="16"
+            alt=""
+            class="h-4 w-4"
+            aria-hidden="true"
+          />
+          <input
+            type="text"
+            [value]="searchQuery()"
+            (input)="updateSearchQuery($any($event.target).value)"
+            placeholder="Search"
+            class="min-w-0 flex-1 border-none bg-transparent text-[14px] font-normal leading-5 text-[#1A1B1D] outline-none placeholder:text-[#777777] focus:ring-0"
+          >
+        </label>
+
+        <button
+          type="button"
+          (click)="cycleStatusFilter()"
+          class="flex h-10 w-10 shrink-0 items-center justify-center"
+          aria-label="Filter users"
+        >
+          <img
+            ngSrc="/assets/icons/admin-users/filter-tuning.svg"
+            width="24"
+            height="24"
+            alt=""
+            class="h-6 w-6"
+            aria-hidden="true"
+          />
+        </button>
+      </div>
+
+      <div class="mt-6 flex flex-col">
+        @for (user of visibleUsers(); track user.id) {
+          <button
+            type="button"
+            (click)="openUser(user.id)"
+            class="flex flex-col gap-4 border-b border-[#EBEBEB] py-3 text-left"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex min-w-0 items-center gap-2">
+                <span class="relative h-9 w-9 shrink-0 rounded-full">
+                  <img
+                    ngSrc="/assets/images/admin-users/user-avatar.png"
+                    width="36"
+                    height="36"
+                    alt=""
+                    class="h-9 w-9 rounded-full object-cover"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="min-w-0">
+                  <span class="flex items-center gap-1.5">
+                    <span class="truncate text-[14px] font-medium leading-5 text-[#0D0D0D]">
+                      {{ user.name }}
+                    </span>
+                    @if (user.verification === 'verified') {
+                      <img
+                        ngSrc="/assets/icons/admin-users/verify.svg"
+                        width="16"
+                        height="16"
+                        alt=""
+                        class="h-4 w-4 shrink-0"
+                        aria-hidden="true"
+                      />
+                    }
+                  </span>
+                  <span class="block truncate text-[12px] font-normal leading-4 text-[#8C8C8C]">
+                    {{ user.email }}
+                  </span>
+                </span>
+              </div>
+
+              <span
+                class="inline-flex h-6 shrink-0 items-center gap-1 rounded-lg px-2 text-[12px] font-semibold leading-4"
+                [class.bg-[#F3FBF9]]="user.status === 'active'"
+                [class.text-[#25AD32]]="user.status === 'active'"
+                [class.bg-[#FDF6FA]]="user.status === 'suspended'"
+                [class.text-[#FF2524]]="user.status === 'suspended'"
+              >
+                <img
+                  [ngSrc]="user.status === 'active' ? '/assets/icons/admin-users/tick-circle.svg' : '/assets/icons/admin-users/slash.svg'"
+                  width="14"
+                  height="14"
+                  alt=""
+                  class="h-3.5 w-3.5"
+                  aria-hidden="true"
+                />
+                {{ user.status === 'active' ? 'Active' : 'Suspended' }}
+              </span>
+            </div>
+
+            <div class="flex flex-col gap-3 text-[14px] leading-5">
+              <div class="flex items-center justify-between gap-4">
+                <span class="font-normal text-[#1A1B1D]/50">Date joined</span>
+                <span class="font-medium text-[#1A1B1D]">{{ user.dateJoined }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <span class="font-normal text-[#1A1B1D]/50">Last signed in</span>
+                <span class="font-medium text-[#1A1B1D]">{{ user.lastSignedIn }}</span>
+              </div>
+            </div>
+          </button>
+        }
+      </div>
+    </section>
+
+    <div class="hidden h-full flex-col rounded-[24px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] sm:rounded-[32px] lg:flex">
       <div class="border-b border-[#F0F0F2] px-5 py-5 sm:px-8 sm:py-6">
         <h1 class="text-[20px] font-semibold tracking-[-0.03em] text-[#1A1C21]">Users</h1>
       </div>
@@ -224,6 +366,11 @@ export class AdminUsersPageComponent {
     { id: 'all' as const, label: 'All', value: '65' },
     { id: 'active' as const, label: 'Active', value: '09' },
     { id: 'suspended' as const, label: 'Suspended', value: '03' },
+  ];
+  readonly mobileSummaryCards = [
+    { id: 'all' as const, label: 'All', value: '65' },
+    { id: 'active' as const, label: 'Active', value: '65' },
+    { id: 'suspended' as const, label: 'Suspended', value: '65' },
   ];
 
   readonly users = signal<AdminUser[]>([

@@ -100,8 +100,9 @@ import { AdminDashboardSidebarComponent } from './admin-dashboard-sidebar.compon
           </div>
         }
 
-        <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white pb-[116px] lg:rounded-[32px] lg:pb-0 lg:shadow-sm">
+        <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white lg:rounded-[32px] lg:shadow-sm">
           <router-outlet></router-outlet>
+          <div class="h-[152px] lg:hidden" aria-hidden="true"></div>
         </main>
       </div>
 
