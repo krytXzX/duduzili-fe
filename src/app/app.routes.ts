@@ -88,11 +88,6 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        pathMatch: 'full',
-        redirectTo: 'home',
-      },
-      {
-        path: 'home',
         loadComponent: () =>
           import('./pages/admin/admin-dashboard-home-page.component').then(
             (m) => m.AdminDashboardHomePageComponent,

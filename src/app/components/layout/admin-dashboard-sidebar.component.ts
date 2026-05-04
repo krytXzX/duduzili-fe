@@ -43,7 +43,7 @@ import {
         <h3 class="mb-5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Main</h3>
         <nav class="space-y-1">
           <a
-            routerLink="/admin/home"
+            routerLink="/admin"
             routerLinkActive="bg-white text-[#1A1C21] shadow-sm"
             class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
           >
