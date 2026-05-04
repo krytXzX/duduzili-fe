@@ -23,13 +23,20 @@
     <!-- Heart Icon -->
     @if (showFavorite()) {
     <button (click)="toggleFavorite($event)"
-      class="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#1A1C21]/75 text-white backdrop-blur-md transition-all hover:bg-[#1A1C21]/85 md:right-4 md:top-4 md:h-10 md:w-10 md:bg-white/10"
-      [class.text-red-500]="isFavorited()" [class.text-white]="!isFavorited()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 md:h-5 md:w-5" [attr.fill]="isFavorited() ? 'currentColor' : 'none'"
-        viewBox="0 0 24 24" [attr.stroke]="isFavorited() ? 'currentColor' : 'white'">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-      </svg>
+      class="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center transition-all md:right-4 md:top-4 md:h-10 md:w-10"
+      [attr.aria-pressed]="isFavorited()"
+      aria-label="Save listing">
+      <span class="relative block h-4 w-4 md:h-5 md:w-5" aria-hidden="true">
+        <span
+          class="absolute inset-0 scale-[1.2]"
+          style="background-color: #FFFFFF; -webkit-mask: url('/assets/icons/listing-card/heart-outline-figma.svg') center / contain no-repeat; mask: url('/assets/icons/listing-card/heart-outline-figma.svg') center / contain no-repeat;"
+        ></span>
+        <span
+          class="absolute inset-0"
+          [style.background-color]="isFavorited() ? '#FF3B30' : '#000000'"
+          style="-webkit-mask: url('/assets/icons/listing-card/heart-outline-figma.svg') center / contain no-repeat; mask: url('/assets/icons/listing-card/heart-outline-figma.svg') center / contain no-repeat;"
+        ></span>
+      </span>
     </button>
     }
 
