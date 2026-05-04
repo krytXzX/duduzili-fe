@@ -188,6 +188,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'more',
+        loadComponent: () =>
+          import('./pages/admin/admin-more-page.component').then((m) => m.AdminMorePageComponent),
+      },
+      {
         path: 'audit-log',
         loadComponent: () =>
           import('./pages/admin/admin-audit-log-page.component').then(
