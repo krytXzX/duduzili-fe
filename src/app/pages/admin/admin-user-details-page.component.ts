@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { type Store } from '../../components/stores/store-card.component';
+import { StoreCardComponent, type Store } from '../../components/stores/store-card.component';
 import {
   BannerPromotionCardComponent,
   type BannerPromotionCardData,
@@ -52,6 +52,7 @@ type AdminManagedPromotedListingCategory =
   | AdminManagedAdCategory
   | 'phones & laptops';
 type AdminManagedPromotedListingPriceDisplay = 'naira-icon' | 'strikethrough-n' | 'text';
+type MobilePromotedStore = Store & { status: AdminManagedAdStatus };
 type AdminUserTransactionStatus = 'successful' | 'failed';
 type AdminUserTransactionType = 'all' | 'wallet funding' | 'subscription payment';
 type AdminUserTransactionDate = 'all' | 'feb-2025' | 'mar-2025';
@@ -174,6 +175,15 @@ interface AdminUserTransaction {
   status: AdminUserTransactionStatus;
 }
 
+interface AdminUserMobileTransaction {
+  id: string;
+  amount: string;
+  type: string;
+  dateLabel: string;
+  status: AdminUserTransactionStatus;
+  icon: string;
+}
+
 interface AdminUserReviewTag {
   label: string;
   count: number;
@@ -186,6 +196,7 @@ interface AdminUserReview {
   date: string;
   text: string;
   images?: string[];
+  moreImagesLabel?: string;
 }
 
 interface AdminProfileReport {
@@ -233,7 +244,7 @@ interface AdminUserActivityYearGroup {
 
 @Component({
   selector: 'app-admin-user-details-page',
-  imports: [RouterLink, NgIcon, NgOptimizedImage, BannerPromotionCardComponent],
+  imports: [RouterLink, NgIcon, NgOptimizedImage, StoreCardComponent, BannerPromotionCardComponent],
   providers: [
     provideIcons({
       heroCalendarDays,
@@ -821,7 +832,19 @@ interface AdminUserActivityYearGroup {
             }
           </div>
 
-          @if (activeAdsPlacement() === 'promoted listings') {
+          @if (activeAdsPlacement() === 'store promotions') {
+            <div class="grid grid-cols-2 gap-2">
+              @for (store of visibleMobilePromotedStores(); track store.id) {
+                <app-store-card [store]="store" [showFavorite]="false"></app-store-card>
+              }
+            </div>
+          } @else if (activeAdsPlacement() === 'banner ads') {
+            <div class="flex flex-col gap-[17.199px]">
+              @for (banner of visibleBannerAds(); track banner.id) {
+                <app-banner-promotion-card [card]="banner" [compact]="true"></app-banner-promotion-card>
+              }
+            </div>
+          } @else if (activeAdsPlacement() === 'promoted listings') {
             <div class="flex flex-col gap-8">
               @for (section of visibleMobilePromotedListingSections(); track section.category) {
                 <section>
@@ -942,11 +965,194 @@ interface AdminUserActivityYearGroup {
               }
             </div>
           } @else {
-            <div class="rounded-[20px] border border-dashed border-[#EAEAEA] p-8 text-center">
+          <div class="rounded-[20px] border border-dashed border-[#EAEAEA] p-8 text-center">
               <h2 class="text-[18px] font-semibold text-[#1A1B1D]">{{ activeAdsPlacement() }}</h2>
               <p class="mt-2 text-[14px] text-[#959595]">This Ads placement is ready for the next pass.</p>
             </div>
           }
+        </div>
+      } @else if (activeTab() === 'transactions') {
+        <div class="mt-8 flex flex-col gap-6">
+          <section>
+            <h2 class="max-w-[350px] text-[32px] font-medium leading-[1.3] tracking-[-0.04em] text-[#414141]">
+              They currently have
+              <span class="font-bold text-[#959595]">
+                <span class="line-through">N</span>0.00
+              </span>
+              in their wallet
+            </h2>
+          </section>
+
+          <section class="flex flex-col gap-6">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h3 class="text-[16px] font-medium leading-5 text-[#4D4845]">Transaction history</h3>
+                <p class="mt-1 text-[12px] leading-4 text-[#928F8B]">23 total</p>
+              </div>
+
+              <button type="button" class="text-[16px] font-medium leading-6 text-[#357FF6] underline underline-offset-[3px]">
+                See all
+              </button>
+            </div>
+
+            <div class="flex flex-col gap-6">
+              @for (transaction of recentMobileTransactions(); track transaction.id) {
+                <article class="flex items-center gap-3">
+                  <div class="relative h-10 w-10 shrink-0 rounded-full border border-[#F4F4F2] bg-white">
+                    <img
+                      [ngSrc]="transaction.icon"
+                      [alt]="transaction.type"
+                      width="24"
+                      height="24"
+                      class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
+                    />
+                    <span class="absolute bottom-0 right-0 flex h-[19px] w-[19px] items-center justify-center rounded-full bg-white shadow-[0_3px_9px_rgba(172,172,172,0.25)]">
+                      <img
+                        ngSrc="/assets/icons/admin-user-details/transactions/transaction-direction-down.svg"
+                        width="14"
+                        height="14"
+                        alt=""
+                        class="h-[14px] w-[14px]"
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </div>
+
+                  <div class="flex min-w-0 flex-1 items-start justify-between gap-4">
+                    <div class="min-w-0">
+                      <h4 class="truncate text-[14px] font-medium leading-5 text-[#4D4845]">{{ transaction.type }}</h4>
+                      <p class="mt-1 truncate text-[12px] leading-4 text-[#928F8B]">{{ transaction.dateLabel }}</p>
+                    </div>
+
+                    <div class="text-right">
+                      <p class="text-[14px] font-medium leading-5 text-[#215B44]">{{ transaction.amount }}</p>
+                      <p
+                        class="mt-1 text-[12px] leading-4"
+                        [class.text-[#50BD5A]]="transaction.status === 'successful'"
+                        [class.text-[#FF2524]]="transaction.status === 'failed'"
+                      >
+                        {{ transaction.status === 'successful' ? 'Successful' : 'Failed' }}
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        </div>
+      } @else if (activeTab() === 'reviews') {
+        <div class="mt-6 flex flex-col gap-8">
+          <section class="rounded-[16px] bg-[#FAFAFA] px-3 py-[23px]">
+            <div class="flex items-start justify-center gap-8">
+              <div class="flex flex-col items-center gap-0.5">
+                <p class="text-center text-[0px] leading-none text-[#2D2D2D]">
+                  <span class="text-[40px] font-semibold leading-[48px] tracking-[-0.04em]">4.57</span>
+                  <span class="text-[20px] font-medium leading-6 text-[#BFBFBF]">/5</span>
+                </p>
+
+                <div class="flex items-center gap-1 text-[20px] leading-5 text-[#D3DC35]" aria-label="5 out of 5 stars">
+                  @for (star of [1, 2, 3, 4, 5]; track star) {
+                    <span>★</span>
+                  }
+                </div>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <h3 class="text-[16px] font-semibold leading-6 text-[#2D2D2D]">Overall rating</h3>
+
+                <div class="mt-1 flex flex-col gap-2">
+                  @for (bar of ratingBreakdown; track bar.stars) {
+                    <div class="flex items-center gap-3">
+                      <span class="inline-flex min-w-[23px] items-center gap-0.5 text-[14px] leading-5 text-[#2D2D2D]">
+                        {{ bar.stars }} <span class="text-[12px] text-[#D3DC35]">★</span>
+                      </span>
+                      <div class="h-[7px] w-[84px] overflow-hidden rounded-[16px] bg-[#EAEAEA]">
+                        <div class="h-full rounded-[16px] bg-[#2D2D2D]" [style.width.%]="bar.percentage"></div>
+                      </div>
+                      <span class="w-[31px] text-center text-[14px] leading-5 text-[#959595]">{{ bar.percentage }}%</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="flex flex-col gap-7">
+            <div class="flex items-center justify-between gap-4">
+              <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h2>
+
+              <button
+                type="button"
+                (click)="toggleReviewSort()"
+                class="inline-flex h-8 items-center gap-1 rounded-full border border-[#EAEAEA] bg-white px-2 text-[14px] font-normal leading-5 text-[#1A1B1D]"
+              >
+                {{ reviewSortLabel() }}
+                <img
+                  ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
+                  width="14"
+                  height="14"
+                  alt=""
+                  class="h-[14px] w-[14px]"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
+
+            <div>
+              <h3 class="text-[16px] font-medium leading-6 text-[#1F1F1F]">This listing is great at..</h3>
+
+              <div class="mt-3 flex flex-wrap gap-x-[7px] gap-y-[13px]">
+                @for (tag of mobileReviewTags(); track tag.label) {
+                  <span class="inline-flex items-center rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-3 py-2 text-[16px] font-medium leading-6 text-[#5A5A5A]">
+                    {{ tag.label }} ({{ tag.count }})
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-8">
+              @for (review of visibleMobileReviews(); track review.author + review.date) {
+                <article class="flex flex-col gap-[18px]">
+                  <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-2">
+                      <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
+                        <img [ngSrc]="review.avatar" [alt]="review.author" width="44" height="44" class="h-11 w-11 object-cover" />
+                      </div>
+                      <h4 class="text-[16px] font-medium leading-6 text-[#0D0D0D]">{{ review.author }}</h4>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                      <div class="flex items-center gap-0.5">
+                        @for (filled of reviewStars(review.rating); track $index) {
+                          <span class="text-[12px] leading-3" [class.text-[#2D2D2D]]="filled" [class.text-[#D9D9D9]]="!filled">★</span>
+                        }
+                      </div>
+                      <span class="text-[3px] leading-none text-[#8C8C8C]">●</span>
+                      <span class="text-[14px] leading-5 text-[#8C8C8C]">{{ review.date }}</span>
+                    </div>
+                  </div>
+
+                  <p class="text-[16px] leading-6 text-[#1F1F1F]">{{ review.text }}</p>
+
+                  @if (review.images?.length) {
+                    <div class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      @for (image of review.images!; track $index) {
+                        <div class="relative h-[77.898px] w-[77.898px] shrink-0 overflow-hidden rounded-[10.653px] bg-[#E9E9E9]">
+                          <img [ngSrc]="image" alt="" width="78" height="78" class="h-full w-full object-cover" />
+
+                          @if ($last && review.moreImagesLabel) {
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[11.984px] font-medium leading-4 text-white">
+                              {{ review.moreImagesLabel }}
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          </section>
         </div>
       } @else {
         <div class="mt-8 rounded-[20px] border border-dashed border-[#EAEAEA] p-8 text-center">
@@ -1624,7 +1830,171 @@ interface AdminUserActivityYearGroup {
                     </div>
                   </div>
 
-                  <div class="grid gap-4 xl:grid-cols-5">
+                  @if (section.category === 'other listings') {
+                    <div class="relative">
+                      <div
+                        #promotedSectionScroller
+                        class="flex gap-4 overflow-x-auto pr-12 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                      >
+                      @for (ad of section.items; track ad.id) {
+                        <article class="w-[196.2px] shrink-0 overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white p-1">
+                          <div
+                            class="relative h-[224px] overflow-hidden rounded-[20px]"
+                            [class.bg-[#BEBEBE]]="!ad.imageBackground"
+                            [style.background]="ad.imageBackground ?? null"
+                          >
+                            <img
+                              [ngSrc]="ad.image"
+                              [alt]="ad.title"
+                              width="188"
+                              height="224"
+                              class="h-full w-full"
+                              [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
+                              [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
+                            />
+
+                            @if (ad.showImageGradient) {
+                              <div
+                                class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_62.75%,rgba(0,0,0,0.5)_100%)]"
+                                aria-hidden="true"
+                              ></div>
+                            }
+
+                            <div class="absolute left-[7px] top-[7px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]">
+                              Active until: {{ ad.expiresOn }}
+                            </div>
+
+                            @if (ad.showImageDots) {
+                              <div class="absolute bottom-[10px] left-1/2 flex -translate-x-1/2 items-center gap-[3px]">
+                                @for (dot of [0, 1, 2, 3]; track dot) {
+                                  <span
+                                    class="block h-1 w-1 rounded-full"
+                                    [class.bg-[#1F1F1F]]="dot === 1"
+                                    [class.bg-[#D7D7D7]]="dot !== 1"
+                                  ></span>
+                                }
+                              </div>
+                            }
+
+                            @if (ad.imageControlMode === 'both') {
+                              <div class="absolute inset-x-[11px] top-1/2 flex -translate-y-1/2 items-center justify-between">
+                                <button
+                                  type="button"
+                                  class="flex h-6 w-6 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
+                                  aria-label="Previous image"
+                                >
+                                  <img
+                                    ngSrc="/assets/icons/admin-user-details/ads/arrow-left.svg"
+                                    width="12"
+                                    height="12"
+                                    alt=""
+                                    class="h-3 w-3"
+                                    aria-hidden="true"
+                                  />
+                                </button>
+                                <button
+                                  type="button"
+                                  class="flex h-6 w-6 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
+                                  aria-label="Next image"
+                                >
+                                  <img
+                                    ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg"
+                                    width="12"
+                                    height="12"
+                                    alt=""
+                                    class="h-3 w-3"
+                                    aria-hidden="true"
+                                  />
+                                </button>
+                              </div>
+                            }
+                          </div>
+
+                          <div class="flex flex-col gap-1 px-2 pb-3 pt-3">
+                            <h3 class="truncate text-[14px] leading-5 text-[#1F1F1F]">{{ ad.title }}</h3>
+
+                            <div class="flex items-center text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                              @if ((ad.priceDisplay ?? 'strikethrough-n') === 'naira-icon') {
+                                <span class="mr-px">₦</span>{{ ad.price }}
+                              } @else if ((ad.priceDisplay ?? 'strikethrough-n') === 'strikethrough-n') {
+                                <span class="line-through">N</span>{{ ad.price }}
+                              } @else {
+                                {{ ad.price }}
+                              }
+                            </div>
+
+                            <div class="mt-1 flex flex-wrap items-center gap-[10px] text-[12px] leading-4 text-[#959595]">
+                              <span class="inline-flex items-center gap-[2px]">
+                                <img
+                                  ngSrc="/assets/icons/admin-user-details/ads/eye.svg"
+                                  width="12"
+                                  height="12"
+                                  alt=""
+                                  class="h-3 w-3 shrink-0"
+                                  aria-hidden="true"
+                                />
+                                {{ ad.views }}
+                              </span>
+                              <span class="inline-flex items-center gap-[2px]">
+                                <img
+                                  ngSrc="/assets/icons/admin-user-details/ads/click.svg"
+                                  width="12"
+                                  height="12"
+                                  alt=""
+                                  class="h-3 w-3 shrink-0"
+                                  aria-hidden="true"
+                                />
+                                {{ ad.clicks }}
+                              </span>
+                              <span class="inline-flex items-center gap-[2px]">
+                                <img
+                                  ngSrc="/assets/icons/admin-user-details/ads/messages.svg"
+                                  width="12"
+                                  height="12"
+                                  alt=""
+                                  class="h-3 w-3 shrink-0"
+                                  aria-hidden="true"
+                                />
+                                {{ ad.messages }}
+                              </span>
+                              <span class="inline-flex items-center gap-[2px]">
+                                <img
+                                  ngSrc="/assets/icons/admin-user-details/ads/call.svg"
+                                  width="12"
+                                  height="12"
+                                  alt=""
+                                  class="h-3 w-3 shrink-0"
+                                  aria-hidden="true"
+                                />
+                                {{ ad.calls }}
+                              </span>
+                            </div>
+                          </div>
+                        </article>
+                      }
+                      </div>
+
+                      @if (section.items.length > 1) {
+                        <div class="pointer-events-none absolute inset-y-0 right-0 w-[72px] bg-[linear-gradient(270deg,#FFFFFF_34.75%,rgba(255,255,255,0)_100%)]"></div>
+                        <button
+                          type="button"
+                          (click)="scrollPromotedListings(promotedSectionScroller, 212)"
+                          class="absolute right-[-11px] top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
+                          aria-label="Scroll other listings"
+                        >
+                          <img
+                            ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg"
+                            width="12"
+                            height="12"
+                            alt=""
+                            class="h-3 w-3"
+                            aria-hidden="true"
+                          />
+                        </button>
+                      }
+                    </div>
+                  } @else {
+                    <div class="grid gap-4 xl:grid-cols-5">
                     @for (ad of section.items; track ad.id) {
                       <article class="overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white p-1">
                         <div
@@ -1696,23 +2066,7 @@ interface AdminUserActivityYearGroup {
                                 />
                               </button>
                             </div>
-                          } @else if (ad.imageControlMode === 'right') {
-                            <div class="pointer-events-none absolute inset-y-0 right-0 w-[58px] bg-[linear-gradient(270deg,#FFFFFF_24.75%,rgba(255,255,255,0)_100%)]"></div>
-                            <button
-                              type="button"
-                              class="absolute right-[-11px] top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
-                              aria-label="Next image"
-                            >
-                              <img
-                                ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg"
-                                width="12"
-                                height="12"
-                                alt=""
-                                class="h-3 w-3"
-                                aria-hidden="true"
-                              />
-                            </button>
-                          }
+                          } 
                         </div>
 
                         <div class="flex flex-col gap-1 px-2 pb-3 pt-3">
@@ -1777,7 +2131,8 @@ interface AdminUserActivityYearGroup {
                         </div>
                       </article>
                     }
-                  </div>
+                    </div>
+                  }
                 </section>
               }
             }
@@ -1785,79 +2140,114 @@ interface AdminUserActivityYearGroup {
         } @else if (activeTab() === 'transactions') {
           <div>
             <section>
-              <h2 class="max-w-[460px] text-[34px] font-medium leading-[1.2] tracking-tight text-[#2A2D34]">
+              <h2 class="max-w-[468px] text-[40px] font-medium leading-[1.3] tracking-[-0.04em] text-[#414141]">
                 They currently have
-                <span class="font-black text-[#8E939D]">₦0.00</span>
+                <span class="font-bold text-[#959595]">
+                  <span class="line-through">N</span>0.00
+                </span>
                 in their wallet
               </h2>
             </section>
 
-            <section class="mt-12">
-              <h3 class="text-[18px] font-semibold tracking-[-0.03em] text-[#1A1C21]">Transaction history</h3>
+            <section class="mt-9">
+              <h3 class="text-[20px] font-medium leading-6 text-[#0D0D0D]">Transaction history</h3>
 
-              <div class="mt-4 overflow-hidden rounded-[26px] border border-[#ECEEF3] bg-white">
-                <div class="flex flex-col gap-4 border-b border-[#F1F2F4] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+              <div class="mt-4 overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white">
+                <div class="flex flex-col gap-4 border-b border-[#F0F0F0] px-[15px] py-[15px]">
                   <div class="flex flex-wrap gap-3">
                     <button
                       type="button"
                       (click)="cycleTransactionTypeFilter()"
-                      class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                      class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
                     >
                       {{ transactionTypeLabel() }}
-                      <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
+                      <img
+                        ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
+                        width="16"
+                        height="16"
+                        alt=""
+                        class="h-4 w-4"
+                        aria-hidden="true"
+                      />
                     </button>
 
                     <button
                       type="button"
                       (click)="cycleTransactionDateFilter()"
-                      class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                      class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
                     >
                       {{ transactionDateLabel() }}
-                      <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
+                      <img
+                        ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
+                        width="16"
+                        height="16"
+                        alt=""
+                        class="h-4 w-4"
+                        aria-hidden="true"
+                      />
                     </button>
 
                     <button
                       type="button"
                       (click)="cycleTransactionStatusFilter()"
-                      class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                      class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
                     >
                       {{ transactionStatusLabel() }}
-                      <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
+                      <img
+                        ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
+                        width="16"
+                        height="16"
+                        alt=""
+                        class="h-4 w-4"
+                        aria-hidden="true"
+                      />
                     </button>
                   </div>
                 </div>
 
                 <div class="overflow-x-auto">
                   <table class="w-full min-w-[760px]">
-                    <thead class="border-b border-[#F1F2F4] bg-[#FAFAFB] text-left">
-                      <tr class="text-[12px] font-semibold text-[#9AA0AA]">
-                        <th class="px-8 py-4">Amount</th>
-                        <th class="px-4 py-4">Transaction type</th>
-                        <th class="px-4 py-4">Date</th>
-                        <th class="px-4 py-4">Status</th>
+                    <thead class="border-b border-[#F0F0F0] bg-[#FAFAFA] text-left">
+                      <tr class="text-[12px] font-medium text-[#1A1B1D]/60">
+                        <th class="px-[35px] py-[11px]">Amount</th>
+                        <th class="px-4 py-[11px]">Transaction type</th>
+                        <th class="px-4 py-[11px]">Date</th>
+                        <th class="px-4 py-[11px]">Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       @for (transaction of visibleTransactions(); track transaction.id) {
-                        <tr class="border-b border-[#F4F5F7] last:border-b-0">
-                          <td class="px-8 py-5 text-[14px] font-semibold text-[#555A64]">{{ transaction.amount }}</td>
-                          <td class="px-4 py-5 text-[14px] font-medium text-[#555A64]">{{ transaction.type }}</td>
-                          <td class="px-4 py-5 text-[14px] font-medium text-[#555A64]">{{ transaction.date }}</td>
+                        <tr class="border-b border-[#F0F0F0] last:border-b-0">
+                          <td class="px-[35px] py-5 text-[14px] font-medium text-[#1F1F1F]">{{ transaction.amount }}</td>
+                          <td class="px-4 py-5 text-[14px] font-normal capitalize text-[#1A1B1D]">{{ transaction.type }}</td>
+                          <td class="px-4 py-5 text-[14px] font-normal text-[#1A1B1D]">{{ transaction.date }}</td>
                           <td class="px-4 py-5">
                             <span
-                              class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold"
-                              [class.bg-[#EDF9EF]]="transaction.status === 'successful'"
-                              [class.text-[#2FB04A]]="transaction.status === 'successful'"
-                              [class.bg-[#FFF0F0]]="transaction.status === 'failed'"
-                              [class.text-[#FF4B4B]]="transaction.status === 'failed'"
+                              class="inline-flex h-6 items-center gap-1 rounded-lg px-2 text-[12px] font-semibold leading-4"
+                              [class.bg-[#F3FBF9]]="transaction.status === 'successful'"
+                              [class.text-[#25AD32]]="transaction.status === 'successful'"
+                              [class.bg-[#FDF6FA]]="transaction.status === 'failed'"
+                              [class.text-[#FF2524]]="transaction.status === 'failed'"
                             >
-                              <span
-                                class="flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                                [class.bg-[#2FB04A]]="transaction.status === 'successful'"
-                                [class.bg-[#FF4B4B]]="transaction.status === 'failed'"
-                              >
-                                {{ transaction.status === 'successful' ? '✓' : '!' }}
-                              </span>
+                              @if (transaction.status === 'successful') {
+                                <img
+                                  ngSrc="/assets/icons/admin-user-details/tick-circle.svg"
+                                  width="14"
+                                  height="14"
+                                  alt=""
+                                  class="h-3.5 w-3.5 shrink-0"
+                                  aria-hidden="true"
+                                />
+                              } @else {
+                                <img
+                                  ngSrc="/assets/icons/admin-users/slash.svg"
+                                  width="14"
+                                  height="14"
+                                  alt=""
+                                  class="h-3.5 w-3.5 shrink-0"
+                                  aria-hidden="true"
+                                />
+                              }
                               {{ transaction.status === 'successful' ? 'Successful' : 'Failed' }}
                             </span>
                           </td>
@@ -1868,59 +2258,66 @@ interface AdminUserActivityYearGroup {
                 </div>
               </div>
 
-              <div class="mt-6 flex items-center justify-between px-2">
-                <p class="text-[14px] font-semibold text-[#646A73]">{{ visibleTransactions().length }} results</p>
+              <div class="mt-6 flex items-center justify-between">
+                <p class="text-[16px] font-medium text-[#1A1B1D]">
+                  {{ visibleTransactions().length }}
+                  <span class="text-[#1A1B1D]/50"> results</span>
+                </p>
 
-                <div class="flex items-center gap-2 text-[14px] font-medium text-[#B2B7C0]">
+                <div class="flex items-center gap-2 text-[16px] text-[#1C1F1D]/50">
                   <button
                     type="button"
-                    class="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white transition hover:bg-[#FAFAFC]"
+                    class="flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] transition hover:bg-[#FAFAFC]"
                   >
                     <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
                   </button>
-                  <span class="flex h-8 min-w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white px-3 text-[#7A808A]">
+                  <span class="flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-3 text-[14px] font-medium text-[#1A1B1D] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">
                     1
                   </span>
                   <button
                     type="button"
-                    class="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white transition hover:bg-[#FAFAFC]"
+                    class="flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] transition hover:bg-[#FAFAFC]"
                   >
                     <ng-icon name="heroChevronRight" class="text-sm"></ng-icon>
                   </button>
-                  <span class="ml-2">of 1</span>
+                  <span class="ml-2">of 12</span>
                 </div>
               </div>
             </section>
           </div>
         } @else if (activeTab() === 'reviews') {
           <div class="pt-6">
-            <div class="grid gap-8 xl:grid-cols-[260px_minmax(0,1fr)]">
+            <div class="grid gap-8 xl:grid-cols-[261px_minmax(0,1fr)]">
               <div class="space-y-5">
-                <div class="rounded-[28px] bg-[#FCFCFD] p-6">
-                  <div class="mb-4 flex items-end gap-2">
-                    <span class="text-[58px] font-semibold leading-none text-[#1A1C21]">4.57</span>
-                    <span class="mb-1 text-[22px] font-semibold text-[#C8CBD4]">/5</span>
+                <div class="rounded-[16px] bg-[#FAFAFA] px-6 py-[23px]">
+                  <div class="mb-8 flex flex-col items-center gap-0.5">
+                    <p class="text-center text-[0px] leading-none text-[#2D2D2D]">
+                      <span class="text-[56px] font-semibold leading-[64px] tracking-[-0.04em]">4.57</span>
+                      <span class="text-[28px] font-medium leading-10 text-[#BFBFBF]">/5</span>
+                    </p>
+
+                    <div class="flex items-center gap-1 text-[23px] leading-[23px] text-[#D3DC35]" aria-label="5 out of 5 stars">
+                      @for (star of [1, 2, 3, 4, 5]; track star) {
+                        <span>★</span>
+                      }
+                    </div>
                   </div>
 
-                  <div class="mb-6 flex items-center gap-2 text-[#D3DC35]">
-                    @for (star of [1, 2, 3, 4, 5]; track star) {
-                      <span class="text-[20px]">★</span>
-                    }
-                  </div>
-
-                  <p class="mb-4 text-[16px] font-semibold text-[#1A1C21]">Overall rating</p>
+                  <p class="mb-1 text-[16px] font-semibold leading-6 text-[#2D2D2D]">Overall rating</p>
 
                   <div class="space-y-3">
                     @for (bar of ratingBreakdown; track bar.stars) {
                       <div class="flex items-center gap-3">
-                        <span class="w-7 text-[15px] font-medium text-[#1A1C21]">{{ bar.stars }} ★</span>
-                        <div class="h-[6px] flex-1 overflow-hidden rounded-full bg-[#ECEEF4]">
+                        <span class="inline-flex w-[21px] items-center gap-0.5 text-[14px] leading-5 text-[#2D2D2D]">
+                          {{ bar.stars }} <span class="text-[12px] text-[#2D2D2D]">★</span>
+                        </span>
+                        <div class="h-[7px] w-[132px] overflow-hidden rounded-[16px] bg-[#EAEAEA]">
                           <div
-                            class="h-full rounded-full bg-[#3A3C43]"
+                            class="h-full rounded-[16px] bg-[#2D2D2D]"
                             [style.width.%]="bar.percentage"
                           ></div>
                         </div>
-                        <span class="w-9 text-right text-[15px] text-[#8C8C92]">{{ bar.percentage }}%</span>
+                        <span class="flex-1 text-right text-[14px] leading-5 text-[#959595]">{{ bar.percentage }}%</span>
                       </div>
                     }
                   </div>
@@ -1928,14 +2325,14 @@ interface AdminUserActivityYearGroup {
               </div>
 
               <div>
-                <div class="mb-7 flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                <div class="mb-8 flex flex-col gap-7 md:flex-row md:items-start md:justify-between">
                   <div>
-                    <h2 class="text-[18px] font-semibold text-[#1A1C21]">215 reviews</h2>
-                    <p class="mt-8 text-[18px] font-medium text-[#1A1C21]">This seller is great at..</p>
+                    <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h2>
+                    <p class="mt-7 text-[16px] font-medium leading-6 text-[#1F1F1F]">This seller is great at..</p>
 
-                    <div class="mt-4 flex flex-wrap gap-3">
-                      @for (tag of reviewTagsByUser[userId()] ?? reviewTagsByUser['francis-uche']; track tag.label) {
-                        <div class="rounded-full border border-[#E6E8EF] px-4 py-2 text-[15px] text-[#4B5563]">
+                    <div class="mt-3 flex flex-wrap gap-3">
+                      @for (tag of visibleReviewTags(); track tag.label) {
+                        <div class="rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-4 py-2 text-[16px] font-medium leading-6 text-[#5A5A5A]">
                           {{ tag.label }} ({{ tag.count }})
                         </div>
                       }
@@ -1945,10 +2342,17 @@ interface AdminUserActivityYearGroup {
                   <button
                     type="button"
                     (click)="toggleReviewSort()"
-                    class="flex items-center gap-2 self-start rounded-full border border-[#E6E8EF] bg-white px-4 py-2.5 text-[15px] font-medium text-[#1A1C21]"
+                    class="inline-flex h-8 items-center gap-2 self-start rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-normal leading-5 text-[#1A1B1D]"
                   >
                     {{ reviewSortLabel() }}
-                    <ng-icon name="heroChevronDown" class="text-[16px] text-[#8C8C92]"></ng-icon>
+                    <img
+                      ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
+                      width="14"
+                      height="14"
+                      alt=""
+                      class="h-[14px] w-[14px]"
+                      aria-hidden="true"
+                    />
                   </button>
                 </div>
 
@@ -1957,33 +2361,33 @@ interface AdminUserActivityYearGroup {
                     <article class="rounded-[24px] bg-white">
                       <div class="flex gap-4">
                         <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
-                          <img [src]="review.avatar" [alt]="review.author" class="h-full w-full object-cover" />
+                          <img [ngSrc]="review.avatar" [alt]="review.author" width="40" height="40" class="h-10 w-10 object-cover" />
                         </div>
 
                         <div class="min-w-0 flex-1">
-                          <h3 class="text-[16px] font-medium text-[#1A1C21]">{{ review.author }}</h3>
+                          <h3 class="text-[16px] font-medium leading-6 text-[#0D0D0D]">{{ review.author }}</h3>
 
                           <div class="mt-2 flex items-center gap-2">
-                            <div class="flex items-center gap-1 text-[#3A3C43]">
+                            <div class="flex items-center gap-0.5">
                               @for (filled of reviewStars(review.rating); track $index) {
-                                <span class="text-[13px]" [class.text-[#3A3C43]]="filled" [class.text-[#E5E7EB]]="!filled">★</span>
+                                <span class="text-[12px] leading-3" [class.text-[#2D2D2D]]="filled" [class.text-[#D9D9D9]]="!filled">★</span>
                               }
                             </div>
-                            <span class="text-[11px] text-[#D1D5DB]">•</span>
-                            <span class="text-[14px] text-[#8C8C92]">{{ review.date }}</span>
+                            <span class="text-[3px] leading-none text-[#8C8C8C]">●</span>
+                            <span class="text-[14px] leading-5 text-[#8C8C8C]">{{ review.date }}</span>
                           </div>
 
-                          <p class="mt-3 text-[15px] leading-8 text-[#2F3138]">{{ review.text }}</p>
+                          <p class="mt-3 text-[16px] leading-6 text-[#1F1F1F]">{{ review.text }}</p>
 
                           @if (review.images?.length) {
                             <div class="mt-4 flex flex-wrap gap-3">
-                              @for (image of review.images!.slice(0, 6); track $index) {
-                                <div class="relative h-28 w-28 overflow-hidden rounded-[18px] bg-[#F3F4F6]">
-                                  <img [src]="image" alt="" class="h-full w-full object-cover" />
+                              @for (image of review.images!; track $index) {
+                                <div class="relative h-[117px] w-[117px] overflow-hidden rounded-[16px] bg-[#E9E9E9]">
+                                  <img [ngSrc]="image" alt="" width="117" height="117" class="h-full w-full object-cover" />
 
-                                  @if ($index === 5 && review.images!.length > 6) {
-                                    <div class="absolute inset-0 flex items-center justify-center bg-black/45 text-[28px] font-semibold text-white">
-                                      +{{ review.images!.length - 5 }}
+                                  @if ($last && review.moreImagesLabel) {
+                                    <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[18px] font-medium leading-6 text-white">
+                                      {{ review.moreImagesLabel }}
                                     </div>
                                   }
                                 </div>
@@ -2260,6 +2664,7 @@ export class AdminUserDetailsPageComponent {
   readonly visibleStores = computed(() => this.storesByUser[this.userId()] ?? this.storesByUser['francis-uche']);
   readonly visibleMobileStores = computed(() => this.mobileStoresByUser[this.userId()] ?? this.mobileStoresByUser['francis-uche']);
   readonly userTransactions = computed(() => this.transactionsByUser[this.userId()] ?? this.transactionsByUser['francis-uche']);
+  readonly mobileTransactions = computed(() => this.mobileTransactionsByUser[this.userId()] ?? this.mobileTransactionsByUser['francis-uche']);
 
   readonly visibleListings = computed(() => {
     const query = this.listingsSearchQuery().trim().toLowerCase();
@@ -2314,6 +2719,11 @@ export class AdminUserDetailsPageComponent {
     ].filter((section) => section.items.length > 0);
   });
 
+  readonly visibleMobilePromotedStores = computed(() => {
+    const stores = this.mobilePromotedStoresByUser[this.userId()] ?? this.mobilePromotedStoresByUser['francis-uche'];
+    return stores.filter((store) => store.status === this.activeAdsStatus());
+  });
+
   readonly visiblePromotedStores = computed(() =>
     this.userPromotedStores().filter(
       (store) =>
@@ -2341,8 +2751,22 @@ export class AdminUserDetailsPageComponent {
     }),
   );
 
+  readonly recentMobileTransactions = computed(() => this.mobileTransactions().slice(0, 3));
+  readonly visibleReviewTags = computed(() => this.reviewTagsByUser[this.userId()] ?? this.reviewTagsByUser['francis-uche']);
+  readonly mobileReviewTags = computed(() => this.mobileReviewTagsByUser[this.userId()] ?? this.mobileReviewTagsByUser['francis-uche']);
+
   readonly visibleReviews = computed(() => {
     const reviews = [...(this.reviewsByUser[this.userId()] ?? this.reviewsByUser['francis-uche'])];
+
+    if (this.reviewSort() === 'highest-rated') {
+      return reviews.sort((a, b) => b.rating - a.rating);
+    }
+
+    return reviews;
+  });
+
+  readonly visibleMobileReviews = computed(() => {
+    const reviews = [...(this.mobileReviewsByUser[this.userId()] ?? this.mobileReviewsByUser['francis-uche'])];
 
     if (this.reviewSort() === 'highest-rated') {
       return reviews.sort((a, b) => b.rating - a.rating);
@@ -3156,6 +3580,73 @@ export class AdminUserDetailsPageComponent {
     'elle-adebisi': [],
   };
 
+  readonly mobilePromotedStoresByUser: Record<string, MobilePromotedStore[]> = {
+    'francis-uche': [
+      {
+        id: 'mobile-store-promo-vine',
+        name: 'The Vine Collections',
+        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/vine-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/vine-logo.png',
+        location: 'Ikeja, Lagos',
+        activeUntil: '24 May, 2025',
+        route: ['/admin/users', 'francis-uche'],
+        status: 'active',
+      },
+      {
+        id: 'mobile-store-promo-eden',
+        name: 'Eden Organics',
+        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-logo.png',
+        location: 'Ikeja, Lagos',
+        activeUntil: '24 May, 2025',
+        route: ['/admin/users', 'francis-uche'],
+        status: 'active',
+      },
+      {
+        id: 'mobile-store-promo-snap',
+        name: 'Snap Thrifts',
+        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/snap-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/snap-logo.png',
+        location: 'Ikeja, Lagos',
+        activeUntil: '24 May, 2025',
+        route: ['/admin/users', 'francis-uche'],
+        status: 'active',
+      },
+      {
+        id: 'mobile-store-promo-gomelon',
+        name: 'goMelon',
+        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-logo.png',
+        location: 'Ikeja, Lagos',
+        activeUntil: '24 May, 2025',
+        route: ['/admin/users', 'francis-uche'],
+        status: 'active',
+      },
+      {
+        id: 'mobile-store-promo-paused',
+        name: 'Paused Store',
+        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-logo.png',
+        location: 'Ikeja, Lagos',
+        activeUntil: '24 May, 2025',
+        route: ['/admin/users', 'francis-uche'],
+        status: 'paused',
+      },
+      {
+        id: 'mobile-store-promo-expired',
+        name: 'Expired Store',
+        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-logo.png',
+        location: 'Ikeja, Lagos',
+        activeUntil: '24 May, 2025',
+        route: ['/admin/users', 'francis-uche'],
+        status: 'expired',
+      },
+    ],
+    'mark-anthony': [],
+    'elle-adebisi': [],
+  };
+
   readonly promotedStoresByUser: Record<string, AdminManagedStorePromotion[]> = {
     'francis-uche': [
       {
@@ -3384,9 +3875,10 @@ export class AdminUserDetailsPageComponent {
         textTone: '#FFFFFF',
         accentTone: '#1E4CFF',
         badgeTone: '#F2F5A7',
-        imagePreview: '/assets/images/image-1-1.jpg',
+        imagePreview: '/assets/images/admin-user-details/ads/mobile-banner-ads/super-shopping-day.png',
         placement: 'banner ads',
         status: 'active',
+        showSponsorBadge: false,
       },
       {
         id: 'banner-prime-day',
@@ -3402,9 +3894,10 @@ export class AdminUserDetailsPageComponent {
         textTone: '#FFFFFF',
         accentTone: '#FFD44D',
         badgeTone: '#F2F5A7',
-        imagePreview: '/assets/images/hero_img_3.png',
+        imagePreview: '/assets/images/admin-user-details/ads/mobile-banner-ads/super-shopping-day.png',
         placement: 'banner ads',
         status: 'active',
+        showSponsorBadge: true,
       },
       {
         id: 'banner-paused',
@@ -3517,6 +4010,45 @@ export class AdminUserDetailsPageComponent {
         dateKey: 'feb-2025',
         status: 'successful',
       },
+      {
+        id: 'tx-5',
+        amount: '₦25,000.00',
+        type: 'wallet funding',
+        date: '14 Feb, 2025',
+        dateKey: 'feb-2025',
+        status: 'successful',
+      },
+    ],
+    'mark-anthony': [],
+    'elle-adebisi': [],
+  };
+
+  readonly mobileTransactionsByUser: Record<string, AdminUserMobileTransaction[]> = {
+    'francis-uche': [
+      {
+        id: 'mobile-tx-1',
+        amount: '₦16,500',
+        type: 'Wallet funding',
+        dateLabel: 'Today',
+        status: 'successful',
+        icon: '/assets/images/admin-user-details/transactions/wallet-funding-icon.png',
+      },
+      {
+        id: 'mobile-tx-2',
+        amount: '₦2,000',
+        type: 'Subscription payment',
+        dateLabel: 'Yesterday',
+        status: 'failed',
+        icon: '/assets/images/admin-user-details/transactions/subscription-payment-icon.png',
+      },
+      {
+        id: 'mobile-tx-3',
+        amount: '₦5,000',
+        type: 'Wallet funding',
+        dateLabel: 'June 7, 2:30PM',
+        status: 'successful',
+        icon: '/assets/images/admin-user-details/transactions/wallet-funding-icon.png',
+      },
     ],
     'mark-anthony': [],
     'elle-adebisi': [],
@@ -3534,36 +4066,86 @@ export class AdminUserDetailsPageComponent {
     'elle-adebisi': [],
   };
 
+  readonly mobileReviewTagsByUser: Record<string, AdminUserReviewTag[]> = {
+    'francis-uche': [
+      { label: 'Fast response', count: 16 },
+      { label: 'Friendly', count: 7 },
+      { label: 'Smooth transaction', count: 7 },
+      { label: 'On-time delivery', count: 7 },
+      { label: 'Honest pricing', count: 7 },
+    ],
+    'mark-anthony': [],
+    'elle-adebisi': [],
+  };
+
   readonly reviewsByUser: Record<string, AdminUserReview[]> = {
     'francis-uche': [
       {
         author: 'Mary Jane',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
+        avatar: '/assets/images/admin-user-details/reviews/desktop/avatar-mary-jane.png',
         rating: 5,
         date: 'August 14, 2025',
         text: 'Contacted the seller. Went to their office to purchase the item and their hospitality was okay. Truly reliable. And he’s a funny man 😂',
       },
       {
         author: 'Apeli Obubra',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/4140/4140051.png',
+        avatar: '/assets/images/admin-user-details/reviews/desktop/avatar-apeli-obubra.png',
         rating: 4,
         date: 'August 14, 2025',
         text: 'Straightforward guy! easy transaction great goods',
       },
       {
         author: 'Ibiso Amiesimaka',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/4140/4140047.png',
+        avatar: '/assets/images/admin-user-details/reviews/desktop/avatar-ibiso-amiesimaka.png',
         rating: 4,
         date: 'August 14, 2025',
         text: 'infact it was amazing if everyone is like this Nigeria will be better than this i advice everybody that wants to by laptop should call this man',
         images: [
-          '/assets/images/hero_img_3.png',
-          '/assets/images/image-4-1.jpg',
-          '/assets/images/product_keyboard_rgb.png',
-          '/assets/images/product_watch_luxury.png',
-          '/assets/images/fashion_menswear_hero.png',
-          '/assets/images/image-1-1.jpg',
+          '/assets/images/admin-user-details/reviews/gallery-1.png',
+          '/assets/images/admin-user-details/reviews/gallery-2.png',
+          '/assets/images/admin-user-details/reviews/gallery-3.png',
+          '/assets/images/admin-user-details/reviews/gallery-4.png',
+          '/assets/images/admin-user-details/reviews/gallery-5.png',
+          '/assets/images/admin-user-details/reviews/gallery-6.png',
         ],
+        moreImagesLabel: '+6',
+      },
+    ],
+    'mark-anthony': [],
+    'elle-adebisi': [],
+  };
+
+  readonly mobileReviewsByUser: Record<string, AdminUserReview[]> = {
+    'francis-uche': [
+      {
+        author: 'Mary Jane',
+        avatar: '/assets/images/admin-user-details/reviews/mobile/avatar-mary-jane.png',
+        rating: 5,
+        date: 'August 2025',
+        text: 'Contacted the seller. Went to their office to purchase the item and their hospitality was okay. Truly reliable. And he’s a funny man 😂',
+      },
+      {
+        author: 'Apeli Obubra',
+        avatar: '/assets/images/admin-user-details/reviews/mobile/avatar-apeli-obubra.png',
+        rating: 4,
+        date: 'August 2025',
+        text: 'Straightforward guy! easy transaction great goods',
+      },
+      {
+        author: 'Ibiso Amiesimaka',
+        avatar: '/assets/images/admin-user-details/reviews/mobile/avatar-ibiso-amiesimaka.png',
+        rating: 4,
+        date: 'August 2025',
+        text: 'infact it was amazing if everyone is like this Nigeria will be better than this i advice everybody that wants to by laptop should call this man',
+        images: [
+          '/assets/images/admin-user-details/reviews/gallery-1.png',
+          '/assets/images/admin-user-details/reviews/gallery-2.png',
+          '/assets/images/admin-user-details/reviews/gallery-3.png',
+          '/assets/images/admin-user-details/reviews/gallery-4.png',
+          '/assets/images/admin-user-details/reviews/gallery-5.png',
+          '/assets/images/admin-user-details/reviews/gallery-6.png',
+        ],
+        moreImagesLabel: '+6',
       },
     ],
     'mark-anthony': [],
@@ -3796,13 +4378,22 @@ export class AdminUserDetailsPageComponent {
   }
 
   countUserAdsByStatus(status: AdminManagedAdsFilterStatus): number {
-    if (this.activeAdsPlacement() === 'store promotions') {
-      return status === 'active' || status === 'paused' || status === 'expired'
-        ? this.userPromotedStores().filter((store) => store.status === status).length
-        : 0;
-    }
-
     if (this.activeAdsPlacement() === 'banner ads') {
+      if (this.userId() === 'francis-uche') {
+        switch (status) {
+          case 'active':
+            return 2;
+          case 'paused':
+            return 1;
+          case 'pending approval':
+            return 13;
+          case 'declined':
+            return 2;
+          case 'expired':
+            return 8;
+        }
+      }
+
       return this.userBannerAds().filter((banner) => banner.status === status).length;
     }
 
@@ -3822,6 +4413,10 @@ export class AdminUserDetailsPageComponent {
     return status === 'active' || status === 'paused' || status === 'expired'
       ? this.userPromotedListings().filter((listing) => listing.status === status).length
       : 0;
+  }
+
+  scrollPromotedListings(container: HTMLElement, distance: number): void {
+    container.scrollBy({ left: distance, behavior: 'smooth' });
   }
 
   cycleListingsCategoryFilter(): void {
