@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { StoreCardComponent, type Store } from '../../components/stores/store-card.component';
+import { type Store } from '../../components/stores/store-card.component';
 import {
   BannerPromotionCardComponent,
   type BannerPromotionCardData,
@@ -48,6 +48,10 @@ type AdminManagedAdsFilterStatus =
   | 'expired';
 type AdminManagedAdPlacement = 'promoted listings' | 'store promotions' | 'banner ads';
 type AdminManagedAdCategory = 'other listings' | 'automobile listings' | 'property listings';
+type AdminManagedPromotedListingCategory =
+  | AdminManagedAdCategory
+  | 'phones & laptops';
+type AdminManagedPromotedListingPriceDisplay = 'naira-icon' | 'strikethrough-n' | 'text';
 type AdminUserTransactionStatus = 'successful' | 'failed';
 type AdminUserTransactionType = 'all' | 'wallet funding' | 'subscription payment';
 type AdminUserTransactionDate = 'all' | 'feb-2025' | 'mar-2025';
@@ -119,6 +123,28 @@ interface AdminManagedPromotionListing {
   placement: AdminManagedAdPlacement;
   category: AdminManagedAdCategory;
   image: string;
+}
+
+interface AdminManagedPromotedListingCard {
+  id: string;
+  title: string;
+  price: string;
+  views: string;
+  clicks: string;
+  messages: string;
+  calls: string;
+  expiresOn: string;
+  status: AdminManagedAdStatus;
+  category: AdminManagedPromotedListingCategory;
+  image: string;
+  imageFit?: 'cover' | 'contain';
+  imageBackground?: string;
+  showImageGradient?: boolean;
+  showImageDots?: boolean;
+  imageControlMode?: 'both' | 'right';
+  priceDisplay?: AdminManagedPromotedListingPriceDisplay;
+  oldPrice?: string;
+  discountLabel?: string;
 }
 
 interface AdminManagedBannerAd extends BannerPromotionCardData {
@@ -207,7 +233,7 @@ interface AdminUserActivityYearGroup {
 
 @Component({
   selector: 'app-admin-user-details-page',
-  imports: [RouterLink, NgIcon, NgOptimizedImage, StoreCardComponent, BannerPromotionCardComponent],
+  imports: [RouterLink, NgIcon, NgOptimizedImage, BannerPromotionCardComponent],
   providers: [
     provideIcons({
       heroCalendarDays,
@@ -277,13 +303,14 @@ interface AdminUserActivityYearGroup {
                 role="menuitem"
                 (click)="downloadUserData()"
               >
-                <svg class="h-[14px] w-[14px] shrink-0 text-[#292D32]" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M4.95833 6.41667V2.91667C4.95833 2.27233 5.48066 1.75 6.125 1.75H9.625L12.25 4.375V6.41667" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M9.33398 1.75V4.66667H12.2507" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M7 7V11.0833" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-                  <path d="M5.54297 9.625L7.0013 11.0833L8.45964 9.625" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M3.5 12.25H10.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-                </svg>
+                <img
+                  ngSrc="/assets/icons/admin-user-details/menu-download.svg"
+                  width="14"
+                  height="14"
+                  alt=""
+                  class="h-[14px] w-[14px] shrink-0"
+                  aria-hidden="true"
+                />
                 Download data
               </button>
 
@@ -294,7 +321,7 @@ interface AdminUserActivityYearGroup {
                 (click)="deactivateUser()"
               >
                 <img
-                  ngSrc="/assets/icons/admin-users/slash.svg"
+                  ngSrc="/assets/icons/admin-user-details/menu-slash.svg"
                   width="14"
                   height="14"
                   alt=""
@@ -311,7 +338,7 @@ interface AdminUserActivityYearGroup {
                 (click)="banUser()"
               >
                 <img
-                  ngSrc="/assets/icons/chats-profile-menu-trash.svg"
+                  ngSrc="/assets/icons/admin-user-details/menu-trash.svg"
                   width="14"
                   height="14"
                   alt=""
@@ -669,6 +696,258 @@ interface AdminUserActivityYearGroup {
             }
           </div>
         </div>
+      } @else if (activeTab() === 'stores') {
+        <div class="mt-6 grid grid-cols-2 gap-2">
+          @for (store of visibleMobileStores(); track store.id) {
+            <article class="overflow-hidden rounded-[13.746px] border border-[#EAEAEA] bg-white">
+              <div class="relative h-[90.5px] overflow-hidden rounded-t-[11.455px]">
+                <img
+                  [ngSrc]="store.mobileCoverImage ?? store.coverImage ?? ''"
+                  [alt]="store.name"
+                  width="173"
+                  height="90"
+                  class="h-full w-full object-cover"
+                />
+                <div
+                  class="absolute inset-x-0 bottom-0 h-[56px] bg-[linear-gradient(179.79deg,rgba(255,255,255,0)_0.54%,#FFFFFF_93.47%)]"
+                  aria-hidden="true"
+                ></div>
+              </div>
+
+              <div class="relative px-[10.88px] pb-[10px] pt-0">
+                <div
+                  class="-mt-[49px] flex h-[42.385px] w-[42.385px] items-center justify-center overflow-hidden rounded-full border-[2.291px] border-white bg-white"
+                  [class.bg-[#3D785F]]="store.id === 'vine-collections'"
+                >
+                  <img
+                    [ngSrc]="store.mobileLogoImage ?? store.logoImage ?? store.logo ?? ''"
+                    [alt]="store.name + ' logo'"
+                    width="42"
+                    height="42"
+                    class="h-full w-full object-cover"
+                  />
+                </div>
+
+                <div class="mt-2">
+                  <div class="flex items-center gap-[2.3px]">
+                    <h2 class="truncate text-[12px] font-medium leading-[13.746px] text-[#1F1F1F]">{{ store.name }}</h2>
+                      @if (store.isVerified ?? true) {
+                        <img
+                          ngSrc="/assets/icons/admin-user-details/stores/verify.svg"
+                          width="12"
+                          height="12"
+                          alt=""
+                          class="h-3 w-3 shrink-0"
+                        aria-hidden="true"
+                      />
+                    }
+                  </div>
+
+                  <div class="mt-[2px] flex items-center gap-[2.24px] text-[10px] leading-[8.968px] text-[#959595]">
+                    <img
+                      ngSrc="/assets/icons/admin-user-details/stores/location.svg"
+                      width="10"
+                      height="10"
+                      alt=""
+                      class="h-[10px] w-[10px] shrink-0"
+                      aria-hidden="true"
+                    />
+                    {{ store.location ?? store.metaLabel }}
+                  </div>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      } @else if (activeTab() === 'ads') {
+        <div class="mt-6 flex flex-col gap-6">
+          <section class="relative overflow-hidden rounded-[24px] bg-[#F3F1FF] px-4 pb-4 pt-4">
+            <div class="relative z-10 flex items-start justify-between gap-4">
+              <div>
+                <p class="text-[14px] leading-5 text-[#1F1F1F]">Pro</p>
+                <p class="mt-3 text-[0px] leading-none text-[#1F1F1F]">
+                  <span class="text-[32px] font-medium leading-8 tracking-[-0.04em]">₦1,000</span>
+                  <span class="text-[20px] font-normal leading-8 text-[#959595]">/week</span>
+                </p>
+                <p class="mt-2 text-[12px] leading-4 text-[#0D0D0D]/70">Expires on: 23 December, 2027</p>
+              </div>
+
+              <span
+                class="inline-flex h-7 shrink-0 items-center rounded-full bg-white px-2 text-[12px] font-medium leading-5 text-[#6453D9] shadow-[0_4px_8px_rgba(188,188,188,0.25)]"
+              >
+                Current plan
+              </span>
+            </div>
+
+            <img
+              ngSrc="/assets/images/admin-user-details/ads/mobile/plan-star.png"
+              width="96"
+              height="96"
+              alt=""
+              class="pointer-events-none absolute bottom-[-10px] right-[-8px] h-24 w-24"
+              aria-hidden="true"
+            />
+          </section>
+
+          <div class="-mx-3 overflow-x-auto px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div class="flex w-max items-center gap-5">
+              @for (placement of adPlacementTabs; track placement.value) {
+                <button
+                  type="button"
+                  (click)="activeAdsPlacement.set(placement.value)"
+                  class="text-[16px] font-medium leading-6 transition"
+                  [class.text-[#0D0D0D]]="activeAdsPlacement() === placement.value"
+                  [class.text-[#0D0D0D]/40]="activeAdsPlacement() !== placement.value"
+                >
+                  {{ placement.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-[10px]">
+            @for (status of adStatusTabs(); track status.value) {
+              <button
+                type="button"
+                (click)="activeAdsStatus.set(status.value)"
+                class="inline-flex h-10 items-center rounded-[16px] px-4 text-[12px] font-medium leading-4 transition"
+                [class.bg-[#1A1A1A]]="activeAdsStatus() === status.value"
+                [class.text-white]="activeAdsStatus() === status.value"
+                [class.bg-[#F4F4F4]]="activeAdsStatus() !== status.value"
+                [class.text-[#1A1A1A]]="activeAdsStatus() !== status.value"
+              >
+                {{ status.label }} ({{ countUserAdsByStatus(status.value) }})
+              </button>
+            }
+          </div>
+
+          @if (activeAdsPlacement() === 'promoted listings') {
+            <div class="flex flex-col gap-8">
+              @for (section of visibleMobilePromotedListingSections(); track section.category) {
+                <section>
+                  <div class="mb-4 flex items-center justify-between gap-4">
+                    <h2 class="text-[16px] font-medium leading-6 tracking-[-0.03em] text-[#1F1F1F]">
+                      {{ section.label }}
+                    </h2>
+
+                    <button type="button" class="inline-flex items-center gap-1 text-[12px] leading-6 text-[#1F1F1F]">
+                      View all (3,341)
+                      <ng-icon name="heroChevronRight" class="text-[14px]"></ng-icon>
+                    </button>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-x-2 gap-y-4">
+                    @for (ad of section.items; track ad.id) {
+                      <article class="overflow-hidden rounded-[13.451px] border-[0.561px] border-[#EAEAEA] bg-white p-[2.242px]">
+                        <div
+                          class="relative h-[159px] overflow-hidden rounded-[11.21px]"
+                          [class.bg-[#BEBEBE]]="!ad.imageBackground"
+                          [style.background]="ad.imageBackground ?? null"
+                        >
+                          <img
+                            [ngSrc]="ad.image"
+                            [alt]="ad.title"
+                            width="167"
+                            height="159"
+                            class="h-full w-full"
+                            [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
+                            [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
+                          />
+
+                          @if (ad.showImageGradient) {
+                            <div
+                              class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_62.75%,rgba(0,0,0,0.5)_100%)]"
+                              aria-hidden="true"
+                            ></div>
+                          }
+
+                          <span class="absolute left-[6.73px] top-[6.73px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]">
+                            Active until: {{ ad.expiresOn }}
+                          </span>
+
+                          @if (ad.discountLabel) {
+                            <span class="absolute left-[6.73px] top-[28px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[10px] font-medium leading-3 text-[#4E3E07]">
+                              {{ ad.discountLabel }}
+                            </span>
+                          }
+                        </div>
+
+                        <div class="flex flex-col gap-2 px-[2.242px] pb-[8.407px] pt-[6.726px]">
+                          <h3 class="truncate text-[13px] leading-[11.21px] text-[#1F1F1F]">{{ ad.title }}</h3>
+
+                          <div class="text-[14px] font-medium leading-[13.451px] text-[#1F1F1F]">
+                            @if ((ad.priceDisplay ?? 'strikethrough-n') === 'strikethrough-n') {
+                              <span class="line-through">N</span>{{ ad.price }}
+                            } @else if ((ad.priceDisplay ?? 'strikethrough-n') === 'naira-icon') {
+                              <span>₦</span>{{ ad.price }}
+                              @if (ad.oldPrice) {
+                                <span class="ml-1 text-[12px] text-[#959595] line-through">₦{{ ad.oldPrice }}</span>
+                              }
+                            } @else {
+                              {{ ad.price }}
+                            }
+                          </div>
+
+                          <div class="flex items-center gap-[10px] text-[12px] leading-4 text-[#959595]">
+                            <span class="inline-flex items-center gap-[2px]">
+                              <img
+                                ngSrc="/assets/icons/admin-user-details/ads/eye.svg"
+                                width="12"
+                                height="12"
+                                alt=""
+                                class="h-3 w-3 shrink-0"
+                                aria-hidden="true"
+                              />
+                              {{ ad.views }}
+                            </span>
+                            <span class="inline-flex items-center gap-[2px]">
+                              <img
+                                ngSrc="/assets/icons/admin-user-details/ads/click.svg"
+                                width="12"
+                                height="12"
+                                alt=""
+                                class="h-3 w-3 shrink-0"
+                                aria-hidden="true"
+                              />
+                              {{ ad.clicks }}
+                            </span>
+                            <span class="inline-flex items-center gap-[2px]">
+                              <img
+                                ngSrc="/assets/icons/admin-user-details/ads/messages.svg"
+                                width="12"
+                                height="12"
+                                alt=""
+                                class="h-3 w-3 shrink-0"
+                                aria-hidden="true"
+                              />
+                              {{ ad.messages }}
+                            </span>
+                            <span class="inline-flex items-center gap-[2px]">
+                              <img
+                                ngSrc="/assets/icons/admin-user-details/ads/call.svg"
+                                width="12"
+                                height="12"
+                                alt=""
+                                class="h-3 w-3 shrink-0"
+                                aria-hidden="true"
+                              />
+                              {{ ad.calls }}
+                            </span>
+                          </div>
+                        </div>
+                      </article>
+                    }
+                  </div>
+                </section>
+              }
+            </div>
+          } @else {
+            <div class="rounded-[20px] border border-dashed border-[#EAEAEA] p-8 text-center">
+              <h2 class="text-[18px] font-semibold text-[#1A1B1D]">{{ activeAdsPlacement() }}</h2>
+              <p class="mt-2 text-[14px] text-[#959595]">This Ads placement is ready for the next pass.</p>
+            </div>
+          }
+        </div>
       } @else {
         <div class="mt-8 rounded-[20px] border border-dashed border-[#EAEAEA] p-8 text-center">
           <h2 class="text-[18px] font-semibold text-[#1A1B1D]">{{ activeTabLabel() }}</h2>
@@ -750,23 +1029,37 @@ interface AdminUserActivityYearGroup {
 
             @if (isUserActionsOpen()) {
               <div
-                class="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[180px] overflow-hidden rounded-[18px] border border-[#ECEEF3] bg-white py-2 shadow-[0_20px_40px_-28px_rgba(17,24,39,0.45)]"
+                class="absolute right-0 top-[calc(100%+0.5rem)] z-20 flex w-[172px] flex-col gap-1 overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white p-[10px] shadow-[0_6.65px_5.32px_0_rgba(0,0,0,0.03),0_2.767px_2.214px_0_rgba(0,0,0,0.02)]"
                 (click)="$event.stopPropagation()"
               >
                 <button
                   type="button"
                   (click)="deactivateUser()"
-                  class="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] font-medium text-[#FF4B4B] transition hover:bg-[#FFF7F7]"
+                  class="flex h-8 w-full items-center gap-1.5 rounded-[8px] bg-white px-2 text-left text-[14px] font-medium leading-5 text-[#FF2524]"
                 >
-                  <span class="text-[15px]">⊘</span>
+                  <img
+                    ngSrc="/assets/icons/admin-user-details/menu-slash.svg"
+                    width="14"
+                    height="14"
+                    alt=""
+                    class="h-[14px] w-[14px] shrink-0"
+                    aria-hidden="true"
+                  />
                   Deactivate user
                 </button>
                 <button
                   type="button"
                   (click)="banUser()"
-                  class="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] font-medium text-[#FF4B4B] transition hover:bg-[#FFF7F7]"
+                  class="flex h-8 w-full items-center gap-1.5 rounded-[8px] bg-white px-2 text-left text-[14px] font-medium leading-5 text-[#FF2524]"
                 >
-                  <span class="text-[15px]">🗑</span>
+                  <img
+                    ngSrc="/assets/icons/admin-user-details/menu-trash.svg"
+                    width="14"
+                    height="14"
+                    alt=""
+                    class="h-[14px] w-[14px] shrink-0"
+                    aria-hidden="true"
+                  />
                   Ban user
                 </button>
               </div>
@@ -1096,49 +1389,115 @@ interface AdminUserActivityYearGroup {
         } @else if (activeTab() === 'stores') {
           <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             @for (store of visibleStores(); track store.id) {
-              <div class="relative">
-                @if (store.activeUntil) {
-                  <span
-                    class="absolute left-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[14px] shadow-[0_10px_18px_-14px_rgba(17,24,39,0.5)]"
-                    aria-label="Boosted store"
-                  >
-                    🚀
-                  </span>
-                }
+              <article class="overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white">
+                <div class="relative h-[158px] overflow-hidden rounded-t-[20px] p-[3px]">
+                  <div class="relative h-full overflow-hidden rounded-t-[20px]">
+                    <img
+                      [ngSrc]="store.coverImage ?? store.banner ?? ''"
+                      [alt]="store.name"
+                      width="263"
+                      height="158"
+                      class="h-full w-full object-cover"
+                    />
+                    <div
+                      class="absolute inset-x-0 bottom-0 h-[99px] bg-[linear-gradient(179.75deg,rgba(255,255,255,0)_0.54%,#FFFFFF_93.47%)]"
+                      aria-hidden="true"
+                    ></div>
 
-                <app-store-card [store]="store" [showFavorite]="false"></app-store-card>
-              </div>
+                    @if (store.activeUntil) {
+                      <span
+                        class="absolute left-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[14px] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                        aria-label="Boosted store"
+                      >
+                        🚀
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <div class="relative px-[19px] pb-5 pt-0">
+                  <div
+                    class="-mt-[89px] flex h-[74px] w-[74px] items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white"
+                    [class.bg-[#3D785F]]="store.id === 'vine-collections'"
+                  >
+                    <img
+                      [ngSrc]="store.logoImage ?? store.logo ?? ''"
+                      [alt]="store.name + ' logo'"
+                      width="74"
+                      height="74"
+                      class="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  <div class="mt-[7px]">
+                    <div class="flex items-center gap-1">
+                      <h2 class="truncate text-[16px] font-medium leading-6 text-[#1F1F1F]">{{ store.name }}</h2>
+                      @if (store.isVerified ?? true) {
+                        <img
+                          ngSrc="/assets/icons/admin-user-details/stores/verify.svg"
+                          width="14"
+                          height="14"
+                          alt=""
+                          class="h-[14px] w-[14px] shrink-0"
+                          aria-hidden="true"
+                        />
+                      }
+                    </div>
+
+                    <div class="mt-1 flex items-center gap-1 text-[14px] leading-5 text-[#777777]">
+                      <img
+                        ngSrc="/assets/icons/admin-user-details/stores/location.svg"
+                        width="14"
+                        height="14"
+                        alt=""
+                        class="h-[14px] w-[14px] shrink-0"
+                        aria-hidden="true"
+                      />
+                      {{ store.location ?? store.metaLabel }}
+                    </div>
+                  </div>
+                </div>
+              </article>
             }
           </div>
         } @else if (activeTab() === 'ads') {
           <div>
-            <section class="rounded-[28px] border border-[#ECEEF3] bg-[#F6F4FF] px-6 py-6 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)]">
-              <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <section class="relative overflow-hidden rounded-[24px] bg-[#F3F1FF] px-[27px] pb-[25px] pt-[25px]">
+              <div class="relative z-10 flex items-start justify-between gap-6">
                 <div>
-                  <p class="text-[15px] font-medium text-[#2A2D34]">Pro</p>
-                  <p class="mt-4 text-[18px] font-semibold text-[#9A9DA5]">
-                    <span class="text-[30px] font-semibold tracking-[-0.04em] text-[#1A1C21]">₦1,000</span>/week
+                  <p class="text-[15px] leading-[19px] text-[#1F1F1F]">Pro</p>
+                  <p class="mt-[16px] text-[0px] leading-none text-[#1F1F1F]">
+                    <span class="text-[34px] font-medium leading-[34px] tracking-[-0.04em]">₦1,000</span>
+                    <span class="text-[24px] font-normal leading-[34px] text-[#959595]">/week</span>
                   </p>
-                  <p class="mt-1 text-[14px] font-medium text-[#555A64]">Expires on: 23 December, 2027</p>
+                  <p class="mt-1 text-[14px] leading-[17px] text-[#0D0D0D]/70">Expires on: 23 December, 2027</p>
                 </div>
 
-                <div class="flex items-start justify-between gap-4 lg:min-w-[240px]">
-                  <span class="rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-[#6B5CF0] shadow-[0_10px_24px_-20px_rgba(17,24,39,0.5)]">
-                    Current plan
-                  </span>
-                  <span class="text-[72px] leading-none">📣</span>
-                </div>
+                <span
+                  class="inline-flex h-7 shrink-0 items-center rounded-full bg-white px-2 text-[12px] font-medium leading-5 text-[#6453D9] shadow-[0_4px_8px_rgba(188,188,188,0.25)]"
+                >
+                  Current plan
+                </span>
               </div>
+
+              <img
+                ngSrc="/assets/images/admin-user-details/ads/desktop/plan-star.png"
+                width="115"
+                height="115"
+                alt=""
+                class="pointer-events-none absolute bottom-[-18px] right-[-14px] h-[115px] w-[115px]"
+                aria-hidden="true"
+              />
             </section>
 
-            <div class="mt-6 flex flex-wrap items-center gap-8">
+            <div class="mt-6 flex flex-wrap items-center gap-5">
               @for (placement of adPlacementTabs; track placement.value) {
                 <button
                   type="button"
                   (click)="activeAdsPlacement.set(placement.value)"
-                  class="text-[18px] font-medium tracking-[-0.03em] transition"
-                  [class.text-[#1F2024]]="activeAdsPlacement() === placement.value"
-                  [class.text-[#989DA7]]="activeAdsPlacement() !== placement.value"
+                  class="text-[18px] font-medium leading-6 tracking-[-0.03em] transition"
+                  [class.text-[#1F1F1F]]="activeAdsPlacement() === placement.value"
+                  [class.text-[#0D0D0D]/40]="activeAdsPlacement() !== placement.value"
                 >
                   {{ placement.label }}
                 </button>
@@ -1150,13 +1509,13 @@ interface AdminUserActivityYearGroup {
                 <button
                   type="button"
                   (click)="activeAdsStatus.set(status.value)"
-                  class="rounded-full px-4 py-2 text-[13px] font-semibold transition"
-                  [class.bg-[#1F2024]]="activeAdsStatus() === status.value"
+                  class="inline-flex h-10 items-center rounded-[16px] px-4 text-[12px] font-medium leading-4 transition"
+                  [class.bg-[#1A1A1A]]="activeAdsStatus() === status.value"
                   [class.text-white]="activeAdsStatus() === status.value"
                   [class.bg-[#F4F4F6]]="activeAdsStatus() !== status.value"
-                  [class.text-[#4B4F57]]="activeAdsStatus() !== status.value"
+                  [class.text-[#1A1A1A]]="activeAdsStatus() !== status.value"
                 >
-                  {{ status.label }}({{ countUserAdsByStatus(status.value) }})
+                  {{ status.label }} ({{ countUserAdsByStatus(status.value) }})
                 </button>
               }
             </div>
@@ -1221,72 +1580,197 @@ interface AdminUserActivityYearGroup {
             } @else {
               @for (section of visiblePromotedListingSections(); track section.category) {
                 <section class="mt-8">
-                  <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-[18px] font-semibold tracking-[-0.03em] text-[#23262D]">{{ section.label }}</h2>
+                  <div class="mb-4 flex items-center justify-between gap-6">
+                    <h2 class="text-[18px] font-medium leading-6 tracking-[-0.03em] text-[#1F1F1F]">{{ section.label }}</h2>
 
                     <div class="flex items-center gap-3">
-                      <button type="button" class="text-[13px] font-semibold text-[#30343B]">
+                      <button type="button" class="inline-flex items-center gap-1 text-[16px] leading-6 text-[#1F1F1F]">
                         View all (3,341)
+                        <ng-icon name="heroChevronRight" class="text-[18px]"></ng-icon>
                       </button>
-                      <button
-                        type="button"
-                        class="flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF3] text-[#A0A4AD] transition hover:bg-[#F8F8FA]"
-                      >
-                        <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
-                      </button>
-                      <button
-                        type="button"
-                        class="flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF3] text-[#A0A4AD] transition hover:bg-[#F8F8FA]"
-                      >
-                        <ng-icon name="heroChevronRight" class="text-sm"></ng-icon>
-                      </button>
+
+                      @if (section.items.length > 1) {
+                        <div class="flex items-center gap-[18px]">
+                          <button
+                            type="button"
+                            class="flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#0D0D0D]/50 shadow-[0_2px_4px_rgba(202,202,202,0.18)]"
+                            aria-label="Previous promoted listing"
+                          >
+                            <img
+                              ngSrc="/assets/icons/admin-user-details/ads/arrow-left.svg"
+                              width="12"
+                              height="12"
+                              alt=""
+                              class="h-3 w-3"
+                              aria-hidden="true"
+                            />
+                          </button>
+                          <button
+                            type="button"
+                            class="flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#0D0D0D]/50 shadow-[0_2px_4px_rgba(202,202,202,0.18)]"
+                            aria-label="Next promoted listing"
+                          >
+                            <img
+                              ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg"
+                              width="12"
+                              height="12"
+                              alt=""
+                              class="h-3 w-3"
+                              aria-hidden="true"
+                            />
+                          </button>
+                        </div>
+                      }
                     </div>
                   </div>
 
-                  <div class="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
+                  <div class="grid gap-4 xl:grid-cols-5">
                     @for (ad of section.items; track ad.id) {
-                      <article class="overflow-hidden rounded-[20px] border border-[#ECEEF3] bg-white shadow-[0_12px_24px_-24px_rgba(17,24,39,0.55)]">
-                        <div class="relative m-2 aspect-[0.92] overflow-hidden rounded-[18px]">
-                          <img [src]="ad.image" [alt]="ad.title" class="h-full w-full object-cover">
-                          <div class="absolute left-2 top-2 rounded-full bg-[#F2F5A7] px-2 py-1 text-[10px] font-bold text-[#6A6B1F]">
+                      <article class="overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white p-1">
+                        <div
+                          class="relative h-[224px] overflow-hidden rounded-[20px]"
+                          [class.bg-[#BEBEBE]]="!ad.imageBackground"
+                          [style.background]="ad.imageBackground ?? null"
+                        >
+                          <img
+                            [ngSrc]="ad.image"
+                            [alt]="ad.title"
+                            width="188"
+                            height="224"
+                            class="h-full w-full"
+                            [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
+                            [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
+                          />
+
+                          @if (ad.showImageGradient) {
+                            <div
+                              class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_62.75%,rgba(0,0,0,0.5)_100%)]"
+                              aria-hidden="true"
+                            ></div>
+                          }
+
+                          <div class="absolute left-[7px] top-[7px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]">
                             Active until: {{ ad.expiresOn }}
                           </div>
 
-                          @if (section.category === 'other listings' && ($first || $last) && section.items.length > 1) {
+                          @if (ad.showImageDots) {
+                            <div class="absolute bottom-[10px] left-1/2 flex -translate-x-1/2 items-center gap-[3px]">
+                              @for (dot of [0, 1, 2, 3]; track dot) {
+                                <span
+                                  class="block h-1 w-1 rounded-full"
+                                  [class.bg-[#1F1F1F]]="dot === 1"
+                                  [class.bg-[#D7D7D7]]="dot !== 1"
+                                ></span>
+                              }
+                            </div>
+                          }
+
+                          @if (ad.imageControlMode === 'both') {
+                            <div class="absolute inset-x-[11px] top-1/2 flex -translate-y-1/2 items-center justify-between">
+                              <button
+                                type="button"
+                                class="flex h-6 w-6 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
+                                aria-label="Previous image"
+                              >
+                                <img
+                                  ngSrc="/assets/icons/admin-user-details/ads/arrow-left.svg"
+                                  width="12"
+                                  height="12"
+                                  alt=""
+                                  class="h-3 w-3"
+                                  aria-hidden="true"
+                                />
+                              </button>
+                              <button
+                                type="button"
+                                class="flex h-6 w-6 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
+                                aria-label="Next image"
+                              >
+                                <img
+                                  ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg"
+                                  width="12"
+                                  height="12"
+                                  alt=""
+                                  class="h-3 w-3"
+                                  aria-hidden="true"
+                                />
+                              </button>
+                            </div>
+                          } @else if (ad.imageControlMode === 'right') {
+                            <div class="pointer-events-none absolute inset-y-0 right-0 w-[58px] bg-[linear-gradient(270deg,#FFFFFF_24.75%,rgba(255,255,255,0)_100%)]"></div>
                             <button
                               type="button"
-                              class="absolute left-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#7F838C] shadow-sm"
+                              class="absolute right-[-11px] top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
+                              aria-label="Next image"
                             >
-                              <ng-icon name="heroChevronLeft" class="text-xs"></ng-icon>
-                            </button>
-                            <button
-                              type="button"
-                              class="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#7F838C] shadow-sm"
-                            >
-                              <ng-icon name="heroChevronRight" class="text-xs"></ng-icon>
+                              <img
+                                ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg"
+                                width="12"
+                                height="12"
+                                alt=""
+                                class="h-3 w-3"
+                                aria-hidden="true"
+                              />
                             </button>
                           }
                         </div>
 
-                        <div class="px-3 pb-3">
-                          <h3 class="line-clamp-1 text-[13px] font-medium text-[#2A2D34]">{{ ad.title }}</h3>
-                          <p class="mt-1 text-[15px] font-semibold text-[#2A2D34]">{{ ad.price }}</p>
+                        <div class="flex flex-col gap-1 px-2 pb-3 pt-3">
+                          <h3 class="truncate text-[14px] leading-5 text-[#1F1F1F]">{{ ad.title }}</h3>
 
-                          <div class="mt-2 flex flex-wrap items-center gap-3 text-[11px] font-medium text-[#ADB1B9]">
-                            <span class="inline-flex items-center gap-1">
-                              <span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>
+                          <div class="flex items-center text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                            @if ((ad.priceDisplay ?? 'strikethrough-n') === 'naira-icon') {
+                              <span class="mr-px">₦</span>{{ ad.price }}
+                            } @else if ((ad.priceDisplay ?? 'strikethrough-n') === 'strikethrough-n') {
+                              <span class="line-through">N</span>{{ ad.price }}
+                            } @else {
+                              {{ ad.price }}
+                            }
+                          </div>
+
+                          <div class="mt-1 flex flex-wrap items-center gap-[10px] text-[12px] leading-4 text-[#959595]">
+                            <span class="inline-flex items-center gap-[2px]">
+                              <img
+                                ngSrc="/assets/icons/admin-user-details/ads/eye.svg"
+                                width="12"
+                                height="12"
+                                alt=""
+                                class="h-3 w-3 shrink-0"
+                                aria-hidden="true"
+                              />
                               {{ ad.views }}
                             </span>
-                            <span class="inline-flex items-center gap-1">
-                              <span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>
+                            <span class="inline-flex items-center gap-[2px]">
+                              <img
+                                ngSrc="/assets/icons/admin-user-details/ads/click.svg"
+                                width="12"
+                                height="12"
+                                alt=""
+                                class="h-3 w-3 shrink-0"
+                                aria-hidden="true"
+                              />
                               {{ ad.clicks }}
                             </span>
-                            <span class="inline-flex items-center gap-1">
-                              <span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>
+                            <span class="inline-flex items-center gap-[2px]">
+                              <img
+                                ngSrc="/assets/icons/admin-user-details/ads/messages.svg"
+                                width="12"
+                                height="12"
+                                alt=""
+                                class="h-3 w-3 shrink-0"
+                                aria-hidden="true"
+                              />
                               {{ ad.messages }}
                             </span>
-                            <span class="inline-flex items-center gap-1">
-                              <span class="h-1.5 w-1.5 rounded-full bg-[#D2D6DE]"></span>
+                            <span class="inline-flex items-center gap-[2px]">
+                              <img
+                                ngSrc="/assets/icons/admin-user-details/ads/call.svg"
+                                width="12"
+                                height="12"
+                                alt=""
+                                class="h-3 w-3 shrink-0"
+                                aria-hidden="true"
+                              />
                               {{ ad.calls }}
                             </span>
                           </div>
@@ -1774,6 +2258,7 @@ export class AdminUserDetailsPageComponent {
 
   readonly userListings = computed(() => this.listingsByUser[this.userId()] ?? this.listingsByUser['francis-uche']);
   readonly visibleStores = computed(() => this.storesByUser[this.userId()] ?? this.storesByUser['francis-uche']);
+  readonly visibleMobileStores = computed(() => this.mobileStoresByUser[this.userId()] ?? this.mobileStoresByUser['francis-uche']);
   readonly userTransactions = computed(() => this.transactionsByUser[this.userId()] ?? this.transactionsByUser['francis-uche']);
 
   readonly visibleListings = computed(() => {
@@ -1808,13 +2293,22 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly visiblePromotedListingSections = computed(() => {
-    const filtered = this.userPromotedListings().filter(
-      (listing) =>
-        listing.placement === 'promoted listings' && listing.status === this.activeAdsStatus(),
-    );
+    const listings = this.desktopPromotedListingsByUser[this.userId()] ?? this.desktopPromotedListingsByUser['francis-uche'];
+    const filtered = listings.filter((listing) => listing.status === this.activeAdsStatus());
 
     return [
       { category: 'other listings' as const, label: 'Other listings', items: filtered.filter((item) => item.category === 'other listings') },
+      { category: 'automobile listings' as const, label: 'Automobile listings', items: filtered.filter((item) => item.category === 'automobile listings') },
+      { category: 'property listings' as const, label: 'Property listings', items: filtered.filter((item) => item.category === 'property listings') },
+    ].filter((section) => section.items.length > 0);
+  });
+
+  readonly visibleMobilePromotedListingSections = computed(() => {
+    const listings = this.mobilePromotedListingsByUser[this.userId()] ?? this.mobilePromotedListingsByUser['francis-uche'];
+    const filtered = listings.filter((listing) => listing.status === this.activeAdsStatus());
+
+    return [
+      { category: 'phones & laptops' as const, label: 'Phones & Laptops', items: filtered.filter((item) => item.category === 'phones & laptops') },
       { category: 'automobile listings' as const, label: 'Automobile listings', items: filtered.filter((item) => item.category === 'automobile listings') },
       { category: 'property listings' as const, label: 'Property listings', items: filtered.filter((item) => item.category === 'property listings') },
     ].filter((section) => section.items.length > 0);
@@ -2264,70 +2758,402 @@ export class AdminUserDetailsPageComponent {
       {
         id: 'vine-collections',
         name: 'The Vine Collections',
-        logo: '/assets/images/logo-light-fill.svg',
-        banner: '/assets/images/image-4-1.jpg',
         followers: '2.5k',
         isVerified: true,
-        metaLabel: 'Ikeja, Lagos',
+        location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
         route: ['/admin/users', 'francis-uche'],
+        coverImage: '/assets/images/admin-user-details/stores/desktop/vine-cover.png',
+        logoImage: '/assets/images/admin-user-details/stores/desktop/vine-logo.png',
       },
       {
         id: 'new-age-properties',
         name: 'New Age Properties',
-        logo: '/assets/images/logo-dark-fill.svg',
-        banner: '/assets/images/hero-bg.png',
         followers: '1.8k',
         isVerified: true,
-        metaLabel: 'Ikeja, Lagos',
+        location: 'Ikeja, Lagos',
         route: ['/admin/users', 'francis-uche'],
+        coverImage: '/assets/images/admin-user-details/stores/desktop/new-age-cover.png',
+        logoImage: '/assets/images/admin-user-details/stores/desktop/new-age-logo.png',
       },
       {
         id: 'snap-thrifts',
         name: 'Snap Thrifts',
-        logo: '/assets/images/id_type_icons_3d.png',
-        banner: '/assets/images/fashion_menswear_hero.png',
         followers: '980',
         isVerified: true,
-        metaLabel: 'Ikeja, Lagos',
+        location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
         route: ['/admin/users', 'francis-uche'],
+        coverImage: '/assets/images/admin-user-details/stores/desktop/snap-cover.png',
+        logoImage: '/assets/images/admin-user-details/stores/desktop/snap-logo.png',
       },
       {
         id: 'gomelon',
         name: 'goMelon',
-        logo: '/assets/images/logo-light-fill.svg',
-        banner: '/assets/images/hero_img_3.png',
         followers: '1.1k',
         isVerified: true,
-        metaLabel: 'Ikeja, Lagos',
+        location: 'Ikeja, Lagos',
         route: ['/admin/users', 'francis-uche'],
+        coverImage: '/assets/images/admin-user-details/stores/desktop/gomelon-cover.png',
+        logoImage: '/assets/images/admin-user-details/stores/desktop/gomelon-logo.png',
       },
     ],
     'mark-anthony': [
       {
         id: 'eden-organics',
         name: 'Eden Organics',
-        logo: '/assets/images/logo-dark-fill.svg',
-        banner: '/assets/images/hero_img_4.png',
         followers: '760',
         isVerified: true,
-        metaLabel: 'Ikeja, Lagos',
+        location: 'Ikeja, Lagos',
         route: ['/admin/users', 'mark-anthony'],
+        coverImage: '/assets/images/admin-user-details/stores/mobile/eden-cover.png',
+        logoImage: '/assets/images/admin-user-details/stores/mobile/eden-logo.png',
       },
     ],
     'elle-adebisi': [
       {
         id: 'amazing-fragrances',
         name: 'Amazing Fragrances',
-        logo: '/assets/images/logo-light-fill.svg',
-        banner: '/assets/images/product_watch_luxury.png',
         followers: '620',
         isVerified: true,
-        metaLabel: 'Ikeja, Lagos',
+        location: 'Ikeja, Lagos',
         route: ['/admin/users', 'elle-adebisi'],
+        coverImage: '/assets/images/admin-user-details/stores/mobile/eden-cover.png',
+        logoImage: '/assets/images/admin-user-details/stores/mobile/eden-logo.png',
       },
     ],
+  };
+
+  readonly mobileStoresByUser: Record<string, Store[]> = {
+    'francis-uche': [
+      {
+        id: 'vine-collections',
+        name: 'The Vine Collections',
+        isVerified: true,
+        location: 'Ikeja, Lagos',
+        route: ['/admin/users', 'francis-uche'],
+        mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/vine-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/vine-logo.png',
+      },
+      {
+        id: 'eden-organics',
+        name: 'Eden Organics',
+        isVerified: true,
+        location: 'Ikeja, Lagos',
+        route: ['/admin/users', 'francis-uche'],
+        mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/eden-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/eden-logo.png',
+      },
+      {
+        id: 'snap-thrifts',
+        name: 'Snap Thrifts',
+        isVerified: true,
+        location: 'Ikeja, Lagos',
+        route: ['/admin/users', 'francis-uche'],
+        mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/snap-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/snap-logo.png',
+      },
+      {
+        id: 'gomelon',
+        name: 'goMelon',
+        isVerified: true,
+        location: 'Ikeja, Lagos',
+        route: ['/admin/users', 'francis-uche'],
+        mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/gomelon-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/gomelon-logo.png',
+      },
+    ],
+    'mark-anthony': [
+      {
+        id: 'eden-organics',
+        name: 'Eden Organics',
+        isVerified: true,
+        location: 'Ikeja, Lagos',
+        route: ['/admin/users', 'mark-anthony'],
+        mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/eden-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/eden-logo.png',
+      },
+    ],
+    'elle-adebisi': [
+      {
+        id: 'gomelon',
+        name: 'goMelon',
+        isVerified: true,
+        location: 'Ikeja, Lagos',
+        route: ['/admin/users', 'elle-adebisi'],
+        mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/gomelon-cover.png',
+        mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/gomelon-logo.png',
+      },
+    ],
+  };
+
+  readonly desktopPromotedListingsByUser: Record<string, AdminManagedPromotedListingCard[]> = {
+    'francis-uche': [
+      {
+        id: 'desktop-ad-iphone-17-pro-max',
+        title: 'Iphone 17 pro max',
+        price: '2,500,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'other listings',
+        image: '/assets/images/admin-user-details/ads/desktop/iphone-17-pro-max.png',
+        imageFit: 'contain',
+        imageBackground: 'linear-gradient(135deg, #8B4D27 0%, #0D0D0D 100%)',
+        showImageDots: true,
+        imageControlMode: 'both',
+        priceDisplay: 'naira-icon',
+      },
+      {
+        id: 'desktop-ad-logitech-mouse',
+        title: 'Logitech ergonomic mouse',
+        price: '35,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'other listings',
+        image: '/assets/images/admin-user-details/ads/desktop/logitech-mouse.png',
+        imageFit: 'contain',
+        imageBackground: 'linear-gradient(180deg, #F5F9FF 0%, #FFFFFF 100%)',
+      },
+      {
+        id: 'desktop-ad-rgb-keyboard',
+        title: 'RGB keyboard',
+        price: '35,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'other listings',
+        image: '/assets/images/admin-user-details/ads/desktop/rgb-keyboard.png',
+        imageFit: 'cover',
+        showImageGradient: true,
+      },
+      {
+        id: 'desktop-ad-iphone-x',
+        title: 'Iphone X (64 gig)',
+        price: '35,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'other listings',
+        image: '/assets/images/admin-user-details/ads/desktop/iphone-x.png',
+        imageFit: 'cover',
+        showImageGradient: true,
+      },
+      {
+        id: 'desktop-ad-chair',
+        title: 'Ergonomic chair',
+        price: '35,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'other listings',
+        image: '/assets/images/admin-user-details/ads/desktop/ergonomic-chair.png',
+        imageFit: 'cover',
+        showImageGradient: true,
+        imageControlMode: 'right',
+      },
+      {
+        id: 'desktop-ad-masarati',
+        title: 'Masarati',
+        price: '35,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'automobile listings',
+        image: '/assets/images/admin-user-details/ads/desktop/masarati.png',
+        imageFit: 'cover',
+      },
+      {
+        id: 'desktop-ad-nike-sneaker',
+        title: 'Nike sneaker',
+        price: '35,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'property listings',
+        image: '/assets/images/admin-user-details/ads/desktop/nike-sneaker.png',
+        imageFit: 'cover',
+      },
+      {
+        id: 'desktop-ad-paused-item',
+        title: 'Paused listing',
+        price: '20,000',
+        views: '540',
+        clicks: '90',
+        messages: '7',
+        calls: '1',
+        expiresOn: '24 May, 2025',
+        status: 'paused',
+        category: 'other listings',
+        image: '/assets/images/admin-user-details/ads/desktop/iphone-17-pro-max.png',
+        imageFit: 'contain',
+        imageBackground: 'linear-gradient(135deg, #8B4D27 0%, #0D0D0D 100%)',
+        priceDisplay: 'naira-icon',
+      },
+      {
+        id: 'desktop-ad-expired-item',
+        title: 'Expired listing',
+        price: '20,000',
+        views: '300',
+        clicks: '45',
+        messages: '5',
+        calls: '0',
+        expiresOn: '24 May, 2025',
+        status: 'expired',
+        category: 'other listings',
+        image: '/assets/images/admin-user-details/ads/desktop/ergonomic-chair.png',
+        imageFit: 'cover',
+      },
+    ],
+    'mark-anthony': [],
+    'elle-adebisi': [],
+  };
+
+  readonly mobilePromotedListingsByUser: Record<string, AdminManagedPromotedListingCard[]> = {
+    'francis-uche': [
+      {
+        id: 'mobile-ad-nike-sneaker',
+        title: 'Nike sneaker',
+        price: '35,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'phones & laptops',
+        image: '/assets/images/admin-user-details/ads/mobile/nike-sneaker.png',
+        imageFit: 'cover',
+        showImageGradient: true,
+      },
+      {
+        id: 'mobile-ad-bone-straight-wig',
+        title: 'Bone straight wig',
+        price: '35,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'phones & laptops',
+        image: '/assets/images/admin-user-details/ads/mobile/bone-straight-wig.png',
+        imageFit: 'cover',
+        showImageGradient: true,
+      },
+      {
+        id: 'mobile-ad-iphone-x',
+        title: 'Iphone X (64 gig)',
+        price: '35,000',
+        oldPrice: '35,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'phones & laptops',
+        image: '/assets/images/admin-user-details/ads/mobile/iphone-x.png',
+        imageFit: 'cover',
+        discountLabel: '-22%',
+        priceDisplay: 'naira-icon',
+      },
+      {
+        id: 'mobile-ad-chair',
+        title: 'Ergonomic chair',
+        price: 'Free',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'phones & laptops',
+        image: '/assets/images/admin-user-details/ads/mobile/ergonomic-chair.png',
+        imageFit: 'cover',
+      },
+      {
+        id: 'mobile-ad-automobile',
+        title: 'Nike sneaker',
+        price: '35,000',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'automobile listings',
+        image: '/assets/images/admin-user-details/ads/mobile/nike-sneaker.png',
+        imageFit: 'cover',
+        showImageGradient: true,
+      },
+      {
+        id: 'mobile-ad-property',
+        title: 'Ergonomic chair',
+        price: 'Free',
+        views: '1K',
+        clicks: '500',
+        messages: '41',
+        calls: '8',
+        expiresOn: '24 May, 2025',
+        status: 'active',
+        category: 'property listings',
+        image: '/assets/images/admin-user-details/ads/mobile/ergonomic-chair.png',
+        imageFit: 'cover',
+      },
+      {
+        id: 'mobile-ad-paused-item',
+        title: 'Paused listing',
+        price: '20,000',
+        views: '540',
+        clicks: '90',
+        messages: '7',
+        calls: '1',
+        expiresOn: '24 May, 2025',
+        status: 'paused',
+        category: 'phones & laptops',
+        image: '/assets/images/admin-user-details/ads/mobile/nike-sneaker.png',
+        imageFit: 'cover',
+      },
+      {
+        id: 'mobile-ad-expired-item',
+        title: 'Expired listing',
+        price: '20,000',
+        views: '300',
+        clicks: '45',
+        messages: '5',
+        calls: '0',
+        expiresOn: '24 May, 2025',
+        status: 'expired',
+        category: 'phones & laptops',
+        image: '/assets/images/admin-user-details/ads/mobile/ergonomic-chair.png',
+        imageFit: 'cover',
+      },
+    ],
+    'mark-anthony': [],
+    'elle-adebisi': [],
   };
 
   readonly promotedStoresByUser: Record<string, AdminManagedStorePromotion[]> = {
@@ -2978,6 +3804,19 @@ export class AdminUserDetailsPageComponent {
 
     if (this.activeAdsPlacement() === 'banner ads') {
       return this.userBannerAds().filter((banner) => banner.status === status).length;
+    }
+
+    if (this.userId() === 'francis-uche') {
+      switch (status) {
+        case 'active':
+          return 32;
+        case 'paused':
+          return 1;
+        case 'expired':
+          return 8;
+        default:
+          return 0;
+      }
     }
 
     return status === 'active' || status === 'paused' || status === 'expired'
