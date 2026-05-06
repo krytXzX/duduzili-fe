@@ -45,11 +45,11 @@ interface ListingReport {
 
 interface ListingActivity {
   id: string;
+  iconSrc: string;
   title: string;
   description?: string;
   actorName: string;
-  actorInitials: string;
-  actorTone: string;
+  actorAvatarSrc: string;
   time: string;
 }
 
@@ -64,6 +64,13 @@ interface ListingTabItem {
   label: string;
   iconSrc: string;
   activeIconSrc?: string;
+}
+
+interface MobileListingAction {
+  id: 'share' | 'suspend';
+  label: string;
+  iconSrc: string;
+  danger?: boolean;
 }
 
 interface ListingStore {
@@ -117,8 +124,10 @@ interface AdminListingDetailRecord {
 
         <button
           type="button"
+          (click)="mobileActionsOpen.set(true)"
           class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
           aria-label="Open listing actions"
+          [attr.aria-expanded]="mobileActionsOpen()"
         >
           <span class="flex items-center gap-[3px]" aria-hidden="true">
             <span class="h-[3px] w-[3px] rounded-full bg-[#1A1B1D]"></span>
@@ -128,7 +137,64 @@ interface AdminListingDetailRecord {
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto px-5 pb-14">
+      @if (mobileActionsOpen()) {
+        <button
+          type="button"
+          (click)="closeMobileActions()"
+          class="fixed inset-0 z-30 bg-black/20"
+          aria-label="Close listing actions"
+        ></button>
+
+        <section
+          class="fixed inset-x-3 bottom-0 z-40 mb-[101px] rounded-[36px] bg-white px-4 pb-10 pt-[11px] shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Listing actions"
+        >
+          <div class="relative h-10">
+            <div class="mx-auto h-1 w-[50px] rounded-full bg-[#EBEBEB]"></div>
+            <button
+              type="button"
+              (click)="closeMobileActions()"
+              class="absolute right-0 top-[5px] inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+              aria-label="Close listing actions"
+            >
+              <img
+                ngSrc="/assets/icons/admin-listing-details/mobile-actions/close.svg"
+                width="24"
+                height="24"
+                alt=""
+                class="h-6 w-6"
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+
+          <div class="mt-4 space-y-1">
+            @for (action of mobileActions; track action.id) {
+              <button
+                type="button"
+                (click)="handleMobileAction(action.id)"
+                class="flex h-8 w-full items-center gap-[10px] rounded-[8px] px-2 py-[10px] text-left text-[16px] font-medium leading-5"
+                [class.text-[#0D0D0D]/87]="!action.danger"
+                [class.text-[#FF2524]]="action.danger"
+              >
+                <img
+                  [ngSrc]="action.iconSrc"
+                  width="20"
+                  height="20"
+                  alt=""
+                  class="h-5 w-5"
+                  aria-hidden="true"
+                />
+                <span>{{ action.label }}</span>
+              </button>
+            }
+          </div>
+        </section>
+      }
+
+      <div class="flex-1 overflow-y-auto px-5 pb-0">
         <div class="flex flex-col gap-4">
           <div class="flex items-center gap-3">
             <div class="relative h-[54px] w-[54px] shrink-0 overflow-hidden rounded-[10.8px] bg-[#EFEFEF]">
@@ -448,37 +514,52 @@ interface AdminListingDetailRecord {
             </div>
           </div>
         } @else {
-          <div class="space-y-7 pt-6">
+          <div class="space-y-[15px] pt-6">
+            <p class="text-[16px] font-medium leading-[1.2] tracking-[-0.32px] text-[#0D0D0D]/40">2025</p>
             @for (group of activityGroups; track group.id) {
-              <section>
-                <div class="flex items-center gap-3">
-                  <span class="rounded-full bg-[#F6F7FA] px-4 py-2 text-[15px] font-medium text-[#8D929B]">{{ group.label }}</span>
-                  <span class="h-px flex-1 bg-[#EEF0F4]"></span>
+              <section class="space-y-8">
+                <div class="flex items-center gap-2">
+                  <span class="rounded-full bg-[#FAFAFA] px-3 py-[6px] text-[14px] font-medium leading-5 text-[#1A1B1D]/50">{{ group.label }}</span>
+                  <span class="h-px flex-1 bg-[#EDEDED]"></span>
+                  <img
+                    ngSrc="/assets/icons/admin-listing-details/activities/chevron-down.svg"
+                    width="16"
+                    height="16"
+                    alt=""
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                  />
                 </div>
-                <div class="mt-5 space-y-0">
+
+                <div class="space-y-0">
                   @for (activity of group.activities; track activity.id; let isLast = $last) {
-                    <div class="flex gap-4">
-                      <div class="flex w-10 flex-col items-center">
-                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E7E9EE] bg-white text-[#9EA3AD]">
-                          <img ngSrc="/assets/icons/listing-details-tab-activities.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
+                    <div class="flex gap-2">
+                      <div class="flex w-9 flex-col items-center">
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EBEBEB] bg-white">
+                          <img [ngSrc]="activity.iconSrc" width="16" height="16" alt="" class="h-4 w-4 opacity-50" aria-hidden="true" />
                         </span>
                         @if (!isLast) {
-                          <span class="mt-1 w-px flex-1 bg-[#E7E9EE]"></span>
+                          <span class="mt-1 w-px flex-1 bg-[#EDEDED]"></span>
                         }
                       </div>
-                      <div class="min-w-0 flex-1 pb-7">
-                        <h4 class="text-[15px] font-medium text-[#1A1C21]">{{ activity.title }}</h4>
+
+                      <div class="min-w-0 flex-1 pb-8">
+                        <h4 class="text-[14px] leading-[1.2] tracking-[-0.28px] text-[#0C0C0C]">{{ activity.title }}</h4>
                         @if (activity.description) {
-                          <div class="mt-2 inline-flex rounded-full bg-[#F6F7FA] px-4 py-2 text-[14px] text-[#666C77]">
+                          <div class="mt-6 flex items-center justify-between gap-2">
+                            <span class="h-[35px] w-px bg-[#EDEDED]"></span>
+                            <span class="inline-flex rounded-[32px] bg-[#FAFAFA] px-3 py-1 text-[12px] font-medium leading-5 text-[#1A1B1D]/70">
                             {{ activity.description }}
+                            </span>
                           </div>
                         }
-                        <div class="mt-3 flex flex-wrap items-center gap-2 text-[13px] text-[#A0A5AF]">
+
+                        <div class="mt-[10px] flex flex-wrap items-center gap-[5px] text-[12px] text-[#0D0D0D]/40">
                           <span>by</span>
-                          <span class="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold text-white" [style.background]="activity.actorTone">
-                            {{ activity.actorInitials }}
-                          </span>
-                          <span class="font-medium text-[#4B5160]">{{ activity.actorName }}</span>
+                          <div class="relative h-5 w-5 overflow-hidden rounded-full border-2 border-white">
+                            <img [ngSrc]="activity.actorAvatarSrc" [alt]="activity.actorName" width="20" height="20" class="h-5 w-5 object-cover" />
+                          </div>
+                          <span class="text-[#1A1B1D]">{{ activity.actorName }}</span>
                           <span>{{ activity.time }}</span>
                         </div>
                       </div>
@@ -489,6 +570,7 @@ interface AdminListingDetailRecord {
             }
           </div>
         }
+
       </div>
     </section>
 
@@ -752,37 +834,50 @@ interface AdminListingDetailRecord {
             </div>
           </div>
         } @else {
-          <div class="px-5 pb-8 pt-7">
-            <div class="space-y-8">
-              <div class="text-[14px] font-medium text-[#8F949D]">2025</div>
+          <div class="px-[172px] pb-8 pt-[27px]">
+            <div class="space-y-[15px] max-w-[764px]">
+              <p class="text-[16px] font-medium leading-[1.2] tracking-[-0.32px] text-[#0D0D0D]/40">2025</p>
               @for (group of activityGroups; track group.id) {
-                <section class="space-y-6">
-                  <div class="flex items-center gap-3">
-                    <span class="rounded-full bg-[#F6F7FA] px-4 py-2 text-[15px] font-medium text-[#8D929B]">{{ group.label }}</span>
-                    <span class="h-px flex-1 bg-[#EEF0F4]"></span>
+                <section class="space-y-8">
+                  <div class="flex items-center gap-2">
+                    <span class="rounded-full bg-[#FAFAFA] px-3 py-[6px] text-[14px] font-medium leading-5 text-[#1A1B1D]/50">{{ group.label }}</span>
+                    <span class="h-px flex-1 bg-[#EDEDED]"></span>
+                    <img
+                      ngSrc="/assets/icons/admin-listing-details/activities/chevron-down.svg"
+                      width="16"
+                      height="16"
+                      alt=""
+                      class="h-4 w-4"
+                      aria-hidden="true"
+                    />
                   </div>
                   <div>
                     @for (activity of group.activities; track activity.id; let isLast = $last) {
-                      <div class="flex gap-5">
-                        <div class="flex w-10 flex-col items-center">
-                          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E7E9EE] bg-white text-[#9EA3AD]">
-                            <img ngSrc="/assets/icons/listing-details-tab-activities.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
+                      <div class="flex gap-[14px]">
+                        <div class="flex w-11 flex-col items-center">
+                          <span class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EBEBEB] bg-white">
+                            <img [ngSrc]="activity.iconSrc" width="20" height="20" alt="" class="h-5 w-5 opacity-50" aria-hidden="true" />
                           </span>
                           @if (!isLast) {
-                            <span class="mt-1 w-px flex-1 bg-[#E7E9EE]"></span>
+                            <span class="mt-2 w-px flex-1 bg-[#EDEDED]"></span>
                           }
                         </div>
-                        <div class="min-w-0 flex-1 pb-7">
-                          <h3 class="text-[15px] font-medium text-[#1A1C21]">{{ activity.title }}</h3>
+
+                        <div class="min-w-0 flex-1 pb-8">
+                          <h3 class="text-[14px] leading-[1.2] tracking-[-0.28px] text-[#0C0C0C]">{{ activity.title }}</h3>
                           @if (activity.description) {
-                            <div class="mt-2 inline-flex rounded-full bg-[#F6F7FA] px-4 py-2 text-[14px] text-[#666C77]">{{ activity.description }}</div>
+                            <div class="mt-6 flex items-center justify-between gap-3 max-w-[467px]">
+                              <span class="h-[35px] w-px bg-[#EDEDED]"></span>
+                              <span class="inline-flex rounded-[32px] bg-[#FAFAFA] px-3 py-1 text-[12px] font-medium leading-5 text-[#1A1B1D]/70">{{ activity.description }}</span>
+                            </div>
                           }
-                          <div class="mt-3 flex flex-wrap items-center gap-2 text-[13px] text-[#A0A5AF]">
+
+                          <div class="mt-[10px] flex flex-wrap items-center gap-[5px] text-[12px] text-[#0D0D0D]/40 tracking-[-0.24px]">
                             <span>by</span>
-                            <span class="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold text-white" [style.background]="activity.actorTone">
-                              {{ activity.actorInitials }}
-                            </span>
-                            <span class="font-medium text-[#4B5160]">{{ activity.actorName }}</span>
+                            <div class="relative h-5 w-5 overflow-hidden rounded-full border-2 border-white">
+                              <img [ngSrc]="activity.actorAvatarSrc" [alt]="activity.actorName" width="20" height="20" class="h-5 w-5 object-cover" />
+                            </div>
+                            <span class="text-[#1A1B1D]">{{ activity.actorName }}</span>
                             <span>{{ activity.time }}</span>
                           </div>
                         </div>
@@ -849,6 +944,21 @@ export class AdminListingDetailsPageComponent {
   readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? 'iphone-17-pro-max');
   readonly activeTab = signal<AdminListingDetailTab>('overview');
   readonly isSuspendModalOpen = signal(false);
+  readonly mobileActionsOpen = signal(false);
+
+  readonly mobileActions: MobileListingAction[] = [
+    {
+      id: 'share',
+      label: 'Share listing',
+      iconSrc: '/assets/icons/admin-listing-details/mobile-actions/share-listing.svg',
+    },
+    {
+      id: 'suspend',
+      label: 'Suspend listing',
+      iconSrc: '/assets/icons/admin-listing-details/mobile-actions/suspend-listing.svg',
+      danger: true,
+    },
+  ];
 
   readonly desktopTabs: ListingTabItem[] = [
     {
@@ -984,20 +1094,37 @@ export class AdminListingDetailsPageComponent {
       activities: [
         {
           id: 'activity-1',
+          iconSrc: '/assets/icons/admin-listing-details/activities/message-received.svg',
           title: 'Message received',
-          description: '“I’m interested. Can we negotiate on price?”',
-          actorName: 'Sharon Idemudia',
-          actorInitials: 'SI',
-          actorTone: 'linear-gradient(135deg, #FDA4AF 0%, #FB7185 100%)',
+          description: '“Hello is this item still available”',
+          actorName: 'Joseph Olamide',
+          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
           time: '24 February 2025, 02:45 pm',
         },
         {
           id: 'activity-2',
+          iconSrc: '/assets/icons/admin-listing-details/activities/offer-received.svg',
           title: 'Offer received',
-          description: 'They sent an offer of ₦2,000,000',
+          description: 'They sent an offer of N2,000,000',
           actorName: 'Joseph Olamide',
-          actorInitials: 'JO',
-          actorTone: 'linear-gradient(135deg, #7CC1F3 0%, #4E87F5 100%)',
+          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
+          time: '24 February 2025, 02:45 pm',
+        },
+        {
+          id: 'activity-3',
+          iconSrc: '/assets/icons/admin-listing-details/activities/call-back-request.svg',
+          title: 'Call back request',
+          description: 'They requested you call them back on 0816 939 7454',
+          actorName: 'Joseph Olamide',
+          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
+          time: '24 February 2025, 02:45 pm',
+        },
+        {
+          id: 'activity-4',
+          iconSrc: '/assets/icons/admin-listing-details/activities/called-you.svg',
+          title: 'Called you',
+          actorName: 'Joseph Olamide',
+          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
           time: '24 February 2025, 02:45 pm',
         },
       ],
@@ -1007,11 +1134,27 @@ export class AdminListingDetailsPageComponent {
       label: 'January',
       activities: [
         {
-          id: 'activity-3',
+          id: 'activity-5',
+          iconSrc: '/assets/icons/admin-listing-details/activities/added-to-wishlist.svg',
+          title: 'Added to wishlist',
+          actorName: 'Joseph Olamide',
+          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
+          time: '24 February 2025, 02:45 pm',
+        },
+        {
+          id: 'activity-6',
+          iconSrc: '/assets/icons/admin-listing-details/activities/viewed-your-listing.svg',
+          title: 'Viewed your listing',
+          actorName: 'Joseph Olamide',
+          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
+          time: '24 February 2025, 02:45 pm',
+        },
+        {
+          id: 'activity-7',
+          iconSrc: '/assets/icons/admin-listing-details/activities/product-published.svg',
           title: 'Product published',
           actorName: 'You',
-          actorInitials: 'Y',
-          actorTone: 'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
+          actorAvatarSrc: '/assets/images/admin-listing-details/activities/you.png',
           time: '24 January 2025, 02:45 pm',
         },
       ],
@@ -1057,6 +1200,18 @@ export class AdminListingDetailsPageComponent {
       },
     },
   };
+
+  handleMobileAction(actionId: MobileListingAction['id']): void {
+    this.mobileActionsOpen.set(false);
+
+    if (actionId === 'suspend') {
+      this.isSuspendModalOpen.set(true);
+    }
+  }
+
+  closeMobileActions(): void {
+    this.mobileActionsOpen.set(false);
+  }
 
   closeSuspendModal(): void {
     this.isSuspendModalOpen.set(false);
