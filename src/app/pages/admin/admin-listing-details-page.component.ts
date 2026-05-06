@@ -893,7 +893,75 @@ interface AdminListingDetailRecord {
     </section>
 
     @if (isSuspendModalOpen()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-4 py-6 backdrop-blur-[2px]" (click)="closeSuspendModal()">
+      <button
+        type="button"
+        (click)="closeSuspendModal()"
+        class="fixed inset-0 z-50 bg-black/20 lg:hidden"
+        aria-label="Close suspend listing sheet"
+      ></button>
+
+      <section
+        class="fixed inset-x-3 bottom-0 z-[60] mb-[101px] rounded-[36px] bg-[#F4F4F4] px-4 pb-6 pt-[11px] lg:hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Suspend listing"
+      >
+        <div class="relative h-10">
+          <div class="mx-auto h-1 w-[50px] rounded-full bg-[#EBEBEB]"></div>
+          <button
+            type="button"
+            (click)="closeSuspendModal()"
+            class="absolute right-0 top-[5px] inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+            aria-label="Close suspend listing sheet"
+          >
+            <img
+              ngSrc="/assets/icons/admin-listing-details/mobile-actions/close.svg"
+              width="24"
+              height="24"
+              alt=""
+              class="h-6 w-6"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+
+        <div class="mt-[18px]">
+          <div class="inline-flex h-[120px] w-[121px] items-center justify-center rounded-full bg-[#EBEBEB]">
+            <div class="inline-flex h-[88px] w-[89px] items-center justify-center rounded-full bg-[#E3D8B4]">
+              <img
+                ngSrc="/assets/icons/settings/two-factor-warning.svg"
+                width="54"
+                height="54"
+                alt=""
+                class="h-[54px] w-[54px]"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
+          <h2 class="mt-[6px] text-[24px] font-semibold leading-8 text-[#1A1B1D]">Suspend listing?</h2>
+          <p class="mt-[6px] text-[16px] leading-6 text-[#5A5A5A]">
+            This listing will be removed from public view. Provide a reason for the suspension so the seller can understand the issue.
+          </p>
+        </div>
+
+        <div class="mt-8">
+          <label for="suspend-reason-mobile" class="text-[14px] font-medium leading-5 text-[#5A5A5A]">Why are you suspending?</label>
+          <textarea
+            id="suspend-reason-mobile"
+            class="mt-[6px] h-[102px] w-full resize-none rounded-[10px] border border-[#E6E6E8] bg-white px-3 py-2 text-[16px] leading-6 text-[#252628] outline-none placeholder:text-[#A3A3A3]"
+          ></textarea>
+        </div>
+
+        <button
+          type="button"
+          class="mt-[34px] flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#FF2524] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A]"
+        >
+          Yes, suspend
+        </button>
+      </section>
+
+      <div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/20 px-4 py-6 backdrop-blur-[2px] lg:flex" (click)="closeSuspendModal()">
         <div class="w-full max-w-[600px] overflow-hidden rounded-[28px] bg-white shadow-[0_20px_70px_-20px_rgba(0,0,0,0.35)]" (click)="$event.stopPropagation()">
           <div class="flex items-start justify-between p-6 pb-4 sm:p-8 sm:pb-5">
             <div class="inline-flex h-24 w-24 items-center justify-center rounded-full bg-[#FBF7EA]">
