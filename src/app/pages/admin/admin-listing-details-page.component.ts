@@ -141,12 +141,12 @@ interface AdminListingDetailRecord {
         <button
           type="button"
           (click)="closeMobileActions()"
-          class="fixed inset-0 z-30 bg-black/20"
+          class="fixed inset-0 z-[60] bg-black/20"
           aria-label="Close listing actions"
         ></button>
 
         <section
-          class="fixed inset-x-3 bottom-0 z-40 mb-[101px] rounded-[36px] bg-white px-4 pb-10 pt-[11px] shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] lg:hidden"
+          class="fixed inset-x-3 bottom-0 z-[70] rounded-[36px] bg-white px-4 pb-10 pt-[11px] shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.45)] lg:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Listing actions"
@@ -896,12 +896,12 @@ interface AdminListingDetailRecord {
       <button
         type="button"
         (click)="closeSuspendModal()"
-        class="fixed inset-0 z-50 bg-black/20 lg:hidden"
+        class="fixed inset-0 z-[60] bg-black/20 lg:hidden"
         aria-label="Close suspend listing sheet"
       ></button>
 
       <section
-        class="fixed inset-x-3 bottom-0 z-[60] mb-[101px] rounded-[36px] bg-[#F4F4F4] px-4 pb-6 pt-[11px] lg:hidden"
+        class="fixed inset-x-3 bottom-0 z-[70] rounded-[36px] bg-[#F4F4F4] px-4 pb-6 pt-[11px] lg:hidden"
         role="dialog"
         aria-modal="true"
         aria-label="Suspend listing"
