@@ -123,19 +123,21 @@ interface AdminListingDetailRecord {
           <h1 class="text-[20px] font-semibold leading-[1.2] text-[#000000]">Listing details</h1>
         </div>
 
-        <button
-          type="button"
-          (click)="mobileActionsOpen.set(true)"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
-          aria-label="Open listing actions"
-          [attr.aria-expanded]="mobileActionsOpen()"
-        >
-          <span class="flex items-center gap-[3px]" aria-hidden="true">
-            <span class="h-[3px] w-[3px] rounded-full bg-[#1A1B1D]"></span>
-            <span class="h-[3px] w-[3px] rounded-full bg-[#1A1B1D]"></span>
-            <span class="h-[3px] w-[3px] rounded-full bg-[#1A1B1D]"></span>
-          </span>
-        </button>
+        @if (effectiveStatus() !== 'Sold') {
+          <button
+            type="button"
+            (click)="mobileActionsOpen.set(true)"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
+            aria-label="Open listing actions"
+            [attr.aria-expanded]="mobileActionsOpen()"
+          >
+            <span class="flex items-center gap-[3px]" aria-hidden="true">
+              <span class="h-[3px] w-[3px] rounded-full bg-[#1A1B1D]"></span>
+              <span class="h-[3px] w-[3px] rounded-full bg-[#1A1B1D]"></span>
+              <span class="h-[3px] w-[3px] rounded-full bg-[#1A1B1D]"></span>
+            </span>
+          </button>
+        }
       </div>
 
       @if (mobileActionsOpen()) {
@@ -228,7 +230,7 @@ interface AdminListingDetailRecord {
             [class.text-[#FF2524]]="effectiveStatus() === 'Suspended'"
             [class.bg-[#F3FBF9]]="effectiveStatus() === 'Sold'"
             [class.text-[#25AD32]]="effectiveStatus() === 'Sold'"
-            [class.bg-[#EEF4FF]]="effectiveStatus() === 'Paused'"
+            [class.bg-[#F3FBF9]]="effectiveStatus() === 'Paused'"
             [class.text-[#4787FE]]="effectiveStatus() === 'Paused'"
           >
             <img
@@ -628,7 +630,7 @@ interface AdminListingDetailRecord {
                 [class.text-[#FF2524]]="effectiveStatus() === 'Suspended'"
                 [class.bg-[#F3FBF9]]="effectiveStatus() === 'Sold'"
                 [class.text-[#25AD32]]="effectiveStatus() === 'Sold'"
-                [class.bg-[#EEF4FF]]="effectiveStatus() === 'Paused'"
+                [class.bg-[#F3FBF9]]="effectiveStatus() === 'Paused'"
                 [class.text-[#4787FE]]="effectiveStatus() === 'Paused'"
               >
                 <img
@@ -658,7 +660,23 @@ interface AdminListingDetailRecord {
                 >
                   Lift suspension
                 </button>
-              } @else {
+              } @else if (effectiveStatus() === 'Paused') {
+                <button
+                  type="button"
+                  (click)="isSuspendModalOpen.set(true)"
+                  class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#000000]"
+                >
+                  <img
+                    ngSrc="/assets/icons/listing-details-action-pause.svg"
+                    width="14"
+                    height="14"
+                    alt=""
+                    class="h-[14px] w-[14px]"
+                    aria-hidden="true"
+                  />
+                  Suspend listing
+                </button>
+              } @else if (effectiveStatus() !== 'Sold') {
                 <button
                   type="button"
                   (click)="isSuspendModalOpen.set(true)"
@@ -1201,6 +1219,17 @@ export class AdminListingDetailsPageComponent {
       ];
     }
 
+    if (this.effectiveStatus() === 'Paused') {
+      return [
+        {
+          id: 'suspend',
+          label: 'Suspend listing',
+          iconSrc: '/assets/icons/admin-listing-details/mobile-actions/suspend-listing.svg',
+          danger: true,
+        },
+      ];
+    }
+
     return [
       {
         id: 'share',
@@ -1576,6 +1605,191 @@ export class AdminListingDetailsPageComponent {
         { id: 'mobile-suspended-maserati-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
         { id: 'mobile-suspended-maserati-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
         { id: 'mobile-suspended-maserati-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      store: {
+        name: 'The Vine Collections',
+        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
+        verified: true,
+      },
+    },
+    'logitech-ergonomic-mouse': {
+      id: 'logitech-ergonomic-mouse',
+      name: 'Iphone 17 pro max',
+      previewImage: '/assets/images/admin-listing-details/available/desktop/iphone-1.png',
+      lastUpdated: '24 January, 2026',
+      isPromoted: false,
+      status: 'Sold',
+      location: 'Ikeja, Lagos',
+      datePosted: '14 Feb, 2026',
+      messages: 12,
+      views: '3,990',
+      saves: 200,
+      price: '2,500,000',
+      description:
+        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
+      gallery: [
+        { id: 'desktop-sold-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'desktop-sold-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'desktop-sold-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'desktop-sold-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'desktop-sold-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'desktop-sold-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      mobileGallery: [
+        { id: 'mobile-sold-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'mobile-sold-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'mobile-sold-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'mobile-sold-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'mobile-sold-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'mobile-sold-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      store: {
+        name: 'The Vine Collections',
+        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
+        verified: true,
+      },
+    },
+    'logitech-ergonomic-mouse-mobile': {
+      id: 'logitech-ergonomic-mouse-mobile',
+      name: 'Iphone 17 pro max',
+      previewImage: '/assets/images/admin-listing-details/available/mobile/iphone-1.png',
+      lastUpdated: '24 January, 2026',
+      isPromoted: false,
+      status: 'Sold',
+      location: 'Ikeja, Lagos',
+      datePosted: '14 Feb, 2026',
+      messages: 12,
+      views: '3,990',
+      saves: 200,
+      price: '2,500,000',
+      description:
+        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
+      gallery: [
+        { id: 'desktop-sold-mobile-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'desktop-sold-mobile-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'desktop-sold-mobile-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'desktop-sold-mobile-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'desktop-sold-mobile-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'desktop-sold-mobile-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      mobileGallery: [
+        { id: 'mobile-sold-mobile-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'mobile-sold-mobile-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'mobile-sold-mobile-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'mobile-sold-mobile-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'mobile-sold-mobile-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'mobile-sold-mobile-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      store: {
+        name: 'The Vine Collections',
+        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
+        verified: true,
+      },
+    },
+    'bone-straight-wig': {
+      id: 'bone-straight-wig',
+      name: 'Iphone 17 pro max',
+      previewImage: '/assets/images/admin-listing-details/available/desktop/iphone-1.png',
+      lastUpdated: '24 January, 2026',
+      isPromoted: true,
+      status: 'Paused',
+      location: 'Ikeja, Lagos',
+      datePosted: '14 Feb, 2026',
+      messages: 12,
+      views: '3,990',
+      saves: 200,
+      price: '2,500,000',
+      description:
+        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
+      gallery: [
+        { id: 'desktop-paused-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'desktop-paused-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'desktop-paused-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'desktop-paused-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'desktop-paused-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'desktop-paused-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      mobileGallery: [
+        { id: 'mobile-paused-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'mobile-paused-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'mobile-paused-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'mobile-paused-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'mobile-paused-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'mobile-paused-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      store: {
+        name: 'The Vine Collections',
+        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
+        verified: true,
+      },
+    },
+    'bone-straight-wig-mobile': {
+      id: 'bone-straight-wig-mobile',
+      name: 'Iphone 17 pro max',
+      previewImage: '/assets/images/admin-listing-details/available/mobile/iphone-1.png',
+      lastUpdated: '24 January, 2026',
+      isPromoted: true,
+      status: 'Paused',
+      location: 'Ikeja, Lagos',
+      datePosted: '14 Feb, 2026',
+      messages: 12,
+      views: '3,990',
+      saves: 200,
+      price: '2,500,000',
+      description:
+        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
+      gallery: [
+        { id: 'desktop-paused-mobile-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'desktop-paused-mobile-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'desktop-paused-mobile-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'desktop-paused-mobile-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'desktop-paused-mobile-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'desktop-paused-mobile-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      mobileGallery: [
+        { id: 'mobile-paused-mobile-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'mobile-paused-mobile-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'mobile-paused-mobile-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'mobile-paused-mobile-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'mobile-paused-mobile-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'mobile-paused-mobile-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      store: {
+        name: 'The Vine Collections',
+        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
+        verified: true,
+      },
+    },
+    'rgb-keyboard': {
+      id: 'rgb-keyboard',
+      name: 'Iphone 17 pro max',
+      previewImage: '/assets/images/admin-listing-details/available/desktop/iphone-1.png',
+      lastUpdated: '24 January, 2026',
+      isPromoted: false,
+      status: 'Paused',
+      location: 'Ikeja, Lagos',
+      datePosted: '14 Feb, 2026',
+      messages: 12,
+      views: '3,990',
+      saves: 200,
+      price: '2,500,000',
+      description:
+        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
+      gallery: [
+        { id: 'desktop-paused-rgb-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'desktop-paused-rgb-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'desktop-paused-rgb-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'desktop-paused-rgb-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'desktop-paused-rgb-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'desktop-paused-rgb-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      mobileGallery: [
+        { id: 'mobile-paused-rgb-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'mobile-paused-rgb-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'mobile-paused-rgb-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'mobile-paused-rgb-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'mobile-paused-rgb-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'mobile-paused-rgb-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
       ],
       store: {
         name: 'The Vine Collections',
