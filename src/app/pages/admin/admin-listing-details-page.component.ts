@@ -222,29 +222,29 @@ interface AdminListingDetailRecord {
 
           <span
             class="inline-flex h-6 w-fit items-center gap-1 rounded-[8px] px-2 text-[12px] font-semibold leading-4"
-            [class.bg-[#F9F9F9]]="listing().status === 'Available'"
-            [class.text-[#EE9C2E]]="listing().status === 'Available'"
-            [class.bg-[#FDF6FA]]="listing().status === 'Suspended'"
-            [class.text-[#FF2524]]="listing().status === 'Suspended'"
-            [class.bg-[#F3FBF9]]="listing().status === 'Sold'"
-            [class.text-[#25AD32]]="listing().status === 'Sold'"
-            [class.bg-[#EEF4FF]]="listing().status === 'Paused'"
-            [class.text-[#4787FE]]="listing().status === 'Paused'"
+            [class.bg-[#F9F9F9]]="effectiveStatus() === 'Available'"
+            [class.text-[#EE9C2E]]="effectiveStatus() === 'Available'"
+            [class.bg-[#FDF6FA]]="effectiveStatus() === 'Suspended'"
+            [class.text-[#FF2524]]="effectiveStatus() === 'Suspended'"
+            [class.bg-[#F3FBF9]]="effectiveStatus() === 'Sold'"
+            [class.text-[#25AD32]]="effectiveStatus() === 'Sold'"
+            [class.bg-[#EEF4FF]]="effectiveStatus() === 'Paused'"
+            [class.text-[#4787FE]]="effectiveStatus() === 'Paused'"
           >
             <img
-              [ngSrc]="statusIcon(listing().status)"
+              [ngSrc]="statusIcon(effectiveStatus())"
               width="14"
               height="14"
               alt=""
               class="h-[14px] w-[14px]"
               aria-hidden="true"
             />
-            {{ listing().status }}
+            {{ effectiveStatus() }}
           </span>
 
-          @if (listing().status === 'Suspended' && listing().suspensionReason) {
+          @if (effectiveStatus() === 'Suspended' && effectiveSuspensionReason()) {
             <div class="rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px] text-[14px] font-medium leading-5 text-[#1F1F1F]">
-              Reason: “{{ listing().suspensionReason }}”
+              Reason: “{{ effectiveSuspensionReason() }}”
             </div>
           }
         </div>
@@ -622,35 +622,35 @@ interface AdminListingDetailRecord {
 
               <span
                 class="mt-3 inline-flex h-6 items-center gap-1 rounded-[8px] px-2 text-[12px] font-semibold leading-4"
-                [class.bg-[#F9F9F9]]="listing().status === 'Available'"
-                [class.text-[#EE9C2E]]="listing().status === 'Available'"
-                [class.bg-[#FDF6FA]]="listing().status === 'Suspended'"
-                [class.text-[#FF2524]]="listing().status === 'Suspended'"
-                [class.bg-[#F3FBF9]]="listing().status === 'Sold'"
-                [class.text-[#25AD32]]="listing().status === 'Sold'"
-                [class.bg-[#EEF4FF]]="listing().status === 'Paused'"
-                [class.text-[#4787FE]]="listing().status === 'Paused'"
+                [class.bg-[#F9F9F9]]="effectiveStatus() === 'Available'"
+                [class.text-[#EE9C2E]]="effectiveStatus() === 'Available'"
+                [class.bg-[#FDF6FA]]="effectiveStatus() === 'Suspended'"
+                [class.text-[#FF2524]]="effectiveStatus() === 'Suspended'"
+                [class.bg-[#F3FBF9]]="effectiveStatus() === 'Sold'"
+                [class.text-[#25AD32]]="effectiveStatus() === 'Sold'"
+                [class.bg-[#EEF4FF]]="effectiveStatus() === 'Paused'"
+                [class.text-[#4787FE]]="effectiveStatus() === 'Paused'"
               >
                 <img
-                  [ngSrc]="desktopStatusIcon(listing().status)"
+                  [ngSrc]="desktopStatusIcon(effectiveStatus())"
                   width="14"
                   height="14"
                   alt=""
                   class="h-[14px] w-[14px]"
                   aria-hidden="true"
                 />
-                {{ listing().status }}
+                {{ effectiveStatus() }}
               </span>
 
-              @if (listing().status === 'Suspended' && listing().suspensionReason) {
+              @if (effectiveStatus() === 'Suspended' && effectiveSuspensionReason()) {
                 <div class="mt-3 w-full rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px] text-[14px] font-medium leading-5 text-[#1F1F1F]">
-                  Reason: “{{ listing().suspensionReason }}”
+                  Reason: “{{ effectiveSuspensionReason() }}”
                 </div>
               }
             </div>
 
             <div class="flex items-center gap-3 pt-[4px]">
-              @if (listing().status === 'Suspended') {
+              @if (effectiveStatus() === 'Suspended') {
                 <button
                   type="button"
                   (click)="isLiftSuspensionOpen.set(true)"
@@ -994,12 +994,15 @@ interface AdminListingDetailRecord {
           <label for="suspend-reason-mobile" class="text-[14px] font-medium leading-5 text-[#5A5A5A]">Why are you suspending?</label>
           <textarea
             id="suspend-reason-mobile"
+            [value]="suspendReasonInput()"
+            (input)="updateSuspendReason($any($event.target).value)"
             class="mt-[6px] h-[102px] w-full resize-none rounded-[10px] border border-[#E6E6E8] bg-white px-3 py-2 text-[16px] leading-6 text-[#252628] outline-none placeholder:text-[#A3A3A3]"
           ></textarea>
         </div>
 
         <button
           type="button"
+          (click)="confirmSuspendListing()"
           class="mt-[34px] flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#FF2524] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A]"
         >
           Yes, suspend
@@ -1039,6 +1042,7 @@ interface AdminListingDetailRecord {
             </button>
             <button
               type="button"
+              (click)="confirmSuspendListing()"
               class="inline-flex items-center justify-center rounded-full bg-[#FF2F2F] px-6 py-3 text-[15px] font-medium text-white shadow-[0_10px_24px_-12px_rgba(255,47,47,0.65)] transition hover:bg-[#EF2A2A]"
             >
               Yes, suspend
@@ -1103,6 +1107,7 @@ interface AdminListingDetailRecord {
 
         <button
           type="button"
+          (click)="confirmLiftSuspension()"
           class="mt-[34px] flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
         >
           Yes, lift suspension
@@ -1161,6 +1166,7 @@ interface AdminListingDetailRecord {
             </button>
             <button
               type="button"
+              (click)="confirmLiftSuspension()"
               class="inline-flex h-10 items-center justify-center rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
             >
               Yes, lift suspension
@@ -1181,9 +1187,12 @@ export class AdminListingDetailsPageComponent {
   readonly isSuspendModalOpen = signal(false);
   readonly isLiftSuspensionOpen = signal(false);
   readonly mobileActionsOpen = signal(false);
+  readonly suspendReasonInput = signal('');
+  readonly statusOverrides = signal<Record<string, AdminListingDetailStatus>>({});
+  readonly reasonOverrides = signal<Record<string, string>>({});
 
   readonly mobileActions = computed<MobileListingAction[]>(() => {
-    if (this.listing().status === 'Suspended') {
+    if (this.effectiveStatus() === 'Suspended') {
       return [
         {
           id: 'lift',
@@ -1248,6 +1257,20 @@ export class AdminListingDetailsPageComponent {
   readonly listing = computed(() => {
     const listingKey = this.listingId();
     return this.listings[listingKey] ?? this.listings['iphone-17-pro-max'];
+  });
+
+  readonly effectiveStatus = computed<AdminListingDetailStatus>(() => {
+    const listingKey = this.listing().id;
+    return this.statusOverrides()[listingKey] ?? this.listing().status;
+  });
+
+  readonly effectiveSuspensionReason = computed<string | null>(() => {
+    const listingKey = this.listing().id;
+    const overrideReason = this.reasonOverrides()[listingKey];
+    if (overrideReason !== undefined) {
+      return overrideReason || null;
+    }
+    return this.listing().suspensionReason ?? null;
   });
 
   readonly desktopMetrics: ListingMetric[] = [
@@ -1566,6 +1589,7 @@ export class AdminListingDetailsPageComponent {
     this.mobileActionsOpen.set(false);
 
     if (actionId === 'suspend') {
+      this.suspendReasonInput.set('');
       this.isSuspendModalOpen.set(true);
       return;
     }
@@ -1607,9 +1631,32 @@ export class AdminListingDetailsPageComponent {
 
   closeSuspendModal(): void {
     this.isSuspendModalOpen.set(false);
+    this.suspendReasonInput.set('');
   }
 
   closeLiftSuspension(): void {
+    this.isLiftSuspensionOpen.set(false);
+  }
+
+  updateSuspendReason(value: string): void {
+    this.suspendReasonInput.set(value);
+  }
+
+  confirmSuspendListing(): void {
+    const listingKey = this.listing().id;
+    const reason = this.suspendReasonInput().trim() || 'The title, description, or price appears misleading or incorrect.';
+
+    this.statusOverrides.update((current) => ({ ...current, [listingKey]: 'Suspended' }));
+    this.reasonOverrides.update((current) => ({ ...current, [listingKey]: reason }));
+
+    this.isSuspendModalOpen.set(false);
+    this.suspendReasonInput.set('');
+  }
+
+  confirmLiftSuspension(): void {
+    const listingKey = this.listing().id;
+    this.statusOverrides.update((current) => ({ ...current, [listingKey]: 'Available' }));
+    this.reasonOverrides.update((current) => ({ ...current, [listingKey]: '' }));
     this.isLiftSuspensionOpen.set(false);
   }
 }
