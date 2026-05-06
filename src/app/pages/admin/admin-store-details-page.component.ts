@@ -263,7 +263,7 @@ interface ReviewTag {
                       </div>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
+                    <div class="grid grid-cols-2 gap-4 xl:grid-cols-5">
                       @for (item of section.items; track item.id) {
                         <app-listing-card
                           [listing]="item"
