@@ -1,12 +1,6 @@
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { Router } from '@angular/router';
-import {
-  heroChevronDown,
-  heroChevronLeft,
-  heroChevronRight,
-  heroMagnifyingGlass,
-} from '@ng-icons/heroicons/outline';
+import { Router, RouterLink } from '@angular/router';
 
 type AdminStoreRatingFilter = 'all' | 'highest' | 'lowest';
 
@@ -16,146 +10,188 @@ interface AdminStoreRecord {
   logo: string;
   location: string;
   linkedUser: string;
-  linkedUserInitials: string;
-  linkedUserBackground: string;
+  linkedUserAvatar: string;
   listingCount: number;
   rating: number;
-  boosted: boolean;
+  promoted: boolean;
 }
 
 @Component({
   selector: 'app-admin-stores-page',
-  imports: [NgIcon],
-  providers: [
-    provideIcons({
-      heroChevronDown,
-      heroChevronLeft,
-      heroChevronRight,
-      heroMagnifyingGlass,
-    }),
-  ],
+  imports: [NgOptimizedImage, RouterLink],
+  host: { class: 'block h-full' },
   template: `
-    <div class="flex h-full flex-col rounded-[24px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] sm:rounded-[32px]">
-      <div class="border-b border-[#EEF0F4] px-6 py-5 sm:px-8">
-        <h1 class="text-[22px] font-semibold tracking-[-0.04em] text-[#1A1C21]">Stores</h1>
+    <section class="bg-white lg:hidden">
+      <div class="flex items-center gap-2 px-5 pb-4 pt-[10px]">
+        <a
+          routerLink="/admin"
+          class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]"
+          aria-label="Back"
+        >
+          <img ngSrc="/assets/icons/listing-details-back.svg" width="20" height="20" alt="" class="h-5 w-5" aria-hidden="true" />
+        </a>
+        <h1 class="text-[20px] font-semibold leading-[1.2] text-black">Stores</h1>
       </div>
 
-      <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-8">
-        <div class="overflow-hidden rounded-[28px] border border-[#ECEEF3] bg-white shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)]">
-          <div class="flex flex-col gap-4 border-b border-[#F1F2F4] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="px-4 pb-8">
+        <div class="flex items-center gap-3">
+          <label class="relative block min-w-0 flex-1">
+            <img
+              ngSrc="/assets/icons/admin-listings/search.svg"
+              width="16"
+              height="16"
+              alt=""
+              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              [value]="searchQuery()"
+              (input)="updateSearchQuery(($any($event.target).value ?? '').toString())"
+              placeholder="Search"
+              class="h-10 w-full rounded-full bg-[#FAFAFA] py-2 pl-10 pr-4 text-[14px] text-[#1A1B1D] outline-none placeholder:text-[#777777]"
+            >
+          </label>
+          <button type="button" class="inline-flex h-6 w-6 items-center justify-center" aria-label="Filter">
+            <img ngSrc="/assets/icons/admin-listings/filter.svg" width="24" height="24" alt="" class="h-6 w-6" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div class="mt-4">
+          @for (store of visibleMobileStores(); track store.id) {
+            <article class="border-b border-[#EBEBEB] py-3" (click)="openStore(store.id)">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex min-w-0 items-center gap-3">
+                  <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-white bg-white">
+                    <img [ngSrc]="store.logo" [alt]="store.name" width="44" height="44" class="h-11 w-11 object-cover" />
+                  </div>
+                  <div class="min-w-0">
+                    <h2 class="truncate text-[16px] font-medium leading-6 text-[#0D0D0D]/80">{{ store.name }}</h2>
+                    @if (store.promoted) {
+                      <p class="mt-1 text-[12px] leading-4 text-[#7F8081]"><span class="text-[#1A1B1D]">🚀</span> Promoted</p>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 space-y-3 text-[14px] leading-5">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-[#1A1B1D]/50">Linked user</span>
+                  <span class="flex items-center gap-2 text-right font-medium text-[#1A1B1D]">
+                    <img [ngSrc]="store.linkedUserAvatar" [alt]="store.linkedUser" width="24" height="24" class="h-6 w-6 rounded-full object-cover" />
+                    {{ store.linkedUser }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-[#1A1B1D]/50">Location</span>
+                  <span class="text-right font-medium text-[#1A1B1D]">{{ store.location }}</span>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="hidden h-full flex-col rounded-[24px] border border-[#F4F4F4] bg-white lg:flex">
+      <div class="border-b border-[#EEEEEE] px-4 py-5 xl:px-6">
+        <h1 class="text-[24px] font-medium leading-none text-[#0D0D0D]">Stores</h1>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-4 py-6 xl:px-6">
+        <div class="overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white">
+          <div class="flex items-center justify-between gap-4 px-[15px] py-[15px]">
             <button
               type="button"
               (click)="cycleRatingFilter()"
-              class="inline-flex w-fit items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-5 py-2.5 text-[13px] font-medium text-[#80858F]"
+              class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
             >
               {{ ratingFilterLabel() }}
-              <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
+              <span class="text-[14px]">⌄</span>
             </button>
 
-            <label class="relative block w-full lg:max-w-[230px]">
-              <ng-icon
-                name="heroMagnifyingGlass"
-                class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A2A7B0]"
-              ></ng-icon>
+            <label class="relative block w-full max-w-[224px]">
+              <img
+                ngSrc="/assets/icons/admin-listings/search.svg"
+                width="16"
+                height="16"
+                alt=""
+                class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                aria-hidden="true"
+              />
               <input
                 type="text"
                 [value]="searchQuery()"
                 (input)="updateSearchQuery(($any($event.target).value ?? '').toString())"
                 placeholder="Search"
-                class="w-full rounded-full bg-[#FAFAFB] py-3 pl-11 pr-4 text-[14px] font-medium text-[#2A2D34] outline-none placeholder:text-[#B5BAC4] focus:ring-2 focus:ring-[#6B5CF0]/10"
+                class="h-10 w-full rounded-full bg-[#FAFAFA] py-2 pl-10 pr-4 text-[14px] text-[#1A1B1D] outline-none placeholder:text-[#777777]"
               >
             </label>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full min-w-[980px]">
-              <thead class="border-b border-[#F1F2F4] bg-[#FAFAFB] text-left">
-                <tr class="text-[12px] font-semibold text-[#9AA0AA]">
-                  <th class="px-8 py-4">Name</th>
-                  <th class="px-4 py-4">Location</th>
-                  <th class="px-4 py-4">Linked user</th>
-                  <th class="px-4 py-4">No of listings</th>
-                  <th class="px-4 py-4">Rating</th>
-                  <th class="px-4 py-4"></th>
+          <table class="w-full">
+            <thead class="border-y border-[#F4F4F4] bg-[#FAFAFA] text-left text-[12px] font-medium text-[#1A1B1D]/60">
+              <tr>
+                <th class="px-4 py-[11px]">Name</th>
+                <th class="px-4 py-[11px]">Location</th>
+                <th class="px-4 py-[11px]">Linked user</th>
+                <th class="px-4 py-[11px]">No of listings</th>
+                <th class="px-4 py-[11px]">Rating</th>
+                <th class="px-4 py-[11px]"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (store of visibleDesktopStores(); track store.id) {
+                <tr class="cursor-pointer border-b border-[#F0F0F0] text-[14px] text-[#1A1B1D]" (click)="openStore(store.id)">
+                  <td class="px-4 py-[15px]">
+                    <div class="flex items-center gap-2">
+                      <div class="h-8 w-8 overflow-hidden rounded-full border-[1.73px] border-white">
+                        <img [ngSrc]="store.logo" [alt]="store.name" width="32" height="32" class="h-8 w-8 object-cover" />
+                      </div>
+                      <span>{{ store.name }}</span>
+                    </div>
+                  </td>
+                  <td class="px-4 py-[15px]">{{ store.location }}</td>
+                  <td class="px-4 py-[15px]">
+                    <div class="flex items-center gap-2">
+                      <img [ngSrc]="store.linkedUserAvatar" [alt]="store.linkedUser" width="32" height="32" class="h-8 w-8 rounded-full object-cover" />
+                      <span>{{ store.linkedUser }}</span>
+                    </div>
+                  </td>
+                  <td class="px-4 py-[15px]">{{ store.listingCount }}</td>
+                  <td class="px-4 py-[15px]">{{ store.rating.toFixed(1) }}</td>
+                  <td class="px-4 py-[15px] text-right">
+                    @if (store.promoted) {
+                      <button
+                        type="button"
+                        (click)="stopRowNavigation($event)"
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[14px] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                        aria-label="Promoted store"
+                      >
+                        🚀
+                      </button>
+                    } @else {
+                      <span class="inline-flex h-8 w-8"></span>
+                    }
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                @for (store of visibleStores(); track store.id) {
-                  <tr
-                    class="cursor-pointer border-b border-[#F4F5F7] transition hover:bg-[#FBFBFD] last:border-b-0"
-                    (click)="openStore(store.id)"
-                  >
-                    <td class="px-8 py-5">
-                      <div class="flex items-center gap-3">
-                        <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white shadow-[0_6px_14px_-12px_rgba(17,24,39,0.35)]">
-                          <img [src]="store.logo" [alt]="store.name" class="h-full w-full object-cover">
-                        </span>
-                        <span class="text-[14px] font-semibold text-[#2A2D34]">{{ store.name }}</span>
-                      </div>
-                    </td>
-                    <td class="px-4 py-5 text-[14px] font-medium text-[#555A64]">{{ store.location }}</td>
-                    <td class="px-4 py-5">
-                      <div class="flex items-center gap-3">
-                        <span
-                          class="flex h-9 w-9 items-center justify-center rounded-full text-[12px] font-semibold text-white"
-                          [style.background]="store.linkedUserBackground"
-                        >
-                          {{ store.linkedUserInitials }}
-                        </span>
-                        <span class="text-[14px] font-medium text-[#3F444C]">{{ store.linkedUser }}</span>
-                      </div>
-                    </td>
-                    <td class="px-4 py-5 text-[14px] font-medium text-[#2A2D34]">{{ store.listingCount }}</td>
-                    <td class="px-4 py-5 text-[14px] font-medium text-[#2A2D34]">{{ store.rating.toFixed(1) }}</td>
-                    <td class="px-4 py-5 text-right">
-                      @if (store.boosted) {
-                        <button
-                          type="button"
-                          (click)="stopRowNavigation($event)"
-                          class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#ECEEF3] bg-white text-[15px] shadow-[0_8px_16px_-14px_rgba(17,24,39,0.35)]"
-                          aria-label="Boosted store"
-                        >
-                          🚀
-                        </button>
-                      } @else {
-                        <span class="inline-flex h-9 w-9"></span>
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+              }
+            </tbody>
+          </table>
         </div>
 
-        <div class="mt-6 flex flex-col gap-4 px-1 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-[14px] font-semibold text-[#646A73]">{{ visibleStores().length }} results</p>
-
-          <div class="flex items-center gap-2 self-end text-[14px] font-medium text-[#B2B7C0]">
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white transition hover:bg-[#FAFAFC]"
-              aria-label="Previous page"
-            >
-              <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
-            </button>
-            <span class="flex h-8 min-w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white px-3 text-[#7A808A]">
-              1
-            </span>
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white transition hover:bg-[#FAFAFC]"
-              aria-label="Next page"
-            >
-              <ng-icon name="heroChevronRight" class="text-sm"></ng-icon>
-            </button>
-            <span class="ml-2">of 1</span>
+        <div class="mt-6 flex items-center justify-between">
+          <p class="text-[16px] font-medium text-[#1A1B1D]">{{ visibleDesktopStores().length }} <span class="text-[#1A1B1D]/50">results</span></p>
+          <div class="flex items-center gap-2 opacity-50">
+            <div class="inline-flex h-8 w-11 items-center justify-center rounded-[8px] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">‹</div>
+            <div class="inline-flex h-8 w-11 items-center justify-center rounded-[8px] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] text-[14px] font-medium text-[#1A1B1D]">1</div>
+            <div class="inline-flex h-8 w-11 items-center justify-center rounded-[8px] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">›</div>
+            <span class="text-[16px] text-[#1C1F1D]">of 1</span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   `,
-  host: { class: 'block h-full' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminStoresPageComponent {
@@ -168,111 +204,84 @@ export class AdminStoresPageComponent {
     {
       id: 'vine-collections',
       name: 'The Vine Collections',
-      logo: '/assets/images/store-1-banner.png',
+      logo: '/assets/images/admin-stores/store-vine.png',
       location: '54 Ajao Estate, Lagos',
       linkedUser: 'Ifeanyi Austin',
-      linkedUserInitials: 'IA',
-      linkedUserBackground: 'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
+      linkedUserAvatar: '/assets/images/admin-stores/user-ifeanyi.png',
       listingCount: 58,
       rating: 4.8,
-      boosted: true,
+      promoted: true,
     },
     {
       id: 'eden-organics',
       name: 'Eden Organics',
-      logo: '/assets/images/store-2-banner.png',
+      logo: '/assets/images/admin-stores/store-eden.png',
       location: '54 Ajao Estate, Lagos',
       linkedUser: 'Abogu Ruth',
-      linkedUserInitials: 'AR',
-      linkedUserBackground: 'linear-gradient(135deg, #4FC3C8 0%, #2FB8A8 100%)',
+      linkedUserAvatar: '/assets/images/admin-stores/user-abogu.png',
       listingCount: 300,
       rating: 3.5,
-      boosted: false,
+      promoted: false,
     },
     {
       id: 'amazing-fragrances',
       name: 'Amazing Fragrances',
-      logo: '/assets/images/store-3-banner.png',
+      logo: '/assets/images/admin-stores/store-amazing.png',
       location: '54 Ajao Estate, Lagos',
       linkedUser: 'Ifeanyi Austin',
-      linkedUserInitials: 'IA',
-      linkedUserBackground: 'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
+      linkedUserAvatar: '/assets/images/admin-stores/user-ifeanyi.png',
       listingCount: 123,
       rating: 5,
-      boosted: false,
+      promoted: false,
     },
     {
       id: 'vine-collections-2',
       name: 'The Vine Collections',
-      logo: '/assets/images/store-1-banner.png',
+      logo: '/assets/images/admin-stores/store-vine.png',
       location: '54 Ajao Estate, Lagos',
       linkedUser: 'Abogu Ruth',
-      linkedUserInitials: 'AR',
-      linkedUserBackground: 'linear-gradient(135deg, #4FC3C8 0%, #2FB8A8 100%)',
+      linkedUserAvatar: '/assets/images/admin-stores/user-abogu.png',
       listingCount: 7,
       rating: 4.4,
-      boosted: true,
+      promoted: true,
     },
     {
       id: 'amazing-fragrances-2',
       name: 'Amazing Fragrances',
-      logo: '/assets/images/store-3-banner.png',
+      logo: '/assets/images/admin-stores/store-amazing.png',
       location: '54 Ajao Estate, Lagos',
       linkedUser: 'Ifeanyi Austin',
-      linkedUserInitials: 'IA',
-      linkedUserBackground: 'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
+      linkedUserAvatar: '/assets/images/admin-stores/user-ifeanyi.png',
       listingCount: 0,
       rating: 4.7,
-      boosted: true,
+      promoted: true,
     },
     {
       id: 'eden-organics-2',
       name: 'Eden Organics',
-      logo: '/assets/images/store-2-banner.png',
+      logo: '/assets/images/admin-stores/store-eden.png',
       location: '54 Ajao Estate, Lagos',
       linkedUser: 'Abogu Ruth',
-      linkedUserInitials: 'AR',
-      linkedUserBackground: 'linear-gradient(135deg, #4FC3C8 0%, #2FB8A8 100%)',
+      linkedUserAvatar: '/assets/images/admin-stores/user-abogu.png',
       listingCount: 28,
       rating: 2.5,
-      boosted: false,
+      promoted: false,
     },
     {
       id: 'vine-collections-3',
       name: 'The Vine Collections',
-      logo: '/assets/images/store-1-banner.png',
+      logo: '/assets/images/admin-stores/store-vine.png',
       location: '54 Ajao Estate, Lagos',
       linkedUser: 'Ifeanyi Austin',
-      linkedUserInitials: 'IA',
-      linkedUserBackground: 'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
+      linkedUserAvatar: '/assets/images/admin-stores/user-ifeanyi.png',
       listingCount: 44,
       rating: 1.3,
-      boosted: false,
+      promoted: false,
     },
   ];
 
-  readonly visibleStores = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-
-    let filtered = this.stores;
-
-    if (this.ratingFilter() === 'highest') {
-      filtered = [...filtered].sort((left, right) => right.rating - left.rating);
-    } else if (this.ratingFilter() === 'lowest') {
-      filtered = [...filtered].sort((left, right) => left.rating - right.rating);
-    }
-
-    if (!query) {
-      return filtered;
-    }
-
-    return filtered.filter((store) =>
-      [store.name, store.location, store.linkedUser, store.rating.toString(), store.listingCount.toString()]
-        .join(' ')
-        .toLowerCase()
-        .includes(query),
-    );
-  });
+  readonly visibleDesktopStores = computed(() => this.filteredStores());
+  readonly visibleMobileStores = computed(() => this.filteredStores().slice(0, 3));
 
   ratingFilterLabel(): string {
     switch (this.ratingFilter()) {
@@ -309,5 +318,27 @@ export class AdminStoresPageComponent {
   stopRowNavigation(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  private filteredStores(): AdminStoreRecord[] {
+    const query = this.searchQuery().trim().toLowerCase();
+    let filtered = this.stores;
+
+    if (this.ratingFilter() === 'highest') {
+      filtered = [...filtered].sort((left, right) => right.rating - left.rating);
+    } else if (this.ratingFilter() === 'lowest') {
+      filtered = [...filtered].sort((left, right) => left.rating - right.rating);
+    }
+
+    if (!query) {
+      return filtered;
+    }
+
+    return filtered.filter((store) =>
+      [store.name, store.location, store.linkedUser, store.rating.toString(), store.listingCount.toString()]
+        .join(' ')
+        .toLowerCase()
+        .includes(query),
+    );
   }
 }
