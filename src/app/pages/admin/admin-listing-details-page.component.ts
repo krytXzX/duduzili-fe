@@ -67,9 +67,9 @@ interface ListingTabItem {
 }
 
 interface MobileListingAction {
-  id: 'share' | 'suspend';
+  id: 'share' | 'suspend' | 'lift';
   label: string;
-  iconSrc: string;
+  iconSrc?: string;
   danger?: boolean;
 }
 
@@ -86,6 +86,7 @@ interface AdminListingDetailRecord {
   lastUpdated: string;
   isPromoted: boolean;
   status: AdminListingDetailStatus;
+  suspensionReason?: string;
   location: string;
   datePosted: string;
   messages: number;
@@ -171,7 +172,7 @@ interface AdminListingDetailRecord {
           </div>
 
           <div class="mt-4 space-y-1">
-            @for (action of mobileActions; track action.id) {
+            @for (action of mobileActions(); track action.id) {
               <button
                 type="button"
                 (click)="handleMobileAction(action.id)"
@@ -179,14 +180,16 @@ interface AdminListingDetailRecord {
                 [class.text-[#0D0D0D]/87]="!action.danger"
                 [class.text-[#FF2524]]="action.danger"
               >
-                <img
-                  [ngSrc]="action.iconSrc"
-                  width="20"
-                  height="20"
-                  alt=""
-                  class="h-5 w-5"
-                  aria-hidden="true"
-                />
+                @if (action.iconSrc) {
+                  <img
+                    [ngSrc]="action.iconSrc"
+                    width="20"
+                    height="20"
+                    alt=""
+                    class="h-5 w-5"
+                    aria-hidden="true"
+                  />
+                }
                 <span>{{ action.label }}</span>
               </button>
             }
@@ -217,17 +220,33 @@ interface AdminListingDetailRecord {
             </div>
           </div>
 
-          <span class="inline-flex h-6 w-fit items-center gap-1 rounded-[8px] bg-[#F9F9F9] px-2 text-[12px] font-semibold leading-4 text-[#EE9C2E]">
+          <span
+            class="inline-flex h-6 w-fit items-center gap-1 rounded-[8px] px-2 text-[12px] font-semibold leading-4"
+            [class.bg-[#F9F9F9]]="listing().status === 'Available'"
+            [class.text-[#EE9C2E]]="listing().status === 'Available'"
+            [class.bg-[#FDF6FA]]="listing().status === 'Suspended'"
+            [class.text-[#FF2524]]="listing().status === 'Suspended'"
+            [class.bg-[#F3FBF9]]="listing().status === 'Sold'"
+            [class.text-[#25AD32]]="listing().status === 'Sold'"
+            [class.bg-[#EEF4FF]]="listing().status === 'Paused'"
+            [class.text-[#4787FE]]="listing().status === 'Paused'"
+          >
             <img
-              ngSrc="/assets/icons/listing-details-status-available.svg"
+              [ngSrc]="statusIcon(listing().status)"
               width="14"
               height="14"
               alt=""
               class="h-[14px] w-[14px]"
               aria-hidden="true"
             />
-            Available
+            {{ listing().status }}
           </span>
+
+          @if (listing().status === 'Suspended' && listing().suspensionReason) {
+            <div class="rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px] text-[14px] font-medium leading-5 text-[#1F1F1F]">
+              Reason: “{{ listing().suspensionReason }}”
+            </div>
+          }
         </div>
 
         <nav class="mt-6 overflow-x-auto border-b border-[#EAEAEA] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -601,50 +620,76 @@ interface AdminListingDetailRecord {
                 </div>
               </div>
 
-              <span class="mt-3 inline-flex h-6 items-center gap-1 rounded-[8px] bg-[#F9F9F9] px-2 text-[12px] font-semibold leading-4 text-[#EE9C2E]">
+              <span
+                class="mt-3 inline-flex h-6 items-center gap-1 rounded-[8px] px-2 text-[12px] font-semibold leading-4"
+                [class.bg-[#F9F9F9]]="listing().status === 'Available'"
+                [class.text-[#EE9C2E]]="listing().status === 'Available'"
+                [class.bg-[#FDF6FA]]="listing().status === 'Suspended'"
+                [class.text-[#FF2524]]="listing().status === 'Suspended'"
+                [class.bg-[#F3FBF9]]="listing().status === 'Sold'"
+                [class.text-[#25AD32]]="listing().status === 'Sold'"
+                [class.bg-[#EEF4FF]]="listing().status === 'Paused'"
+                [class.text-[#4787FE]]="listing().status === 'Paused'"
+              >
                 <img
-                  ngSrc="/assets/icons/listing-details-status-desktop-available.svg"
+                  [ngSrc]="desktopStatusIcon(listing().status)"
                   width="14"
                   height="14"
                   alt=""
                   class="h-[14px] w-[14px]"
                   aria-hidden="true"
                 />
-                Available
+                {{ listing().status }}
               </span>
+
+              @if (listing().status === 'Suspended' && listing().suspensionReason) {
+                <div class="mt-3 w-full rounded-[16px] bg-[rgba(255,254,218,0.76)] px-[10px] py-[11px] text-[14px] font-medium leading-5 text-[#1F1F1F]">
+                  Reason: “{{ listing().suspensionReason }}”
+                </div>
+              }
             </div>
 
             <div class="flex items-center gap-3 pt-[4px]">
-              <button
-                type="button"
-                (click)="isSuspendModalOpen.set(true)"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#000000]"
-              >
-                <img
-                  ngSrc="/assets/icons/listing-details-action-pause.svg"
-                  width="14"
-                  height="14"
-                  alt=""
-                  class="h-[14px] w-[14px]"
-                  aria-hidden="true"
-                />
-                Suspend listing
-              </button>
+              @if (listing().status === 'Suspended') {
+                <button
+                  type="button"
+                  (click)="isLiftSuspensionOpen.set(true)"
+                  class="inline-flex h-10 items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                >
+                  Lift suspension
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  (click)="isSuspendModalOpen.set(true)"
+                  class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#000000]"
+                >
+                  <img
+                    ngSrc="/assets/icons/listing-details-action-pause.svg"
+                    width="14"
+                    height="14"
+                    alt=""
+                    class="h-[14px] w-[14px]"
+                    aria-hidden="true"
+                  />
+                  Suspend listing
+                </button>
 
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#000000]"
-              >
-                <img
-                  ngSrc="/assets/icons/listing-details-action-share.svg"
-                  width="14"
-                  height="14"
-                  alt=""
-                  class="h-[14px] w-[14px]"
-                  aria-hidden="true"
-                />
-                Share listing
-              </button>
+                <button
+                  type="button"
+                  class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#000000]"
+                >
+                  <img
+                    ngSrc="/assets/icons/listing-details-action-share.svg"
+                    width="14"
+                    height="14"
+                    alt=""
+                    class="h-[14px] w-[14px]"
+                    aria-hidden="true"
+                  />
+                  Share listing
+                </button>
+              }
             </div>
           </div>
 
@@ -1002,6 +1047,128 @@ interface AdminListingDetailRecord {
         </div>
       </div>
     }
+
+    @if (isLiftSuspensionOpen()) {
+      <button
+        type="button"
+        (click)="closeLiftSuspension()"
+        class="fixed inset-0 z-[60] bg-black/20 lg:hidden"
+        aria-label="Close lift suspension sheet"
+      ></button>
+
+      <section
+        class="fixed inset-x-3 bottom-0 z-[70] rounded-[36px] bg-[#F4F4F4] px-4 pb-6 pt-[11px] lg:hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Lift suspension"
+      >
+        <div class="relative h-10">
+          <div class="mx-auto h-1 w-[50px] rounded-full bg-[#EBEBEB]"></div>
+          <button
+            type="button"
+            (click)="closeLiftSuspension()"
+            class="absolute right-0 top-[5px] inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+            aria-label="Close lift suspension sheet"
+          >
+            <img
+              ngSrc="/assets/icons/admin-listing-details/mobile-actions/close.svg"
+              width="24"
+              height="24"
+              alt=""
+              class="h-6 w-6"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+
+        <div class="mt-[18px]">
+          <div class="inline-flex h-[120px] w-[121px] items-center justify-center rounded-full bg-[#EBEBEB]">
+            <div class="inline-flex h-[88px] w-[89px] items-center justify-center rounded-full bg-[#E3D8B4]">
+              <img
+                ngSrc="/assets/icons/settings/two-factor-warning.svg"
+                width="54"
+                height="54"
+                alt=""
+                class="h-[54px] w-[54px]"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
+          <h2 class="mt-[6px] text-[24px] font-semibold leading-8 text-[#1A1B1D]">Lift suspension?</h2>
+          <p class="mt-[6px] text-[16px] leading-6 text-[#5A5A5A]">
+            This listing will be restored and made visible to buyers on the platform.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="mt-[34px] flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+        >
+          Yes, lift suspension
+        </button>
+      </section>
+
+      <div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/20 px-4 py-6 backdrop-blur-[2px] lg:flex" (click)="closeLiftSuspension()">
+        <div class="w-full max-w-[600px] overflow-hidden rounded-[20px] bg-[#F4F4F4] shadow-[0_20px_70px_-20px_rgba(0,0,0,0.35)]" (click)="$event.stopPropagation()">
+          <div class="rounded-b-[15px] bg-white px-6 pb-6 pt-6 sm:px-8">
+            <div class="flex justify-end">
+              <button
+                type="button"
+                (click)="closeLiftSuspension()"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F9F9F9]"
+                aria-label="Close lift suspension modal"
+              >
+                <img
+                  ngSrc="/assets/icons/admin-listing-details/mobile-actions/close.svg"
+                  width="24"
+                  height="24"
+                  alt=""
+                  class="h-6 w-6"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
+
+            <div class="mt-2">
+              <div class="inline-flex h-[120px] w-[121px] items-center justify-center rounded-full bg-[#EBEBEB]">
+                <div class="inline-flex h-[88px] w-[89px] items-center justify-center rounded-full bg-[#E3D8B4]">
+                  <img
+                    ngSrc="/assets/icons/settings/two-factor-warning.svg"
+                    width="54"
+                    height="54"
+                    alt=""
+                    class="h-[54px] w-[54px]"
+                    aria-hidden="true"
+                  />
+                </div>
+              </div>
+
+              <h2 class="mt-3 text-[40px] font-semibold leading-[1.2] tracking-[-0.64px] text-[#0D0D0D]">Lift suspension?</h2>
+              <p class="mt-3 text-[16px] font-medium leading-[1.4] text-[#0D0D0D]/70">
+                This listing will be restored and made visible to buyers on the platform.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-4 px-[14px] pb-[15px] pt-4">
+            <button
+              type="button"
+              (click)="closeLiftSuspension()"
+              class="inline-flex h-10 items-center justify-center rounded-[64px] border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-black"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="inline-flex h-10 items-center justify-center rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+            >
+              Yes, lift suspension
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   host: { class: 'block h-full' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -1012,21 +1179,33 @@ export class AdminListingDetailsPageComponent {
   readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? 'iphone-17-pro-max');
   readonly activeTab = signal<AdminListingDetailTab>('overview');
   readonly isSuspendModalOpen = signal(false);
+  readonly isLiftSuspensionOpen = signal(false);
   readonly mobileActionsOpen = signal(false);
 
-  readonly mobileActions: MobileListingAction[] = [
-    {
-      id: 'share',
-      label: 'Share listing',
-      iconSrc: '/assets/icons/admin-listing-details/mobile-actions/share-listing.svg',
-    },
-    {
-      id: 'suspend',
-      label: 'Suspend listing',
-      iconSrc: '/assets/icons/admin-listing-details/mobile-actions/suspend-listing.svg',
-      danger: true,
-    },
-  ];
+  readonly mobileActions = computed<MobileListingAction[]>(() => {
+    if (this.listing().status === 'Suspended') {
+      return [
+        {
+          id: 'lift',
+          label: 'Lift suspension',
+        },
+      ];
+    }
+
+    return [
+      {
+        id: 'share',
+        label: 'Share listing',
+        iconSrc: '/assets/icons/admin-listing-details/mobile-actions/share-listing.svg',
+      },
+      {
+        id: 'suspend',
+        label: 'Suspend listing',
+        iconSrc: '/assets/icons/admin-listing-details/mobile-actions/suspend-listing.svg',
+        danger: true,
+      },
+    ];
+  });
 
   readonly desktopTabs: ListingTabItem[] = [
     {
@@ -1267,6 +1446,120 @@ export class AdminListingDetailsPageComponent {
         verified: true,
       },
     },
+    'nike-sneaker': {
+      id: 'nike-sneaker',
+      name: 'Iphone 17 pro max',
+      previewImage: '/assets/images/admin-listing-details/available/desktop/iphone-1.png',
+      lastUpdated: '24 January, 2026',
+      isPromoted: false,
+      status: 'Suspended',
+      suspensionReason: 'The title, description, or price appears misleading or incorrect.',
+      location: 'Ikeja, Lagos',
+      datePosted: '14 Feb, 2026',
+      messages: 12,
+      views: '3,990',
+      saves: 200,
+      price: '2,500,000',
+      description:
+        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
+      gallery: [
+        { id: 'desktop-suspended-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'desktop-suspended-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'desktop-suspended-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'desktop-suspended-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'desktop-suspended-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'desktop-suspended-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      mobileGallery: [
+        { id: 'mobile-suspended-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'mobile-suspended-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'mobile-suspended-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'mobile-suspended-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'mobile-suspended-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'mobile-suspended-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      store: {
+        name: 'The Vine Collections',
+        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
+        verified: true,
+      },
+    },
+    'nike-sneaker-mobile': {
+      id: 'nike-sneaker-mobile',
+      name: 'Iphone 17 pro max',
+      previewImage: '/assets/images/admin-listing-details/available/mobile/iphone-1.png',
+      lastUpdated: '24 January, 2026',
+      isPromoted: false,
+      status: 'Suspended',
+      suspensionReason: 'The title, description, or price appears misleading or incorrect.',
+      location: 'Ikeja, Lagos',
+      datePosted: '14 Feb, 2026',
+      messages: 12,
+      views: '3,990',
+      saves: 200,
+      price: '2,500,000',
+      description:
+        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
+      gallery: [
+        { id: 'desktop-suspended-mobile-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'desktop-suspended-mobile-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'desktop-suspended-mobile-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'desktop-suspended-mobile-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'desktop-suspended-mobile-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'desktop-suspended-mobile-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      mobileGallery: [
+        { id: 'mobile-suspended-mobile-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'mobile-suspended-mobile-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'mobile-suspended-mobile-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'mobile-suspended-mobile-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'mobile-suspended-mobile-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'mobile-suspended-mobile-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      store: {
+        name: 'The Vine Collections',
+        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
+        verified: true,
+      },
+    },
+    'maserati-mobile': {
+      id: 'maserati-mobile',
+      name: 'Iphone 17 pro max',
+      previewImage: '/assets/images/admin-listing-details/available/mobile/iphone-1.png',
+      lastUpdated: '24 January, 2026',
+      isPromoted: false,
+      status: 'Suspended',
+      suspensionReason: 'The title, description, or price appears misleading or incorrect.',
+      location: 'Ikeja, Lagos',
+      datePosted: '14 Feb, 2026',
+      messages: 12,
+      views: '3,990',
+      saves: 200,
+      price: '2,500,000',
+      description:
+        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
+      gallery: [
+        { id: 'desktop-suspended-maserati-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'desktop-suspended-maserati-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'desktop-suspended-maserati-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'desktop-suspended-maserati-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'desktop-suspended-maserati-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'desktop-suspended-maserati-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      mobileGallery: [
+        { id: 'mobile-suspended-maserati-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
+        { id: 'mobile-suspended-maserati-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
+        { id: 'mobile-suspended-maserati-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
+        { id: 'mobile-suspended-maserati-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
+        { id: 'mobile-suspended-maserati-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
+        { id: 'mobile-suspended-maserati-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
+      ],
+      store: {
+        name: 'The Vine Collections',
+        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
+        verified: true,
+      },
+    },
   };
 
   handleMobileAction(actionId: MobileListingAction['id']): void {
@@ -1274,6 +1567,37 @@ export class AdminListingDetailsPageComponent {
 
     if (actionId === 'suspend') {
       this.isSuspendModalOpen.set(true);
+      return;
+    }
+
+    if (actionId === 'lift') {
+      this.isLiftSuspensionOpen.set(true);
+    }
+  }
+
+  statusIcon(status: AdminListingDetailStatus): string {
+    switch (status) {
+      case 'Suspended':
+        return '/assets/icons/listing-details-status-close.svg';
+      case 'Sold':
+        return '/assets/icons/listing-details-status-sold.svg';
+      case 'Paused':
+        return '/assets/icons/listing-details-status-pause.svg';
+      default:
+        return '/assets/icons/listing-details-status-available.svg';
+    }
+  }
+
+  desktopStatusIcon(status: AdminListingDetailStatus): string {
+    switch (status) {
+      case 'Suspended':
+        return '/assets/icons/listing-details-status-close.svg';
+      case 'Sold':
+        return '/assets/icons/listing-details-status-desktop-sold.svg';
+      case 'Paused':
+        return '/assets/icons/listing-details-status-desktop-pause.svg';
+      default:
+        return '/assets/icons/listing-details-status-desktop-available.svg';
     }
   }
 
@@ -1283,5 +1607,9 @@ export class AdminListingDetailsPageComponent {
 
   closeSuspendModal(): void {
     this.isSuspendModalOpen.set(false);
+  }
+
+  closeLiftSuspension(): void {
+    this.isLiftSuspensionOpen.set(false);
   }
 }
