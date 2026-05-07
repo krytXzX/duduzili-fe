@@ -69,7 +69,154 @@ const PLAN_FEATURE_CATALOG = [
         </h1>
       </header>
 
-      <div class="px-4 py-6 sm:px-6 lg:px-8">
+      <div class="px-5 pb-6 pt-5 md:hidden">
+        <div class="border-b border-[#efefef]">
+          <div class="flex items-center gap-3">
+            @for (tab of planTabs; track tab.id) {
+              <button
+                type="button"
+                (click)="activeTab.set(tab.id)"
+                [attr.aria-pressed]="activeTab() === tab.id"
+                class="flex items-center gap-1 border-b-2 px-3 py-3 text-[16px] font-medium transition-colors"
+                [class.border-[#6254f3]]="activeTab() === tab.id"
+                [class.text-[#6254f3]]="activeTab() === tab.id"
+                [class.border-transparent]="activeTab() !== tab.id"
+                [class.text-[#9b9b9b]]="activeTab() !== tab.id"
+              >
+                <ng-icon [name]="tab.icon" class="text-[16px]"></ng-icon>
+                {{ tab.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (activeTab() === 'subscriptions') {
+          <div class="pt-5">
+            <div class="inline-flex w-full items-center rounded-full border border-[#ededed] bg-[#fafafa] p-1 shadow-[0_0_4px_1px_rgba(194,194,194,0.25)]">
+              @for (cycle of billingCycles; track cycle.id; let last = $last) {
+                <button
+                  type="button"
+                  (click)="activeBillingCycle.set(cycle.id)"
+                  [attr.aria-pressed]="activeBillingCycle() === cycle.id"
+                  class="rounded-full px-3 py-2 text-[14px] font-medium transition-colors"
+                  [class.border]="activeBillingCycle() === cycle.id"
+                  [class.border-[rgba(0,0,0,0.04)]]="activeBillingCycle() === cycle.id"
+                  [class.bg-white]="activeBillingCycle() === cycle.id"
+                  [class.shadow-[0_2px_4px_1px_rgba(192,192,192,0.12)]]="activeBillingCycle() === cycle.id"
+                  [class.text-[#1f1f1f]]="activeBillingCycle() === cycle.id"
+                  [class.text-[#969696]]="activeBillingCycle() !== cycle.id"
+                >
+                  {{ cycle.label }}
+                </button>
+                @if (!last) {
+                  <span class="h-6 w-px bg-[#e0e0e0]"></span>
+                }
+              }
+            </div>
+
+            <div class="mt-5 flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              @for (plan of plans(); track plan.name) {
+                <article class="h-[470px] w-[250px] shrink-0 rounded-[16px] border border-[#efefef] bg-[#fafafa] px-5 py-5">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-1">
+                      <h2 class="text-[20px] font-semibold leading-7 text-[#1a1b1d]">{{ plan.name }}</h2>
+                      <button
+                        type="button"
+                        (click)="openEditPlanModal(plan)"
+                        class="text-[#2c2c2c] transition-colors hover:text-[#111111]"
+                        [attr.aria-label]="'Edit ' + plan.name + ' plan'"
+                      >
+                        <ng-icon name="heroPencilSquare" class="text-[16px]"></ng-icon>
+                      </button>
+                    </div>
+
+                    <span
+                      class="inline-flex items-center gap-1 rounded-[8px] bg-white px-2 py-1 text-[12px] font-semibold"
+                      [class.text-[#25ad32]]="plan.status === 'active'"
+                      [class.text-[#ff2524]]="plan.status === 'inactive'"
+                    >
+                      <ng-icon
+                        [name]="plan.status === 'active' ? 'heroCheckCircle' : 'heroXCircle'"
+                        class="text-[14px]"
+                      ></ng-icon>
+                      {{ plan.status === 'active' ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+
+                  <div class="mt-12">
+                    <div class="text-[28px] font-medium leading-[1.2] text-[#1f1f1f]">
+                      {{ plan.prices[activeBillingCycle()] }}
+                      @if (plan.prices[activeBillingCycle()] !== '₦0') {
+                        <span class="text-[18px] text-[#939393]">/{{ billingUnitLabel() }}</span>
+                      }
+                    </div>
+                    @if (plan.prices[activeBillingCycle()] !== '₦0') {
+                      <p class="mt-1 text-[14px] text-[#1b1b1b]">Billed {{ activeBillingCycle() }}</p>
+                    }
+                  </div>
+
+                  <div class="mt-7 border-t border-[#e7e7e7] pt-4">
+                    <h3 class="text-[18px] font-medium text-[#0d0d0d]">Features</h3>
+                    <ul class="mt-4 space-y-3 text-[14px] leading-5 text-[#0d0d0d]">
+                      @for (feature of enabledFeatures(plan); track feature) {
+                        <li class="flex items-start gap-2">
+                          <span class="mt-[8px] h-[5px] w-[5px] shrink-0 rounded-full bg-[#bfbfbf]"></span>
+                          <span>{{ feature }}</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                </article>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="pt-5">
+            <div class="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              @for (plan of singleBoostingPlans(); track plan.name) {
+                <article class="w-[250px] shrink-0 rounded-[16px] border border-[#efefef] bg-[#fafafa] px-5 py-5">
+                  <span
+                    class="inline-flex items-center gap-1 rounded-[8px] bg-white px-2 py-1 text-[12px] font-semibold"
+                    [class.text-[#25ad32]]="plan.status === 'active'"
+                    [class.text-[#ff2524]]="plan.status === 'inactive'"
+                  >
+                    <ng-icon
+                      [name]="plan.status === 'active' ? 'heroCheckCircle' : 'heroXCircle'"
+                      class="text-[14px]"
+                    ></ng-icon>
+                    {{ plan.status === 'active' ? 'Active' : 'Inactive' }}
+                  </span>
+
+                  <div class="mt-5 flex items-center gap-1">
+                    <h2 class="text-[20px] font-medium text-[#222222]">{{ plan.name }}</h2>
+                    <button
+                      type="button"
+                      (click)="openEditSingleBoostingPlanModal(plan)"
+                      class="text-[#2c2c2c] transition-colors hover:text-[#111111]"
+                      [attr.aria-label]="'Edit ' + plan.name"
+                    >
+                      <ng-icon name="heroPencilSquare" class="text-[16px]"></ng-icon>
+                    </button>
+                  </div>
+
+                  <div class="mt-5 border-t border-[#e7e7e7] pt-4">
+                    <div class="space-y-3">
+                      @for (rate of plan.rates; track rate.label) {
+                        <div class="flex items-center justify-between gap-4 text-[14px] leading-6 text-[#313131]">
+                          <span>{{ rate.label }}</span>
+                          <span class="font-medium text-[#202020]">{{ rate.price }}</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="hidden px-4 py-6 sm:px-6 lg:px-8 md:block">
         <div class="border-b border-[#efefef]">
           <div class="flex items-center gap-8">
             @for (tab of planTabs; track tab.id) {
