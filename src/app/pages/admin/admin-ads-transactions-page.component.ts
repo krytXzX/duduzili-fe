@@ -48,7 +48,112 @@ interface AdsTransactionRecord {
         </h1>
       </header>
 
-      <div class="px-4 py-6 sm:px-6 lg:px-8">
+      <div class="px-5 pb-6 pt-5 md:hidden">
+        <section class="rounded-[12px] bg-white">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <p class="text-[14px] font-medium text-[rgba(13,13,13,0.4)]">Total transactions</p>
+              <p class="mt-2 text-[28px] font-semibold leading-10 text-[#1a1b1d]">
+                ₦1,760,000<span class="text-[20px] text-[rgba(13,13,13,0.4)]">.00</span>
+              </p>
+              <p class="mt-3 text-[14px] font-medium text-[rgba(26,27,29,0.5)]">16 transactions</p>
+            </div>
+
+            <button
+              type="button"
+              (click)="yearFilter.set(yearFilter() === 'this-year' ? 'last-year' : 'this-year')"
+              class="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[#eaeaea] bg-white px-4 text-[14px] font-medium text-[#0d0d0d]"
+            >
+              <span>{{ yearFilterLabel() }}</span>
+              <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
+            </button>
+          </div>
+
+          <div class="mt-4 flex h-[64px] items-end justify-end gap-[7px] pr-1">
+            @for (bar of summaryBars(); track bar.label) {
+              <div
+                class="rounded-t-[3px] bg-gradient-to-b from-[#6453d9] to-[#cfc8fd]"
+                [class.opacity-100]="bar.active"
+                [class.opacity-20]="!bar.active"
+                [style.height.px]="mobileBarHeight(bar)"
+                [style.width.px]="31"
+              ></div>
+            }
+          </div>
+        </section>
+
+        <section class="mt-6">
+          <div class="flex items-center justify-between gap-2">
+            <label class="flex h-10 w-[316px] min-w-0 items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c]">
+              <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
+              <input
+                type="search"
+                [value]="searchQuery()"
+                (input)="updateSearchQuery($event)"
+                placeholder="Search"
+                class="min-w-0 flex-1 bg-transparent text-[14px] text-[#202020] outline-none placeholder:text-[rgba(26,27,29,0.6)]"
+              >
+            </label>
+
+            <button
+              type="button"
+              class="inline-flex h-10 w-6 shrink-0 items-center justify-center"
+              aria-label="Filter transactions"
+            >
+              <img [ngSrc]="mobileFilterIcon" alt="" width="24" height="24" class="h-6 w-6">
+            </button>
+          </div>
+
+          <div class="mt-6">
+            @for (record of paginatedTransactions(); track record.id) {
+              <article class="border-b border-[#ebebeb] py-3">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex min-w-0 items-center gap-2">
+                    <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
+                      <img
+                        [ngSrc]="record.avatar"
+                        [alt]="record.userName"
+                        width="40"
+                        height="40"
+                        class="h-10 w-10 object-cover"
+                      >
+                    </div>
+
+                    <div class="min-w-0">
+                      <p class="truncate text-[14px] font-medium text-[#1a1b1d]">{{ record.userName }}</p>
+                      <p class="truncate text-[12px] font-medium text-[rgba(13,13,13,0.4)]">{{ record.email }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-4 space-y-2 text-[14px]">
+                  <div class="flex items-center justify-between gap-3">
+                    <p class="text-[rgba(26,27,29,0.5)]">Plan</p>
+                    <p class="font-medium text-[#1a1b1d]">{{ record.plan }}</p>
+                  </div>
+
+                  <div class="flex items-center justify-between gap-3">
+                    <p class="text-[rgba(26,27,29,0.5)]">Transaction ID</p>
+                    <p class="font-medium text-[#1a1b1d]">{{ record.transactionId }}</p>
+                  </div>
+
+                  <div class="flex items-center justify-between gap-3">
+                    <p class="text-[rgba(26,27,29,0.5)]">Amount</p>
+                    <p class="font-medium text-[#1f1f1f]">{{ record.amount }}</p>
+                  </div>
+
+                  <div class="flex items-center justify-between gap-3">
+                    <p class="text-[rgba(26,27,29,0.5)]">Date</p>
+                    <p class="font-medium text-[#1a1b1d]">{{ record.date }}</p>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      </div>
+
+      <div class="hidden px-4 py-6 sm:px-6 lg:px-8 md:block">
         <section class="max-w-[660px] rounded-[20px] border border-[#e9e9e9] bg-white px-5 py-5">
           <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
@@ -202,6 +307,7 @@ interface AdsTransactionRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminAdsTransactionsPageComponent {
+  readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
   readonly yearFilter = signal<TransactionYearFilter>('this-year');
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
@@ -311,6 +417,10 @@ export class AdminAdsTransactionsPageComponent {
   readonly yearFilterLabel = computed(() =>
     this.yearFilter() === 'this-year' ? 'This year' : 'Last year'
   );
+
+  mobileBarHeight(bar: TransactionSummaryBar): number {
+    return bar.active ? 51 : Math.max(3, Math.round(bar.height * 0.36));
+  }
 
   updateSearchQuery(event: Event): void {
     const input = event.target as HTMLInputElement;

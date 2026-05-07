@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/c
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  heroCheckCircle,
   heroChevronDown,
   heroChevronLeft,
   heroChevronRight,
@@ -50,6 +51,7 @@ interface ApprovalRecord {
       heroChevronDown,
       heroChevronLeft,
       heroChevronRight,
+      heroCheckCircle,
       heroClock,
       heroMagnifyingGlass,
       heroXCircle,
@@ -63,7 +65,128 @@ interface ApprovalRecord {
         </h1>
       </header>
 
-      <div class="px-4 py-6 sm:px-6 lg:px-8">
+      <div class="px-4 pb-6 pt-5 md:hidden">
+        <div class="grid grid-cols-3 gap-3">
+          <button
+            type="button"
+            (click)="activeFilter.set('all'); currentPage.set(1)"
+            class="rounded-[10px] border px-3 py-2 text-left"
+            [class.border-[#6254f3]]="activeFilter() === 'all'"
+            [class.bg-[#f9f9ff]]="activeFilter() === 'all'"
+            [class.border-transparent]="activeFilter() !== 'all'"
+            [class.bg-[#fafafa]]="activeFilter() !== 'all'"
+          >
+            <p class="text-[12px] text-[rgba(26,27,29,0.5)]">All</p>
+            <p class="mt-1 text-[20px] font-semibold leading-none text-[#1a1b1d]">
+              {{ countByFilter('all') < 10 ? '0' + countByFilter('all') : countByFilter('all') }}
+            </p>
+          </button>
+
+          <button
+            type="button"
+            (click)="activeFilter.set('pending'); currentPage.set(1)"
+            class="rounded-[10px] border px-3 py-2 text-left"
+            [class.border-[#6254f3]]="activeFilter() === 'pending'"
+            [class.bg-[#f9f9ff]]="activeFilter() === 'pending'"
+            [class.border-transparent]="activeFilter() !== 'pending'"
+            [class.bg-[#fafafa]]="activeFilter() !== 'pending'"
+          >
+            <p class="text-[12px] text-[rgba(26,27,29,0.5)]">Pending</p>
+            <p class="mt-1 text-[24px] font-semibold leading-none text-[#8a8a8a]">
+              {{ countByStatus('pending') < 10 ? '0' + countByStatus('pending') : countByStatus('pending') }}
+            </p>
+          </button>
+
+          <button
+            type="button"
+            (click)="activeFilter.set('approved'); currentPage.set(1)"
+            class="rounded-[10px] border px-3 py-2 text-left"
+            [class.border-[#6254f3]]="activeFilter() === 'approved'"
+            [class.bg-[#f9f9ff]]="activeFilter() === 'approved'"
+            [class.border-transparent]="activeFilter() !== 'approved'"
+            [class.bg-[#fafafa]]="activeFilter() !== 'approved'"
+          >
+            <p class="text-[12px] text-[rgba(26,27,29,0.5)]">Approved</p>
+            <p class="mt-1 text-[24px] font-semibold leading-none text-[#8a8a8a]">
+              {{ countByStatus('approved') < 10 ? '0' + countByStatus('approved') : countByStatus('approved') }}
+            </p>
+          </button>
+        </div>
+
+        <div class="mt-6 flex items-center gap-2">
+          <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c]">
+            <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
+            <input
+              type="search"
+              [value]="searchQuery()"
+              (input)="updateSearchQuery($event)"
+              placeholder="Search"
+              class="min-w-0 flex-1 bg-transparent text-[14px] text-[#202020] outline-none placeholder:text-[#9c9c9c]"
+            >
+          </label>
+          <button
+            type="button"
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#ececec] bg-white"
+            aria-label="Filter approvals"
+          >
+            <img [ngSrc]="mobileFilterIcon" alt="" width="18" height="18" class="h-[18px] w-[18px]">
+          </button>
+        </div>
+
+        <div class="mt-4">
+          @for (record of paginatedApprovals(); track record.id) {
+            <button
+              type="button"
+              (click)="openRequestDetails(record)"
+              class="w-full border-b border-[#ebebeb] py-3 text-left"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex min-w-0 items-center gap-2">
+                  <div class="h-[42px] w-[75px] shrink-0 overflow-hidden rounded-[7px] bg-[#f3f3f3]">
+                    <img
+                      [ngSrc]="record.thumbnail"
+                      [alt]="record.adTitle"
+                      width="75"
+                      height="42"
+                      class="h-[42px] w-[75px] object-cover"
+                    >
+                  </div>
+                  <p class="truncate text-[14px] font-medium text-[#1a1b1d]">{{ record.adTitle }}</p>
+                </div>
+
+                <span
+                  class="inline-flex shrink-0 items-center gap-1 rounded-[8px] px-2 py-1 text-[12px] font-semibold"
+                  [class.bg-[#f9f9f9]]="record.status === 'pending'"
+                  [class.text-[#ee9c2e]]="record.status === 'pending'"
+                  [class.bg-[#fdf6fa]]="record.status === 'declined'"
+                  [class.text-[#ff2524]]="record.status === 'declined'"
+                  [class.bg-[#eefbf1]]="record.status === 'approved'"
+                  [class.text-[#2ab83f]]="record.status === 'approved'"
+                >
+                  <ng-icon
+                    [name]="statusIconName(record.status)"
+                    class="text-[14px]"
+                  ></ng-icon>
+                  {{ statusLabel(record.status) }}
+                </span>
+              </div>
+
+              <div class="mt-3 space-y-2 text-[14px]">
+                <div class="flex items-center justify-between gap-2">
+                  <p class="text-[rgba(26,27,29,0.5)]">Banner type</p>
+                  <p class="font-medium text-[#1a1b1d]">{{ record.bannerType }}</p>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <p class="text-[rgba(26,27,29,0.5)]">Active until</p>
+                  <p class="font-medium text-[#1a1b1d]">{{ record.activeUntil }}</p>
+                </div>
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="hidden px-4 py-6 sm:px-6 lg:px-8 md:block">
         <div class="grid gap-3 md:grid-cols-3">
           @for (card of filterCards; track card.id) {
             <button
@@ -259,6 +382,8 @@ interface ApprovalRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminAdsApprovalsPageComponent {
+  readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
+
   readonly filterCards: ReadonlyArray<ApprovalFilterCard> = [
     { id: 'all', label: 'All' },
     { id: 'pending', label: 'Pending' },
@@ -380,6 +505,10 @@ export class AdminAdsApprovalsPageComponent {
     return this.approvals().filter((record) => filter === 'all' || record.status === filter).length;
   }
 
+  countByStatus(status: ApprovalStatus): number {
+    return this.approvals().filter((record) => record.status === status).length;
+  }
+
   openRequestDetails(record: ApprovalRecord): void {
     this.selectedRequest.set({ ...record });
   }
@@ -415,8 +544,12 @@ export class AdminAdsApprovalsPageComponent {
     }
   }
 
-  statusIconName(status: ApprovalStatus): 'heroClock' | 'heroXCircle' {
-    return status === 'pending' ? 'heroClock' : 'heroXCircle';
+  statusIconName(status: ApprovalStatus): 'heroClock' | 'heroXCircle' | 'heroCheckCircle' {
+    if (status === 'pending') {
+      return 'heroClock';
+    }
+
+    return status === 'approved' ? 'heroCheckCircle' : 'heroXCircle';
   }
 
   updateSearchQuery(event: Event): void {
