@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  heroArrowLeft,
   heroChevronLeft,
   heroChevronRight,
   heroMagnifyingGlass,
@@ -55,9 +57,10 @@ interface ListingReportRecord {
 
 @Component({
   selector: 'app-admin-reports-page',
-  imports: [NgIcon, NgOptimizedImage, AdminSellerReportDetailsModalComponent, AdminListingReportDetailsModalComponent],
+  imports: [RouterLink, NgIcon, NgOptimizedImage, AdminSellerReportDetailsModalComponent, AdminListingReportDetailsModalComponent],
   providers: [
     provideIcons({
+      heroArrowLeft,
       heroChevronLeft,
       heroChevronRight,
       heroMagnifyingGlass,
@@ -67,17 +70,27 @@ interface ListingReportRecord {
   ],
   template: `
     <section class="min-h-full rounded-[32px] bg-white">
-      <header class="border-b border-[#efefef] px-8 py-6">
+      <div class="flex h-[54px] items-center px-5 lg:hidden">
+        <a routerLink="/admin/more" class="flex items-center gap-2">
+          <span class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]">
+            <ng-icon name="heroArrowLeft" class="text-[20px] text-black"></ng-icon>
+          </span>
+          <span class="text-[20px] font-semibold leading-[1.2] text-black">Reports</span>
+        </a>
+      </div>
+
+      <header class="hidden border-b border-[#efefef] px-8 py-6 lg:block">
         <h1 class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">Reports</h1>
       </header>
 
-      <div class="px-4 py-6 sm:px-6 lg:px-8">
-        <div class="border-b border-[#efefef]">
-          <div class="flex items-center gap-8">
+      <div class="px-5 py-6 sm:px-6 lg:px-8 lg:py-6">
+        <div class="mx-auto max-w-[350px] lg:mx-0 lg:max-w-none">
+          <div class="border-b border-[#efefef]">
+            <div class="flex items-center overflow-hidden">
             <button
               type="button"
               (click)="activeTab.set('reported sellers'); currentPage.set(1)"
-              class="flex items-center gap-2 border-b-2 px-1 py-4 text-[15px] font-medium transition-colors"
+              class="flex min-w-0 flex-1 items-center justify-center gap-1 border-b-2 px-3 py-3 text-[16px] font-medium leading-6 transition-colors lg:w-auto lg:flex-none lg:justify-start lg:gap-2 lg:px-1 lg:py-4 lg:text-[15px]"
               [class.border-[#6254f3]]="activeTab() === 'reported sellers'"
               [class.text-[#6254f3]]="activeTab() === 'reported sellers'"
               [class.border-transparent]="activeTab() !== 'reported sellers'"
@@ -90,7 +103,7 @@ interface ListingReportRecord {
             <button
               type="button"
               (click)="activeTab.set('reported listings'); currentPage.set(1)"
-              class="flex items-center gap-2 border-b-2 px-1 py-4 text-[15px] font-medium transition-colors"
+              class="flex min-w-0 flex-1 items-center justify-center gap-1 border-b-2 px-3 py-3 text-[16px] font-medium leading-6 transition-colors lg:w-auto lg:flex-none lg:justify-start lg:gap-2 lg:px-1 lg:py-4 lg:text-[15px]"
               [class.border-[#6254f3]]="activeTab() === 'reported listings'"
               [class.text-[#6254f3]]="activeTab() === 'reported listings'"
               [class.border-transparent]="activeTab() !== 'reported listings'"
@@ -102,9 +115,9 @@ interface ListingReportRecord {
           </div>
         </div>
 
-        <section class="mt-6 overflow-hidden rounded-[20px] border border-[#e9e9e9] bg-white">
-          <div class="flex justify-end border-b border-[#efefef] px-4 py-4">
-            <label class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c] lg:max-w-[226px]">
+          <section class="mt-4 bg-white lg:mt-6 lg:overflow-hidden lg:rounded-[20px] lg:border lg:border-[#e9e9e9]">
+            <div class="flex justify-end py-3 lg:border-b lg:border-[#efefef] lg:px-4 lg:py-4">
+              <label class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-3 text-[#9c9c9c] lg:max-w-[226px] lg:px-4">
               <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
               <input
                 type="search"
@@ -116,9 +129,9 @@ interface ListingReportRecord {
             </label>
           </div>
 
-          @if (activeTab() === 'reported sellers') {
-            <div class="overflow-x-auto">
-              <table class="min-w-[1120px] w-full table-fixed">
+            @if (activeTab() === 'reported sellers') {
+              <div class="hidden overflow-x-auto lg:block">
+                <table class="min-w-[1120px] w-full table-fixed">
                 <thead>
                   <tr class="border-b border-[#efefef] bg-[#fafafa] text-left text-[13px] font-medium text-[#7d7d7d]">
                     <th class="w-[190px] px-4 py-3 font-medium">Seller</th>
@@ -178,11 +191,60 @@ interface ListingReportRecord {
                     </tr>
                   }
                 </tbody>
-              </table>
-            </div>
-          } @else {
-            <div class="overflow-x-auto">
-              <table class="min-w-[1120px] w-full table-fixed">
+                </table>
+              </div>
+
+              <div class="lg:hidden">
+                @for (record of paginatedSellerReports(); track record.id) {
+                  <button
+                    type="button"
+                    class="block w-full border-b border-[#ebebeb] py-3 text-left last:border-b-0"
+                    (click)="openSellerReportDetails(record)"
+                  >
+                    <div class="flex items-center gap-2">
+                      <div class="flex h-[42px] w-[42px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+                        <img
+                          [ngSrc]="record.sellerAvatar"
+                          [alt]="record.sellerName"
+                          width="42"
+                          height="42"
+                          class="h-[42px] w-[42px] rounded-full object-cover"
+                        >
+                      </div>
+                      <h2 class="text-[16px] font-medium leading-5 text-[#1A1B1D]">{{ record.sellerName }}</h2>
+                    </div>
+
+                    <dl class="mt-4 flex flex-col gap-3">
+                      <div class="flex items-center justify-between gap-4">
+                        <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Reported by</dt>
+                        <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#0D0D0D]">
+                          <img
+                            [ngSrc]="record.reportedByAvatar"
+                            [alt]="record.reportedByName"
+                            width="24"
+                            height="24"
+                            class="h-6 w-6 rounded-full object-cover"
+                          >
+                          <span>{{ record.reportedByName }}</span>
+                        </dd>
+                      </div>
+
+                      <div class="flex items-center justify-between gap-4">
+                        <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Reason</dt>
+                        <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ record.reason }}</dd>
+                      </div>
+
+                      <div class="flex items-start justify-between gap-4">
+                        <dt class="pt-px text-[14px] leading-5 text-[#1A1B1D]/50">Description</dt>
+                        <dd class="max-w-[215px] text-right text-[12px] leading-4 text-[#0D0D0D]/40">{{ record.description }}</dd>
+                      </div>
+                    </dl>
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="hidden overflow-x-auto lg:block">
+                <table class="min-w-[1120px] w-full table-fixed">
                 <thead>
                   <tr class="border-b border-[#efefef] bg-[#fafafa] text-left text-[13px] font-medium text-[#7d7d7d]">
                     <th class="w-[280px] px-4 py-3 font-medium">Listing</th>
@@ -255,12 +317,71 @@ interface ListingReportRecord {
                     </tr>
                   }
                 </tbody>
-              </table>
-            </div>
-          }
-        </section>
+                </table>
+              </div>
 
-        <div class="mt-6 flex flex-col gap-4 text-[15px] text-[#4d4d4d] sm:flex-row sm:items-center sm:justify-between">
+              <div class="lg:hidden">
+                @for (record of paginatedListingReports(); track record.id) {
+                  <button
+                    type="button"
+                    class="block w-full border-b border-[#ebebeb] py-3 text-left last:border-b-0"
+                    (click)="openListingReportDetails(record)"
+                  >
+                    <div class="flex items-center gap-2">
+                      <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[6px] bg-[#efefef]">
+                        <img
+                          [ngSrc]="record.listingImage"
+                          [alt]="record.listingTitle"
+                          width="40"
+                          height="40"
+                          class="h-10 w-10 object-cover"
+                        >
+                      </div>
+                      <h2 class="text-[16px] font-medium leading-5 text-[#1A1B1D]">{{ record.listingTitle }}</h2>
+                    </div>
+
+                    <dl class="mt-4 flex flex-col gap-3">
+                      <div class="flex items-center justify-between gap-4">
+                        <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Reported by</dt>
+                        <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#0D0D0D]">
+                          <img
+                            [ngSrc]="record.reportedByAvatar"
+                            [alt]="record.reportedByName"
+                            width="24"
+                            height="24"
+                            class="h-6 w-6 rounded-full object-cover"
+                          >
+                          <span>{{ record.reportedByName }}</span>
+                        </dd>
+                      </div>
+
+                      <div class="flex items-center justify-between gap-4">
+                        <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Store</dt>
+                        <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#0D0D0D]">
+                          <img
+                            [ngSrc]="record.sellerAvatar"
+                            [alt]="record.sellerName"
+                            width="24"
+                            height="24"
+                            class="h-6 w-6 rounded-full object-cover"
+                          >
+                          <span>{{ record.sellerName }}</span>
+                        </dd>
+                      </div>
+
+                      <div class="flex items-start justify-between gap-4">
+                        <dt class="pt-px text-[14px] leading-5 text-[#1A1B1D]/50">Description</dt>
+                        <dd class="max-w-[215px] text-right text-[12px] leading-4 text-[#0D0D0D]/60">{{ record.description }}</dd>
+                      </div>
+                    </dl>
+                  </button>
+                }
+              </div>
+            }
+          </section>
+        </div>
+
+        <div class="mt-5 hidden flex-col gap-4 text-[14px] text-[#4d4d4d] sm:flex-row sm:items-center sm:justify-between sm:text-[15px] lg:flex">
           <p>{{ visibleResultsCount() }} results</p>
 
           <div class="flex items-center gap-2 self-end">
