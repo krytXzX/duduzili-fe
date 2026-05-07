@@ -25,14 +25,14 @@ type SingleBoostingRatesForm = FormGroup<Record<string, FormControl<string>>>;
   providers: [provideIcons({ heroXMark })],
   template: `
     <div
-      class="fixed inset-0 z-[220] flex items-center justify-center bg-black/20 p-4 backdrop-blur-[2px]"
+      class="fixed inset-0 z-[220] flex items-end justify-center bg-black/20 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
       (click)="close.emit()"
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-single-boosting-modal-title"
-        class="max-h-[calc(100vh-2rem)] w-full max-w-[760px] overflow-y-auto rounded-[26px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8"
+        class="max-h-[92vh] w-full max-w-[760px] overflow-y-auto rounded-t-[26px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:max-h-[calc(100vh-2rem)] sm:rounded-[26px] sm:p-8"
         (click)="$event.stopPropagation()"
       >
         <div class="flex items-start justify-between gap-4">
