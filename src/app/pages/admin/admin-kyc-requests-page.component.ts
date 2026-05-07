@@ -80,7 +80,104 @@ interface AdminToast {
         <h1 class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">KYC requests</h1>
       </header>
 
-      <div class="px-4 py-6 sm:px-6 lg:px-8">
+      <div class="px-5 pb-6 pt-5 md:hidden">
+        <div class="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          @for (card of filterCards; track card.id) {
+            <button
+              type="button"
+              (click)="activeFilter.set(card.id); currentPage.set(1)"
+              class="h-[75px] min-w-[104px] rounded-[10px] border px-2.5 py-2 text-left transition-colors"
+              [class.border-[#6254f3]]="activeFilter() === card.id"
+              [class.bg-[#f9f9ff]]="activeFilter() === card.id"
+              [class.border-transparent]="activeFilter() !== card.id"
+              [class.bg-[#fafafa]]="activeFilter() !== card.id"
+            >
+              <p class="text-[12px] text-[rgba(26,27,29,0.5)]">{{ card.label }}</p>
+              <p class="mt-2 text-[20px] font-semibold leading-none text-[#1a1b1d]">
+                {{ countByFilter(card.id) < 10 ? '0' + countByFilter(card.id) : countByFilter(card.id) }}
+              </p>
+            </button>
+          }
+        </div>
+
+        <div class="mt-6 flex items-center gap-2">
+          <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c]">
+            <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
+            <input
+              type="search"
+              [value]="searchQuery()"
+              (input)="updateSearchQuery($event)"
+              placeholder="Search"
+              class="min-w-0 flex-1 bg-transparent text-[14px] text-[#202020] outline-none placeholder:text-[#777777]"
+            >
+          </label>
+          <button
+            type="button"
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white"
+            aria-label="Filter requests"
+          >
+            <img [ngSrc]="mobileFilterIcon" alt="" width="24" height="24" class="h-6 w-6">
+          </button>
+        </div>
+
+        <div class="mt-6">
+          @for (record of paginatedRequests(); track record.id) {
+            <button
+              type="button"
+              (click)="openRequestDetails(record)"
+              class="w-full border-b border-[#ebebeb] py-3 text-left"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex min-w-0 items-center gap-2">
+                  <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
+                    <img
+                      [ngSrc]="record.avatar"
+                      [alt]="record.userName"
+                      width="40"
+                      height="40"
+                      class="h-10 w-10 object-cover"
+                    >
+                  </div>
+                  <div class="min-w-0">
+                    <p class="truncate text-[14px] font-medium text-[#1a1b1d]">{{ record.userName }}</p>
+                    <p class="truncate text-[12px] font-medium text-[rgba(13,13,13,0.4)]">{{ record.email }}</p>
+                  </div>
+                </div>
+
+                <span
+                  class="inline-flex shrink-0 items-center gap-1 rounded-[8px] px-2 py-1 text-[12px] font-semibold"
+                  [class.bg-[#f9f9f9]]="record.status === 'pending approval'"
+                  [class.text-[#ee9c2e]]="record.status === 'pending approval'"
+                  [class.bg-[#f3fbf9]]="record.status === 'approved'"
+                  [class.text-[#25ad32]]="record.status === 'approved'"
+                  [class.bg-[#fdf6fa]]="record.status === 'declined'"
+                  [class.text-[#ff2524]]="record.status === 'declined'"
+                >
+                  <ng-icon [name]="statusIconName(record.status)" class="text-[14px]"></ng-icon>
+                  {{ statusLabel(record.status) }}
+                </span>
+              </div>
+
+              <div class="mt-4 space-y-2 text-[14px]">
+                <div class="flex items-center justify-between gap-3">
+                  <p class="text-[rgba(26,27,29,0.5)]">ID type</p>
+                  <p class="font-medium text-[#1a1b1d]">{{ record.idType }}</p>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <p class="text-[rgba(26,27,29,0.5)]">Issuing country/region</p>
+                  <p class="font-medium text-[#1a1b1d]">{{ record.issuingCountry }}</p>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <p class="text-[rgba(26,27,29,0.5)]">Date uploaded</p>
+                  <p class="font-medium text-[#1a1b1d]">{{ record.dateUploaded }}</p>
+                </div>
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="hidden px-4 py-6 sm:px-6 lg:px-8 md:block">
         <div class="grid gap-3 md:grid-cols-4">
           @for (card of filterCards; track card.id) {
             <button
@@ -299,6 +396,8 @@ interface AdminToast {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminKycRequestsPageComponent {
+  readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
+
   private readonly currentAdmin = {
     name: 'Bryan Odjede',
     avatar: '/assets/images/fashion_menswear_hero.png',
