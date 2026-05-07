@@ -83,7 +83,7 @@ interface ReviewTag {
     }),
   ],
   template: `
-    <section class="flex h-full flex-col rounded-[32px] border border-[#EEF0F4] bg-white">
+    <section class="flex h-full w-full max-w-full flex-col overflow-x-hidden rounded-[32px] border border-[#EEF0F4] bg-white">
       <div class="flex h-[54px] items-center px-5 md:hidden">
         <a routerLink="/admin/stores" class="flex items-center gap-2">
           <span class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]">
@@ -101,7 +101,7 @@ interface ReviewTag {
         </nav>
       </div>
 
-      <div class="flex-1 overflow-y-auto px-5 py-4 md:px-6 md:py-6 md:sm:px-8">
+      <div class="flex-1 w-full max-w-full overflow-y-auto px-5 py-4 md:px-6 md:py-6 md:sm:px-8">
         <div class="relative h-[184px] overflow-hidden rounded-[32px] bg-[#F4F6FB] md:h-[220px]">
           <img [src]="store().banner" [alt]="store().name" class="h-full w-full object-cover" />
           <div class="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-white via-white/85 to-transparent"></div>
@@ -305,10 +305,10 @@ interface ReviewTag {
         } @else {
           @if (store().hasReviews) {
             <div class="pt-8">
-              <div class="grid gap-6 xl:grid-cols-[261px_minmax(0,1fr)]">
-                <div>
+              <div class="grid w-full max-w-full gap-6 xl:grid-cols-[261px_minmax(0,1fr)]">
+                <div class="min-w-0">
                   <div class="rounded-[16px] bg-[#FAFAFA] p-4 md:p-6">
-                    <div class="flex items-start gap-4 md:flex-col md:gap-6">
+                    <div class="flex flex-col gap-6">
                       <div class="min-w-[110px] md:min-w-0">
                         <div class="flex items-end gap-1">
                           <span class="text-[40px] font-semibold leading-[48px] text-[#2D2D2D] md:text-[56px] md:leading-[64px]">4.57</span>
@@ -353,9 +353,16 @@ interface ReviewTag {
 
                   <p class="text-[16px] font-medium leading-6 text-[#1F1F1F] md:hidden">This listing is great at..</p>
                   <p class="hidden text-[16px] font-medium leading-6 text-[#1F1F1F] md:block">This vendor is great at..</p>
-                  <div class="mt-3 flex flex-wrap gap-x-2 gap-y-3 md:gap-3">
+                  <div class="mt-3 flex flex-wrap gap-x-2 gap-y-3 md:hidden">
+                    @for (tag of reviewTagsMobile; track tag.label) {
+                      <div class="rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-3 py-2 text-[16px] leading-6 text-[#5A5A5A]">
+                        {{ tag.label }} ({{ tag.count }})
+                      </div>
+                    }
+                  </div>
+                  <div class="mt-3 hidden flex-wrap gap-3 md:flex">
                     @for (tag of reviewTags; track tag.label) {
-                      <div class="rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-3 py-2 text-[16px] leading-6 text-[#5A5A5A] md:px-4">
+                      <div class="rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-4 py-2 text-[16px] leading-6 text-[#5A5A5A]">
                         {{ tag.label }} ({{ tag.count }})
                       </div>
                     }
@@ -363,13 +370,13 @@ interface ReviewTag {
 
                   <div class="mt-8 space-y-8">
                     @for (review of reviews(); track review.author + review.date) {
-                      <article>
+                      <article class="w-full max-w-full overflow-hidden">
                         <div class="flex items-center gap-2">
                           <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full">
                             <img [src]="review.avatar || '/assets/images/image-3-1.jpg'" [alt]="review.author" class="h-full w-full rounded-full object-cover" />
                           </div>
                           <div>
-                            <h3 class="text-[24px] font-medium leading-6 text-[#0D0D0D] md:text-[16px]">{{ review.author }}</h3>
+                            <h3 class="text-[16px] font-medium leading-6 text-[#0D0D0D]">{{ review.author }}</h3>
                             <div class="mt-1 flex items-center gap-2">
                               <div class="flex items-center gap-1">
                                 @for (filled of reviewStars(review.rating); track $index) {
@@ -377,7 +384,8 @@ interface ReviewTag {
                                 }
                               </div>
                               <span class="text-[12px] text-[#D9D9D9]">•</span>
-                              <span class="text-[14px] text-[#8C8C8C]">{{ review.date }}</span>
+                              <span class="text-[14px] text-[#8C8C8C] md:hidden">{{ mobileReviewDate(review.date) }}</span>
+                              <span class="hidden text-[14px] text-[#8C8C8C] md:inline">{{ review.date }}</span>
                             </div>
                           </div>
                         </div>
@@ -385,7 +393,7 @@ interface ReviewTag {
                         <p class="mt-3 text-[16px] leading-8 text-[#1F1F1F] md:leading-6">{{ review.text }}</p>
 
                         @if (review.images?.length) {
-                          <div class="mt-4 flex gap-2 overflow-x-auto pb-1 md:gap-3">
+                          <div class="mt-4 flex w-full max-w-full flex-wrap gap-2 overflow-hidden pb-1 md:flex-nowrap md:gap-3">
                             @for (image of review.images!.slice(0, 6); track $index) {
                               <div class="relative h-[78px] w-[78px] shrink-0 overflow-hidden rounded-[11px] bg-[#E9E9E9] md:h-[117px] md:w-[117px] md:rounded-[16px]">
                                 <img [src]="image" alt="" class="h-full w-full object-cover" />
@@ -683,6 +691,13 @@ export class AdminStoreDetailsPageComponent {
     { label: 'Manners', count: 7 },
     { label: 'Hospitality', count: 7 },
   ];
+  readonly reviewTagsMobile: ReviewTag[] = [
+    { label: 'Fast response', count: 16 },
+    { label: 'Friendly', count: 7 },
+    { label: 'Smooth transaction', count: 7 },
+    { label: 'On-time delivery', count: 7 },
+    { label: 'Honest pricing', count: 7 },
+  ];
 
   readonly reviews = computed<Review[]>(() => [
     {
@@ -737,5 +752,20 @@ export class AdminStoreDetailsPageComponent {
 
   reviewStars(rating: number): boolean[] {
     return Array.from({ length: 5 }, (_, index) => index < rating);
+  }
+
+  mobileReviewDate(date: string): string {
+    const parts = date.split(',');
+    if (parts.length < 2) {
+      return date;
+    }
+
+    const left = parts[0].trim();
+    const leftParts = left.split(' ');
+    if (leftParts.length < 2) {
+      return date;
+    }
+
+    return `${leftParts[0]} ${parts[1].trim()}`;
   }
 }
