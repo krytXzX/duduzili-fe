@@ -18,6 +18,7 @@ import {
   NewTeamUserPayload,
   TeamRoleOption,
 } from './components/admin-add-team-user-modal.component';
+import { AdminAddTeamUserSuccessModalComponent } from './components/admin-add-team-user-success-modal.component';
 import {
   AdminTeamMemberDetailsModalComponent,
   TeamMemberDetails,
@@ -69,6 +70,7 @@ interface TeamRoleRecord {
     NgIcon,
     NgOptimizedImage,
     AdminAddTeamUserModalComponent,
+    AdminAddTeamUserSuccessModalComponent,
     AdminTeamMemberDetailsModalComponent,
     AdminActivateTeamUserModalComponent,
     AdminCreateTeamRoleModalComponent,
@@ -364,6 +366,13 @@ interface TeamRoleRecord {
         ></app-admin-add-team-user-modal>
       }
 
+      @if (isAddUserSuccessModalOpen()) {
+        <app-admin-add-team-user-success-modal
+          (addAnother)="openAddAnotherUser()"
+          (done)="closeAddUserSuccessModal()"
+        ></app-admin-add-team-user-success-modal>
+      }
+
       @if (isCreateRoleModalOpen()) {
         <app-admin-create-team-role-modal
           (close)="isCreateRoleModalOpen.set(false)"
@@ -431,6 +440,7 @@ export class AdminTeamManagementPageComponent {
   readonly currentPage = signal(1);
   readonly pageSize = 5;
   readonly isAddUserModalOpen = signal(false);
+  readonly isAddUserSuccessModalOpen = signal(false);
   readonly isCreateRoleModalOpen = signal(false);
   readonly isCreateRoleSuccessModalOpen = signal(false);
   readonly selectedMember = signal<TeamMemberDetails | null>(null);
@@ -664,6 +674,7 @@ export class AdminTeamManagementPageComponent {
     ]);
 
     this.isAddUserModalOpen.set(false);
+    this.isAddUserSuccessModalOpen.set(true);
     this.currentPage.set(1);
   }
 
@@ -689,6 +700,15 @@ export class AdminTeamManagementPageComponent {
   openCreateAnotherRole(): void {
     this.isCreateRoleSuccessModalOpen.set(false);
     this.isCreateRoleModalOpen.set(true);
+  }
+
+  openAddAnotherUser(): void {
+    this.isAddUserSuccessModalOpen.set(false);
+    this.isAddUserModalOpen.set(true);
+  }
+
+  closeAddUserSuccessModal(): void {
+    this.isAddUserSuccessModalOpen.set(false);
   }
 
   closeCreateRoleSuccessModal(): void {
