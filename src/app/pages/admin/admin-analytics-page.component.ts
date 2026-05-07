@@ -77,7 +77,434 @@ interface ConversionMetric {
     }),
   ],
   template: `
-    <section class="min-h-full rounded-[32px] bg-white">
+    <section class="bg-white px-5 pb-8 pt-[10px] lg:hidden">
+      <div class="mx-auto max-w-[358px]">
+        <div class="flex items-center justify-between">
+          <h1 class="text-[36px] font-semibold tracking-[-0.04em] text-[#1A1B1D]">Analytics</h1>
+
+          <button
+            type="button"
+            (click)="range.set(range() === '7d' ? '30d' : '7d')"
+            class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white pl-3 pr-4 text-[14px] font-medium text-black"
+          >
+            <ng-icon name="heroCalendarDays" class="text-[14px] text-[#6F6F6F]"></ng-icon>
+            <span>{{ rangeLabel() }}</span>
+            <ng-icon name="heroChevronDown" class="text-[14px] text-[#6F6F6F]"></ng-icon>
+          </button>
+        </div>
+
+        <div class="mt-6 border-b border-[#EAEAEA]">
+          <div class="flex items-center">
+            <button
+              type="button"
+              (click)="activeTab.set('overview')"
+              class="flex min-w-0 items-center gap-1 border-b-2 px-3 py-1 text-[16px] font-medium leading-6"
+              [class.border-[#6453D9]]="activeTab() === 'overview'"
+              [class.text-[#6453D9]]="activeTab() === 'overview'"
+              [class.border-transparent]="activeTab() !== 'overview'"
+              [class.text-[#959595]]="activeTab() !== 'overview'"
+            >
+              <span class="flex h-4 w-4 items-center justify-center rounded-full border border-current text-[10px] leading-none">i</span>
+              Overview
+            </button>
+
+            <button
+              type="button"
+              (click)="activeTab.set('users')"
+              class="flex min-w-0 items-center gap-1 border-b-2 px-3 py-1 text-[16px] font-medium leading-6"
+              [class.border-[#6453D9]]="activeTab() === 'users'"
+              [class.text-[#6453D9]]="activeTab() === 'users'"
+              [class.border-transparent]="activeTab() !== 'users'"
+              [class.text-[#959595]]="activeTab() !== 'users'"
+            >
+              <ng-icon name="heroUserCircle" class="text-[16px]"></ng-icon>
+              Users
+            </button>
+
+            <button
+              type="button"
+              (click)="activeTab.set('listings')"
+              class="flex min-w-0 items-center gap-1 border-b-2 px-3 py-1 text-[16px] font-medium leading-6"
+              [class.border-[#6453D9]]="activeTab() === 'listings'"
+              [class.text-[#6453D9]]="activeTab() === 'listings'"
+              [class.border-transparent]="activeTab() !== 'listings'"
+              [class.text-[#959595]]="activeTab() !== 'listings'"
+            >
+              <ng-icon name="heroSquares2x2" class="text-[16px]"></ng-icon>
+              Listings
+            </button>
+          </div>
+        </div>
+
+        @if (activeTab() === 'overview') {
+          <section class="pt-6">
+            <div>
+              <p class="text-[16px] font-semibold text-[#0D0D0D]/40">Subscription earnings</p>
+              <h2 class="mt-2 text-[32px] font-semibold leading-[40px] tracking-[-0.04em] text-[#1A1B1D]">
+                ₦ 1,760,000<span class="text-[24px] text-[#0D0D0D]/40">.00</span>
+              </h2>
+              <span class="mt-2 inline-flex rounded-full bg-[#27A551]/[0.06] px-2 py-1 text-[12px] leading-4 text-[#27A551]">
+                +28% from last month
+              </span>
+            </div>
+
+            <div class="mt-6">
+              <svg viewBox="0 0 350 226" class="h-auto w-full overflow-visible">
+                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
+                  <text x="0" y="26">500</text>
+                  <text x="0" y="110">250</text>
+                  <text x="8" y="196">0</text>
+                </g>
+                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
+                  <text x="2" y="220">21-12-2024</text>
+                  <text x="319" y="220">Today</text>
+                </g>
+                <line x1="28" y1="190" x2="345" y2="190" stroke="#ECECEC" stroke-width="1"></line>
+                <path
+                  d="M 30 180 C 48 120, 72 150, 92 105 S 134 122, 154 98 S 196 126, 214 112 S 246 160, 272 118 S 320 72, 345 52"
+                  fill="none"
+                  stroke="#5F54FF"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                ></path>
+                <path
+                  d="M 30 176 C 56 186, 74 108, 96 126 S 140 86, 166 150 S 216 122, 242 152 S 296 122, 340 140"
+                  fill="none"
+                  stroke="#F2B400"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                ></path>
+                <line x1="114" y1="84" x2="114" y2="190" stroke="#D6D6D6" stroke-width="1" stroke-dasharray="2 2"></line>
+                <circle cx="114" cy="112" r="3" fill="#5F54FF"></circle>
+                <circle cx="114" cy="126" r="3" fill="#F2B400"></circle>
+                <circle cx="340" cy="140" r="3" fill="#F2B400"></circle>
+                <circle cx="345" cy="52" r="3" fill="#5F54FF"></circle>
+                <g transform="translate(120,66)">
+                  <rect width="172" height="85" rx="9" fill="#000000"></rect>
+                  <text x="8" y="16" fill="#FFFFFF" font-size="14" font-weight="500">Comparison</text>
+                  <line x1="8" y1="26" x2="164" y2="26" stroke="#2E2E2E" stroke-width="1"></line>
+                  <rect x="8" y="40" width="8" height="4" rx="2" fill="#357FF6"></rect>
+                  <text x="20" y="45" fill="#A4A4A4" font-size="13">Aug 2025</text>
+                  <text x="116" y="45" fill="#FFFFFF" font-size="13">₦100,000</text>
+                  <rect x="8" y="61" width="8" height="4" rx="2" fill="#FACD38"></rect>
+                  <text x="20" y="66" fill="#A4A4A4" font-size="13">Aug 2026</text>
+                  <text x="122" y="66" fill="#FFFFFF" font-size="13">₦50,000</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="mt-4 space-y-4">
+              <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] py-[15px]">
+                <h3 class="text-[16px] font-medium text-[#0D0D0D]/50">Platform health</h3>
+                <div class="mt-5 text-center">
+                  <p class="text-[64px] font-semibold leading-none tracking-[-0.06em] text-[#0D0D0D]">76%</p>
+                  <p class="mt-1 text-[16px] font-medium text-[#0D0D0D]/30">/ 100</p>
+                </div>
+                <div class="relative mx-auto mt-5 w-[289px]">
+                  <div class="flex h-[14px] items-center gap-[2px]">
+                    @for (segment of healthSegments; track segment.color) {
+                      <span class="block h-[14px] flex-1 rounded-[2px]" [style.background]="segment.color"></span>
+                    }
+                  </div>
+                  <div class="absolute left-[176px] top-[-24px] h-[30px] w-[42px]">
+                    <div class="absolute left-0 top-0 flex h-[30px] w-[42px] rotate-180 items-center justify-center text-[11px] font-semibold text-[#229EFE]">
+                      <svg viewBox="0 0 42 30" class="absolute inset-0 h-full w-full">
+                        <path d="M5 0h32a5 5 0 0 1 5 5v14l-21 11L0 19V5a5 5 0 0 1 5-5Z" fill="#DFF0FF"></path>
+                      </svg>
+                      <span class="relative z-10 -rotate-180">76</span>
+                    </div>
+                  </div>
+                  <div class="mt-[7px] grid grid-cols-4 text-center text-[12px] font-medium">
+                    <span class="text-[#CDCDCD]">Bad</span>
+                    <span class="text-[#CDCDCD]">Fair</span>
+                    <span class="text-[#CDCDCD]">Good</span>
+                    <span class="text-[#313131]">Great</span>
+                  </div>
+                </div>
+                <div class="mt-6 rounded-[16px] bg-[#FBFBFB] p-3">
+                  <p class="text-[16px] font-medium leading-[1.1] text-[#242424]">Why?</p>
+                  <p class="mt-1 text-[14px] leading-[1.4] text-[#777777]">
+                    The platform is performing well with steady listing growth <span class="text-[#151515]">(+40,000)</span> and a <span class="text-[#101010]">56.5%</span> listing success rate. Buyer engagement remains strong.
+                  </p>
+                </div>
+              </section>
+
+              <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] py-[15px]">
+                <h3 class="text-[16px] font-medium text-[#0D0D0D]/50">Top subscribed plans</h3>
+                <div class="mt-6">
+                  <svg viewBox="0 0 318 275" class="h-auto w-full">
+                    <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
+                      <text x="0" y="25">1000</text>
+                      <text x="4" y="95">500</text>
+                      <text x="4" y="165">250</text>
+                      <text x="10" y="255">0</text>
+                    </g>
+                    <rect x="52" y="192" width="54" height="48" rx="4" fill="url(#proMobileBar)"></rect>
+                    <rect x="120" y="134" width="54" height="106" rx="4" fill="url(#premiumMobileBar)"></rect>
+                    <rect x="188" y="46" width="54" height="194" rx="4" fill="url(#enterpriseMobileBar)"></rect>
+                    <defs>
+                      <linearGradient id="proMobileBar" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#F59E0B"></stop>
+                        <stop offset="100%" stop-color="#FFEBAA"></stop>
+                      </linearGradient>
+                      <linearGradient id="premiumMobileBar" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#0FA02C"></stop>
+                        <stop offset="100%" stop-color="#A9FDBA"></stop>
+                      </linearGradient>
+                      <linearGradient id="enterpriseMobileBar" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#3B82F6"></stop>
+                        <stop offset="100%" stop-color="#C2DFFF"></stop>
+                      </linearGradient>
+                    </defs>
+                    <text x="70" y="258" fill="rgba(13,13,13,0.5)" font-size="12" font-weight="500">Pro</text>
+                    <text x="128" y="258" fill="rgba(13,13,13,0.5)" font-size="12" font-weight="500">Premium</text>
+                    <text x="190" y="258" fill="rgba(13,13,13,0.5)" font-size="12" font-weight="500">Enterprise</text>
+                  </svg>
+                </div>
+              </section>
+            </div>
+          </section>
+        } @else if (activeTab() === 'users') {
+          <section class="pt-6">
+            <div class="-mx-5 overflow-x-auto border-y border-[#EDEDED] px-5 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div class="flex min-w-[724px] items-center gap-8">
+                @for (metric of userMetrics; track metric.label) {
+                  <div class="flex flex-col gap-1 py-1">
+                    <div class="flex items-center gap-1 text-[14px] font-medium text-[#1A1B1D]/50">
+                      <span>{{ metric.label }}</span>
+                      @if (metric.dot) {
+                        <span class="h-[5px] w-[5px] rounded-full bg-[#01A204]"></span>
+                      }
+                    </div>
+                    <p class="text-[18px] font-semibold text-[#1A1B1D]">{{ metric.value }}</p>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <p class="text-[16px] font-semibold text-[#0D0D0D]/40">New sign ups</p>
+              <h2 class="mt-2 text-[32px] font-semibold leading-[40px] tracking-[-0.04em] text-[#1A1B1D]">100,500</h2>
+              <span class="mt-2 inline-flex rounded-full bg-[#27A551]/[0.06] px-2 py-1 text-[12px] leading-4 text-[#27A551]">
+                +28% from last month
+              </span>
+            </div>
+
+            <div class="mt-6">
+              <svg viewBox="0 0 350 226" class="h-auto w-full overflow-visible">
+                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
+                  <text x="0" y="26">500</text>
+                  <text x="0" y="110">250</text>
+                  <text x="8" y="196">0</text>
+                </g>
+                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
+                  <text x="2" y="220">21-12-2024</text>
+                  <text x="319" y="220">Today</text>
+                </g>
+                <line x1="28" y1="190" x2="345" y2="190" stroke="#ECECEC" stroke-width="1"></line>
+                <path
+                  d="M 30 180 C 50 132, 64 146, 86 144 S 108 100, 128 112 S 158 148, 182 130 S 228 170, 254 132 S 296 74, 342 45"
+                  fill="none"
+                  stroke="#5F54FF"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                ></path>
+                <line x1="114" y1="84" x2="114" y2="190" stroke="#D6D6D6" stroke-width="1" stroke-dasharray="2 2"></line>
+                <circle cx="114" cy="112" r="3" fill="#5F54FF"></circle>
+                <circle cx="342" cy="45" r="3" fill="#5F54FF"></circle>
+                <g transform="translate(118,90)">
+                  <rect width="165" height="32" rx="9" fill="#000000"></rect>
+                  <rect x="8" y="14" width="8" height="4" rx="2" fill="#357FF6"></rect>
+                  <text x="20" y="19" fill="#A4A4A4" font-size="13">Aug 2025</text>
+                  <text x="118" y="19" fill="#FFFFFF" font-size="13">10,000</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="mt-4 space-y-4">
+              <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] py-[15px]">
+                <h3 class="text-[16px] font-medium text-[#0D0D0D]/50">Verified vs Unverified</h3>
+                <div class="mt-6">
+                  <svg viewBox="0 0 318 250" class="h-auto w-full">
+                    <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
+                      <text x="0" y="28">1000</text>
+                      <text x="4" y="102">500</text>
+                      <text x="4" y="174">250</text>
+                      <text x="10" y="235">0</text>
+                    </g>
+                    <rect x="46" y="55" width="115" height="145" rx="4" fill="url(#verifiedUsersMobile)"></rect>
+                    <rect x="184" y="118" width="115" height="82" rx="4" fill="url(#unverifiedUsersMobile)"></rect>
+                    <defs>
+                      <linearGradient id="verifiedUsersMobile" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#0FA02C"></stop>
+                        <stop offset="100%" stop-color="#A9FDBA"></stop>
+                      </linearGradient>
+                      <linearGradient id="unverifiedUsersMobile" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#AE6709"></stop>
+                        <stop offset="100%" stop-color="#FBA535"></stop>
+                      </linearGradient>
+                    </defs>
+                    <text x="63" y="224" fill="rgba(13,13,13,0.5)" font-size="12" font-weight="500">Verified users</text>
+                    <text x="194" y="224" fill="rgba(13,13,13,0.5)" font-size="12" font-weight="500">Unverified users</text>
+                  </svg>
+                </div>
+              </section>
+
+              <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] py-[15px]">
+                <h3 class="text-[14px] font-medium text-[#0D0D0D]/50">Top regions/cities for signups</h3>
+                <div class="mt-6 flex h-1 items-center gap-0.5">
+                  @for (region of topSignupRegions; track region.label) {
+                    <span class="block h-1 rounded-[14px]" [style.width]="region.width" [style.background]="region.color"></span>
+                  }
+                </div>
+                <div class="mt-6 space-y-6">
+                  @for (region of topSignupRegions; track region.label) {
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-[10px]">
+                        <span class="h-3 w-3 rounded-full" [style.background]="region.color"></span>
+                        <span class="text-[14px] text-[#0D0D0D]/50">{{ region.label }}</span>
+                      </div>
+                      <span class="text-[14px] font-medium text-[#0D0D0D]">{{ region.value }}</span>
+                    </div>
+                  }
+                </div>
+              </section>
+            </div>
+          </section>
+        } @else {
+          <section class="pt-6">
+            <div class="-mx-5 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div class="flex min-w-[724px] overflow-hidden rounded-t-[12px]">
+                @for (metric of listingMetrics; track metric.label; let index = $index) {
+                  <div
+                    class="flex h-[100px] min-w-[241px] flex-col gap-3 p-3"
+                    [class.bg-white]="index === 0"
+                    [class.border-b-[1.5px]]="index === 0"
+                    [class.border-[#A2A500]]="index === 0"
+                    [class.bg-[#FAFAFA]]="index > 0"
+                    [class.border-r]="index < listingMetrics.length - 1"
+                    [class.border-[#EFEFEF]]="index < listingMetrics.length - 1"
+                  >
+                    <p class="text-[12px] font-medium text-[#1A1B1D]/50">{{ metric.label }}</p>
+                    <p class="text-[16px] font-semibold text-[#0D0D0D]/80">{{ metric.value }}</p>
+                    <p class="text-[12px] text-[#0D0D0D]/60">
+                      <span class="text-[#50BD5A]">{{ metric.delta }}</span> from last period
+                    </p>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="mt-8">
+              <svg viewBox="0 0 350 226" class="h-auto w-full overflow-visible">
+                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
+                  <text x="0" y="26">500</text>
+                  <text x="0" y="110">250</text>
+                  <text x="8" y="196">0</text>
+                </g>
+                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
+                  <text x="2" y="220">21-12-2024</text>
+                  <text x="319" y="220">Today</text>
+                </g>
+                <line x1="28" y1="190" x2="345" y2="190" stroke="#ECECEC" stroke-width="1"></line>
+                <path
+                  d="M 30 180 C 48 120, 72 150, 92 105 S 134 122, 154 98 S 196 126, 214 112 S 246 160, 272 118 S 320 72, 345 52"
+                  fill="none"
+                  stroke="#5F54FF"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                ></path>
+                <path
+                  d="M 30 176 C 56 186, 74 108, 96 126 S 140 86, 166 150 S 216 122, 242 152 S 296 122, 340 140"
+                  fill="none"
+                  stroke="#F2B400"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                ></path>
+                <line x1="114" y1="84" x2="114" y2="190" stroke="#D6D6D6" stroke-width="1" stroke-dasharray="2 2"></line>
+                <circle cx="114" cy="112" r="3" fill="#5F54FF"></circle>
+                <circle cx="114" cy="126" r="3" fill="#F2B400"></circle>
+                <circle cx="340" cy="140" r="3" fill="#F2B400"></circle>
+                <circle cx="345" cy="52" r="3" fill="#5F54FF"></circle>
+                <g transform="translate(120,66)">
+                  <rect width="168" height="68" rx="9" fill="#000000"></rect>
+                  <text x="8" y="16" fill="#FFFFFF" font-size="14" font-weight="500">Listings posted</text>
+                  <line x1="8" y1="26" x2="160" y2="26" stroke="#2E2E2E" stroke-width="1"></line>
+                  <rect x="8" y="40" width="8" height="4" rx="2" fill="#357FF6"></rect>
+                  <text x="20" y="45" fill="#A4A4A4" font-size="13">Aug 2025</text>
+                  <text x="116" y="45" fill="#FFFFFF" font-size="13">₦100,000</text>
+                  <rect x="8" y="58" width="8" height="4" rx="2" fill="#FACD38"></rect>
+                  <text x="20" y="63" fill="#A4A4A4" font-size="13">Aug 2026</text>
+                  <text x="122" y="63" fill="#FFFFFF" font-size="13">₦50,000</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="mt-4 space-y-4">
+              <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] py-[15px]">
+                <h3 class="text-[16px] font-medium text-[#0D0D0D]/50">Most viewed listings</h3>
+                <div class="mt-6 space-y-6">
+                  @for (listing of mostViewedListings; track listing.title) {
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="flex min-w-0 items-center gap-2">
+                        <div class="h-9 w-9 shrink-0 overflow-hidden rounded-[5.4px] border border-[#F0F0F0] bg-[#EFEFEF]">
+                          <img [ngSrc]="listing.image" [alt]="listing.title" width="36" height="36" class="h-9 w-9 object-cover">
+                        </div>
+                        <p class="truncate text-[14px] font-medium text-[#1A1B1D]">{{ listing.title }}</p>
+                      </div>
+                      <span class="shrink-0 text-[14px] font-medium text-[#0D0D0D]">{{ listing.views }}</span>
+                    </div>
+                  }
+                </div>
+              </section>
+
+              <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] py-[15px]">
+                <h3 class="text-[16px] font-medium text-[#0D0D0D]/50">Top sellers</h3>
+                <div class="mt-6 space-y-6">
+                  @for (seller of topSellers; track seller.name + seller.email + seller.sold) {
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="flex min-w-0 items-center gap-2">
+                        <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#F3F3F3]">
+                          <img [ngSrc]="seller.avatar" [alt]="seller.name" width="36" height="36" class="h-9 w-9 rounded-full object-cover">
+                        </div>
+                        <div class="min-w-0">
+                          <p class="truncate text-[14px] font-medium leading-5 text-[#0D0D0D]">{{ seller.name }}</p>
+                          <p class="truncate text-[12px] leading-4 text-[#8C8C8C]">{{ seller.email }}</p>
+                        </div>
+                      </div>
+                      <p class="shrink-0 text-[14px] text-[#0D0D0D]"><span class="font-medium">{{ seller.sold }}</span> <span class="text-[#0D0D0D]/50">sold</span></p>
+                    </div>
+                  }
+                </div>
+              </section>
+
+              <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] py-[15px]">
+                <h3 class="text-[16px] font-medium text-[#0D0D0D]/50">Listing conversion rate</h3>
+                <div class="mt-6 flex items-center gap-1">
+                  <p class="text-[32px] font-semibold leading-[40px] tracking-[-0.04em] text-[#1A1B1D]">56.5%</p>
+                  <span class="text-[12px] leading-4 text-[#27A551]">+28% from last period</span>
+                </div>
+                <div class="mt-6 space-y-6">
+                  @for (metric of conversionMetrics; track metric.label) {
+                    <div>
+                      <div class="mb-2 flex items-center justify-between gap-4 text-[12px] leading-4">
+                        <span class="text-[#919293]">{{ metric.label }}</span>
+                        <span class="font-medium text-[#4F4F51]">{{ metric.value }}</span>
+                      </div>
+                      <div class="h-2 overflow-hidden rounded-[5px] bg-[#F4F4F4]">
+                        <span class="block h-full rounded-[5px] bg-[#6453D9]" [style.width]="metric.width"></span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </section>
+            </div>
+          </section>
+        }
+      </div>
+    </section>
+
+    <section class="hidden min-h-full rounded-[32px] bg-white lg:block">
       <header class="flex flex-col gap-4 border-b border-[#efefef] px-8 py-6 lg:flex-row lg:items-center lg:justify-between">
         <h1 class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">Analytics</h1>
 
