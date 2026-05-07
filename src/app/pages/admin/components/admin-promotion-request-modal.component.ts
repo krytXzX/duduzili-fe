@@ -37,7 +37,7 @@ export interface PromotionRequestModalData {
         (click)="$event.stopPropagation()"
       >
         <div class="flex items-start justify-between gap-4">
-          <h2 id="promotion-request-modal-title" class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">
+          <h2 id="promotion-request-modal-title" class="text-[28px] font-semibold tracking-[-0.04em] text-[#202020]">
             Request details
           </h2>
 

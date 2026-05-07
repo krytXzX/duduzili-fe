@@ -92,7 +92,7 @@ export class AdminMorePageComponent {
     [
       {
         label: 'Ads management',
-        route: '/admin/ads/plans',
+        route: '/admin/ads',
         icon: '/assets/icons/admin-more/award.svg',
         iconBackground: '#48A465',
       },

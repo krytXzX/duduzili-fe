@@ -136,7 +136,9 @@ export const routes: Routes = [
       {
         path: 'ads',
         loadComponent: () =>
-          import('./pages/ads/ads-page.component').then((m) => m.AdsPageComponent),
+          import('./pages/admin/admin-ads-management-page.component').then(
+            (m) => m.AdminAdsManagementPageComponent,
+          ),
       },
       {
         path: 'ads/plans',
