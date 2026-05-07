@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroArrowUpTray,
@@ -67,6 +68,7 @@ interface TeamRoleRecord {
 @Component({
   selector: 'app-admin-team-management-page',
   imports: [
+    RouterLink,
     NgIcon,
     NgOptimizedImage,
     AdminAddTeamUserModalComponent,
@@ -94,7 +96,195 @@ interface TeamRoleRecord {
     }),
   ],
   template: `
-    <section class="min-h-full rounded-[32px] bg-white">
+    <section class="bg-white px-5 pb-8 pt-[10px] lg:hidden">
+      <div class="mx-auto max-w-[350px]">
+        <div class="flex h-[54px] items-center">
+          <a routerLink="/admin/more" class="flex items-center gap-2">
+            <span class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]">
+              <ng-icon name="heroChevronLeft" class="text-[20px] text-black"></ng-icon>
+            </span>
+            <span class="text-[20px] font-semibold leading-[1.2] text-black">Team management</span>
+          </a>
+        </div>
+
+        <div class="mt-6 border-b border-[#EAEAEA]">
+          <div class="flex items-center">
+            <button
+              type="button"
+              (click)="setActiveTab('users')"
+              class="flex items-center gap-1 border-b-2 px-3 py-1 text-[16px] font-medium leading-6"
+              [class.border-[#6453D9]]="activeTab() === 'users'"
+              [class.text-[#6453D9]]="activeTab() === 'users'"
+              [class.border-transparent]="activeTab() !== 'users'"
+              [class.text-[#959595]]="activeTab() !== 'users'"
+            >
+              <ng-icon name="heroUsers" class="text-[16px]"></ng-icon>
+              Users
+            </button>
+
+            <button
+              type="button"
+              (click)="setActiveTab('roles')"
+              class="flex items-center gap-1 border-b-2 px-3 py-1 text-[16px] font-medium leading-6"
+              [class.border-[#6453D9]]="activeTab() === 'roles'"
+              [class.text-[#6453D9]]="activeTab() === 'roles'"
+              [class.border-transparent]="activeTab() !== 'roles'"
+              [class.text-[#959595]]="activeTab() !== 'roles'"
+            >
+              <ng-icon name="heroUserCircle" class="text-[16px]"></ng-icon>
+              Roles
+            </button>
+          </div>
+        </div>
+
+        @if (activeTab() === 'users') {
+          <section class="pt-6">
+            <div class="flex items-center gap-5">
+              <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3 text-[#777777]">
+                <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
+                <input
+                  type="search"
+                  [value]="searchQuery()"
+                  (input)="updateSearchQuery($event)"
+                  placeholder="Search"
+                  class="min-w-0 flex-1 bg-transparent text-[14px] text-[#202020] outline-none placeholder:text-[#777777]"
+                >
+              </label>
+
+              <div class="flex items-center gap-3">
+                <button
+                  type="button"
+                  class="inline-flex h-6 w-6 items-center justify-center text-[#202020]"
+                  aria-label="Export users"
+                >
+                  <ng-icon name="heroArrowUpTray" class="text-[22px]"></ng-icon>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="isAddUserModalOpen.set(true)"
+                  class="inline-flex h-8 w-8 items-center justify-center text-[#202020]"
+                  aria-label="Add user"
+                >
+                  <ng-icon name="heroPlus" class="text-[26px]"></ng-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-4 flex flex-col">
+              @for (record of paginatedUsers(); track record.id) {
+                <button
+                  type="button"
+                  class="w-full border-b border-[#EBEBEB] py-3 text-left"
+                  (click)="openMemberDetails(record)"
+                >
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex min-w-0 items-center gap-2">
+                      <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#F3F3F3]">
+                        <img
+                          [ngSrc]="record.avatar"
+                          [alt]="record.userName"
+                          width="36"
+                          height="36"
+                          class="h-9 w-9 rounded-full object-cover"
+                        >
+                      </div>
+
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                          <p class="truncate text-[14px] font-medium leading-5 text-[#0D0D0D]">{{ record.userName }}</p>
+                          @if (record.isCurrentUser) {
+                            <span class="inline-flex h-[18px] items-center rounded-[8px] border border-[#D7D0FF] bg-[#6453D9]/5 px-2 text-[10px] font-medium leading-[15px] text-[#6453D9]">
+                              You
+                            </span>
+                          }
+                        </div>
+                        <p class="truncate text-[12px] leading-4 text-[#8C8C8C]">{{ record.email }}</p>
+                      </div>
+                    </div>
+
+                    <span
+                      class="inline-flex h-6 items-center gap-1 rounded-[8px] px-2 py-1 text-[12px] font-semibold"
+                      [class.bg-[#F3FBF9]]="record.status === 'active'"
+                      [class.text-[#25AD32]]="record.status === 'active'"
+                      [class.bg-[#FDF6FA]]="record.status === 'inactive'"
+                      [class.text-[#FF2524]]="record.status === 'inactive'"
+                      [class.bg-[#F9F9F9]]="record.status === 'pending activation'"
+                      [class.text-[#EE9C2E]]="record.status === 'pending activation'"
+                    >
+                      <ng-icon [name]="statusIcon(record.status)" class="text-[14px]"></ng-icon>
+                      {{ statusLabel(record.status) }}
+                    </span>
+                  </div>
+
+                  <dl class="mt-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between gap-4">
+                      <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Role</dt>
+                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ record.role }}</dd>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4">
+                      <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Last signed in</dt>
+                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ mobileDateLabel(record.lastSignedIn) }}</dd>
+                    </div>
+                  </dl>
+                </button>
+              }
+            </div>
+          </section>
+        } @else {
+          <section class="pt-6">
+            <div class="flex items-center gap-5">
+              <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3 text-[#777777]">
+                <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
+                <input
+                  type="search"
+                  [value]="searchQuery()"
+                  (input)="updateSearchQuery($event)"
+                  placeholder="Search"
+                  class="min-w-0 flex-1 bg-transparent text-[14px] text-[#202020] outline-none placeholder:text-[#777777]"
+                >
+              </label>
+
+              <button
+                type="button"
+                (click)="isCreateRoleModalOpen.set(true)"
+                class="inline-flex h-8 w-8 items-center justify-center text-[#202020]"
+                aria-label="Create role"
+              >
+                <ng-icon name="heroPlus" class="text-[26px]"></ng-icon>
+              </button>
+            </div>
+
+            <div class="mt-4 flex flex-col">
+              @for (role of paginatedRoles(); track role.id) {
+                <button
+                  type="button"
+                  class="w-full border-b border-[#EBEBEB] py-3 text-left"
+                  (click)="openRoleDetails(role)"
+                >
+                  <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">{{ role.name }}</h2>
+
+                  <dl class="mt-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between gap-4">
+                      <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Users</dt>
+                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ role.users }}</dd>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4">
+                      <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Permissions</dt>
+                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ role.permissions }}</dd>
+                    </div>
+                  </dl>
+                </button>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    </section>
+
+    <section class="hidden min-h-full rounded-[32px] bg-white lg:block">
       <header class="border-b border-[#efefef] px-8 py-6">
         <h1 class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">Team management</h1>
       </header>
@@ -849,6 +1039,10 @@ export class AdminTeamManagementPageComponent {
     this.teamMembers.update((current) => current.filter((member) => member.id !== memberId));
     this.selectedMember.set(null);
     this.currentPage.set(1);
+  }
+
+  mobileDateLabel(date: string): string {
+    return date.replace(/^(\d{2})\s+([A-Za-z]+),\s+(\d{4})$/, '$2 $1,$3');
   }
 
   statusLabel(status: TeamMemberStatus): string {
