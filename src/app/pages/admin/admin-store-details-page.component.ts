@@ -113,7 +113,7 @@ interface ReviewTag {
               <div
                 class="h-24 w-24 overflow-hidden rounded-full border-[6px] border-white bg-white shadow-md md:h-28 md:w-28"
               >
-                <img [src]="store().logo" [alt]="store().name" class="h-full w-full object-cover" />
+                <img [src]="store().logo" [alt]="store().name" class="h-full w-full rounded-full object-cover" />
               </div>
 
               <div class="pb-2">
@@ -305,112 +305,99 @@ interface ReviewTag {
         } @else {
           @if (store().hasReviews) {
             <div class="pt-8">
-              <div class="grid gap-8 xl:grid-cols-[260px_minmax(0,1fr)]">
-                <div class="space-y-5">
-                  <div class="rounded-[28px] bg-[#FCFCFD] p-6">
-                    <div class="mb-4 flex items-end gap-2">
-                      <span class="text-[58px] font-semibold leading-none text-[#1A1C21]">4.57</span>
-                      <span class="mb-1 text-[22px] font-semibold text-[#C8CBD4]">/5</span>
-                    </div>
-
-                    <div class="mb-6 flex items-center gap-2 text-[#D3DC35]">
-                      @for (star of [1, 2, 3, 4, 5]; track star) {
-                        <ng-icon name="heroStarSolid" class="text-[20px]"></ng-icon>
-                      }
-                    </div>
-
-                    <p class="mb-4 text-[16px] font-semibold text-[#1A1C21]">Overall rating</p>
-
-                    <div class="space-y-3">
-                      @for (bar of ratingBreakdown; track bar.stars) {
-                        <div class="flex items-center gap-3">
-                          <span class="w-7 text-[15px] font-medium text-[#1A1C21]">{{ bar.stars }} ★</span>
-                          <div class="h-[6px] flex-1 overflow-hidden rounded-full bg-[#ECEEF4]">
-                            <div
-                              class="h-full rounded-full bg-[#3A3C43]"
-                              [style.width.%]="bar.percentage"
-                            ></div>
-                          </div>
-                          <span class="w-9 text-right text-[15px] text-[#8C8C92]">{{ bar.percentage }}%</span>
+              <div class="grid gap-6 xl:grid-cols-[261px_minmax(0,1fr)]">
+                <div>
+                  <div class="rounded-[16px] bg-[#FAFAFA] p-4 md:p-6">
+                    <div class="flex items-start gap-4 md:flex-col md:gap-6">
+                      <div class="min-w-[110px] md:min-w-0">
+                        <div class="flex items-end gap-1">
+                          <span class="text-[40px] font-semibold leading-[48px] text-[#2D2D2D] md:text-[56px] md:leading-[64px]">4.57</span>
+                          <span class="pb-1 text-[20px] font-medium leading-6 text-[#BFBFBF] md:text-[28px] md:leading-10">/5</span>
                         </div>
-                      }
+                        <div class="mt-1 flex items-center gap-1 text-[#D3DC35] md:mt-2">
+                          @for (star of [1, 2, 3, 4, 5]; track star) {
+                            <ng-icon name="heroStarSolid" class="text-[16px] md:text-[20px]"></ng-icon>
+                          }
+                        </div>
+                      </div>
+
+                      <div class="flex-1 md:w-full">
+                        <p class="mb-3 text-[16px] font-semibold text-[#2D2D2D]">Overall rating</p>
+                        <div class="space-y-2.5">
+                          @for (bar of ratingBreakdown; track bar.stars) {
+                            <div class="flex items-center gap-2 md:gap-3">
+                              <span class="w-6 text-[14px] text-[#2D2D2D] md:w-7">{{ bar.stars }} ★</span>
+                              <div class="h-[7px] flex-1 overflow-hidden rounded-[16px] bg-[#EAEAEA]">
+                                <div class="h-full rounded-[16px] bg-[#2D2D2D]" [style.width.%]="bar.percentage"></div>
+                              </div>
+                              <span class="w-8 text-right text-[14px] text-[#959595] md:w-9">{{ bar.percentage }}%</span>
+                            </div>
+                          }
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <div class="mb-7 flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                    <div>
-                      <h2 class="text-[18px] font-semibold text-[#1A1C21]">215 reviews</h2>
-                      <p class="mt-8 text-[18px] font-medium text-[#1A1C21]">This vendor is great at..</p>
-
-                      <div class="mt-4 flex flex-wrap gap-3">
-                        @for (tag of reviewTags; track tag.label) {
-                          <div class="rounded-full border border-[#E6E8EF] px-4 py-2 text-[15px] text-[#4B5563]">
-                            {{ tag.label }} ({{ tag.count }})
-                          </div>
-                        }
-                      </div>
-                    </div>
-
+                  <div class="mb-7 flex items-center justify-between">
+                    <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h2>
                     <button
                       type="button"
-                      class="flex items-center gap-2 self-start rounded-full border border-[#E6E8EF] bg-white px-4 py-2.5 text-[15px] font-medium text-[#1A1C21]"
+                      class="flex h-8 items-center gap-1 rounded-[32px] border border-[#EAEAEA] bg-white px-2 text-[14px] text-[#1A1B1D]"
                     >
                       Most recent
-                      <ng-icon name="heroChevronRight" class="rotate-90 text-[16px] text-[#8C8C92]"></ng-icon>
+                      <ng-icon name="heroChevronRight" class="rotate-90 text-[14px] text-[#8C8C92]"></ng-icon>
                     </button>
                   </div>
 
-                  <div class="space-y-8">
+                  <p class="text-[16px] font-medium leading-6 text-[#1F1F1F] md:hidden">This listing is great at..</p>
+                  <p class="hidden text-[16px] font-medium leading-6 text-[#1F1F1F] md:block">This vendor is great at..</p>
+                  <div class="mt-3 flex flex-wrap gap-x-2 gap-y-3 md:gap-3">
+                    @for (tag of reviewTags; track tag.label) {
+                      <div class="rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-3 py-2 text-[16px] leading-6 text-[#5A5A5A] md:px-4">
+                        {{ tag.label }} ({{ tag.count }})
+                      </div>
+                    }
+                  </div>
+
+                  <div class="mt-8 space-y-8">
                     @for (review of reviews(); track review.author + review.date) {
-                      <article class="rounded-[24px] bg-white">
-                        <div class="flex gap-4">
-                          <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
-                            <img
-                              [src]="review.avatar || '/assets/images/image-3-1.jpg'"
-                              [alt]="review.author"
-                              class="h-full w-full object-cover"
-                            />
+                      <article>
+                        <div class="flex items-center gap-2">
+                          <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full">
+                            <img [src]="review.avatar || '/assets/images/image-3-1.jpg'" [alt]="review.author" class="h-full w-full rounded-full object-cover" />
                           </div>
-
-                          <div class="min-w-0 flex-1">
-                            <h3 class="text-[16px] font-medium text-[#1A1C21]">{{ review.author }}</h3>
-
-                            <div class="mt-2 flex items-center gap-2">
-                              <div class="flex items-center gap-1 text-[#3A3C43]">
+                          <div>
+                            <h3 class="text-[24px] font-medium leading-6 text-[#0D0D0D] md:text-[16px]">{{ review.author }}</h3>
+                            <div class="mt-1 flex items-center gap-2">
+                              <div class="flex items-center gap-1">
                                 @for (filled of reviewStars(review.rating); track $index) {
-                                  <ng-icon
-                                    name="heroStarSolid"
-                                    class="text-[13px]"
-                                    [class.text-[#3A3C43]]="filled"
-                                    [class.text-[#E5E7EB]]="!filled"
-                                  ></ng-icon>
+                                  <ng-icon name="heroStarSolid" class="text-[11px]" [class.text-[#2D2D2D]]="filled" [class.text-[#D3D4D9]]="!filled"></ng-icon>
                                 }
                               </div>
-                              <span class="text-[11px] text-[#D1D5DB]">•</span>
-                              <span class="text-[14px] text-[#8C8C92]">{{ review.date }}</span>
+                              <span class="text-[12px] text-[#D9D9D9]">•</span>
+                              <span class="text-[14px] text-[#8C8C8C]">{{ review.date }}</span>
                             </div>
+                          </div>
+                        </div>
 
-                            <p class="mt-3 text-[15px] leading-8 text-[#2F3138]">{{ review.text }}</p>
+                        <p class="mt-3 text-[16px] leading-8 text-[#1F1F1F] md:leading-6">{{ review.text }}</p>
 
-                            @if (review.images?.length) {
-                              <div class="mt-4 flex flex-wrap gap-3">
-                                @for (image of review.images!.slice(0, 6); track $index) {
-                                  <div class="relative h-28 w-28 overflow-hidden rounded-[18px] bg-[#F3F4F6]">
-                                    <img [src]="image" alt="" class="h-full w-full object-cover" />
-
-                                    @if ($index === 5 && review.images!.length > 6) {
-                                      <div class="absolute inset-0 flex items-center justify-center bg-black/45 text-[28px] font-semibold text-white">
-                                        +{{ review.images!.length - 5 }}
-                                      </div>
-                                    }
+                        @if (review.images?.length) {
+                          <div class="mt-4 flex gap-2 overflow-x-auto pb-1 md:gap-3">
+                            @for (image of review.images!.slice(0, 6); track $index) {
+                              <div class="relative h-[78px] w-[78px] shrink-0 overflow-hidden rounded-[11px] bg-[#E9E9E9] md:h-[117px] md:w-[117px] md:rounded-[16px]">
+                                <img [src]="image" alt="" class="h-full w-full object-cover" />
+                                @if ($index === 5 && review.images!.length > 6) {
+                                  <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[12px] font-medium text-white md:text-[18px]">
+                                    +{{ review.images!.length - 5 }}
                                   </div>
                                 }
                               </div>
                             }
                           </div>
-                        </div>
+                        }
                       </article>
                     }
                   </div>
@@ -703,28 +690,28 @@ export class AdminStoreDetailsPageComponent {
       date: 'August 14, 2025',
       rating: 4,
       text: 'Contacted the seller. Went to their office to purchase the item and their hospitality was okay. Truly reliable. And he’s a funny man 😂',
-      avatar: '/assets/images/image-3-1.jpg',
+      avatar: '/assets/images/admin-store-details/reviews/avatar-mary.png',
     },
     {
       author: 'Apeli Obubra',
       date: 'August 14, 2025',
       rating: 4,
       text: 'Straightforward guy! easy transaction great goods',
-      avatar: '/assets/images/image-2-1.jpg',
+      avatar: '/assets/images/admin-store-details/reviews/avatar-apeli.png',
     },
     {
       author: 'Ibiso Amiesimaka',
       date: 'August 14, 2025',
       rating: 4,
       text: 'infact it was amazing if everyone is like this Nigeria will be better than this i advice everybody that wants to buy laptop should call this man',
-      avatar: '/assets/images/image-1-1.jpg',
+      avatar: '/assets/images/admin-store-details/reviews/avatar-ibiso.png',
       images: [
-        '/assets/images/fashion_menswear_hero.png',
-        '/assets/images/image-1-1.jpg',
-        '/assets/images/hero-bg.png',
-        '/assets/images/empty_state.svg',
-        '/assets/images/empty_state.svg',
-        '/assets/images/product_watch_luxury.png',
+        '/assets/images/admin-store-details/reviews/review-image-1.png',
+        '/assets/images/admin-store-details/reviews/review-image-2.png',
+        '/assets/images/admin-store-details/reviews/review-image-3.png',
+        '/assets/images/admin-store-details/reviews/review-image-4.png',
+        '/assets/images/admin-store-details/reviews/review-image-5.png',
+        '/assets/images/admin-store-details/reviews/review-image-6.png',
       ],
     },
   ]);
