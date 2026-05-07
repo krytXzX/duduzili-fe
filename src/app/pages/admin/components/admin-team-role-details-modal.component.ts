@@ -27,7 +27,7 @@ export interface TeamRoleDetails {
         (click)="$event.stopPropagation()"
       >
         <div class="flex items-start justify-between gap-4">
-          <h2 id="team-role-details-modal-title" class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">
+          <h2 id="team-role-details-modal-title" class="text-[28px] font-semibold tracking-[-0.04em] text-[#202020]">
             {{ role().name }}
           </h2>
 
@@ -55,7 +55,7 @@ export interface TeamRoleDetails {
         </section>
 
         <section class="mt-8">
-          <h3 class="text-[18px] font-semibold text-[#202020]">Permissions</h3>
+          <h3 class="text-[16px] font-semibold text-[#202020]">Permissions</h3>
 
           <ul class="mt-4 list-disc space-y-2 pl-6 text-[15px] leading-7 text-[#6f6f6f]">
             @for (permission of role().permissionsList; track permission) {

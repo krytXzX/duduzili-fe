@@ -63,7 +63,7 @@ export interface TeamMemberUpdatePayload {
         (click)="$event.stopPropagation()"
       >
         <div class="flex items-start justify-between gap-4">
-          <h2 id="team-member-modal-title" class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">
+          <h2 id="team-member-modal-title" class="text-[28px] font-semibold tracking-[-0.04em] text-[#202020]">
             User details
           </h2>
 
@@ -90,7 +90,7 @@ export interface TeamMemberUpdatePayload {
             </div>
 
             <div class="min-w-0">
-              <h3 class="truncate text-[18px] font-semibold text-[#202020]">{{ member().userName }}</h3>
+              <h3 class="truncate text-[16px] font-semibold text-[#202020]">{{ member().userName }}</h3>
               <p class="mt-1 truncate text-[15px] text-[#8b8b8b]">{{ member().email }}</p>
             </div>
 
@@ -171,7 +171,7 @@ export interface TeamMemberUpdatePayload {
           </section>
 
           <section class="mt-8">
-            <h3 class="text-[18px] font-semibold text-[#202020]">Update role</h3>
+            <h3 class="text-[16px] font-semibold text-[#202020]">Update role</h3>
 
             <label class="mt-5 block">
               <span class="mb-2 block text-[15px] text-[#505050]">Role</span>

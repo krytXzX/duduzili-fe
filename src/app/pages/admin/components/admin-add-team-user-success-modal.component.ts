@@ -29,7 +29,7 @@ import { heroCheck } from '@ng-icons/heroicons/outline';
 
           <div class="flex w-full flex-col items-center gap-8">
             <div class="flex max-w-[403px] flex-col items-center gap-3 text-center">
-              <h2 id="add-team-user-success-modal-title" class="text-[24px] font-medium leading-8 text-[#0D0D0D]">
+              <h2 id="add-team-user-success-modal-title" class="text-[18px] font-medium leading-7 text-[#0D0D0D]">
                 User added successfully
               </h2>
               <p class="text-[16px] leading-6 text-[#0D0D0D]/50">

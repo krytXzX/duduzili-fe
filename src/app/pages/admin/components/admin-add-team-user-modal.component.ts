@@ -39,7 +39,7 @@ export interface TeamRoleOption {
         (click)="$event.stopPropagation()"
       >
         <div class="flex items-start justify-between gap-4">
-          <h2 id="new-team-user-modal-title" class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">
+          <h2 id="new-team-user-modal-title" class="text-[28px] font-semibold tracking-[-0.04em] text-[#202020]">
             New user
           </h2>
 
@@ -55,7 +55,7 @@ export interface TeamRoleOption {
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="mt-8">
           <section>
-            <h3 class="text-[18px] font-semibold text-[#202020]">General information</h3>
+            <h3 class="text-[16px] font-semibold text-[#202020]">General information</h3>
             <p class="mt-1 max-w-[440px] text-[15px] leading-7 text-[#8d8d8d]">
               Add accurate details about this user. A link with login info will be sent to the email
             </p>
@@ -117,7 +117,7 @@ export interface TeamRoleOption {
           </section>
 
           <section class="mt-8">
-            <h3 class="text-[18px] font-semibold text-[#202020]">Role</h3>
+            <h3 class="text-[16px] font-semibold text-[#202020]">Role</h3>
             <p class="mt-1 text-[15px] leading-7 text-[#8d8d8d]">Select a role to be assigned to this user</p>
 
             <label class="mt-5 block">

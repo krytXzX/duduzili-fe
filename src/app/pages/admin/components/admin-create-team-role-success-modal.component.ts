@@ -27,7 +27,7 @@ import { heroCheck, heroShieldCheck } from '@ng-icons/heroicons/outline';
           </div>
         </div>
 
-        <h2 id="create-team-role-success-modal-title" class="mt-8 text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">
+        <h2 id="create-team-role-success-modal-title" class="mt-8 text-[28px] font-semibold tracking-[-0.04em] text-[#202020]">
           Role created successfully
         </h2>
 

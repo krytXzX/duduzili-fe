@@ -39,7 +39,7 @@ type CreateRoleStep = 'details' | 'permissions';
         (click)="$event.stopPropagation()"
       >
         <div class="flex items-start justify-between gap-4">
-          <h2 id="create-team-role-modal-title" class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">
+          <h2 id="create-team-role-modal-title" class="text-[28px] font-semibold tracking-[-0.04em] text-[#202020]">
             Create new role
           </h2>
 
@@ -56,7 +56,7 @@ type CreateRoleStep = 'details' | 'permissions';
         @if (step() === 'details') {
           <form [formGroup]="form" (ngSubmit)="goToPermissionsStep()" class="mt-12">
             <section>
-              <h3 class="max-w-[360px] text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">
+              <h3 class="max-w-[360px] text-[24px] font-semibold tracking-[-0.04em] text-[#202020]">
                 Fill in basic details about this role
               </h3>
 
@@ -100,7 +100,7 @@ type CreateRoleStep = 'details' | 'permissions';
           </form>
         } @else {
           <section class="mt-12">
-            <h3 class="max-w-[460px] text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">
+            <h3 class="max-w-[460px] text-[24px] font-semibold tracking-[-0.04em] text-[#202020]">
               Select some permissions for this role
             </h3>
 
