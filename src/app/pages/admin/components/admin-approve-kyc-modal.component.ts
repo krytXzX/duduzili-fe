@@ -8,14 +8,14 @@ import { heroExclamationTriangle, heroXMark } from '@ng-icons/heroicons/outline'
   providers: [provideIcons({ heroExclamationTriangle, heroXMark })],
   template: `
     <div
-      class="fixed inset-0 z-[230] flex items-center justify-center bg-black/20 p-4 backdrop-blur-[2px]"
+      class="fixed inset-0 z-[230] flex items-end justify-center bg-black/20 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
       (click)="close.emit()"
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="approve-kyc-modal-title"
-        class="w-full max-w-[620px] rounded-[26px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8"
+        class="w-full max-w-[620px] rounded-t-[26px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:rounded-[26px] sm:p-8"
         (click)="$event.stopPropagation()"
       >
         <div class="flex items-start justify-between gap-4">
