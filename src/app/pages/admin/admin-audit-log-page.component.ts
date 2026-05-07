@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  heroAdjustmentsHorizontal,
+  heroArrowLeft,
   heroChevronDown,
   heroChevronLeft,
   heroChevronRight,
@@ -21,9 +24,11 @@ interface AuditLogRecord {
 
 @Component({
   selector: 'app-admin-audit-log-page',
-  imports: [NgIcon, NgOptimizedImage],
+  imports: [RouterLink, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({
+      heroAdjustmentsHorizontal,
+      heroArrowLeft,
       heroChevronDown,
       heroChevronLeft,
       heroChevronRight,
@@ -31,7 +36,83 @@ interface AuditLogRecord {
     }),
   ],
   template: `
-    <section class="min-h-full rounded-[32px] bg-white">
+    <section class="bg-white px-4 pb-8 pt-[10px] lg:hidden">
+      <div class="mx-auto max-w-[358px]">
+        <div class="flex h-[54px] items-center">
+          <a routerLink="/admin/more" class="flex items-center gap-2">
+            <span class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]">
+              <ng-icon name="heroArrowLeft" class="text-[20px] text-black"></ng-icon>
+            </span>
+            <span class="text-[20px] font-semibold leading-[1.2] text-black">Audit log</span>
+          </a>
+        </div>
+
+        <div class="mt-6 flex items-center gap-3">
+          <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3 text-[#777777]">
+            <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
+            <input
+              type="search"
+              [value]="searchQuery()"
+              (input)="updateSearchQuery($event)"
+              placeholder="Search"
+              class="min-w-0 flex-1 bg-transparent text-[14px] text-[#141414] outline-none placeholder:text-[#777777]"
+            >
+          </label>
+
+          <button
+            type="button"
+            class="inline-flex h-6 w-6 items-center justify-center text-[#141414]"
+            aria-label="Filter audit logs"
+          >
+            <ng-icon name="heroAdjustmentsHorizontal" class="text-[20px]"></ng-icon>
+          </button>
+        </div>
+
+        <div class="mt-6 flex flex-col">
+          @for (record of paginatedLogs(); track record.id) {
+            <article class="border-b border-[#EBEBEB] py-3">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex min-w-0 items-center gap-2">
+                  <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#F3F3F3]">
+                    <img
+                      [ngSrc]="record.avatar"
+                      [alt]="record.userName"
+                      width="40"
+                      height="40"
+                      class="h-10 w-10 rounded-full object-cover"
+                    >
+                  </div>
+                  <div class="min-w-0">
+                    <p class="truncate text-[14px] font-medium leading-5 text-[#0D0D0D]">{{ record.userName }}</p>
+                    <p class="truncate text-[12px] leading-4 text-[#8C8C8C]">{{ record.email }}</p>
+                  </div>
+                </div>
+                <p class="shrink-0 text-[14px] leading-5 text-[#1A1B1D]/50">{{ mobileDateLabel(record.date) }}</p>
+              </div>
+
+              <dl class="mt-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between gap-4">
+                  <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Activity type</dt>
+                  <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ record.activityType }}</dd>
+                </div>
+
+                <div class="flex items-center justify-between gap-4">
+                  <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Activity description</dt>
+                  <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ record.activityDescription }}</dd>
+                </div>
+
+                <div class="flex items-center justify-between gap-4">
+                  <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">IP address</dt>
+                  <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ record.ipAddress }}</dd>
+                </div>
+              </dl>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="hidden min-h-full rounded-[32px] bg-white lg:block">
       <header class="border-b border-[#efefef] px-8 py-6">
         <h1 class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">Audit log</h1>
       </header>
@@ -242,5 +323,9 @@ export class AdminAuditLogPageComponent {
 
   goToNextPage(): void {
     this.currentPage.update((page) => Math.min(this.totalPages(), page + 1));
+  }
+
+  mobileDateLabel(date: string): string {
+    return date.replace(/^(\d{2})\s+([A-Za-z]+),\s+(\d{4})$/, '$2 $1,$3');
   }
 }
