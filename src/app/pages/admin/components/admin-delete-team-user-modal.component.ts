@@ -8,16 +8,20 @@ import { heroTrash, heroXMark } from '@ng-icons/heroicons/outline';
   providers: [provideIcons({ heroTrash, heroXMark })],
   template: `
     <div
-      class="fixed inset-0 z-[230] flex items-center justify-center bg-black/20 p-4 backdrop-blur-[2px]"
+      class="fixed inset-0 z-[230] flex items-end justify-center bg-black/20 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
       (click)="close.emit()"
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-team-user-modal-title"
-        class="w-full max-w-[620px] rounded-[26px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8"
+        class="w-full rounded-t-[32px] rounded-b-[32px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:max-w-[620px] sm:rounded-[26px] sm:p-8"
         (click)="$event.stopPropagation()"
       >
+        <div class="mb-3 sm:hidden">
+          <div class="mx-auto h-1 w-[50px] rounded-full bg-[#D9D9D9]"></div>
+        </div>
+
         <div class="flex items-start justify-between gap-4">
           <div class="flex h-24 w-24 items-center justify-center rounded-full bg-[#fff3f3]">
             <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[#ffdada] text-[#ff2d2d]">
@@ -45,11 +49,11 @@ import { heroTrash, heroXMark } from '@ng-icons/heroicons/outline';
           </p>
         </div>
 
-        <div class="mt-14 flex flex-wrap justify-end gap-3">
+        <div class="mt-14 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
           <button
             type="button"
             (click)="close.emit()"
-            class="min-w-[126px] rounded-full border border-[#ececec] bg-white px-6 py-3 text-[15px] font-medium text-[#1f1f1f] transition hover:bg-[#fafafa]"
+            class="w-full rounded-full border border-[#ececec] bg-white px-6 py-3 text-[15px] font-medium text-[#1f1f1f] transition hover:bg-[#fafafa] sm:min-w-[126px] sm:w-auto"
           >
             No, hold on
           </button>
@@ -57,7 +61,7 @@ import { heroTrash, heroXMark } from '@ng-icons/heroicons/outline';
           <button
             type="button"
             (click)="confirm.emit()"
-            class="min-w-[126px] rounded-full bg-[#ff2d2d] px-6 py-3 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(255,45,45,0.9)] transition hover:bg-[#f32020]"
+            class="w-full rounded-full bg-[#ff2d2d] px-6 py-3 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(255,45,45,0.9)] transition hover:bg-[#f32020] sm:min-w-[126px] sm:w-auto"
           >
             Yes, delete
           </button>

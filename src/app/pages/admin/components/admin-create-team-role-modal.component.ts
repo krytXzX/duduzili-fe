@@ -28,17 +28,23 @@ type CreateRoleStep = 'details' | 'permissions';
   providers: [provideIcons({ heroChevronDown, heroChevronUp, heroMagnifyingGlass, heroXMark })],
   template: `
     <div
-      class="fixed inset-0 z-[220] flex items-center justify-center bg-black/20 p-4 backdrop-blur-[2px]"
+      class="fixed inset-0 z-[220] flex items-end justify-center bg-black/20 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
       (click)="close.emit()"
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-team-role-modal-title"
-        class="max-h-[calc(100vh-2rem)] w-full max-w-[760px] overflow-y-auto rounded-[26px] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:p-8"
+        class="flex max-h-[85vh] w-full flex-col overflow-hidden rounded-t-[32px] rounded-b-[32px] bg-white shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] sm:max-h-[calc(100vh-2rem)] sm:max-w-[760px] sm:rounded-[26px]"
         (click)="$event.stopPropagation()"
       >
-        <div class="flex items-start justify-between gap-4">
+        <div class="sm:hidden">
+          <div class="px-4 pb-2 pt-3">
+            <div class="mx-auto h-1 w-[50px] rounded-full bg-[#D9D9D9]"></div>
+          </div>
+        </div>
+
+        <div class="flex items-start justify-between gap-4 px-4 pb-0 pt-2 sm:p-8 sm:pb-0">
           <h2 id="create-team-role-modal-title" class="text-[28px] font-semibold tracking-[-0.04em] text-[#202020]">
             Create new role
           </h2>
@@ -54,8 +60,9 @@ type CreateRoleStep = 'details' | 'permissions';
         </div>
 
         @if (step() === 'details') {
-          <form [formGroup]="form" (ngSubmit)="goToPermissionsStep()" class="mt-12">
-            <section>
+          <form [formGroup]="form" (ngSubmit)="goToPermissionsStep()" class="mt-8 flex min-h-0 flex-1 flex-col sm:mt-12">
+            <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-6 sm:px-8">
+              <section>
               <h3 class="max-w-[360px] text-[24px] font-semibold tracking-[-0.04em] text-[#202020]">
                 Fill in basic details about this role
               </h3>
@@ -78,13 +85,14 @@ type CreateRoleStep = 'details' | 'permissions';
                   ></textarea>
                 </label>
               </div>
-            </section>
+              </section>
+            </div>
 
-            <div class="mt-16 flex flex-wrap justify-end gap-3">
+            <div class="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#F0F0F0] px-4 pb-6 pt-4 sm:mt-16 sm:border-t-0 sm:px-8 sm:pb-8 sm:pt-0">
               <button
                 type="button"
                 (click)="close.emit()"
-                class="min-w-[126px] rounded-full border border-[#ececec] bg-white px-6 py-3 text-[15px] font-medium text-[#1f1f1f] transition hover:bg-[#fafafa]"
+                class="hidden min-w-[126px] rounded-full border border-[#ececec] bg-white px-6 py-3 text-[15px] font-medium text-[#1f1f1f] transition hover:bg-[#fafafa] sm:inline-flex sm:items-center sm:justify-center"
               >
                 Cancel
               </button>
@@ -92,14 +100,15 @@ type CreateRoleStep = 'details' | 'permissions';
               <button
                 type="submit"
                 [disabled]="form.invalid"
-                class="min-w-[126px] rounded-full bg-[#6653e4] px-6 py-3 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945db] disabled:cursor-not-allowed disabled:opacity-60"
+                class="w-full rounded-full bg-[#6653e4] px-6 py-3 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945db] disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-[126px] sm:w-auto"
               >
                 Continue
               </button>
             </div>
           </form>
         } @else {
-          <section class="mt-12">
+          <section class="mt-8 flex min-h-0 flex-1 flex-col sm:mt-12">
+            <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-6 sm:px-8">
             <h3 class="max-w-[460px] text-[24px] font-semibold tracking-[-0.04em] text-[#202020]">
               Select some permissions for this role
             </h3>
@@ -170,12 +179,13 @@ type CreateRoleStep = 'details' | 'permissions';
                 </div>
               }
             </div>
+            </div>
 
-            <div class="mt-16 flex flex-wrap justify-end gap-3">
+            <div class="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#F0F0F0] px-4 pb-6 pt-4 sm:mt-16 sm:border-t-0 sm:px-8 sm:pb-8 sm:pt-0">
               <button
                 type="button"
                 (click)="goBackToDetailsStep()"
-                class="min-w-[126px] rounded-full border border-[#ececec] bg-white px-6 py-3 text-[15px] font-medium text-[#1f1f1f] transition hover:bg-[#fafafa]"
+                class="hidden min-w-[126px] rounded-full border border-[#ececec] bg-white px-6 py-3 text-[15px] font-medium text-[#1f1f1f] transition hover:bg-[#fafafa] sm:inline-flex sm:items-center sm:justify-center"
               >
                 Back
               </button>
@@ -183,7 +193,7 @@ type CreateRoleStep = 'details' | 'permissions';
               <button
                 type="button"
                 (click)="submitRole()"
-                class="min-w-[146px] rounded-full bg-[#6653e4] px-6 py-3 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945db]"
+                class="w-full rounded-full bg-[#6653e4] px-6 py-3 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945db] sm:min-w-[146px] sm:w-auto"
               >
                 Create role
               </button>

@@ -162,7 +162,7 @@ interface TeamRoleRecord {
 
                 <button
                   type="button"
-                  (click)="isAddUserModalOpen.set(true)"
+                  (click)="openAddUserModal($event)"
                   class="inline-flex h-8 w-8 items-center justify-center text-[#202020]"
                   aria-label="Add user"
                 >
@@ -248,7 +248,7 @@ interface TeamRoleRecord {
 
               <button
                 type="button"
-                (click)="isCreateRoleModalOpen.set(true)"
+                (click)="openCreateRoleModal($event)"
                 class="inline-flex h-8 w-8 items-center justify-center text-[#202020]"
                 aria-label="Create role"
               >
@@ -345,7 +345,7 @@ interface TeamRoleRecord {
 
                 <button
                   type="button"
-                  (click)="isAddUserModalOpen.set(true)"
+                  (click)="openAddUserModal($event)"
                   class="inline-flex h-11 items-center gap-2 rounded-full bg-[#6653e4] px-5 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945db]"
                 >
                   <ng-icon name="heroPlus" class="text-[16px]"></ng-icon>
@@ -476,7 +476,7 @@ interface TeamRoleRecord {
 
               <button
                 type="button"
-                (click)="isCreateRoleModalOpen.set(true)"
+                (click)="openCreateRoleModal($event)"
                 class="inline-flex h-11 items-center gap-2 self-end rounded-full bg-[#6653e4] px-5 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945db]"
               >
                 <ng-icon name="heroPlus" class="text-[16px]"></ng-icon>
@@ -548,76 +548,77 @@ interface TeamRoleRecord {
         }
       </div>
 
-      @if (isAddUserModalOpen()) {
-        <app-admin-add-team-user-modal
-          [roles]="addUserRoles"
-          (close)="isAddUserModalOpen.set(false)"
-          (submitUser)="addUser($event)"
-        ></app-admin-add-team-user-modal>
-      }
-
-      @if (isAddUserSuccessModalOpen()) {
-        <app-admin-add-team-user-success-modal
-          (addAnother)="openAddAnotherUser()"
-          (done)="closeAddUserSuccessModal()"
-        ></app-admin-add-team-user-success-modal>
-      }
-
-      @if (isCreateRoleModalOpen()) {
-        <app-admin-create-team-role-modal
-          (close)="isCreateRoleModalOpen.set(false)"
-          (continue)="createRole($event)"
-        ></app-admin-create-team-role-modal>
-      }
-
-      @if (isCreateRoleSuccessModalOpen()) {
-        <app-admin-create-team-role-success-modal
-          (addAnother)="openCreateAnotherRole()"
-          (done)="closeCreateRoleSuccessModal()"
-        ></app-admin-create-team-role-success-modal>
-      }
-
-      @if (selectedMember()) {
-        <app-admin-team-member-details-modal
-          [member]="selectedMember()!"
-          [roles]="availableRoles"
-          (close)="selectedMember.set(null)"
-          (save)="saveMemberChanges($event)"
-          (activate)="openActivateUserModal($event)"
-          (deactivate)="openDeactivateUserModal($event)"
-          (resendInvite)="resendInvite($event)"
-          (deleteUser)="openDeleteUserModal($event)"
-        ></app-admin-team-member-details-modal>
-      }
-
-      @if (selectedRole()) {
-        <app-admin-team-role-details-modal
-          [role]="selectedRole()!"
-          (close)="selectedRole.set(null)"
-        ></app-admin-team-role-details-modal>
-      }
-
-      @if (activateMemberId()) {
-        <app-admin-activate-team-user-modal
-          (close)="activateMemberId.set(null)"
-          (confirm)="confirmActivateMember()"
-        ></app-admin-activate-team-user-modal>
-      }
-
-      @if (deactivateMemberId()) {
-        <app-admin-deactivate-team-user-modal
-          (close)="deactivateMemberId.set(null)"
-          (confirm)="confirmDeactivateMember()"
-        ></app-admin-deactivate-team-user-modal>
-      }
-
-      @if (deleteMemberId()) {
-        <app-admin-delete-team-user-modal
-          (close)="deleteMemberId.set(null)"
-          (confirm)="confirmDeleteMember()"
-        ></app-admin-delete-team-user-modal>
-      }
     </section>
+
+    @if (isAddUserModalOpen()) {
+      <app-admin-add-team-user-modal
+        [roles]="addUserRoles"
+        (close)="isAddUserModalOpen.set(false)"
+        (submitUser)="addUser($event)"
+      ></app-admin-add-team-user-modal>
+    }
+
+    @if (isAddUserSuccessModalOpen()) {
+      <app-admin-add-team-user-success-modal
+        (addAnother)="openAddAnotherUser()"
+        (done)="closeAddUserSuccessModal()"
+      ></app-admin-add-team-user-success-modal>
+    }
+
+    @if (isCreateRoleModalOpen()) {
+      <app-admin-create-team-role-modal
+        (close)="isCreateRoleModalOpen.set(false)"
+        (continue)="createRole($event)"
+      ></app-admin-create-team-role-modal>
+    }
+
+    @if (isCreateRoleSuccessModalOpen()) {
+      <app-admin-create-team-role-success-modal
+        (addAnother)="openCreateAnotherRole()"
+        (done)="closeCreateRoleSuccessModal()"
+      ></app-admin-create-team-role-success-modal>
+    }
+
+    @if (selectedMember()) {
+      <app-admin-team-member-details-modal
+        [member]="selectedMember()!"
+        [roles]="availableRoles"
+        (close)="selectedMember.set(null)"
+        (save)="saveMemberChanges($event)"
+        (activate)="openActivateUserModal($event)"
+        (deactivate)="openDeactivateUserModal($event)"
+        (resendInvite)="resendInvite($event)"
+        (deleteUser)="openDeleteUserModal($event)"
+      ></app-admin-team-member-details-modal>
+    }
+
+    @if (selectedRole()) {
+      <app-admin-team-role-details-modal
+        [role]="selectedRole()!"
+        (close)="selectedRole.set(null)"
+      ></app-admin-team-role-details-modal>
+    }
+
+    @if (activateMemberId()) {
+      <app-admin-activate-team-user-modal
+        (close)="activateMemberId.set(null)"
+        (confirm)="confirmActivateMember()"
+      ></app-admin-activate-team-user-modal>
+    }
+
+    @if (deactivateMemberId()) {
+      <app-admin-deactivate-team-user-modal
+        (close)="deactivateMemberId.set(null)"
+        (confirm)="confirmDeactivateMember()"
+      ></app-admin-deactivate-team-user-modal>
+    }
+
+    @if (deleteMemberId()) {
+      <app-admin-delete-team-user-modal
+        (close)="deleteMemberId.set(null)"
+        (confirm)="confirmDeleteMember()"
+      ></app-admin-delete-team-user-modal>
+    }
   `,
   host: {
     class: 'block h-full',
@@ -892,9 +893,20 @@ export class AdminTeamManagementPageComponent {
     this.isCreateRoleModalOpen.set(true);
   }
 
-  openAddAnotherUser(): void {
+  openCreateRoleModal(event?: Event): void {
+    event?.stopPropagation();
+    this.isCreateRoleSuccessModalOpen.set(false);
+    this.isCreateRoleModalOpen.set(true);
+  }
+
+  openAddUserModal(event?: Event): void {
+    event?.stopPropagation();
     this.isAddUserSuccessModalOpen.set(false);
     this.isAddUserModalOpen.set(true);
+  }
+
+  openAddAnotherUser(): void {
+    this.openAddUserModal();
   }
 
   closeAddUserSuccessModal(): void {
