@@ -84,7 +84,16 @@ interface ReviewTag {
   ],
   template: `
     <section class="flex h-full flex-col rounded-[32px] border border-[#EEF0F4] bg-white">
-      <div class="border-b border-[#EEF0F4] px-6 py-5 sm:px-8">
+      <div class="flex h-[54px] items-center px-5 md:hidden">
+        <a routerLink="/admin/stores" class="flex items-center gap-2">
+          <span class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]">
+            <ng-icon name="heroChevronLeft" class="text-[20px] text-black"></ng-icon>
+          </span>
+          <span class="text-[20px] font-semibold leading-[1.2] text-black">Store information</span>
+        </a>
+      </div>
+
+      <div class="hidden border-b border-[#EEF0F4] px-6 py-5 sm:px-8 md:block">
         <nav class="flex items-center gap-3 text-sm text-[#8C8C92]">
           <a routerLink="/admin/stores" class="transition-colors hover:text-[#5B3DF5]">Stores</a>
           <span>/</span>
@@ -92,7 +101,7 @@ interface ReviewTag {
         </nav>
       </div>
 
-      <div class="flex-1 overflow-y-auto px-6 py-6 sm:px-8">
+      <div class="flex-1 overflow-y-auto px-5 py-4 md:px-6 md:py-6 md:sm:px-8">
         <div class="relative h-[184px] overflow-hidden rounded-[32px] bg-[#F4F6FB] md:h-[220px]">
           <img [src]="store().banner" [alt]="store().name" class="h-full w-full object-cover" />
           <div class="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-white via-white/85 to-transparent"></div>
