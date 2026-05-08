@@ -3149,7 +3149,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly transactionTypeOptions: readonly CustomDropdownOption<AdminUserTransactionType>[] = [
-    { value: 'all', label: 'Transaction type' },
+    { value: 'all', label: 'All transaction types' },
     { value: 'wallet funding', label: 'Wallet funding' },
     { value: 'subscription payment', label: 'Subscription payment' },
   ];
@@ -3166,7 +3166,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly transactionDateOptions: readonly CustomDropdownOption<AdminUserTransactionDate>[] = [
-    { value: 'all', label: 'Date' },
+    { value: 'all', label: 'All dates' },
     { value: 'feb-2025', label: 'Feb 2025' },
     { value: 'mar-2025', label: 'Mar 2025' },
   ];
@@ -3183,7 +3183,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly transactionStatusOptions: readonly CustomDropdownOption<'all' | AdminUserTransactionStatus>[] = [
-    { value: 'all', label: 'Status' },
+    { value: 'all', label: 'All statuses' },
     { value: 'successful', label: 'Successful' },
     { value: 'failed', label: 'Failed' },
   ];
@@ -4693,7 +4693,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly listingsCategoryOptions: readonly CustomDropdownOption<AdminManagedListingCategory>[] = [
-    { value: 'all', label: 'Category' },
+    { value: 'all', label: 'All categories' },
     { value: 'phones-laptops', label: 'Phones & laptops' },
     { value: 'electronics', label: 'Electronics' },
     { value: 'mens-fashion', label: "Men's fashion" },
@@ -4717,7 +4717,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly listingsStoreOptions: readonly CustomDropdownOption<AdminManagedListingStore>[] = [
-    { value: 'all', label: 'Store' },
+    { value: 'all', label: 'All stores' },
     { value: 'vine', label: 'The Vine Collections' },
     { value: 'eden', label: 'Eden Organics' },
     { value: 'amazing', label: 'Amazing Fragrances' },
@@ -4740,7 +4740,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly listingsStatusOptions: readonly CustomDropdownOption<'all' | AdminManagedListingStatus>[] = [
-    { value: 'all', label: 'Status' },
+    { value: 'all', label: 'All statuses' },
     { value: 'available', label: 'Available' },
     { value: 'sold', label: 'Sold' },
     { value: 'draft', label: 'Draft' },

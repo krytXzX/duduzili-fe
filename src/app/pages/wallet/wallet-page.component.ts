@@ -576,17 +576,17 @@ interface MobileWalletTransaction {
 })
 export class WalletPageComponent {
   readonly transactionTypeOptions: readonly CustomDropdownOption<WalletTransactionType>[] = [
-    { value: 'all', label: 'Transaction type' },
+    { value: 'all', label: 'All transaction types' },
     { value: 'wallet funding', label: 'Wallet funding' },
     { value: 'subscription payment', label: 'Subscription payment' },
   ];
   readonly dateFilterOptions: readonly CustomDropdownOption<WalletDateFilter>[] = [
-    { value: 'all', label: 'Date' },
+    { value: 'all', label: 'All dates' },
     { value: 'feb-2025', label: 'Feb 2025' },
     { value: 'mar-2025', label: 'Mar 2025' },
   ];
   readonly statusFilterOptions: readonly CustomDropdownOption<'all' | WalletStatus>[] = [
-    { value: 'all', label: 'Status' },
+    { value: 'all', label: 'All statuses' },
     { value: 'successful', label: 'Successful' },
     { value: 'failed', label: 'Failed' },
   ];

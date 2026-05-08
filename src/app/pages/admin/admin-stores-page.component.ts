@@ -198,7 +198,7 @@ interface AdminStoreRecord {
 })
 export class AdminStoresPageComponent {
   readonly ratingOptions: readonly CustomDropdownOption<AdminStoreRatingFilter>[] = [
-    { value: 'all', label: 'Rating' },
+    { value: 'all', label: 'All ratings' },
     { value: 'highest', label: 'Highest rating' },
     { value: 'lowest', label: 'Lowest rating' },
   ];

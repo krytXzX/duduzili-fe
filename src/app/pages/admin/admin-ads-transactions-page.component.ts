@@ -318,13 +318,13 @@ export class AdminAdsTransactionsPageComponent {
     { value: 'last-year', label: 'Last year' },
   ];
   readonly planFilterOptions: readonly CustomDropdownOption<TransactionPlanFilter>[] = [
-    { value: 'all', label: 'Plan' },
+    { value: 'all', label: 'All plans' },
     { value: 'pro', label: 'Pro' },
     { value: 'business', label: 'Business' },
     { value: 'enterprise', label: 'Enterprise' },
   ];
   readonly dateFilterOptions: readonly CustomDropdownOption<TransactionDateFilter>[] = [
-    { value: 'all', label: 'Date' },
+    { value: 'all', label: 'All dates' },
     { value: 'may-2024', label: 'May 2024' },
   ];
   readonly yearFilter = signal<TransactionYearFilter>('this-year');

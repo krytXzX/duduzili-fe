@@ -678,7 +678,7 @@ export class AdminRunningAdsPageComponent {
   readonly currentPage = signal(1);
   readonly pageSize = 5;
   readonly statusDropdownOptions: readonly CustomDropdownOption<'all' | AdStatus>[] = [
-    { value: 'all', label: 'Status' },
+    { value: 'all', label: 'All statuses' },
     { value: 'active', label: 'Active' },
     { value: 'paused', label: 'Paused' },
   ];
@@ -990,7 +990,7 @@ export class AdminRunningAdsPageComponent {
     )];
 
     return [
-      { value: 'all', label: 'Store' },
+      { value: 'all', label: 'All stores' },
       ...uniqueStores.map((store) => ({ value: store, label: store })),
     ];
   });
@@ -1003,7 +1003,7 @@ export class AdminRunningAdsPageComponent {
     )];
 
     return [
-      { value: 'all', label: 'Active until' },
+      { value: 'all', label: 'All dates' },
       ...uniqueDates.map((date) => ({ value: date, label: date })),
     ];
   });

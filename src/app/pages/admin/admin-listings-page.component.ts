@@ -316,7 +316,7 @@ interface AdminListingRecord {
 })
 export class AdminListingsPageComponent {
   readonly categoryOptions: readonly CustomDropdownOption<AdminListingsCategory>[] = [
-    { value: 'all', label: 'Category' },
+    { value: 'all', label: 'All categories' },
     { value: 'phones-laptops', label: 'Phones & laptops' },
     { value: 'electronics', label: 'Electronics' },
     { value: 'mens-fashion', label: "Men's fashion" },
@@ -324,7 +324,7 @@ export class AdminListingsPageComponent {
     { value: 'automobiles', label: 'Automobiles' },
   ];
   readonly storeOptions: readonly CustomDropdownOption<AdminListingsStore>[] = [
-    { value: 'all', label: 'Store' },
+    { value: 'all', label: 'All stores' },
     { value: 'vine', label: 'The Vine Collections' },
     { value: 'eden', label: 'Eden Organics' },
     { value: 'amazing', label: 'Amazing Fragrances' },
@@ -333,7 +333,7 @@ export class AdminListingsPageComponent {
     { value: 'abogu', label: 'Abogu Ruth' },
   ];
   readonly statusOptions: readonly CustomDropdownOption<'all' | AdminListingsStatus>[] = [
-    { value: 'all', label: 'Status' },
+    { value: 'all', label: 'All statuses' },
     { value: 'available', label: 'Available' },
     { value: 'sold', label: 'Sold' },
     { value: 'paused', label: 'Paused' },

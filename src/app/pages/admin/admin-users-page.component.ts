@@ -361,17 +361,17 @@ interface AdminUser {
 })
 export class AdminUsersPageComponent {
   readonly categoryOptions: readonly CustomDropdownOption<UserCategoryFilter>[] = [
-    { value: 'all', label: 'Category' },
+    { value: 'all', label: 'All categories' },
     { value: 'buyers', label: 'Buyers' },
     { value: 'sellers', label: 'Sellers' },
   ];
   readonly storeOptions: readonly CustomDropdownOption<UserStoreFilter>[] = [
-    { value: 'all', label: 'Store' },
+    { value: 'all', label: 'All stores' },
     { value: 'with-store', label: 'With store' },
     { value: 'without-store', label: 'Without store' },
   ];
   readonly statusOptions: readonly CustomDropdownOption<'all' | UserStatus>[] = [
-    { value: 'all', label: 'Status' },
+    { value: 'all', label: 'All statuses' },
     { value: 'active', label: 'Active' },
     { value: 'suspended', label: 'Suspended' },
   ];
