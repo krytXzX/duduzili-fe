@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
+import { createSparkBarChartOptions } from '../../components/charts/chart-mock-data';
 
 interface SummaryMetric {
   label: string;
@@ -14,14 +16,6 @@ interface DistributionItem {
   width: string;
 }
 
-interface ChartBar {
-  label: string;
-  desktopHeight: number;
-  mobileHeight: number;
-  highlight?: boolean;
-  faded?: boolean;
-}
-
 interface StoreAvatar {
   src: string;
   alt: string;
@@ -29,7 +23,7 @@ interface StoreAvatar {
 
 @Component({
   selector: 'app-analytics-page',
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [NgOptimizedImage, RouterLink, AppChartComponent],
   template: `
     <div class="md:hidden">
       <div class="px-4 pb-28">
@@ -95,46 +89,7 @@ interface StoreAvatar {
           </div>
 
           <div class="mt-6">
-            <div class="relative h-[220px]">
-              <div class="absolute left-0 top-0 flex h-[188px] flex-col justify-between text-[11px] text-[#1A1B1D]">
-                <span>500</span>
-                <span>250</span>
-                <span>0</span>
-              </div>
-
-              <div
-                class="absolute left-[74px] top-[76px] z-10 flex h-[35px] w-[151px] items-center justify-between rounded-[12px] border border-[#EEEEEE] bg-black px-[10px] shadow-[0_4px_12px_rgba(63,63,63,0.25)]"
-              >
-                <div class="flex items-center gap-1 text-[16px] text-[#D4D4D4]">
-                  <span class="h-[2px] w-1 rounded-[2px] bg-[#6453D9]"></span>
-                  <span>Aug</span>
-                  <span>2025</span>
-                </div>
-                <span class="text-[16px] text-white">128</span>
-              </div>
-
-              <div class="absolute bottom-6 left-6 right-0 border-t border-[#ECECEC]"></div>
-
-              <div class="absolute bottom-[42px] left-[26px] right-0 flex items-end justify-between">
-                @for (bar of chartBars; track bar.label) {
-                  <span
-                    class="rounded-t-[4px]"
-                    [class.w-4]="!bar.highlight"
-                    [class.w-6]="bar.highlight"
-                    [class.rounded-[6px]]="bar.highlight"
-                    [style.height.px]="bar.mobileHeight"
-                    [style.opacity]="bar.highlight ? '1' : bar.faded ? '0.15' : '0.2'"
-                    style="background: linear-gradient(180deg, #6453D9 0%, #CFC8FD 100%);"
-                  ></span>
-                }
-              </div>
-
-              <div class="absolute bottom-0 left-[22px] right-0 flex items-center justify-between text-[10px] text-[rgba(13,13,13,0.4)]">
-                @for (bar of chartBars; track bar.label) {
-                  <span>{{ bar.label.toUpperCase() }}</span>
-                }
-              </div>
-            </div>
+            <app-chart [config]="mobileSoldItemsChartOptions" containerClass="min-h-[220px]"></app-chart>
           </div>
         </section>
 
@@ -331,43 +286,7 @@ interface StoreAvatar {
             </div>
 
             <div class="mt-8">
-              <div class="relative h-[288px]">
-                <div class="absolute left-[1px] top-[34px] flex h-[188px] flex-col justify-between text-[11px] text-[rgba(0,0,0,0.7)]">
-                  <span>500</span>
-                  <span>250</span>
-                  <span>0</span>
-                </div>
-
-                <div
-                  class="absolute left-[303px] top-[36px] z-10 flex h-[35px] w-[151px] items-center justify-between rounded-[12px] border border-[#EEEEEE] bg-black px-[10px] shadow-[0_4px_12px_rgba(63,63,63,0.25)]"
-                >
-                  <div class="flex items-center gap-1 text-[16px] text-[#D4D4D4]">
-                    <span class="h-[2px] w-1 rounded-[2px] bg-[#6453D9]"></span>
-                    <span>Aug</span>
-                    <span>2025</span>
-                  </div>
-                  <span class="text-[16px] text-white">128</span>
-                </div>
-
-                <div class="absolute bottom-[34px] left-[44px] right-[5px] border-t border-[#ECECEC]"></div>
-
-                <div class="absolute bottom-[34px] left-[52px] right-[7px] flex items-end justify-between">
-                  @for (bar of chartBars; track bar.label) {
-                    <span
-                      class="w-11 rounded-[4px]"
-                      [style.height.px]="bar.desktopHeight"
-                      [style.opacity]="bar.highlight ? '1' : '0.2'"
-                      style="background: linear-gradient(180deg, #6453D9 0%, #CFC8FD 100%);"
-                    ></span>
-                  }
-                </div>
-
-                <div class="absolute bottom-0 left-[61px] right-0 flex items-center justify-between text-[10px] text-[rgba(0,0,0,0.5)]">
-                  @for (bar of chartBars; track bar.label) {
-                    <span>{{ bar.label }}</span>
-                  }
-                </div>
-              </div>
+              <app-chart [config]="desktopSoldItemsChartOptions" containerClass="min-h-[288px]"></app-chart>
             </div>
           </section>
 
@@ -470,6 +389,20 @@ interface StoreAvatar {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnalyticsPageComponent {
+  readonly mobileSoldItemsChartOptions: AppChartOptions = createSparkBarChartOptions(
+    220,
+    ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
+    [26, 109, 45, 76, 96, 45, 168, 67, 45, 141, 52, 30],
+    ['#6453D9', '#6453D9', '#6453D9', '#6453D9', '#6453D9', '#CFC8FD', '#CFC8FD', '#CFC8FD', '#CFC8FD', '#6453D9', '#6453D9', '#6453D9'],
+    true,
+  );
+  readonly desktopSoldItemsChartOptions: AppChartOptions = createSparkBarChartOptions(
+    288,
+    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    [104, 77, 48, 72, 144, 76, 104, 104, 76, 81, 67, 104],
+    ['#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#6B5CF0', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7'],
+    false,
+  );
   readonly assets = {
     arrowUpIcon: '/assets/icons/analytics-arrow-up.svg',
     calendarIcon: '/assets/icons/analytics-calendar.svg',
@@ -489,21 +422,6 @@ export class AnalyticsPageComponent {
     { label: 'Sold', value: '2,000,000', color: '#25AD32', width: '48%' },
     { label: 'Available', value: '1,200,000', color: '#4787FE', width: '24%' },
     { label: 'Paused', value: '800,000', color: '#EE9C2E', width: '28%' },
-  ];
-
-  readonly chartBars: readonly ChartBar[] = [
-    { label: 'Jan', desktopHeight: 104, mobileHeight: 26 },
-    { label: 'Feb', desktopHeight: 77, mobileHeight: 109 },
-    { label: 'Mar', desktopHeight: 48, mobileHeight: 45 },
-    { label: 'Apr', desktopHeight: 72, mobileHeight: 76 },
-    { label: 'May', desktopHeight: 144, mobileHeight: 96, highlight: true },
-    { label: 'Jun', desktopHeight: 76, mobileHeight: 45, faded: true },
-    { label: 'Jul', desktopHeight: 104, mobileHeight: 168, faded: true },
-    { label: 'Aug', desktopHeight: 104, mobileHeight: 67, faded: true },
-    { label: 'Sep', desktopHeight: 76, mobileHeight: 45, faded: true },
-    { label: 'Oct', desktopHeight: 81, mobileHeight: 141 },
-    { label: 'Nov', desktopHeight: 67, mobileHeight: 52 },
-    { label: 'Dec', desktopHeight: 104, mobileHeight: 30 },
   ];
 
   readonly stores = signal<readonly StoreAvatar[]>([

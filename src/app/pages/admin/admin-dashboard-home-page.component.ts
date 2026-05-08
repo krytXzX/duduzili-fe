@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
+import { createSparkBarChartOptions } from '../../components/charts/chart-mock-data';
 
 interface TodoItem {
   id: string;
@@ -29,6 +31,7 @@ interface ActivityItem {
 
 @Component({
   selector: 'app-admin-dashboard-home-page',
+  imports: [AppChartComponent],
   template: `
     <section class="flex min-h-full flex-col">
       <header class="border-b border-[#EEF0F4] px-6 py-6 sm:px-8">
@@ -125,15 +128,8 @@ interface ActivityItem {
               </button>
             </div>
 
-            <div class="mt-auto flex h-[240px] items-end justify-end gap-3 pt-10">
-              @for (bar of earningsBars; track $index) {
-                <span
-                  class="block w-14 rounded-t-[6px]"
-                  [class.bg-[#DAD7F7]]="!bar.highlighted"
-                  [class.bg-[#6B5CF0]]="bar.highlighted"
-                  [style.height.px]="bar.height"
-                ></span>
-              }
+            <div class="mt-auto pt-10">
+              <app-chart [config]="subscriptionEarningsChartOptions" containerClass="min-h-[240px]"></app-chart>
             </div>
           </section>
         </div>
@@ -239,6 +235,13 @@ interface ActivityItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardHomePageComponent {
+  readonly subscriptionEarningsChartOptions: AppChartOptions = createSparkBarChartOptions(
+    240,
+    ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+    [94, 102, 134, 188, 134],
+    ['#DAD7F7', '#DAD7F7', '#DAD7F7', '#6B5CF0', '#DAD7F7'],
+    false,
+  );
   readonly todoItems = signal<TodoItem[]>([
     {
       id: 'todo-1',
@@ -327,14 +330,6 @@ export class AdminDashboardHomePageComponent {
       icon: 'review',
     },
   ]);
-
-  readonly earningsBars = [
-    { height: 94, highlighted: false },
-    { height: 102, highlighted: false },
-    { height: 134, highlighted: false },
-    { height: 188, highlighted: true },
-    { height: 134, highlighted: false },
-  ];
 
   todayTodoItems(): TodoItem[] {
     return this.todoItems().filter((item) => item.period === 'today');

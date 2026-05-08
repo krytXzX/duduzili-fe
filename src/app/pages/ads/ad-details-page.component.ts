@@ -20,6 +20,8 @@ import {
   heroShare,
   heroXMark,
 } from '@ng-icons/heroicons/outline';
+import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
+import { createPerformanceLineChartOptions } from '../../components/charts/chart-mock-data';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 interface AdMetric {
@@ -47,7 +49,7 @@ interface AdDetail {
 
 @Component({
   selector: 'app-ad-details-page',
-  imports: [CommonModule, RouterLink, NgIcon, NgOptimizedImage],
+  imports: [CommonModule, RouterLink, NgIcon, NgOptimizedImage, AppChartComponent],
   providers: [
     provideIcons({
       heroPause,
@@ -189,75 +191,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <svg viewBox="0 0 900 420" class="h-auto w-full overflow-visible">
-                <g stroke="#EEF0F4" stroke-width="1">
-                  <line x1="40" y1="40" x2="40" y2="360"></line>
-                  <line x1="40" y1="360" x2="870" y2="360"></line>
-                </g>
-
-                <g fill="#A5AAB3" font-size="22" font-weight="500">
-                  <text x="10" y="360">0</text>
-                  <text x="2" y="280">250</text>
-                  <text x="2" y="200">250</text>
-                  <text x="2" y="120">250</text>
-                  <text x="2" y="40">500</text>
-                </g>
-
-                <g fill="#A5AAB3" font-size="18" font-weight="500">
-                  <text x="52" y="388">Jan</text>
-                  <text x="120" y="388">Feb</text>
-                  <text x="190" y="388">Mar</text>
-                  <text x="262" y="388">Apr</text>
-                  <text x="334" y="388">May</text>
-                  <text x="405" y="388">Jun</text>
-                  <text x="478" y="388">Jul</text>
-                  <text x="550" y="388">Aug</text>
-                  <text x="622" y="388">Sep</text>
-                  <text x="694" y="388">Oct</text>
-                  <text x="766" y="388">Nov</text>
-                  <text x="838" y="388">Dec</text>
-                </g>
-
-                <line
-                  x1="345"
-                  y1="108"
-                  x2="345"
-                  y2="348"
-                  stroke="#D8DBE2"
-                  stroke-dasharray="4 4"
-                ></line>
-
-                <path
-                  d="M 60 355 C 80 310, 105 275, 135 270 C 165 265, 190 300, 220 250 C 250 200, 280 185, 320 205 C 350 220, 375 275, 410 245 C 445 215, 470 180, 510 210 C 550 240, 575 315, 620 292 C 665 269, 690 185, 730 118 C 770 78, 805 58, 850 38"
-                  fill="none"
-                  stroke="#7A6AF1"
-                  stroke-linecap="round"
-                  stroke-width="6"
-                ></path>
-
-                <path
-                  d="M 60 330 C 88 345, 118 338, 145 280 C 172 222, 205 246, 240 235 C 275 224, 315 248, 345 320 C 375 350, 412 320, 448 268 C 484 216, 520 198, 555 238 C 590 278, 625 336, 660 306 C 695 276, 730 230, 760 222 C 790 214, 820 228, 842 232"
-                  fill="none"
-                  stroke="#F5C23A"
-                  stroke-linecap="round"
-                  stroke-width="6"
-                ></path>
-
-                <circle cx="345" cy="205" r="7" fill="#7A6AF1"></circle>
-
-                <g transform="translate(350,110)">
-                  <rect width="250" height="92" rx="14" fill="#050505"></rect>
-                  <text x="16" y="24" fill="#FFFFFF" font-size="14" font-weight="600">
-                    02 May, 2026
-                  </text>
-                  <rect x="16" y="38" width="10" height="4" rx="2" fill="#7A6AF1"></rect>
-                  <text x="34" y="44" fill="#FFFFFF" font-size="13">Views</text>
-                  <text x="178" y="44" fill="#FFFFFF" font-size="13">100,000</text>
-                  <rect x="16" y="62" width="10" height="4" rx="2" fill="#F5C23A"></rect>
-                  <text x="34" y="68" fill="#FFFFFF" font-size="13">Clicks</text>
-                  <text x="188" y="68" fill="#FFFFFF" font-size="13">50,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="desktopPerformanceChartOptions" containerClass="min-h-[420px]"></app-chart>
             </div>
           </section>
         </div>
@@ -370,66 +304,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <svg viewBox="0 0 332 250" class="h-auto w-full overflow-visible">
-                <g stroke="#EEF0F4" stroke-width="1">
-                  <line x1="18" y1="18" x2="18" y2="220"></line>
-                  <line x1="18" y1="220" x2="322" y2="220"></line>
-                </g>
-
-                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
-                  <text x="0" y="24">500</text>
-                  <text x="0" y="122">250</text>
-                  <text x="8" y="214">0</text>
-                </g>
-
-                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
-                  <text x="20" y="234">21-12-2024</text>
-                  <text x="292" y="234">Today</text>
-                </g>
-
-                <line
-                  x1="124"
-                  y1="96"
-                  x2="124"
-                  y2="220"
-                  stroke="#D8DBE2"
-                  stroke-dasharray="4 4"
-                ></line>
-
-                <path
-                  d="M 18 198 C 38 160, 62 178, 85 146 C 108 114, 128 136, 148 120 C 168 104, 189 160, 208 174 C 227 188, 248 156, 272 120 C 292 88, 307 66, 322 48"
-                  fill="none"
-                  stroke="#6453D9"
-                  stroke-linecap="round"
-                  stroke-width="1.6"
-                ></path>
-
-                <path
-                  d="M 18 196 C 42 214, 65 152, 88 144 C 111 136, 133 196, 156 186 C 179 176, 201 126, 225 140 C 248 154, 270 194, 294 150 C 307 136, 316 142, 322 144"
-                  fill="none"
-                  stroke="#F4C12B"
-                  stroke-linecap="round"
-                  stroke-width="1.6"
-                ></path>
-
-                <circle cx="124" cy="124" r="3" fill="#6453D9"></circle>
-                <circle cx="124" cy="168" r="3" fill="#D8B63A"></circle>
-                <circle cx="322" cy="48" r="3" fill="#6453D9"></circle>
-                <circle cx="322" cy="144" r="3" fill="#F4C12B"></circle>
-
-                <g transform="translate(126,32)">
-                  <rect width="214" height="85" rx="9" fill="#000000"></rect>
-                  <text x="10" y="18" fill="#FFFFFF" font-size="14" font-weight="400">
-                    02 May, 2026
-                  </text>
-                  <rect x="10" y="31" width="8" height="4" rx="2" fill="#357FF6"></rect>
-                  <text x="22" y="36" fill="#A4A4A4" font-size="14">Views</text>
-                  <text x="158" y="36" fill="#FFFFFF" font-size="14">100,000</text>
-                  <rect x="10" y="55" width="8" height="4" rx="2" fill="#FACD38"></rect>
-                  <text x="22" y="60" fill="#A4A4A4" font-size="14">Clicks</text>
-                  <text x="158" y="60" fill="#FFFFFF" font-size="14">50,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="mobilePerformanceChartOptions" containerClass="min-h-[250px]"></app-chart>
             </div>
           </section>
         </div>
@@ -539,66 +414,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <svg viewBox="0 0 332 250" class="h-auto w-full overflow-visible">
-                <g stroke="#EEF0F4" stroke-width="1">
-                  <line x1="18" y1="18" x2="18" y2="220"></line>
-                  <line x1="18" y1="220" x2="322" y2="220"></line>
-                </g>
-
-                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
-                  <text x="0" y="24">500</text>
-                  <text x="0" y="122">250</text>
-                  <text x="8" y="214">0</text>
-                </g>
-
-                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
-                  <text x="20" y="234">21-12-2024</text>
-                  <text x="292" y="234">Today</text>
-                </g>
-
-                <line
-                  x1="124"
-                  y1="96"
-                  x2="124"
-                  y2="220"
-                  stroke="#D8DBE2"
-                  stroke-dasharray="4 4"
-                ></line>
-
-                <path
-                  d="M 18 198 C 38 160, 62 178, 85 146 C 108 114, 128 136, 148 120 C 168 104, 189 160, 208 174 C 227 188, 248 156, 272 120 C 292 88, 307 66, 322 48"
-                  fill="none"
-                  stroke="#6453D9"
-                  stroke-linecap="round"
-                  stroke-width="1.6"
-                ></path>
-
-                <path
-                  d="M 18 196 C 42 214, 65 152, 88 144 C 111 136, 133 196, 156 186 C 179 176, 201 126, 225 140 C 248 154, 270 194, 294 150 C 307 136, 316 142, 322 144"
-                  fill="none"
-                  stroke="#F4C12B"
-                  stroke-linecap="round"
-                  stroke-width="1.6"
-                ></path>
-
-                <circle cx="124" cy="124" r="3" fill="#6453D9"></circle>
-                <circle cx="124" cy="168" r="3" fill="#D8B63A"></circle>
-                <circle cx="322" cy="48" r="3" fill="#6453D9"></circle>
-                <circle cx="322" cy="144" r="3" fill="#F4C12B"></circle>
-
-                <g transform="translate(126,32)">
-                  <rect width="214" height="85" rx="9" fill="#000000"></rect>
-                  <text x="10" y="18" fill="#FFFFFF" font-size="14" font-weight="400">
-                    02 May, 2026
-                  </text>
-                  <rect x="10" y="31" width="8" height="4" rx="2" fill="#357FF6"></rect>
-                  <text x="22" y="36" fill="#A4A4A4" font-size="14">Views</text>
-                  <text x="158" y="36" fill="#FFFFFF" font-size="14">100,000</text>
-                  <rect x="10" y="55" width="8" height="4" rx="2" fill="#FACD38"></rect>
-                  <text x="22" y="60" fill="#A4A4A4" font-size="14">Clicks</text>
-                  <text x="158" y="60" fill="#FFFFFF" font-size="14">50,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="mobilePerformanceChartOptions" containerClass="min-h-[250px]"></app-chart>
             </div>
           </section>
         </div>
@@ -747,77 +563,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-6">
-              <svg viewBox="0 0 900 420" class="h-auto w-full overflow-visible">
-                <g stroke="#EEF0F4" stroke-width="1">
-                  <line x1="40" y1="40" x2="40" y2="360"></line>
-                  <line x1="40" y1="360" x2="870" y2="360"></line>
-                </g>
-
-                <g fill="#A5AAB3" font-size="12" font-weight="500">
-                  <text x="10" y="360">0</text>
-                  <text x="2" y="280">250</text>
-                  <text x="2" y="200">250</text>
-                  <text x="2" y="120">250</text>
-                  <text x="2" y="40">500</text>
-                </g>
-
-                <g fill="#A5AAB3" font-size="12" font-weight="500">
-                  <text x="52" y="388">Jan</text>
-                  <text x="120" y="388">Feb</text>
-                  <text x="190" y="388">Mar</text>
-                  <text x="262" y="388">Apr</text>
-                  <text x="334" y="388">May</text>
-                  <text x="405" y="388">Jun</text>
-                  <text x="478" y="388">Jul</text>
-                  <text x="550" y="388">Aug</text>
-                  <text x="622" y="388">Sep</text>
-                  <text x="694" y="388">Oct</text>
-                  <text x="766" y="388">Nov</text>
-                  <text x="838" y="388">Dec</text>
-                </g>
-
-                <line
-                  x1="345"
-                  y1="108"
-                  x2="345"
-                  y2="348"
-                  stroke="#D8DBE2"
-                  stroke-dasharray="4 4"
-                ></line>
-
-                <path
-                  d="M 60 355 C 80 310, 105 275, 135 270 C 165 265, 190 300, 220 250 C 250 200, 280 185, 320 205 C 350 220, 375 275, 410 245 C 445 215, 470 180, 510 210 C 550 240, 575 315, 620 292 C 665 269, 690 185, 730 118 C 770 78, 805 58, 850 38"
-                  fill="none"
-                  stroke="#7A6AF1"
-                  stroke-linecap="round"
-                  stroke-width="3"
-                ></path>
-
-                <path
-                  d="M 60 330 C 88 345, 118 338, 145 280 C 172 222, 205 246, 240 235 C 275 224, 315 248, 345 320 C 375 350, 412 320, 448 268 C 484 216, 520 198, 555 238 C 590 278, 625 336, 660 306 C 695 276, 730 230, 760 222 C 790 214, 820 228, 842 232"
-                  fill="none"
-                  stroke="#F5C23A"
-                  stroke-linecap="round"
-                  stroke-width="3"
-                ></path>
-
-                <circle cx="345" cy="205" r="4" fill="#7A6AF1"></circle>
-                <circle cx="842" cy="232" r="4" fill="#F5C23A"></circle>
-                <circle cx="850" cy="38" r="4" fill="#7A6AF1"></circle>
-
-                <g transform="translate(350,110)">
-                  <rect width="190" height="70" rx="12" fill="#050505"></rect>
-                  <text x="12" y="18" fill="#FFFFFF" font-size="12" font-weight="600">
-                    02 May, 2026
-                  </text>
-                  <rect x="12" y="28" width="8" height="3" rx="1.5" fill="#7A6AF1"></rect>
-                  <text x="26" y="33" fill="#FFFFFF" font-size="11">Views</text>
-                  <text x="132" y="33" fill="#FFFFFF" font-size="11">100,000</text>
-                  <rect x="12" y="48" width="8" height="3" rx="1.5" fill="#F5C23A"></rect>
-                  <text x="26" y="53" fill="#FFFFFF" font-size="11">Clicks</text>
-                  <text x="140" y="53" fill="#FFFFFF" font-size="11">50,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="desktopPerformanceChartOptions" containerClass="min-h-[420px]"></app-chart>
             </div>
           </section>
         </div>
@@ -948,78 +694,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <svg viewBox="0 0 1035 430" class="h-auto w-full overflow-visible">
-                <g stroke="#EEF0F4" stroke-width="1">
-                  <line x1="28" y1="48" x2="28" y2="388"></line>
-                  <line x1="28" y1="388" x2="1001" y2="388"></line>
-                </g>
-
-                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
-                  <text x="0" y="52">500</text>
-                  <text x="0" y="150">250</text>
-                  <text x="0" y="248">250</text>
-                  <text x="0" y="346">250</text>
-                  <text x="8" y="384">0</text>
-                </g>
-
-                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
-                  <text x="50" y="412">Jan</text>
-                  <text x="137" y="412">Feb</text>
-                  <text x="226" y="412">Mar</text>
-                  <text x="314" y="412">Apr</text>
-                  <text x="401" y="412">May</text>
-                  <text x="488" y="412">Jun</text>
-                  <text x="575" y="412">Jul</text>
-                  <text x="663" y="412">Aug</text>
-                  <text x="751" y="412">Sep</text>
-                  <text x="838" y="412">Oct</text>
-                  <text x="925" y="412">Nov</text>
-                  <text x="1010" y="412">Dec</text>
-                </g>
-
-                <line
-                  x1="393"
-                  y1="132"
-                  x2="393"
-                  y2="372"
-                  stroke="#D8DBE2"
-                  stroke-dasharray="4 4"
-                ></line>
-
-                <path
-                  d="M 58 364 C 82 308, 116 279, 154 274 C 192 269, 223 300, 257 248 C 291 196, 324 180, 362 201 C 392 218, 420 273, 457 244 C 494 215, 526 178, 564 208 C 602 238, 637 314, 683 290 C 729 266, 762 180, 804 118 C 846 76, 903 40, 976 12"
-                  fill="none"
-                  stroke="#6453D9"
-                  stroke-linecap="round"
-                  stroke-width="2"
-                ></path>
-
-                <path
-                  d="M 44 332 C 76 351, 108 345, 144 278 C 180 211, 214 243, 250 232 C 286 221, 325 245, 360 320 C 395 349, 433 319, 470 267 C 507 215, 544 196, 582 236 C 620 276, 655 334, 692 304 C 729 274, 764 228, 801 220 C 838 212, 886 224, 968 228"
-                  fill="none"
-                  stroke="#FACD38"
-                  stroke-linecap="round"
-                  stroke-width="2"
-                ></path>
-
-                <circle cx="393" cy="203" r="3.5" fill="#6453D9"></circle>
-                <circle cx="393" cy="320" r="3.5" fill="#D4B03E"></circle>
-                <circle cx="976" cy="12" r="3.5" fill="#6453D9"></circle>
-                <circle cx="968" cy="228" r="3.5" fill="#FACD38"></circle>
-
-                <g transform="translate(396,98)">
-                  <rect width="214" height="85" rx="9" fill="#000000"></rect>
-                  <text x="10" y="18" fill="#FFFFFF" font-size="14" font-weight="400">
-                    02 May, 2026
-                  </text>
-                  <rect x="10" y="31" width="8" height="4" rx="2" fill="#357FF6"></rect>
-                  <text x="22" y="36" fill="#A4A4A4" font-size="14">Views</text>
-                  <text x="158" y="36" fill="#FFFFFF" font-size="14">100,000</text>
-                  <rect x="10" y="55" width="8" height="4" rx="2" fill="#FACD38"></rect>
-                  <text x="22" y="60" fill="#A4A4A4" font-size="14">Clicks</text>
-                  <text x="158" y="60" fill="#FFFFFF" font-size="14">50,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="desktopWidePerformanceChartOptions" containerClass="min-h-[430px]"></app-chart>
             </div>
           </section>
         </div>
@@ -1185,78 +860,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <svg viewBox="0 0 1035 430" class="h-auto w-full overflow-visible">
-                <g stroke="#EEF0F4" stroke-width="1">
-                  <line x1="28" y1="48" x2="28" y2="388"></line>
-                  <line x1="28" y1="388" x2="1001" y2="388"></line>
-                </g>
-
-                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
-                  <text x="0" y="52">500</text>
-                  <text x="0" y="150">250</text>
-                  <text x="0" y="248">250</text>
-                  <text x="0" y="346">250</text>
-                  <text x="8" y="384">0</text>
-                </g>
-
-                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
-                  <text x="50" y="412">Jan</text>
-                  <text x="137" y="412">Feb</text>
-                  <text x="226" y="412">Mar</text>
-                  <text x="314" y="412">Apr</text>
-                  <text x="401" y="412">May</text>
-                  <text x="488" y="412">Jun</text>
-                  <text x="575" y="412">Jul</text>
-                  <text x="663" y="412">Aug</text>
-                  <text x="751" y="412">Sep</text>
-                  <text x="838" y="412">Oct</text>
-                  <text x="925" y="412">Nov</text>
-                  <text x="1010" y="412">Dec</text>
-                </g>
-
-                <line
-                  x1="393"
-                  y1="132"
-                  x2="393"
-                  y2="372"
-                  stroke="#D8DBE2"
-                  stroke-dasharray="4 4"
-                ></line>
-
-                <path
-                  d="M 58 364 C 82 308, 116 279, 154 274 C 192 269, 223 300, 257 248 C 291 196, 324 180, 362 201 C 392 218, 420 273, 457 244 C 494 215, 526 178, 564 208 C 602 238, 637 314, 683 290 C 729 266, 762 180, 804 118 C 846 76, 903 40, 976 12"
-                  fill="none"
-                  stroke="#6453D9"
-                  stroke-linecap="round"
-                  stroke-width="2"
-                ></path>
-
-                <path
-                  d="M 44 332 C 76 351, 108 345, 144 278 C 180 211, 214 243, 250 232 C 286 221, 325 245, 360 320 C 395 349, 433 319, 470 267 C 507 215, 544 196, 582 236 C 620 276, 655 334, 692 304 C 729 274, 764 228, 801 220 C 838 212, 886 224, 968 228"
-                  fill="none"
-                  stroke="#FACD38"
-                  stroke-linecap="round"
-                  stroke-width="2"
-                ></path>
-
-                <circle cx="393" cy="203" r="3.5" fill="#6453D9"></circle>
-                <circle cx="393" cy="320" r="3.5" fill="#D4B03E"></circle>
-                <circle cx="976" cy="12" r="3.5" fill="#6453D9"></circle>
-                <circle cx="968" cy="228" r="3.5" fill="#FACD38"></circle>
-
-                <g transform="translate(396,98)">
-                  <rect width="214" height="85" rx="9" fill="#000000"></rect>
-                  <text x="10" y="18" fill="#FFFFFF" font-size="14" font-weight="400">
-                    02 May, 2026
-                  </text>
-                  <rect x="10" y="31" width="8" height="4" rx="2" fill="#357FF6"></rect>
-                  <text x="22" y="36" fill="#A4A4A4" font-size="14">Views</text>
-                  <text x="158" y="36" fill="#FFFFFF" font-size="14">100,000</text>
-                  <rect x="10" y="55" width="8" height="4" rx="2" fill="#FACD38"></rect>
-                  <text x="22" y="60" fill="#A4A4A4" font-size="14">Clicks</text>
-                  <text x="158" y="60" fill="#FFFFFF" font-size="14">50,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="desktopWidePerformanceChartOptions" containerClass="min-h-[430px]"></app-chart>
             </div>
           </section>
         </div>
@@ -1499,6 +1103,24 @@ export class AdDetailsPageComponent implements OnDestroy {
   readonly bannerDetailsInfoCircleIcon = 'assets/icons/banner-details-info-circle.svg';
   readonly bannerDetailsCalendarIcon = 'assets/icons/banner-details-calendar.svg';
   readonly bannerDetailsArrowDownIcon = 'assets/icons/banner-details-arrow-down.svg';
+  readonly mobilePerformanceChartOptions: AppChartOptions = createPerformanceLineChartOptions(
+    250,
+    true,
+    '#6453D9',
+    '#F4C12B',
+  );
+  readonly desktopPerformanceChartOptions: AppChartOptions = createPerformanceLineChartOptions(
+    420,
+    false,
+    '#7A6AF1',
+    '#F5C23A',
+  );
+  readonly desktopWidePerformanceChartOptions: AppChartOptions = createPerformanceLineChartOptions(
+    430,
+    false,
+    '#6453D9',
+    '#FACD38',
+  );
 
   readonly adId = signal(this.route.snapshot.paramMap.get('id') ?? 'other-1');
   readonly isMenuOpen = signal(false);

@@ -8,23 +8,15 @@ import {
   heroSquares2x2,
   heroUserCircle,
 } from '@ng-icons/heroicons/outline';
+import { ApexAxisChartSeries } from 'ng-apexcharts';
+import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
+import {
+  createColumnChartOptions,
+  createPerformanceLineChartOptions,
+} from '../../components/charts/chart-mock-data';
 
 type AnalyticsTab = 'overview' | 'users' | 'listings';
 type AnalyticsRange = '7d' | '30d';
-
-interface EarningsPoint {
-  blueX: number;
-  blueY: number;
-  yellowX: number;
-  yellowY: number;
-}
-
-interface PlanBar {
-  label: string;
-  height: number;
-  from: string;
-  to: string;
-}
 
 interface UserMetric {
   label: string;
@@ -66,7 +58,7 @@ interface ConversionMetric {
 
 @Component({
   selector: 'app-admin-analytics-page',
-  imports: [NgIcon, NgOptimizedImage],
+  imports: [NgIcon, NgOptimizedImage, AppChartComponent],
   providers: [
     provideIcons({
       heroCalendarDays,
@@ -149,48 +141,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-6">
-              <svg viewBox="0 0 350 226" class="h-auto w-full overflow-visible">
-                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
-                  <text x="0" y="26">500</text>
-                  <text x="0" y="110">250</text>
-                  <text x="8" y="196">0</text>
-                </g>
-                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
-                  <text x="2" y="220">21-12-2024</text>
-                  <text x="319" y="220">Today</text>
-                </g>
-                <line x1="28" y1="190" x2="345" y2="190" stroke="#ECECEC" stroke-width="1"></line>
-                <path
-                  d="M 30 180 C 48 120, 72 150, 92 105 S 134 122, 154 98 S 196 126, 214 112 S 246 160, 272 118 S 320 72, 345 52"
-                  fill="none"
-                  stroke="#5F54FF"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                ></path>
-                <path
-                  d="M 30 176 C 56 186, 74 108, 96 126 S 140 86, 166 150 S 216 122, 242 152 S 296 122, 340 140"
-                  fill="none"
-                  stroke="#F2B400"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                ></path>
-                <line x1="114" y1="84" x2="114" y2="190" stroke="#D6D6D6" stroke-width="1" stroke-dasharray="2 2"></line>
-                <circle cx="114" cy="112" r="3" fill="#5F54FF"></circle>
-                <circle cx="114" cy="126" r="3" fill="#F2B400"></circle>
-                <circle cx="340" cy="140" r="3" fill="#F2B400"></circle>
-                <circle cx="345" cy="52" r="3" fill="#5F54FF"></circle>
-                <g transform="translate(120,66)">
-                  <rect width="172" height="85" rx="9" fill="#000000"></rect>
-                  <text x="8" y="16" fill="#FFFFFF" font-size="14" font-weight="500">Comparison</text>
-                  <line x1="8" y1="26" x2="164" y2="26" stroke="#2E2E2E" stroke-width="1"></line>
-                  <rect x="8" y="40" width="8" height="4" rx="2" fill="#357FF6"></rect>
-                  <text x="20" y="45" fill="#A4A4A4" font-size="13">Aug 2025</text>
-                  <text x="116" y="45" fill="#FFFFFF" font-size="13">₦100,000</text>
-                  <rect x="8" y="61" width="8" height="4" rx="2" fill="#FACD38"></rect>
-                  <text x="20" y="66" fill="#A4A4A4" font-size="13">Aug 2026</text>
-                  <text x="122" y="66" fill="#FFFFFF" font-size="13">₦50,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="mobileOverviewChartOptions" containerClass="min-h-[226px]"></app-chart>
             </div>
 
             <div class="mt-4 space-y-4">
@@ -232,34 +183,7 @@ interface ConversionMetric {
               <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] py-[15px]">
                 <h3 class="text-[16px] font-medium text-[#0D0D0D]/50">Top subscribed plans</h3>
                 <div class="mt-6">
-                  <svg viewBox="0 0 318 275" class="h-auto w-full">
-                    <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
-                      <text x="0" y="25">1000</text>
-                      <text x="4" y="95">500</text>
-                      <text x="4" y="165">250</text>
-                      <text x="10" y="255">0</text>
-                    </g>
-                    <rect x="52" y="192" width="54" height="48" rx="4" fill="url(#proMobileBar)"></rect>
-                    <rect x="120" y="134" width="54" height="106" rx="4" fill="url(#premiumMobileBar)"></rect>
-                    <rect x="188" y="46" width="54" height="194" rx="4" fill="url(#enterpriseMobileBar)"></rect>
-                    <defs>
-                      <linearGradient id="proMobileBar" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stop-color="#F59E0B"></stop>
-                        <stop offset="100%" stop-color="#FFEBAA"></stop>
-                      </linearGradient>
-                      <linearGradient id="premiumMobileBar" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stop-color="#0FA02C"></stop>
-                        <stop offset="100%" stop-color="#A9FDBA"></stop>
-                      </linearGradient>
-                      <linearGradient id="enterpriseMobileBar" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stop-color="#3B82F6"></stop>
-                        <stop offset="100%" stop-color="#C2DFFF"></stop>
-                      </linearGradient>
-                    </defs>
-                    <text x="70" y="258" fill="rgba(13,13,13,0.5)" font-size="12" font-weight="500">Pro</text>
-                    <text x="128" y="258" fill="rgba(13,13,13,0.5)" font-size="12" font-weight="500">Premium</text>
-                    <text x="190" y="258" fill="rgba(13,13,13,0.5)" font-size="12" font-weight="500">Enterprise</text>
-                  </svg>
+                  <app-chart [config]="mobilePlansChartOptions" containerClass="min-h-[275px]"></app-chart>
                 </div>
               </section>
             </div>
@@ -291,62 +215,14 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-6">
-              <svg viewBox="0 0 350 226" class="h-auto w-full overflow-visible">
-                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
-                  <text x="0" y="26">500</text>
-                  <text x="0" y="110">250</text>
-                  <text x="8" y="196">0</text>
-                </g>
-                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
-                  <text x="2" y="220">21-12-2024</text>
-                  <text x="319" y="220">Today</text>
-                </g>
-                <line x1="28" y1="190" x2="345" y2="190" stroke="#ECECEC" stroke-width="1"></line>
-                <path
-                  d="M 30 180 C 50 132, 64 146, 86 144 S 108 100, 128 112 S 158 148, 182 130 S 228 170, 254 132 S 296 74, 342 45"
-                  fill="none"
-                  stroke="#5F54FF"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                ></path>
-                <line x1="114" y1="84" x2="114" y2="190" stroke="#D6D6D6" stroke-width="1" stroke-dasharray="2 2"></line>
-                <circle cx="114" cy="112" r="3" fill="#5F54FF"></circle>
-                <circle cx="342" cy="45" r="3" fill="#5F54FF"></circle>
-                <g transform="translate(118,90)">
-                  <rect width="165" height="32" rx="9" fill="#000000"></rect>
-                  <rect x="8" y="14" width="8" height="4" rx="2" fill="#357FF6"></rect>
-                  <text x="20" y="19" fill="#A4A4A4" font-size="13">Aug 2025</text>
-                  <text x="118" y="19" fill="#FFFFFF" font-size="13">10,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="mobileUsersChartOptions" containerClass="min-h-[226px]"></app-chart>
             </div>
 
             <div class="mt-4 space-y-4">
               <section class="rounded-[24px] border border-[#EFEFEF] bg-white px-[15px] py-[15px]">
                 <h3 class="text-[16px] font-medium text-[#0D0D0D]/50">Verified vs Unverified</h3>
                 <div class="mt-6">
-                  <svg viewBox="0 0 318 250" class="h-auto w-full">
-                    <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
-                      <text x="0" y="28">1000</text>
-                      <text x="4" y="102">500</text>
-                      <text x="4" y="174">250</text>
-                      <text x="10" y="235">0</text>
-                    </g>
-                    <rect x="46" y="55" width="115" height="145" rx="4" fill="url(#verifiedUsersMobile)"></rect>
-                    <rect x="184" y="118" width="115" height="82" rx="4" fill="url(#unverifiedUsersMobile)"></rect>
-                    <defs>
-                      <linearGradient id="verifiedUsersMobile" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stop-color="#0FA02C"></stop>
-                        <stop offset="100%" stop-color="#A9FDBA"></stop>
-                      </linearGradient>
-                      <linearGradient id="unverifiedUsersMobile" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stop-color="#AE6709"></stop>
-                        <stop offset="100%" stop-color="#FBA535"></stop>
-                      </linearGradient>
-                    </defs>
-                    <text x="63" y="224" fill="rgba(13,13,13,0.5)" font-size="12" font-weight="500">Verified users</text>
-                    <text x="194" y="224" fill="rgba(13,13,13,0.5)" font-size="12" font-weight="500">Unverified users</text>
-                  </svg>
+                  <app-chart [config]="mobileVerifiedChartOptions" containerClass="min-h-[250px]"></app-chart>
                 </div>
               </section>
 
@@ -396,48 +272,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-8">
-              <svg viewBox="0 0 350 226" class="h-auto w-full overflow-visible">
-                <g fill="rgba(0,0,0,0.7)" font-size="11" font-weight="400">
-                  <text x="0" y="26">500</text>
-                  <text x="0" y="110">250</text>
-                  <text x="8" y="196">0</text>
-                </g>
-                <g fill="rgba(0,0,0,0.5)" font-size="10" font-weight="400">
-                  <text x="2" y="220">21-12-2024</text>
-                  <text x="319" y="220">Today</text>
-                </g>
-                <line x1="28" y1="190" x2="345" y2="190" stroke="#ECECEC" stroke-width="1"></line>
-                <path
-                  d="M 30 180 C 48 120, 72 150, 92 105 S 134 122, 154 98 S 196 126, 214 112 S 246 160, 272 118 S 320 72, 345 52"
-                  fill="none"
-                  stroke="#5F54FF"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                ></path>
-                <path
-                  d="M 30 176 C 56 186, 74 108, 96 126 S 140 86, 166 150 S 216 122, 242 152 S 296 122, 340 140"
-                  fill="none"
-                  stroke="#F2B400"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                ></path>
-                <line x1="114" y1="84" x2="114" y2="190" stroke="#D6D6D6" stroke-width="1" stroke-dasharray="2 2"></line>
-                <circle cx="114" cy="112" r="3" fill="#5F54FF"></circle>
-                <circle cx="114" cy="126" r="3" fill="#F2B400"></circle>
-                <circle cx="340" cy="140" r="3" fill="#F2B400"></circle>
-                <circle cx="345" cy="52" r="3" fill="#5F54FF"></circle>
-                <g transform="translate(120,66)">
-                  <rect width="168" height="68" rx="9" fill="#000000"></rect>
-                  <text x="8" y="16" fill="#FFFFFF" font-size="14" font-weight="500">Listings posted</text>
-                  <line x1="8" y1="26" x2="160" y2="26" stroke="#2E2E2E" stroke-width="1"></line>
-                  <rect x="8" y="40" width="8" height="4" rx="2" fill="#357FF6"></rect>
-                  <text x="20" y="45" fill="#A4A4A4" font-size="13">Aug 2025</text>
-                  <text x="116" y="45" fill="#FFFFFF" font-size="13">₦100,000</text>
-                  <rect x="8" y="58" width="8" height="4" rx="2" fill="#FACD38"></rect>
-                  <text x="20" y="63" fill="#A4A4A4" font-size="13">Aug 2026</text>
-                  <text x="122" y="63" fill="#FFFFFF" font-size="13">₦50,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="mobileListingsChartOptions" containerClass="min-h-[226px]"></app-chart>
             </div>
 
             <div class="mt-4 space-y-4">
@@ -576,52 +411,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-10">
-              <svg viewBox="0 0 1100 320" class="h-auto w-full overflow-visible">
-                <g fill="#8f8f8f" font-size="13" font-weight="500">
-                  <text x="0" y="260">0</text>
-                  <text x="0" y="173">250</text>
-                  <text x="0" y="86">500</text>
-                  <text x="22" y="286">21-12-2024</text>
-                  <text x="1054" y="286">Today</text>
-                </g>
-
-                <line x1="34" y1="270" x2="1090" y2="270" stroke="#ececec" stroke-width="1"></line>
-
-                <path
-                  d="M 55 265 C 90 220, 120 185, 165 180 S 255 200, 315 170 S 455 160, 540 185 S 650 165, 755 215 S 900 220, 980 145 S 1045 118, 1090 105"
-                  fill="none"
-                  stroke="#5f54ff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                ></path>
-
-                <path
-                  d="M 42 250 C 98 266, 135 285, 170 220 S 250 175, 330 192 S 430 255, 500 230 S 640 160, 710 214 S 840 252, 925 215 S 1010 182, 1080 190"
-                  fill="none"
-                  stroke="#f2b400"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                ></path>
-
-                <line x1="380" y1="115" x2="380" y2="270" stroke="#d6d6d6" stroke-width="1.5" stroke-dasharray="3 3"></line>
-                <circle cx="380" cy="175" r="4" fill="#5f54ff"></circle>
-                <circle cx="380" cy="230" r="4" fill="#f2b400"></circle>
-                <circle cx="1080" cy="190" r="4" fill="#f2b400"></circle>
-                <circle cx="1090" cy="105" r="4" fill="#5f54ff"></circle>
-
-                <g transform="translate(384,82)">
-                  <rect width="230" height="84" rx="12" fill="#0a0a0a"></rect>
-                  <text x="14" y="22" fill="#ffffff" font-size="14" font-weight="500">Comparison</text>
-
-                  <circle cx="16" cy="46" r="4" fill="#5f54ff"></circle>
-                  <text x="28" y="51" fill="#ffffff" font-size="13">Aug 2025</text>
-                  <text x="160" y="51" fill="#ffffff" font-size="13">₦100,000</text>
-
-                  <circle cx="16" cy="72" r="4" fill="#f2b400"></circle>
-                  <text x="28" y="77" fill="#ffffff" font-size="13">Aug 2026</text>
-                  <text x="160" y="77" fill="#ffffff" font-size="13">₦50,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="desktopOverviewChartOptions" containerClass="min-h-[320px]"></app-chart>
             </div>
 
             <div class="mt-12 grid gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.2fr)]">
@@ -671,43 +461,7 @@ interface ConversionMetric {
                 <h3 class="text-[16px] font-medium text-[#7b7b7b]">Top subscribed plans</h3>
 
                 <div class="mt-8">
-                  <svg viewBox="0 0 620 320" class="h-auto w-full">
-                    <g fill="#8f8f8f" font-size="13" font-weight="500">
-                      <text x="8" y="270">0</text>
-                      <text x="8" y="200">250</text>
-                      <text x="8" y="130">500</text>
-                      <text x="8" y="60">1000</text>
-                    </g>
-
-                    @for (bar of planBars; track bar.label) {
-                      <g>
-                        <defs>
-                          <linearGradient [attr.id]="'bar-' + bar.label" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%" [attr.stop-color]="bar.from"></stop>
-                            <stop offset="100%" [attr.stop-color]="bar.to"></stop>
-                          </linearGradient>
-                        </defs>
-
-                        <rect
-                          [attr.x]="planBarX(bar.label)"
-                          [attr.y]="260 - bar.height"
-                          width="120"
-                          [attr.height]="bar.height"
-                          rx="8"
-                          [attr.fill]="'url(#bar-' + bar.label + ')'"
-                        ></rect>
-                        <text
-                          [attr.x]="planBarX(bar.label) + 44"
-                          y="292"
-                          fill="#7d7d7d"
-                          font-size="15"
-                          font-weight="500"
-                        >
-                          {{ bar.label }}
-                        </text>
-                      </g>
-                    }
-                  </svg>
+                  <app-chart [config]="desktopPlansChartOptions" containerClass="min-h-[320px]"></app-chart>
                 </div>
               </section>
             </div>
@@ -739,35 +493,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-10">
-              <svg viewBox="0 0 1100 320" class="h-auto w-full overflow-visible">
-                <g fill="#8f8f8f" font-size="13" font-weight="500">
-                  <text x="0" y="260">0</text>
-                  <text x="0" y="173">250</text>
-                  <text x="0" y="86">500</text>
-                  <text x="22" y="286">21-12-2024</text>
-                  <text x="1054" y="286">Today</text>
-                </g>
-
-                <line x1="34" y1="270" x2="1090" y2="270" stroke="#ececec" stroke-width="1"></line>
-                <path
-                  d="M 55 255 C 95 220, 120 205, 170 210 S 255 198, 320 170 S 450 178, 520 190 S 635 165, 740 214 S 885 236, 970 162 S 1030 128, 1100 112"
-                  fill="none"
-                  stroke="#5f54ff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                ></path>
-
-                <line x1="382" y1="115" x2="382" y2="270" stroke="#d6d6d6" stroke-width="1.5" stroke-dasharray="3 3"></line>
-                <circle cx="382" cy="175" r="4" fill="#5f54ff"></circle>
-                <circle cx="1100" cy="112" r="4" fill="#5f54ff"></circle>
-
-                <g transform="translate(386,82)">
-                  <rect width="230" height="32" rx="10" fill="#0a0a0a"></rect>
-                  <circle cx="16" cy="16" r="4" fill="#5f54ff"></circle>
-                  <text x="28" y="21" fill="#ffffff" font-size="13">Aug 2025</text>
-                  <text x="176" y="21" fill="#ffffff" font-size="13">10,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="desktopUsersChartOptions" containerClass="min-h-[320px]"></app-chart>
             </div>
 
             <div class="mt-12 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -775,30 +501,7 @@ interface ConversionMetric {
                 <h3 class="text-[16px] font-medium text-[#7b7b7b]">Verified vs Unverified</h3>
 
                 <div class="mt-8">
-                  <svg viewBox="0 0 520 260" class="h-auto w-full">
-                    <g fill="#8f8f8f" font-size="13" font-weight="500">
-                      <text x="8" y="230">0</text>
-                      <text x="8" y="150">250</text>
-                      <text x="8" y="70">500</text>
-                    </g>
-
-                    <defs>
-                      <linearGradient id="verified-users-bar" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stop-color="#13ad2e"></stop>
-                        <stop offset="100%" stop-color="#a6f5b5"></stop>
-                      </linearGradient>
-                      <linearGradient id="unverified-users-bar" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stop-color="#d17b00"></stop>
-                        <stop offset="100%" stop-color="#ffb13a"></stop>
-                      </linearGradient>
-                    </defs>
-
-                    <rect x="110" y="40" width="170" height="180" rx="8" fill="url(#verified-users-bar)"></rect>
-                    <rect x="315" y="130" width="170" height="90" rx="8" fill="url(#unverified-users-bar)"></rect>
-
-                    <text x="148" y="244" fill="#7d7d7d" font-size="15" font-weight="500">Verified users</text>
-                    <text x="344" y="244" fill="#7d7d7d" font-size="15" font-weight="500">Unverified users</text>
-                  </svg>
+                  <app-chart [config]="desktopVerifiedChartOptions" containerClass="min-h-[260px]"></app-chart>
                 </div>
               </section>
 
@@ -844,52 +547,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-10">
-              <svg viewBox="0 0 1100 320" class="h-auto w-full overflow-visible">
-                <g fill="#8f8f8f" font-size="13" font-weight="500">
-                  <text x="0" y="260">0</text>
-                  <text x="0" y="173">250</text>
-                  <text x="0" y="86">500</text>
-                  <text x="22" y="286">21-12-2023</text>
-                  <text x="1054" y="286">Today</text>
-                </g>
-
-                <line x1="34" y1="270" x2="1090" y2="270" stroke="#ececec" stroke-width="1"></line>
-
-                <path
-                  d="M 55 265 C 90 220, 120 185, 165 180 S 255 200, 315 170 S 455 160, 540 185 S 650 165, 755 215 S 900 220, 980 145 S 1045 118, 1090 105"
-                  fill="none"
-                  stroke="#5f54ff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                ></path>
-
-                <path
-                  d="M 42 250 C 98 266, 135 285, 170 220 S 250 175, 330 192 S 430 255, 500 230 S 640 160, 710 214 S 840 252, 925 215 S 1010 182, 1080 190"
-                  fill="none"
-                  stroke="#f2b400"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                ></path>
-
-                <line x1="382" y1="115" x2="382" y2="270" stroke="#d6d6d6" stroke-width="1.5" stroke-dasharray="3 3"></line>
-                <circle cx="382" cy="175" r="4" fill="#5f54ff"></circle>
-                <circle cx="382" cy="230" r="4" fill="#f2b400"></circle>
-                <circle cx="1080" cy="190" r="4" fill="#f2b400"></circle>
-                <circle cx="1090" cy="105" r="4" fill="#5f54ff"></circle>
-
-                <g transform="translate(384,82)">
-                  <rect width="230" height="84" rx="12" fill="#0a0a0a"></rect>
-                  <text x="14" y="22" fill="#ffffff" font-size="14" font-weight="500">Listings posted</text>
-
-                  <circle cx="16" cy="46" r="4" fill="#5f54ff"></circle>
-                  <text x="28" y="51" fill="#ffffff" font-size="13">Aug 2025</text>
-                  <text x="160" y="51" fill="#ffffff" font-size="13">100,000</text>
-
-                  <circle cx="16" cy="72" r="4" fill="#f2b400"></circle>
-                  <text x="28" y="77" fill="#ffffff" font-size="13">Aug 2026</text>
-                  <text x="160" y="77" fill="#ffffff" font-size="13">50,000</text>
-                </g>
-              </svg>
+              <app-chart [config]="desktopListingsChartOptions" containerClass="min-h-[320px]"></app-chart>
             </div>
 
             <div class="mt-12 grid gap-6 xl:grid-cols-3">
@@ -980,6 +638,82 @@ interface ConversionMetric {
 export class AdminAnalyticsPageComponent {
   readonly activeTab = signal<AnalyticsTab>('overview');
   readonly range = signal<AnalyticsRange>('7d');
+  readonly mobileOverviewChartOptions = createPerformanceLineChartOptions(226, true);
+  readonly mobileUsersChartOptions = this.createSingleSeriesOptions(
+    createPerformanceLineChartOptions(226, true),
+    'Views',
+    '#5F54FF',
+  );
+  readonly mobileListingsChartOptions = {
+    ...createPerformanceLineChartOptions(226, true),
+    tooltip: {
+      enabled: true,
+      shared: true,
+      intersect: false,
+      theme: 'dark',
+      y: {
+        formatter(value: number | undefined, context?: { seriesIndex?: number }) {
+          if (value == null) {
+            return '';
+          }
+
+          return `${context?.seriesIndex === 0 ? 'Posted' : 'Engaged'}: ${Math.round(value)}`;
+        },
+      },
+    },
+  } satisfies AppChartOptions;
+  readonly desktopOverviewChartOptions = createPerformanceLineChartOptions(320, false, '#5F54FF', '#F2B400');
+  readonly desktopUsersChartOptions = this.createSingleSeriesOptions(
+    createPerformanceLineChartOptions(320, false, '#5F54FF', '#5F54FF'),
+    'Views',
+    '#5F54FF',
+  );
+  readonly desktopListingsChartOptions = {
+    ...createPerformanceLineChartOptions(320, false, '#5F54FF', '#F2B400'),
+    tooltip: {
+      enabled: true,
+      shared: true,
+      intersect: false,
+      theme: 'dark',
+      y: {
+        formatter(value: number | undefined, context?: { seriesIndex?: number }) {
+          if (value == null) {
+            return '';
+          }
+
+          return `${context?.seriesIndex === 0 ? 'Posted' : 'Engaged'}: ${Math.round(value)}`;
+        },
+      },
+    },
+  } satisfies AppChartOptions;
+  readonly mobilePlansChartOptions = createColumnChartOptions(
+    275,
+    ['Pro', 'Premium', 'Enterprise'],
+    [220, 470, 890],
+    ['#F59E0B', '#0FA02C', '#3B82F6'],
+    true,
+  );
+  readonly desktopPlansChartOptions = createColumnChartOptions(
+    320,
+    ['Pro', 'Premium', 'Enterprise'],
+    [220, 470, 890],
+    ['#F59E0B', '#0FA02C', '#3B82F6'],
+    false,
+  );
+  readonly mobileVerifiedChartOptions = createColumnChartOptions(
+    250,
+    ['Verified users', 'Unverified users'],
+    [820, 430],
+    ['#0FA02C', '#AE6709'],
+    true,
+  );
+  readonly desktopVerifiedChartOptions = createColumnChartOptions(
+    260,
+    ['Verified users', 'Unverified users'],
+    [820, 430],
+    ['#0FA02C', '#AE6709'],
+    false,
+  );
 
   readonly userMetrics: ReadonlyArray<UserMetric> = [
     { label: 'Online users', value: '2,500,000', dot: true },
@@ -998,12 +732,6 @@ export class AdminAnalyticsPageComponent {
     { color: '#50adff' },
     { color: '#37ba5a' },
     { color: '#21b84e' },
-  ];
-
-  readonly planBars: ReadonlyArray<PlanBar> = [
-    { label: 'Pro', height: 60, from: '#ffaf1f', to: '#ffe39b' },
-    { label: 'Premium', height: 120, from: '#0da329', to: '#9af1a8' },
-    { label: 'Enterprise', height: 205, from: '#4d86e9', to: '#b8d7f8' },
   ];
 
   readonly listingMetrics: ReadonlyArray<ListingMetric> = [
@@ -1045,14 +773,31 @@ export class AdminAnalyticsPageComponent {
 
   readonly rangeLabel = computed(() => (this.range() === '7d' ? 'Last 7 days' : 'Last 30 days'));
 
-  planBarX(label: string): number {
-    switch (label) {
-      case 'Pro':
-        return 160;
-      case 'Premium':
-        return 315;
-      default:
-        return 470;
+  private createSingleSeriesOptions(base: AppChartOptions, seriesName: string, color: string): AppChartOptions {
+    const axisSeries = this.getAxisSeries(base.series);
+    const firstSeries = axisSeries[0];
+
+    return {
+      ...base,
+      colors: [color],
+      series: firstSeries ? [{ ...firstSeries, name: seriesName }] : [],
+    };
+  }
+
+  private getAxisSeries(series: AppChartOptions['series']): ApexAxisChartSeries {
+    if (
+      Array.isArray(series) &&
+      series.every(
+        (entry) =>
+          typeof entry === 'object' &&
+          entry !== null &&
+          'data' in entry &&
+          Array.isArray(entry.data),
+      )
+    ) {
+      return series as ApexAxisChartSeries;
     }
+
+    return [];
   }
 }

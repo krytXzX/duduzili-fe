@@ -100,7 +100,9 @@ interface TeamRoleRecord {
       <div class="mx-auto max-w-[350px]">
         <div class="flex h-[54px] items-center">
           <a routerLink="/admin/more" class="flex items-center gap-2">
-            <span class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]">
+            <span
+              class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]"
+            >
               <ng-icon name="heroChevronLeft" class="text-[20px] text-black"></ng-icon>
             </span>
             <span class="text-[20px] font-semibold leading-[1.2] text-black">Team management</span>
@@ -140,7 +142,9 @@ interface TeamRoleRecord {
         @if (activeTab() === 'users') {
           <section class="pt-6">
             <div class="flex items-center gap-5">
-              <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3 text-[#777777]">
+              <label
+                class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3 text-[#777777]"
+              >
                 <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
                 <input
                   type="search"
@@ -148,7 +152,7 @@ interface TeamRoleRecord {
                   (input)="updateSearchQuery($event)"
                   placeholder="Search"
                   class="min-w-0 flex-1 bg-transparent text-[14px] text-[#202020] outline-none placeholder:text-[#777777]"
-                >
+                />
               </label>
 
               <div class="flex items-center gap-3">
@@ -187,19 +191,25 @@ interface TeamRoleRecord {
                           width="36"
                           height="36"
                           class="h-9 w-9 rounded-full object-cover"
-                        >
+                        />
                       </div>
 
                       <div class="min-w-0">
                         <div class="flex items-center gap-2">
-                          <p class="truncate text-[14px] font-medium leading-5 text-[#0D0D0D]">{{ record.userName }}</p>
+                          <p class="truncate text-[14px] font-medium leading-5 text-[#0D0D0D]">
+                            {{ record.userName }}
+                          </p>
                           @if (record.isCurrentUser) {
-                            <span class="inline-flex h-[18px] items-center rounded-[8px] border border-[#D7D0FF] bg-[#6453D9]/5 px-2 text-[10px] font-medium leading-[15px] text-[#6453D9]">
+                            <span
+                              class="inline-flex h-[18px] items-center rounded-[8px] border border-[#D7D0FF] bg-[#6453D9]/5 px-2 text-[10px] font-medium leading-[15px] text-[#6453D9]"
+                            >
                               You
                             </span>
                           }
                         </div>
-                        <p class="truncate text-[12px] leading-4 text-[#8C8C8C]">{{ record.email }}</p>
+                        <p class="truncate text-[12px] leading-4 text-[#8C8C8C]">
+                          {{ record.email }}
+                        </p>
                       </div>
                     </div>
 
@@ -220,12 +230,16 @@ interface TeamRoleRecord {
                   <dl class="mt-4 flex flex-col gap-3">
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Role</dt>
-                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ record.role }}</dd>
+                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                        {{ record.role }}
+                      </dd>
                     </div>
 
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Last signed in</dt>
-                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ mobileDateLabel(record.lastSignedIn) }}</dd>
+                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                        {{ mobileDateLabel(record.lastSignedIn) }}
+                      </dd>
                     </div>
                   </dl>
                 </button>
@@ -235,7 +249,9 @@ interface TeamRoleRecord {
         } @else {
           <section class="pt-6">
             <div class="flex items-center gap-5">
-              <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3 text-[#777777]">
+              <label
+                class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3 text-[#777777]"
+              >
                 <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
                 <input
                   type="search"
@@ -243,7 +259,7 @@ interface TeamRoleRecord {
                   (input)="updateSearchQuery($event)"
                   placeholder="Search"
                   class="min-w-0 flex-1 bg-transparent text-[14px] text-[#202020] outline-none placeholder:text-[#777777]"
-                >
+                />
               </label>
 
               <button
@@ -268,12 +284,16 @@ interface TeamRoleRecord {
                   <dl class="mt-4 flex flex-col gap-3">
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Users</dt>
-                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ role.users }}</dd>
+                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                        {{ role.users }}
+                      </dd>
                     </div>
 
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Permissions</dt>
-                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ role.permissions }}</dd>
+                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                        {{ role.permissions }}
+                      </dd>
                     </div>
                   </dl>
                 </button>
@@ -322,8 +342,12 @@ interface TeamRoleRecord {
 
         @if (activeTab() === 'users') {
           <section class="mt-6 overflow-hidden rounded-[20px] border border-[#e9e9e9] bg-white">
-            <div class="flex flex-col gap-4 border-b border-[#efefef] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-              <label class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c] lg:max-w-[226px]">
+            <div
+              class="flex flex-col gap-4 border-b border-[#efefef] px-4 py-4 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <label
+                class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c] lg:max-w-[226px]"
+              >
                 <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
                 <input
                   type="search"
@@ -331,7 +355,7 @@ interface TeamRoleRecord {
                   (input)="updateSearchQuery($event)"
                   placeholder="Search"
                   class="min-w-0 flex-1 bg-transparent text-[14px] text-[#202020] outline-none placeholder:text-[#9c9c9c]"
-                >
+                />
               </label>
 
               <div class="flex flex-wrap items-center gap-3 self-end">
@@ -357,7 +381,9 @@ interface TeamRoleRecord {
             <div class="overflow-x-auto">
               <table class="min-w-[1080px] w-full table-fixed">
                 <thead>
-                  <tr class="border-b border-[#efefef] bg-[#fafafa] text-left text-[13px] font-medium text-[#7d7d7d]">
+                  <tr
+                    class="border-b border-[#efefef] bg-[#fafafa] text-left text-[13px] font-medium text-[#7d7d7d]"
+                  >
                     <th class="w-[280px] px-4 py-3 font-medium">User</th>
                     <th class="w-[260px] px-4 py-3 font-medium">Role</th>
                     <th class="w-[220px] px-4 py-3 font-medium">Last signed in</th>
@@ -381,13 +407,17 @@ interface TeamRoleRecord {
                               width="40"
                               height="40"
                               class="h-10 w-10 object-cover"
-                            >
+                            />
                           </div>
                           <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                              <p class="truncate text-[15px] font-medium text-[#222222]">{{ record.userName }}</p>
+                              <p class="truncate text-[15px] font-medium text-[#222222]">
+                                {{ record.userName }}
+                              </p>
                               @if (record.isCurrentUser) {
-                                <span class="inline-flex rounded-full border border-[#d7d0ff] bg-[#f7f5ff] px-2 py-0.5 text-[12px] font-medium text-[#6653e4]">
+                                <span
+                                  class="inline-flex rounded-full border border-[#d7d0ff] bg-[#f7f5ff] px-2 py-0.5 text-[12px] font-medium text-[#6653e4]"
+                                >
                                   You
                                 </span>
                               }
@@ -398,7 +428,9 @@ interface TeamRoleRecord {
                       </td>
 
                       <td class="px-4 py-4 text-[15px] text-[#303030]">{{ record.role }}</td>
-                      <td class="px-4 py-4 text-[15px] text-[#303030]">{{ record.lastSignedIn }}</td>
+                      <td class="px-4 py-4 text-[15px] text-[#303030]">
+                        {{ record.lastSignedIn }}
+                      </td>
                       <td class="px-4 py-4">
                         <span
                           class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[14px] font-medium"
@@ -429,7 +461,9 @@ interface TeamRoleRecord {
             </div>
           </section>
 
-          <div class="mt-6 flex flex-col gap-4 text-[15px] text-[#4d4d4d] sm:flex-row sm:items-center sm:justify-between">
+          <div
+            class="mt-6 flex flex-col gap-4 text-[15px] text-[#4d4d4d] sm:flex-row sm:items-center sm:justify-between"
+          >
             <p>{{ paginatedUsers().length }} results</p>
 
             <div class="flex items-center gap-2 self-end">
@@ -443,7 +477,9 @@ interface TeamRoleRecord {
                 <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
               </button>
 
-              <div class="flex h-9 min-w-10 items-center justify-center rounded-[10px] border border-[#ececec] px-3 text-[15px] text-[#707070]">
+              <div
+                class="flex h-9 min-w-10 items-center justify-center rounded-[10px] border border-[#ececec] px-3 text-[15px] text-[#707070]"
+              >
                 {{ currentPage() }}
               </div>
 
@@ -462,8 +498,12 @@ interface TeamRoleRecord {
           </div>
         } @else {
           <section class="mt-6 overflow-hidden rounded-[20px] border border-[#e9e9e9] bg-white">
-            <div class="flex flex-col gap-4 border-b border-[#efefef] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-              <label class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c] lg:max-w-[226px]">
+            <div
+              class="flex flex-col gap-4 border-b border-[#efefef] px-4 py-4 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <label
+                class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c] lg:max-w-[226px]"
+              >
                 <ng-icon name="heroMagnifyingGlass" class="text-[16px]"></ng-icon>
                 <input
                   type="search"
@@ -471,7 +511,7 @@ interface TeamRoleRecord {
                   (input)="updateSearchQuery($event)"
                   placeholder="Search"
                   class="min-w-0 flex-1 bg-transparent text-[14px] text-[#202020] outline-none placeholder:text-[#9c9c9c]"
-                >
+                />
               </label>
 
               <button
@@ -487,7 +527,9 @@ interface TeamRoleRecord {
             <div class="overflow-x-auto">
               <table class="min-w-[1040px] w-full table-fixed">
                 <thead>
-                  <tr class="border-b border-[#efefef] bg-[#fafafa] text-left text-[13px] font-medium text-[#7d7d7d]">
+                  <tr
+                    class="border-b border-[#efefef] bg-[#fafafa] text-left text-[13px] font-medium text-[#7d7d7d]"
+                  >
                     <th class="w-[280px] px-4 py-3 font-medium">User</th>
                     <th class="w-[500px] px-4 py-3 font-medium">Description</th>
                     <th class="w-[170px] px-4 py-3 font-medium">Users</th>
@@ -501,9 +543,13 @@ interface TeamRoleRecord {
                       class="cursor-pointer border-b border-[#efefef] transition-colors hover:bg-[#fcfcfc] last:border-b-0"
                       (click)="openRoleDetails(role)"
                     >
-                      <td class="px-4 py-5 text-[15px] font-medium text-[#303030]">{{ role.name }}</td>
+                      <td class="px-4 py-5 text-[15px] font-medium text-[#303030]">
+                        {{ role.name }}
+                      </td>
                       <td class="px-4 py-5">
-                        <p class="max-w-[420px] text-[15px] leading-6 text-[#6f6f6f]">{{ role.description }}</p>
+                        <p class="max-w-[420px] text-[15px] leading-6 text-[#6f6f6f]">
+                          {{ role.description }}
+                        </p>
                       </td>
                       <td class="px-4 py-5 text-[15px] text-[#303030]">{{ role.users }}</td>
                       <td class="px-4 py-5 text-[15px] text-[#303030]">{{ role.permissions }}</td>
@@ -514,7 +560,9 @@ interface TeamRoleRecord {
             </div>
           </section>
 
-          <div class="mt-6 flex flex-col gap-4 text-[15px] text-[#4d4d4d] sm:flex-row sm:items-center sm:justify-between">
+          <div
+            class="mt-6 flex flex-col gap-4 text-[15px] text-[#4d4d4d] sm:flex-row sm:items-center sm:justify-between"
+          >
             <p>{{ paginatedRoles().length }} results</p>
 
             <div class="flex items-center gap-2 self-end">
@@ -528,7 +576,9 @@ interface TeamRoleRecord {
                 <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
               </button>
 
-              <div class="flex h-9 min-w-10 items-center justify-center rounded-[10px] border border-[#ececec] px-3 text-[15px] text-[#707070]">
+              <div
+                class="flex h-9 min-w-10 items-center justify-center rounded-[10px] border border-[#ececec] px-3 text-[15px] text-[#707070]"
+              >
                 {{ currentPage() }}
               </div>
 
@@ -547,7 +597,6 @@ interface TeamRoleRecord {
           </div>
         }
       </div>
-
     </section>
 
     @if (isAddUserModalOpen()) {
@@ -643,32 +692,38 @@ export class AdminTeamManagementPageComponent {
     {
       id: 'super-administrator',
       label: 'Super Admin',
-      description: 'A Super Administrator is a special type of Administrator that can perform all actions, including closing the account. Only a Super Administrator can assign the Super Administrator role to other team members.',
+      description:
+        'A Super Administrator is a special type of Administrator that can perform all actions, including closing the account. Only a Super Administrator can assign the Super Administrator role to other team members.',
     },
     {
       id: 'administrator',
       label: 'Admin',
-      description: 'This role is for people who need similar access as the account owner. This role can see and manage almost everything.',
+      description:
+        'This role is for people who need similar access as the account owner. This role can see and manage almost everything.',
     },
     {
       id: 'account-manager',
       label: 'Account manager',
-      description: 'This role manages customer relationships, user issues, and account-related support tasks across the platform.',
+      description:
+        'This role manages customer relationships, user issues, and account-related support tasks across the platform.',
     },
     {
       id: 'customer-service',
       label: 'Customer service',
-      description: 'This role supports buyers and sellers by resolving tickets, responding to inquiries, and escalating urgent issues.',
+      description:
+        'This role supports buyers and sellers by resolving tickets, responding to inquiries, and escalating urgent issues.',
     },
     {
       id: 'operations-lead',
       label: 'Operations lead',
-      description: 'This role oversees daily platform operations, coordinates moderation processes, and helps maintain service quality.',
+      description:
+        'This role oversees daily platform operations, coordinates moderation processes, and helps maintain service quality.',
     },
     {
       id: 'support-supervisor',
       label: 'Support supervisor',
-      description: 'This role guides the support team, monitors service delivery, and helps enforce response standards.',
+      description:
+        'This role guides the support team, monitors service delivery, and helps enforce response standards.',
     },
   ];
   readonly addUserRoles: ReadonlyArray<TeamRoleOption> = this.availableRoles.filter(
@@ -679,7 +734,8 @@ export class AdminTeamManagementPageComponent {
       id: 'role-1',
       name: 'Super administrator',
       title: 'Super administrator',
-      description: 'A Super Administrator is a special type of Administrator that can perform all actions, including closing the account. The creator of a business account is automatically assigned as a Super Administrator. Only a Super Administrator can assign the Super Administrator role to other team members.',
+      description:
+        'A Super Administrator is a special type of Administrator that can perform all actions, including closing the account. The creator of a business account is automatically assigned as a Super Administrator. Only a Super Administrator can assign the Super Administrator role to other team members.',
       users: 1,
       permissions: 32,
       permissionsList: ['Permission 1', 'Permission 2', 'Permission 3'],
@@ -688,7 +744,8 @@ export class AdminTeamManagementPageComponent {
       id: 'role-2',
       name: 'Account manager',
       title: 'Account manager',
-      description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
+      description:
+        'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
       users: 3,
       permissions: 21,
       permissionsList: ['Permission 1', 'Permission 2', 'Permission 3'],
@@ -697,7 +754,8 @@ export class AdminTeamManagementPageComponent {
       id: 'role-3',
       name: 'Customer service',
       title: 'Customer service',
-      description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
+      description:
+        'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
       users: 7,
       permissions: 12,
       permissionsList: ['Permission 1', 'Permission 2', 'Permission 3'],
@@ -706,7 +764,8 @@ export class AdminTeamManagementPageComponent {
       id: 'role-4',
       name: 'Admin',
       title: 'Admin',
-      description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
+      description:
+        'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
       users: 2,
       permissions: 28,
       permissionsList: ['Permission 1', 'Permission 2', 'Permission 3'],
@@ -715,7 +774,8 @@ export class AdminTeamManagementPageComponent {
       id: 'role-5',
       name: 'Operations lead',
       title: 'Operations lead',
-      description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
+      description:
+        'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
       users: 4,
       permissions: 18,
       permissionsList: ['Permission 1', 'Permission 2', 'Permission 3'],
@@ -789,29 +849,32 @@ export class AdminTeamManagementPageComponent {
   readonly filteredUsers = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
 
-    return this.teamMembers().filter((record) =>
-      query === ''
-      || record.userName.toLowerCase().includes(query)
-      || record.email.toLowerCase().includes(query)
-      || record.role.toLowerCase().includes(query)
-      || record.status.toLowerCase().includes(query)
+    return this.teamMembers().filter(
+      (record) =>
+        query === '' ||
+        record.userName.toLowerCase().includes(query) ||
+        record.email.toLowerCase().includes(query) ||
+        record.role.toLowerCase().includes(query) ||
+        record.status.toLowerCase().includes(query),
     );
   });
 
   readonly filteredRoles = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
 
-    return this.teamRoles().filter((role) =>
-      query === ''
-      || role.name.toLowerCase().includes(query)
-      || role.description.toLowerCase().includes(query)
-      || role.users.toString().includes(query)
-      || role.permissions.toString().includes(query)
+    return this.teamRoles().filter(
+      (role) =>
+        query === '' ||
+        role.name.toLowerCase().includes(query) ||
+        role.description.toLowerCase().includes(query) ||
+        role.users.toString().includes(query) ||
+        role.permissions.toString().includes(query),
     );
   });
 
   readonly totalPages = computed(() => {
-    const totalItems = this.activeTab() === 'users' ? this.filteredUsers().length : this.filteredRoles().length;
+    const totalItems =
+      this.activeTab() === 'users' ? this.filteredUsers().length : this.filteredRoles().length;
     return Math.max(1, Math.ceil(totalItems / this.pageSize));
   });
 
@@ -926,7 +989,8 @@ export class AdminTeamManagementPageComponent {
   }
 
   saveMemberChanges(payload: TeamMemberUpdatePayload): void {
-    const nextRole = this.availableRoles.find((role) => role.id === payload.role)?.label ?? payload.role;
+    const nextRole =
+      this.availableRoles.find((role) => role.id === payload.role)?.label ?? payload.role;
 
     this.teamMembers.update((current) =>
       current.map((member) =>
