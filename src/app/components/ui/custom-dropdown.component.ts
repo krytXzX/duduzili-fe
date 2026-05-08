@@ -15,7 +15,7 @@ export interface CustomDropdownOption<T extends string = string> {
         [class]="buttonClass()"
         [attr.aria-expanded]="isOpen()"
         aria-haspopup="listbox"
-        (click)="toggle()"
+        (click)="toggle($event)"
       >
         <span [class]="labelClass()">{{ selectedLabel() }}</span>
         <svg
@@ -39,9 +39,10 @@ export interface CustomDropdownOption<T extends string = string> {
         ></button>
 
         <div
-          class="absolute z-50 mt-2 min-w-full overflow-hidden rounded-[18px] border border-[#EAEAEA] bg-white p-1 shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
-          [class.left-0]="align() === 'left'"
-          [class.right-0]="align() === 'right'"
+          class="fixed z-[60] overflow-hidden rounded-[18px] border border-[#EAEAEA] bg-white p-1 shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
+          [style.left.px]="menuPosition().left"
+          [style.top.px]="menuPosition().top"
+          [style.min-width.px]="menuPosition().minWidth"
           [class]="menuClass()"
         >
           <div role="listbox" [attr.aria-label]="ariaLabel()">
@@ -86,14 +87,39 @@ export class CustomDropdownComponent<T extends string = string> {
   readonly valueChange = output<T>();
 
   readonly isOpen = signal(false);
+  readonly menuPosition = signal({ left: 0, top: 0, minWidth: 0 });
 
   readonly selectedLabel = computed(() => {
     const selected = this.options().find((option) => option.value === this.value());
     return selected?.label ?? this.placeholder();
   });
 
-  toggle(): void {
-    this.isOpen.update((open) => !open);
+  toggle(event: Event): void {
+    if (this.isOpen()) {
+      this.close();
+      return;
+    }
+
+    const trigger = event.currentTarget;
+    if (!(trigger instanceof HTMLElement)) {
+      this.isOpen.set(true);
+      return;
+    }
+
+    const rect = trigger.getBoundingClientRect();
+    const minWidth = rect.width;
+    const estimatedMenuWidth = Math.max(minWidth, 180);
+    const left = this.align() === 'right'
+      ? Math.max(12, rect.right - estimatedMenuWidth)
+      : Math.max(12, rect.left);
+    const top = rect.bottom + 8;
+
+    this.menuPosition.set({
+      left,
+      top,
+      minWidth,
+    });
+    this.isOpen.set(true);
   }
 
   close(): void {
