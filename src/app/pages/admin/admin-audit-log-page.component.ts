@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/c
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   heroAdjustmentsHorizontal,
   heroArrowLeft,
@@ -10,6 +11,9 @@ import {
   heroChevronRight,
   heroMagnifyingGlass,
 } from '@ng-icons/heroicons/outline';
+
+type AuditActivityFilter = 'all' | 'login' | 'logout' | 'sign-up' | 'password-reset' | 'profile-update';
+type AuditDateFilter = 'all' | 'may-2024';
 
 interface AuditLogRecord {
   id: string;
@@ -24,7 +28,7 @@ interface AuditLogRecord {
 
 @Component({
   selector: 'app-admin-audit-log-page',
-  imports: [RouterLink, NgIcon, NgOptimizedImage],
+  imports: [RouterLink, NgIcon, NgOptimizedImage, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroAdjustmentsHorizontal,
@@ -121,21 +125,25 @@ interface AuditLogRecord {
         <section class="overflow-hidden rounded-[20px] border border-[#e9e9e9] bg-white">
           <div class="flex flex-col gap-4 border-b border-[#efefef] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Activity type</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="activityTypeOptions"
+                [value]="activityTypeFilter()"
+                ariaLabel="Select activity type"
+                buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
+                iconClass="text-[#8a8a8a]"
+                menuClass="min-w-[190px]"
+                (valueChange)="activityTypeFilter.set($event); currentPage.set(1)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Date</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="dateOptions"
+                [value]="dateFilter()"
+                ariaLabel="Select date"
+                buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
+                iconClass="text-[#8a8a8a]"
+                menuClass="min-w-[150px]"
+                (valueChange)="dateFilter.set($event); currentPage.set(1)"
+              ></app-custom-dropdown>
             </div>
 
             <label class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c] lg:max-w-[226px]">
@@ -234,6 +242,20 @@ interface AuditLogRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminAuditLogPageComponent {
+  readonly activityTypeOptions: readonly CustomDropdownOption<AuditActivityFilter>[] = [
+    { value: 'all', label: 'All activities' },
+    { value: 'login', label: 'Login' },
+    { value: 'logout', label: 'Logout' },
+    { value: 'sign-up', label: 'Sign up' },
+    { value: 'password-reset', label: 'Password reset' },
+    { value: 'profile-update', label: 'Profile update' },
+  ];
+  readonly dateOptions: readonly CustomDropdownOption<AuditDateFilter>[] = [
+    { value: 'all', label: 'All dates' },
+    { value: 'may-2024', label: 'May 2024' },
+  ];
+  readonly activityTypeFilter = signal<AuditActivityFilter>('all');
+  readonly dateFilter = signal<AuditDateFilter>('all');
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
   readonly pageSize = 5;
@@ -292,15 +314,19 @@ export class AdminAuditLogPageComponent {
   ]);
 
   readonly filteredLogs = computed(() => {
+    const activityType = this.activityTypeFilter();
+    const date = this.dateFilter();
     const query = this.searchQuery().trim().toLowerCase();
 
     return this.logs().filter((record) =>
-      query === ''
+      (query === ''
       || record.userName.toLowerCase().includes(query)
       || record.email.toLowerCase().includes(query)
       || record.activityType.toLowerCase().includes(query)
       || record.activityDescription.toLowerCase().includes(query)
-      || record.ipAddress.toLowerCase().includes(query)
+      || record.ipAddress.toLowerCase().includes(query))
+      && (activityType === 'all' || this.activityTypeKey(record.activityType) === activityType)
+      && (date === 'all' || record.date.toLowerCase().includes('may'))
     );
   });
 
@@ -327,5 +353,22 @@ export class AdminAuditLogPageComponent {
 
   mobileDateLabel(date: string): string {
     return date.replace(/^(\d{2})\s+([A-Za-z]+),\s+(\d{4})$/, '$2 $1,$3');
+  }
+
+  private activityTypeKey(activityType: string): AuditActivityFilter {
+    const normalized = activityType.toLowerCase();
+
+    switch (normalized) {
+      case 'login':
+        return 'login';
+      case 'logout':
+        return 'logout';
+      case 'sign up':
+        return 'sign-up';
+      case 'password reset':
+        return 'password-reset';
+      default:
+        return 'profile-update';
+    }
   }
 }

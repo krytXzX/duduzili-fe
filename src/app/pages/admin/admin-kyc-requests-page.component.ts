@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   heroCheckCircle,
   heroChevronDown,
@@ -23,6 +24,8 @@ import {
 
 type KycStatus = 'pending approval' | 'approved' | 'declined';
 type KycFilterId = 'all' | KycStatus;
+type KycCategoryFilter = 'all' | 'drivers-license' | 'passport' | 'identity-card';
+type KycRegionFilter = 'all' | 'nigeria';
 
 interface KycFilterCard {
   id: KycFilterId;
@@ -58,6 +61,7 @@ interface AdminToast {
   imports: [
     NgIcon,
     NgOptimizedImage,
+    CustomDropdownComponent,
     AdminKycRequestDetailsModalComponent,
     AdminApproveKycModalComponent,
     AdminDeclineKycModalComponent,
@@ -200,29 +204,35 @@ interface AdminToast {
         <section class="mt-6 overflow-hidden rounded-[20px] border border-[#e9e9e9] bg-white">
           <div class="flex flex-col gap-4 border-b border-[#efefef] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Category</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="categoryOptions"
+                [value]="categoryFilter()"
+                ariaLabel="Select KYC category"
+                buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
+                iconClass="text-[#8a8a8a]"
+                menuClass="min-w-[180px]"
+                (valueChange)="categoryFilter.set($event); currentPage.set(1)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Store</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="regionOptions"
+                [value]="regionFilter()"
+                ariaLabel="Select KYC region"
+                buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
+                iconClass="text-[#8a8a8a]"
+                menuClass="min-w-[180px]"
+                (valueChange)="regionFilter.set($event); currentPage.set(1)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Status</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="statusOptions"
+                [value]="statusFilter()"
+                ariaLabel="Select KYC status"
+                buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
+                iconClass="text-[#8a8a8a]"
+                menuClass="min-w-[180px]"
+                (valueChange)="statusFilter.set($event); currentPage.set(1)"
+              ></app-custom-dropdown>
             </div>
 
             <label class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c] lg:max-w-[226px]">
@@ -397,6 +407,22 @@ interface AdminToast {
 })
 export class AdminKycRequestsPageComponent {
   readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
+  readonly categoryOptions: readonly CustomDropdownOption<KycCategoryFilter>[] = [
+    { value: 'all', label: 'All categories' },
+    { value: 'drivers-license', label: "Driver's license" },
+    { value: 'passport', label: 'Passport' },
+    { value: 'identity-card', label: 'Identity card' },
+  ];
+  readonly regionOptions: readonly CustomDropdownOption<KycRegionFilter>[] = [
+    { value: 'all', label: 'All regions' },
+    { value: 'nigeria', label: 'Nigeria' },
+  ];
+  readonly statusOptions: readonly CustomDropdownOption<'all' | KycStatus>[] = [
+    { value: 'all', label: 'All statuses' },
+    { value: 'pending approval', label: 'Pending approval' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'declined', label: 'Declined' },
+  ];
 
   private readonly currentAdmin = {
     name: 'Bryan Odjede',
@@ -411,6 +437,9 @@ export class AdminKycRequestsPageComponent {
   ];
 
   readonly activeFilter = signal<KycFilterId>('all');
+  readonly categoryFilter = signal<KycCategoryFilter>('all');
+  readonly regionFilter = signal<KycRegionFilter>('all');
+  readonly statusFilter = signal<'all' | KycStatus>('all');
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
   readonly pageSize = 5;
@@ -522,17 +551,27 @@ export class AdminKycRequestsPageComponent {
 
   readonly filteredRequests = computed(() => {
     const filter = this.activeFilter();
+    const category = this.categoryFilter();
+    const region = this.regionFilter();
+    const status = this.statusFilter();
     const query = this.searchQuery().trim().toLowerCase();
 
     return this.requests().filter((record) => {
       const filterMatch = filter === 'all' || record.status === filter;
+      const categoryMatch =
+        category === 'all'
+        || this.categoryKey(record.idType) === category;
+      const regionMatch =
+        region === 'all'
+        || record.issuingCountry.toLowerCase() === region;
+      const statusMatch = status === 'all' || record.status === status;
       const queryMatch =
         query === ''
         || record.userName.toLowerCase().includes(query)
         || record.email.toLowerCase().includes(query)
         || record.idType.toLowerCase().includes(query);
 
-      return filterMatch && queryMatch;
+      return filterMatch && categoryMatch && regionMatch && statusMatch && queryMatch;
     });
   });
 
@@ -649,5 +688,19 @@ export class AdminKycRequestsPageComponent {
     setTimeout(() => {
       this.dismissToast(toast.id);
     }, 3000);
+  }
+
+  private categoryKey(idType: string): KycCategoryFilter {
+    const normalized = idType.toLowerCase();
+
+    if (normalized.includes('driver')) {
+      return 'drivers-license';
+    }
+
+    if (normalized.includes('passport')) {
+      return 'passport';
+    }
+
+    return 'identity-card';
   }
 }
