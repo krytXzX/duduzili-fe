@@ -50,6 +50,7 @@ type ResolvedAppChartOptions = Required<AppChartOptions>;
     <div class="w-full overflow-hidden" [class]="containerClass()">
       <apx-chart
         class="block w-full"
+        (chartReady)="handleChartReady($event)"
         [series]="resolvedConfig().series"
         [chart]="resolvedConfig().chart"
         [annotations]="resolvedConfig().annotations"
@@ -76,6 +77,7 @@ type ResolvedAppChartOptions = Required<AppChartOptions>;
 export class AppChartComponent {
   readonly config = input.required<AppChartOptions>();
   readonly containerClass = input('h-full');
+  readonly suppressGeneratedTitle = input(false);
 
   readonly resolvedConfig = computed<ResolvedAppChartOptions>(() => {
     const config = this.config();
@@ -100,4 +102,22 @@ export class AppChartComponent {
       yaxis: config.yaxis ?? {},
     };
   });
+
+  handleChartReady(event: { chartObj: unknown }): void {
+    if (!this.suppressGeneratedTitle()) {
+      return;
+    }
+
+    const chartRoot = this.getChartRoot(event.chartObj);
+    chartRoot?.querySelector('svg > title')?.remove();
+  }
+
+  private getChartRoot(chartObj: unknown): Element | null {
+    if (typeof chartObj !== 'object' || chartObj === null) {
+      return null;
+    }
+
+    const possibleRoot = (chartObj as { el?: unknown }).el;
+    return possibleRoot instanceof Element ? possibleRoot : null;
+  }
 }

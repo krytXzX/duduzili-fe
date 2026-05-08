@@ -129,7 +129,11 @@ interface ActivityItem {
             </div>
 
             <div class="mt-auto pt-10">
-              <app-chart [config]="subscriptionEarningsChartHoverOptions" containerClass="min-h-[240px]"></app-chart>
+              <app-chart
+                [config]="subscriptionEarningsChartHoverOptions"
+                [suppressGeneratedTitle]="true"
+                containerClass="min-h-[240px]"
+              ></app-chart>
             </div>
           </section>
         </div>

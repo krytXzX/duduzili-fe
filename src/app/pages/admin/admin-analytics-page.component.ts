@@ -141,7 +141,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-6">
-              <app-chart [config]="mobileOverviewChartOptions" containerClass="min-h-[226px]"></app-chart>
+              <app-chart [config]="mobileOverviewChartOptions" [suppressGeneratedTitle]="true" containerClass="min-h-[226px]"></app-chart>
             </div>
 
             <div class="mt-4 space-y-4">
@@ -215,7 +215,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-6">
-              <app-chart [config]="mobileUsersChartOptions" containerClass="min-h-[226px]"></app-chart>
+              <app-chart [config]="mobileUsersChartOptions" [suppressGeneratedTitle]="true" containerClass="min-h-[226px]"></app-chart>
             </div>
 
             <div class="mt-4 space-y-4">
@@ -272,7 +272,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-8">
-              <app-chart [config]="mobileListingsChartOptions" containerClass="min-h-[226px]"></app-chart>
+              <app-chart [config]="mobileListingsChartOptions" [suppressGeneratedTitle]="true" containerClass="min-h-[226px]"></app-chart>
             </div>
 
             <div class="mt-4 space-y-4">
@@ -411,7 +411,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-10">
-              <app-chart [config]="desktopOverviewChartOptions" containerClass="min-h-[320px]"></app-chart>
+              <app-chart [config]="desktopOverviewChartOptions" [suppressGeneratedTitle]="true" containerClass="min-h-[320px]"></app-chart>
             </div>
 
             <div class="mt-12 grid gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.2fr)]">
@@ -493,7 +493,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-10">
-              <app-chart [config]="desktopUsersChartOptions" containerClass="min-h-[320px]"></app-chart>
+              <app-chart [config]="desktopUsersChartOptions" [suppressGeneratedTitle]="true" containerClass="min-h-[320px]"></app-chart>
             </div>
 
             <div class="mt-12 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -547,7 +547,7 @@ interface ConversionMetric {
             </div>
 
             <div class="mt-10">
-              <app-chart [config]="desktopListingsChartOptions" containerClass="min-h-[320px]"></app-chart>
+              <app-chart [config]="desktopListingsChartOptions" [suppressGeneratedTitle]="true" containerClass="min-h-[320px]"></app-chart>
             </div>
 
             <div class="mt-12 grid gap-6 xl:grid-cols-3">
