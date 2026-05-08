@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/c
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   heroChevronDown,
   heroChevronLeft,
@@ -24,7 +25,7 @@ interface BillingRecord {
 
 @Component({
   selector: 'app-billing-history-page',
-  imports: [RouterLink, NgIcon, NgOptimizedImage],
+  imports: [RouterLink, NgIcon, NgOptimizedImage, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroChevronDown,
@@ -71,14 +72,17 @@ interface BillingRecord {
             >
           </label>
 
-          <button
-            type="button"
-            (click)="cycleTransactionType()"
-            class="inline-flex h-6 w-6 items-center justify-center"
-            aria-label="Change transaction type filter"
-          >
-            <img [ngSrc]="assets.filterIcon" width="24" height="24" alt="">
-          </button>
+          <app-custom-dropdown
+            [options]="transactionTypeOptions"
+            [value]="transactionType()"
+            ariaLabel="Select transaction type"
+            buttonClass="inline-flex h-6 w-6 items-center justify-center p-0 text-[#1A1B1D]"
+            labelClass="sr-only"
+            iconClass="text-[#1A1B1D]"
+            menuClass="min-w-[190px] right-0"
+            align="right"
+            (valueChange)="transactionType.set($event)"
+          ></app-custom-dropdown>
         </div>
 
         <section class="mt-6">
@@ -138,35 +142,35 @@ interface BillingRecord {
         <div class="flex items-center justify-between gap-5 border-b border-[#F0F0F0] px-[14px] py-[14px]">
           <div class="flex flex-wrap items-center gap-8">
             <div class="flex flex-wrap items-center gap-8">
-              <button
-                type="button"
-                (click)="cycleTransactionType()"
-                class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                aria-label="Change transaction type filter"
-              >
-                {{ transactionTypeLabel() }}
-                <ng-icon name="heroChevronDown" class="text-[15px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="transactionTypeOptions"
+                [value]="transactionType()"
+                ariaLabel="Select transaction type"
+                buttonClass="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                iconClass="text-[rgba(26,27,29,0.5)]"
+                menuClass="min-w-[190px]"
+                (valueChange)="transactionType.set($event)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                (click)="cycleDateFilter()"
-                class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                aria-label="Change date filter"
-              >
-                {{ dateFilterLabel() }}
-                <ng-icon name="heroChevronDown" class="text-[15px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="dateFilterOptions"
+                [value]="dateFilter()"
+                ariaLabel="Select date"
+                buttonClass="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                iconClass="text-[rgba(26,27,29,0.5)]"
+                menuClass="min-w-[150px]"
+                (valueChange)="dateFilter.set($event)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                (click)="cycleStatusFilter()"
-                class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                aria-label="Change status filter"
-              >
-                {{ statusFilterLabel() }}
-                <ng-icon name="heroChevronDown" class="text-[15px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="statusFilterOptions"
+                [value]="statusFilter()"
+                ariaLabel="Select status"
+                buttonClass="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                iconClass="text-[rgba(26,27,29,0.5)]"
+                menuClass="min-w-[150px]"
+                (valueChange)="statusFilter.set($event)"
+              ></app-custom-dropdown>
             </div>
           </div>
 
@@ -274,6 +278,23 @@ interface BillingRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BillingHistoryPageComponent {
+  readonly transactionTypeOptions: readonly CustomDropdownOption<TransactionType>[] = [
+    { value: 'all', label: 'Transaction type' },
+    { value: 'subscription', label: 'Subscription' },
+    { value: 'renewal', label: 'Renewal' },
+  ];
+  readonly dateFilterOptions: readonly CustomDropdownOption<BillingDateFilter>[] = [
+    { value: 'all', label: 'Date' },
+    { value: 'feb-2025', label: 'Feb 2025' },
+    { value: 'mar-2025', label: 'Mar 2025' },
+    { value: 'apr-2025', label: 'Apr 2025' },
+  ];
+  readonly statusFilterOptions: readonly CustomDropdownOption<'all' | BillingStatus>[] = [
+    { value: 'all', label: 'Status' },
+    { value: 'successful', label: 'Successful' },
+    { value: 'failed', label: 'Failed' },
+    { value: 'pending', label: 'Pending' },
+  ];
   readonly assets = {
     searchIcon: '/assets/icons/billing-history-search.svg',
     filterIcon: '/assets/icons/billing-history-filter.svg',

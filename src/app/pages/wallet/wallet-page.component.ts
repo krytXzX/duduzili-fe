@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 
 type WalletStatus = 'successful' | 'failed';
 type WalletTransactionType = 'all' | 'wallet funding' | 'subscription payment';
@@ -24,7 +25,7 @@ interface MobileWalletTransaction {
 
 @Component({
   selector: 'app-wallet-page',
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [NgOptimizedImage, RouterLink, CustomDropdownComponent],
   template: `
     <div class="md:hidden">
       <div class="px-5 pb-28">
@@ -161,32 +162,35 @@ interface MobileWalletTransaction {
             <div class="mt-4 rounded-[16px] border border-[#F0F0F0] bg-white">
               <div class="flex items-center justify-between px-[15px] py-[15px]">
                 <div class="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    (click)="cycleTransactionType()"
-                    class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                  >
-                    {{ transactionTypeLabel() }}
-                    <img [ngSrc]="assets.arrowDownIcon" width="16" height="16" alt="" class="h-4 w-4">
-                  </button>
+                  <app-custom-dropdown
+                    [options]="transactionTypeOptions"
+                    [value]="transactionType()"
+                    ariaLabel="Select transaction type"
+                    buttonClass="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                    iconClass="text-[rgba(26,27,29,0.5)]"
+                    menuClass="min-w-[190px]"
+                    (valueChange)="transactionType.set($event)"
+                  ></app-custom-dropdown>
 
-                  <button
-                    type="button"
-                    (click)="cycleDateFilter()"
-                    class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                  >
-                    {{ dateFilterLabel() }}
-                    <img [ngSrc]="assets.arrowDownIcon" width="16" height="16" alt="" class="h-4 w-4">
-                  </button>
+                  <app-custom-dropdown
+                    [options]="dateFilterOptions"
+                    [value]="dateFilter()"
+                    ariaLabel="Select transaction date"
+                    buttonClass="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                    iconClass="text-[rgba(26,27,29,0.5)]"
+                    menuClass="min-w-[150px]"
+                    (valueChange)="dateFilter.set($event)"
+                  ></app-custom-dropdown>
 
-                  <button
-                    type="button"
-                    (click)="cycleStatusFilter()"
-                    class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                  >
-                    {{ statusFilterLabel() }}
-                    <img [ngSrc]="assets.arrowDownIcon" width="16" height="16" alt="" class="h-4 w-4">
-                  </button>
+                  <app-custom-dropdown
+                    [options]="statusFilterOptions"
+                    [value]="statusFilter()"
+                    ariaLabel="Select transaction status"
+                    buttonClass="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                    iconClass="text-[rgba(26,27,29,0.5)]"
+                    menuClass="min-w-[150px]"
+                    (valueChange)="statusFilter.set($event)"
+                  ></app-custom-dropdown>
                 </div>
               </div>
 
@@ -571,6 +575,21 @@ interface MobileWalletTransaction {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WalletPageComponent {
+  readonly transactionTypeOptions: readonly CustomDropdownOption<WalletTransactionType>[] = [
+    { value: 'all', label: 'Transaction type' },
+    { value: 'wallet funding', label: 'Wallet funding' },
+    { value: 'subscription payment', label: 'Subscription payment' },
+  ];
+  readonly dateFilterOptions: readonly CustomDropdownOption<WalletDateFilter>[] = [
+    { value: 'all', label: 'Date' },
+    { value: 'feb-2025', label: 'Feb 2025' },
+    { value: 'mar-2025', label: 'Mar 2025' },
+  ];
+  readonly statusFilterOptions: readonly CustomDropdownOption<'all' | WalletStatus>[] = [
+    { value: 'all', label: 'Status' },
+    { value: 'successful', label: 'Successful' },
+    { value: 'failed', label: 'Failed' },
+  ];
   readonly assets = {
     successIcon: '/assets/icons/wallet-status-success.svg',
     failedIcon: '/assets/icons/wallet-status-failed.svg',

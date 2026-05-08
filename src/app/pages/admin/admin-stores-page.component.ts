@@ -1,6 +1,7 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 
 type AdminStoreRatingFilter = 'all' | 'highest' | 'lowest';
 
@@ -18,7 +19,7 @@ interface AdminStoreRecord {
 
 @Component({
   selector: 'app-admin-stores-page',
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [NgOptimizedImage, RouterLink, CustomDropdownComponent],
   host: { class: 'block h-full' },
   template: `
     <section class="bg-white lg:hidden">
@@ -101,14 +102,15 @@ interface AdminStoreRecord {
       <div class="flex-1 overflow-y-auto px-4 py-6 xl:px-6">
         <div class="overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white">
           <div class="flex items-center justify-between gap-4 px-[15px] py-[15px]">
-            <button
-              type="button"
-              (click)="cycleRatingFilter()"
-              class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-            >
-              {{ ratingFilterLabel() }}
-              <span class="text-[14px]">⌄</span>
-            </button>
+            <app-custom-dropdown
+              [options]="ratingOptions"
+              [value]="ratingFilter()"
+              ariaLabel="Select rating filter"
+              buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+              iconClass="text-[#1A1B1D]/50"
+              menuClass="min-w-[170px]"
+              (valueChange)="ratingFilter.set($event)"
+            ></app-custom-dropdown>
 
             <label class="relative block w-full max-w-[224px]">
               <img
@@ -195,6 +197,11 @@ interface AdminStoreRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminStoresPageComponent {
+  readonly ratingOptions: readonly CustomDropdownOption<AdminStoreRatingFilter>[] = [
+    { value: 'all', label: 'Rating' },
+    { value: 'highest', label: 'Highest rating' },
+    { value: 'lowest', label: 'Lowest rating' },
+  ];
   private readonly router = inject(Router);
 
   readonly ratingFilter = signal<AdminStoreRatingFilter>('all');

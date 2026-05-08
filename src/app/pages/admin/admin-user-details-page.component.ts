@@ -5,6 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { StoreCardComponent, type Store } from '../../components/stores/store-card.component';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   BannerPromotionCardComponent,
   type BannerPromotionCardData,
@@ -247,7 +248,7 @@ interface AdminUserActivityYearGroup {
 
 @Component({
   selector: 'app-admin-user-details-page',
-  imports: [RouterLink, NgIcon, NgOptimizedImage, StoreCardComponent, BannerPromotionCardComponent],
+  imports: [RouterLink, NgIcon, NgOptimizedImage, StoreCardComponent, BannerPromotionCardComponent, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroCalendarDays,
@@ -1671,32 +1672,35 @@ interface AdminUserActivityYearGroup {
           <div class="flex flex-col overflow-hidden rounded-[28px] border border-[#ECEEF3] bg-white shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)]">
             <div class="flex flex-col gap-4 border-b border-[#F1F2F4] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
               <div class="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  (click)="cycleListingsCategoryFilter()"
-                  class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
-                >
-                  {{ listingsCategoryLabel() }}
-                  <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
-                </button>
+                <app-custom-dropdown
+                  [options]="listingsCategoryOptions"
+                  [value]="listingsCategoryFilter()"
+                  ariaLabel="Select listing category"
+                  buttonClass="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                  iconClass="text-[#80858F]"
+                  menuClass="min-w-[190px]"
+                  (valueChange)="listingsCategoryFilter.set($event)"
+                ></app-custom-dropdown>
 
-                <button
-                  type="button"
-                  (click)="cycleListingsStoreFilter()"
-                  class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
-                >
-                  {{ listingsStoreLabel() }}
-                  <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
-                </button>
+                <app-custom-dropdown
+                  [options]="listingsStoreOptions"
+                  [value]="listingsStoreFilter()"
+                  ariaLabel="Select listing store"
+                  buttonClass="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                  iconClass="text-[#80858F]"
+                  menuClass="min-w-[210px]"
+                  (valueChange)="listingsStoreFilter.set($event)"
+                ></app-custom-dropdown>
 
-                <button
-                  type="button"
-                  (click)="cycleListingsStatusFilter()"
-                  class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
-                >
-                  {{ listingsStatusLabel() }}
-                  <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
-                </button>
+                <app-custom-dropdown
+                  [options]="listingsStatusOptions"
+                  [value]="listingsStatusFilter()"
+                  ariaLabel="Select listing status"
+                  buttonClass="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                  iconClass="text-[#80858F]"
+                  menuClass="min-w-[170px]"
+                  (valueChange)="listingsStatusFilter.set($event)"
+                ></app-custom-dropdown>
               </div>
 
               <label class="relative block w-full max-w-[250px]">
@@ -2381,53 +2385,35 @@ interface AdminUserActivityYearGroup {
               <div class="mt-4 overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white">
                 <div class="flex flex-col gap-4 border-b border-[#F0F0F0] px-[15px] py-[15px]">
                   <div class="flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      (click)="cycleTransactionTypeFilter()"
-                      class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                    >
-                      {{ transactionTypeLabel() }}
-                      <img
-                        ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
-                        width="16"
-                        height="16"
-                        alt=""
-                        class="h-4 w-4"
-                        aria-hidden="true"
-                      />
-                    </button>
+                    <app-custom-dropdown
+                      [options]="transactionTypeOptions"
+                      [value]="transactionTypeFilter()"
+                      ariaLabel="Select transaction type"
+                      buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                      iconClass="text-[#1A1B1D]/50"
+                      menuClass="min-w-[190px]"
+                      (valueChange)="transactionTypeFilter.set($event)"
+                    ></app-custom-dropdown>
 
-                    <button
-                      type="button"
-                      (click)="cycleTransactionDateFilter()"
-                      class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                    >
-                      {{ transactionDateLabel() }}
-                      <img
-                        ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
-                        width="16"
-                        height="16"
-                        alt=""
-                        class="h-4 w-4"
-                        aria-hidden="true"
-                      />
-                    </button>
+                    <app-custom-dropdown
+                      [options]="transactionDateOptions"
+                      [value]="transactionDateFilter()"
+                      ariaLabel="Select transaction date"
+                      buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                      iconClass="text-[#1A1B1D]/50"
+                      menuClass="min-w-[150px]"
+                      (valueChange)="transactionDateFilter.set($event)"
+                    ></app-custom-dropdown>
 
-                    <button
-                      type="button"
-                      (click)="cycleTransactionStatusFilter()"
-                      class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                    >
-                      {{ transactionStatusLabel() }}
-                      <img
-                        ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
-                        width="16"
-                        height="16"
-                        alt=""
-                        class="h-4 w-4"
-                        aria-hidden="true"
-                      />
-                    </button>
+                    <app-custom-dropdown
+                      [options]="transactionStatusOptions"
+                      [value]="transactionStatusFilter()"
+                      ariaLabel="Select transaction status"
+                      buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                      iconClass="text-[#1A1B1D]/50"
+                      menuClass="min-w-[150px]"
+                      (valueChange)="transactionStatusFilter.set($event)"
+                    ></app-custom-dropdown>
                   </div>
                 </div>
 
@@ -3162,6 +3148,12 @@ export class AdminUserDetailsPageComponent {
     }
   });
 
+  readonly transactionTypeOptions: readonly CustomDropdownOption<AdminUserTransactionType>[] = [
+    { value: 'all', label: 'Transaction type' },
+    { value: 'wallet funding', label: 'Wallet funding' },
+    { value: 'subscription payment', label: 'Subscription payment' },
+  ];
+
   readonly transactionDateLabel = computed(() => {
     switch (this.transactionDateFilter()) {
       case 'feb-2025':
@@ -3173,6 +3165,12 @@ export class AdminUserDetailsPageComponent {
     }
   });
 
+  readonly transactionDateOptions: readonly CustomDropdownOption<AdminUserTransactionDate>[] = [
+    { value: 'all', label: 'Date' },
+    { value: 'feb-2025', label: 'Feb 2025' },
+    { value: 'mar-2025', label: 'Mar 2025' },
+  ];
+
   readonly transactionStatusLabel = computed(() => {
     switch (this.transactionStatusFilter()) {
       case 'successful':
@@ -3183,6 +3181,12 @@ export class AdminUserDetailsPageComponent {
         return 'Status';
     }
   });
+
+  readonly transactionStatusOptions: readonly CustomDropdownOption<'all' | AdminUserTransactionStatus>[] = [
+    { value: 'all', label: 'Status' },
+    { value: 'successful', label: 'Successful' },
+    { value: 'failed', label: 'Failed' },
+  ];
 
   readonly reviewSortLabel = computed(() =>
     this.reviewSort() === 'most-recent' ? 'Most recent' : 'Highest rated',
@@ -4688,6 +4692,15 @@ export class AdminUserDetailsPageComponent {
     }
   });
 
+  readonly listingsCategoryOptions: readonly CustomDropdownOption<AdminManagedListingCategory>[] = [
+    { value: 'all', label: 'Category' },
+    { value: 'phones-laptops', label: 'Phones & laptops' },
+    { value: 'electronics', label: 'Electronics' },
+    { value: 'mens-fashion', label: "Men's fashion" },
+    { value: 'womens-fashion', label: "Women's fashion" },
+    { value: 'automobiles', label: 'Automobiles' },
+  ];
+
   readonly listingsStoreLabel = computed(() => {
     switch (this.listingsStoreFilter()) {
       case 'vine':
@@ -4703,6 +4716,14 @@ export class AdminUserDetailsPageComponent {
     }
   });
 
+  readonly listingsStoreOptions: readonly CustomDropdownOption<AdminManagedListingStore>[] = [
+    { value: 'all', label: 'Store' },
+    { value: 'vine', label: 'The Vine Collections' },
+    { value: 'eden', label: 'Eden Organics' },
+    { value: 'amazing', label: 'Amazing Fragrances' },
+    { value: 'personal', label: 'Personal account' },
+  ];
+
   readonly listingsStatusLabel = computed(() => {
     switch (this.listingsStatusFilter()) {
       case 'available':
@@ -4717,6 +4738,14 @@ export class AdminUserDetailsPageComponent {
         return 'Status';
     }
   });
+
+  readonly listingsStatusOptions: readonly CustomDropdownOption<'all' | AdminManagedListingStatus>[] = [
+    { value: 'all', label: 'Status' },
+    { value: 'available', label: 'Available' },
+    { value: 'sold', label: 'Sold' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'paused', label: 'Paused' },
+  ];
 
   activeTabLabel(): string {
     return this.tabs.find((tab) => tab.id === this.activeTab())?.label ?? 'Overview';

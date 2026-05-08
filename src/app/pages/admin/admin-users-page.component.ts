@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { NgOptimizedImage } from '@angular/common';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   heroChevronDown,
   heroChevronLeft,
@@ -31,7 +32,7 @@ interface AdminUser {
 
 @Component({
   selector: 'app-admin-users-page',
-  imports: [NgIcon, NgOptimizedImage],
+  imports: [NgIcon, NgOptimizedImage, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroChevronDown,
@@ -90,21 +91,17 @@ interface AdminUser {
           >
         </label>
 
-        <button
-          type="button"
-          (click)="cycleStatusFilter()"
-          class="flex h-10 w-10 shrink-0 items-center justify-center"
-          aria-label="Filter users"
-        >
-          <img
-            ngSrc="/assets/icons/admin-users/filter-tuning.svg"
-            width="24"
-            height="24"
-            alt=""
-            class="h-6 w-6"
-            aria-hidden="true"
-          />
-        </button>
+        <app-custom-dropdown
+          [options]="statusOptions"
+          [value]="statusFilter()"
+          ariaLabel="Filter users by status"
+          align="right"
+          buttonClass="flex h-10 w-10 shrink-0 items-center justify-center p-0 text-[#1A1B1D]"
+          labelClass="sr-only"
+          iconClass="text-[#1A1B1D]"
+          menuClass="min-w-[170px]"
+          (valueChange)="statusFilter.set($event)"
+        ></app-custom-dropdown>
       </div>
 
       <div class="mt-6 flex flex-col">
@@ -207,32 +204,35 @@ interface AdminUser {
         <div class="mt-6 flex flex-1 flex-col overflow-hidden rounded-[26px] border border-[#ECEEF3] bg-white">
           <div class="flex flex-col gap-4 border-b border-[#F1F2F4] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex flex-wrap gap-3">
-              <button
-                type="button"
-                (click)="cycleCategoryFilter()"
-                class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
-              >
-                {{ categoryFilterLabel() }}
-                <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="categoryOptions"
+                [value]="categoryFilter()"
+                ariaLabel="Select user category"
+                buttonClass="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                iconClass="text-[#80858F]"
+                menuClass="min-w-[170px]"
+                (valueChange)="categoryFilter.set($event)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                (click)="cycleStoreFilter()"
-                class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
-              >
-                {{ storeFilterLabel() }}
-                <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="storeOptions"
+                [value]="storeFilter()"
+                ariaLabel="Select store filter"
+                buttonClass="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                iconClass="text-[#80858F]"
+                menuClass="min-w-[170px]"
+                (valueChange)="storeFilter.set($event)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                (click)="cycleStatusFilter()"
-                class="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
-              >
-                {{ statusFilterLabel() }}
-                <ng-icon name="heroChevronDown" class="text-sm"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="statusOptions"
+                [value]="statusFilter()"
+                ariaLabel="Select user status"
+                buttonClass="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
+                iconClass="text-[#80858F]"
+                menuClass="min-w-[170px]"
+                (valueChange)="statusFilter.set($event)"
+              ></app-custom-dropdown>
             </div>
 
             <label class="relative block w-full lg:max-w-[250px]">
@@ -360,6 +360,21 @@ interface AdminUser {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminUsersPageComponent {
+  readonly categoryOptions: readonly CustomDropdownOption<UserCategoryFilter>[] = [
+    { value: 'all', label: 'Category' },
+    { value: 'buyers', label: 'Buyers' },
+    { value: 'sellers', label: 'Sellers' },
+  ];
+  readonly storeOptions: readonly CustomDropdownOption<UserStoreFilter>[] = [
+    { value: 'all', label: 'Store' },
+    { value: 'with-store', label: 'With store' },
+    { value: 'without-store', label: 'Without store' },
+  ];
+  readonly statusOptions: readonly CustomDropdownOption<'all' | UserStatus>[] = [
+    { value: 'all', label: 'Status' },
+    { value: 'active', label: 'Active' },
+    { value: 'suspended', label: 'Suspended' },
+  ];
   private readonly router = inject(Router);
 
   readonly summaryCards = [

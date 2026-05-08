@@ -1,6 +1,7 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 
 type AdminListingsStatus = 'available' | 'sold' | 'paused' | 'suspended';
 type AdminListingsCategory =
@@ -38,7 +39,7 @@ interface AdminListingRecord {
 
 @Component({
   selector: 'app-admin-listings-page',
-  imports: [NgOptimizedImage],
+  imports: [NgOptimizedImage, CustomDropdownComponent],
   host: { class: 'block h-full' },
   template: `
     <section class="flex h-full flex-col bg-white lg:hidden">
@@ -174,32 +175,35 @@ interface AdminListingRecord {
         <div class="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white">
           <div class="flex items-center justify-between px-4 py-4">
             <div class="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                (click)="cycleCategoryFilter()"
-                class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-              >
-                {{ categoryLabel() }}
-                <img ngSrc="/assets/icons/admin-user-details/arrow-down.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
-              </button>
+              <app-custom-dropdown
+                [options]="categoryOptions"
+                [value]="categoryFilter()"
+                ariaLabel="Select listing category"
+                buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                iconClass="text-[#1A1B1D]/50"
+                menuClass="min-w-[190px]"
+                (valueChange)="categoryFilter.set($event)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                (click)="cycleStoreFilter()"
-                class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-              >
-                {{ storeLabel() }}
-                <img ngSrc="/assets/icons/admin-user-details/arrow-down.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
-              </button>
+              <app-custom-dropdown
+                [options]="storeOptions"
+                [value]="storeFilter()"
+                ariaLabel="Select listing store"
+                buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                iconClass="text-[#1A1B1D]/50"
+                menuClass="min-w-[210px]"
+                (valueChange)="storeFilter.set($event)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                (click)="cycleStatusFilter()"
-                class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-              >
-                {{ statusLabel() }}
-                <img ngSrc="/assets/icons/admin-user-details/arrow-down.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
-              </button>
+              <app-custom-dropdown
+                [options]="statusOptions"
+                [value]="statusFilter()"
+                ariaLabel="Select listing status"
+                buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
+                iconClass="text-[#1A1B1D]/50"
+                menuClass="min-w-[170px]"
+                (valueChange)="statusFilter.set($event)"
+              ></app-custom-dropdown>
             </div>
 
             <label class="relative block w-full max-w-[224px]">
@@ -311,6 +315,30 @@ interface AdminListingRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminListingsPageComponent {
+  readonly categoryOptions: readonly CustomDropdownOption<AdminListingsCategory>[] = [
+    { value: 'all', label: 'Category' },
+    { value: 'phones-laptops', label: 'Phones & laptops' },
+    { value: 'electronics', label: 'Electronics' },
+    { value: 'mens-fashion', label: "Men's fashion" },
+    { value: 'womens-fashion', label: "Women's fashion" },
+    { value: 'automobiles', label: 'Automobiles' },
+  ];
+  readonly storeOptions: readonly CustomDropdownOption<AdminListingsStore>[] = [
+    { value: 'all', label: 'Store' },
+    { value: 'vine', label: 'The Vine Collections' },
+    { value: 'eden', label: 'Eden Organics' },
+    { value: 'amazing', label: 'Amazing Fragrances' },
+    { value: 'personal', label: 'Personal account' },
+    { value: 'ifeanyi', label: 'Ifeanyi Austin' },
+    { value: 'abogu', label: 'Abogu Ruth' },
+  ];
+  readonly statusOptions: readonly CustomDropdownOption<'all' | AdminListingsStatus>[] = [
+    { value: 'all', label: 'Status' },
+    { value: 'available', label: 'Available' },
+    { value: 'sold', label: 'Sold' },
+    { value: 'paused', label: 'Paused' },
+    { value: 'suspended', label: 'Suspended' },
+  ];
   private readonly router = inject(Router);
 
   readonly summaryStatusFilter = signal<AdminListingsSummaryFilter>('all');

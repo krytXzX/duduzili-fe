@@ -9,8 +9,11 @@ import {
   heroMagnifyingGlass,
 } from '@ng-icons/heroicons/outline';
 import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 
 type TransactionYearFilter = 'this-year' | 'last-year';
+type TransactionPlanFilter = 'all' | 'pro' | 'business' | 'enterprise';
+type TransactionDateFilter = 'all' | 'may-2024';
 
 interface TransactionSummaryBar {
   label: string;
@@ -31,7 +34,7 @@ interface AdsTransactionRecord {
 
 @Component({
   selector: 'app-admin-ads-transactions-page',
-  imports: [NgIcon, NgOptimizedImage, AppChartComponent],
+  imports: [NgIcon, NgOptimizedImage, AppChartComponent, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroChevronDown,
@@ -60,14 +63,16 @@ interface AdsTransactionRecord {
               <p class="mt-3 text-[14px] font-medium text-[rgba(26,27,29,0.5)]">16 transactions</p>
             </div>
 
-            <button
-              type="button"
-              (click)="yearFilter.set(yearFilter() === 'this-year' ? 'last-year' : 'this-year')"
-              class="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[#eaeaea] bg-white px-4 text-[14px] font-medium text-[#0d0d0d]"
-            >
-              <span>{{ yearFilterLabel() }}</span>
-              <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
-            </button>
+            <app-custom-dropdown
+              [options]="yearFilterOptions"
+              [value]="yearFilter()"
+              ariaLabel="Select transaction year"
+              align="right"
+              buttonClass="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[#eaeaea] bg-white px-4 text-[14px] font-medium text-[#0d0d0d]"
+              iconClass="text-[#0d0d0d]"
+              menuClass="min-w-[150px]"
+              (valueChange)="yearFilter.set($event)"
+            ></app-custom-dropdown>
           </div>
 
           <div class="mt-4">
@@ -165,14 +170,16 @@ interface AdsTransactionRecord {
               <p class="mt-1 text-[14px] text-[#8b8b8b]">1,567 transactions</p>
             </div>
 
-            <button
-              type="button"
-              (click)="yearFilter.set(yearFilter() === 'this-year' ? 'last-year' : 'this-year')"
-              class="inline-flex h-11 items-center gap-2 self-start rounded-full border border-[#e8e8e8] bg-white px-5 text-[15px] text-[#1f1f1f]"
-            >
-              <span>{{ yearFilterLabel() }}</span>
-              <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-            </button>
+            <app-custom-dropdown
+              [options]="yearFilterOptions"
+              [value]="yearFilter()"
+              ariaLabel="Select transaction year"
+              align="right"
+              buttonClass="inline-flex h-11 items-center gap-2 self-start rounded-full border border-[#e8e8e8] bg-white px-5 text-[15px] text-[#1f1f1f]"
+              iconClass="text-[#1f1f1f]"
+              menuClass="min-w-[160px]"
+              (valueChange)="yearFilter.set($event)"
+            ></app-custom-dropdown>
           </div>
 
           <div class="mt-8">
@@ -187,21 +194,25 @@ interface AdsTransactionRecord {
         <section class="mt-6 overflow-hidden rounded-[20px] border border-[#e9e9e9] bg-white">
           <div class="flex flex-col gap-4 border-b border-[#efefef] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Plan</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="planFilterOptions"
+                [value]="planFilter()"
+                ariaLabel="Select plan"
+                buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
+                iconClass="text-[#8a8a8a]"
+                menuClass="min-w-[150px]"
+                (valueChange)="planFilter.set($event); currentPage.set(1)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Date</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="dateFilterOptions"
+                [value]="dateFilter()"
+                ariaLabel="Select date"
+                buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
+                iconClass="text-[#8a8a8a]"
+                menuClass="min-w-[150px]"
+                (valueChange)="dateFilter.set($event); currentPage.set(1)"
+              ></app-custom-dropdown>
             </div>
 
             <label class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c] lg:max-w-[226px]">
@@ -302,7 +313,23 @@ interface AdsTransactionRecord {
 })
 export class AdminAdsTransactionsPageComponent {
   readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
+  readonly yearFilterOptions: readonly CustomDropdownOption<TransactionYearFilter>[] = [
+    { value: 'this-year', label: 'This year' },
+    { value: 'last-year', label: 'Last year' },
+  ];
+  readonly planFilterOptions: readonly CustomDropdownOption<TransactionPlanFilter>[] = [
+    { value: 'all', label: 'Plan' },
+    { value: 'pro', label: 'Pro' },
+    { value: 'business', label: 'Business' },
+    { value: 'enterprise', label: 'Enterprise' },
+  ];
+  readonly dateFilterOptions: readonly CustomDropdownOption<TransactionDateFilter>[] = [
+    { value: 'all', label: 'Date' },
+    { value: 'may-2024', label: 'May 2024' },
+  ];
   readonly yearFilter = signal<TransactionYearFilter>('this-year');
+  readonly planFilter = signal<TransactionPlanFilter>('all');
+  readonly dateFilter = signal<TransactionDateFilter>('all');
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
   readonly pageSize = 5;
@@ -397,10 +424,12 @@ export class AdminAdsTransactionsPageComponent {
     const query = this.searchQuery().trim().toLowerCase();
 
     return this.transactions().filter((record) =>
-      query === ''
+      (query === ''
       || record.transactionId.toLowerCase().includes(query)
       || record.userName.toLowerCase().includes(query)
-      || record.plan.toLowerCase().includes(query)
+      || record.plan.toLowerCase().includes(query))
+      && (this.planFilter() === 'all' || record.plan.toLowerCase() === this.planFilter())
+      && (this.dateFilter() === 'all' || record.date.toLowerCase().includes('may'))
     );
   });
 

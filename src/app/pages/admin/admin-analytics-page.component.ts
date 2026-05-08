@@ -10,6 +10,7 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { ApexAxisChartSeries } from 'ng-apexcharts';
 import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   createColumnChartOptions,
   createPerformanceLineChartOptions,
@@ -58,7 +59,7 @@ interface ConversionMetric {
 
 @Component({
   selector: 'app-admin-analytics-page',
-  imports: [NgIcon, NgOptimizedImage, AppChartComponent],
+  imports: [NgIcon, NgOptimizedImage, AppChartComponent, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroCalendarDays,
@@ -74,15 +75,15 @@ interface ConversionMetric {
         <div class="flex items-center justify-between">
           <h1 class="text-[36px] font-semibold tracking-[-0.04em] text-[#1A1B1D]">Analytics</h1>
 
-          <button
-            type="button"
-            (click)="range.set(range() === '7d' ? '30d' : '7d')"
-            class="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white pl-3 pr-4 text-[14px] font-medium text-black"
-          >
-            <ng-icon name="heroCalendarDays" class="text-[14px] text-[#6F6F6F]"></ng-icon>
-            <span>{{ rangeLabel() }}</span>
-            <ng-icon name="heroChevronDown" class="text-[14px] text-[#6F6F6F]"></ng-icon>
-          </button>
+          <app-custom-dropdown
+            [options]="rangeOptions"
+            [value]="range()"
+            ariaLabel="Select analytics range"
+            buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white pl-3 pr-4 text-[14px] font-medium text-black"
+            iconClass="text-[#6F6F6F]"
+            menuClass="min-w-[160px]"
+            (valueChange)="range.set($event)"
+          ></app-custom-dropdown>
         </div>
 
         <div class="mt-6 border-b border-[#EAEAEA]">
@@ -343,15 +344,15 @@ interface ConversionMetric {
       <header class="flex flex-col gap-4 border-b border-[#efefef] px-8 py-6 lg:flex-row lg:items-center lg:justify-between">
         <h1 class="text-[2rem] font-semibold tracking-[-0.04em] text-[#202020]">Analytics</h1>
 
-        <button
-          type="button"
-          (click)="range.set(range() === '7d' ? '30d' : '7d')"
-          class="inline-flex h-11 items-center gap-2 self-start rounded-full border border-[#e8e8e8] bg-white px-5 text-[15px] text-[#1f1f1f]"
-        >
-          <ng-icon name="heroCalendarDays" class="text-[16px] text-[#6f6f6f]"></ng-icon>
-          <span>{{ rangeLabel() }}</span>
-          <ng-icon name="heroChevronDown" class="text-[16px] text-[#6f6f6f]"></ng-icon>
-        </button>
+        <app-custom-dropdown
+          [options]="rangeOptions"
+          [value]="range()"
+          ariaLabel="Select analytics range"
+          buttonClass="inline-flex h-11 items-center gap-2 self-start rounded-full border border-[#e8e8e8] bg-white px-5 text-[15px] text-[#1f1f1f]"
+          iconClass="text-[#6f6f6f]"
+          menuClass="min-w-[170px]"
+          (valueChange)="range.set($event)"
+        ></app-custom-dropdown>
       </header>
 
       <div class="px-4 py-6 sm:px-6 lg:px-8">
@@ -638,6 +639,10 @@ interface ConversionMetric {
 export class AdminAnalyticsPageComponent {
   readonly activeTab = signal<AnalyticsTab>('overview');
   readonly range = signal<AnalyticsRange>('7d');
+  readonly rangeOptions: readonly CustomDropdownOption<AnalyticsRange>[] = [
+    { value: '7d', label: 'Last 7 days' },
+    { value: '30d', label: 'Last 30 days' },
+  ];
   readonly mobileOverviewChartOptions = createPerformanceLineChartOptions(226, true);
   readonly mobileUsersChartOptions = this.createSingleSeriesOptions(
     createPerformanceLineChartOptions(226, true),
