@@ -11,6 +11,7 @@ import {
   ApexNonAxisChartSeries,
   ApexPlotOptions,
   ApexResponsive,
+  ApexStates,
   ApexStroke,
   ApexTheme,
   ApexTooltip,
@@ -32,6 +33,7 @@ export interface AppChartOptions {
   markers?: ApexMarkers;
   plotOptions?: ApexPlotOptions;
   responsive?: ApexResponsive[];
+  states?: ApexStates;
   stroke?: ApexStroke;
   theme?: ApexTheme;
   tooltip?: ApexTooltip;
@@ -60,6 +62,7 @@ type ResolvedAppChartOptions = Required<AppChartOptions>;
         [markers]="resolvedConfig().markers"
         [plotOptions]="resolvedConfig().plotOptions"
         [responsive]="resolvedConfig().responsive"
+        [states]="resolvedConfig().states"
         [stroke]="resolvedConfig().stroke"
         [theme]="resolvedConfig().theme"
         [tooltip]="resolvedConfig().tooltip"
@@ -89,6 +92,7 @@ export class AppChartComponent {
       markers: config.markers ?? {},
       plotOptions: config.plotOptions ?? {},
       responsive: config.responsive ?? [],
+      states: config.states ?? {},
       stroke: config.stroke ?? {},
       theme: config.theme ?? {},
       tooltip: config.tooltip ?? {},

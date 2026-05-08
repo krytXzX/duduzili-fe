@@ -129,7 +129,7 @@ interface ActivityItem {
             </div>
 
             <div class="mt-auto pt-10">
-              <app-chart [config]="subscriptionEarningsChartOptions" containerClass="min-h-[240px]"></app-chart>
+              <app-chart [config]="subscriptionEarningsChartHoverOptions" containerClass="min-h-[240px]"></app-chart>
             </div>
           </section>
         </div>
@@ -242,6 +242,21 @@ export class AdminDashboardHomePageComponent {
     ['#DAD7F7', '#DAD7F7', '#DAD7F7', '#6B5CF0', '#DAD7F7'],
     false,
   );
+  readonly subscriptionEarningsChartHoverOptions: AppChartOptions = {
+    ...this.subscriptionEarningsChartOptions,
+    states: {
+      hover: {
+        filter: {
+          type: 'darken',
+        },
+      },
+      active: {
+        filter: {
+          type: 'none',
+        },
+      },
+    },
+  };
   readonly todoItems = signal<TodoItem[]>([
     {
       id: 'todo-1',
