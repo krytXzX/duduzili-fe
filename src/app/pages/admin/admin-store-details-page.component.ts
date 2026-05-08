@@ -3,6 +3,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { Review } from '../../components/product/review-card.component';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroArrowTopRightOnSquare,
@@ -65,9 +66,11 @@ interface ReviewTag {
   count: number;
 }
 
+type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
+
 @Component({
   selector: 'app-admin-store-details-page',
-  imports: [RouterLink, NgIcon, NgOptimizedImage, ListingCardComponent],
+  imports: [RouterLink, NgIcon, NgOptimizedImage, ListingCardComponent, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroArrowTopRightOnSquare,
@@ -342,13 +345,18 @@ interface ReviewTag {
                 <div>
                   <div class="mb-7 flex items-center justify-between">
                     <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h2>
-                    <button
-                      type="button"
-                      class="flex h-8 items-center gap-1 rounded-[32px] border border-[#EAEAEA] bg-white px-2 text-[14px] text-[#1A1B1D]"
-                    >
-                      Most recent
-                      <ng-icon name="heroChevronRight" class="rotate-90 text-[14px] text-[#8C8C92]"></ng-icon>
-                    </button>
+                    <app-custom-dropdown
+                      [options]="reviewSortOptions"
+                      [value]="reviewSort()"
+                      [ariaLabel]="'Sort store reviews'"
+                      [buttonClass]="'inline-flex h-8 items-center gap-1 rounded-[32px] border border-[#EAEAEA] bg-white px-2 text-[14px] text-[#1A1B1D]'"
+                      [labelClass]="'truncate text-[14px] text-[#1A1B1D]'"
+                      [iconClass]="'text-[#8C8C92]'"
+                      [menuClass]="'min-w-[156px]'"
+                      [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                      [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                      (valueChange)="reviewSort.set($event)"
+                    ></app-custom-dropdown>
                   </div>
 
                   <p class="text-[16px] font-medium leading-6 text-[#1F1F1F] md:hidden">This listing is great at..</p>
@@ -369,7 +377,7 @@ interface ReviewTag {
                   </div>
 
                   <div class="mt-8 space-y-8">
-                    @for (review of reviews(); track review.author + review.date) {
+                    @for (review of visibleReviews(); track review.author + review.date) {
                       <article class="w-full max-w-full overflow-hidden">
                         <div class="flex items-center gap-2">
                           <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full">
@@ -444,6 +452,7 @@ export class AdminStoreDetailsPageComponent {
 
   readonly activeTab = signal<AdminStoreDetailsTab>('listings');
   readonly activeCategory = signal<AdminStoreCategoryChip>('All');
+  readonly reviewSort = signal<AdminStoreReviewSort>('most-recent');
   readonly storeId = computed(() => this.route.snapshot.paramMap.get('id') ?? 'vine-collections');
   readonly categoryChips: AdminStoreCategoryChip[] = [
     'All',
@@ -730,6 +739,16 @@ export class AdminStoreDetailsPageComponent {
       ],
     },
   ]);
+
+  readonly visibleReviews = computed(() => {
+    const reviews = [...this.reviews()];
+    return this.reviewSort() === 'highest-rated' ? reviews.sort((a, b) => b.rating - a.rating) : reviews;
+  });
+
+  readonly reviewSortOptions: readonly CustomDropdownOption<AdminStoreReviewSort>[] = [
+    { value: 'most-recent', label: 'Most recent' },
+    { value: 'highest-rated', label: 'Highest rated' },
+  ];
 
   private createListing(
     id: string,

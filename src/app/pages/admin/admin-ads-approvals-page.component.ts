@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   heroCheckCircle,
   heroChevronDown,
@@ -45,7 +46,7 @@ interface ApprovalRecord {
 
 @Component({
   selector: 'app-admin-ads-approvals-page',
-  imports: [NgIcon, NgOptimizedImage, AdminPromotionRequestModalComponent, AdminDeclinePromotionModalComponent, AdminApprovePromotionModalComponent],
+  imports: [NgIcon, NgOptimizedImage, CustomDropdownComponent, AdminPromotionRequestModalComponent, AdminDeclinePromotionModalComponent, AdminApprovePromotionModalComponent],
   providers: [
     provideIcons({
       heroChevronDown,
@@ -209,29 +210,44 @@ interface ApprovalRecord {
         <section class="mt-6 overflow-hidden rounded-[20px] border border-[#e9e9e9] bg-white">
           <div class="flex flex-col gap-4 border-b border-[#efefef] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Store</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="storeFilterOptions()"
+                [value]="storeFilter()"
+                [ariaLabel]="'Filter approvals by store'"
+                [buttonClass]="'inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]'"
+                [labelClass]="'truncate'"
+                [iconClass]="'text-[#8A8A8A]'"
+                [menuClass]="'min-w-[180px]'"
+                [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                (valueChange)="setStoreFilter($event)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Status</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="statusFilterOptions"
+                [value]="statusFilter()"
+                [ariaLabel]="'Filter approvals by status'"
+                [buttonClass]="'inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]'"
+                [labelClass]="'truncate'"
+                [iconClass]="'text-[#8A8A8A]'"
+                [menuClass]="'min-w-[170px]'"
+                [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                (valueChange)="setStatusFilter($event)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Active until</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="activeUntilFilterOptions()"
+                [value]="activeUntilFilter()"
+                [ariaLabel]="'Filter approvals by active until date'"
+                [buttonClass]="'inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]'"
+                [labelClass]="'truncate'"
+                [iconClass]="'text-[#8A8A8A]'"
+                [menuClass]="'min-w-[176px]'"
+                [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                (valueChange)="setActiveUntilFilter($event)"
+              ></app-custom-dropdown>
             </div>
 
             <label class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c] lg:max-w-[226px]">
@@ -391,6 +407,9 @@ export class AdminAdsApprovalsPageComponent {
   ];
 
   readonly activeFilter = signal<ApprovalFilterId>('all');
+  readonly storeFilter = signal('all');
+  readonly statusFilter = signal<'all' | ApprovalStatus>('all');
+  readonly activeUntilFilter = signal('all');
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
   readonly pageSize = 5;
@@ -485,14 +504,40 @@ export class AdminAdsApprovalsPageComponent {
 
     return this.approvals().filter((record) => {
       const filterMatch = filter === 'all' || record.status === filter;
+      const storeMatch = this.storeFilter() === 'all' || record.userName === this.storeFilter();
+      const statusMatch = this.statusFilter() === 'all' || record.status === this.statusFilter();
+      const activeUntilMatch = this.activeUntilFilter() === 'all' || record.activeUntil === this.activeUntilFilter();
       const queryMatch =
         query === ''
         || record.adTitle.toLowerCase().includes(query)
         || record.userName.toLowerCase().includes(query);
 
-      return filterMatch && queryMatch;
+      return filterMatch && storeMatch && statusMatch && activeUntilMatch && queryMatch;
     });
   });
+
+  readonly storeFilterOptions = computed<readonly CustomDropdownOption<string>[]>(() => [
+    { value: 'all', label: 'All stores' },
+    ...Array.from(new Set(this.approvals().map((record) => record.userName))).map((name) => ({
+      value: name,
+      label: name,
+    })),
+  ]);
+
+  readonly statusFilterOptions: readonly CustomDropdownOption<'all' | ApprovalStatus>[] = [
+    { value: 'all', label: 'All statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'declined', label: 'Declined' },
+  ];
+
+  readonly activeUntilFilterOptions = computed<readonly CustomDropdownOption<string>[]>(() => [
+    { value: 'all', label: 'All dates' },
+    ...Array.from(new Set(this.approvals().map((record) => record.activeUntil))).map((date) => ({
+      value: date,
+      label: date,
+    })),
+  ]);
 
   readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredApprovals().length / this.pageSize)));
 
@@ -555,6 +600,21 @@ export class AdminAdsApprovalsPageComponent {
   updateSearchQuery(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchQuery.set(input.value);
+    this.currentPage.set(1);
+  }
+
+  setStoreFilter(value: string): void {
+    this.storeFilter.set(value);
+    this.currentPage.set(1);
+  }
+
+  setStatusFilter(value: 'all' | ApprovalStatus): void {
+    this.statusFilter.set(value);
+    this.currentPage.set(1);
+  }
+
+  setActiveUntilFilter(value: string): void {
+    this.activeUntilFilter.set(value);
     this.currentPage.set(1);
   }
 

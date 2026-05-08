@@ -58,6 +58,10 @@ type AdminUserTransactionStatus = 'successful' | 'failed';
 type AdminUserTransactionType = 'all' | 'wallet funding' | 'subscription payment';
 type AdminUserTransactionDate = 'all' | 'feb-2025' | 'mar-2025';
 type AdminUserReportTab = 'profile' | 'listing';
+type AdminUserOverviewRange = 'last-7-days' | 'last-30-days' | 'last-90-days';
+type AdminUserListingReportCategory = 'all' | 'phones-laptops' | 'accessories' | 'beauty';
+type AdminUserListingReportStore = 'all' | 'vine' | 'eden' | 'personal';
+type AdminUserListingReportStatus = 'all' | 'pending' | 'under-review' | 'resolved';
 type AdminUserDetailsTab =
   | 'overview'
   | 'listings'
@@ -215,11 +219,14 @@ interface AdminListingReport {
   id: string;
   listingName: string;
   listingImage: string;
+  categoryKey: Exclude<AdminUserListingReportCategory, 'all'>;
   storeName: string;
+  storeKey: Exclude<AdminUserListingReportStore, 'all'>;
   storeIcon: string;
   reporterName: string;
   reporterEmail: string;
   reporterAvatar: string;
+  status: Exclude<AdminUserListingReportStatus, 'all'>;
   description: string;
 }
 
@@ -433,30 +440,18 @@ interface AdminUserActivityYearGroup {
       @if (activeTab() === 'overview') {
         <div class="mt-8 flex flex-col gap-4">
           <section class="overflow-hidden rounded-[20px] border border-[#EBEBEB] bg-white p-3">
-            <button
-              type="button"
-              class="flex h-10 items-center gap-3 rounded-full border border-[#EAEAEA] bg-white px-3 pr-4 text-[14px] font-medium leading-5 text-black"
-            >
-              <span class="flex items-center gap-1">
-                <img
-                  ngSrc="/assets/icons/admin-user-details/calendar.svg"
-                  width="14"
-                  height="14"
-                  alt=""
-                  class="h-3.5 w-3.5"
-                  aria-hidden="true"
-                />
-                Last 7 days
-              </span>
-              <img
-                ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
-                width="14"
-                height="14"
-                alt=""
-                class="h-3.5 w-3.5"
-                aria-hidden="true"
-              />
-            </button>
+            <app-custom-dropdown
+              [options]="overviewRangeOptions"
+              [value]="overviewRange()"
+              [ariaLabel]="'Filter user overview range'"
+              [buttonClass]="'inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium leading-5 text-black'"
+              [labelClass]="'truncate'"
+              [iconClass]="'text-[#777777]'"
+              [menuClass]="'min-w-[152px]'"
+              [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+              [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+              (valueChange)="overviewRange.set($event)"
+            ></app-custom-dropdown>
 
             <div class="mt-5">
               <p class="text-[14px] font-semibold leading-6 text-[#0D0D0D]/40">Total sold items</p>
@@ -1085,21 +1080,18 @@ interface AdminUserActivityYearGroup {
             <div class="flex items-center justify-between gap-4">
               <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h2>
 
-              <button
-                type="button"
-                (click)="toggleReviewSort()"
-                class="inline-flex h-8 items-center gap-1 rounded-full border border-[#EAEAEA] bg-white px-2 text-[14px] font-normal leading-5 text-[#1A1B1D]"
-              >
-                {{ reviewSortLabel() }}
-                <img
-                  ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
-                  width="14"
-                  height="14"
-                  alt=""
-                  class="h-[14px] w-[14px]"
-                  aria-hidden="true"
-                />
-              </button>
+              <app-custom-dropdown
+                [options]="reviewSortOptions"
+                [value]="reviewSort()"
+                [ariaLabel]="'Sort user reviews'"
+                [buttonClass]="'inline-flex h-8 items-center gap-1 rounded-full border border-[#EAEAEA] bg-white px-2 text-[14px] font-normal leading-5 text-[#1A1B1D]'"
+                [labelClass]="'truncate'"
+                [iconClass]="'text-[#777777]'"
+                [menuClass]="'min-w-[156px]'"
+                [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                (valueChange)="reviewSort.set($event)"
+              ></app-custom-dropdown>
             </div>
 
             <div>
@@ -1541,14 +1533,18 @@ interface AdminUserActivityYearGroup {
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    class="inline-flex items-center gap-2 self-start rounded-full border border-[#E7EAF0] bg-white px-4 py-2.5 text-[14px] font-medium text-[#3F444C]"
-                  >
-                    <ng-icon name="heroCalendarDays" class="text-base"></ng-icon>
-                    Last 7 days
-                    <ng-icon name="heroChevronDown" class="text-sm text-[#9BA0AA]"></ng-icon>
-                  </button>
+                  <app-custom-dropdown
+                    [options]="overviewRangeOptions"
+                    [value]="overviewRange()"
+                    [ariaLabel]="'Filter user overview range'"
+                    [buttonClass]="'inline-flex items-center gap-2 self-start rounded-full border border-[#E7EAF0] bg-white px-4 py-2.5 text-[14px] font-medium text-[#3F444C]'"
+                    [labelClass]="'truncate'"
+                    [iconClass]="'text-[#9BA0AA]'"
+                    [menuClass]="'min-w-[152px]'"
+                    [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                    [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                    (valueChange)="overviewRange.set($event)"
+                  ></app-custom-dropdown>
                 </div>
 
                 <div class="mt-8">
@@ -2551,21 +2547,18 @@ interface AdminUserActivityYearGroup {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    (click)="toggleReviewSort()"
-                    class="inline-flex h-8 items-center gap-2 self-start rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-normal leading-5 text-[#1A1B1D]"
-                  >
-                    {{ reviewSortLabel() }}
-                    <img
-                      ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
-                      width="14"
-                      height="14"
-                      alt=""
-                      class="h-[14px] w-[14px]"
-                      aria-hidden="true"
-                    />
-                  </button>
+                  <app-custom-dropdown
+                    [options]="reviewSortOptions"
+                    [value]="reviewSort()"
+                    [ariaLabel]="'Sort user reviews'"
+                    [buttonClass]="'inline-flex h-8 items-center gap-2 self-start rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-normal leading-5 text-[#1A1B1D]'"
+                    [labelClass]="'truncate'"
+                    [iconClass]="'text-[#777777]'"
+                    [menuClass]="'min-w-[156px]'"
+                    [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                    [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                    (valueChange)="reviewSort.set($event)"
+                  ></app-custom-dropdown>
                 </div>
 
                 <div class="space-y-8">
@@ -2642,22 +2635,44 @@ interface AdminUserActivityYearGroup {
                 <div class="flex flex-wrap items-center justify-end gap-3">
                   @if (activeReportTab() === 'listing') {
                     <div class="mr-auto flex flex-wrap items-center gap-2">
-                      @for (filterLabel of ['Category', 'Store', 'Status']; track filterLabel) {
-                        <button
-                          type="button"
-                          class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] leading-5 text-[#1A1B1D]"
-                        >
-                          {{ filterLabel }}
-                          <img
-                            ngSrc="/assets/icons/admin-user-details/arrow-down.svg"
-                            width="14"
-                            height="14"
-                            alt=""
-                            class="h-[14px] w-[14px]"
-                            aria-hidden="true"
-                          />
-                        </button>
-                      }
+                      <app-custom-dropdown
+                        [options]="listingReportCategoryOptions"
+                        [value]="listingReportCategoryFilter()"
+                        [ariaLabel]="'Filter listing reports by category'"
+                        [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] leading-5 text-[#1A1B1D]'"
+                        [labelClass]="'truncate'"
+                        [iconClass]="'text-[#777777]'"
+                        [menuClass]="'min-w-[176px]'"
+                        [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                        [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                        (valueChange)="listingReportCategoryFilter.set($event)"
+                      ></app-custom-dropdown>
+
+                      <app-custom-dropdown
+                        [options]="listingReportStoreOptions"
+                        [value]="listingReportStoreFilter()"
+                        [ariaLabel]="'Filter listing reports by store'"
+                        [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] leading-5 text-[#1A1B1D]'"
+                        [labelClass]="'truncate'"
+                        [iconClass]="'text-[#777777]'"
+                        [menuClass]="'min-w-[176px]'"
+                        [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                        [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                        (valueChange)="listingReportStoreFilter.set($event)"
+                      ></app-custom-dropdown>
+
+                      <app-custom-dropdown
+                        [options]="listingReportStatusOptions"
+                        [value]="listingReportStatusFilter()"
+                        [ariaLabel]="'Filter listing reports by status'"
+                        [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] leading-5 text-[#1A1B1D]'"
+                        [labelClass]="'truncate'"
+                        [iconClass]="'text-[#777777]'"
+                        [menuClass]="'min-w-[176px]'"
+                        [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                        [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                        (valueChange)="listingReportStatusFilter.set($event)"
+                      ></app-custom-dropdown>
                     </div>
                   }
 
@@ -2922,9 +2937,13 @@ export class AdminUserDetailsPageComponent {
   readonly transactionTypeFilter = signal<AdminUserTransactionType>('all');
   readonly transactionDateFilter = signal<AdminUserTransactionDate>('all');
   readonly transactionStatusFilter = signal<'all' | AdminUserTransactionStatus>('all');
+  readonly overviewRange = signal<AdminUserOverviewRange>('last-7-days');
   readonly reviewSort = signal<'most-recent' | 'highest-rated'>('most-recent');
   readonly activeReportTab = signal<AdminUserReportTab>('profile');
   readonly reportSearchQuery = signal('');
+  readonly listingReportCategoryFilter = signal<AdminUserListingReportCategory>('all');
+  readonly listingReportStoreFilter = signal<AdminUserListingReportStore>('all');
+  readonly listingReportStatusFilter = signal<AdminUserListingReportStatus>('all');
 
   readonly user = computed(() => {
     const id = this.userId();
@@ -3080,11 +3099,16 @@ export class AdminUserDetailsPageComponent {
     const reports = this.listingReportsByUser[this.userId()] ?? this.listingReportsByUser['francis-uche'];
 
     return reports.filter((report) =>
-      query === ''
-      || report.listingName.toLowerCase().includes(query)
-      || report.storeName.toLowerCase().includes(query)
-      || report.reporterName.toLowerCase().includes(query)
-      || report.description.toLowerCase().includes(query),
+      (this.listingReportCategoryFilter() === 'all' || report.categoryKey === this.listingReportCategoryFilter())
+      && (this.listingReportStoreFilter() === 'all' || report.storeKey === this.listingReportStoreFilter())
+      && (this.listingReportStatusFilter() === 'all' || report.status === this.listingReportStatusFilter())
+      && (
+        query === ''
+        || report.listingName.toLowerCase().includes(query)
+        || report.storeName.toLowerCase().includes(query)
+        || report.reporterName.toLowerCase().includes(query)
+        || report.description.toLowerCase().includes(query)
+      ),
     );
   });
 
@@ -3186,6 +3210,38 @@ export class AdminUserDetailsPageComponent {
     { value: 'all', label: 'All statuses' },
     { value: 'successful', label: 'Successful' },
     { value: 'failed', label: 'Failed' },
+  ];
+
+  readonly overviewRangeOptions: readonly CustomDropdownOption<AdminUserOverviewRange>[] = [
+    { value: 'last-7-days', label: 'Last 7 days' },
+    { value: 'last-30-days', label: 'Last 30 days' },
+    { value: 'last-90-days', label: 'Last 90 days' },
+  ];
+
+  readonly reviewSortOptions: readonly CustomDropdownOption<'most-recent' | 'highest-rated'>[] = [
+    { value: 'most-recent', label: 'Most recent' },
+    { value: 'highest-rated', label: 'Highest rated' },
+  ];
+
+  readonly listingReportCategoryOptions: readonly CustomDropdownOption<AdminUserListingReportCategory>[] = [
+    { value: 'all', label: 'All categories' },
+    { value: 'phones-laptops', label: 'Phones & Laptops' },
+    { value: 'accessories', label: 'Accessories' },
+    { value: 'beauty', label: 'Beauty' },
+  ];
+
+  readonly listingReportStoreOptions: readonly CustomDropdownOption<AdminUserListingReportStore>[] = [
+    { value: 'all', label: 'All stores' },
+    { value: 'vine', label: 'The Vine Collections' },
+    { value: 'eden', label: 'Eden Organics' },
+    { value: 'personal', label: 'Personal account' },
+  ];
+
+  readonly listingReportStatusOptions: readonly CustomDropdownOption<AdminUserListingReportStatus>[] = [
+    { value: 'all', label: 'All statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'under-review', label: 'Under review' },
+    { value: 'resolved', label: 'Resolved' },
   ];
 
   readonly reviewSortLabel = computed(() =>
@@ -4527,33 +4583,42 @@ export class AdminUserDetailsPageComponent {
         id: 'listing-report-1',
         listingName: 'Iphone 17 pro max',
         listingImage: '/assets/images/admin-user-details/reports/mobile/listing-report-iphone.png',
+        categoryKey: 'phones-laptops',
         storeName: 'The Vine Collections',
+        storeKey: 'vine',
         storeIcon: '/assets/images/admin-user-details/reports/vine-store-icon.png',
         reporterName: 'Francis Uche',
         reporterEmail: 'uche@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/reporter-avatar.png',
+        status: 'pending',
         description: 'This item is no longer available for sale but still appears in active search results.',
       },
       {
         id: 'listing-report-2',
         listingName: 'Logitech ergonomic mouse',
         listingImage: '/assets/images/product_keyboard_rgb.png',
+        categoryKey: 'accessories',
         storeName: 'Eden Organics',
+        storeKey: 'eden',
         storeIcon: '/assets/images/admin-user-details/reports/eden-store-icon.png',
         reporterName: 'Mark Anthony',
         reporterEmail: 'mark@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/reporter-avatar.png',
+        status: 'under-review',
         description: 'The listing information does not match the product details shown after purchase.',
       },
       {
         id: 'listing-report-3',
         listingName: 'Bone straight wig',
         listingImage: '/assets/images/admin-user-details/mobile-listings/bone-straight-wig.png',
+        categoryKey: 'beauty',
         storeName: 'Personal account',
+        storeKey: 'personal',
         storeIcon: '/assets/images/admin-user-details/reports/personal-account-avatar.png',
         reporterName: 'Elle Adebisi',
         reporterEmail: 'elle@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/personal-account-avatar.png',
+        status: 'resolved',
         description: 'This listing was reported for remaining live after the seller marked the item as sold.',
       },
     ],
