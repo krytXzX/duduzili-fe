@@ -389,19 +389,23 @@ interface StoreAvatar {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnalyticsPageComponent {
-  readonly mobileSoldItemsChartOptions: AppChartOptions = createSparkBarChartOptions(
-    220,
-    ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
-    [26, 109, 45, 76, 96, 45, 168, 67, 45, 141, 52, 30],
-    ['#6453D9', '#6453D9', '#6453D9', '#6453D9', '#6453D9', '#CFC8FD', '#CFC8FD', '#CFC8FD', '#CFC8FD', '#6453D9', '#6453D9', '#6453D9'],
-    true,
+  readonly mobileSoldItemsChartOptions: AppChartOptions = this.withHoverDarken(
+    createSparkBarChartOptions(
+      220,
+      ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
+      [26, 109, 45, 76, 96, 45, 168, 67, 45, 141, 52, 30],
+      ['#6453D9', '#6453D9', '#6453D9', '#6453D9', '#6453D9', '#CFC8FD', '#CFC8FD', '#CFC8FD', '#CFC8FD', '#6453D9', '#6453D9', '#6453D9'],
+      true,
+    ),
   );
-  readonly desktopSoldItemsChartOptions: AppChartOptions = createSparkBarChartOptions(
-    288,
-    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    [104, 77, 48, 72, 144, 76, 104, 104, 76, 81, 67, 104],
-    ['#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#6B5CF0', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7'],
-    false,
+  readonly desktopSoldItemsChartOptions: AppChartOptions = this.withHoverDarken(
+    createSparkBarChartOptions(
+      288,
+      ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      [104, 77, 48, 72, 144, 76, 104, 104, 76, 81, 67, 104],
+      ['#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#6B5CF0', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7'],
+      false,
+    ),
   );
   readonly assets = {
     arrowUpIcon: '/assets/icons/analytics-arrow-up.svg',
@@ -443,5 +447,23 @@ export class AnalyticsPageComponent {
 
   cycleStoreSelection(): void {
     this.selectedStoreMode.update(mode => (mode === 'all' ? 'single' : 'all'));
+  }
+
+  private withHoverDarken(config: AppChartOptions): AppChartOptions {
+    return {
+      ...config,
+      states: {
+        hover: {
+          filter: {
+            type: 'darken',
+          },
+        },
+        active: {
+          filter: {
+            type: 'none',
+          },
+        },
+      },
+    };
   }
 }
