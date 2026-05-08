@@ -8,6 +8,7 @@ import {
   heroInformationCircle,
   heroMagnifyingGlass,
 } from '@ng-icons/heroicons/outline';
+import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
 
 type TransactionYearFilter = 'this-year' | 'last-year';
 
@@ -30,7 +31,7 @@ interface AdsTransactionRecord {
 
 @Component({
   selector: 'app-admin-ads-transactions-page',
-  imports: [NgIcon, NgOptimizedImage],
+  imports: [NgIcon, NgOptimizedImage, AppChartComponent],
   providers: [
     provideIcons({
       heroChevronDown,
@@ -69,16 +70,12 @@ interface AdsTransactionRecord {
             </button>
           </div>
 
-          <div class="mt-4 flex h-[64px] items-end justify-end gap-[7px] pr-1">
-            @for (bar of summaryBars(); track bar.label) {
-              <div
-                class="rounded-t-[3px] bg-gradient-to-b from-[#6453d9] to-[#cfc8fd]"
-                [class.opacity-100]="bar.active"
-                [class.opacity-20]="!bar.active"
-                [style.height.px]="mobileBarHeight(bar)"
-                [style.width.px]="31"
-              ></div>
-            }
+          <div class="mt-4">
+            <app-chart
+              [config]="mobileSummaryChartOptions()"
+              [suppressGeneratedTitle]="true"
+              containerClass="h-[64px]"
+            ></app-chart>
           </div>
         </section>
 
@@ -178,15 +175,12 @@ interface AdsTransactionRecord {
             </button>
           </div>
 
-          <div class="mt-8 flex h-[150px] items-end justify-end gap-3">
-            @for (bar of summaryBars(); track bar.label) {
-              <div
-                class="w-14 rounded-t-[6px]"
-                [style.height.px]="bar.height"
-                [class.bg-[#dcd8fb]]="!bar.active"
-                [class.bg-[#6b5adf]]="bar.active"
-              ></div>
-            }
+          <div class="mt-8">
+            <app-chart
+              [config]="desktopSummaryChartOptions()"
+              [suppressGeneratedTitle]="true"
+              containerClass="h-[150px]"
+            ></app-chart>
           </div>
         </section>
 
@@ -396,6 +390,9 @@ export class AdminAdsTransactionsPageComponent {
         ]
   );
 
+  readonly mobileSummaryChartOptions = computed(() => this.createSummaryChartOptions(true));
+  readonly desktopSummaryChartOptions = computed(() => this.createSummaryChartOptions(false));
+
   readonly filteredTransactions = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
 
@@ -418,10 +415,6 @@ export class AdminAdsTransactionsPageComponent {
     this.yearFilter() === 'this-year' ? 'This year' : 'Last year'
   );
 
-  mobileBarHeight(bar: TransactionSummaryBar): number {
-    return bar.active ? 51 : Math.max(3, Math.round(bar.height * 0.36));
-  }
-
   updateSearchQuery(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchQuery.set(input.value);
@@ -434,5 +427,70 @@ export class AdminAdsTransactionsPageComponent {
 
   goToNextPage(): void {
     this.currentPage.update((page) => Math.min(this.totalPages(), page + 1));
+  }
+
+  private createSummaryChartOptions(compact: boolean): AppChartOptions {
+    const bars = this.summaryBars();
+    const values = bars.map((bar) => (compact ? (bar.active ? 51 : Math.max(3, Math.round(bar.height * 0.36))) : bar.height));
+    const colors = bars.map((bar) => (bar.active ? '#6B5ADF' : compact ? '#CFC8FD' : '#DCD8FB'));
+
+    return {
+      series: [
+        {
+          name: 'Transactions',
+          data: values,
+        },
+      ],
+      chart: {
+        type: 'bar',
+        height: compact ? 64 : 150,
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        animations: { enabled: false },
+        fontFamily: 'inherit',
+        sparkline: { enabled: true },
+      },
+      colors,
+      plotOptions: {
+        bar: {
+          distributed: true,
+          columnWidth: compact ? '72%' : '68%',
+          borderRadius: compact ? 3 : 6,
+          borderRadiusApplication: 'end',
+        },
+      },
+      dataLabels: { enabled: false },
+      grid: {
+        show: false,
+        padding: {
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+        },
+      },
+      tooltip: {
+        enabled: true,
+        theme: 'dark',
+      },
+      xaxis: {
+        categories: bars.map((bar) => bar.label),
+      },
+      yaxis: {
+        show: false,
+      },
+      states: {
+        hover: {
+          filter: {
+            type: 'darken',
+          },
+        },
+        active: {
+          filter: {
+            type: 'none',
+          },
+        },
+      },
+    };
   }
 }
