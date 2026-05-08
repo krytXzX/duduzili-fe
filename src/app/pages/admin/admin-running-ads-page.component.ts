@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   heroBuildingStorefront,
   heroCalendarDays,
@@ -17,6 +18,8 @@ import {
 type AdsCategory = 'promoted listings' | 'store promotions' | 'banner ads';
 type AdStatus = 'active' | 'paused';
 type FilterChip = 'all' | AdStatus;
+type RunningAdsStoreFilter = 'all' | string;
+type RunningAdsActiveUntilFilter = 'all' | string;
 
 interface RunningAdsCategoryTab {
   id: AdsCategory;
@@ -50,7 +53,7 @@ interface RunningAdsRecord {
 
 @Component({
   selector: 'app-admin-running-ads-page',
-  imports: [NgIcon, NgOptimizedImage],
+  imports: [NgIcon, NgOptimizedImage, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroBuildingStorefront,
@@ -419,29 +422,35 @@ interface RunningAdsRecord {
         <section class="mt-8 overflow-hidden rounded-[20px] border border-[#e9e9e9] bg-white">
           <div class="flex flex-col gap-4 border-b border-[#efefef] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Store</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="storeFilterOptions()"
+                [value]="storeFilter()"
+                ariaLabel="Select store filter"
+                buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
+                iconClass="text-[#8a8a8a]"
+                menuClass="min-w-[210px]"
+                (valueChange)="storeFilter.set($event); currentPage.set(1)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Status</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="statusDropdownOptions"
+                [value]="statusDropdownFilter()"
+                ariaLabel="Select status filter"
+                buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
+                iconClass="text-[#8a8a8a]"
+                menuClass="min-w-[160px]"
+                (valueChange)="statusDropdownFilter.set($event); currentPage.set(1)"
+              ></app-custom-dropdown>
 
-              <button
-                type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
-              >
-                <span>Active until</span>
-                <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-              </button>
+              <app-custom-dropdown
+                [options]="activeUntilFilterOptions()"
+                [value]="activeUntilFilter()"
+                ariaLabel="Select active until filter"
+                buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
+                iconClass="text-[#8a8a8a]"
+                menuClass="min-w-[170px]"
+                (valueChange)="activeUntilFilter.set($event); currentPage.set(1)"
+              ></app-custom-dropdown>
             </div>
 
             <label class="flex h-10 w-full items-center gap-2 rounded-full bg-[#fafafa] px-4 text-[#9c9c9c] lg:max-w-[226px]">
@@ -662,9 +671,17 @@ export class AdminRunningAdsPageComponent {
 
   readonly activeCategory = signal<AdsCategory>('promoted listings');
   readonly activeFilterChip = signal<FilterChip>('all');
+  readonly storeFilter = signal<RunningAdsStoreFilter>('all');
+  readonly statusDropdownFilter = signal<'all' | AdStatus>('all');
+  readonly activeUntilFilter = signal<RunningAdsActiveUntilFilter>('all');
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
   readonly pageSize = 5;
+  readonly statusDropdownOptions: readonly CustomDropdownOption<'all' | AdStatus>[] = [
+    { value: 'all', label: 'Status' },
+    { value: 'active', label: 'Active' },
+    { value: 'paused', label: 'Paused' },
+  ];
 
   readonly runningAds = signal<RunningAdsRecord[]>([
     {
@@ -965,20 +982,52 @@ export class AdminRunningAdsPageComponent {
     },
   ]);
 
+  readonly storeFilterOptions = computed<readonly CustomDropdownOption<RunningAdsStoreFilter>[]>(() => {
+    const uniqueStores = [...new Set(
+      this.runningAds()
+        .filter((record) => record.category === this.activeCategory())
+        .map((record) => record.storeOrUser),
+    )];
+
+    return [
+      { value: 'all', label: 'Store' },
+      ...uniqueStores.map((store) => ({ value: store, label: store })),
+    ];
+  });
+
+  readonly activeUntilFilterOptions = computed<readonly CustomDropdownOption<RunningAdsActiveUntilFilter>[]>(() => {
+    const uniqueDates = [...new Set(
+      this.runningAds()
+        .filter((record) => record.category === this.activeCategory())
+        .map((record) => record.activeUntil),
+    )];
+
+    return [
+      { value: 'all', label: 'Active until' },
+      ...uniqueDates.map((date) => ({ value: date, label: date })),
+    ];
+  });
+
   readonly filteredAds = computed(() => {
     const category = this.activeCategory();
     const chip = this.activeFilterChip();
     const query = this.searchQuery().trim().toLowerCase();
+    const store = this.storeFilter();
+    const dropdownStatus = this.statusDropdownFilter();
+    const activeUntil = this.activeUntilFilter();
 
     return this.runningAds().filter((record) => {
       const categoryMatch = record.category === category;
       const statusMatch = chip === 'all' || record.status === chip;
+      const dropdownStatusMatch = dropdownStatus === 'all' || record.status === dropdownStatus;
+      const storeMatch = store === 'all' || record.storeOrUser === store;
+      const activeUntilMatch = activeUntil === 'all' || record.activeUntil === activeUntil;
       const queryMatch =
         query === ''
         || record.title.toLowerCase().includes(query)
         || record.storeOrUser.toLowerCase().includes(query);
 
-      return categoryMatch && statusMatch && queryMatch;
+      return categoryMatch && statusMatch && dropdownStatusMatch && storeMatch && activeUntilMatch && queryMatch;
     });
   });
 
@@ -1006,6 +1055,9 @@ export class AdminRunningAdsPageComponent {
   setActiveCategory(category: AdsCategory): void {
     this.activeCategory.set(category);
     this.activeFilterChip.set(category === 'banner ads' ? 'active' : 'all');
+    this.storeFilter.set('all');
+    this.statusDropdownFilter.set('all');
+    this.activeUntilFilter.set('all');
     this.currentPage.set(1);
   }
 
