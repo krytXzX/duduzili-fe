@@ -100,15 +100,15 @@ type NavItem = {
               [class.rounded-[32px]]="isRouteActive(item.activePaths)"
               [class.bg-[#f5f3ff]]="isRouteActive(item.activePaths)"
               [class.text-[#6453d9]]="isRouteActive(item.activePaths)"
+              [attr.aria-current]="isRouteActive(item.activePaths) ? 'page' : null"
             >
-              <img
-                [ngSrc]="item.iconSrc"
-                alt=""
-                width="22"
-                height="22"
+              <span
                 class="h-[22px] w-[22px]"
+                [style.background-color]="isRouteActive(item.activePaths) ? '#6453D9' : '#5C5C5C'"
+                [style.webkitMask]="'url(' + item.iconSrc + ') center / contain no-repeat'"
+                [style.mask]="'url(' + item.iconSrc + ') center / contain no-repeat'"
                 aria-hidden="true"
-              />
+              ></span>
               <span class="text-[11px] font-medium">{{ item.label }}</span>
             </a>
           }
