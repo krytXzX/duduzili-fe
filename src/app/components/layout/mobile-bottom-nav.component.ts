@@ -187,8 +187,8 @@ export class MobileBottomNavComponent {
 
   readonly listingsRoute = input('/listings');
   readonly listingsActivePaths = input<readonly string[]>(['/listings']);
-  readonly messagesRoute = input('/messages');
-  readonly messagesActivePaths = input<readonly string[]>(['/messages']);
+  readonly messagesRoute = input('/seller/messages');
+  readonly messagesActivePaths = input<readonly string[]>(['/seller/messages']);
   readonly storesRoute = input('/my-stores');
   readonly storesActivePaths = input<readonly string[]>(['/my-stores']);
   readonly moreRoute = input('/more');
