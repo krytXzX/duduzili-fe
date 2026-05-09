@@ -3,6 +3,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
 import { createSparkBarChartOptions } from '../../components/charts/chart-mock-data';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 
 interface SummaryMetric {
   label: string;
@@ -17,13 +18,17 @@ interface DistributionItem {
 }
 
 interface StoreAvatar {
+  id: 'vine' | 'eden' | 'amazing' | 'badge';
   src: string;
   alt: string;
 }
 
+type AnalyticsRange = '7d' | '30d' | '90d';
+type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
+
 @Component({
   selector: 'app-analytics-page',
-  imports: [NgOptimizedImage, RouterLink, AppChartComponent],
+  imports: [NgOptimizedImage, RouterLink, AppChartComponent, CustomDropdownComponent],
   template: `
     <div class="md:hidden">
       <div class="px-4 pb-28">
@@ -66,14 +71,18 @@ interface StoreAvatar {
         </div>
 
         <section class="mt-4 rounded-[20px] border border-[#EBEBEB] bg-white px-[11px] pb-4 pt-[11px]">
-          <button
-            type="button"
-            class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white pl-3 pr-4 text-[14px] font-medium leading-5 text-black"
-          >
-            <img [ngSrc]="assets.calendarIcon" width="14" height="14" alt="" class="h-[14px] w-[14px]">
-            Last 7 days
-            <img [ngSrc]="assets.arrowDownIcon" width="14" height="14" alt="" class="h-[14px] w-[14px]">
-          </button>
+          <app-custom-dropdown
+            [options]="rangeOptions"
+            [value]="range()"
+            [ariaLabel]="'Filter analytics range'"
+            [buttonClass]="'inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white pl-3 pr-4 text-[14px] font-medium leading-5 text-black'"
+            [labelClass]="'truncate'"
+            [iconClass]="'text-[#777777]'"
+            [menuClass]="'min-w-[156px]'"
+            [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+            [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+            (valueChange)="range.set($event)"
+          ></app-custom-dropdown>
 
           <div class="mt-7">
             <p class="text-[14px] font-semibold leading-6 text-[rgba(13,13,13,0.4)]">
@@ -190,53 +199,18 @@ interface StoreAvatar {
         <div class="flex items-center justify-between border-b border-[#EEEEEE] px-4 py-3">
           <h1 class="text-[24px] font-medium leading-[normal] text-[#0D0D0D]">Analytics</h1>
 
-          <button
-            type="button"
-            (click)="cycleStoreSelection()"
-            class="inline-flex h-11 items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white p-2 pr-3 w-[347px]"
-            aria-label="Change store selection"
-          >
-            <span class="flex items-center gap-2">
-              <span class="relative h-8 w-[68px]">
-                @for (store of visibleStores(); track store.alt; let i = $index) {
-                  <span
-                    class="absolute top-0 inline-flex h-8 w-8 overflow-hidden rounded-full border-[1.3px] border-white bg-white"
-                    [style.left.px]="i * 12"
-                  >
-                    @if (store.src) {
-                      <img
-                        [ngSrc]="store.src"
-                        width="32"
-                        height="32"
-                        [alt]="store.alt"
-                        class="h-8 w-8 object-cover"
-                      >
-                    } @else {
-                      <span class="flex h-full w-full items-center justify-center bg-[#3D785F]">
-                        <img
-                          [ngSrc]="assets.storeBadgeIcon"
-                          width="20"
-                          height="20"
-                          alt=""
-                          class="h-5 w-5"
-                        >
-                      </span>
-                    }
-                  </span>
-                }
-              </span>
-              <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
-                {{ selectedStoreLabel() }}
-              </span>
-            </span>
-
-            <span class="flex items-center gap-[10px]">
-              <span class="h-[17px] w-px rotate-180 bg-[#E8E8E8]"></span>
-              <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#EDEDED]">
-                <img [ngSrc]="assets.arrowDownIcon" width="16" height="16" alt="" class="h-4 w-4">
-              </span>
-            </span>
-          </button>
+          <app-custom-dropdown
+            [options]="storeOptions"
+            [value]="selectedStoreFilter()"
+            [ariaLabel]="'Filter analytics by store'"
+            [buttonClass]="'inline-flex h-11 items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white p-2 pr-3 w-[347px]'"
+            [labelClass]="'truncate text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]'"
+            [iconClass]="'text-[#777777]'"
+            [menuClass]="'min-w-[220px]'"
+            [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+            [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+            (valueChange)="selectedStoreFilter.set($event)"
+          ></app-custom-dropdown>
         </div>
 
         <div class="flex-1 overflow-y-auto px-[19px] pb-5 pt-[17px]">
@@ -273,16 +247,18 @@ interface StoreAvatar {
                 </span>
               </div>
 
-              <button
-                type="button"
-                class="inline-flex h-10 items-center justify-center gap-3 rounded-[64px] border border-[#EAEAEA] bg-white pl-3 pr-4 text-[14px] font-medium text-black"
-              >
-                <span class="flex items-center gap-1">
-                  <img [ngSrc]="assets.calendarIcon" width="14" height="14" alt="" class="h-[14px] w-[14px]">
-                  Last 7 days
-                </span>
-                <img [ngSrc]="assets.arrowDownIcon" width="14" height="14" alt="" class="h-[14px] w-[14px]">
-              </button>
+              <app-custom-dropdown
+                [options]="rangeOptions"
+                [value]="range()"
+                [ariaLabel]="'Filter analytics range'"
+                [buttonClass]="'inline-flex h-10 items-center justify-center gap-3 rounded-[64px] border border-[#EAEAEA] bg-white pl-3 pr-4 text-[14px] font-medium text-black'"
+                [labelClass]="'truncate'"
+                [iconClass]="'text-[#777777]'"
+                [menuClass]="'min-w-[156px]'"
+                [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                (valueChange)="range.set($event)"
+              ></app-custom-dropdown>
             </div>
 
             <div class="mt-8">
@@ -429,25 +405,38 @@ export class AnalyticsPageComponent {
   ];
 
   readonly stores = signal<readonly StoreAvatar[]>([
-    { src: '/assets/images/analytics-store-avatar-1.png', alt: 'Store avatar one' },
-    { src: '/assets/images/analytics-store-avatar-2.png', alt: 'Store avatar two' },
-    { src: '/assets/images/analytics-store-avatar-3.png', alt: 'Store avatar three' },
-    { src: '', alt: 'Store badge' },
+    { id: 'vine', src: '/assets/images/analytics-store-avatar-1.png', alt: 'The Vine Collections' },
+    { id: 'eden', src: '/assets/images/analytics-store-avatar-2.png', alt: 'Eden Organics' },
+    { id: 'amazing', src: '/assets/images/analytics-store-avatar-3.png', alt: 'Amazing Fragrances' },
+    { id: 'badge', src: '', alt: 'Personal account' },
   ]);
 
-  readonly selectedStoreMode = signal<'all' | 'single'>('all');
+  readonly range = signal<AnalyticsRange>('7d');
+  readonly selectedStoreFilter = signal<AnalyticsStoreFilter>('all');
 
   readonly visibleStores = computed(() =>
-    this.selectedStoreMode() === 'all' ? this.stores() : this.stores().slice(0, 1),
+    this.selectedStoreFilter() === 'all'
+      ? this.stores()
+      : this.stores().filter((store) => store.id === this.selectedStoreFilter()).slice(0, 1),
   );
 
   readonly selectedStoreLabel = computed(() =>
-    this.selectedStoreMode() === 'all' ? 'All stores (4)' : 'The Vine Collections',
+    this.selectedStoreFilter() === 'all'
+      ? 'All stores (4)'
+      : this.visibleStores()[0]?.alt ?? 'The Vine Collections',
   );
-
-  cycleStoreSelection(): void {
-    this.selectedStoreMode.update(mode => (mode === 'all' ? 'single' : 'all'));
-  }
+  readonly rangeOptions: readonly CustomDropdownOption<AnalyticsRange>[] = [
+    { value: '7d', label: 'Last 7 days' },
+    { value: '30d', label: 'Last 30 days' },
+    { value: '90d', label: 'Last 90 days' },
+  ];
+  readonly storeOptions: readonly CustomDropdownOption<AnalyticsStoreFilter>[] = [
+    { value: 'all', label: 'All stores (4)' },
+    { value: 'vine', label: 'The Vine Collections' },
+    { value: 'eden', label: 'Eden Organics' },
+    { value: 'amazing', label: 'Amazing Fragrances' },
+    { value: 'badge', label: 'Personal account' },
+  ];
 
   private withHoverDarken(config: AppChartOptions): AppChartOptions {
     return {

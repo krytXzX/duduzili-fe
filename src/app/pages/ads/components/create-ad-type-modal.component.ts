@@ -15,6 +15,7 @@ import {
   heroExclamationTriangle,
   heroAdjustmentsHorizontal,
 } from '@ng-icons/heroicons/outline';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../../components/ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 
 export type CreateAdType = 'listing' | 'store' | 'banner';
@@ -33,8 +34,10 @@ interface ListingItem {
   id: string;
   kind: 'automobiles' | 'properties' | 'others';
   name: string;
+  categoryKey: 'phones-laptops' | 'electronics' | 'mens-fashion' | 'womens-fashion' | 'cars' | 'real-estate';
   categoryLabel: string;
   price: string;
+  storeKey: 'vine' | 'eden' | 'amazing' | 'personal';
   store: string;
   storeInitial: string;
   storeTone: string;
@@ -60,7 +63,7 @@ interface StorePromotionOption {
 
 @Component({
   selector: 'app-create-ad-type-modal',
-  imports: [CommonModule, NgOptimizedImage, NgIcon],
+  imports: [CommonModule, NgOptimizedImage, NgIcon, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroXMark,
@@ -1185,15 +1188,44 @@ interface StorePromotionOption {
                     >
                       <div class="flex items-center justify-between px-[15px] py-[19px]">
                         <div class="flex flex-wrap gap-2">
-                          @for (filter of tableFilters; track filter) {
-                            <button
-                              type="button"
-                              class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                            >
-                              {{ filter }}
-                              <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
-                            </button>
-                          }
+                          <app-custom-dropdown
+                            [options]="desktopListingCategoryOptions"
+                            [value]="desktopListingCategoryFilter()"
+                            [ariaLabel]="'Filter promotion listings by category'"
+                            [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]'"
+                            [labelClass]="'truncate'"
+                            [iconClass]="'text-[rgba(26,27,29,0.5)]'"
+                            [menuClass]="'min-w-[176px]'"
+                            [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                            [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                            (valueChange)="desktopListingCategoryFilter.set($event)"
+                          ></app-custom-dropdown>
+
+                          <app-custom-dropdown
+                            [options]="desktopListingStoreOptions"
+                            [value]="desktopListingStoreFilter()"
+                            [ariaLabel]="'Filter promotion listings by store'"
+                            [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]'"
+                            [labelClass]="'truncate'"
+                            [iconClass]="'text-[rgba(26,27,29,0.5)]'"
+                            [menuClass]="'min-w-[176px]'"
+                            [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                            [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                            (valueChange)="desktopListingStoreFilter.set($event)"
+                          ></app-custom-dropdown>
+
+                          <app-custom-dropdown
+                            [options]="desktopListingSelectionOptions"
+                            [value]="desktopListingSelectionFilter()"
+                            [ariaLabel]="'Filter promotion listings by selection status'"
+                            [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]'"
+                            [labelClass]="'truncate'"
+                            [iconClass]="'text-[rgba(26,27,29,0.5)]'"
+                            [menuClass]="'min-w-[176px]'"
+                            [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                            [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                            (valueChange)="desktopListingSelectionFilter.set($event)"
+                          ></app-custom-dropdown>
                         </div>
 
                         <div class="relative w-[354px]">
@@ -1693,8 +1725,9 @@ export class CreateAdTypeModalComponent {
   readonly listingSearch = signal('');
   readonly isStoreFilterOpen = signal(false);
   readonly mobileSelectedStoreIds = signal<string[]>([]);
-
-  readonly tableFilters = ['Category', 'Store', 'Status'];
+  readonly desktopListingCategoryFilter = signal<'all' | 'phones-laptops' | 'electronics' | 'mens-fashion' | 'womens-fashion' | 'cars' | 'real-estate'>('all');
+  readonly desktopListingStoreFilter = signal<'all' | 'vine' | 'eden' | 'amazing' | 'personal'>('all');
+  readonly desktopListingSelectionFilter = signal<'all' | 'selected' | 'not-selected'>('all');
 
   readonly listingCategories = [
     { id: 'automobiles' as const, label: 'Automobiles (1 left)' },
@@ -1707,8 +1740,10 @@ export class CreateAdTypeModalComponent {
       id: 'listing-1',
       kind: 'others',
       name: 'Iphone 17 pro max',
+      categoryKey: 'phones-laptops',
       categoryLabel: 'Phones & Laptops',
       price: '₦2,500,000.00',
+      storeKey: 'vine',
       store: 'The Vine Collections',
       storeInitial: 'V',
       storeTone: 'linear-gradient(135deg, #4A8F67 0%, #F0C76C 100%)',
@@ -1718,8 +1753,10 @@ export class CreateAdTypeModalComponent {
       id: 'listing-2',
       kind: 'others',
       name: 'Logitech ergonomic mouse',
+      categoryKey: 'electronics',
       categoryLabel: 'Electronics',
       price: '₦2,500,000.00',
+      storeKey: 'eden',
       store: 'Eden Organics',
       storeInitial: 'E',
       storeTone: 'linear-gradient(135deg, #09270B 0%, #52D86B 100%)',
@@ -1729,8 +1766,10 @@ export class CreateAdTypeModalComponent {
       id: 'listing-3',
       kind: 'others',
       name: 'Nike sneaker',
+      categoryKey: 'mens-fashion',
       categoryLabel: 'Men’s fashion',
       price: '₦2,500,000.00',
+      storeKey: 'amazing',
       store: 'Amazing Fragrances',
       storeInitial: 'A',
       storeTone: 'linear-gradient(135deg, #FFC935 0%, #F39A00 100%)',
@@ -1740,8 +1779,10 @@ export class CreateAdTypeModalComponent {
       id: 'listing-4',
       kind: 'others',
       name: 'Bone straight wig',
+      categoryKey: 'womens-fashion',
       categoryLabel: 'Women’s fashion',
       price: '₦2,500,000.00',
+      storeKey: 'personal',
       store: 'Personal account',
       storeInitial: 'P',
       storeTone: 'linear-gradient(135deg, #5D8FE9 0%, #D85F5F 100%)',
@@ -1751,8 +1792,10 @@ export class CreateAdTypeModalComponent {
       id: 'listing-5',
       kind: 'others',
       name: 'Sweatshirt',
+      categoryKey: 'mens-fashion',
       categoryLabel: 'Men’s fashion',
       price: '₦2,500,000.00',
+      storeKey: 'vine',
       store: 'The Vine Collections',
       storeInitial: 'V',
       storeTone: 'linear-gradient(135deg, #4A8F67 0%, #F0C76C 100%)',
@@ -1762,8 +1805,10 @@ export class CreateAdTypeModalComponent {
       id: 'listing-6',
       kind: 'others',
       name: 'RGB keyboard',
+      categoryKey: 'electronics',
       categoryLabel: 'Electronics',
       price: '₦2,500,000.00',
+      storeKey: 'personal',
       store: 'Personal account',
       storeInitial: 'P',
       storeTone: 'linear-gradient(135deg, #5D8FE9 0%, #D85F5F 100%)',
@@ -1773,8 +1818,10 @@ export class CreateAdTypeModalComponent {
       id: 'listing-7',
       kind: 'automobiles',
       name: 'Mercedes GLE',
+      categoryKey: 'cars',
       categoryLabel: 'Cars',
       price: '₦145,000,000.00',
+      storeKey: 'vine',
       store: 'The Vine Collections',
       storeInitial: 'V',
       storeTone: 'linear-gradient(135deg, #4A8F67 0%, #F0C76C 100%)',
@@ -1784,8 +1831,10 @@ export class CreateAdTypeModalComponent {
       id: 'listing-8',
       kind: 'properties',
       name: '2-bedroom apartment',
+      categoryKey: 'real-estate',
       categoryLabel: 'Real estate',
       price: '₦25,000,000.00',
+      storeKey: 'eden',
       store: 'Eden Organics',
       storeInitial: 'E',
       storeTone: 'linear-gradient(135deg, #09270B 0%, #52D86B 100%)',
@@ -1899,8 +1948,51 @@ export class CreateAdTypeModalComponent {
   );
 
   readonly filteredListings = computed(() =>
-    this.listings.filter((listing) => listing.kind === this.selectedListingCategory()),
+    this.listings.filter((listing) => {
+      if (listing.kind !== this.selectedListingCategory()) {
+        return false;
+      }
+
+      const matchesCategory =
+        this.desktopListingCategoryFilter() === 'all'
+        || listing.categoryKey === this.desktopListingCategoryFilter();
+      const matchesStore =
+        this.desktopListingStoreFilter() === 'all'
+        || listing.storeKey === this.desktopListingStoreFilter();
+      const matchesSelection =
+        this.desktopListingSelectionFilter() === 'all'
+        || (this.desktopListingSelectionFilter() === 'selected'
+          && this.selectedListingIds().includes(listing.id))
+        || (this.desktopListingSelectionFilter() === 'not-selected'
+          && !this.selectedListingIds().includes(listing.id));
+
+      return matchesCategory && matchesStore && matchesSelection;
+    }),
   );
+
+  readonly desktopListingCategoryOptions: readonly CustomDropdownOption<'all' | 'phones-laptops' | 'electronics' | 'mens-fashion' | 'womens-fashion' | 'cars' | 'real-estate'>[] = [
+    { value: 'all', label: 'All categories' },
+    { value: 'phones-laptops', label: 'Phones & Laptops' },
+    { value: 'electronics', label: 'Electronics' },
+    { value: 'mens-fashion', label: 'Men’s fashion' },
+    { value: 'womens-fashion', label: 'Women’s fashion' },
+    { value: 'cars', label: 'Cars' },
+    { value: 'real-estate', label: 'Real estate' },
+  ];
+
+  readonly desktopListingStoreOptions: readonly CustomDropdownOption<'all' | 'vine' | 'eden' | 'amazing' | 'personal'>[] = [
+    { value: 'all', label: 'All stores' },
+    { value: 'vine', label: 'The Vine Collections' },
+    { value: 'eden', label: 'Eden Organics' },
+    { value: 'amazing', label: 'Amazing Fragrances' },
+    { value: 'personal', label: 'Personal account' },
+  ];
+
+  readonly desktopListingSelectionOptions: readonly CustomDropdownOption<'all' | 'selected' | 'not-selected'>[] = [
+    { value: 'all', label: 'All statuses' },
+    { value: 'selected', label: 'Selected' },
+    { value: 'not-selected', label: 'Not selected' },
+  ];
 
   readonly mobilePickerListings = computed(() => {
     const query = this.listingSearch().trim().toLowerCase();

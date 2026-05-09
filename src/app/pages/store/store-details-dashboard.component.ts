@@ -15,8 +15,10 @@ import {
   StoreReviewCardData,
 } from '../../components/stores/store-review-card.component';
 import { StoreEditSidePanelComponent } from '../../components/stores/store-edit-side-panel.component';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 
 type StoreTab = 'listings' | 'reviews';
+type StoreReviewSort = 'most-recent' | 'highest-rated';
 
 interface StoreProfile {
   id: string;
@@ -57,6 +59,7 @@ interface ProductSection {
     AddListingModalComponent,
     StoreItemCardComponent,
     StoreReviewCardComponent,
+    CustomDropdownComponent,
   ],
   host: {
     class: 'block min-h-full',
@@ -353,19 +356,18 @@ interface ProductSection {
               <div class="space-y-7">
                 <div class="flex items-center justify-between gap-4">
                   <h3 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h3>
-                  <button
-                    type="button"
-                    class="inline-flex h-8 items-center gap-1 rounded-[32px] border border-[#EAEAEA] bg-white px-2 text-[14px] leading-5 text-[#1A1B1D]"
-                  >
-                    Most recent
-                    <img
-                      [ngSrc]="assets.reviewSortArrowMobile"
-                      width="14"
-                      height="14"
-                      alt=""
-                      class="h-[14px] w-[14px]"
-                    />
-                  </button>
+                  <app-custom-dropdown
+                    [options]="reviewSortOptions"
+                    [value]="reviewSort()"
+                    [ariaLabel]="'Sort store reviews'"
+                    [buttonClass]="'inline-flex h-8 items-center gap-1 rounded-[32px] border border-[#EAEAEA] bg-white px-2 text-[14px] leading-5 text-[#1A1B1D]'"
+                    [labelClass]="'truncate'"
+                    [iconClass]="'text-[#777777]'"
+                    [menuClass]="'min-w-[156px]'"
+                    [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                    [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                    (valueChange)="reviewSort.set($event)"
+                  ></app-custom-dropdown>
                 </div>
 
                 <div class="space-y-3">
@@ -384,7 +386,7 @@ interface ProductSection {
                 </div>
 
                 <div class="space-y-8">
-                  @for (review of reviews(); track review.author) {
+                  @for (review of visibleReviews(); track review.author) {
                     <app-store-review-card
                       [review]="review"
                       mode="mobile"
@@ -776,19 +778,18 @@ interface ProductSection {
                 <div class="space-y-7">
                   <div class="flex items-center justify-between gap-4">
                     <h3 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h3>
-                    <button
-                      type="button"
-                      class="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EAEAEA] bg-white px-2 text-[14px] leading-5 text-[#1A1B1D]"
-                    >
-                      Most recent
-                      <img
-                        [ngSrc]="assets.reviewSortArrowDesktop"
-                        width="14"
-                        height="14"
-                        alt=""
-                        class="h-[14px] w-[14px]"
-                      />
-                    </button>
+                    <app-custom-dropdown
+                      [options]="reviewSortOptions"
+                      [value]="reviewSort()"
+                      [ariaLabel]="'Sort store reviews'"
+                      [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EAEAEA] bg-white px-2 text-[14px] leading-5 text-[#1A1B1D]'"
+                      [labelClass]="'truncate'"
+                      [iconClass]="'text-[#777777]'"
+                      [menuClass]="'min-w-[156px]'"
+                      [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                      [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                      (valueChange)="reviewSort.set($event)"
+                    ></app-custom-dropdown>
                   </div>
 
                   <div class="space-y-3">
@@ -807,7 +808,7 @@ interface ProductSection {
                   </div>
 
                   <div class="space-y-8">
-                    @for (review of reviews(); track review.author) {
+                    @for (review of visibleReviews(); track review.author) {
                       <app-store-review-card
                         [review]="review"
                         mode="desktop"
@@ -903,6 +904,7 @@ export class StoreDetailsDashboardComponent {
 
   readonly activeTab = signal<StoreTab>('listings');
   readonly activeChip = signal<string>('All');
+  readonly reviewSort = signal<StoreReviewSort>('most-recent');
   readonly showEditModal = signal(false);
   readonly showAddListingModal = signal(false);
   readonly showPromoteStoreModal = signal(false);
@@ -1117,7 +1119,7 @@ export class StoreDetailsDashboardComponent {
     {
       author: 'Mary Jane',
       avatar: '/assets/images/store-reviews-avatar-mary.jpg',
-      rating: 4,
+      rating: 5,
       text: 'Contacted the seller. Went to their office to purchase the item and their hospitality was okay. Truly reliable. And he’s a funny man 😂',
       desktopDate: 'August 14, 2025',
       mobileDate: 'August 2025',
@@ -1125,7 +1127,7 @@ export class StoreDetailsDashboardComponent {
     {
       author: 'Apeli Obubra',
       avatar: '/assets/images/store-reviews-avatar-apeli.jpg',
-      rating: 4,
+      rating: 3,
       text: 'Straightforward guy! easy transaction great goods',
       desktopDate: 'August 14, 2025',
       mobileDate: 'August 2025',
@@ -1148,6 +1150,14 @@ export class StoreDetailsDashboardComponent {
       ],
     },
   ]);
+  readonly visibleReviews = computed(() => {
+    const reviews = [...this.reviews()];
+    return this.reviewSort() === 'highest-rated' ? reviews.sort((a, b) => b.rating - a.rating) : reviews;
+  });
+  readonly reviewSortOptions: readonly CustomDropdownOption<StoreReviewSort>[] = [
+    { value: 'most-recent', label: 'Most recent' },
+    { value: 'highest-rated', label: 'Highest rated' },
+  ];
 
   protected readonly desktopStats = computed(() => [
     { label: 'Followers', value: this.store().followers },

@@ -22,7 +22,10 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
 import { createPerformanceLineChartOptions } from '../../components/charts/chart-mock-data';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+
+type AdPerformanceRange = '7d' | '30d' | '90d';
 
 interface AdMetric {
   label: string;
@@ -49,7 +52,7 @@ interface AdDetail {
 
 @Component({
   selector: 'app-ad-details-page',
-  imports: [CommonModule, RouterLink, NgIcon, NgOptimizedImage, AppChartComponent],
+  imports: [CommonModule, RouterLink, NgIcon, NgOptimizedImage, AppChartComponent, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroPause,
@@ -277,14 +280,18 @@ interface AdDetail {
           <section class="mt-6 rounded-[16px] border border-[#EBEBEB] bg-white p-2">
             <div class="flex items-start justify-between gap-3">
               <div class="flex flex-col gap-4">
-                <button
-                  type="button"
-                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-black"
-                >
-                  <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
-                  Last 7 days
-                  <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
-                </button>
+                <app-custom-dropdown
+                  [options]="performanceRangeOptions"
+                  [value]="performanceRange()"
+                  [ariaLabel]="'Filter ad performance range'"
+                  [buttonClass]="'inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-black'"
+                  [labelClass]="'truncate'"
+                  [iconClass]="'text-[#777777]'"
+                  [menuClass]="'min-w-[156px]'"
+                  [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                  [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                  (valueChange)="performanceRange.set($event)"
+                ></app-custom-dropdown>
 
                 <h3 class="text-[18px] font-semibold leading-6 text-[rgba(13,13,13,0.4)]">
                   Performance Overview
@@ -552,14 +559,18 @@ interface AdDetail {
                 </div>
               </div>
 
-              <button
-                type="button"
-                class="inline-flex items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 py-2.5 text-[14px] font-medium text-black"
-              >
-                <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
-                Last 7 days
-                <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
-              </button>
+              <app-custom-dropdown
+                [options]="performanceRangeOptions"
+                [value]="performanceRange()"
+                [ariaLabel]="'Filter ad performance range'"
+                [buttonClass]="'inline-flex items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 py-2.5 text-[14px] font-medium text-black'"
+                [labelClass]="'truncate'"
+                [iconClass]="'text-[#777777]'"
+                [menuClass]="'min-w-[156px]'"
+                [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                (valueChange)="performanceRange.set($event)"
+              ></app-custom-dropdown>
             </div>
 
             <div class="mt-6">
@@ -682,14 +693,18 @@ interface AdDetail {
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-black"
-                >
-                  <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
-                  Last 7 days
-                  <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
-                </button>
+                <app-custom-dropdown
+                  [options]="performanceRangeOptions"
+                  [value]="performanceRange()"
+                  [ariaLabel]="'Filter ad performance range'"
+                  [buttonClass]="'inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-black'"
+                  [labelClass]="'truncate'"
+                  [iconClass]="'text-[#777777]'"
+                  [menuClass]="'min-w-[156px]'"
+                  [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                  [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                  (valueChange)="performanceRange.set($event)"
+                ></app-custom-dropdown>
               </div>
             </div>
 
@@ -848,14 +863,18 @@ interface AdDetail {
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  class="inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-black"
-                >
-                  <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
-                  Last 7 days
-                  <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
-                </button>
+                <app-custom-dropdown
+                  [options]="performanceRangeOptions"
+                  [value]="performanceRange()"
+                  [ariaLabel]="'Filter ad performance range'"
+                  [buttonClass]="'inline-flex h-10 items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-black'"
+                  [labelClass]="'truncate'"
+                  [iconClass]="'text-[#777777]'"
+                  [menuClass]="'min-w-[156px]'"
+                  [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                  [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                  (valueChange)="performanceRange.set($event)"
+                ></app-custom-dropdown>
               </div>
             </div>
 
@@ -1121,6 +1140,12 @@ export class AdDetailsPageComponent implements OnDestroy {
     '#6453D9',
     '#FACD38',
   );
+  readonly performanceRange = signal<AdPerformanceRange>('7d');
+  readonly performanceRangeOptions: readonly CustomDropdownOption<AdPerformanceRange>[] = [
+    { value: '7d', label: 'Last 7 days' },
+    { value: '30d', label: 'Last 30 days' },
+    { value: '90d', label: 'Last 90 days' },
+  ];
 
   readonly adId = signal(this.route.snapshot.paramMap.get('id') ?? 'other-1');
   readonly isMenuOpen = signal(false);
