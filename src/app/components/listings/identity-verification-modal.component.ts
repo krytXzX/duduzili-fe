@@ -196,7 +196,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
 
                 @if (currentStep() === 'upload_method') {
                   <h2 class="text-[17px] font-semibold tracking-[-0.03em]">How would you like to add your government ID?</h2>
-                  <p class="mt-2 text-[11px] leading-5 text-[#8A8F9A]">You can upload it file by file or use your webcam.</p>
+                  <p class="mt-2 text-[11px] leading-5 text-[#8A8F9A]">You can upload it file by file or use your camera.</p>
 
                   <div class="mt-5 space-y-3">
                     <button
@@ -225,7 +225,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                       [class.bg-[#F6F4FF]]="selectedUploadMethod() === 'webcam'"
                       [class.border-[#ECEEF4]]="selectedUploadMethod() !== 'webcam'"
                     >
-                      <span class="text-[12px] font-medium">Take a photo with a webcam</span>
+                      <span class="text-[12px] font-medium">Take a photo with your camera</span>
                       <span class="inline-flex h-4 w-4 items-center justify-center rounded-full border"
                         [class.border-[#5E44EE]]="selectedUploadMethod() === 'webcam'"
                         [class.border-[#D7D9E0]]="selectedUploadMethod() !== 'webcam'">
@@ -278,18 +278,110 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                   </div>
                 }
 
+                @if (currentStep() === 'camera_capture') {
+                  <h2 class="text-[17px] font-semibold tracking-[-0.03em]">Take a photo</h2>
+                  <p class="mt-2 text-[11px] leading-5 text-[#8A8F9A]">
+                    Position the {{ activeDocumentCaptureSide() }} of your {{ selectedDocTypeLabel() }} in the frame.
+                  </p>
+
+                  <div class="mt-4 inline-flex rounded-full bg-[#F6F4FF] p-1">
+                    <button
+                      type="button"
+                      (click)="activeDocumentCaptureSide.set('front')"
+                      class="rounded-full px-4 py-2 text-[11px] font-medium transition-colors"
+                      [class.bg-white]="activeDocumentCaptureSide() === 'front'"
+                      [class.text-[#5E44EE]]="activeDocumentCaptureSide() === 'front'"
+                      [class.text-[#8A8F9A]]="activeDocumentCaptureSide() !== 'front'"
+                    >
+                      Front
+                    </button>
+                    <button
+                      type="button"
+                      (click)="activeDocumentCaptureSide.set('back')"
+                      class="rounded-full px-4 py-2 text-[11px] font-medium transition-colors"
+                      [class.bg-white]="activeDocumentCaptureSide() === 'back'"
+                      [class.text-[#5E44EE]]="activeDocumentCaptureSide() === 'back'"
+                      [class.text-[#8A8F9A]]="activeDocumentCaptureSide() !== 'back'"
+                    >
+                      Back
+                    </button>
+                  </div>
+
+                  <div class="mt-5 relative overflow-hidden rounded-[18px] border border-[#E6E8EE] bg-[#F4F5F8]">
+                    <div class="aspect-[3/2] w-full">
+                      <video #mobileDocumentVideo autoplay playsinline muted class="h-full w-full object-cover"></video>
+
+                      @if (!cameraReady()) {
+                        <div class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#F4F5F8] text-[#8A8F9A]">
+                          <ng-icon name="heroCamera" class="text-[42px] opacity-30"></ng-icon>
+                          <span class="text-[10px] font-semibold uppercase tracking-[0.2em] animate-pulse">
+                            {{ cameraError() ? 'Camera unavailable' : 'Starting camera...' }}
+                          </span>
+                          @if (cameraError()) {
+                            <span class="max-w-[220px] px-6 text-center text-[11px] leading-4">
+                              {{ cameraError() }}
+                            </span>
+                          }
+                        </div>
+                      }
+
+                      <div class="pointer-events-none absolute inset-5 rounded-[14px] border border-white/60"></div>
+                    </div>
+                  </div>
+
+                  <div class="mt-5 grid grid-cols-2 gap-3">
+                    <div class="rounded-[16px] border border-[#ECEEF4] bg-white p-2.5">
+                      <p class="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[#A0A5B1]">Front</p>
+                      @if (capturedDocumentFront()) {
+                        <img [src]="capturedDocumentFront()" alt="Captured front of ID" class="h-20 w-full rounded-[12px] object-cover">
+                      } @else {
+                        <div class="flex h-20 items-center justify-center rounded-[12px] bg-[#F7F8FA] text-[11px] text-[#B7BBC7]">
+                          Not captured
+                        </div>
+                      }
+                    </div>
+
+                    <div class="rounded-[16px] border border-[#ECEEF4] bg-white p-2.5">
+                      <p class="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[#A0A5B1]">Back</p>
+                      @if (capturedDocumentBack()) {
+                        <img [src]="capturedDocumentBack()" alt="Captured back of ID" class="h-20 w-full rounded-[12px] object-cover">
+                      } @else {
+                        <div class="flex h-20 items-center justify-center rounded-[12px] bg-[#F7F8FA] text-[11px] text-[#B7BBC7]">
+                          Not captured
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
                 @if (currentStep() === 'selfie_intro') {
                   <h2 class="text-[17px] font-semibold tracking-[-0.03em]">Take a photo of yourself</h2>
                   <p class="mt-2 text-[11px] leading-5 text-[#8A8F9A]">Keep your face clearly visible and ensure your whole face is in the oval.</p>
 
                   <div class="mt-5 flex justify-center">
                     <div class="relative h-[260px] w-full max-w-[174px] overflow-hidden rounded-[18px] bg-[#F4F5F8]">
-                      @if (cameraReady() && !capturedSelfie()) {
-                        <video #selfieVideo autoplay playsinline muted class="h-full w-full object-cover scale-x-[-1]"></video>
+                      @if (!capturedSelfie()) {
+                        <video #mobileSelfieVideo autoplay playsinline muted class="h-full w-full object-cover scale-x-[-1]"></video>
+                      } @else if (capturedSelfie()) {
+                        <img [src]="capturedSelfie()" alt="Selfie preview" class="h-full w-full object-cover">
                       } @else {
-                        <img [src]="capturedSelfie() || selfiePlaceholderImage" alt="Selfie preview" class="h-full w-full object-cover">
+                        <div class="flex h-full w-full items-center justify-center bg-[#F4F5F8] text-[#B7BBC7]">
+                          <ng-icon name="heroUser" class="text-[40px] opacity-40"></ng-icon>
+                        </div>
                       }
                       <div class="pointer-events-none absolute inset-4 rounded-[999px] border-2 border-white/90"></div>
+                      @if (!cameraReady() && !capturedSelfie()) {
+                        <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#F4F5F8]/90 text-[#8A8F9A]">
+                          <span class="text-[10px] font-semibold uppercase tracking-[0.2em] animate-pulse">
+                            {{ cameraError() ? 'Camera unavailable' : 'Initializing...' }}
+                          </span>
+                          @if (cameraError()) {
+                            <span class="max-w-[140px] text-center text-[11px] leading-4">
+                              {{ cameraError() }}
+                            </span>
+                          }
+                        </div>
+                      }
                     </div>
                   </div>
                 }
@@ -300,7 +392,13 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
 
                   <div class="mt-5 flex justify-center">
                     <div class="relative h-[260px] w-full max-w-[174px] overflow-hidden rounded-[18px] bg-[#F4F5F8]">
-                      <img [src]="capturedSelfie() || selfiePlaceholderImage" alt="Review selfie" class="h-full w-full object-cover">
+                      @if (capturedSelfie()) {
+                        <img [src]="capturedSelfie()" alt="Review selfie" class="h-full w-full object-cover">
+                      } @else {
+                        <div class="flex h-full w-full items-center justify-center bg-[#F4F5F8] text-[#B7BBC7]">
+                          <ng-icon name="heroUser" class="text-[40px] opacity-40"></ng-icon>
+                        </div>
+                      }
                       <div class="pointer-events-none absolute inset-4 rounded-[999px] border-2 border-white/90"></div>
                     </div>
                   </div>
@@ -316,6 +414,9 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                 } @else if (currentStep() === 'upload') {
                   <button type="button" (click)="goBack()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335]">Back</button>
                   <button type="button" (click)="nextStep()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]" [disabled]="!hasDocumentImages()" [class.opacity-50]="!hasDocumentImages()">Continue</button>
+                } @else if (currentStep() === 'camera_capture') {
+                  <button type="button" (click)="goBack()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335]">Back</button>
+                  <button type="button" (click)="captureDocumentImage()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]">Capture photo</button>
                 } @else if (currentStep() === 'selfie_intro') {
                   <button type="button" (click)="captureSelfieForReview()" class="col-span-2 rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]">Take photo</button>
                 } @else if (currentStep() === 'selfie_review') {
@@ -712,11 +813,18 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                   </div>
 
                   <div class="relative w-full max-w-sm aspect-3/2 bg-gray-100 rounded-3xl overflow-hidden mb-12 border-4 border-white shadow-xl">
-                      <video #documentVideo autoplay playsinline muted class="h-full w-full object-cover"></video>
+                      <video #desktopDocumentVideo autoplay playsinline muted class="h-full w-full object-cover"></video>
                       @if (!cameraReady()) {
                         <div class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-100 text-gray-400">
                            <ng-icon name="heroCamera" class="text-6xl opacity-20"></ng-icon>
-                           <span class="text-[10px] font-semibold uppercase tracking-widest animate-pulse">Starting camera...</span>
+                           <span class="text-[10px] font-semibold uppercase tracking-widest animate-pulse">
+                             {{ cameraError() ? 'Camera unavailable' : 'Starting camera...' }}
+                           </span>
+                           @if (cameraError()) {
+                             <span class="max-w-[220px] text-center text-[11px] normal-case tracking-normal text-[#8A8F9A]">
+                               {{ cameraError() }}
+                             </span>
+                           }
                         </div>
                       }
                       <div class="absolute inset-8 border border-white/40 rounded-xl pointer-events-none"></div>
@@ -810,13 +918,20 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                         @if (capturedSelfie()) {
                           <img [src]="capturedSelfie()" alt="Captured selfie" class="w-full h-full object-cover animate-in fade-in duration-1000">
                         } @else {
-                          <video #selfieVideo autoplay playsinline muted class="h-full w-full object-cover scale-x-[-1]"></video>
+                          <video #desktopSelfieVideo autoplay playsinline muted class="h-full w-full object-cover scale-x-[-1]"></video>
                         }
 
                         @if (!cameraReady() && !capturedSelfie()) {
                           <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-100 text-gray-400">
                              <ng-icon name="heroUser" class="text-8xl opacity-10"></ng-icon>
-                             <span class="text-[10px] font-semibold uppercase tracking-[0.2em] animate-pulse">Initializing...</span>
+                             <span class="text-[10px] font-semibold uppercase tracking-[0.2em] animate-pulse">
+                               {{ cameraError() ? 'Camera unavailable' : 'Initializing...' }}
+                             </span>
+                             @if (cameraError()) {
+                               <span class="max-w-[240px] px-6 text-center text-[11px] normal-case tracking-normal text-[#8A8F9A]">
+                                 {{ cameraError() }}
+                               </span>
+                             }
                           </div>
                         }
                         
@@ -921,8 +1036,10 @@ export class IdentityVerificationModalComponent implements OnDestroy {
   submitted = output<void>();
 
   private readonly mobileOverlayService = inject(MobileOverlayService);
-  private readonly documentVideoRef = viewChild<ElementRef<HTMLVideoElement>>('documentVideo');
-  private readonly selfieVideoRef = viewChild<ElementRef<HTMLVideoElement>>('selfieVideo');
+  private readonly mobileDocumentVideoRef = viewChild<ElementRef<HTMLVideoElement>>('mobileDocumentVideo');
+  private readonly desktopDocumentVideoRef = viewChild<ElementRef<HTMLVideoElement>>('desktopDocumentVideo');
+  private readonly mobileSelfieVideoRef = viewChild<ElementRef<HTMLVideoElement>>('mobileSelfieVideo');
+  private readonly desktopSelfieVideoRef = viewChild<ElementRef<HTMLVideoElement>>('desktopSelfieVideo');
   
   protected readonly currentStep = signal<VerificationStep>('intro');
   protected selectedCountry = 'Nigeria';
@@ -933,8 +1050,8 @@ export class IdentityVerificationModalComponent implements OnDestroy {
   protected readonly capturedSelfie = signal<string | null>(null);
   protected readonly activeDocumentCaptureSide = signal<'front' | 'back'>('front');
   protected readonly cameraReady = signal(false);
+  protected readonly cameraError = signal<string | null>(null);
   protected readonly mobileProgressSegments = [0, 1, 2, 3] as const;
-  protected readonly selfiePlaceholderImage = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=700&h=920&fit=crop';
 
   private mediaStream: MediaStream | null = null;
   private createdObjectUrls = new Set<string>();
@@ -1093,7 +1210,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
   }
 
   captureDocumentImage() {
-    const video = this.documentVideoRef()?.nativeElement;
+    const video = this.getActiveDocumentVideoElement();
     const captured = this.captureFrameFromVideo(video);
     if (!captured) {
       return;
@@ -1106,7 +1223,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
   }
 
   captureSelfie() {
-    const video = this.selfieVideoRef()?.nativeElement;
+    const video = this.getActiveSelfieVideoElement();
     const captured = this.captureFrameFromVideo(video, true);
     if (!captured) {
       return;
@@ -1116,8 +1233,11 @@ export class IdentityVerificationModalComponent implements OnDestroy {
   }
 
   protected captureSelfieForReview() {
-    const video = this.selfieVideoRef()?.nativeElement;
-    const captured = this.captureFrameFromVideo(video, true) ?? this.selfiePlaceholderImage;
+    const video = this.getActiveSelfieVideoElement();
+    const captured = this.captureFrameFromVideo(video, true);
+    if (!captured) {
+      return;
+    }
     this.setManagedImage(this.capturedSelfie, captured);
     this.stopCamera();
     this.currentStep.set('selfie_review');
@@ -1199,43 +1319,74 @@ export class IdentityVerificationModalComponent implements OnDestroy {
   }
 
   private async startCamera() {
+    const video = this.getActiveVideoElement();
+    if (!video) {
+      this.scheduleCameraStart(1);
+      return;
+    }
+
     this.stopCamera();
     this.cameraReady.set(false);
+    this.cameraError.set(null);
 
     if (!navigator.mediaDevices?.getUserMedia) {
+      this.cameraError.set('This device does not support camera capture in the browser.');
       return;
     }
 
     try {
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' },
-        audio: false,
-      });
-
-      const video = ['selfie_intro', 'selfie_capture', 'selfie_review'].includes(this.currentStep())
-        ? this.selfieVideoRef()?.nativeElement
-        : this.documentVideoRef()?.nativeElement;
-
-      if (!video) {
-        this.stopCamera();
-        return;
-      }
-
+      this.mediaStream = await this.requestCameraStream();
       video.srcObject = this.mediaStream;
       await video.play();
       this.cameraReady.set(true);
-    } catch {
+    } catch (error) {
+      this.cameraError.set(this.getCameraErrorMessage(error));
       this.stopCamera();
     }
   }
 
-  private scheduleCameraStart() {
+  private async requestCameraStream(): Promise<MediaStream> {
+    const isSelfieStep = ['selfie_intro', 'selfie_capture', 'selfie_review'].includes(
+      this.currentStep(),
+    );
+
+    const preferredConstraints: MediaStreamConstraints = {
+      video: isSelfieStep ? { facingMode: 'user' } : { facingMode: { ideal: 'environment' } },
+      audio: false,
+    };
+
+    try {
+      return await navigator.mediaDevices.getUserMedia(preferredConstraints);
+    } catch {
+      return navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+        audio: false,
+      });
+    }
+  }
+
+  private scheduleCameraStart(attempt = 0) {
+    const video = this.getActiveVideoElement();
+    if (video) {
+      setTimeout(() => {
+        void this.startCamera();
+      }, 0);
+      return;
+    }
+
+    if (attempt >= 10) {
+      this.cameraError.set('We could not prepare the camera view. Please try again.');
+      return;
+    }
+
     setTimeout(() => {
-      void this.startCamera();
-    }, 0);
+      this.scheduleCameraStart(attempt + 1);
+    }, 50);
   }
 
   private stopCamera() {
+    const existingCameraError = this.cameraError();
+
     if (this.mediaStream) {
       for (const track of this.mediaStream.getTracks()) {
         track.stop();
@@ -1243,15 +1394,66 @@ export class IdentityVerificationModalComponent implements OnDestroy {
       this.mediaStream = null;
     }
 
-    const documentVideo = this.documentVideoRef()?.nativeElement;
-    const selfieVideo = this.selfieVideoRef()?.nativeElement;
-    if (documentVideo) {
-      documentVideo.srcObject = null;
+    const mobileDocumentVideo = this.mobileDocumentVideoRef()?.nativeElement;
+    const desktopDocumentVideo = this.desktopDocumentVideoRef()?.nativeElement;
+    const mobileSelfieVideo = this.mobileSelfieVideoRef()?.nativeElement;
+    const desktopSelfieVideo = this.desktopSelfieVideoRef()?.nativeElement;
+    if (mobileDocumentVideo) {
+      mobileDocumentVideo.srcObject = null;
     }
-    if (selfieVideo) {
-      selfieVideo.srcObject = null;
+    if (desktopDocumentVideo) {
+      desktopDocumentVideo.srcObject = null;
+    }
+    if (mobileSelfieVideo) {
+      mobileSelfieVideo.srcObject = null;
+    }
+    if (desktopSelfieVideo) {
+      desktopSelfieVideo.srcObject = null;
     }
     this.cameraReady.set(false);
+    this.cameraError.set(existingCameraError);
+  }
+
+  private getActiveVideoElement(): HTMLVideoElement | undefined {
+    const isSelfieStep = ['selfie_intro', 'selfie_capture', 'selfie_review'].includes(
+      this.currentStep(),
+    );
+
+    return isSelfieStep ? this.getActiveSelfieVideoElement() : this.getActiveDocumentVideoElement();
+  }
+
+  private getActiveDocumentVideoElement(): HTMLVideoElement | undefined {
+    return this.isDesktopViewport()
+      ? this.desktopDocumentVideoRef()?.nativeElement
+      : this.mobileDocumentVideoRef()?.nativeElement;
+  }
+
+  private getActiveSelfieVideoElement(): HTMLVideoElement | undefined {
+    return this.isDesktopViewport()
+      ? this.desktopSelfieVideoRef()?.nativeElement
+      : this.mobileSelfieVideoRef()?.nativeElement;
+  }
+
+  private isDesktopViewport(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+  }
+
+  private getCameraErrorMessage(error: unknown): string {
+    if (error instanceof DOMException) {
+      switch (error.name) {
+        case 'NotAllowedError':
+        case 'PermissionDeniedError':
+          return 'Allow camera access in your browser to continue verification.';
+        case 'NotFoundError':
+        case 'DevicesNotFoundError':
+          return 'No camera was found on this device.';
+        case 'NotReadableError':
+        case 'TrackStartError':
+          return 'Your camera is currently in use by another app.';
+      }
+    }
+
+    return 'We could not start your camera. Please try again.';
   }
 
   private revokeObjectUrl(url: string) {
