@@ -38,6 +38,34 @@ interface MessageMenuTarget extends ReplyTarget {
   messageId: string;
 }
 
+type DeleteIntent = 'chat' | 'messages';
+
+type ChatTextMessage = {
+  id: string;
+  kind: 'text';
+  author: string;
+  text: string;
+  outgoing: boolean;
+  variant?: 'normal' | 'faded';
+  replyLabel?: string;
+  reaction?: string;
+};
+
+type ChatAttachmentsMessage = {
+  id: string;
+  kind: 'attachments';
+  attachmentsDesktop: readonly string[];
+  attachmentsMobile: readonly string[];
+};
+
+type ChatMessage = ChatTextMessage | ChatAttachmentsMessage;
+
+type ChatDay = {
+  id: string;
+  label: string;
+  messages: readonly ChatMessage[];
+};
+
 @Component({
   selector: 'app-messages-page',
   imports: [CommonModule, NgOptimizedImage],
@@ -278,7 +306,7 @@ interface MessageMenuTarget extends ReplyTarget {
               @for (chat of conversations(); track chat.id) {
                 <button
                   type="button"
-                  (click)="activeChatId.set(chat.id)"
+                  (click)="selectDesktopConversation(chat.id)"
                   class="w-full rounded-[18px] px-3 py-4 text-left"
                   [class.bg-[#F6F6F6]]="activeChatId() === chat.id"
                 >
@@ -346,135 +374,166 @@ interface MessageMenuTarget extends ReplyTarget {
             class="grid min-h-0 min-w-0 flex-1 grid-rows-[83px_minmax(0,1fr)_77px] overflow-hidden rounded-[16px] border border-[#F1F1F1] bg-white"
           >
             <header class="border-b border-[#EAEAEA] bg-white px-[23px] py-[12.5px]">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div class="relative h-[56px] w-[56px] shrink-0">
-                    <img
-                      [ngSrc]="activeDesktopConversation().avatar"
-                      width="56"
-                      height="56"
-                      [alt]="activeDesktopConversation().name"
-                      class="h-14 w-14 rounded-full object-cover"
-                    />
-                    <span
-                      class="absolute bottom-0 left-[32px] flex h-[23px] w-[23px] items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
-                    >
-                      <img
-                        [ngSrc]="activeDesktopConversation().storeBadge"
-                        width="22"
-                        height="22"
-                        alt=""
-                        class="h-[22px] w-[22px] object-cover"
-                      />
-                    </span>
-                  </div>
+                <div class="flex items-center justify-between">
+                  @if (isSelectionMode()) {
+                    <div class="flex items-center justify-between gap-4 w-full">
+                      <div>
+                        <p class="text-[20px] font-medium leading-6 text-[#002F35]">
+                          {{ selectedMessageCount() }} selected
+                        </p>
+                        <p class="mt-1 text-[14px] leading-5 text-[#9C9C9C]">
+                          Tap messages to select or unselect them
+                        </p>
+                      </div>
 
-                  <div>
-                    <p class="text-[20px] font-medium leading-6 text-[#002F35]">
-                      {{ activeDesktopConversation().name }}
-                    </p>
-                    <div class="mt-1 flex items-center gap-1">
-                      <span class="h-1 w-1 rounded-full bg-[#BFBFBF]"></span>
-                      <span class="text-[14px] leading-5 text-[#9C9C9C]"> Active 25 mins ago </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="relative flex items-center gap-1">
-                  <button type="button" class="rounded-[40px] p-[10px]">
-                    <img
-                      [ngSrc]="assets.searchDesktop"
-                      width="24"
-                      height="24"
-                      alt=""
-                      class="h-6 w-6"
-                    />
-                  </button>
-
-                  <button
-                    type="button"
-                    (click)="openProfileMenu()"
-                    class="rounded-[40px] p-[10px]"
-                    aria-haspopup="dialog"
-                    [attr.aria-expanded]="isProfileMenuOpen()"
-                    aria-label="Open chat profile actions"
-                  >
-                    <img
-                      [ngSrc]="assets.moreFigma"
-                      width="20"
-                      height="20"
-                      alt=""
-                      class="h-5 w-5"
-                    />
-                  </button>
-
-                  @if (isProfileMenuOpen()) {
-                    <button
-                      type="button"
-                      (click)="closeProfileMenu()"
-                      aria-label="Close chat profile actions"
-                      class="fixed inset-0 z-[129] hidden md:block"
-                    ></button>
-
-                    <section
-                      class="absolute right-0 top-full z-[130] mt-2 hidden w-[220px] rounded-[20px] border border-[#F2F2F2] bg-white p-2 shadow-[0_20px_40px_rgba(0,0,0,0.08)] md:block"
-                      aria-label="Chat profile actions"
-                      role="dialog"
-                      aria-modal="true"
-                    >
-                      <div class="space-y-1">
+                      <div class="flex items-center gap-1">
                         <button
                           type="button"
-                          class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FAFAFA]"
+                          (click)="openDeleteMessagesConfirm()"
+                          [disabled]="!selectedMessageCount()"
+                          class="rounded-[40px] px-4 py-[10px] text-[14px] font-medium text-[#FF2524] disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                          <img
-                            [ngSrc]="assets.profileMenuEye"
-                            width="20"
-                            height="20"
-                            alt=""
-                            class="h-5 w-5"
-                          />
-                          <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">
-                            View profile
-                          </span>
+                          Delete
                         </button>
-
                         <button
                           type="button"
-                          class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FFF7F7]"
+                          (click)="exitSelectionMode()"
+                          class="rounded-[40px] px-4 py-[10px] text-[14px] font-medium text-[#1A1B1D]"
                         >
-                          <img
-                            [ngSrc]="assets.profileMenuFlag"
-                            width="20"
-                            height="20"
-                            alt=""
-                            class="h-5 w-5"
-                          />
-                          <span class="text-[16px] font-medium leading-5 text-[#FF2524]">
-                            Report seller
-                          </span>
-                        </button>
-
-                        <button
-                          type="button"
-                          (click)="openClearChatConfirm()"
-                          class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FFF7F7]"
-                        >
-                          <img
-                            [ngSrc]="assets.profileMenuTrash"
-                            width="20"
-                            height="20"
-                            alt=""
-                            class="h-5 w-5"
-                          />
-                          <span class="text-[16px] font-medium leading-5 text-[#FF2524]">
-                            Clear chat
-                          </span>
+                          Cancel
                         </button>
                       </div>
-                    </section>
+                    </div>
+                  } @else {
+                    <div class="flex items-center gap-2">
+                      <div class="relative h-[56px] w-[56px] shrink-0">
+                        <img
+                          [ngSrc]="activeDesktopConversation().avatar"
+                          width="56"
+                          height="56"
+                          [alt]="activeDesktopConversation().name"
+                          class="h-14 w-14 rounded-full object-cover"
+                        />
+                        <span
+                          class="absolute bottom-0 left-[32px] flex h-[23px] w-[23px] items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
+                        >
+                          <img
+                            [ngSrc]="activeDesktopConversation().storeBadge"
+                            width="22"
+                            height="22"
+                            alt=""
+                            class="h-[22px] w-[22px] object-cover"
+                          />
+                        </span>
+                      </div>
+
+                      <div>
+                        <p class="text-[20px] font-medium leading-6 text-[#002F35]">
+                          {{ activeDesktopConversation().name }}
+                        </p>
+                        <div class="mt-1 flex items-center gap-1">
+                          <span class="h-1 w-1 rounded-full bg-[#BFBFBF]"></span>
+                          <span class="text-[14px] leading-5 text-[#9C9C9C]"> Active 25 mins ago </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="relative flex items-center gap-1">
+                      <button type="button" class="rounded-[40px] p-[10px]">
+                        <img
+                          [ngSrc]="assets.searchDesktop"
+                          width="24"
+                          height="24"
+                          alt=""
+                          class="h-6 w-6"
+                        />
+                      </button>
+
+                      <button
+                        type="button"
+                        (click)="openProfileMenu()"
+                        class="rounded-[40px] p-[10px]"
+                        aria-haspopup="dialog"
+                        [attr.aria-expanded]="isProfileMenuOpen()"
+                        aria-label="Open chat profile actions"
+                      >
+                        <img
+                          [ngSrc]="assets.moreFigma"
+                          width="20"
+                          height="20"
+                          alt=""
+                          class="h-5 w-5"
+                        />
+                      </button>
+
+                      @if (isProfileMenuOpen()) {
+                        <button
+                          type="button"
+                          (click)="closeProfileMenu()"
+                          aria-label="Close chat profile actions"
+                          class="fixed inset-0 z-[129] hidden md:block"
+                        ></button>
+
+                        <section
+                          class="absolute right-0 top-full z-[130] mt-2 hidden w-[220px] rounded-[20px] border border-[#F2F2F2] bg-white p-2 shadow-[0_20px_40px_rgba(0,0,0,0.08)] md:block"
+                          aria-label="Chat profile actions"
+                          role="dialog"
+                          aria-modal="true"
+                        >
+                          <div class="space-y-1">
+                            <button
+                              type="button"
+                              class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FAFAFA]"
+                            >
+                              <img
+                                [ngSrc]="assets.profileMenuEye"
+                                width="20"
+                                height="20"
+                                alt=""
+                                class="h-5 w-5"
+                              />
+                              <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">
+                                View profile
+                              </span>
+                            </button>
+
+                            <button
+                              type="button"
+                              class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FFF7F7]"
+                            >
+                              <img
+                                [ngSrc]="assets.profileMenuFlag"
+                                width="20"
+                                height="20"
+                                alt=""
+                                class="h-5 w-5"
+                              />
+                              <span class="text-[16px] font-medium leading-5 text-[#FF2524]">
+                                Report seller
+                              </span>
+                            </button>
+
+                            <button
+                              type="button"
+                              (click)="openClearChatConfirm()"
+                              class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FFF7F7]"
+                            >
+                              <img
+                                [ngSrc]="assets.profileMenuTrash"
+                                width="20"
+                                height="20"
+                                alt=""
+                                class="h-5 w-5"
+                              />
+                              <span class="text-[16px] font-medium leading-5 text-[#FF2524]">
+                                Clear chat
+                              </span>
+                            </button>
+                          </div>
+                        </section>
+                      }
+                    </div>
                   }
-                </div>
               </div>
             </header>
 
@@ -482,110 +541,95 @@ interface MessageMenuTarget extends ReplyTarget {
               class="min-h-0 overflow-y-auto px-[23px] py-6 chats-scrollbar"
               (contextmenu)="suppressNativeContextMenu($event)"
             >
-              <p class="text-center text-[12px] leading-4 text-[#6F6F6F]">09/01/2026</p>
+              <div class="space-y-6">
+                @for (day of activeConversationDays(); track day.id) {
+                  <section>
+                    <p class="text-center text-[12px] leading-4 text-[#6F6F6F]">{{ day.label }}</p>
 
-              <div class="relative mt-6 h-[156px]">
-                <div
-                  class="absolute left-0 top-0 max-w-[420px] rounded-[24px] bg-[#F8F8F8] px-[18px] py-3"
-                  (pointerdown)="onMessageLongPressStart($event, 'desktop-top-incoming', 'The Vine Collections', 'Hi just wanted to confirm, would you still be available for the date?')"
-                  (pointerup)="onMessageLongPressEnd($event)"
-                  (pointercancel)="onMessageLongPressCancel($event)"
-                  (contextmenu)="openMessageMenuFromContext($event, 'desktop-top-incoming', 'The Vine Collections', 'Hi just wanted to confirm, would you still be available for the date?')"
-                >
-                  <p class="text-[16px] leading-6 text-[#242424]">
-                    Hi just wanted to confirm, would you still be available for the date?
-                  </p>
-                </div>
+                    <div class="mt-6 space-y-4">
+                      @for (message of day.messages; track message.id) {
+                        @if (message.kind === 'text') {
+                          <div
+                            class="flex"
+                            [class.justify-end]="message.outgoing"
+                          >
+                            <div class="max-w-[420px]">
+                              @if (message.replyLabel) {
+                                <div class="mb-2 flex items-start gap-2">
+                                  <span class="mt-[2px] h-10 w-px bg-[#E2E2E2]"></span>
+                                  <p class="text-[12px] leading-4 text-[#6F6F6F]">
+                                    {{ message.replyLabel }}
+                                  </p>
+                                </div>
+                              }
 
-                <div
-                  class="absolute bottom-0 right-0 max-w-[420px] rounded-[24px] bg-[#6453D9] px-[18px] py-3"
-                  (pointerdown)="onMessageLongPressStart($event, 'desktop-top-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
-                  (pointerup)="onMessageLongPressEnd($event)"
-                  (pointercancel)="onMessageLongPressCancel($event)"
-                  (contextmenu)="openMessageMenuFromContext($event, 'desktop-top-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
-                >
-                  <p class="text-[16px] leading-6 text-white">
-                    Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you
-                  </p>
-                </div>
-              </div>
+                              <div
+                                class="rounded-[24px] px-[18px] py-3"
+                                [class.bg-[#6453D9]]="message.outgoing"
+                                [class.text-white]="message.outgoing"
+                                [class.bg-[#F8F8F8]]="!message.outgoing"
+                                [class.text-[#242424]]="!message.outgoing"
+                                [class.opacity-30]="message.variant === 'faded'"
+                                [class.ring-2]="isMessageSelected(message.id)"
+                                [class.ring-[#C8BEFF]]="message.outgoing && isMessageSelected(message.id)"
+                                [class.ring-[#6453D9]]="!message.outgoing && isMessageSelected(message.id)"
+                                (pointerdown)="onMessageLongPressStart($event, message.id, message.author, message.text)"
+                                (pointerup)="onMessageLongPressEnd($event)"
+                                (pointercancel)="onMessageLongPressCancel($event)"
+                                (contextmenu)="openMessageMenuFromContext($event, message.id, message.author, message.text)"
+                                (click)="toggleMessageSelection(message.id)"
+                              >
+                                <p class="text-[16px] leading-6">
+                                  {{ message.text }}
+                                </p>
+                              </div>
 
-              <p class="mt-6 text-center text-[12px] leading-4 text-[#6F6F6F]">Today</p>
-
-              <div class="relative mt-6 h-[312px]">
-                <p
-                  class="absolute left-[95px] top-0 -translate-x-full text-[12px] leading-4 text-[#6F6F6F]"
-                >
-                  Replied to you
-                </p>
-
-                <span class="absolute left-[7px] top-[18px] h-[65px] w-px bg-[#E2E2E2]"></span>
-
-                <div
-                  class="absolute right-[183px] top-[25px] max-w-[420px] rounded-[24px] bg-[#6453D9] px-[18px] py-3 opacity-30"
-                  (pointerdown)="onMessageLongPressStart($event, 'desktop-middle-faded-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
-                  (pointerup)="onMessageLongPressEnd($event)"
-                  (pointercancel)="onMessageLongPressCancel($event)"
-                  (contextmenu)="openMessageMenuFromContext($event, 'desktop-middle-faded-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
-                >
-                  <p class="text-[16px] leading-6 text-white">
-                    Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you
-                  </p>
-                </div>
-
-                <div
-                  class="absolute left-0 top-[84px] max-w-[420px] rounded-[24px] bg-[#F8F8F8] px-[18px] py-3"
-                  (pointerdown)="onMessageLongPressStart($event, 'desktop-middle-incoming', 'The Vine Collections', 'nice nice 😁🥰. Can i see some of the pictures or videos')"
-                  (pointerup)="onMessageLongPressEnd($event)"
-                  (pointercancel)="onMessageLongPressCancel($event)"
-                  (contextmenu)="openMessageMenuFromContext($event, 'desktop-middle-incoming', 'The Vine Collections', 'nice nice 😁🥰. Can i see some of the pictures or videos')"
-                >
-                  <p class="text-[16px] leading-6 text-[#262626]">
-                    nice nice 😁🥰. Can i see some of the pictures or videos
-                  </p>
-                </div>
-
-                <div
-                  class="absolute left-[173px] top-[168px] max-w-[420px] rounded-[24px] bg-[#6453D9] px-[18px] py-3"
-                  (pointerdown)="onMessageLongPressStart($event, 'desktop-middle-outgoing', 'You', 'Sure, here are some of the pictures.')"
-                  (pointerup)="onMessageLongPressEnd($event)"
-                  (pointercancel)="onMessageLongPressCancel($event)"
-                  (contextmenu)="openMessageMenuFromContext($event, 'desktop-middle-outgoing', 'You', 'Sure, here are some of the pictures.')"
-                >
-                  <p class="text-[16px] leading-6 text-white">
-                    Sure, here are some of the pictures.
-                  </p>
-                </div>
-
-                <div class="absolute left-0 top-[228px] h-[138px] w-[157px]">
-                  <img
-                    [ngSrc]="assets.attachmentOneDesktop"
-                    width="102"
-                    height="114"
-                    alt=""
-                    class="absolute left-[4px] top-[11px] h-[114px] w-[102px] -rotate-[4.16deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
-                  />
-                  <img
-                    [ngSrc]="assets.attachmentTwoDesktop"
-                    width="102"
-                    height="114"
-                    alt=""
-                    class="absolute left-[20px] top-[7px] h-[114px] w-[102px] rotate-[6deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
-                  />
-                  <img
-                    [ngSrc]="assets.attachmentThreeDesktop"
-                    width="102"
-                    height="114"
-                    alt=""
-                    class="absolute left-[34px] top-0 h-[114px] w-[102px] rotate-[16deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
-                  />
-                </div>
+                              @if (message.reaction) {
+                                <div class="mt-2 flex justify-end">
+                                  <div class="rounded-[24px] border border-[#F5F5F5] bg-white px-3 py-1 shadow-[0_3px_8px_rgba(216,216,216,0.25)]">
+                                    <span class="text-[16px] leading-6 text-[#9C9C9C]">{{ message.reaction }}</span>
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        } @else {
+                          <div class="pl-0">
+                            <div class="relative h-[138px] w-[157px]">
+                              <img
+                                [ngSrc]="message.attachmentsDesktop[0]"
+                                width="102"
+                                height="114"
+                                alt=""
+                                class="absolute left-[4px] top-[11px] h-[114px] w-[102px] -rotate-[4.16deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+                              />
+                              <img
+                                [ngSrc]="message.attachmentsDesktop[1]"
+                                width="102"
+                                height="114"
+                                alt=""
+                                class="absolute left-[20px] top-[7px] h-[114px] w-[102px] rotate-[6deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+                              />
+                              <img
+                                [ngSrc]="message.attachmentsDesktop[2]"
+                                width="102"
+                                height="114"
+                                alt=""
+                                class="absolute left-[34px] top-0 h-[114px] w-[102px] rotate-[16deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+                              />
+                            </div>
+                          </div>
+                        }
+                      }
+                    </div>
+                  </section>
+                }
 
                 @if (isMessageMenuOpen() && isDesktopMessageMenuOpen()) {
                   <section
-                    class="absolute z-[150] hidden w-[220px] rounded-[16px] border border-[#F2F2F2] bg-white p-2 shadow-[0_18px_30px_rgba(0,0,0,0.12)] md:block"
-                    [style.left]="desktopMessageMenuPosition().left"
-                    [style.top]="desktopMessageMenuPosition().top"
+                    class="fixed z-[150] hidden w-[220px] rounded-[16px] border border-[#F2F2F2] bg-white p-2 shadow-[0_18px_30px_rgba(0,0,0,0.12)] md:block"
+                    [style.left.px]="desktopMessageMenuPosition().left"
+                    [style.top.px]="desktopMessageMenuPosition().top"
                     aria-label="Message actions"
                     role="dialog"
                     aria-modal="true"
@@ -618,6 +662,21 @@ interface MessageMenuTarget extends ReplyTarget {
                         class="h-5 w-5"
                       />
                       <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">Copy</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="startSelectionFromMenu()"
+                      class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+                    >
+                      <img
+                        [ngSrc]="assets.messageMenuDelete"
+                        width="20"
+                        height="20"
+                        alt=""
+                        class="h-5 w-5"
+                      />
+                      <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">Select messages</span>
                     </button>
 
                     <button
@@ -888,179 +947,192 @@ interface MessageMenuTarget extends ReplyTarget {
     @if (isMobileConversationOpen()) {
       <section class="fixed left-0 top-0 z-[95] flex h-dvh w-screen flex-col overflow-hidden bg-white md:hidden">
         <header class="shrink-0 border-b border-[#EAEAEA] bg-white px-4 pt-0">
-          <div class="flex items-center gap-3 py-[14px]">
-            <div class="flex min-w-0 flex-1 items-center">
-              <button
-                type="button"
-                (click)="closeMobileConversation()"
-                class="shrink-0 rounded-[40px] p-[10px]"
-                aria-label="Go back"
-              >
-                <img [ngSrc]="assets.backMobile" width="20" height="20" alt="" class="h-5 w-5" />
-              </button>
+          @if (isSelectionMode()) {
+            <div class="flex items-center justify-between gap-3 py-[14px]">
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-[20px] font-medium leading-6 text-[#002F35]">
+                  {{ selectedMessageCount() }} selected
+                </p>
+                <p class="mt-1 text-[13px] leading-4 text-[#9C9C9C]">
+                  Tap messages to select or unselect them
+                </p>
+              </div>
 
-              <div class="ml-1 flex min-w-0 items-center gap-2">
-                <div class="relative h-[46px] w-[46px] shrink-0">
-                  <img
-                    [ngSrc]="
-                      activeMobileConversation().mobileAvatar ?? activeMobileConversation().avatar
-                    "
-                    width="46"
-                    height="46"
-                    [alt]="activeMobileConversation().name"
-                    class="h-[46px] w-[46px] rounded-full object-cover"
-                  />
-                  <span
-                    class="absolute bottom-0 left-[27px] flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
-                  >
+              <div class="flex shrink-0 items-center gap-1">
+                <button
+                  type="button"
+                  (click)="openDeleteMessagesConfirm()"
+                  [disabled]="!selectedMessageCount()"
+                  class="rounded-[40px] px-3 py-[10px] text-[14px] font-medium text-[#FF2524] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Delete
+                </button>
+                <button
+                  type="button"
+                  (click)="exitSelectionMode()"
+                  class="rounded-[40px] px-3 py-[10px] text-[14px] font-medium text-[#1A1B1D]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="flex items-center gap-3 py-[14px]">
+              <div class="flex min-w-0 flex-1 items-center">
+                <button
+                  type="button"
+                  (click)="closeMobileConversation()"
+                  class="shrink-0 rounded-[40px] p-[10px]"
+                  aria-label="Go back"
+                >
+                  <img [ngSrc]="assets.backMobile" width="20" height="20" alt="" class="h-5 w-5" />
+                </button>
+
+                <div class="ml-1 flex min-w-0 items-center gap-2">
+                  <div class="relative h-[46px] w-[46px] shrink-0">
                     <img
                       [ngSrc]="
-                        activeMobileConversation().mobileStoreBadge ?? assets.storeBadgeMobile
+                        activeMobileConversation().mobileAvatar ?? activeMobileConversation().avatar
                       "
-                      width="19"
-                      height="19"
-                      alt=""
-                      class="h-[19px] w-[19px] object-cover"
+                      width="46"
+                      height="46"
+                      [alt]="activeMobileConversation().name"
+                      class="h-[46px] w-[46px] rounded-full object-cover"
                     />
-                  </span>
-                </div>
+                    <span
+                      class="absolute bottom-0 left-[27px] flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
+                    >
+                      <img
+                        [ngSrc]="
+                          activeMobileConversation().mobileStoreBadge ?? assets.storeBadgeMobile
+                        "
+                        width="19"
+                        height="19"
+                        alt=""
+                        class="h-[19px] w-[19px] object-cover"
+                      />
+                    </span>
+                  </div>
 
-                <div class="min-w-0">
-                  <p class="truncate text-[20px] font-medium leading-6 text-[#002F35]">
-                    {{ activeMobileConversation().name }}
-                  </p>
-                  <div class="mt-1 flex items-center gap-1">
-                    <span class="h-1 w-1 rounded-full bg-[#BFBFBF]"></span>
-                    <span class="text-[14px] leading-5 text-[#9C9C9C]">Active 25 mins ago</span>
+                  <div class="min-w-0">
+                    <p class="truncate text-[20px] font-medium leading-6 text-[#002F35]">
+                      {{ activeMobileConversation().name }}
+                    </p>
+                    <div class="mt-1 flex items-center gap-1">
+                      <span class="h-1 w-1 rounded-full bg-[#BFBFBF]"></span>
+                      <span class="text-[14px] leading-5 text-[#9C9C9C]">Active 25 mins ago</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div class="flex shrink-0 items-center">
-              <button type="button" class="rounded-[40px] p-[10px]" aria-label="Search chat">
-                <img [ngSrc]="assets.searchMobile" width="20" height="20" alt="" class="h-5 w-5" />
-              </button>
+              <div class="flex shrink-0 items-center">
+                <button type="button" class="rounded-[40px] p-[10px]" aria-label="Search chat">
+                  <img [ngSrc]="assets.searchMobile" width="20" height="20" alt="" class="h-5 w-5" />
+                </button>
 
-              <button
-                type="button"
-                (click)="openProfileMenu()"
-                class="rounded-[40px] p-[10px]"
-                aria-haspopup="dialog"
-                [attr.aria-expanded]="isProfileMenuOpen()"
-                aria-label="Open chat profile actions"
-              >
-                <img [ngSrc]="assets.moreFigma" width="20" height="20" alt="" class="h-5 w-5" />
-              </button>
+                <button
+                  type="button"
+                  (click)="openProfileMenu()"
+                  class="rounded-[40px] p-[10px]"
+                  aria-haspopup="dialog"
+                  [attr.aria-expanded]="isProfileMenuOpen()"
+                  aria-label="Open chat profile actions"
+                >
+                  <img [ngSrc]="assets.moreFigma" width="20" height="20" alt="" class="h-5 w-5" />
+                </button>
+              </div>
             </div>
-          </div>
+          }
         </header>
 
         <div
           class="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-6 chats-scrollbar"
           (contextmenu)="suppressNativeContextMenu($event)"
         >
-          <p class="text-center text-[12px] leading-4 text-[#6F6F6F]">09/01/2026</p>
+          <div class="space-y-6">
+            @for (day of activeConversationDays(); track day.id) {
+              <section>
+                <p class="text-center text-[12px] leading-4 text-[#6F6F6F]">{{ day.label }}</p>
 
-          <div class="relative mt-6 h-[164px]">
-            <div
-              class="absolute left-0 top-0 max-w-[280px] rounded-[24px] bg-[#F8F8F8] px-[14px] py-3"
-              (pointerdown)="onMessageLongPressStart($event, 'mobile-top-incoming', 'The Vine Collections', 'Hi just wanted to confirm, would you still be available for the date?')"
-              (pointerup)="onMessageLongPressEnd($event)"
-              (pointercancel)="onMessageLongPressCancel($event)"
-              (contextmenu)="openMessageMenuFromContext($event, 'mobile-top-incoming', 'The Vine Collections', 'Hi just wanted to confirm, would you still be available for the date?')"
-            >
-              <p class="text-[16px] leading-5 text-[#242424]">
-                Hi just wanted to confirm, would you still be available for the date?
-              </p>
-            </div>
+                <div class="mt-6 space-y-4">
+                  @for (message of day.messages; track message.id) {
+                    @if (message.kind === 'text') {
+                      <div
+                        class="flex"
+                        [class.justify-end]="message.outgoing"
+                      >
+                        <div class="max-w-[300px]">
+                          @if (message.replyLabel) {
+                            <div class="mb-2 flex items-start gap-2">
+                              <span class="mt-[2px] h-10 w-px bg-[#E2E2E2]"></span>
+                              <p class="text-[12px] leading-4 text-[#6F6F6F]">
+                                {{ message.replyLabel }}
+                              </p>
+                            </div>
+                          }
 
-            <div
-              class="absolute right-0 top-20 max-w-[300px] rounded-[24px] bg-[#6453D9] px-[14px] py-3"
-              (pointerdown)="onMessageLongPressStart($event, 'mobile-top-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
-              (pointerup)="onMessageLongPressEnd($event)"
-              (pointercancel)="onMessageLongPressCancel($event)"
-              (contextmenu)="openMessageMenuFromContext($event, 'mobile-top-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
-            >
-              <p class="text-[16px] leading-5 text-white">
-                Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you
-              </p>
-            </div>
-          </div>
+                          <div
+                            class="rounded-[24px] px-[14px] py-3"
+                            [class.bg-[#6453D9]]="message.outgoing"
+                            [class.text-white]="message.outgoing"
+                            [class.bg-[#F8F8F8]]="!message.outgoing"
+                            [class.text-[#242424]]="!message.outgoing"
+                            [class.opacity-30]="message.variant === 'faded'"
+                            [class.ring-2]="isMessageSelected(message.id)"
+                            [class.ring-[#C8BEFF]]="message.outgoing && isMessageSelected(message.id)"
+                            [class.ring-[#6453D9]]="!message.outgoing && isMessageSelected(message.id)"
+                            (pointerdown)="onMessageLongPressStart($event, message.id, message.author, message.text)"
+                            (pointerup)="onMessageLongPressEnd($event)"
+                            (pointercancel)="onMessageLongPressCancel($event)"
+                            (contextmenu)="openMessageMenuFromContext($event, message.id, message.author, message.text)"
+                            (click)="toggleMessageSelection(message.id)"
+                          >
+                            <p class="text-[16px] leading-5">
+                              {{ message.text }}
+                            </p>
+                          </div>
 
-          <p class="mt-6 text-center text-[12px] leading-4 text-[#6F6F6F]">Today</p>
-
-          <div class="relative mt-6 h-[380px]">
-            <p class="absolute left-[7px] top-0 text-[12px] leading-4 text-[#6F6F6F]">
-              Replied to you
-            </p>
-            <span class="absolute left-[1px] top-[18px] h-[65px] w-px bg-[#E2E2E2]"></span>
-
-            <div
-              class="absolute right-[52px] top-[25px] w-[280px] rounded-[24px] bg-[#6453D9] px-[14px] py-3 opacity-30"
-              (pointerdown)="onMessageLongPressStart($event, 'mobile-middle-faded-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
-              (pointerup)="onMessageLongPressEnd($event)"
-              (pointercancel)="onMessageLongPressCancel($event)"
-              (contextmenu)="openMessageMenuFromContext($event, 'mobile-middle-faded-outgoing', 'You', 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you')"
-            >
-              <p class="text-[16px] leading-5 text-white">
-                Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you
-              </p>
-            </div>
-
-            <div
-              class="absolute left-3 top-[82px] w-[280px] rounded-[24px] bg-[#F8F8F8] px-[14px] py-3"
-              (pointerdown)="onMessageLongPressStart($event, 'mobile-middle-incoming', 'The Vine Collections', 'nice nice 😁🥰. Can i see some of the pictures or videos')"
-              (pointerup)="onMessageLongPressEnd($event)"
-              (pointercancel)="onMessageLongPressCancel($event)"
-              (contextmenu)="openMessageMenuFromContext($event, 'mobile-middle-incoming', 'The Vine Collections', 'nice nice 😁🥰. Can i see some of the pictures or videos')"
-            >
-              <p class="text-[16px] leading-5 text-[#262626]">
-                nice nice 😁🥰. Can i see some of the pictures or videos
-              </p>
-            </div>
-
-            <div
-              class="absolute right-[19px] top-[130px] rounded-[24px] border border-[#F5F5F5] bg-white px-3 py-1 shadow-[0_3px_8px_rgba(216,216,216,0.25)]"
-            >
-              <span class="text-[16px] leading-6 text-[#9C9C9C]">👍</span>
-            </div>
-
-            <div
-              class="absolute left-[58px] top-[170px] max-w-[300px] rounded-[24px] bg-[#6453D9] px-[14px] py-3"
-              (pointerdown)="onMessageLongPressStart($event, 'mobile-middle-outgoing', 'You', 'Sure, here are some of the pictures.')"
-              (pointerup)="onMessageLongPressEnd($event)"
-              (pointercancel)="onMessageLongPressCancel($event)"
-              (contextmenu)="openMessageMenuFromContext($event, 'mobile-middle-outgoing', 'You', 'Sure, here are some of the pictures.')"
-            >
-              <p class="text-[16px] leading-5 text-white">
-                Sure, here are some of the pictures.
-              </p>
-            </div>
-
-            <div class="absolute left-[-9px] top-[242px] h-[138px] w-[157px]">
-              <img
-                [ngSrc]="assets.attachmentOneMobile"
-                width="102"
-                height="114"
-                alt=""
-                class="absolute left-[14px] top-[11px] h-[114px] w-[102px] -rotate-[4.18deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
-              />
-              <img
-                [ngSrc]="assets.attachmentTwoMobile"
-                width="102"
-                height="114"
-                alt=""
-                class="absolute left-[20px] top-[7px] h-[114px] w-[102px] rotate-[6deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
-              />
-              <img
-                [ngSrc]="assets.attachmentThreeMobile"
-                width="102"
-                height="114"
-                alt=""
-                class="absolute left-[28px] top-0 h-[114px] w-[102px] rotate-[16deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
-              />
-            </div>
+                          @if (message.reaction) {
+                            <div class="mt-2 flex justify-end">
+                              <div class="rounded-[24px] border border-[#F5F5F5] bg-white px-3 py-1 shadow-[0_3px_8px_rgba(216,216,216,0.25)]">
+                                <span class="text-[16px] leading-6 text-[#9C9C9C]">{{ message.reaction }}</span>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    } @else {
+                      <div class="pl-0">
+                        <div class="relative h-[138px] w-[157px]">
+                          <img
+                            [ngSrc]="message.attachmentsMobile[0]"
+                            width="102"
+                            height="114"
+                            alt=""
+                            class="absolute left-[14px] top-[11px] h-[114px] w-[102px] -rotate-[4.18deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+                          />
+                          <img
+                            [ngSrc]="message.attachmentsMobile[1]"
+                            width="102"
+                            height="114"
+                            alt=""
+                            class="absolute left-[20px] top-[7px] h-[114px] w-[102px] rotate-[6deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+                          />
+                          <img
+                            [ngSrc]="message.attachmentsMobile[2]"
+                            width="102"
+                            height="114"
+                            alt=""
+                            class="absolute left-[28px] top-0 h-[114px] w-[102px] rotate-[16deg] rounded-[16px] border border-[#F2F2F2] object-cover shadow-[0_1px_5px_rgba(135,135,135,0.1),0_6px_9px_rgba(135,135,135,0.09),0_13px_12px_rgba(135,135,135,0.05)]"
+                          />
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+              </section>
+            }
           </div>
         </div>
 
@@ -1344,6 +1416,15 @@ interface MessageMenuTarget extends ReplyTarget {
 
             <button
               type="button"
+              (click)="startSelectionFromMenu()"
+              class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
+            >
+              <img [ngSrc]="assets.messageMenuDelete" width="20" height="20" alt="" class="h-5 w-5" />
+              <span class="text-[16px] font-medium leading-5 text-[#1A1B1D]">Select messages</span>
+            </button>
+
+            <button
+              type="button"
               (click)="deleteMessageFromMenu()"
               class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
             >
@@ -1396,12 +1477,10 @@ interface MessageMenuTarget extends ReplyTarget {
           <div class="mx-auto max-w-[334px] pt-10 text-center">
             <div class="space-y-3">
               <h2 class="text-[28px] font-semibold leading-none tracking-[-0.02em] text-[#15162B]">
-                Remove this chat?
+                {{ clearChatConfirmTitle() }}
               </h2>
               <p class="text-[14px] leading-[1.5] tracking-[-0.5px] text-[#48484A]">
-                This will remove the chat from your inbox and erase the chat history. To stop
-                receiving new messages from this seller, first report this seller, then delete the
-                chat.
+                {{ clearChatConfirmDescription() }}
               </p>
             </div>
 
@@ -1411,7 +1490,7 @@ interface MessageMenuTarget extends ReplyTarget {
                 (click)="confirmClearChat()"
                 class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#FF2524] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A]"
               >
-                Remove
+                {{ clearChatConfirmActionLabel() }}
               </button>
 
               <button
@@ -1466,12 +1545,10 @@ interface MessageMenuTarget extends ReplyTarget {
           <div class="mx-auto max-w-[334px] px-4 pt-[71px] text-center">
             <div class="space-y-3">
               <h2 class="text-[28px] font-semibold leading-none tracking-[-0.02em] text-[#15162B]">
-                Remove this chat?
+                {{ clearChatConfirmTitle() }}
               </h2>
               <p class="text-[14px] leading-[1.5] tracking-[-0.5px] text-[#48484A]">
-                This will remove the chat from your inbox and erase the chat history. To stop
-                receiving new messages from this seller, first report this seller, then delete the
-                chat.
+                {{ clearChatConfirmDescription() }}
               </p>
             </div>
 
@@ -1481,7 +1558,7 @@ interface MessageMenuTarget extends ReplyTarget {
                 (click)="confirmClearChat()"
                 class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#FF2524] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A]"
               >
-                Remove
+                {{ clearChatConfirmActionLabel() }}
               </button>
 
               <button
@@ -1732,6 +1809,7 @@ export class MessagesPageComponent implements OnDestroy {
   readonly isProfileMenuOpen = signal(false);
   readonly activeReplyTarget = signal<ReplyTarget | null>(null);
   readonly messageMenuTarget = signal<MessageMenuTarget | null>(null);
+  readonly messageMenuViewport = signal<'desktop' | 'mobile' | null>(null);
   readonly isReplyComposerOpen = computed(() => this.activeReplyTarget() !== null);
   readonly isRecordingVoice = signal(false);
   readonly isStoreSelectorOpen = signal(false);
@@ -1739,6 +1817,23 @@ export class MessagesPageComponent implements OnDestroy {
   readonly draftMessage = signal('');
   readonly storeSearchTerm = signal('');
   readonly selectedStoreId = signal('all');
+  readonly selectedMessageIds = signal<readonly string[]>([]);
+  readonly deletedMessageIds = signal<readonly string[]>([]);
+  readonly desktopMessageMenuAnchor = signal<{ left: number; top: number } | null>(null);
+  readonly deleteIntent = signal<DeleteIntent>('chat');
+  readonly isSelectionMode = computed(() => this.selectedMessageIds().length > 0);
+  readonly selectedMessageCount = computed(() => this.selectedMessageIds().length);
+  readonly clearChatConfirmTitle = computed(() =>
+    this.deleteIntent() === 'messages' ? 'Delete selected messages?' : 'Remove this chat?',
+  );
+  readonly clearChatConfirmDescription = computed(() =>
+    this.deleteIntent() === 'messages'
+      ? 'This will permanently remove the selected messages from this conversation.'
+      : 'This will remove the chat from your inbox and erase the chat history. To stop receiving new messages from this seller, first report this seller, then delete the chat.',
+  );
+  readonly clearChatConfirmActionLabel = computed(() =>
+    this.deleteIntent() === 'messages' ? 'Delete' : 'Remove',
+  );
   readonly hasDraftMessage = computed(() => this.draftMessage().trim().length > 0);
   private longPressTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -1800,6 +1895,12 @@ export class MessagesPageComponent implements OnDestroy {
     },
   ]);
 
+  readonly conversationDays = signal<Record<string, readonly ChatDay[]>>({
+    '1': this.createMockConversationDays(),
+    '2': this.createMockConversationDays(),
+    '3': this.createMockConversationDays(),
+  });
+
   readonly selectedStoreLabel = computed(
     () =>
       this.storeOptions.find((store) => store.id === this.selectedStoreId())?.label ??
@@ -1838,15 +1939,28 @@ export class MessagesPageComponent implements OnDestroy {
       this.conversations()[1],
   );
 
+  readonly activeConversationDays = computed(() => {
+    const days = this.conversationDays()[this.activeChatId()] ?? this.createMockConversationDays();
+
+    return days
+      .map((day) => ({
+        ...day,
+        messages: day.messages.filter((message) => !this.isMessageDeleted(message.id)),
+      }))
+      .filter((day) => day.messages.length > 0);
+  });
+
   protected openMobileConversation(chatId: string): void {
     this.activeChatId.set(chatId);
     this.isClearChatConfirmOpen.set(false);
     this.isMessageMenuOpen.set(false);
     this.isProfileMenuOpen.set(false);
+    this.deleteIntent.set('chat');
     this.messageMenuTarget.set(null);
     this.activeReplyTarget.set(null);
     this.isRecordingVoice.set(false);
     this.isStoreSelectorOpen.set(false);
+    this.selectedMessageIds.set([]);
     this.isMobileConversationOpen.set(true);
 
     if (!this.mobileConversationOverlayOpen) {
@@ -1855,13 +1969,28 @@ export class MessagesPageComponent implements OnDestroy {
     }
   }
 
+  protected selectDesktopConversation(chatId: string): void {
+    this.activeChatId.set(chatId);
+    this.isClearChatConfirmOpen.set(false);
+    this.isMessageMenuOpen.set(false);
+    this.isProfileMenuOpen.set(false);
+    this.deleteIntent.set('chat');
+    this.messageMenuTarget.set(null);
+    this.activeReplyTarget.set(null);
+    this.isRecordingVoice.set(false);
+    this.isStoreSelectorOpen.set(false);
+    this.selectedMessageIds.set([]);
+  }
+
   protected closeMobileConversation(): void {
     this.isClearChatConfirmOpen.set(false);
     this.isMessageMenuOpen.set(false);
     this.isProfileMenuOpen.set(false);
+    this.deleteIntent.set('chat');
     this.messageMenuTarget.set(null);
     this.activeReplyTarget.set(null);
     this.isRecordingVoice.set(false);
+    this.selectedMessageIds.set([]);
     this.isMobileConversationOpen.set(false);
 
     if (this.mobileConversationOverlayOpen) {
@@ -1896,6 +2025,7 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   protected openClearChatConfirm(): void {
+    this.deleteIntent.set('chat');
     this.isMessageMenuOpen.set(false);
     this.isProfileMenuOpen.set(false);
     this.isStoreSelectorOpen.set(false);
@@ -1905,14 +2035,63 @@ export class MessagesPageComponent implements OnDestroy {
 
   protected closeClearChatConfirm(): void {
     this.isClearChatConfirmOpen.set(false);
+    this.deleteIntent.set('chat');
   }
 
   protected confirmClearChat(): void {
+    if (this.deleteIntent() === 'messages') {
+      this.deletedMessageIds.update((current) => [
+        ...current,
+        ...this.selectedMessageIds().filter((messageId) => !current.includes(messageId)),
+      ]);
+      this.exitSelectionMode();
+      this.deleteIntent.set('chat');
+      this.isClearChatConfirmOpen.set(false);
+      return;
+    }
+
     this.isClearChatConfirmOpen.set(false);
   }
 
   protected closeReplyComposer(): void {
     this.activeReplyTarget.set(null);
+  }
+
+  protected toggleMessageSelection(messageId: string): void {
+    if (!this.isSelectionMode()) {
+      return;
+    }
+
+    this.selectedMessageIds.update((current) =>
+      current.includes(messageId)
+        ? current.filter((currentMessageId) => currentMessageId !== messageId)
+        : [...current, messageId],
+    );
+  }
+
+  protected enterSelectionMode(messageId: string): void {
+    this.closeMessageMenu();
+    this.closeProfileMenu();
+    this.closeStoreSelector();
+    this.activeReplyTarget.set(null);
+    this.isRecordingVoice.set(false);
+    this.selectedMessageIds.set([messageId]);
+  }
+
+  protected exitSelectionMode(): void {
+    this.selectedMessageIds.set([]);
+  }
+
+  protected openDeleteMessagesConfirm(): void {
+    if (!this.selectedMessageIds().length) {
+      return;
+    }
+
+    this.deleteIntent.set('messages');
+    this.isMessageMenuOpen.set(false);
+    this.isProfileMenuOpen.set(false);
+    this.isStoreSelectorOpen.set(false);
+    this.isClearChatConfirmOpen.set(true);
   }
 
   protected onMessageLongPressStart(
@@ -1923,12 +2102,7 @@ export class MessagesPageComponent implements OnDestroy {
   ): void {
     this.clearLongPressTimer();
     this.longPressTimer = setTimeout(() => {
-      this.messageMenuTarget.set({ messageId, author, text });
-      this.isMessageMenuOpen.set(true);
-      this.isProfileMenuOpen.set(false);
-      this.isStoreSelectorOpen.set(false);
-      this.isClearChatConfirmOpen.set(false);
-      this.isRecordingVoice.set(false);
+      this.openMessageMenu(messageId, author, text, this.resolveMenuAnchorFromTarget(event));
     }, 420);
 
     (event.currentTarget as HTMLElement | null)?.setPointerCapture(event.pointerId);
@@ -1942,12 +2116,7 @@ export class MessagesPageComponent implements OnDestroy {
   ): void {
     event.preventDefault();
     this.clearLongPressTimer();
-    this.messageMenuTarget.set({ messageId, author, text });
-    this.isMessageMenuOpen.set(true);
-    this.isProfileMenuOpen.set(false);
-    this.isStoreSelectorOpen.set(false);
-    this.isClearChatConfirmOpen.set(false);
-    this.isRecordingVoice.set(false);
+    this.openMessageMenu(messageId, author, text, { left: event.clientX, top: event.clientY });
   }
 
   protected onMessageLongPressEnd(event: PointerEvent): void {
@@ -1963,6 +2132,8 @@ export class MessagesPageComponent implements OnDestroy {
   protected closeMessageMenu(): void {
     this.isMessageMenuOpen.set(false);
     this.messageMenuTarget.set(null);
+    this.desktopMessageMenuAnchor.set(null);
+    this.messageMenuViewport.set(null);
   }
 
   protected triggerReplyFromMenu(): void {
@@ -1990,13 +2161,35 @@ export class MessagesPageComponent implements OnDestroy {
     this.closeMessageMenu();
   }
 
+  protected startSelectionFromMenu(): void {
+    const target = this.messageMenuTarget();
+    if (!target) {
+      return;
+    }
+
+    this.enterSelectionMode(target.messageId);
+  }
+
   protected deleteMessageFromMenu(): void {
-    this.closeMessageMenu();
-    this.openClearChatConfirm();
+    const target = this.messageMenuTarget();
+    if (!target) {
+      return;
+    }
+
+    this.enterSelectionMode(target.messageId);
+    this.openDeleteMessagesConfirm();
   }
 
   protected isMessageMenuTarget(messageId: string): boolean {
     return this.messageMenuTarget()?.messageId === messageId;
+  }
+
+  protected isMessageSelected(messageId: string): boolean {
+    return this.selectedMessageIds().includes(messageId);
+  }
+
+  protected isMessageDeleted(messageId: string): boolean {
+    return this.deletedMessageIds().includes(messageId);
   }
 
   protected suppressNativeContextMenu(event: Event): void {
@@ -2004,25 +2197,117 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   protected isDesktopMessageMenuOpen(): boolean {
-    const target = this.messageMenuTarget();
-    return this.isMessageMenuOpen() && target !== null && target.messageId.startsWith('desktop-');
+    return this.isMessageMenuOpen() && this.messageMenuViewport() === 'desktop';
   }
 
-  protected desktopMessageMenuPosition(): { left: string; top: string } {
-    switch (this.messageMenuTarget()?.messageId) {
-      case 'desktop-top-incoming':
-        return { left: '8px', top: '12px' };
-      case 'desktop-top-outgoing':
-        return { left: '278px', top: '92px' };
-      case 'desktop-middle-faded-outgoing':
-        return { left: '232px', top: '118px' };
-      case 'desktop-middle-incoming':
-        return { left: '8px', top: '148px' };
-      case 'desktop-middle-outgoing':
-        return { left: '250px', top: '234px' };
-      default:
-        return { left: '8px', top: '148px' };
+  protected desktopMessageMenuPosition(): { left: number; top: number } {
+    const anchor = this.desktopMessageMenuAnchor();
+    if (!anchor) {
+      return { left: 24, top: 180 };
     }
+
+    return {
+      left: Math.max(16, Math.min(anchor.left, window.innerWidth - 236)),
+      top: Math.max(16, Math.min(anchor.top, window.innerHeight - 220)),
+    };
+  }
+
+  private createMockConversationDays(): readonly ChatDay[] {
+    return [
+      {
+        id: 'day-1',
+        label: '09/01/2026',
+        messages: [
+          {
+            id: 'top-incoming',
+            kind: 'text',
+            author: 'The Vine Collections',
+            text: 'Hi just wanted to confirm, would you still be available for the date?',
+            outgoing: false,
+          },
+          {
+            id: 'top-outgoing',
+            kind: 'text',
+            author: 'You',
+            text: 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you',
+            outgoing: true,
+          },
+        ],
+      },
+      {
+        id: 'day-2',
+        label: 'Today',
+        messages: [
+          {
+            id: 'middle-faded-outgoing',
+            kind: 'text',
+            author: 'You',
+            text: 'Hi Mary 👋🏻. Yes, i’m still very active. Totally looking forward to meeting you',
+            outgoing: true,
+            variant: 'faded',
+            replyLabel: 'Replied to you',
+          },
+          {
+            id: 'middle-incoming',
+            kind: 'text',
+            author: 'The Vine Collections',
+            text: 'nice nice 😁🥰. Can i see some of the pictures or videos',
+            outgoing: false,
+            reaction: '👍',
+          },
+          {
+            id: 'middle-outgoing',
+            kind: 'text',
+            author: 'You',
+            text: 'Sure, here are some of the pictures.',
+            outgoing: true,
+          },
+          {
+            id: 'shared-attachments',
+            kind: 'attachments',
+            attachmentsDesktop: [
+              this.assets.attachmentOneDesktop,
+              this.assets.attachmentTwoDesktop,
+              this.assets.attachmentThreeDesktop,
+            ],
+            attachmentsMobile: [
+              this.assets.attachmentOneMobile,
+              this.assets.attachmentTwoMobile,
+              this.assets.attachmentThreeMobile,
+            ],
+          },
+        ],
+      },
+    ];
+  }
+
+  private openMessageMenu(
+    messageId: string,
+    author: string,
+    text: string,
+    anchor: { left: number; top: number } | null,
+  ): void {
+    this.messageMenuTarget.set({ messageId, author, text });
+    this.desktopMessageMenuAnchor.set(anchor);
+    this.messageMenuViewport.set(window.innerWidth >= 768 ? 'desktop' : 'mobile');
+    this.isMessageMenuOpen.set(true);
+    this.isProfileMenuOpen.set(false);
+    this.isStoreSelectorOpen.set(false);
+    this.isClearChatConfirmOpen.set(false);
+    this.isRecordingVoice.set(false);
+  }
+
+  private resolveMenuAnchorFromTarget(event: PointerEvent): { left: number; top: number } | null {
+    const target = event.currentTarget as HTMLElement | null;
+    if (!target || !target.isConnected || window.innerWidth < 768) {
+      return null;
+    }
+
+    const bounds = target.getBoundingClientRect();
+    return {
+      left: bounds.right - 220,
+      top: bounds.top + Math.min(bounds.height / 2, 56),
+    };
   }
 
   private clearLongPressTimer(): void {
