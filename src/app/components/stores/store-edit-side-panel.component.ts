@@ -14,6 +14,7 @@ import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 export interface EditableStoreProfile {
   name: string;
+  description?: string;
   location: string;
   logo: string;
   banner: string;
@@ -23,6 +24,7 @@ export interface EditableStoreProfile {
 
 export interface EditableStoreUpdate {
   name: string;
+  description: string;
   location: string;
   whatsappNumber: string;
   callNumber: string;
@@ -103,6 +105,18 @@ export interface EditableStoreUpdate {
                         class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 rotate-90"
                       />
                     </span>
+                  </label>
+
+                  <label class="block space-y-2">
+                    <span class="text-[14px] font-medium leading-[1.2] text-[#5A5A5A]"
+                      >Description</span
+                    >
+                    <textarea
+                      formControlName="description"
+                      rows="4"
+                      class="min-h-[96px] w-full resize-none rounded-[8px] border border-[#EAEAEA] px-3 py-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none placeholder:text-[#0D0D0D]/40 focus:border-[#6453D9]"
+                      placeholder="Tell buyers a little about this store"
+                    ></textarea>
                   </label>
 
                   <div class="grid grid-cols-2 gap-5">
@@ -308,6 +322,18 @@ export interface EditableStoreUpdate {
 
                     <label class="block space-y-2">
                       <span class="text-[14px] font-medium leading-[1.2] text-[#5A5A5A]"
+                        >Description</span
+                      >
+                      <textarea
+                        formControlName="description"
+                        rows="4"
+                        class="min-h-[112px] w-full resize-none rounded-[8px] border border-[#EAEAEA] px-3 py-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none placeholder:text-[#0D0D0D]/40 focus:border-[#6453D9]"
+                        placeholder="Tell buyers a little about this store"
+                      ></textarea>
+                    </label>
+
+                    <label class="block space-y-2">
+                      <span class="text-[14px] font-medium leading-[1.2] text-[#5A5A5A]"
                         >Call number</span
                       >
                       <input
@@ -438,6 +464,7 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
 
   protected readonly editForm = this.fb.nonNullable.group({
     name: ['', Validators.required],
+    description: ['', [Validators.required, Validators.minLength(10)]],
     location: ['Ikeja, Lagos', Validators.required],
     whatsappNumber: [''],
     callNumber: [''],
@@ -455,6 +482,7 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
     this.editForm.patchValue(
       {
         name: store.name,
+        description: store.description || '',
         location: store.location || 'Ikeja, Lagos',
         whatsappNumber: store.whatsappNumber || '0816 939 7444',
         callNumber: store.callNumber || '0816 939 7444',

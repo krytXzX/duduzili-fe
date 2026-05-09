@@ -23,6 +23,7 @@ type StoreReviewSort = 'most-recent' | 'highest-rated';
 interface StoreProfile {
   id: string;
   name: string;
+  description?: string;
   logo: string;
   mobileLogo: string;
   banner: string;
@@ -924,6 +925,7 @@ export class StoreDetailsDashboardComponent {
     dateJoined: '16 Feb, 2024',
     promoted: true,
     location: 'Ikeja, Lagos',
+    description: 'Premium gadgets, fashion finds, and curated essentials delivered with care.',
     whatsappNumber: '0816 939 7444',
     callNumber: '0816 939 7444',
   });
