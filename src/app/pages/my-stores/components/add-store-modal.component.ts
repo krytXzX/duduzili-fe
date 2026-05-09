@@ -17,6 +17,7 @@ export interface AddStoreFormValue {
   readonly location: string;
   readonly whatsappNumber: string;
   readonly callNumber: string;
+  readonly alternateCallNumber: string;
   readonly logo: string;
   readonly banner: string;
 }
@@ -157,17 +158,33 @@ export interface AddStoreFormValue {
                     <div class="space-y-2">
                       <label
                         class="block text-[14px] leading-[1.2] font-medium text-[#5a5a5a]"
-                        for="store-call"
+                        for="store-call-primary"
                       >
-                        Call number
+                        Call number 1
                       </label>
                       <input
-                        id="store-call"
+                        id="store-call-primary"
                         type="tel"
                         formControlName="callNumber"
                         class="h-12 w-full rounded-[8px] border border-[#eaeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
                       />
                     </div>
+                  </div>
+
+                  <div class="space-y-2">
+                    <label
+                      class="block text-[14px] leading-[1.2] font-medium text-[#5a5a5a]"
+                      for="store-call-secondary"
+                    >
+                      Call number 2
+                    </label>
+                    <input
+                      id="store-call-secondary"
+                      type="tel"
+                      formControlName="alternateCallNumber"
+                      class="h-12 w-full rounded-[8px] border border-[#eaeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
+                      placeholder="Optional"
+                    />
                   </div>
                 </form>
               </section>
@@ -357,6 +374,7 @@ export class AddStoreModalComponent implements OnDestroy {
     location: ['', Validators.required],
     whatsappNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],
     callNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],
+    alternateCallNumber: ['', Validators.pattern(/^[0-9+() -]{7,}$/)],
   });
 
   constructor() {

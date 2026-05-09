@@ -38,6 +38,7 @@ interface StoreProfile {
   location: string;
   whatsappNumber?: string;
   callNumber?: string;
+  alternateCallNumber?: string;
 }
 
 interface StoreProduct extends StoreItemCardData {}
@@ -928,6 +929,7 @@ export class StoreDetailsDashboardComponent {
     description: 'Premium gadgets, fashion finds, and curated essentials delivered with care.',
     whatsappNumber: '0816 939 7444',
     callNumber: '0816 939 7444',
+    alternateCallNumber: '0701 234 5678',
   });
 
   readonly desktopSections = signal<ProductSection[]>([

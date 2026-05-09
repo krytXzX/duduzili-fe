@@ -20,6 +20,7 @@ export interface EditableStoreProfile {
   banner: string;
   whatsappNumber?: string;
   callNumber?: string;
+  alternateCallNumber?: string;
 }
 
 export interface EditableStoreUpdate {
@@ -28,6 +29,7 @@ export interface EditableStoreUpdate {
   location: string;
   whatsappNumber: string;
   callNumber: string;
+  alternateCallNumber: string;
 }
 
 @Component({
@@ -133,7 +135,7 @@ export interface EditableStoreUpdate {
 
                     <label class="block space-y-2">
                       <span class="text-[14px] font-medium leading-[1.2] text-[#5A5A5A]"
-                        >Call number</span
+                        >Call number 1</span
                       >
                       <input
                         type="tel"
@@ -142,6 +144,18 @@ export interface EditableStoreUpdate {
                       />
                     </label>
                   </div>
+
+                  <label class="block space-y-2">
+                    <span class="text-[14px] font-medium leading-[1.2] text-[#5A5A5A]"
+                      >Call number 2</span
+                    >
+                    <input
+                      type="tel"
+                      formControlName="alternateCallNumber"
+                      placeholder="Optional"
+                      class="h-10 w-full rounded-[8px] border border-[#EAEAEA] px-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none placeholder:text-[#0D0D0D]/40 focus:border-[#6453D9]"
+                    />
+                  </label>
                 </div>
               </section>
 
@@ -334,12 +348,24 @@ export interface EditableStoreUpdate {
 
                     <label class="block space-y-2">
                       <span class="text-[14px] font-medium leading-[1.2] text-[#5A5A5A]"
-                        >Call number</span
+                        >Call number 1</span
                       >
                       <input
                         type="tel"
                         formControlName="callNumber"
                         class="h-12 w-full rounded-[8px] border border-[#EAEAEA] px-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none focus:border-[#6453D9]"
+                      />
+                    </label>
+
+                    <label class="block space-y-2">
+                      <span class="text-[14px] font-medium leading-[1.2] text-[#5A5A5A]"
+                        >Call number 2</span
+                      >
+                      <input
+                        type="tel"
+                        formControlName="alternateCallNumber"
+                        placeholder="Optional"
+                        class="h-12 w-full rounded-[8px] border border-[#EAEAEA] px-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none placeholder:text-[#0D0D0D]/40 focus:border-[#6453D9]"
                       />
                     </label>
                   </div>
@@ -468,6 +494,7 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
     location: ['Ikeja, Lagos', Validators.required],
     whatsappNumber: [''],
     callNumber: [''],
+    alternateCallNumber: [''],
   });
 
   protected readonly profileImage = computed(() => this.store().logo || this.assets.logo);
@@ -486,6 +513,7 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
         location: store.location || 'Ikeja, Lagos',
         whatsappNumber: store.whatsappNumber || '0816 939 7444',
         callNumber: store.callNumber || '0816 939 7444',
+        alternateCallNumber: store.alternateCallNumber || '',
       },
       { emitEvent: false },
     );

@@ -10,6 +10,8 @@ interface NewStoreFormData {
   readonly description: string;
   readonly logo: string;
   readonly banner: string;
+  readonly callNumber?: string;
+  readonly alternateCallNumber?: string;
 }
 
 @Component({
@@ -437,6 +439,8 @@ export class MyStoresPageComponent {
       logo: formData.logo,
       banner: formData.banner,
       location: 'Ikeja, Lagos',
+      callNumber: formData.callNumber,
+      alternateCallNumber: formData.alternateCallNumber,
       followers: '0',
       isVerified: false,
       route: ['/seller/my-stores'],

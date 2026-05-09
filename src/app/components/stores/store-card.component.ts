@@ -18,6 +18,8 @@ export interface Store {
   mobileCoverImage?: string;
   logoImage?: string;
   mobileLogoImage?: string;
+  callNumber?: string;
+  alternateCallNumber?: string;
 }
 
 @Component({
