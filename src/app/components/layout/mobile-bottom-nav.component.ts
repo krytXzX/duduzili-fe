@@ -103,10 +103,15 @@ type NavItem = {
               [attr.aria-current]="isRouteActive(item.activePaths) ? 'page' : null"
             >
               <span
-                class="h-[22px] w-[22px]"
-                [style.background-color]="isRouteActive(item.activePaths) ? '#6453D9' : '#5C5C5C'"
-                [style.webkitMask]="'url(' + item.iconSrc + ') center / contain no-repeat'"
-                [style.mask]="'url(' + item.iconSrc + ') center / contain no-repeat'"
+                class="inline-block h-[22px] w-[22px] shrink-0 bg-current"
+                [style.webkitMaskImage]="'url(' + item.iconSrc + ')'"
+                [style.maskImage]="'url(' + item.iconSrc + ')'"
+                [style.webkitMaskRepeat]="'no-repeat'"
+                [style.maskRepeat]="'no-repeat'"
+                [style.webkitMaskPosition]="'center'"
+                [style.maskPosition]="'center'"
+                [style.webkitMaskSize]="'contain'"
+                [style.maskSize]="'contain'"
                 aria-hidden="true"
               ></span>
               <span class="text-[11px] font-medium">{{ item.label }}</span>

@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 
 type BuyerMoreItem = {
   readonly label: string;
@@ -12,7 +11,7 @@ type BuyerMoreItem = {
 
 @Component({
   selector: 'app-more-page',
-  imports: [NgOptimizedImage, RouterLink, MobileBottomNavComponent],
+  imports: [NgOptimizedImage, RouterLink],
   template: `
     <div class="relative min-h-full bg-[#f4f4f4] pb-[120px] md:bg-transparent md:px-6 md:py-8">
       <div class="mx-auto w-full max-w-[390px] md:max-w-5xl md:rounded-[32px] md:border md:border-[#ECECF3] md:bg-white md:px-8 md:py-8 md:shadow-[0_12px_40px_-32px_rgba(23,29,38,0.35)]">
@@ -80,8 +79,6 @@ type BuyerMoreItem = {
           </a>
         </div>
       </div>
-
-      <app-mobile-bottom-nav />
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
-import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 
 interface WishlistGroup {
   label: string;
@@ -9,7 +8,7 @@ interface WishlistGroup {
 
 @Component({
   selector: 'app-buyer-wishlist-page',
-  imports: [ListingCardComponent, MobileBottomNavComponent],
+  imports: [ListingCardComponent],
   template: `
     <section class="min-h-full bg-white">
       <div class="hidden lg:block">
@@ -51,8 +50,6 @@ interface WishlistGroup {
           }
         </div>
       </div>
-
-      <app-mobile-bottom-nav />
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
