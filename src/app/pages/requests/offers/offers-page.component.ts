@@ -455,7 +455,7 @@ interface OfferRecord {
           </div>
 
           <a
-            routerLink="/messages"
+            routerLink="/seller/messages"
             (click)="closeDetails()"
             class="mt-5 inline-flex h-[52px] items-center gap-2 rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
           >
@@ -583,7 +583,7 @@ interface OfferRecord {
             </div>
 
             <a
-              routerLink="/messages"
+              routerLink="/seller/messages"
               (click)="closeDetails()"
               class="mt-5 inline-flex h-[52px] items-center gap-2 rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
             >
