@@ -13,6 +13,7 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 
 export interface AddStoreFormValue {
   readonly name: string;
+  readonly description: string;
   readonly location: string;
   readonly whatsappNumber: string;
   readonly callNumber: string;
@@ -119,6 +120,22 @@ export interface AddStoreFormValue {
                         aria-hidden="true"
                       />
                     </div>
+                  </div>
+
+                  <div class="space-y-2">
+                    <label
+                      class="block text-[14px] leading-[1.2] font-medium text-[#5a5a5a]"
+                      for="store-description"
+                    >
+                      Description
+                    </label>
+                    <textarea
+                      id="store-description"
+                      formControlName="description"
+                      rows="4"
+                      class="min-h-[112px] w-full resize-none rounded-[8px] border border-[#eaeaea] px-3 py-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:min-h-[96px]"
+                      placeholder="Tell buyers a little about this store"
+                    ></textarea>
                   </div>
 
                   <div class="grid gap-5 md:grid-cols-2 md:gap-5">
@@ -336,6 +353,7 @@ export class AddStoreModalComponent implements OnDestroy {
 
   protected readonly storeForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
+    description: ['', [Validators.required, Validators.minLength(10)]],
     location: ['', Validators.required],
     whatsappNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],
     callNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],

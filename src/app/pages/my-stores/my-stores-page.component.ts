@@ -7,6 +7,7 @@ import { SuccessModalComponent } from './components/success-modal.component';
 
 interface NewStoreFormData {
   readonly name: string;
+  readonly description: string;
   readonly logo: string;
   readonly banner: string;
 }
@@ -432,6 +433,7 @@ export class MyStoresPageComponent {
     const newStore: Store = {
       id: crypto.randomUUID(),
       name: formData.name,
+      description: formData.description,
       logo: formData.logo,
       banner: formData.banner,
       location: 'Ikeja, Lagos',

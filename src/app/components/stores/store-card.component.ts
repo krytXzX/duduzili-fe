@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 export interface Store {
   id: string;
   name: string;
+  description?: string;
   logo?: string;
   banner?: string;
   followers?: string;
