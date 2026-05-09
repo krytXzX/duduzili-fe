@@ -4,17 +4,23 @@ import { RouterLink } from '@angular/router';
 import { AddListingModalComponent } from '../../components/listings/add-listing-modal.component';
 import { IdentityVerificationModalComponent } from '../../components/listings/identity-verification-modal.component';
 import { VerificationDetailsModalComponent } from '../../components/listings/verification-details-modal.component';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 type ListingStatus = 'Available' | 'Sold' | 'Draft' | 'Paused' | 'Suspended';
 type ListingFilter = 'All' | ListingStatus;
+type ListingCategoryFilter = 'all' | 'phones-laptops' | 'electronics' | 'mens-fashion' | 'womens-fashion' | 'automobiles';
+type ListingStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'personal';
+type ListingStatusFilter = 'all' | ListingStatus;
 
 type ListingRow = {
   id: string;
   name: string;
+  categoryKey: Exclude<ListingCategoryFilter, 'all'>;
   category: string;
   priceWhole: string;
   priceFraction: string;
+  storeKey: Exclude<ListingStoreFilter, 'all'>;
   store: string;
   storeLogo: string;
   image: string;
@@ -33,6 +39,7 @@ type ListingStat = {
   imports: [
     NgOptimizedImage,
     RouterLink,
+    CustomDropdownComponent,
     AddListingModalComponent,
     IdentityVerificationModalComponent,
     VerificationDetailsModalComponent,
@@ -140,18 +147,44 @@ type ListingStat = {
         <div class="mt-5 hidden rounded-2xl border border-[#f0f0f0] bg-white lg:block">
           <div class="flex items-center justify-between px-[15px] py-[15px]">
             <div class="flex items-center gap-2">
-              <button type="button" class="inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]">
-                Category
-                <img ngSrc="/assets/icons/home-chevron-down.svg" alt="" width="16" height="16" class="h-4 w-4 opacity-70" aria-hidden="true" />
-              </button>
-              <button type="button" class="inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]">
-                Store
-                <img ngSrc="/assets/icons/home-chevron-down.svg" alt="" width="16" height="16" class="h-4 w-4 opacity-70" aria-hidden="true" />
-              </button>
-              <button type="button" class="inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]">
-                Status
-                <img ngSrc="/assets/icons/home-chevron-down.svg" alt="" width="16" height="16" class="h-4 w-4 opacity-70" aria-hidden="true" />
-              </button>
+              <app-custom-dropdown
+                [options]="categoryFilterOptions"
+                [value]="categoryFilter()"
+                [ariaLabel]="'Filter listings by category'"
+                [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]'"
+                [labelClass]="'truncate'"
+                [iconClass]="'text-[rgba(26,27,29,0.5)]'"
+                [menuClass]="'min-w-[180px]'"
+                [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                (valueChange)="categoryFilter.set($event)"
+              ></app-custom-dropdown>
+
+              <app-custom-dropdown
+                [options]="storeFilterOptions"
+                [value]="storeFilter()"
+                [ariaLabel]="'Filter listings by store'"
+                [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]'"
+                [labelClass]="'truncate'"
+                [iconClass]="'text-[rgba(26,27,29,0.5)]'"
+                [menuClass]="'min-w-[180px]'"
+                [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                (valueChange)="storeFilter.set($event)"
+              ></app-custom-dropdown>
+
+              <app-custom-dropdown
+                [options]="statusFilterOptions"
+                [value]="statusFilter()"
+                [ariaLabel]="'Filter listings by status'"
+                [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]'"
+                [labelClass]="'truncate'"
+                [iconClass]="'text-[rgba(26,27,29,0.5)]'"
+                [menuClass]="'min-w-[170px]'"
+                [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                (valueChange)="statusFilter.set($event)"
+              ></app-custom-dropdown>
             </div>
 
             <label class="flex h-10 w-[224px] items-center gap-2 rounded-full bg-[#fafafa] px-3">
@@ -376,6 +409,9 @@ export class ListingsPageComponent {
   protected readonly isVerificationSubmitted = signal(false);
   protected readonly searchTerm = signal('');
   protected readonly activeFilter = signal<ListingFilter>('All');
+  protected readonly categoryFilter = signal<ListingCategoryFilter>('all');
+  protected readonly storeFilter = signal<ListingStoreFilter>('all');
+  protected readonly statusFilter = signal<ListingStatusFilter>('all');
 
   protected readonly verificationIllustrationDesktop = '/assets/images/listings-verify-illustration-desktop-v2.png';
   protected readonly verificationIllustrationMobile = '/assets/images/listings-verify-illustration-mobile-v2.png';
@@ -395,9 +431,11 @@ export class ListingsPageComponent {
     {
       id: 'iphone-17',
       name: 'Iphone 17 pro max',
+      categoryKey: 'phones-laptops',
       category: 'Phones & Laptops',
       priceWhole: '2,500,000.',
       priceFraction: '00',
+      storeKey: 'vine',
       store: 'The Vine Collections',
       storeLogo: '/assets/images/store-vine-logo-desktop.png',
       image: '/assets/images/listings-item-iphone.png',
@@ -407,9 +445,11 @@ export class ListingsPageComponent {
     {
       id: 'mouse',
       name: 'Logitech ergonomic mouse',
+      categoryKey: 'electronics',
       category: 'Electronics',
       priceWhole: '150,000.',
       priceFraction: '00',
+      storeKey: 'eden',
       store: 'Eden Organics',
       storeLogo: '/assets/images/store-eden-logo-desktop.png',
       image: '/assets/images/listings-item-mouse.png',
@@ -419,9 +459,11 @@ export class ListingsPageComponent {
     {
       id: 'sneaker',
       name: 'Nike sneaker',
+      categoryKey: 'mens-fashion',
       category: 'Men’s fashion',
       priceWhole: '150,000.',
       priceFraction: '00',
+      storeKey: 'amazing',
       store: 'Amazing Fragrances',
       storeLogo: '/assets/images/store-amazing-logo-desktop.png',
       image: '/assets/images/listings-item-sneaker.png',
@@ -430,9 +472,11 @@ export class ListingsPageComponent {
     {
       id: 'wig',
       name: 'Bone straight wig',
+      categoryKey: 'womens-fashion',
       category: 'Women’s fashion',
       priceWhole: '150,000.',
       priceFraction: '00',
+      storeKey: 'personal',
       store: 'Personal account',
       storeLogo: '/assets/images/dashboard-avatar-mobile.png',
       image: '/assets/images/listings-item-wig.png',
@@ -442,9 +486,11 @@ export class ListingsPageComponent {
     {
       id: 'maserati',
       name: 'Maserati',
+      categoryKey: 'automobiles',
       category: 'Automobiles',
       priceWhole: '150,000.',
       priceFraction: '00',
+      storeKey: 'vine',
       store: 'The Vine Collections',
       storeLogo: '/assets/images/store-vine-logo-desktop.png',
       image: '/assets/images/listings-item-maserati.png',
@@ -453,9 +499,11 @@ export class ListingsPageComponent {
     {
       id: 'keyboard',
       name: 'RGB keyboard',
+      categoryKey: 'electronics',
       category: 'Electronics',
       priceWhole: '2,500,000.',
       priceFraction: '00',
+      storeKey: 'personal',
       store: 'Personal account',
       storeLogo: '/assets/images/dashboard-avatar-mobile.png',
       image: '/assets/images/store-none-cover-desktop.png',
@@ -464,9 +512,11 @@ export class ListingsPageComponent {
     {
       id: 'sweatshirt',
       name: 'Sweatshirt',
+      categoryKey: 'mens-fashion',
       category: 'Men’s fashion',
       priceWhole: '2,500,000.',
       priceFraction: '00',
+      storeKey: 'vine',
       store: 'The Vine Collections',
       storeLogo: '/assets/images/store-vine-logo-desktop.png',
       image: '/assets/images/store-swift-cover-desktop.png',
@@ -477,14 +527,46 @@ export class ListingsPageComponent {
   protected readonly filteredDesktopListings = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const filter = this.activeFilter();
+    const categoryFilter = this.categoryFilter();
+    const storeFilter = this.storeFilter();
+    const statusFilter = this.statusFilter();
 
     return this.listings().filter((listing) => {
       const matchesFilter = filter === 'All' ? true : listing.status === filter;
+      const matchesCategory = categoryFilter === 'all' || listing.categoryKey === categoryFilter;
+      const matchesStore = storeFilter === 'all' || listing.storeKey === storeFilter;
+      const matchesStatus = statusFilter === 'all' || listing.status === statusFilter;
       const haystack = `${listing.name} ${listing.category} ${listing.store}`.toLowerCase();
       const matchesSearch = term.length === 0 ? true : haystack.includes(term);
-      return matchesFilter && matchesSearch;
+      return matchesFilter && matchesCategory && matchesStore && matchesStatus && matchesSearch;
     });
   });
+
+  protected readonly categoryFilterOptions: readonly CustomDropdownOption<ListingCategoryFilter>[] = [
+    { value: 'all', label: 'All categories' },
+    { value: 'phones-laptops', label: 'Phones & Laptops' },
+    { value: 'electronics', label: 'Electronics' },
+    { value: 'mens-fashion', label: 'Men’s fashion' },
+    { value: 'womens-fashion', label: 'Women’s fashion' },
+    { value: 'automobiles', label: 'Automobiles' },
+  ];
+
+  protected readonly storeFilterOptions: readonly CustomDropdownOption<ListingStoreFilter>[] = [
+    { value: 'all', label: 'All stores' },
+    { value: 'vine', label: 'The Vine Collections' },
+    { value: 'eden', label: 'Eden Organics' },
+    { value: 'amazing', label: 'Amazing Fragrances' },
+    { value: 'personal', label: 'Personal account' },
+  ];
+
+  protected readonly statusFilterOptions: readonly CustomDropdownOption<ListingStatusFilter>[] = [
+    { value: 'all', label: 'All statuses' },
+    { value: 'Available', label: 'Available' },
+    { value: 'Sold', label: 'Sold' },
+    { value: 'Draft', label: 'Draft' },
+    { value: 'Paused', label: 'Paused' },
+    { value: 'Suspended', label: 'Suspended' },
+  ];
 
   protected readonly filteredMobileListings = computed(() => this.filteredDesktopListings().slice(0, 5));
 
