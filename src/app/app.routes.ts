@@ -285,7 +285,7 @@ export const routes: Routes = [
       {
         path: 'more',
         loadComponent: () =>
-          import('./pages/more/more-page.component').then((m) => m.MorePageComponent),
+          import('./pages/more/seller-more-page.component').then((m) => m.SellerMorePageComponent),
       },
       {
         path: 'promotions',
