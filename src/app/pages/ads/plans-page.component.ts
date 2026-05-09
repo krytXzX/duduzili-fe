@@ -454,6 +454,6 @@ export class AdsPlansPageComponent {
   }
 
   goToAdsMenu(): void {
-    void this.router.navigateByUrl('/ads');
+    void this.router.navigateByUrl('/seller/ads');
   }
 }

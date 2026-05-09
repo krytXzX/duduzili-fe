@@ -68,7 +68,7 @@ interface ListingSection {
       <div class="flex items-center justify-between gap-4">
         <div class="flex items-center gap-2">
           <a
-            routerLink="/ads"
+          routerLink="/seller/ads"
             aria-label="Back to Ads"
             class="inline-flex h-9 w-9 items-center justify-center rounded-[100px] bg-[#F3F3F3]"
           >
@@ -179,7 +179,7 @@ interface ListingSection {
               <div class="grid grid-cols-2 gap-2">
                 @for (card of section.cards; track card.id) {
                   <a
-                    [routerLink]="['/ads/running', card.id]"
+                    [routerLink]="['/seller/ads/running', card.id]"
                     class="overflow-hidden rounded-[13.451px] border border-[#EAEAEA] bg-white p-[2.242px]"
                   >
                     <div class="relative overflow-hidden rounded-[11.21px]">
@@ -425,7 +425,7 @@ interface ListingSection {
                 >
                   @for (card of section.cards; track card.id) {
                     <a
-                      [routerLink]="['/ads/running', card.id]"
+                      [routerLink]="['/seller/ads/running', card.id]"
                       class="overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white p-1"
                     >
                       <div class="relative overflow-hidden rounded-[20px]">
@@ -1302,6 +1302,6 @@ export class RunningAdsPageComponent {
   }
 
   navigateToPlans(): void {
-    void this.router.navigateByUrl('/ads/plans');
+    void this.router.navigateByUrl('/seller/ads/plans');
   }
 }

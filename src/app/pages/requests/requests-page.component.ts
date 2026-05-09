@@ -17,7 +17,7 @@ type RequestItem = {
       <div class="mx-auto w-full max-w-[390px] px-5 pt-4 md:hidden">
         <div class="flex items-center gap-2">
           <a
-            routerLink="/more"
+            routerLink="/seller/more"
             aria-label="Back to More"
             class="flex h-8 w-8 items-center justify-center rounded-full bg-[#F3F3F3]"
           >
@@ -63,7 +63,18 @@ type RequestItem = {
         </div>
       </div>
 
-      <app-mobile-bottom-nav />
+      <app-mobile-bottom-nav
+        variant="seller"
+        listingsRoute="/seller/listings"
+        [listingsActivePaths]="['/seller/listings']"
+        messagesRoute="/seller/messages"
+        [messagesActivePaths]="['/seller/messages']"
+        storesRoute="/seller/my-stores"
+        [storesActivePaths]="['/seller/my-stores']"
+        moreRoute="/seller/more"
+        [moreActivePaths]="['/seller/more']"
+        createButtonRoute="/seller/listings"
+      />
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -72,12 +83,12 @@ export class RequestsPageComponent {
   readonly requestItems: readonly RequestItem[] = [
     {
       label: 'Offers',
-      route: '/requests/offers',
+      route: '/seller/requests/offers',
       iconSrc: '/assets/icons/requests-offers-mobile.svg',
     },
     {
       label: 'Call back requests',
-      route: '/requests/callbacks',
+      route: '/seller/requests/callbacks',
       iconSrc: '/assets/icons/requests-callbacks-mobile.svg',
     },
   ];

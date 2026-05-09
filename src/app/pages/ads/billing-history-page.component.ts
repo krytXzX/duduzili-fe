@@ -38,7 +38,7 @@ interface BillingRecord {
       <div class="px-5 pb-28">
         <div class="flex h-[54px] items-center">
           <a
-            routerLink="/ads"
+          routerLink="/seller/ads"
             aria-label="Back to ads"
             class="inline-flex items-center gap-3 text-black"
           >

@@ -266,7 +266,7 @@ interface CallbackRecord {
         <div class="flex h-[54px] items-center px-5">
           <div class="flex items-center gap-2">
             <a
-              routerLink="/requests"
+            routerLink="/seller/requests"
               aria-label="Back to Requests"
               class="flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]"
             >

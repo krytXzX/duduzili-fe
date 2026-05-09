@@ -73,7 +73,7 @@ interface AdDetail {
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
               <a
-                routerLink="/ads/running"
+          routerLink="/seller/ads/running"
                 aria-label="Back to running ads"
                 class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
               >
@@ -203,7 +203,7 @@ interface AdDetail {
           <div class="flex items-center justify-between gap-3 py-3">
             <div class="flex items-center gap-3">
               <a
-                routerLink="/ads/running"
+          routerLink="/seller/ads/running"
                 aria-label="Back to running ads"
                 class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
               >
@@ -320,7 +320,7 @@ interface AdDetail {
           <div class="flex items-center justify-between gap-3 py-3">
             <div class="flex items-center gap-3">
               <a
-                routerLink="/ads/running"
+          routerLink="/seller/ads/running"
                 aria-label="Back to running ads"
                 class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
               >
@@ -429,7 +429,7 @@ interface AdDetail {
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-3">
             <a
-              routerLink="/ads/running"
+          routerLink="/seller/ads/running"
               aria-label="Back to running ads"
               class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
             >
@@ -451,9 +451,9 @@ interface AdDetail {
           class="flex h-full w-full flex-col rounded-[32px] border border-[#F1F1F4] bg-white px-8 pb-8 pt-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]"
         >
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#9E9E9E]">
-            <a routerLink="/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
+        <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-            <a routerLink="/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -583,9 +583,9 @@ interface AdDetail {
           class="flex h-full w-full flex-col rounded-[24px] border border-[#F4F4F4] bg-white px-5 pb-8 pt-[14px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] xl:px-6"
         >
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#959595]">
-            <a routerLink="/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
+        <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-            <a routerLink="/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -718,9 +718,9 @@ interface AdDetail {
           class="flex h-full w-full flex-col rounded-[24px] border border-[#F4F4F4] bg-white px-5 pb-8 pt-[14px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] xl:px-6"
         >
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#959595]">
-            <a routerLink="/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
+        <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-            <a routerLink="/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -888,9 +888,9 @@ interface AdDetail {
           class="flex h-full w-full flex-col rounded-[32px] border border-[#F1F1F4] bg-white px-8 py-6 text-[15px] text-[#626771] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]"
         >
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#9E9E9E]">
-            <a routerLink="/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
+        <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-            <a routerLink="/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>

@@ -55,7 +55,7 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
         <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pb-32">
           <div class="flex h-[54px] items-center gap-3">
             <a
-              routerLink="/more"
+              [routerLink]="mobileBackRoute()"
               class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
               aria-label="Back to more"
             >
@@ -1365,6 +1365,19 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
 })
 export class SettingsPageComponent {
   private readonly router = inject(Router);
+  protected readonly mobileBackRoute = computed(() => {
+    const currentUrl = this.router.url.split('?')[0] ?? this.router.url;
+
+    if (currentUrl.startsWith('/seller/')) {
+      return '/seller/more';
+    }
+
+    if (currentUrl.startsWith('/admin/')) {
+      return '/admin/more';
+    }
+
+    return '/more';
+  });
   readonly activeTab = signal<SettingsTab>('profile');
   readonly mobileSettingsStep = signal<'menu' | 'profile' | 'security' | 'notifications'>('menu');
   readonly securityTab = signal<'password' | '2fa'>('password');

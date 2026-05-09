@@ -72,7 +72,7 @@ interface ProductSection {
         <section class="px-5 pb-12 pt-2 lg:hidden">
           <div class="flex items-center gap-3">
             <a
-              routerLink="/my-stores"
+          routerLink="/seller/my-stores"
               class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
               aria-label="Go back to my stores"
             >
@@ -403,7 +403,7 @@ interface ProductSection {
 
         <section class="hidden lg:block">
           <nav class="flex items-center gap-2 px-1 pb-6 text-[16px] leading-6">
-            <a routerLink="/my-stores" class="text-[#959595] transition-colors hover:text-[#6453D9]"
+        <a routerLink="/seller/my-stores" class="text-[#959595] transition-colors hover:text-[#6453D9]"
               >My Stores</a
             >
             <span class="text-[#959595]">/</span>

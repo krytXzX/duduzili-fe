@@ -13,7 +13,7 @@ type AdsItem = {
     <div class="mx-auto w-full max-w-[420px] bg-[#F7F7FA] px-4 pt-4 pb-8 md:hidden">
       <div class="flex items-center gap-3">
         <a
-          routerLink="/more"
+          routerLink="/seller/more"
           aria-label="Back to More"
           class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
         >
@@ -57,8 +57,8 @@ type AdsItem = {
 })
 export class AdsPageComponent {
   readonly items: readonly AdsItem[] = [
-    { label: 'Plans', route: '/ads/plans' },
-    { label: 'Running Ads', route: '/ads/running' },
-    { label: 'Billing history', route: '/ads/billing-history' },
+    { label: 'Plans', route: '/seller/ads/plans' },
+    { label: 'Running Ads', route: '/seller/ads/running' },
+    { label: 'Billing history', route: '/seller/ads/billing-history' },
   ];
 }

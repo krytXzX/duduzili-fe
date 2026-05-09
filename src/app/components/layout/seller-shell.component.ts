@@ -32,7 +32,18 @@ import { MobileOverlayService } from '../../services/mobile-overlay.service';
       </div>
 
       @if (showMobileBottomNav() && !mobileOverlayService.isAnyMobileOverlayOpen()) {
-        <app-mobile-bottom-nav variant="seller" />
+        <app-mobile-bottom-nav
+          variant="seller"
+          listingsRoute="/seller/listings"
+          [listingsActivePaths]="['/seller/listings']"
+          messagesRoute="/seller/messages"
+          [messagesActivePaths]="['/seller/messages']"
+          storesRoute="/seller/my-stores"
+          [storesActivePaths]="['/seller/my-stores']"
+          moreRoute="/seller/more"
+          [moreActivePaths]="['/seller/more']"
+          createButtonRoute="/seller/listings"
+        />
       }
     </div>
   `,

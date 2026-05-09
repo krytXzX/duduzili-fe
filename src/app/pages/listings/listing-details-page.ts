@@ -91,7 +91,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-3">
             <a
-              routerLink="/listings"
+          routerLink="/seller/listings"
               class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F7] text-[#202335]"
               aria-label="Back to listings"
             >
@@ -508,7 +508,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
       <div class="hidden md:block">
         <nav class="mb-6 flex items-center gap-2 text-[14px] text-[#8A8F9A]">
-          <a routerLink="/listings" class="transition-colors hover:text-[#202335]">Listings</a>
+        <a routerLink="/seller/listings" class="transition-colors hover:text-[#202335]">Listings</a>
           <span>/</span>
           <span class="font-medium text-[#202335]">Listing details</span>
         </nav>
@@ -3131,7 +3131,7 @@ export class ListingDetailsPageComponent {
 
   protected confirmDeleteListing(): void {
     this.deleteSheetOpen.set(false);
-    void this.router.navigateByUrl('/listings');
+    void this.router.navigateByUrl('/seller/listings');
   }
 
   protected confirmMarkSold(): void {

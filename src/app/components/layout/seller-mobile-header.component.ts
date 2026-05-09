@@ -8,7 +8,7 @@ import { RouterLink } from '@angular/router';
   template: `
     <div class="flex h-[72px] items-center justify-between gap-4 px-5 lg:hidden">
       <a
-        routerLink="/"
+        routerLink="/seller/listings"
         aria-label="Go to Duduzili home"
         class="block"
       >

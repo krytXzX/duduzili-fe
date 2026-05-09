@@ -31,7 +31,7 @@ interface MobileWalletTransaction {
       <div class="px-5 pb-28">
         <div class="flex h-[54px] items-center justify-between gap-4">
           <a
-            routerLink="/more"
+          routerLink="/seller/more"
             aria-label="Back to more"
             class="inline-flex items-center gap-2 text-black"
           >

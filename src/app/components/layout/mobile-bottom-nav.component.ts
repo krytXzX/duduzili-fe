@@ -60,7 +60,7 @@ type NavItem = {
 
           <button
             type="button"
-            (click)="navigateTo('/my-stores')"
+            (click)="navigateTo(variant() === 'seller' ? '/seller/my-stores' : '/my-stores')"
             class="flex w-full items-center gap-4 text-left text-[#202335]"
           >
             <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F6F7FA] text-[#444955]">
@@ -73,7 +73,7 @@ type NavItem = {
 
           <button
             type="button"
-            (click)="navigateTo('/ads/plans')"
+            (click)="navigateTo(variant() === 'seller' ? '/seller/ads/plans' : '/ads/plans')"
             class="flex w-full items-center gap-4 text-left text-[#202335]"
           >
             <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F6F7FA] text-[#444955]">
@@ -287,7 +287,9 @@ export class MobileBottomNavComponent {
   openAddListingFlow(): void {
     this.closeActionSheet();
     this.mobileOverlayService.requestOpenAddListing();
-    void this.router.navigateByUrl('/listings');
+    void this.router.navigateByUrl(
+      this.variant() === 'seller' ? '/seller/listings' : '/listings',
+    );
   }
 
   handleSearchAction(): void {

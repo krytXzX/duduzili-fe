@@ -34,7 +34,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
       <div class="px-4 pb-28">
         <div class="flex h-[54px] items-center">
           <a
-            routerLink="/more"
+          routerLink="/seller/more"
             aria-label="Back to more"
             class="inline-flex items-center gap-2 text-black"
           >
