@@ -538,7 +538,7 @@ interface OfferRecord {
         </section>
 
         <section
-          class="fixed inset-x-0 bottom-0 z-[120] rounded-t-[36px] bg-white px-4 pt-[34px] md:hidden"
+          class="fixed inset-x-0 bottom-0 z-[120] rounded-t-[36px] bg-white px-4 pb-6 pt-[34px] md:hidden"
           aria-label="Request details"
           role="dialog"
           aria-modal="true"
