@@ -138,7 +138,12 @@ interface BillingRecord {
     </div>
 
     <div class="hidden h-full md:block">
-      <div class="flex h-full flex-col rounded-[16px] border border-[#F0F0F0] bg-white">
+      <div class="flex h-full flex-col">
+        <div class="flex h-[69px] items-center border-b border-[#EEEEEE] bg-white px-4">
+          <h1 class="text-[24px] font-medium leading-normal text-[#0D0D0D]">Billing history</h1>
+        </div>
+
+        <div class="flex min-h-0 flex-1 flex-col rounded-b-[16px] border border-t-0 border-[#F0F0F0] bg-white">
         <div class="flex items-center justify-between gap-5 border-b border-[#F0F0F0] px-[14px] py-[14px]">
           <div class="flex flex-wrap items-center gap-8">
             <div class="flex flex-wrap items-center gap-8">
@@ -270,6 +275,7 @@ interface BillingRecord {
               <span>of 12</span>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>
