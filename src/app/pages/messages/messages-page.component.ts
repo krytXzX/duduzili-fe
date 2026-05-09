@@ -564,21 +564,37 @@ type ChatDay = {
                               }
 
                               <div
-                                class="rounded-[24px] px-[18px] py-3"
+                                class="relative rounded-[24px] px-[18px] py-3"
                                 [class.bg-[#6453D9]]="message.outgoing"
                                 [class.text-white]="message.outgoing"
                                 [class.bg-[#F8F8F8]]="!message.outgoing"
                                 [class.text-[#242424]]="!message.outgoing"
                                 [class.opacity-30]="message.variant === 'faded'"
                                 [class.ring-2]="isMessageSelected(message.id)"
-                                [class.ring-[#C8BEFF]]="message.outgoing && isMessageSelected(message.id)"
+                                [class.ring-white]="message.outgoing && isMessageSelected(message.id)"
                                 [class.ring-[#6453D9]]="!message.outgoing && isMessageSelected(message.id)"
+                                [class.ring-offset-2]="isMessageSelected(message.id)"
+                                [class.ring-offset-[#6453D9]]="
+                                  message.outgoing && isMessageSelected(message.id)
+                                "
+                                [class.ring-offset-white]="!message.outgoing && isMessageSelected(message.id)"
+                                [class.shadow-[0_0_0_2px_rgba(100,83,217,0.18)]]="
+                                  isMessageSelected(message.id)
+                                "
                                 (pointerdown)="onMessageLongPressStart($event, message.id, message.author, message.text)"
                                 (pointerup)="onMessageLongPressEnd($event)"
                                 (pointercancel)="onMessageLongPressCancel($event)"
                                 (contextmenu)="openMessageMenuFromContext($event, message.id, message.author, message.text)"
                                 (click)="toggleMessageSelection(message.id)"
                               >
+                                @if (isMessageSelected(message.id)) {
+                                  <span
+                                    class="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#6453D9] bg-white text-[13px] font-semibold leading-none text-[#6453D9]"
+                                    aria-hidden="true"
+                                  >
+                                    ✓
+                                  </span>
+                                }
                                 <p class="text-[16px] leading-6">
                                   {{ message.text }}
                                 </p>
@@ -1073,21 +1089,37 @@ type ChatDay = {
                           }
 
                           <div
-                            class="rounded-[24px] px-[14px] py-3"
+                            class="relative rounded-[24px] px-[14px] py-3"
                             [class.bg-[#6453D9]]="message.outgoing"
                             [class.text-white]="message.outgoing"
                             [class.bg-[#F8F8F8]]="!message.outgoing"
                             [class.text-[#242424]]="!message.outgoing"
                             [class.opacity-30]="message.variant === 'faded'"
                             [class.ring-2]="isMessageSelected(message.id)"
-                            [class.ring-[#C8BEFF]]="message.outgoing && isMessageSelected(message.id)"
+                            [class.ring-white]="message.outgoing && isMessageSelected(message.id)"
                             [class.ring-[#6453D9]]="!message.outgoing && isMessageSelected(message.id)"
+                            [class.ring-offset-2]="isMessageSelected(message.id)"
+                            [class.ring-offset-[#6453D9]]="
+                              message.outgoing && isMessageSelected(message.id)
+                            "
+                            [class.ring-offset-white]="!message.outgoing && isMessageSelected(message.id)"
+                            [class.shadow-[0_0_0_2px_rgba(100,83,217,0.18)]]="
+                              isMessageSelected(message.id)
+                            "
                             (pointerdown)="onMessageLongPressStart($event, message.id, message.author, message.text)"
                             (pointerup)="onMessageLongPressEnd($event)"
                             (pointercancel)="onMessageLongPressCancel($event)"
                             (contextmenu)="openMessageMenuFromContext($event, message.id, message.author, message.text)"
                             (click)="toggleMessageSelection(message.id)"
                           >
+                            @if (isMessageSelected(message.id)) {
+                              <span
+                                class="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#6453D9] bg-white text-[13px] font-semibold leading-none text-[#6453D9]"
+                                aria-hidden="true"
+                              >
+                                ✓
+                              </span>
+                            }
                             <p class="text-[16px] leading-5">
                               {{ message.text }}
                             </p>
