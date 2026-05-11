@@ -215,7 +215,7 @@
 
         <div class="relative mt-6 min-h-0 overflow-hidden lg:mt-8">
           <div
-            class="space-y-4 transition-transform duration-300 ease-out"
+            class="space-y-4 transition-transform duration-300 ease-out lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0"
             [class.-translate-x-[8%]]="activeLocationPanel() !== null"
             [class.opacity-0]="activeLocationPanel() !== null"
             [class.pointer-events-none]="activeLocationPanel() !== null"
@@ -229,13 +229,13 @@
                   class="flex min-w-0 flex-1 items-center rounded-[18px] px-4 py-4 text-left transition lg:px-5"
                   [class.bg-[#F3F1FF]]="isLocationSelected(group.value)"
                   [class.text-[#6453D9]]="isLocationSelected(group.value)"
-                  [class.bg-transparent]="!isLocationSelected(group.value)"
-                  [class.text-[#1A1B1D]]="!isLocationSelected(group.value)"
-                >
-                  <span class="text-[16px] font-semibold leading-5 lg:text-[20px] lg:leading-6">
-                    {{ group.desktopLabel ?? group.label }}
-                  </span>
-                </button>
+                [class.bg-transparent]="!isLocationSelected(group.value)"
+                [class.text-[#1A1B1D]]="!isLocationSelected(group.value)"
+              >
+                <span class="text-[16px] font-semibold leading-5 lg:text-[18px] lg:leading-5">
+                  {{ group.desktopLabel ?? group.label }}
+                </span>
+              </button>
 
                 <button
                   type="button"
@@ -289,10 +289,10 @@
               </button>
 
               <div class="min-w-0">
-                <p class="text-[16px] font-semibold leading-5 text-[#1A1B1D] lg:text-[20px] lg:leading-6">
+                <p class="text-[16px] font-semibold leading-5 text-[#1A1B1D] lg:text-[18px] lg:leading-5">
                   {{ panel.desktopLabel ?? panel.label }}
                 </p>
-                <p class="mt-1 text-[13px] leading-4 text-[#777777] lg:text-[14px] lg:leading-5">
+                <p class="mt-1 text-[13px] leading-4 text-[#777777] lg:text-[13px] lg:leading-4">
                   Select a city
                 </p>
               </div>
@@ -303,7 +303,7 @@
               <button
                 type="button"
                 (click)="selectLocationCity(panel.value, city)"
-                class="rounded-full px-4 py-2 text-[13px] font-medium leading-4 transition lg:px-5 lg:py-3 lg:text-[15px] lg:leading-5"
+                class="rounded-full px-4 py-2 text-[13px] font-medium leading-4 transition lg:px-5 lg:py-3 lg:text-[14px] lg:leading-4"
                 [class.bg-[#F3F1FF]]="panel.value === selectedLocation() && city === selectedCity()"
                 [class.text-[#6453D9]]="panel.value === selectedLocation() && city === selectedCity()"
                 [class.bg-[#F5F5F5]]="!(panel.value === selectedLocation() && city === selectedCity())"
