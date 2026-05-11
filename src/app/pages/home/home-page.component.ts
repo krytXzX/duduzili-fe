@@ -55,6 +55,7 @@ export class HomePageComponent {
   readonly showBottomNav = input(true);
   readonly showAppDownloadBanner = signal(true);
   readonly showMobileMenu = signal(false);
+  readonly isCategoriesSheetOpen = signal(false);
   readonly isMobileSearchOverlayOpen = signal(false);
   readonly mobileSearchQuery = signal('');
   readonly recentSearches = signal([
@@ -363,6 +364,14 @@ export class HomePageComponent {
 
   closeMobileMenu(): void {
     this.showMobileMenu.set(false);
+  }
+
+  openCategoriesSheet(): void {
+    this.isCategoriesSheetOpen.set(true);
+  }
+
+  closeCategoriesSheet(): void {
+    this.isCategoriesSheetOpen.set(false);
   }
 
   openMobileSearchOverlay(): void {
