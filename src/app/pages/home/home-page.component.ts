@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
   input,
   signal,
@@ -32,6 +33,14 @@ type HomePromotion = {
   image: string;
 };
 
+type HomeLocationValue = 'all-nigeria' | 'lagos' | 'abuja' | 'port-harcourt';
+
+type HomeLocationOption = {
+  value: HomeLocationValue;
+  label: string;
+  desktopLabel?: string;
+};
+
 @Component({
   selector: 'app-home-page',
   imports: [
@@ -56,7 +65,9 @@ export class HomePageComponent {
   readonly showAppDownloadBanner = signal(true);
   readonly showMobileMenu = signal(false);
   readonly isCategoriesSheetOpen = signal(false);
+  readonly isLocationDropdownOpen = signal(false);
   readonly isMobileSearchOverlayOpen = signal(false);
+  readonly selectedLocation = signal<HomeLocationValue>('all-nigeria');
   readonly mobileSearchQuery = signal('');
   readonly recentSearches = signal([
     'bags for men',
@@ -73,6 +84,19 @@ export class HomePageComponent {
     'Miniflat in Lagos',
     'shirt for men',
   ] as const;
+
+  readonly locationOptions: readonly HomeLocationOption[] = [
+    { value: 'all-nigeria', label: 'All Nigeria', desktopLabel: 'All of Nigeria' },
+    { value: 'lagos', label: 'Lagos', desktopLabel: 'Lagos' },
+    { value: 'abuja', label: 'Abuja', desktopLabel: 'Abuja' },
+    { value: 'port-harcourt', label: 'Port Harcourt', desktopLabel: 'Port Harcourt' },
+  ];
+
+  readonly selectedLocationOption = computed(
+    () =>
+      this.locationOptions.find((option) => option.value === this.selectedLocation()) ??
+      this.locationOptions[0],
+  );
 
   readonly categories: HomeCategory[] = [
     { id: 'automotives', label: 'Automotives', icon: '/assets/images/category-automotives.png' },
@@ -364,6 +388,19 @@ export class HomePageComponent {
 
   closeMobileMenu(): void {
     this.showMobileMenu.set(false);
+  }
+
+  toggleLocationDropdown(): void {
+    this.isLocationDropdownOpen.update((isOpen) => !isOpen);
+  }
+
+  closeLocationDropdown(): void {
+    this.isLocationDropdownOpen.set(false);
+  }
+
+  selectLocation(location: HomeLocationValue): void {
+    this.selectedLocation.set(location);
+    this.closeLocationDropdown();
   }
 
   openCategoriesSheet(): void {
