@@ -35,10 +35,11 @@ type HomePromotion = {
 
 type HomeLocationValue = 'all-nigeria' | 'lagos' | 'abuja' | 'port-harcourt';
 
-type HomeLocationOption = {
+type HomeLocationGroup = {
   value: HomeLocationValue;
   label: string;
   desktopLabel?: string;
+  cities: readonly string[];
 };
 
 @Component({
@@ -65,9 +66,11 @@ export class HomePageComponent {
   readonly showAppDownloadBanner = signal(true);
   readonly showMobileMenu = signal(false);
   readonly isCategoriesSheetOpen = signal(false);
-  readonly isLocationDropdownOpen = signal(false);
+  readonly isLocationPickerOpen = signal(false);
+  readonly activeLocationPanel = signal<HomeLocationValue | null>(null);
   readonly isMobileSearchOverlayOpen = signal(false);
   readonly selectedLocation = signal<HomeLocationValue>('all-nigeria');
+  readonly selectedCity = signal<string | null>(null);
   readonly mobileSearchQuery = signal('');
   readonly recentSearches = signal([
     'bags for men',
@@ -85,18 +88,55 @@ export class HomePageComponent {
     'shirt for men',
   ] as const;
 
-  readonly locationOptions: readonly HomeLocationOption[] = [
-    { value: 'all-nigeria', label: 'All Nigeria', desktopLabel: 'All of Nigeria' },
-    { value: 'lagos', label: 'Lagos', desktopLabel: 'Lagos' },
-    { value: 'abuja', label: 'Abuja', desktopLabel: 'Abuja' },
-    { value: 'port-harcourt', label: 'Port Harcourt', desktopLabel: 'Port Harcourt' },
+  readonly locationGroups: readonly HomeLocationGroup[] = [
+    {
+      value: 'all-nigeria',
+      label: 'All Nigeria',
+      desktopLabel: 'All of Nigeria',
+      cities: ['Nationwide'],
+    },
+    {
+      value: 'lagos',
+      label: 'Lagos',
+      cities: ['Ikeja', 'Lekki', 'Yaba', 'Surulere'],
+    },
+    {
+      value: 'abuja',
+      label: 'Abuja',
+      cities: ['Maitama', 'Wuse', 'Gwarinpa', 'Asokoro'],
+    },
+    {
+      value: 'port-harcourt',
+      label: 'Port Harcourt',
+      cities: ['GRA', 'Rumuola', 'Ada George', 'Eliozu'],
+    },
   ];
 
   readonly selectedLocationOption = computed(
     () =>
-      this.locationOptions.find((option) => option.value === this.selectedLocation()) ??
-      this.locationOptions[0],
+      this.locationGroups.find((option) => option.value === this.selectedLocation()) ??
+      this.locationGroups[0],
   );
+
+  readonly activeLocationPanelOption = computed(
+    () =>
+      this.locationGroups.find((option) => option.value === this.activeLocationPanel()) ?? null,
+  );
+
+  readonly selectedLocationDisplay = computed(() => {
+    const location = this.selectedLocationOption();
+    if (location.value === 'all-nigeria' || this.selectedCity() === null) {
+      return {
+        mobile: location.label,
+        desktop: location.desktopLabel ?? location.label,
+      };
+    }
+
+    return {
+      mobile: `${this.selectedCity()}, ${location.label}`,
+      desktop: `${this.selectedCity()}, ${location.desktopLabel ?? location.label}`,
+    };
+  });
 
   readonly categories: HomeCategory[] = [
     { id: 'automotives', label: 'Automotives', icon: '/assets/images/category-automotives.png' },
@@ -390,17 +430,37 @@ export class HomePageComponent {
     this.showMobileMenu.set(false);
   }
 
-  toggleLocationDropdown(): void {
-    this.isLocationDropdownOpen.update((isOpen) => !isOpen);
+  openLocationPicker(): void {
+    this.isLocationPickerOpen.set(true);
   }
 
-  closeLocationDropdown(): void {
-    this.isLocationDropdownOpen.set(false);
+  closeLocationPicker(): void {
+    this.isLocationPickerOpen.set(false);
+    this.activeLocationPanel.set(null);
   }
 
-  selectLocation(location: HomeLocationValue): void {
+  openLocationCities(location: HomeLocationValue): void {
+    this.activeLocationPanel.set(location);
+  }
+
+  closeLocationCities(): void {
+    this.activeLocationPanel.set(null);
+  }
+
+  isLocationSelected(location: HomeLocationValue): boolean {
+    return this.selectedLocation() === location && this.selectedCity() === null;
+  }
+
+  selectLocationCity(location: HomeLocationValue, city: string): void {
     this.selectedLocation.set(location);
-    this.closeLocationDropdown();
+    this.selectedCity.set(city);
+    this.closeLocationPicker();
+  }
+
+  selectLocationGroup(location: HomeLocationValue): void {
+    this.selectedLocation.set(location);
+    this.selectedCity.set(null);
+    this.closeLocationPicker();
   }
 
   openCategoriesSheet(): void {

@@ -32,54 +32,22 @@
         <div class="flex items-center gap-6">
           <img ngSrc="/assets/icons/home-logo-light.svg" alt="Duduzili" width="112" height="26" class="h-[26px] w-auto" priority />
 
-          <div class="relative">
-            <button
-              type="button"
-              (click)="toggleLocationDropdown()"
-              class="flex h-10 items-center justify-between gap-3 rounded-full bg-[#2f2f2f] py-1 pl-3 pr-1 text-white"
-              aria-label="Select location"
-              aria-haspopup="listbox"
-              [attr.aria-expanded]="isLocationDropdownOpen()"
-            >
-              <span class="flex items-center gap-1 text-sm font-semibold tracking-[0.01em]">
-                <img ngSrc="/assets/icons/home-location.svg" alt="" width="16" height="16" class="h-4 w-4" aria-hidden="true" />
-                {{ selectedLocationOption().desktopLabel ?? selectedLocationOption().label }}
-              </span>
-              <span class="flex h-8 w-10 items-center justify-center rounded-full bg-[#515151]">
-                <img ngSrc="/assets/icons/home-chevron-down.svg" alt="" width="16" height="16" class="h-4 w-4 transition-transform" [class.rotate-180]="isLocationDropdownOpen()" aria-hidden="true" />
-              </span>
-            </button>
-
-            @if (isLocationDropdownOpen()) {
-            <button
-              type="button"
-              class="fixed inset-0 z-40 cursor-default bg-transparent"
-              aria-label="Close location selector"
-              (click)="closeLocationDropdown()"
-            ></button>
-
-            <div
-              class="absolute left-0 top-[calc(100%+12px)] z-50 min-w-[220px] overflow-hidden rounded-[20px] border border-[#383838] bg-[#1F1F1F] p-2 shadow-[0_18px_32px_rgba(0,0,0,0.28)]"
-            >
-              <div role="listbox" aria-label="Select location">
-                @for (option of locationOptions; track option.value) {
-                <button
-                  type="button"
-                  role="option"
-                  [attr.aria-selected]="option.value === selectedLocation()"
-                  (click)="selectLocation(option.value)"
-                  class="flex w-full items-center rounded-[14px] px-4 py-3 text-left text-[14px] font-medium transition"
-                  [class.bg-[#2F2F2F]]="option.value === selectedLocation()"
-                  [class.text-white]="option.value === selectedLocation()"
-                  [class.text-white/75]="option.value !== selectedLocation()"
-                >
-                  {{ option.desktopLabel ?? option.label }}
-                </button>
-                }
-              </div>
-            </div>
-            }
-          </div>
+          <button
+            type="button"
+            (click)="openLocationPicker()"
+            class="flex h-10 items-center justify-between gap-3 rounded-full bg-[#2f2f2f] py-1 pl-3 pr-1 text-white"
+            aria-label="Select location"
+            aria-haspopup="dialog"
+            [attr.aria-expanded]="isLocationPickerOpen()"
+          >
+            <span class="flex items-center gap-1 text-sm font-semibold tracking-[0.01em]">
+              <img ngSrc="/assets/icons/home-location.svg" alt="" width="16" height="16" class="h-4 w-4" aria-hidden="true" />
+              {{ selectedLocationDisplay().desktop }}
+            </span>
+            <span class="flex h-8 w-10 items-center justify-center rounded-full bg-[#515151]">
+              <img ngSrc="/assets/icons/home-chevron-down.svg" alt="" width="16" height="16" class="h-4 w-4" aria-hidden="true" />
+            </span>
+          </button>
         </div>
 
         <nav class="flex items-center gap-0.5 text-sm text-white" aria-label="Desktop navigation">
@@ -106,54 +74,22 @@
 
       <div class="flex items-center gap-2">
         @if (!showMobileMenu()) {
-        <div class="relative">
-          <button
-            type="button"
-            (click)="toggleLocationDropdown()"
-            class="flex h-9 items-center justify-between gap-1 rounded-full border border-white bg-[#f3f3f3] py-1 pl-3 pr-1 text-sm font-medium tracking-[0.01em] text-[#373737] shadow-[0_4px_12px_rgba(0,0,0,0.04)]"
-            aria-label="Select location"
-            aria-haspopup="listbox"
-            [attr.aria-expanded]="isLocationDropdownOpen()"
-          >
-            <span class="flex items-center gap-1">
-              <img ngSrc="/assets/icons/home-header-location-mobile.svg" alt="" width="16" height="16" class="h-4 w-4" aria-hidden="true" />
-              {{ selectedLocationOption().label }}
-            </span>
-            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-white">
-              <img ngSrc="/assets/icons/home-header-chevron-mobile.svg" alt="" width="14" height="14" class="h-3.5 w-3.5 transition-transform" [class.rotate-180]="isLocationDropdownOpen()" aria-hidden="true" />
-            </span>
-          </button>
-
-          @if (isLocationDropdownOpen()) {
-          <button
-            type="button"
-            class="fixed inset-0 z-40 cursor-default bg-transparent"
-            aria-label="Close location selector"
-            (click)="closeLocationDropdown()"
-          ></button>
-
-          <div
-            class="absolute right-0 top-[calc(100%+10px)] z-50 min-w-[190px] overflow-hidden rounded-[18px] border border-[#EAEAEA] bg-white p-1 shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
-          >
-            <div role="listbox" aria-label="Select location">
-              @for (option of locationOptions; track option.value) {
-              <button
-                type="button"
-                role="option"
-                [attr.aria-selected]="option.value === selectedLocation()"
-                (click)="selectLocation(option.value)"
-                class="flex w-full items-center rounded-[14px] px-4 py-3 text-left text-[14px] font-medium transition"
-                [class.bg-[#F3F1FF]]="option.value === selectedLocation()"
-                [class.text-[#6453D9]]="option.value === selectedLocation()"
-                [class.text-[#1A1B1D]]="option.value !== selectedLocation()"
-              >
-                {{ option.label }}
-              </button>
-              }
-            </div>
-          </div>
-          }
-        </div>
+        <button
+          type="button"
+          (click)="openLocationPicker()"
+          class="flex h-9 items-center justify-between gap-1 rounded-full border border-white bg-[#f3f3f3] py-1 pl-3 pr-1 text-sm font-medium tracking-[0.01em] text-[#373737] shadow-[0_4px_12px_rgba(0,0,0,0.04)]"
+          aria-label="Select location"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="isLocationPickerOpen()"
+        >
+          <span class="flex items-center gap-1">
+            <img ngSrc="/assets/icons/home-header-location-mobile.svg" alt="" width="16" height="16" class="h-4 w-4" aria-hidden="true" />
+            {{ selectedLocationDisplay().mobile }}
+          </span>
+          <span class="flex h-7 w-7 items-center justify-center rounded-full bg-white">
+            <img ngSrc="/assets/icons/home-header-chevron-mobile.svg" alt="" width="14" height="14" class="h-3.5 w-3.5" aria-hidden="true" />
+          </span>
+        </button>
         }
 
         <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg" [attr.aria-expanded]="showMobileMenu()" aria-controls="mobile-home-menu" [attr.aria-label]="showMobileMenu() ? 'Close menu' : 'Open menu'" (click)="toggleMobileMenu()">
@@ -238,6 +174,151 @@
     </div>
     }
   </header>
+  }
+
+  @if (isLocationPickerOpen()) {
+  <section
+    class="fixed inset-0 z-[130] flex items-end justify-center bg-[rgba(13,13,13,0.18)] lg:items-center"
+    aria-label="Choose location"
+    role="dialog"
+    aria-modal="true"
+  >
+    <button
+      type="button"
+      class="absolute inset-0"
+      aria-label="Close location picker"
+      (click)="closeLocationPicker()"
+    ></button>
+
+    <div class="relative z-[1] flex max-h-[85dvh] w-full flex-col rounded-t-[36px] bg-white pb-8 lg:max-h-[80vh] lg:w-[min(760px,calc(100vw-64px))] lg:rounded-[36px] lg:pb-10">
+      <div class="relative h-6 w-full lg:hidden">
+        <div
+          class="absolute left-1/2 top-[11px] h-1 w-[50px] -translate-x-1/2 rounded-[100px] bg-[#EBEBEB]"
+        ></div>
+      </div>
+
+      <button
+        type="button"
+        (click)="closeLocationPicker()"
+        aria-label="Close location picker"
+        class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+      >
+        <svg aria-hidden="true" viewBox="0 0 20 20" class="h-5 w-5 fill-[#1A1B1D]">
+          <path d="M5.28 4.22 10 8.94l4.72-4.72 1.06 1.06L11.06 10l4.72 4.72-1.06 1.06L10 11.06l-4.72 4.72-1.06-1.06L8.94 10 4.22 5.28Z" />
+        </svg>
+      </button>
+
+      <div class="relative min-h-0 overflow-hidden px-5 pt-8 lg:px-8 lg:pt-10">
+        <h2 class="text-[24px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D] lg:text-[32px] lg:leading-9">
+          Choose location
+        </h2>
+
+        <div class="relative mt-6 min-h-0 overflow-hidden lg:mt-8">
+          <div
+            class="space-y-4 transition-transform duration-300 ease-out"
+            [class.-translate-x-[8%]]="activeLocationPanel() !== null"
+            [class.opacity-0]="activeLocationPanel() !== null"
+            [class.pointer-events-none]="activeLocationPanel() !== null"
+          >
+            @for (group of locationGroups; track group.value) {
+            <section class="rounded-[24px] border border-[#EFEFEF] bg-white">
+              <div class="flex items-center gap-3 p-2 lg:p-3">
+                <button
+                  type="button"
+                  (click)="selectLocationGroup(group.value)"
+                  class="flex min-w-0 flex-1 items-center rounded-[18px] px-4 py-4 text-left transition lg:px-5"
+                  [class.bg-[#F3F1FF]]="isLocationSelected(group.value)"
+                  [class.text-[#6453D9]]="isLocationSelected(group.value)"
+                  [class.bg-transparent]="!isLocationSelected(group.value)"
+                  [class.text-[#1A1B1D]]="!isLocationSelected(group.value)"
+                >
+                  <span class="text-[16px] font-semibold leading-5 lg:text-[20px] lg:leading-6">
+                    {{ group.desktopLabel ?? group.label }}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="openLocationCities(group.value)"
+                  class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F7] text-[#5B5B66] transition lg:h-12 lg:w-12"
+                  [attr.aria-label]="'View cities under ' + (group.desktopLabel ?? group.label)"
+                >
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 20 20"
+                    class="h-5 w-5"
+                  >
+                    <path
+                      d="M7.5 5 12.5 10l-5 5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.7"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </section>
+            }
+          </div>
+
+          <div
+            class="absolute inset-x-0 top-0 min-h-full bg-white transition-transform duration-300 ease-out"
+            [class.translate-x-0]="activeLocationPanel() !== null"
+            [class.translate-x-full]="activeLocationPanel() === null"
+          >
+            @if (activeLocationPanelOption(); as panel) {
+            <div class="flex items-center gap-3 border-b border-[#EFEFEF] pb-4">
+              <button
+                type="button"
+                (click)="closeLocationCities()"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F7F7] text-[#5B5B66] lg:h-11 lg:w-11"
+                aria-label="Back to locations"
+              >
+                <svg aria-hidden="true" viewBox="0 0 20 20" class="h-5 w-5">
+                  <path
+                    d="M12.5 5 7.5 10l5 5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.7"
+                  />
+                </svg>
+              </button>
+
+              <div class="min-w-0">
+                <p class="text-[16px] font-semibold leading-5 text-[#1A1B1D] lg:text-[20px] lg:leading-6">
+                  {{ panel.desktopLabel ?? panel.label }}
+                </p>
+                <p class="mt-1 text-[13px] leading-4 text-[#777777] lg:text-[14px] lg:leading-5">
+                  Select a city
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-2 lg:gap-3">
+              @for (city of panel.cities; track city) {
+              <button
+                type="button"
+                (click)="selectLocationCity(panel.value, city)"
+                class="rounded-full px-4 py-2 text-[13px] font-medium leading-4 transition lg:px-5 lg:py-3 lg:text-[15px] lg:leading-5"
+                [class.bg-[#F3F1FF]]="panel.value === selectedLocation() && city === selectedCity()"
+                [class.text-[#6453D9]]="panel.value === selectedLocation() && city === selectedCity()"
+                [class.bg-[#F5F5F5]]="!(panel.value === selectedLocation() && city === selectedCity())"
+                [class.text-[#1A1B1D]]="!(panel.value === selectedLocation() && city === selectedCity())"
+              >
+                {{ city }}
+              </button>
+              }
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
   }
 
   <main>
