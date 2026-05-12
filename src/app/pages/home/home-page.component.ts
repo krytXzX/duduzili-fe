@@ -37,7 +37,17 @@ type HomePromotion = {
   image: string;
 };
 
-type HomeLocationValue = 'all-nigeria' | 'lagos' | 'abuja' | 'port-harcourt';
+type HomeLocationValue =
+  | 'all-nigeria'
+  | 'lagos'
+  | 'abuja'
+  | 'port-harcourt'
+  | 'oyo'
+  | 'enugu'
+  | 'kaduna'
+  | 'edo'
+  | 'kano'
+  | 'ogun';
 
 type HomeLocationGroup = {
   value: HomeLocationValue;
@@ -124,6 +134,36 @@ export class HomePageComponent {
       value: 'port-harcourt',
       label: 'Port Harcourt',
       cities: ['GRA', 'Rumuola', 'Ada George', 'Eliozu'],
+    },
+    {
+      value: 'oyo',
+      label: 'Oyo',
+      cities: ['Ibadan', 'Ogbomoso', 'Oyo Town', 'Iseyin'],
+    },
+    {
+      value: 'enugu',
+      label: 'Enugu',
+      cities: ['Independence Layout', 'New Haven', 'Uwani', 'Abakpa'],
+    },
+    {
+      value: 'kaduna',
+      label: 'Kaduna',
+      cities: ['Barnawa', 'Kawo', 'Sabon Tasha', 'Zaria'],
+    },
+    {
+      value: 'edo',
+      label: 'Edo',
+      cities: ['Benin City', 'Ekpoma', 'Uromi', 'Auchi'],
+    },
+    {
+      value: 'kano',
+      label: 'Kano',
+      cities: ['Nasarawa', 'Fagge', 'Tarauni', 'Bompai'],
+    },
+    {
+      value: 'ogun',
+      label: 'Ogun',
+      cities: ['Abeokuta', 'Ijebu Ode', 'Sagamu', 'Ota'],
     },
   ];
 
