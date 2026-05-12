@@ -15,6 +15,7 @@ import { RouterLink } from '@angular/router';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
+import { HOME_HERO_CARD_SETS } from './home-hero.config';
 
 type HomeCategory = {
   id: string;
@@ -34,13 +35,6 @@ type HomeListing = {
 type HomePromotion = {
   id: string;
   image: string;
-};
-
-type HeroCardSet = {
-  leftTop: string;
-  leftBottom: string;
-  rightTop: string;
-  rightBottom: string;
 };
 
 type HomeLocationValue = 'all-nigeria' | 'lagos' | 'abuja' | 'port-harcourt';
@@ -225,38 +219,7 @@ export class HomePageComponent {
     },
   ];
 
-  readonly heroCardSets: readonly HeroCardSet[] = [
-    {
-      leftTop: '/assets/images/home-hero-card-left-top.png',
-      leftBottom: '/assets/images/home-hero-card-left-bottom.png',
-      rightTop: '/assets/images/home-hero-card-right-top.png',
-      rightBottom: '/assets/images/home-hero-card-right-bottom.png',
-    },
-    {
-      leftTop: '/assets/images/listing-nike-sneaker-figma.png',
-      leftBottom: '/assets/images/listing-bone-straight-wig-figma.png',
-      rightTop: '/assets/images/listing-iphone-17-pro-max-figma.png',
-      rightBottom: '/assets/images/listing-logitech-mouse-figma.png',
-    },
-    {
-      leftTop: '/assets/images/listing-rgb-keyboard-figma.png',
-      leftBottom: '/assets/images/listing-sweatshirt-figma.png',
-      rightTop: '/assets/images/store-vine-cover-mobile.png',
-      rightBottom: '/assets/images/store-eden-cover-mobile.png',
-    },
-    {
-      leftTop: '/assets/images/store-snap-cover-mobile.png',
-      leftBottom: '/assets/images/store-gomelon-cover-mobile.png',
-      rightTop: '/assets/images/home-promo-2.png',
-      rightBottom: '/assets/images/home-promo-3.png',
-    },
-    {
-      leftTop: '/assets/images/store-newage-cover-desktop.png',
-      leftBottom: '/assets/images/store-amazing-cover-desktop.png',
-      rightTop: '/assets/images/store-none-cover-desktop.png',
-      rightBottom: '/assets/images/store-swift-cover-desktop.png',
-    },
-  ];
+  readonly heroCardSets = HOME_HERO_CARD_SETS;
 
   readonly activeHeroCardSet = computed(
     () => this.heroCardSets[this.activeHeroCardSetIndex()] ?? this.heroCardSets[0],
