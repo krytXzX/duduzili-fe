@@ -87,6 +87,7 @@ export class HomePageComponent {
   readonly activeHeroCardSetIndex = signal(0);
   readonly enteringHeroCardSetIndex = signal(1);
   readonly isHeroCarouselAnimating = signal(false);
+  readonly isHeroCarouselResetting = signal(false);
   readonly mobileSearchQuery = signal('');
   readonly recentSearches = signal([
     'bags for men',
@@ -581,9 +582,13 @@ export class HomePageComponent {
     this.enteringHeroCardSetIndex.set(nextIndex);
     this.isHeroCarouselAnimating.set(true);
     this.heroCarouselAdvanceTimeoutId = window.setTimeout(() => {
+      this.isHeroCarouselResetting.set(true);
       this.activeHeroCardSetIndex.set(nextIndex);
       this.enteringHeroCardSetIndex.set((nextIndex + 1) % this.heroCardSets.length);
       this.isHeroCarouselAnimating.set(false);
+      window.requestAnimationFrame(() => {
+        this.isHeroCarouselResetting.set(false);
+      });
     }, 620);
   }
 

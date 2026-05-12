@@ -143,6 +143,10 @@
 .hero-card-stack-right.is-animating .hero-card-right-bottom.hero-card-current {
   transform: rotate(4deg) translateX(360px);
 }
+
+.hero-card-stack.is-resetting .hero-card {
+  transition: none !important;
+}
 /*
 .desktop-footer-wordmark {
   margin-top: 24px;

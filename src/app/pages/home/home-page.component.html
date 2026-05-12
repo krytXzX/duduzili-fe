@@ -328,7 +328,7 @@
           <img ngSrc="/assets/images/home-hero-bg.png" alt="" width="1424" height="685" class="absolute inset-0 h-full w-full object-cover" aria-hidden="true" priority />
           <div class="home-hero-overlay absolute inset-0" aria-hidden="true"></div>
 
-          <div class="hero-card-stack hero-card-stack-left absolute inset-y-0 left-0 w-[255px]" [class.is-animating]="isHeroCarouselAnimating()">
+          <div class="hero-card-stack hero-card-stack-left absolute inset-y-0 left-0 w-[255px]" [class.is-animating]="isHeroCarouselAnimating()" [class.is-resetting]="isHeroCarouselResetting()">
             <div class="hero-card-frame hero-card-frame-left">
               <div class="hero-card-slot hero-card-slot-left-top">
                 <div class="hero-card hero-card-left-top hero-card-current">
@@ -350,7 +350,7 @@
             </div>
           </div>
 
-          <div class="hero-card-stack hero-card-stack-right absolute inset-y-0 right-0 w-[255px]" [class.is-animating]="isHeroCarouselAnimating()">
+          <div class="hero-card-stack hero-card-stack-right absolute inset-y-0 right-0 w-[255px]" [class.is-animating]="isHeroCarouselAnimating()" [class.is-resetting]="isHeroCarouselResetting()">
             <div class="hero-card-frame hero-card-frame-right">
               <div class="hero-card-slot hero-card-slot-right-top">
                 <div class="hero-card hero-card-right-top hero-card-current">
