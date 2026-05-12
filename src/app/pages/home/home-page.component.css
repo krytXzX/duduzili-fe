@@ -23,7 +23,6 @@
 
 .hero-card-slot {
   position: absolute;
-  overflow: hidden;
 }
 
 .hero-card-slot-left-top {
@@ -95,11 +94,11 @@
 }
 
 .hero-card-stack-left.is-animating .hero-card-left-top.hero-card-current {
-  transform: rotate(8deg) translateX(-138%);
+  transform: rotate(8deg) translateX(-340px);
 }
 
 .hero-card-stack-left.is-animating .hero-card-left-bottom.hero-card-current {
-  transform: rotate(-10deg) translateX(-138%);
+  transform: rotate(-10deg) translateX(-360px);
 }
 
 .hero-card-stack-right.is-animating .hero-card-current {
@@ -107,11 +106,11 @@
 }
 
 .hero-card-stack-right.is-animating .hero-card-right-top.hero-card-current {
-  transform: rotate(6deg) translateX(138%);
+  transform: rotate(6deg) translateX(340px);
 }
 
 .hero-card-stack-right.is-animating .hero-card-right-bottom.hero-card-current {
-  transform: rotate(4deg) translateX(138%);
+  transform: rotate(4deg) translateX(360px);
 }
 /*
 .desktop-footer-wordmark {
