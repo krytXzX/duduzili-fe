@@ -328,17 +328,48 @@
           <img ngSrc="/assets/images/home-hero-bg.png" alt="" width="1424" height="685" class="absolute inset-0 h-full w-full object-cover" aria-hidden="true" priority />
           <div class="home-hero-overlay absolute inset-0" aria-hidden="true"></div>
 
-          <div class="absolute left-[62px] top-[28px] w-[112px] rotate-[8deg] overflow-hidden rounded-[22px] border-4 border-white bg-white shadow-[0_12px_24px_rgba(56,81,178,0.18)]">
-            <img ngSrc="/assets/images/home-hero-card-left-top.png" alt="" width="112" height="129" class="h-[129px] w-full object-cover" aria-hidden="true" />
+          <div class="hero-card-stack hero-card-stack-left absolute inset-y-0 left-0 w-[255px]" [class.is-animating]="isHeroCarouselAnimating()">
+            <div class="hero-card-frame hero-card-frame-left">
+              <div class="hero-card-slot hero-card-slot-left-top">
+                <div class="hero-card hero-card-left-top hero-card-current">
+                  <img [ngSrc]="activeHeroCardSet().leftTop" alt="" width="112" height="129" class="h-[129px] w-full object-cover" aria-hidden="true" />
+                </div>
+                <div class="hero-card hero-card-left-top hero-card-next">
+                  <img [ngSrc]="upcomingHeroCardSet().leftTop" alt="" width="112" height="129" class="h-[129px] w-full object-cover" aria-hidden="true" />
+                </div>
+              </div>
+
+              <div class="hero-card-slot hero-card-slot-left-bottom">
+                <div class="hero-card hero-card-left-bottom hero-card-current">
+                  <img [ngSrc]="activeHeroCardSet().leftBottom" alt="" width="126" height="145" class="h-[145px] w-full object-cover" aria-hidden="true" />
+                </div>
+                <div class="hero-card hero-card-left-bottom hero-card-next">
+                  <img [ngSrc]="upcomingHeroCardSet().leftBottom" alt="" width="126" height="145" class="h-[145px] w-full object-cover" aria-hidden="true" />
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="absolute bottom-[24px] left-[112px] w-[126px] -rotate-[10deg] overflow-hidden rounded-[22px] border-4 border-white bg-white shadow-[0_12px_24px_rgba(56,81,178,0.18)]">
-            <img ngSrc="/assets/images/home-hero-card-left-bottom.png" alt="" width="126" height="145" class="h-[145px] w-full object-cover" aria-hidden="true" />
-          </div>
-          <div class="absolute right-[105px] top-[16px] w-[112px] rotate-[6deg] overflow-hidden rounded-[22px] border-4 border-white bg-white shadow-[0_12px_24px_rgba(56,81,178,0.18)]">
-            <img ngSrc="/assets/images/home-hero-card-right-top.png" alt="" width="112" height="129" class="h-[129px] w-full object-cover" aria-hidden="true" />
-          </div>
-          <div class="absolute bottom-[102px] right-[68px] w-[116px] rotate-[4deg] overflow-hidden rounded-[22px] border-4 border-white bg-white shadow-[0_12px_24px_rgba(56,81,178,0.18)]">
-            <img ngSrc="/assets/images/home-hero-card-right-bottom.png" alt="" width="116" height="134" class="h-[134px] w-full object-cover" aria-hidden="true" />
+
+          <div class="hero-card-stack hero-card-stack-right absolute inset-y-0 right-0 w-[255px]" [class.is-animating]="isHeroCarouselAnimating()">
+            <div class="hero-card-frame hero-card-frame-right">
+              <div class="hero-card-slot hero-card-slot-right-top">
+                <div class="hero-card hero-card-right-top hero-card-current">
+                  <img [ngSrc]="activeHeroCardSet().rightTop" alt="" width="112" height="129" class="h-[129px] w-full object-cover" aria-hidden="true" />
+                </div>
+                <div class="hero-card hero-card-right-top hero-card-next">
+                  <img [ngSrc]="upcomingHeroCardSet().rightTop" alt="" width="112" height="129" class="h-[129px] w-full object-cover" aria-hidden="true" />
+                </div>
+              </div>
+
+              <div class="hero-card-slot hero-card-slot-right-bottom">
+                <div class="hero-card hero-card-right-bottom hero-card-current">
+                  <img [ngSrc]="activeHeroCardSet().rightBottom" alt="" width="116" height="134" class="h-[134px] w-full object-cover" aria-hidden="true" />
+                </div>
+                <div class="hero-card hero-card-right-bottom hero-card-next">
+                  <img [ngSrc]="upcomingHeroCardSet().rightBottom" alt="" width="116" height="134" class="h-[134px] w-full object-cover" aria-hidden="true" />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="relative z-10 flex h-[685px] flex-col items-center justify-center">
@@ -360,11 +391,17 @@
             </form>
 
             <div class="mt-5 flex items-center gap-1 rounded-full bg-[#f7f7f7] p-1">
-              <span class="h-2 w-[22px] rounded-full bg-[#2e2e2e]"></span>
-              <span class="h-[5px] w-[5px] rounded-full bg-[#d9d9d9]"></span>
-              <span class="h-[5px] w-[5px] rounded-full bg-[#d9d9d9]"></span>
-              <span class="h-[5px] w-[5px] rounded-full bg-[#d9d9d9]"></span>
-              <span class="h-[5px] w-[5px] rounded-full bg-[#d9d9d9]"></span>
+              @for (cardSet of heroCardSets; track $index) {
+              <span
+                class="rounded-full transition-all duration-300"
+                [class.h-2]="activeHeroCardSetIndex() === $index"
+                [class.w-[22px]]="activeHeroCardSetIndex() === $index"
+                [class.bg-[#2e2e2e]]="activeHeroCardSetIndex() === $index"
+                [class.h-[5px]]="activeHeroCardSetIndex() !== $index"
+                [class.w-[5px]]="activeHeroCardSetIndex() !== $index"
+                [class.bg-[#d9d9d9]]="activeHeroCardSetIndex() !== $index"
+              ></span>
+              }
             </div>
           </div>
         </div>
