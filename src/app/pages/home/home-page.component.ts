@@ -39,9 +39,35 @@ type HomePromotion = {
 
 type HomeLocationValue =
   | 'all-nigeria'
+  | 'abia'
+  | 'adamawa'
+  | 'akwa-ibom'
+  | 'anambra'
+  | 'bauchi'
+  | 'bayelsa'
+  | 'benue'
+  | 'borno'
+  | 'cross-river'
+  | 'delta'
+  | 'ebonyi'
   | 'lagos'
   | 'abuja'
-  | 'port-harcourt'
+  | 'gombe'
+  | 'imo'
+  | 'jigawa'
+  | 'kebbi'
+  | 'kogi'
+  | 'kwara'
+  | 'nasarawa'
+  | 'niger'
+  | 'ondo'
+  | 'osun'
+  | 'plateau'
+  | 'rivers'
+  | 'sokoto'
+  | 'taraba'
+  | 'yobe'
+  | 'zamfara'
   | 'oyo'
   | 'enugu'
   | 'kaduna'
@@ -131,9 +157,64 @@ export class HomePageComponent {
       cities: ['Maitama', 'Wuse', 'Gwarinpa', 'Asokoro'],
     },
     {
-      value: 'port-harcourt',
+      value: 'rivers',
       label: 'Port Harcourt',
       cities: ['GRA', 'Rumuola', 'Ada George', 'Eliozu'],
+    },
+    {
+      value: 'abia',
+      label: 'Abia',
+      cities: ['Umuahia', 'Aba', 'Ohafia', 'Arochukwu'],
+    },
+    {
+      value: 'adamawa',
+      label: 'Adamawa',
+      cities: ['Yola', 'Mubi', 'Jimeta', 'Numan'],
+    },
+    {
+      value: 'akwa-ibom',
+      label: 'Akwa Ibom',
+      cities: ['Uyo', 'Eket', 'Ikot Ekpene', 'Oron'],
+    },
+    {
+      value: 'anambra',
+      label: 'Anambra',
+      cities: ['Awka', 'Onitsha', 'Nnewi', 'Ekwulobia'],
+    },
+    {
+      value: 'bauchi',
+      label: 'Bauchi',
+      cities: ['Bauchi', 'Azare', 'Misau', 'Jama’are'],
+    },
+    {
+      value: 'bayelsa',
+      label: 'Bayelsa',
+      cities: ['Yenagoa', 'Brass', 'Ogbia', 'Sagbama'],
+    },
+    {
+      value: 'benue',
+      label: 'Benue',
+      cities: ['Makurdi', 'Gboko', 'Otukpo', 'Katsina-Ala'],
+    },
+    {
+      value: 'borno',
+      label: 'Borno',
+      cities: ['Maiduguri', 'Biu', 'Dikwa', 'Konduga'],
+    },
+    {
+      value: 'cross-river',
+      label: 'Cross River',
+      cities: ['Calabar', 'Ikom', 'Ogoja', 'Ugep'],
+    },
+    {
+      value: 'delta',
+      label: 'Delta',
+      cities: ['Asaba', 'Warri', 'Sapele', 'Ughelli'],
+    },
+    {
+      value: 'ebonyi',
+      label: 'Ebonyi',
+      cities: ['Abakaliki', 'Afikpo', 'Onueke', 'Ikwo'],
     },
     {
       value: 'oyo',
@@ -151,9 +232,24 @@ export class HomePageComponent {
       cities: ['Barnawa', 'Kawo', 'Sabon Tasha', 'Zaria'],
     },
     {
+      value: 'gombe',
+      label: 'Gombe',
+      cities: ['Gombe', 'Kumo', 'Billiri', 'Dukku'],
+    },
+    {
       value: 'edo',
       label: 'Edo',
       cities: ['Benin City', 'Ekpoma', 'Uromi', 'Auchi'],
+    },
+    {
+      value: 'imo',
+      label: 'Imo',
+      cities: ['Owerri', 'Orlu', 'Okigwe', 'Mbaise'],
+    },
+    {
+      value: 'jigawa',
+      label: 'Jigawa',
+      cities: ['Dutse', 'Hadejia', 'Gumel', 'Kazaure'],
     },
     {
       value: 'kano',
@@ -161,9 +257,69 @@ export class HomePageComponent {
       cities: ['Nasarawa', 'Fagge', 'Tarauni', 'Bompai'],
     },
     {
+      value: 'kebbi',
+      label: 'Kebbi',
+      cities: ['Birnin Kebbi', 'Argungu', 'Yauri', 'Zuru'],
+    },
+    {
+      value: 'kogi',
+      label: 'Kogi',
+      cities: ['Lokoja', 'Okene', 'Anyigba', 'Idah'],
+    },
+    {
+      value: 'kwara',
+      label: 'Kwara',
+      cities: ['Ilorin', 'Offa', 'Omu-Aran', 'Jebba'],
+    },
+    {
       value: 'ogun',
       label: 'Ogun',
       cities: ['Abeokuta', 'Ijebu Ode', 'Sagamu', 'Ota'],
+    },
+    {
+      value: 'nasarawa',
+      label: 'Nasarawa',
+      cities: ['Lafia', 'Keffi', 'Akwanga', 'Karu'],
+    },
+    {
+      value: 'niger',
+      label: 'Niger',
+      cities: ['Minna', 'Bida', 'Suleja', 'Kontagora'],
+    },
+    {
+      value: 'ondo',
+      label: 'Ondo',
+      cities: ['Akure', 'Ondo Town', 'Owo', 'Ikare'],
+    },
+    {
+      value: 'osun',
+      label: 'Osun',
+      cities: ['Osogbo', 'Ile-Ife', 'Ilesa', 'Ede'],
+    },
+    {
+      value: 'plateau',
+      label: 'Plateau',
+      cities: ['Jos', 'Bukuru', 'Pankshin', 'Shendam'],
+    },
+    {
+      value: 'sokoto',
+      label: 'Sokoto',
+      cities: ['Sokoto', 'Tambuwal', 'Wurno', 'Gwadabawa'],
+    },
+    {
+      value: 'taraba',
+      label: 'Taraba',
+      cities: ['Jalingo', 'Wukari', 'Bali', 'Takum'],
+    },
+    {
+      value: 'yobe',
+      label: 'Yobe',
+      cities: ['Damaturu', 'Potiskum', 'Gashua', 'Nguru'],
+    },
+    {
+      value: 'zamfara',
+      label: 'Zamfara',
+      cities: ['Gusau', 'Kaura Namoda', 'Talata Mafara', 'Anka'],
     },
   ];
 
