@@ -374,11 +374,52 @@
 
           <div class="relative z-10 flex h-[685px] flex-col items-center justify-center">
             <h1 class="max-w-[980px] text-center text-[52px] font-bold leading-[1.05] tracking-[-0.04em] text-[#2c2c2c]">
-              Find men’s wear
-              <span class="mx-2 inline-flex h-[50px] w-[56px] -rotate-[8deg] items-center justify-center rounded-[14px] border-2 border-[#f6f6f6] bg-white align-middle shadow-[0_5px_10px_rgba(56,81,178,0.25)]">
-                <span class="text-[24px]">👟</span>
+              Find
+              <span
+                class="hero-headline-rotator mx-2 inline-flex align-middle"
+                [class.is-animating]="isHeroHeadlineAnimating()"
+                [class.is-resetting]="isHeroHeadlineResetting()"
+              >
+                <span
+                  class="hero-headline-rotator__viewport"
+                  [style.width.px]="heroHeadlineViewportWidth()"
+                >
+                  <span class="hero-headline-rotator__item hero-headline-rotator__item--current">
+                    <span class="hero-headline-rotator__label">
+                      {{ activeHeroHeadline().label }}
+                    </span>
+                    <span class="hero-headline-rotator__icon-shell" aria-hidden="true">
+                      <img
+                        [ngSrc]="activeHeroHeadline().icon"
+                        alt=""
+                        width="39"
+                        height="39"
+                        class="hero-headline-rotator__icon"
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </span>
+
+                  <span class="hero-headline-rotator__item hero-headline-rotator__item--entering">
+                    <span class="hero-headline-rotator__label">
+                      {{ enteringHeroHeadline().label }}
+                    </span>
+                    <span class="hero-headline-rotator__icon-shell" aria-hidden="true">
+                      <img
+                        [ngSrc]="enteringHeroHeadline().icon"
+                        alt=""
+                        width="39"
+                        height="39"
+                        class="hero-headline-rotator__icon"
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </span>
+                </span>
               </span>
-              on Duduzili
+              <span class="inline-block">
+                on Duduzili
+              </span>
             </h1>
 
             <form class="mt-10 flex w-full max-w-[631px] items-center justify-between rounded-[222px] border border-[#dddddd] bg-white py-2 pl-6 pr-2 shadow-[0_12px_30px_rgba(151,150,196,0.25)]">

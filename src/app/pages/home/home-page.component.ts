@@ -15,7 +15,7 @@ import { RouterLink } from '@angular/router';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
-import { HOME_HERO_CARD_SETS } from './home-hero.config';
+import { HOME_HERO_CARD_SETS, HOME_HERO_HEADLINE_ITEMS } from './home-hero.config';
 
 type HomeCategory = {
   id: string;
@@ -67,6 +67,8 @@ export class HomePageComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private heroCarouselIntervalId: number | null = null;
   private heroCarouselAdvanceTimeoutId: number | null = null;
+  private heroHeadlineIntervalId: number | null = null;
+  private heroHeadlineAdvanceTimeoutId: number | null = null;
 
   readonly showPublicChrome = input(true);
   readonly showBottomNav = input(true);
@@ -82,6 +84,10 @@ export class HomePageComponent {
   readonly enteringHeroCardSetIndex = signal(1);
   readonly isHeroCarouselAnimating = signal(false);
   readonly isHeroCarouselResetting = signal(false);
+  readonly activeHeroHeadlineIndex = signal(0);
+  readonly enteringHeroHeadlineIndex = signal(1);
+  readonly isHeroHeadlineAnimating = signal(false);
+  readonly isHeroHeadlineResetting = signal(false);
   readonly mobileSearchQuery = signal('');
   readonly recentSearches = signal([
     'bags for men',
@@ -220,6 +226,7 @@ export class HomePageComponent {
   ];
 
   readonly heroCardSets = HOME_HERO_CARD_SETS;
+  readonly heroHeadlineItems = HOME_HERO_HEADLINE_ITEMS;
 
   readonly activeHeroCardSet = computed(
     () => this.heroCardSets[this.activeHeroCardSetIndex()] ?? this.heroCardSets[0],
@@ -228,6 +235,21 @@ export class HomePageComponent {
   readonly enteringHeroCardSet = computed(
     () => this.heroCardSets[this.enteringHeroCardSetIndex()] ?? this.heroCardSets[0],
   );
+
+  readonly activeHeroHeadline = computed(
+    () => this.heroHeadlineItems[this.activeHeroHeadlineIndex()] ?? this.heroHeadlineItems[0],
+  );
+
+  readonly enteringHeroHeadline = computed(
+    () =>
+      this.heroHeadlineItems[this.enteringHeroHeadlineIndex()] ?? this.heroHeadlineItems[0],
+  );
+
+  readonly heroHeadlineViewportWidth = computed(() => {
+    const activeWidth = this.activeHeroHeadline().width;
+    const enteringWidth = this.enteringHeroHeadline().width;
+    return this.isHeroHeadlineAnimating() ? Math.max(activeWidth, enteringWidth) : activeWidth;
+  });
 
   readonly sponsoredListings: HomeListing[] = [
     {
@@ -442,6 +464,7 @@ export class HomePageComponent {
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.startHeroCarousel();
+      this.startHeroHeadlineRotation();
     }
   }
 
@@ -536,6 +559,12 @@ export class HomePageComponent {
     }, 4200);
   }
 
+  private startHeroHeadlineRotation(): void {
+    this.heroHeadlineIntervalId = window.setInterval(() => {
+      this.advanceHeroHeadline();
+    }, 2600);
+  }
+
   private advanceHeroCarousel(): void {
     if (this.isHeroCarouselAnimating()) {
       return;
@@ -553,6 +582,25 @@ export class HomePageComponent {
         this.isHeroCarouselResetting.set(false);
       });
     }, 620);
+  }
+
+  private advanceHeroHeadline(): void {
+    if (this.isHeroHeadlineAnimating()) {
+      return;
+    }
+
+    const nextIndex = (this.activeHeroHeadlineIndex() + 1) % this.heroHeadlineItems.length;
+    this.enteringHeroHeadlineIndex.set(nextIndex);
+    this.isHeroHeadlineAnimating.set(true);
+    this.heroHeadlineAdvanceTimeoutId = window.setTimeout(() => {
+      this.isHeroHeadlineResetting.set(true);
+      this.activeHeroHeadlineIndex.set(nextIndex);
+      this.enteringHeroHeadlineIndex.set((nextIndex + 1) % this.heroHeadlineItems.length);
+      this.isHeroHeadlineAnimating.set(false);
+      window.requestAnimationFrame(() => {
+        this.isHeroHeadlineResetting.set(false);
+      });
+    }, 560);
   }
 
   private toReusableListing(listing: HomeListing): Listing {
@@ -576,6 +624,14 @@ export class HomePageComponent {
 
     if (this.heroCarouselAdvanceTimeoutId !== null) {
       window.clearTimeout(this.heroCarouselAdvanceTimeoutId);
+    }
+
+    if (this.heroHeadlineIntervalId !== null) {
+      window.clearInterval(this.heroHeadlineIntervalId);
+    }
+
+    if (this.heroHeadlineAdvanceTimeoutId !== null) {
+      window.clearTimeout(this.heroHeadlineAdvanceTimeoutId);
     }
   }
 }

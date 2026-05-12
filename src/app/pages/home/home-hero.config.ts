@@ -5,6 +5,13 @@ export type HeroCardSet = {
   rightBottom: string;
 };
 
+export type HeroHeadlineItem = {
+  id: string;
+  label: string;
+  icon: string;
+  width: number;
+};
+
 export const HOME_HERO_CARD_SETS: readonly HeroCardSet[] = [
   {
     leftTop: '/assets/images/home-hero-card-left-top.png',
@@ -35,5 +42,44 @@ export const HOME_HERO_CARD_SETS: readonly HeroCardSet[] = [
     leftBottom: '/assets/images/store-amazing-cover-desktop.png',
     rightTop: '/assets/images/store-none-cover-desktop.png',
     rightBottom: '/assets/images/store-swift-cover-desktop.png',
+  },
+];
+
+export const HOME_HERO_HEADLINE_ITEMS: readonly HeroHeadlineItem[] = [
+  {
+    id: 'mens-wear',
+    label: 'men’s wear',
+    icon: '/assets/icons/home-hero-rotator/shoe.svg',
+    width: 362,
+  },
+  {
+    id: 'phones',
+    label: 'phones',
+    icon: '/assets/icons/home-hero-rotator/phone.svg',
+    width: 265,
+  },
+  {
+    id: 'cars',
+    label: 'cars',
+    icon: '/assets/icons/home-hero-rotator/car.svg',
+    width: 189,
+  },
+  {
+    id: 'womens-items',
+    label: 'women’s items',
+    icon: '/assets/icons/home-hero-rotator/heels.svg',
+    width: 452,
+  },
+  {
+    id: 'properties',
+    label: 'properties',
+    icon: '/assets/icons/home-hero-rotator/house.svg',
+    width: 339,
+  },
+  {
+    id: 'electronics',
+    label: 'electronics',
+    icon: '/assets/icons/home-hero-rotator/electronics.svg',
+    width: 356,
   },
 ];
