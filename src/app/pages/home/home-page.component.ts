@@ -85,6 +85,7 @@ export class HomePageComponent {
   readonly selectedLocation = signal<HomeLocationValue>('all-nigeria');
   readonly selectedCity = signal<string | null>(null);
   readonly activeHeroCardSetIndex = signal(0);
+  readonly enteringHeroCardSetIndex = signal(1);
   readonly isHeroCarouselAnimating = signal(false);
   readonly mobileSearchQuery = signal('');
   readonly recentSearches = signal([
@@ -260,10 +261,9 @@ export class HomePageComponent {
     () => this.heroCardSets[this.activeHeroCardSetIndex()] ?? this.heroCardSets[0],
   );
 
-  readonly upcomingHeroCardSet = computed(() => {
-    const nextIndex = (this.activeHeroCardSetIndex() + 1) % this.heroCardSets.length;
-    return this.heroCardSets[nextIndex] ?? this.heroCardSets[0];
-  });
+  readonly enteringHeroCardSet = computed(
+    () => this.heroCardSets[this.enteringHeroCardSetIndex()] ?? this.heroCardSets[0],
+  );
 
   readonly sponsoredListings: HomeListing[] = [
     {
@@ -577,9 +577,12 @@ export class HomePageComponent {
       return;
     }
 
+    const nextIndex = (this.activeHeroCardSetIndex() + 1) % this.heroCardSets.length;
+    this.enteringHeroCardSetIndex.set(nextIndex);
     this.isHeroCarouselAnimating.set(true);
     this.heroCarouselAdvanceTimeoutId = window.setTimeout(() => {
-      this.activeHeroCardSetIndex.update((current) => (current + 1) % this.heroCardSets.length);
+      this.activeHeroCardSetIndex.set(nextIndex);
+      this.enteringHeroCardSetIndex.set((nextIndex + 1) % this.heroCardSets.length);
       this.isHeroCarouselAnimating.set(false);
     }, 620);
   }
