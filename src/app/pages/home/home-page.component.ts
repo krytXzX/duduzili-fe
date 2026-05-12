@@ -67,8 +67,6 @@ export class HomePageComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private heroCarouselIntervalId: number | null = null;
   private heroCarouselAdvanceTimeoutId: number | null = null;
-  private heroHeadlineIntervalId: number | null = null;
-  private heroHeadlineAdvanceTimeoutId: number | null = null;
 
   readonly showPublicChrome = input(true);
   readonly showBottomNav = input(true);
@@ -464,7 +462,6 @@ export class HomePageComponent {
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.startHeroCarousel();
-      this.startHeroHeadlineRotation();
     }
   }
 
@@ -559,48 +556,39 @@ export class HomePageComponent {
     }, 4200);
   }
 
-  private startHeroHeadlineRotation(): void {
-    this.heroHeadlineIntervalId = window.setInterval(() => {
-      this.advanceHeroHeadline();
-    }, 2600);
-  }
-
   private advanceHeroCarousel(): void {
-    if (this.isHeroCarouselAnimating()) {
+    if (this.isHeroCarouselAnimating() || this.isHeroHeadlineAnimating()) {
       return;
     }
 
-    const nextIndex = (this.activeHeroCardSetIndex() + 1) % this.heroCardSets.length;
-    this.enteringHeroCardSetIndex.set(nextIndex);
+    const nextCardIndex = (this.activeHeroCardSetIndex() + 1) % this.heroCardSets.length;
+    const nextHeadlineIndex =
+      (this.activeHeroHeadlineIndex() + 1) % this.heroHeadlineItems.length;
+
+    this.enteringHeroCardSetIndex.set(nextCardIndex);
+    this.enteringHeroHeadlineIndex.set(nextHeadlineIndex);
     this.isHeroCarouselAnimating.set(true);
+    this.isHeroHeadlineAnimating.set(true);
+
     this.heroCarouselAdvanceTimeoutId = window.setTimeout(() => {
       this.isHeroCarouselResetting.set(true);
-      this.activeHeroCardSetIndex.set(nextIndex);
-      this.enteringHeroCardSetIndex.set((nextIndex + 1) % this.heroCardSets.length);
+      this.isHeroHeadlineResetting.set(true);
+
+      this.activeHeroCardSetIndex.set(nextCardIndex);
+      this.enteringHeroCardSetIndex.set((nextCardIndex + 1) % this.heroCardSets.length);
       this.isHeroCarouselAnimating.set(false);
+
+      this.activeHeroHeadlineIndex.set(nextHeadlineIndex);
+      this.enteringHeroHeadlineIndex.set(
+        (nextHeadlineIndex + 1) % this.heroHeadlineItems.length,
+      );
+      this.isHeroHeadlineAnimating.set(false);
+
       window.requestAnimationFrame(() => {
         this.isHeroCarouselResetting.set(false);
-      });
-    }, 620);
-  }
-
-  private advanceHeroHeadline(): void {
-    if (this.isHeroHeadlineAnimating()) {
-      return;
-    }
-
-    const nextIndex = (this.activeHeroHeadlineIndex() + 1) % this.heroHeadlineItems.length;
-    this.enteringHeroHeadlineIndex.set(nextIndex);
-    this.isHeroHeadlineAnimating.set(true);
-    this.heroHeadlineAdvanceTimeoutId = window.setTimeout(() => {
-      this.isHeroHeadlineResetting.set(true);
-      this.activeHeroHeadlineIndex.set(nextIndex);
-      this.enteringHeroHeadlineIndex.set((nextIndex + 1) % this.heroHeadlineItems.length);
-      this.isHeroHeadlineAnimating.set(false);
-      window.requestAnimationFrame(() => {
         this.isHeroHeadlineResetting.set(false);
       });
-    }, 560);
+    }, 620);
   }
 
   private toReusableListing(listing: HomeListing): Listing {
@@ -624,14 +612,6 @@ export class HomePageComponent {
 
     if (this.heroCarouselAdvanceTimeoutId !== null) {
       window.clearTimeout(this.heroCarouselAdvanceTimeoutId);
-    }
-
-    if (this.heroHeadlineIntervalId !== null) {
-      window.clearInterval(this.heroHeadlineIntervalId);
-    }
-
-    if (this.heroHeadlineAdvanceTimeoutId !== null) {
-      window.clearTimeout(this.heroHeadlineAdvanceTimeoutId);
     }
   }
 }
