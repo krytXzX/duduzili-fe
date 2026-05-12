@@ -90,30 +90,6 @@
   opacity: 0;
 }
 
-.hero-card-stack-left .hero-card-next {
-  transform: translateX(-138%) rotate(var(--hero-rotation, 0deg));
-}
-
-.hero-card-stack-right .hero-card-next {
-  transform: translateX(138%) rotate(var(--hero-rotation, 0deg));
-}
-
-.hero-card-left-top.hero-card-next {
-  --hero-rotation: 8deg;
-}
-
-.hero-card-left-bottom.hero-card-next {
-  --hero-rotation: -10deg;
-}
-
-.hero-card-right-top.hero-card-next {
-  --hero-rotation: 6deg;
-}
-
-.hero-card-right-bottom.hero-card-next {
-  --hero-rotation: 4deg;
-}
-
 .hero-card-stack-left.is-animating .hero-card-current {
   opacity: 0;
 }
@@ -136,11 +112,6 @@
 
 .hero-card-stack-right.is-animating .hero-card-right-bottom.hero-card-current {
   transform: rotate(4deg) translateX(138%);
-}
-
-.hero-card-stack.is-animating .hero-card-next {
-  transform: translateX(0) rotate(var(--hero-rotation, 0deg));
-  opacity: 1;
 }
 /*
 .desktop-footer-wordmark {
