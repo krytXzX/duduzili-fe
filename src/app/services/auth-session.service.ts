@@ -17,10 +17,20 @@ type AuthSessionState = {
 export class AuthSessionService {
   private readonly session = signal<AuthSessionState | null>(null);
 
+  readonly user = computed(() => this.session()?.loginResponse.user ?? null);
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
   readonly refreshToken = computed(() => this.session()?.refreshToken ?? null);
   readonly profile = computed(() => this.session()?.profile ?? null);
   readonly isAuthenticated = computed(() => this.session() !== null);
+  readonly role = computed(() => this.user()?.role?.toLowerCase() ?? null);
+  readonly isSuperuser = computed(() => this.role() === 'superuser');
+  readonly isSeller = computed(() => {
+    const role = this.role();
+    return this.user()?.is_vendor === true || role === 'seller' || role === 'vendor';
+  });
+  readonly isBuyer = computed(
+    () => this.isAuthenticated() && !this.isSuperuser() && !this.isSeller(),
+  );
 
   saveLoginSession(loginResponse: LoginResponse, profile: CheckEmailResponse | null): void {
     const tokens = this.extractTokens(loginResponse);

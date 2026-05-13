@@ -4,11 +4,14 @@ import { HomePageComponent } from './pages/home/home-page.component';
 import { BuyerDashboardLayoutComponent } from './components/layout/buyer-dashboard-layout.component';
 import { DashboardLayoutComponent } from './components/layout/dashboard-layout.component';
 import { AdminDashboardLayoutComponent } from './components/layout/admin-dashboard-layout.component';
-
-// Mock guard
-const isLoggedin = () => {
-  return true;
-};
+import {
+  adminChildGuard,
+  adminGuard,
+  buyerChildGuard,
+  buyerGuard,
+  sellerChildGuard,
+  sellerGuard,
+} from './guards/auth.guards';
 export const routes: Routes = [
   // Home (Specific match for empty path)
   {
@@ -20,7 +23,8 @@ export const routes: Routes = [
   {
     path: '',
     component: BuyerDashboardLayoutComponent,
-    canActivate: [isLoggedin],
+    canActivate: [buyerGuard],
+    canActivateChild: [buyerChildGuard],
     children: [
       {
         path: '',
@@ -94,7 +98,8 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: AdminDashboardLayoutComponent,
-    canActivate: [isLoggedin],
+    canActivate: [adminGuard],
+    canActivateChild: [adminChildGuard],
     children: [
       {
         path: '',
@@ -256,7 +261,8 @@ export const routes: Routes = [
   {
     path: 'seller',
     component: DashboardLayoutComponent,
-    canActivate: [isLoggedin],
+    canActivate: [sellerGuard],
+    canActivateChild: [sellerChildGuard],
     children: [
       {
         path: '',
@@ -433,6 +439,7 @@ export const routes: Routes = [
   {
     path: 'home',
     title: 'Home',
+    canActivate: [buyerGuard],
     loadComponent: () =>
       import('./pages/home/buyer-signed-in-home-page.component').then(
         (m) => m.BuyerSignedInHomePageComponent,
