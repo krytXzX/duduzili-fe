@@ -16,6 +16,15 @@ function signedInRedirectTarget(): string[] {
   return ['/home'];
 }
 
+function redirectAuthenticatedUsers(): boolean | ReturnType<Router['createUrlTree']> {
+  const authSession = inject(AuthSessionService);
+  const router = inject(Router);
+
+  return authSession.isAuthenticated()
+    ? router.createUrlTree(signedInRedirectTarget())
+    : true;
+}
+
 function requireAuthentication(): boolean | ReturnType<Router['createUrlTree']> {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
@@ -75,3 +84,4 @@ export const sellerGuard: CanActivateFn = () => requireSellerAccess();
 export const sellerChildGuard: CanActivateChildFn = () => requireSellerAccess();
 export const adminGuard: CanActivateFn = () => requireAdminAccess();
 export const adminChildGuard: CanActivateChildFn = () => requireAdminAccess();
+export const guestGuard: CanActivateFn = () => redirectAuthenticatedUsers();

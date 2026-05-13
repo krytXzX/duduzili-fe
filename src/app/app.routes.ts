@@ -9,6 +9,7 @@ import {
   adminGuard,
   buyerChildGuard,
   buyerGuard,
+  guestGuard,
   sellerChildGuard,
   sellerGuard,
 } from './guards/auth.guards';
@@ -411,18 +412,21 @@ export const routes: Routes = [
       {
         path: 'sign-in',
         title: 'Sign In',
+        canActivate: [guestGuard],
         loadComponent: () =>
           import('./pages/sign-in/sign-in-page').then((module) => module.SignInPageComponent),
       },
       {
         path: 'sign-up',
         title: 'Sign Up',
+        canActivate: [guestGuard],
         loadComponent: () =>
           import('./pages/sign-up/sign-up-page').then((m) => m.SignUpPageComponent),
       },
       {
         path: 'forgot-password',
         title: 'Forgot Password',
+        canActivate: [guestGuard],
         loadComponent: () =>
           import('./pages/forgot-password/forgot-password-page').then(
             (m) => m.ForgotPasswordPageComponent,
@@ -431,6 +435,7 @@ export const routes: Routes = [
       {
         path: 'two-factor',
         title: 'Two Factor Authentication',
+        canActivate: [guestGuard],
         loadComponent: () =>
           import('./pages/two-factor/two-factor-page').then((m) => m.TwoFactorPageComponent),
       },
