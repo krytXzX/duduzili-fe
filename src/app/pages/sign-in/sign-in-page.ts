@@ -66,11 +66,7 @@ export class SignInPageComponent {
   protected readonly isEmailEmpty = computed(() => this.emailValue().trim().length === 0);
   protected readonly isPasswordEmpty = computed(() => this.passwordValue().trim().length === 0);
   protected readonly isPrimaryActionDisabled = computed(
-    () =>
-      this.isCheckingEmail() ||
-      this.isSigningIn() ||
-      (!this.isEmailValidated() && (this.isEmailEmpty() || this.emailControl.invalid)) ||
-      (this.isEmailValidated() && (this.isPasswordEmpty() || this.passwordControl.invalid)),
+    () => this.isCheckingEmail() || this.isSigningIn(),
   );
 
   protected async continueWithEmail(): Promise<void> {
@@ -148,39 +144,39 @@ export class SignInPageComponent {
 
   private resolveCheckEmailErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      if (error.status === 404) {
-        return 'No account was found for this email address.';
-      }
-
-      if (error.status === 400) {
-        return this.readBackendMessage(error.error) ?? 'Please enter a valid email address.';
-      }
-
-      return this.readBackendMessage(error.error) ?? 'We could not verify this email right now.';
+      return this.readBackendMessage(error.error) ?? 'Request failed.';
     }
 
-    return 'We could not verify this email right now.';
+    return 'Request failed.';
   }
 
   private resolveLoginErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      if (error.status === 400 || error.status === 401) {
-        return this.readBackendMessage(error.error) ?? 'Incorrect email or password.';
-      }
-
-      return this.readBackendMessage(error.error) ?? 'Unable to sign you in right now.';
+      return this.readBackendMessage(error.error) ?? 'Request failed.';
     }
 
-    return 'Unable to sign you in right now.';
+    return 'Request failed.';
   }
 
   private readBackendMessage(payload: unknown): string | null {
+    if (typeof payload === 'string' && payload.trim().length > 0) {
+      return payload;
+    }
+
     if (!payload || typeof payload !== 'object') {
       return null;
     }
 
     const record = payload as Record<string, unknown>;
-    const candidates = [record['detail'], record['message'], record['error'], record['non_field_errors']];
+    const candidates = [
+      record['detail'],
+      record['message'],
+      record['error'],
+      record['non_field_errors'],
+      record['email'],
+      record['password'],
+      record['username'],
+    ];
 
     for (const candidate of candidates) {
       if (typeof candidate === 'string' && candidate.trim().length > 0) {
@@ -189,6 +185,16 @@ export class SignInPageComponent {
 
       if (Array.isArray(candidate) && candidate.length > 0 && typeof candidate[0] === 'string') {
         return candidate[0];
+      }
+    }
+
+    for (const value of Object.values(record)) {
+      if (typeof value === 'string' && value.trim().length > 0) {
+        return value;
+      }
+
+      if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+        return value[0];
       }
     }
 
