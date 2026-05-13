@@ -18,6 +18,22 @@ export type LoginRequest = {
 };
 
 export type LoginResponse = {
+  user?: {
+    id: number;
+    username: string;
+    email: string;
+    full_name: string;
+    avatar: string | null;
+    phone_number: string | null;
+    location: string | null;
+    state: string | null;
+    city: string | null;
+    is_vendor: boolean;
+    is_verified: boolean;
+    is_2fa_enabled: boolean | null;
+    vendor_profile_ids: readonly number[];
+    created_at: string;
+  };
   access?: string;
   refresh?: string;
   access_token?: string;
@@ -32,10 +48,14 @@ export class AuthService {
   private readonly apiUrl = environment.apiUrl.replace(/\/+$/, '');
 
   checkEmail(payload: CheckEmailRequest): Observable<CheckEmailResponse> {
-    return this.http.post<CheckEmailResponse>(`${this.apiUrl}/auth/login/check-email/`, payload);
+    return this.http.post<CheckEmailResponse>(`${this.apiUrl}/auth/login/check-email/`, payload, {
+      withCredentials: true,
+    });
   }
 
   login(payload: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/`, payload);
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/`, payload, {
+      withCredentials: true,
+    });
   }
 }

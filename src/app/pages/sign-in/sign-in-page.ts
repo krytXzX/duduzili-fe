@@ -90,6 +90,7 @@ export class SignInPageComponent {
           }),
         );
         this.authSessionService.saveLoginSession(loginResponse, this.checkedEmailProfile());
+        this.passwordErrorMessage.set(null);
         await this.router.navigate(['/home']);
       } catch (error: unknown) {
         this.passwordErrorMessage.set(this.resolveLoginErrorMessage(error));
@@ -147,12 +148,20 @@ export class SignInPageComponent {
       return this.readBackendMessage(error.error) ?? 'Request failed.';
     }
 
+    if (error instanceof Error && error.message.trim().length > 0) {
+      return error.message;
+    }
+
     return 'Request failed.';
   }
 
   private resolveLoginErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
       return this.readBackendMessage(error.error) ?? 'Request failed.';
+    }
+
+    if (error instanceof Error && error.message.trim().length > 0) {
+      return error.message;
     }
 
     return 'Request failed.';
