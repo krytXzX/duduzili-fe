@@ -91,7 +91,7 @@ export class SignInPageComponent {
         );
         this.authSessionService.saveLoginSession(loginResponse, this.checkedEmailProfile());
         this.passwordErrorMessage.set(null);
-        await this.router.navigate(['/home']);
+        await this.router.navigate(this.resolvePostLoginRoute(loginResponse));
       } catch (error: unknown) {
         this.passwordErrorMessage.set(this.resolveLoginErrorMessage(error));
       } finally {
@@ -165,6 +165,10 @@ export class SignInPageComponent {
     }
 
     return 'Request failed.';
+  }
+
+  private resolvePostLoginRoute(loginResponse: { user?: { role?: string } }): string[] {
+    return loginResponse.user?.role === 'superuser' ? ['/admin'] : ['/home'];
   }
 
   private readBackendMessage(payload: unknown): string | null {

@@ -33,6 +33,7 @@ export type LoginResponse = {
     is_2fa_enabled: boolean | null;
     vendor_profile_ids: readonly number[];
     created_at: string;
+    role: string;
   };
   access?: string;
   refresh?: string;
