@@ -49,14 +49,10 @@ export class AuthService {
   private readonly apiUrl = environment.apiUrl.replace(/\/+$/, '');
 
   checkEmail(payload: CheckEmailRequest): Observable<CheckEmailResponse> {
-    return this.http.post<CheckEmailResponse>(`${this.apiUrl}/auth/login/check-email/`, payload, {
-      withCredentials: true,
-    });
+    return this.http.post<CheckEmailResponse>(`${this.apiUrl}/auth/login/check-email/`, payload);
   }
 
   login(payload: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/`, payload, {
-      withCredentials: true,
-    });
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/`, payload);
   }
 }
