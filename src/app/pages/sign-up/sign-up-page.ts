@@ -260,6 +260,7 @@ export class SignUpPageComponent {
       const response = await firstValueFrom(
         this.authService.register({
           email: this.emailControl.getRawValue().trim(),
+          full_name: this.fullNameControl.getRawValue().trim(),
           password: this.passwordControl.getRawValue(),
           confirm_password: this.confirmPasswordControl.getRawValue(),
         }),

@@ -59,6 +59,7 @@ export type VerifyOtpRequest = {
 
 export type RegisterRequest = {
   email: string;
+  full_name: string;
   password: string;
   confirm_password: string;
 };
