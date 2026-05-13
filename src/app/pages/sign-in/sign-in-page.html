@@ -72,7 +72,11 @@
         </div>
       </div>
 
-      @if (submitted() && isEmailEmpty()) {
+      @if (emailErrorMessage(); as emailErrorMessage) {
+        <p class="mt-2 text-[12px] leading-4 font-medium text-[#d24b4b]">
+          {{ emailErrorMessage }}
+        </p>
+      } @else if (submitted() && isEmailEmpty()) {
         <p class="mt-2 text-[12px] leading-4 font-medium text-[#d24b4b]">
           Email address is required.
         </p>
@@ -85,6 +89,41 @@
 
     @if (showPasswordField()) {
       <div class="flex flex-col gap-2 text-left">
+        @if (checkedEmailProfile(); as checkedEmailProfile) {
+          <div class="rounded-[18px] border border-[#efefef] bg-[#fafafa] p-3">
+            <div class="flex items-center gap-3">
+              <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#ece8ff]">
+                @if (checkedEmailProfile.avatar) {
+                  <img
+                    [src]="checkedEmailProfile.avatar"
+                    [alt]="checkedEmailProfile.username"
+                    class="h-full w-full object-cover"
+                  />
+                } @else {
+                  <div class="flex h-full w-full items-center justify-center text-[16px] font-semibold text-[#6453d9]">
+                    {{ checkedEmailProfile.username.charAt(0).toUpperCase() }}
+                  </div>
+                }
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <p class="text-[12px] leading-4 text-[#777777]">Welcome back,</p>
+                <p class="truncate text-[16px] font-semibold leading-5 text-[#15162b]">
+                  {{ checkedEmailProfile.username }}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="text-[13px] font-medium text-[#6453d9] underline underline-offset-2"
+                (click)="resetEmailStep()"
+              >
+                Change
+              </button>
+            </div>
+          </div>
+        }
+
         <div>
           <label
             class="mb-1.5 block text-[14px] leading-5 font-medium tracking-[-0.5px] text-[#777777]"
@@ -97,11 +136,11 @@
             <input
               id="password"
               class="h-[52px] w-full rounded-[12px] border border-[#e6e6e8] bg-white px-3 pr-11 text-[14px] leading-5 tracking-[-0.5px] text-[#1f1f1f] transition-[border-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] lg:h-10"
-              [style.borderColor]="submitted() && passwordControl.invalid ? '#d24b4b' : '#e6e6e8'"
+              [style.borderColor]="(submitted() && passwordControl.invalid) || passwordErrorMessage() ? '#d24b4b' : '#e6e6e8'"
               [type]="showPassword() ? 'text' : 'password'"
               formControlName="password"
               autocomplete="current-password"
-              [attr.aria-invalid]="submitted() && passwordControl.invalid"
+              [attr.aria-invalid]="(submitted() && passwordControl.invalid) || !!passwordErrorMessage()"
             />
 
             <button
@@ -122,12 +161,14 @@
           Forgot password?
         </a>
 
-        @if (submitted() && passwordControl.invalid) {
+        @if (passwordErrorMessage(); as passwordErrorMessage) {
+          <p class="text-[12px] leading-4 font-medium text-[#d24b4b]">
+            {{ passwordErrorMessage }}
+          </p>
+        } @else if (submitted() && passwordControl.invalid) {
           <p class="text-[12px] leading-4 font-medium text-[#d24b4b]">
             @if (isPasswordEmpty()) {
               Enter your password to continue.
-            } @else {
-              Password must be at least 6 characters.
             }
           </p>
         }

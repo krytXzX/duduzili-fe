@@ -4,6 +4,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import {
+  AuthService,
+  CheckEmailResponse,
+} from '../../services/auth.service';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
   selector: 'app-sign-in-page',
@@ -16,6 +23,8 @@ import { inject } from '@angular/core';
 })
 export class SignInPageComponent {
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly authSessionService = inject(AuthSessionService);
 
   protected readonly googleIconUrl = '/assets/icons/signin-google.svg';
   protected readonly appleIconUrl = '/assets/icons/signin-apple.svg';
@@ -30,7 +39,7 @@ export class SignInPageComponent {
     }),
     password: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(6)],
+      validators: [Validators.required],
     }),
   });
 
@@ -45,41 +54,144 @@ export class SignInPageComponent {
   protected readonly submitted = signal(false);
   protected readonly isEmailValidated = signal(false);
   protected readonly isCheckingEmail = signal(false);
+  protected readonly isSigningIn = signal(false);
   protected readonly showPassword = signal(false);
+  protected readonly checkedEmailProfile = signal<CheckEmailResponse | null>(null);
+  protected readonly emailErrorMessage = signal<string | null>(null);
+  protected readonly passwordErrorMessage = signal<string | null>(null);
   protected readonly showPasswordField = computed(() => this.isEmailValidated());
-  protected readonly primaryActionLabel = computed(() => 'Continue with email');
+  protected readonly primaryActionLabel = computed(() =>
+    this.isEmailValidated() ? 'Sign in' : 'Continue with email',
+  );
   protected readonly isEmailEmpty = computed(() => this.emailValue().trim().length === 0);
   protected readonly isPasswordEmpty = computed(() => this.passwordValue().trim().length === 0);
   protected readonly isPrimaryActionDisabled = computed(
     () =>
       this.isCheckingEmail() ||
+      this.isSigningIn() ||
       (!this.isEmailValidated() && (this.isEmailEmpty() || this.emailControl.invalid)) ||
-      (this.isEmailValidated() && this.isPasswordEmpty()),
+      (this.isEmailValidated() && (this.isPasswordEmpty() || this.passwordControl.invalid)),
   );
 
-  protected continueWithEmail(): void {
+  protected async continueWithEmail(): Promise<void> {
     if (this.isEmailValidated()) {
       this.submitted.set(true);
-      if (this.loginForm.valid) {
-        this.router.navigate(['/home']);
+      this.passwordErrorMessage.set(null);
+      this.emailErrorMessage.set(null);
+
+      if (this.passwordControl.invalid) {
+        this.passwordControl.markAsTouched();
+        return;
+      }
+
+      this.isSigningIn.set(true);
+
+      try {
+        const loginResponse = await firstValueFrom(
+          this.authService.login({
+            email: this.emailControl.getRawValue().trim(),
+            password: this.passwordControl.getRawValue(),
+          }),
+        );
+        this.authSessionService.saveLoginSession(loginResponse, this.checkedEmailProfile());
+        await this.router.navigate(['/home']);
+      } catch (error: unknown) {
+        this.passwordErrorMessage.set(this.resolveLoginErrorMessage(error));
+      } finally {
+        this.isSigningIn.set(false);
       }
       return;
     }
 
-    if (this.emailControl.valid) {
-      this.submitted.set(false);
-      this.isCheckingEmail.set(true);
-      setTimeout(() => {
-        this.isCheckingEmail.set(false);
-        this.isEmailValidated.set(true);
-      }, 1500);
-    } else {
+    if (this.emailControl.invalid) {
       this.submitted.set(true);
       this.emailControl.markAsTouched();
+      return;
     }
+
+    this.submitted.set(false);
+    this.emailErrorMessage.set(null);
+    this.passwordErrorMessage.set(null);
+    this.isCheckingEmail.set(true);
+
+    try {
+      const profile = await firstValueFrom(
+        this.authService.checkEmail({
+          email: this.emailControl.getRawValue().trim(),
+        }),
+      );
+      this.checkedEmailProfile.set(profile);
+      this.passwordControl.reset('');
+      this.showPassword.set(false);
+      this.isEmailValidated.set(true);
+    } catch (error: unknown) {
+      this.checkedEmailProfile.set(null);
+      this.isEmailValidated.set(false);
+      this.emailErrorMessage.set(this.resolveCheckEmailErrorMessage(error));
+    } finally {
+      this.isCheckingEmail.set(false);
+    }
+  }
+
+  protected resetEmailStep(): void {
+    this.isEmailValidated.set(false);
+    this.checkedEmailProfile.set(null);
+    this.passwordControl.reset('');
+    this.showPassword.set(false);
+    this.passwordErrorMessage.set(null);
+    this.emailErrorMessage.set(null);
   }
 
   protected togglePasswordVisibility(): void {
     this.showPassword.update((value) => !value);
+  }
+
+  private resolveCheckEmailErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 404) {
+        return 'No account was found for this email address.';
+      }
+
+      if (error.status === 400) {
+        return this.readBackendMessage(error.error) ?? 'Please enter a valid email address.';
+      }
+
+      return this.readBackendMessage(error.error) ?? 'We could not verify this email right now.';
+    }
+
+    return 'We could not verify this email right now.';
+  }
+
+  private resolveLoginErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 400 || error.status === 401) {
+        return this.readBackendMessage(error.error) ?? 'Incorrect email or password.';
+      }
+
+      return this.readBackendMessage(error.error) ?? 'Unable to sign you in right now.';
+    }
+
+    return 'Unable to sign you in right now.';
+  }
+
+  private readBackendMessage(payload: unknown): string | null {
+    if (!payload || typeof payload !== 'object') {
+      return null;
+    }
+
+    const record = payload as Record<string, unknown>;
+    const candidates = [record['detail'], record['message'], record['error'], record['non_field_errors']];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim().length > 0) {
+        return candidate;
+      }
+
+      if (Array.isArray(candidate) && candidate.length > 0 && typeof candidate[0] === 'string') {
+        return candidate[0];
+      }
+    }
+
+    return null;
   }
 }
