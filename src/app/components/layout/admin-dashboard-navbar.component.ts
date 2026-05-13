@@ -175,7 +175,7 @@ export class AdminDashboardNavbarComponent {
   readonly menuRequested = output<void>();
   readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
-  protected readonly fallbackAvatarSrc = '/assets/images/auth-avatar-fallback.png';
+  protected readonly fallbackAvatarSrc = '/assets/images/auth-avatar-fallback.svg';
   protected readonly currentUser = this.authSession.user;
   protected readonly accountAvatarSrc = computed(
     () => this.currentUser()?.avatar?.trim() || this.fallbackAvatarSrc,
