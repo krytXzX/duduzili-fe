@@ -172,6 +172,23 @@ export class SignUpPageComponent {
 
   constructor() {
     effect(() => {
+      this.emailValue();
+      this.emailErrorMessage.set(null);
+    });
+
+    effect(() => {
+      this.otpValue();
+      this.otpErrorMessage.set(null);
+    });
+
+    effect(() => {
+      this.fullNameValue();
+      this.passwordValue();
+      this.confirmPasswordValue();
+      this.passwordErrorMessage.set(null);
+    });
+
+    effect(() => {
       this.currentStep();
       this.emailErrorMessage();
       this.otpErrorMessage();
