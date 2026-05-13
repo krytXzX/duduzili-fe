@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
 import { NgOptimizedImage } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminDashboardNavbarComponent } from './admin-dashboard-navbar.component';
 import { AdminDashboardSidebarComponent } from './admin-dashboard-sidebar.component';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
   selector: 'app-admin-dashboard-layout',
@@ -62,12 +63,11 @@ import { AdminDashboardSidebarComponent } from './admin-dashboard-sidebar.compon
               aria-label="Open admin menu"
             >
               <img
-                ngSrc="/assets/images/admin-mobile-shell/avatar.png"
+                [ngSrc]="accountAvatarSrc()"
+                [alt]="accountDisplayName()"
                 width="36"
                 height="36"
-                alt=""
-                class="absolute left-[-61.11%] top-0 h-[141.67%] w-[259.72%] max-w-none rounded-full"
-                aria-hidden="true"
+                class="h-9 w-9 rounded-full object-cover"
               />
             </button>
           </div>
@@ -206,8 +206,18 @@ import { AdminDashboardSidebarComponent } from './admin-dashboard-sidebar.compon
 export class AdminDashboardLayoutComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly authSession = inject(AuthSessionService);
 
   readonly isSidebarOpen = signal(false);
+  protected readonly fallbackAvatarSrc = '/assets/images/auth-avatar-fallback.png';
+  protected readonly currentUser = this.authSession.user;
+  protected readonly accountAvatarSrc = computed(
+    () => this.currentUser()?.avatar?.trim() || this.fallbackAvatarSrc,
+  );
+  protected readonly accountDisplayName = computed(() => {
+    const user = this.currentUser();
+    return user?.full_name?.trim() || user?.username?.trim() || 'Admin';
+  });
 
   constructor() {
     this.router.events

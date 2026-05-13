@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -7,6 +7,7 @@ import {
   heroChevronRight,
 } from '@ng-icons/heroicons/outline';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 type SellerMenuEntry = {
   readonly label: string;
@@ -98,8 +99,8 @@ type SellerMenuEntry = {
               aria-label="Open seller account menu"
             >
               <img
-                ngSrc="assets/images/seller-menu-avatar.png"
-                alt=""
+                [ngSrc]="accountAvatarSrc()"
+                [alt]="accountDisplayName()"
                 width="36"
                 height="36"
                 class="h-9 w-9 object-cover"
@@ -116,8 +117,8 @@ type SellerMenuEntry = {
                   <div class="flex items-center gap-1.5 px-3">
                     <div class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full">
                       <img
-                        ngSrc="assets/images/seller-menu-avatar.png"
-                        alt=""
+                        [ngSrc]="accountAvatarSrc()"
+                        [alt]="accountDisplayName()"
                         width="36"
                         height="36"
                         class="h-9 w-9 object-cover"
@@ -125,7 +126,7 @@ type SellerMenuEntry = {
                     </div>
                     <div class="min-w-0">
                       <p class="truncate text-sm font-medium tracking-[-0.07px] text-[#15162B]">
-                        Bryan Odjede
+                        {{ accountDisplayName() }}
                       </p>
                       <p class="truncate text-[10px] font-normal text-[#72737F]">Seller mode</p>
                     </div>
@@ -284,8 +285,8 @@ type SellerMenuEntry = {
             >
               <div class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full ring-2 ring-white/10">
                 <img
-                  ngSrc="assets/images/seller-menu-avatar.png"
-                  alt=""
+                  [ngSrc]="accountAvatarSrc()"
+                  [alt]="accountDisplayName()"
                   width="28"
                   height="28"
                   class="h-7 w-7 object-cover"
@@ -304,8 +305,8 @@ type SellerMenuEntry = {
                   <div class="flex items-center gap-1.5 px-3">
                     <div class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full">
                       <img
-                        ngSrc="assets/images/seller-menu-avatar.png"
-                        alt=""
+                        [ngSrc]="accountAvatarSrc()"
+                        [alt]="accountDisplayName()"
                         width="36"
                         height="36"
                         class="h-9 w-9 object-cover"
@@ -313,7 +314,7 @@ type SellerMenuEntry = {
                     </div>
                     <div class="min-w-0">
                       <p class="truncate text-sm font-medium tracking-[-0.07px] text-[#15162B]">
-                        Bryan Odjede
+                        {{ accountDisplayName() }}
                       </p>
                       <p class="truncate text-[10px] font-normal text-[#72737F]">Seller mode</p>
                     </div>
@@ -518,6 +519,7 @@ type SellerMenuEntry = {
 })
 export class DashboardNavbarComponent {
   private readonly router = inject(Router);
+  private readonly authSession = inject(AuthSessionService);
 
   readonly sellerMenuEntries: SellerMenuEntry[] = [
     { label: 'Listings', iconSrc: 'assets/icons/seller-menu-listings.svg', route: '/seller/listings' },
@@ -535,6 +537,15 @@ export class DashboardNavbarComponent {
   readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
   readonly isLogoutConfirmOpen = signal(false);
+  protected readonly fallbackAvatarSrc = '/assets/images/auth-avatar-fallback.png';
+  protected readonly currentUser = this.authSession.user;
+  protected readonly accountAvatarSrc = computed(
+    () => this.currentUser()?.avatar?.trim() || this.fallbackAvatarSrc,
+  );
+  protected readonly accountDisplayName = computed(() => {
+    const user = this.currentUser();
+    return user?.full_name?.trim() || user?.username?.trim() || 'Seller';
+  });
 
   updateSearchQuery(value: string): void {
     this.searchQuery.set(value);
@@ -574,6 +585,7 @@ export class DashboardNavbarComponent {
 
   confirmLogout(): void {
     this.isLogoutConfirmOpen.set(false);
+    this.authSession.clearSession();
     void this.router.navigate(['/sign-in']);
   }
 }

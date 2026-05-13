@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -6,9 +6,9 @@ import {
   heroBell,
   heroBars3,
   heroCog6Tooth,
-  heroUserCircle,
 } from '@ng-icons/heroicons/outline';
 import { NgOptimizedImage } from '@angular/common';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
   selector: 'app-admin-dashboard-navbar',
@@ -19,7 +19,6 @@ import { NgOptimizedImage } from '@angular/common';
       heroBell,
       heroBars3,
       heroCog6Tooth,
-      heroUserCircle,
     }),
   ],
   template: `
@@ -111,8 +110,14 @@ import { NgOptimizedImage } from '@angular/common';
           [attr.aria-expanded]="isAccountMenuOpen()"
           aria-label="Open admin account menu"
         >
-          <span class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-purple-600 text-white ring-2 ring-white/10">
-            <ng-icon name="heroUserCircle" class="text-lg"></ng-icon>
+          <span class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-[#EEEEEE] ring-2 ring-white/10">
+            <img
+              [ngSrc]="accountAvatarSrc()"
+              [alt]="accountDisplayName()"
+              width="28"
+              height="28"
+              class="h-7 w-7 object-cover"
+            />
           </span>
           <ng-icon name="heroBars3" class="text-lg text-[#6883B2]"></ng-icon>
         </button>
@@ -124,12 +129,18 @@ import { NgOptimizedImage } from '@angular/common';
             aria-label="Admin account menu"
           >
             <div class="mb-5 flex items-start gap-3">
-              <span class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#6F57E8] text-white">
-                <ng-icon name="heroUserCircle" class="text-[28px]"></ng-icon>
+              <span class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#EEEEEE]">
+                <img
+                  [ngSrc]="accountAvatarSrc()"
+                  [alt]="accountDisplayName()"
+                  width="48"
+                  height="48"
+                  class="h-12 w-12 object-cover"
+                />
               </span>
               <div class="min-w-0">
-                <p class="truncate text-[17px] font-semibold tracking-[-0.02em] text-[#1A1C21]">Bryan Odjede</p>
-                <p class="truncate text-sm text-[#8E9199]">Super Admin</p>
+                <p class="truncate text-[17px] font-semibold tracking-[-0.02em] text-[#1A1C21]">{{ accountDisplayName() }}</p>
+                <p class="truncate text-sm text-[#8E9199]">{{ accountRoleLabel() }}</p>
               </div>
             </div>
 
@@ -159,10 +170,36 @@ import { NgOptimizedImage } from '@angular/common';
 })
 export class AdminDashboardNavbarComponent {
   private readonly router = inject(Router);
+  private readonly authSession = inject(AuthSessionService);
 
   readonly menuRequested = output<void>();
   readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
+  protected readonly fallbackAvatarSrc = '/assets/images/auth-avatar-fallback.png';
+  protected readonly currentUser = this.authSession.user;
+  protected readonly accountAvatarSrc = computed(
+    () => this.currentUser()?.avatar?.trim() || this.fallbackAvatarSrc,
+  );
+  protected readonly accountDisplayName = computed(() => {
+    const user = this.currentUser();
+    return user?.full_name?.trim() || user?.username?.trim() || 'Admin';
+  });
+  protected readonly accountRoleLabel = computed(() => {
+    const role = this.currentUser()?.role?.trim().toLowerCase();
+    if (!role) {
+      return 'Admin';
+    }
+
+    if (role === 'superuser') {
+      return 'Super Admin';
+    }
+
+    return role
+      .split(/[_\s-]+/)
+      .filter((segment) => segment.length > 0)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(' ');
+  });
 
   updateSearchQuery(value: string): void {
     this.searchQuery.set(value);
@@ -188,6 +225,7 @@ export class AdminDashboardNavbarComponent {
 
   logOut(): void {
     this.closeAccountMenu();
+    this.authSession.clearSession();
     void this.router.navigate(['/sign-in']);
   }
 }

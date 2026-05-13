@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
   selector: 'app-seller-mobile-header',
@@ -23,14 +24,26 @@ import { RouterLink } from '@angular/router';
       </a>
 
       <img
-        ngSrc="/assets/images/seller-mobile-header-avatar.png"
+        [ngSrc]="accountAvatarSrc()"
         width="36"
         height="36"
-        alt="Profile picture"
+        [alt]="accountDisplayName()"
         class="h-9 w-9 rounded-full object-cover"
       >
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SellerMobileHeaderComponent {}
+export class SellerMobileHeaderComponent {
+  private readonly authSession = inject(AuthSessionService);
+
+  protected readonly fallbackAvatarSrc = '/assets/images/auth-avatar-fallback.png';
+  protected readonly currentUser = this.authSession.user;
+  protected readonly accountAvatarSrc = computed(
+    () => this.currentUser()?.avatar?.trim() || this.fallbackAvatarSrc,
+  );
+  protected readonly accountDisplayName = computed(() => {
+    const user = this.currentUser();
+    return user?.full_name?.trim() || user?.username?.trim() || 'Seller';
+  });
+}
