@@ -12,29 +12,32 @@ export type CheckEmailResponse = {
   avatar: string | null;
 };
 
+export type AuthUser = {
+  id: number;
+  username: string;
+  email: string;
+  full_name?: string | null;
+  avatar: string | null;
+  phone_number?: string | null;
+  location?: string | null;
+  state?: string | null;
+  city?: string | null;
+  is_vendor: boolean;
+  is_verified: boolean;
+  is_2fa_enabled?: boolean | null;
+  vendor_profile_ids?: readonly number[];
+  vendor_profile_id?: number | null;
+  created_at: string;
+  role?: string;
+};
+
 export type LoginRequest = {
   email: string;
   password: string;
 };
 
-export type LoginResponse = {
-  user?: {
-    id: number;
-    username: string;
-    email: string;
-    full_name: string;
-    avatar: string | null;
-    phone_number: string | null;
-    location: string | null;
-    state: string | null;
-    city: string | null;
-    is_vendor: boolean;
-    is_verified: boolean;
-    is_2fa_enabled: boolean | null;
-    vendor_profile_ids: readonly number[];
-    created_at: string;
-    role: string;
-  };
+export type AuthResponse = {
+  user?: AuthUser;
   access?: string;
   refresh?: string;
   access_token?: string;
@@ -42,6 +45,25 @@ export type LoginResponse = {
   token?: string;
   [key: string]: unknown;
 };
+
+export type LoginResponse = AuthResponse;
+
+export type SendOtpRequest = {
+  email: string;
+};
+
+export type VerifyOtpRequest = {
+  email: string;
+  code: string;
+};
+
+export type RegisterRequest = {
+  email: string;
+  password: string;
+  confirm_password: string;
+};
+
+export type RegisterResponse = AuthResponse;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -54,5 +76,21 @@ export class AuthService {
 
   login(payload: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/`, payload);
+  }
+
+  sendOtp(payload: SendOtpRequest): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/auth/send-otp/`, payload);
+  }
+
+  verifyOtp(payload: VerifyOtpRequest): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/auth/verify-otp/`, payload);
+  }
+
+  resendOtp(payload: SendOtpRequest): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/auth/resend-otp/`, payload);
+  }
+
+  register(payload: RegisterRequest): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register/`, payload);
   }
 }
