@@ -72,8 +72,8 @@ type PublicHomeLocationGroup = {
       </section>
     }
 
-    <div class="hidden px-2 pt-4 lg:block">
-      <header class="sticky top-4 z-50">
+    <div class="fixed inset-x-0 top-0 z-50 hidden px-2 pt-4 lg:block">
+      <header>
         <div class="pointer-events-none mx-auto flex max-w-[1440px] justify-center px-8">
           <div
             class="pointer-events-auto flex w-full max-w-[1238px] items-center justify-between rounded-full bg-[#1a1a1a] px-6 py-[9px] shadow-[0_12px_28px_rgba(0,0,0,0.14)]"

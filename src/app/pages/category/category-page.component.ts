@@ -35,7 +35,7 @@ interface CategoryListing {
   templateUrl: './category-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block min-h-full bg-white',
+    class: 'block h-full overflow-auto bg-white',
   },
 })
 export class CategoryPageComponent {
