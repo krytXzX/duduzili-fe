@@ -72,75 +72,77 @@ type PublicHomeLocationGroup = {
       </section>
     }
 
-    <header class="sticky top-4 z-40 hidden lg:block">
-      <div class="pointer-events-none mx-auto flex max-w-[1440px] justify-center px-8">
-        <div
-          class="pointer-events-auto flex w-full max-w-[1238px] items-center justify-between rounded-full bg-[#1a1a1a] px-6 py-[9px] shadow-[0_12px_28px_rgba(0,0,0,0.14)]"
-        >
-          <div class="flex items-center gap-6">
-            <img
-              ngSrc="/assets/icons/home-logo-light.svg"
-              alt="Duduzili"
-              width="112"
-              height="26"
-              class="h-[26px] w-auto"
-              priority
-            />
+    <div class="hidden px-2 pt-4 lg:block">
+      <header class="sticky top-4 z-50">
+        <div class="pointer-events-none mx-auto flex max-w-[1440px] justify-center px-8">
+          <div
+            class="pointer-events-auto flex w-full max-w-[1238px] items-center justify-between rounded-full bg-[#1a1a1a] px-6 py-[9px] shadow-[0_12px_28px_rgba(0,0,0,0.14)]"
+          >
+            <div class="flex items-center gap-6">
+              <img
+                ngSrc="/assets/icons/home-logo-light.svg"
+                alt="Duduzili"
+                width="112"
+                height="26"
+                class="h-[26px] w-auto"
+                priority
+              />
 
-            <button
-              type="button"
-              class="flex h-10 items-center justify-between gap-3 rounded-full bg-[#2f2f2f] py-1 pl-3 pr-1 text-white"
-              aria-label="Select location"
-              aria-haspopup="dialog"
-              [attr.aria-expanded]="isLocationPickerOpen()"
-              (click)="openLocationPicker()"
-            >
-              <span class="flex items-center gap-1 text-sm font-semibold tracking-[0.01em]">
-                <img
-                  ngSrc="/assets/icons/home-location.svg"
-                  alt=""
-                  width="16"
-                  height="16"
-                  class="h-4 w-4"
-                  aria-hidden="true"
-                />
-                {{ selectedLocationDisplay().desktop }}
-              </span>
-              <span class="flex h-8 w-10 items-center justify-center rounded-full bg-[#515151]">
-                <img
-                  ngSrc="/assets/icons/home-chevron-down.svg"
-                  alt=""
-                  width="16"
-                  height="16"
-                  class="h-4 w-4"
-                  aria-hidden="true"
-                />
-              </span>
-            </button>
-          </div>
-
-          <nav class="flex items-center gap-0.5 text-sm text-white" aria-label="Desktop navigation">
-            <a routerLink="/" class="rounded-full px-3.5 py-2.5 font-medium">Sell item</a>
-            <a routerLink="/sign-in" class="rounded-full px-3.5 py-2.5 font-medium">Sign in</a>
-            <a
-              routerLink="/sign-up"
-              class="flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[#1d1d1d]"
-            >
-              <span
-                class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#dbe5ff]"
+              <button
+                type="button"
+                class="flex h-10 items-center justify-between gap-3 rounded-full bg-[#2f2f2f] py-1 pl-3 pr-1 text-white"
+                aria-label="Select location"
+                aria-haspopup="dialog"
+                [attr.aria-expanded]="isLocationPickerOpen()"
+                (click)="openLocationPicker()"
               >
-                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-6 w-6 fill-[#8da7ff]">
-                  <path
-                    d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2.25c-4.14 0-7.5 2.52-7.5 5.63V21h15v-1.12c0-3.11-3.36-5.63-7.5-5.63Z"
+                <span class="flex items-center gap-1 text-sm font-semibold tracking-[0.01em]">
+                  <img
+                    ngSrc="/assets/icons/home-location.svg"
+                    alt=""
+                    width="16"
+                    height="16"
+                    class="h-4 w-4"
+                    aria-hidden="true"
                   />
-                </svg>
-              </span>
-              <span class="text-base font-medium">Sign up</span>
-            </a>
-          </nav>
+                  {{ selectedLocationDisplay().desktop }}
+                </span>
+                <span class="flex h-8 w-10 items-center justify-center rounded-full bg-[#515151]">
+                  <img
+                    ngSrc="/assets/icons/home-chevron-down.svg"
+                    alt=""
+                    width="16"
+                    height="16"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                  />
+                </span>
+              </button>
+            </div>
+
+            <nav class="flex items-center gap-0.5 text-sm text-white" aria-label="Desktop navigation">
+              <a routerLink="/" class="rounded-full px-3.5 py-2.5 font-medium">Sell item</a>
+              <a routerLink="/sign-in" class="rounded-full px-3.5 py-2.5 font-medium">Sign in</a>
+              <a
+                routerLink="/sign-up"
+                class="flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[#1d1d1d]"
+              >
+                <span
+                  class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#dbe5ff]"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" class="h-6 w-6 fill-[#8da7ff]">
+                    <path
+                      d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2.25c-4.14 0-7.5 2.52-7.5 5.63V21h15v-1.12c0-3.11-3.36-5.63-7.5-5.63Z"
+                    />
+                  </svg>
+                </span>
+                <span class="text-base font-medium">Sign up</span>
+              </a>
+            </nav>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </div>
 
     <header
       class="sticky top-0 z-30 bg-white lg:hidden"
