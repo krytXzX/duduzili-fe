@@ -10,13 +10,57 @@ import { Store, StoreCardComponent } from '../../components/stores/store-card.co
 import { AuthSessionService } from '../../services/auth-session.service';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ListingsApiItem, ListingsSearchResponse, ListingsService } from '../../services/listings.service';
+import {
+  ListingsApiItem,
+  ListingsSearchResponse,
+  ListingsService,
+  SearchListingsParams,
+} from '../../services/listings.service';
 
 interface SearchResultSection {
   title: string;
   viewAllCount: string;
   listings: Listing[];
 }
+
+const CATEGORY_PARAM_BY_LABEL: Record<string, string> = {
+  'Phones & Laptops': '1',
+  Women: '2',
+  Men: '3',
+  Beauty: '4',
+  'Food & Drinks': '5',
+  'Baby & Toddler': '6',
+  Home: '7',
+  Properties: '8',
+  'Fitness & Nutrition': '9',
+  Accessories: '10',
+  'Pet supplies': '11',
+  'Toys & Games': '12',
+  Electronics: '13',
+  'Arts & Crafts': '14',
+  'Luggage & Bags': '15',
+  'Sporting goods': '16',
+};
+
+const ORDERING_PARAM_BY_LABEL: Record<string, string | undefined> = {
+  'Recommended (default)': undefined,
+  'Newest listings': '-created_at',
+  'Price: Low to High': 'price',
+  'Price: High to Low': '-price',
+  'Most viewed': undefined,
+  Trending: undefined,
+  'Nearest to me': undefined,
+};
+
+const CONDITION_PARAM_BY_LABEL: Record<string, string> = {
+  New: 'new',
+  'Fairly used': 'used',
+};
+
+const VERIFICATION_PARAM_BY_LABEL: Record<string, 'true' | 'false'> = {
+  Verified: 'true',
+  Unverified: 'false',
+};
 
 @Component({
   selector: 'app-search-page',
@@ -129,6 +173,49 @@ export class SearchPageComponent {
   readonly vendorSearch = signal('');
   readonly minPrice = signal(2000);
   readonly maxPrice = signal(700000000);
+  readonly activeSearchParams = computed<SearchListingsParams>(() => {
+    const params: SearchListingsParams = {};
+    const search = this.searchTerm();
+    const selectedCategory = this.lastSelected(this.selectedCategories());
+    const selectedLocation = this.lastSelected(this.selectedLocations());
+    const selectedCondition = this.lastSelected(this.selectedCondition());
+    const selectedVerification = this.lastSelected(this.selectedVerification());
+    const ordering = ORDERING_PARAM_BY_LABEL[this.selectedSort()];
+
+    if (search) {
+      params.search = search;
+    }
+
+    if (selectedCategory) {
+      params.category = CATEGORY_PARAM_BY_LABEL[selectedCategory];
+    }
+
+    if (selectedLocation) {
+      params.location = selectedLocation;
+    }
+
+    if (selectedCondition) {
+      params.condition = CONDITION_PARAM_BY_LABEL[selectedCondition];
+    }
+
+    if (selectedVerification) {
+      params.is_verified = VERIFICATION_PARAM_BY_LABEL[selectedVerification];
+    }
+
+    if (this.minPrice() > 2000) {
+      params.min_price = String(this.minPrice());
+    }
+
+    if (this.maxPrice() < 700000000) {
+      params.max_price = String(this.maxPrice());
+    }
+
+    if (ordering) {
+      params.ordering = ordering;
+    }
+
+    return params;
+  });
 
   readonly filters = computed(() => ([
     { key: 'category', label: this.categoryLabel() },
@@ -180,9 +267,9 @@ export class SearchPageComponent {
 
   constructor() {
     effect(() => {
-      const term = this.searchTerm();
-      this.floatingSearchQuery.set(term);
-      void this.loadSearchResults(term);
+      const params = this.activeSearchParams();
+      this.floatingSearchQuery.set(params.search ?? '');
+      void this.loadSearchResults(params);
     });
   }
 
@@ -304,11 +391,11 @@ export class SearchPageComponent {
     return `₦${new Intl.NumberFormat('en-NG').format(value)}`;
   }
 
-  private async loadSearchResults(term: string): Promise<void> {
-    const normalizedTerm = term.trim();
+  private async loadSearchResults(params: SearchListingsParams): Promise<void> {
     const requestId = ++this.currentSearchRequestId;
+    const hasQuery = Object.values(params).some((value) => !!value);
 
-    if (!normalizedTerm) {
+    if (!hasQuery) {
       this.searchListings.set([]);
       this.resultCount.set(0);
       this.searchError.set(null);
@@ -320,7 +407,7 @@ export class SearchPageComponent {
     this.searchError.set(null);
 
     try {
-      const response = await firstValueFrom(this.listingsService.searchListings(normalizedTerm));
+      const response = await firstValueFrom(this.listingsService.searchListings(params));
       if (requestId !== this.currentSearchRequestId) {
         return;
       }
@@ -576,5 +663,9 @@ export class SearchPageComponent {
     }
 
     return 'We could not load search results right now.';
+  }
+
+  private lastSelected(values: string[]): string | null {
+    return values.length > 0 ? values[values.length - 1] : null;
   }
 }
