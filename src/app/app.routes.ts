@@ -452,6 +452,12 @@ export const routes: Routes = [
   },
   // Category & Product Routes
   {
+    path: 'search',
+    title: 'Search',
+    loadComponent: () =>
+      import('./pages/search/search-page.component').then((m) => m.SearchPageComponent),
+  },
+  {
     path: 'category',
     title: 'Categories',
     loadComponent: () =>

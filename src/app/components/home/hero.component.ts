@@ -151,6 +151,6 @@ export class HeroComponent {
 
   runSearch(): void {
     const query = this.trimmedSearchQuery() || 'iPhone';
-    void this.router.navigate(['/category'], { queryParams: { q: query } });
+    void this.router.navigate(['/search'], { queryParams: { q: query } });
   }
 }

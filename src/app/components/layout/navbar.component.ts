@@ -29,7 +29,7 @@ export class NavbarComponent {
 
   runSearch(): void {
     const query = this.searchQuery().trim() || 'iPhone';
-    void this.router.navigate(['/category'], { queryParams: { q: query } });
+    void this.router.navigate(['/search'], { queryParams: { q: query } });
   }
 
   openMobileMenu(): void {

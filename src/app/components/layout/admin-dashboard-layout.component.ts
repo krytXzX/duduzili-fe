@@ -239,7 +239,7 @@ export class AdminDashboardLayoutComponent {
   }
 
   runMobileSearch(): void {
-    void this.router.navigate(['/category'], { queryParams: { q: 'iPhone' } });
+    void this.router.navigate(['/search'], { queryParams: { q: 'iPhone' } });
   }
 
   isAdminRouteExact(path: string): boolean {

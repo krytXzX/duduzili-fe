@@ -847,7 +847,7 @@ export class HomePageComponent {
 
     const query = this.homeSearchQuery().trim() || this.mobileSearchQuery().trim() || 'iPhone';
     this.isMobileSearchOverlayOpen.set(false);
-    void this.router.navigate(['/category'], { queryParams: { q: query } });
+    void this.router.navigate(['/search'], { queryParams: { q: query } });
   }
 
   removeRecentSearch(term: string): void {

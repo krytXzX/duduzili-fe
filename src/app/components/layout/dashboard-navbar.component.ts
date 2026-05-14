@@ -567,7 +567,7 @@ export class DashboardNavbarComponent {
 
   runSearch(): void {
     const query = this.searchQuery().trim() || 'iPhone';
-    void this.router.navigate(['/category'], { queryParams: { q: query } });
+    void this.router.navigate(['/search'], { queryParams: { q: query } });
   }
 
   goToSellerRoute(path: string): void {
