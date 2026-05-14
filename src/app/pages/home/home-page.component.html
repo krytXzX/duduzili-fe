@@ -391,7 +391,7 @@
         <div #categoryRail class="no-scrollbar w-full overflow-x-auto scroll-smooth pr-2 lg:w-full lg:pr-0">
           <div class="flex min-w-max gap-3 pr-8 lg:gap-6 lg:pr-0">
             @for (category of categories(); track category.id) {
-            <button type="button" class="flex w-[76px] shrink-0 flex-col items-center gap-2 text-center lg:w-[130px]" [attr.aria-label]="'Browse ' + category.label">
+            <button type="button" (click)="openCategory(category)" class="flex w-[76px] shrink-0 flex-col items-center gap-2 text-center lg:w-[130px]" [attr.aria-label]="'Browse ' + category.label">
               <span class="flex h-[38px] w-[38px] items-center justify-center overflow-hidden bg-white lg:h-16 lg:w-16">
                 <img [ngSrc]="category.icon" alt="" width="64" height="64" class="h-full w-full object-cover object-center" aria-hidden="true" />
               </span>
@@ -429,7 +429,7 @@
 
           <div class="mt-6 grid grid-cols-3 gap-x-3 gap-y-5 lg:mt-8 lg:grid-cols-5 lg:gap-x-6 lg:gap-y-8">
             @for (category of categories(); track category.id) {
-            <button type="button" (click)="closeCategoriesSheet()" class="flex flex-col items-center gap-2 text-center" [attr.aria-label]="'Browse ' + category.label">
+            <button type="button" (click)="openCategory(category)" class="flex flex-col items-center gap-2 text-center" [attr.aria-label]="'Browse ' + category.label">
               <span class="flex h-[54px] w-[54px] items-center justify-center overflow-hidden rounded-[18px] bg-[#FAFAFA] p-2 lg:h-[88px] lg:w-[88px] lg:rounded-[28px] lg:p-3">
                 <img [ngSrc]="category.icon" alt="" width="64" height="64" class="h-full w-full object-cover object-center" aria-hidden="true" />
               </span>

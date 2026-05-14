@@ -47,11 +47,25 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-5 gap-x-5 gap-y-6 pt-8">
-        @for (listing of listings; track listing.id) {
-          <app-listing-card [listing]="listing" [showFavorite]="false" />
-        }
-      </div>
+      @if (isCategoryLoading()) {
+        <div class="px-6 py-20 text-center">
+          <p class="text-[16px] font-medium text-[#1A1C21]">Loading category listings...</p>
+        </div>
+      } @else if (categoryError()) {
+        <div class="px-6 py-20 text-center">
+          <p class="text-[16px] font-medium text-[#B42318]">{{ categoryError() }}</p>
+        </div>
+      } @else if (!listings().length) {
+        <div class="px-6 py-20 text-center">
+          <p class="text-[18px] font-medium text-[#1A1C21]">No listings found in this category yet.</p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-5 gap-x-5 gap-y-6 pt-8">
+          @for (listing of listings(); track listing.id) {
+            <app-listing-card [listing]="listing" [showFavorite]="false" />
+          }
+        </div>
+      }
     </div>
   </section>
 
@@ -91,22 +105,36 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-x-3 gap-y-4 pb-8 pt-1">
-      @for (listing of visibleMobileListings(); track listing.id) {
-        <app-listing-card [listing]="listing" [showFavorite]="false" />
-      }
-    </div>
-
-    @if (canShowMoreMobile()) {
-      <div class="pb-10 text-center">
-        <button
-          type="button"
-          (click)="showMoreMobileListings()"
-          class="inline-flex h-11 items-center justify-center rounded-full border border-[#d8daea] bg-white px-5 text-[14px] font-medium text-[#272a36] shadow-[0_18px_28px_-24px_rgba(15,23,42,0.24)] transition hover:border-[#c8cbde]"
-        >
-          Show more listings
-        </button>
+    @if (isCategoryLoading()) {
+      <div class="px-4 py-14 text-center">
+        <p class="text-[15px] font-medium text-[#1A1C21]">Loading category listings...</p>
       </div>
+    } @else if (categoryError()) {
+      <div class="px-4 py-14 text-center">
+        <p class="text-[15px] font-medium text-[#B42318]">{{ categoryError() }}</p>
+      </div>
+    } @else if (!listings().length) {
+      <div class="px-4 py-14 text-center">
+        <p class="text-[16px] font-medium text-[#1A1C21]">No listings found in this category yet.</p>
+      </div>
+    } @else {
+      <div class="grid grid-cols-2 gap-x-3 gap-y-4 pb-8 pt-1">
+        @for (listing of visibleMobileListings(); track listing.id) {
+          <app-listing-card [listing]="listing" [showFavorite]="false" />
+        }
+      </div>
+
+      @if (canShowMoreMobile()) {
+        <div class="pb-10 text-center">
+          <button
+            type="button"
+            (click)="showMoreMobileListings()"
+            class="inline-flex h-11 items-center justify-center rounded-full border border-[#d8daea] bg-white px-5 text-[14px] font-medium text-[#272a36] shadow-[0_18px_28px_-24px_rgba(15,23,42,0.24)] transition hover:border-[#c8cbde]"
+          >
+            Show more listings
+          </button>
+        </div>
+      }
     }
   </section>
 </main>

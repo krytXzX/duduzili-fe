@@ -24,4 +24,10 @@ export class ListingsService {
       params: { search },
     });
   }
+
+  getCategoryListings(category: string): Observable<ListingsSearchResponse> {
+    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/`, {
+      params: { category },
+    });
+  }
 }

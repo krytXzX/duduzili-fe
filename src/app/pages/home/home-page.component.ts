@@ -824,6 +824,16 @@ export class HomePageComponent {
     this.isCategoriesSheetOpen.set(false);
   }
 
+  openCategory(category: HomeCategory): void {
+    this.closeCategoriesSheet();
+    void this.router.navigate(['/category'], {
+      queryParams: {
+        category: category.id,
+        name: category.label,
+      },
+    });
+  }
+
   openMobileSearchOverlay(): void {
     this.isMobileSearchOverlayOpen.set(true);
   }
