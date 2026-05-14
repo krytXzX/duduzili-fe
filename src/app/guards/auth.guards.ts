@@ -9,10 +9,6 @@ function signedInRedirectTarget(): string[] {
     return ['/admin'];
   }
 
-  if (authSession.isSeller()) {
-    return ['/seller'];
-  }
-
   return ['/home'];
 }
 
@@ -40,7 +36,7 @@ function requireBuyerAccess(): boolean | ReturnType<Router['createUrlTree']> {
     return router.createUrlTree(['/sign-in']);
   }
 
-  if (authSession.isSuperuser() || authSession.isSeller()) {
+  if (authSession.isSuperuser()) {
     return router.createUrlTree(signedInRedirectTarget());
   }
 
@@ -55,7 +51,7 @@ function requireSellerAccess(): boolean | ReturnType<Router['createUrlTree']> {
     return router.createUrlTree(['/sign-in']);
   }
 
-  if (!authSession.isSeller()) {
+  if (authSession.isSuperuser()) {
     return router.createUrlTree(signedInRedirectTarget());
   }
 
