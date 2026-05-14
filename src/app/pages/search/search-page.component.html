@@ -9,12 +9,12 @@
     [class]="
       isAuthenticated()
         ? 'mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8'
-        : 'mx-auto max-w-7xl px-4 py-10 pt-6 sm:px-6 lg:px-8 lg:pt-12'
+        : 'mx-auto max-w-7xl px-4 py-10 pt-6 sm:px-6 lg:px-8 lg:pt-[112px]'
     "
   >
     <header class="mb-7">
       <h1 class="text-[30px] font-semibold tracking-tight text-[#1A1C21] sm:text-[36px]">
-        We found {{ listingsCount() }} results for “{{ searchTerm() }}”
+        We found {{ listingsCount() }} results for “{{ searchTerm() || 'Search' }}”
       </h1>
     </header>
 
@@ -209,7 +209,7 @@
               Reset
             </button>
             <button type="button" (click)="closeFilters()" class="rounded-full bg-[#6558F5] px-6 py-3 text-[14px] font-medium text-white shadow-[0_14px_28px_-16px_rgba(99,102,241,0.8)] transition hover:bg-[#5848F1]">
-              Show 1000+ results
+              Show results
             </button>
           </div>
         </div>
@@ -217,13 +217,29 @@
       }
     </section>
 
+    @if (isSearchLoading()) {
+      <section class="rounded-[28px] border border-[#ECEEF3] bg-white px-6 py-16 text-center shadow-[0_24px_60px_-30px_rgba(17,24,39,0.18)]">
+        <p class="text-[16px] font-medium text-[#1A1C21]">Loading search results...</p>
+      </section>
+    } @else if (searchError()) {
+      <section class="rounded-[28px] border border-[#F1D7D7] bg-[#FFF7F7] px-6 py-16 text-center shadow-[0_24px_60px_-30px_rgba(17,24,39,0.12)]">
+        <p class="text-[16px] font-medium text-[#B42318]">{{ searchError() }}</p>
+      </section>
+    } @else if (sections().length === 0) {
+      <section class="rounded-[28px] border border-[#ECEEF3] bg-white px-6 py-16 text-center shadow-[0_24px_60px_-30px_rgba(17,24,39,0.12)]">
+        <p class="text-[18px] font-medium text-[#1A1C21]">No results found for “{{ searchTerm() || 'Search' }}”.</p>
+        <p class="mt-2 text-[14px] text-[#7A8191]">Try a different keyword or remove some filters.</p>
+      </section>
+    }
+
+    @if (filteredStores().length) {
     <section class="mb-9">
       <div class="mb-4 flex items-center justify-between gap-4">
         <h2 class="text-[20px] font-medium text-[#1A1C21]">Stores</h2>
 
         <div class="flex items-center gap-3">
           <button type="button" class="text-[14px] font-medium text-[#1A1C21] transition hover:text-[#5E57FF]">
-            View all (12)
+            View all ({{ filteredStores().length }})
           </button>
           <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#6B7280] transition hover:bg-[#F8F8FB]">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -239,11 +255,12 @@
       </div>
 
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-        @for (store of stores(); track store.id) {
+        @for (store of filteredStores(); track store.id) {
         <app-store-card [store]="store" />
         }
       </div>
     </section>
+    }
 
     @for (section of sections(); track section.title; let sectionIndex = $index) {
     <section class="mb-10">
@@ -276,7 +293,7 @@
         }
       </div>
 
-      @if (sectionIndex === 1) {
+      @if (sectionIndex === 0 && !!floatingSearchTerm()) {
       <div class="pointer-events-none -mt-4 flex justify-center">
         <div class="pointer-events-auto flex w-full max-w-[560px] items-center rounded-full border border-[#E6E8EF] bg-white p-1.5 shadow-[0_18px_36px_-24px_rgba(17,24,39,0.28)]">
           <input

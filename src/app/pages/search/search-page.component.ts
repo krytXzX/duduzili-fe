@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
@@ -8,6 +8,9 @@ import { PublicHomeNavbarComponent } from '../../components/layout/public-home-n
 import { FooterComponent } from '../../components/layout/footer.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { ListingsApiItem, ListingsSearchResponse, ListingsService } from '../../services/listings.service';
 
 interface SearchResultSection {
   title: string;
@@ -25,7 +28,7 @@ interface SearchResultSection {
     PublicHomeNavbarComponent,
     ListingCardComponent,
     FooterComponent,
-    StoreCardComponent
+    StoreCardComponent,
   ],
   templateUrl: './search-page.component.html',
   styles: `
@@ -62,15 +65,22 @@ interface SearchResultSection {
 export class SearchPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly authSession = inject(AuthSessionService);
+  private readonly listingsService = inject(ListingsService);
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
   });
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
+  private currentSearchRequestId = 0;
 
   readonly isAuthenticated = this.authSession.isAuthenticated;
-  readonly searchTerm = computed(() => this.queryParamMap().get('q') ?? 'iPhone');
-  readonly listingsCount = signal('23,356');
-  readonly floatingSearchTerm = computed(() => this.queryParamMap().get('q') ?? 'Mustard seed');
+  readonly searchTerm = computed(() => this.queryParamMap().get('q')?.trim() ?? '');
+  readonly listingsCount = computed(() => new Intl.NumberFormat('en-NG').format(this.resultCount()));
+  readonly floatingSearchTerm = computed(() => this.searchTerm());
   readonly activeFilter = signal<string | null>(null);
+  readonly isSearchLoading = signal(false);
+  readonly searchError = signal<string | null>(null);
+  readonly resultCount = signal(0);
+  readonly searchListings = signal<Listing[]>([]);
 
   readonly categoryOptions = [
     'Phones & Laptops',
@@ -129,78 +139,22 @@ export class SearchPageComponent {
     { key: 'sort', label: `Sort by: ${this.selectedSort()}` },
   ]));
 
-  readonly stores = signal<Store[]>([
-    {
-      id: 's1',
-      name: 'The Vine Collections',
-      banner: '/assets/images/product_sneakers_lifestyle.png',
-      logo: '/assets/images/product_sneakers_lifestyle.png',
-      followers: '0',
-      metaLabel: 'Ikeja, Lagos',
-      isVerified: true,
-      route: ['/search'],
-    },
-    {
-      id: 's2',
-      name: 'Eden Organics',
-      banner: '/assets/images/product_keyboard_rgb.png',
-      logo: '/assets/images/product_keyboard_rgb.png',
-      followers: '0',
-      metaLabel: 'Ikeja, Lagos',
-      isVerified: true,
-      route: ['/search'],
-    },
-    {
-      id: 's3',
-      name: 'Snap Thrifts',
-      banner: '/assets/images/fashion_menswear_hero.png',
-      logo: '/assets/images/fashion_menswear_hero.png',
-      followers: '0',
-      metaLabel: 'Ikeja, Lagos',
-      isVerified: true,
-      route: ['/search'],
-    },
-    {
-      id: 's4',
-      name: 'goMelon',
-      banner: '/assets/images/product_watch_luxury.png',
-      logo: '/assets/images/product_watch_luxury.png',
-      followers: '0',
-      metaLabel: 'Ikeja, Lagos',
-      isVerified: true,
-      route: ['/search'],
-    },
-  ]);
+  readonly stores = signal<Store[]>([]);
 
-  readonly phonesAndLaptops = [
-    { id: '1', title: 'Iphone 17 pro max', price: '₦2,500,000', location: 'Lagos', timeAgo: '5 mins ago', isVerified: true, images: ['/assets/images/product_watch_luxury.png', '/assets/images/product_keyboard_rgb.png', '/assets/images/product_sneakers_lifestyle.png'] },
-    { id: '2', title: 'Logitech ergonomic mouse', price: '₦35,000', location: 'Lagos', timeAgo: '12 mins ago', isVerified: true, images: ['/assets/images/product_keyboard_rgb.png', '/assets/images/product_watch_luxury.png'] },
-    { id: '3', title: 'RGB keyboard', price: '₦35,000', location: 'Lagos', timeAgo: '15 mins ago', isVerified: true, images: ['/assets/images/product_keyboard_rgb.png', '/assets/images/product_sneakers_lifestyle.png'] },
-    { id: '4', title: 'Iphone X (64 gb)', price: '₦35,000', location: 'Lagos', timeAgo: '20 mins ago', isVerified: true, images: ['/assets/images/product_watch_luxury.png', '/assets/images/product_keyboard_rgb.png'] },
-    { id: '5', title: 'Ergonomic chair', price: '₦35,000', location: 'Lagos', timeAgo: '2 mins ago', isVerified: true, images: ['/assets/images/product_sneakers_lifestyle.png', '/assets/images/product_watch_luxury.png'] },
-  ] satisfies Listing[];
+  readonly sections = computed<SearchResultSection[]>(() => {
+    const listings = this.searchListings();
+    if (!listings.length) {
+      return [];
+    }
 
-  readonly men = [
-    { id: 'm1', title: 'Tie', price: '₦35,000', location: 'Ikeja, Lagos', timeAgo: 'Now', isVerified: true, images: ['/assets/images/fashion_menswear_hero.png'] },
-    { id: 'm2', title: 'Maserati', price: '₦35,000', location: 'Ikeja, Lagos', timeAgo: 'Used', isVerified: true, images: ['/assets/images/product_watch_luxury.png'] },
-    { id: 'm3', title: 'Nike sneaker', price: '₦35,000', location: 'Ikeja, Lagos', timeAgo: 'New', isVerified: true, images: ['/assets/images/product_sneakers_lifestyle.png'] },
-    { id: 'm4', title: 'Dior sauvage', price: '₦35,000', location: 'Ikeja, Lagos', timeAgo: 'New', isVerified: true, images: ['/assets/images/product_keyboard_rgb.png'] },
-    { id: 'm5', title: 'G-shock wrist watch', price: '₦35,000', location: 'Ikeja, Lagos', timeAgo: 'New', isVerified: true, images: ['/assets/images/product_watch_luxury.png'] },
-  ] satisfies Listing[];
-
-  readonly women = [
-    { id: 'w1', title: 'Nike sneaker', price: '₦35,000', location: 'Ikeja, Lagos', timeAgo: 'New', isVerified: true, images: ['/assets/images/product_sneakers_lifestyle.png'] },
-    { id: 'w2', title: 'Bone straight wig', price: '₦35,000', location: 'Ikeja, Lagos', timeAgo: 'Used', isVerified: true, images: ['/assets/images/fashion_menswear_hero.png'] },
-    { id: 'w3', title: 'Ergonomic chair', price: '₦35,000', location: 'Ikeja, Lagos', timeAgo: 'New', isVerified: true, images: ['/assets/images/product_sneakers_lifestyle.png'] },
-    { id: 'w4', title: 'Dinnerware set', price: '₦35,000', location: 'Ikeja, Lagos', timeAgo: 'New', isVerified: true, images: ['/assets/images/product_keyboard_rgb.png'] },
-    { id: 'w5', title: 'Sweatshirt', price: '₦35,000', location: 'Ikeja, Lagos', timeAgo: 'Used', isVerified: true, images: ['/assets/images/fashion_menswear_hero.png'] },
-  ] satisfies Listing[];
-
-  readonly sections = signal<SearchResultSection[]>([
-    { title: 'Phones & Laptops', viewAllCount: '3,341', listings: this.phonesAndLaptops },
-    { title: 'Men', viewAllCount: '3,341', listings: this.men },
-    { title: 'Women', viewAllCount: '3,341', listings: this.women },
-  ]);
+    return [
+      {
+        title: 'Listings',
+        viewAllCount: this.listingsCount(),
+        listings,
+      },
+    ];
+  });
 
   readonly filteredStores = computed(() => {
     const query = this.vendorSearch().trim().toLowerCase();
@@ -220,13 +174,15 @@ export class SearchPageComponent {
     return this.selectedLocations().length ? `Location (${this.selectedLocations().length})` : 'Location';
   });
 
-  readonly conditionLabel = computed(() => {
-    return this.selectedCondition().length ? 'Condition' : 'Condition';
-  });
+  readonly conditionLabel = computed(() => 'Condition');
+  readonly verificationLabel = computed(() => 'Verification status');
 
-  readonly verificationLabel = computed(() => {
-    return this.selectedVerification().length ? 'Verification status' : 'Verification status';
-  });
+  constructor() {
+    effect(() => {
+      const term = this.searchTerm();
+      void this.loadSearchResults(term);
+    });
+  }
 
   toggleFilter(key: string): void {
     this.activeFilter.update((current) => current === key ? null : key);
@@ -331,5 +287,239 @@ export class SearchPageComponent {
 
   formatPrice(value: number): string {
     return `₦${new Intl.NumberFormat('en-NG').format(value)}`;
+  }
+
+  private async loadSearchResults(term: string): Promise<void> {
+    const normalizedTerm = term.trim();
+    const requestId = ++this.currentSearchRequestId;
+
+    if (!normalizedTerm) {
+      this.searchListings.set([]);
+      this.resultCount.set(0);
+      this.searchError.set(null);
+      this.isSearchLoading.set(false);
+      return;
+    }
+
+    this.isSearchLoading.set(true);
+    this.searchError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.listingsService.searchListings(normalizedTerm));
+      if (requestId !== this.currentSearchRequestId) {
+        return;
+      }
+
+      const items = this.extractItems(response);
+      const mappedListings = items.map((item, index) => this.toListing(item, index)).filter((listing): listing is Listing => listing !== null);
+      const totalCount = this.extractCount(response, mappedListings.length);
+
+      this.searchListings.set(mappedListings);
+      this.resultCount.set(totalCount);
+      this.searchError.set(null);
+    } catch (error) {
+      if (requestId !== this.currentSearchRequestId) {
+        return;
+      }
+
+      this.searchListings.set([]);
+      this.resultCount.set(0);
+      this.searchError.set(this.extractErrorMessage(error));
+    } finally {
+      if (requestId === this.currentSearchRequestId) {
+        this.isSearchLoading.set(false);
+      }
+    }
+  }
+
+  private extractItems(response: ListingsSearchResponse): ListingsApiItem[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.listings)) {
+      return response.listings;
+    }
+
+    return [];
+  }
+
+  private extractCount(response: ListingsSearchResponse, fallback: number): number {
+    if (Array.isArray(response)) {
+      return response.length;
+    }
+
+    return typeof response.count === 'number' ? response.count : fallback;
+  }
+
+  private toListing(item: ListingsApiItem, index: number): Listing | null {
+    const id = this.readId(item, index);
+    const title = this.readString(item, ['title', 'name', 'listing_name']);
+    const priceValue = this.readString(item, ['price', 'amount', 'price_display'])
+      || this.formatNumericPrice(item['price']);
+    const images = this.extractImageList(item);
+
+    if (!title || !priceValue || images.length === 0) {
+      return null;
+    }
+
+    return {
+      id,
+      title,
+      price: priceValue,
+      location: this.buildLocationLabel(item),
+      timeAgo: this.relativeTimeFromDate(this.readString(item, ['created_at', 'published_at', 'date_created'])),
+      isVerified: this.readBoolean(item, ['is_verified', 'verified']) || false,
+      images,
+    };
+  }
+
+  private extractImageList(item: ListingsApiItem): string[] {
+    const directKeys = ['images', 'photos', 'gallery'];
+    for (const key of directKeys) {
+      const value = item[key];
+      if (Array.isArray(value)) {
+        const urls = value
+          .map((entry) => {
+            if (typeof entry === 'string') {
+              return this.resolveMediaUrl(entry);
+            }
+
+            if (entry && typeof entry === 'object') {
+              const candidate = this.readString(entry as Record<string, unknown>, ['image', 'url', 'photo', 'src']);
+              return candidate ? this.resolveMediaUrl(candidate) : null;
+            }
+
+            return null;
+          })
+          .filter((url): url is string => !!url);
+        if (urls.length) {
+          return urls;
+        }
+      }
+    }
+
+    const singleImage = this.readString(item, ['image', 'thumbnail', 'photo', 'featured_image', 'cover_image']);
+    return singleImage ? [this.resolveMediaUrl(singleImage)] : [];
+  }
+
+  private buildLocationLabel(item: ListingsApiItem): string {
+    const city = this.readString(item, ['city']);
+    const state = this.readString(item, ['state']);
+    const location = this.readString(item, ['location', 'address']);
+
+    if (city && state) {
+      return `${city}, ${state}`;
+    }
+
+    if (location) {
+      return location;
+    }
+
+    return state || city || 'Nigeria';
+  }
+
+  private resolveMediaUrl(path: string): string {
+    if (/^https?:\/\//i.test(path)) {
+      return path;
+    }
+
+    return `${this.apiOrigin}${path.startsWith('/') ? path : `/${path}`}`;
+  }
+
+  private readString(source: Record<string, unknown>, keys: string[]): string | null {
+    for (const key of keys) {
+      const value = source[key];
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed) {
+          return trimmed;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private readBoolean(source: Record<string, unknown>, keys: string[]): boolean | null {
+    for (const key of keys) {
+      const value = source[key];
+      if (typeof value === 'boolean') {
+        return value;
+      }
+    }
+
+    return null;
+  }
+
+  private readId(source: Record<string, unknown>, index: number): string {
+    const raw = source['id'] ?? source['pk'] ?? source['uuid'] ?? index;
+    return String(raw);
+  }
+
+  private formatNumericPrice(value: unknown): string {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      return '';
+    }
+
+    return `₦${new Intl.NumberFormat('en-NG').format(value)}`;
+  }
+
+  private relativeTimeFromDate(value: string | null): string {
+    if (!value) {
+      return 'Recently';
+    }
+
+    const timestamp = Date.parse(value);
+    if (Number.isNaN(timestamp)) {
+      return 'Recently';
+    }
+
+    const diffMs = Date.now() - timestamp;
+    const minute = 60 * 1000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+
+    if (diffMs < minute) {
+      return 'Just now';
+    }
+
+    if (diffMs < hour) {
+      return `${Math.max(1, Math.floor(diffMs / minute))} mins ago`;
+    }
+
+    if (diffMs < day) {
+      return `${Math.max(1, Math.floor(diffMs / hour))} hrs ago`;
+    }
+
+    return `${Math.max(1, Math.floor(diffMs / day))} days ago`;
+  }
+
+  private extractErrorMessage(error: unknown): string {
+    if (error && typeof error === 'object') {
+      const maybeError = error as { error?: unknown; message?: unknown };
+
+      if (typeof maybeError.message === 'string' && maybeError.message.trim()) {
+        return maybeError.message;
+      }
+
+      if (maybeError.error && typeof maybeError.error === 'object') {
+        const backendError = maybeError.error as Record<string, unknown>;
+        const detail = this.readString(backendError, ['detail', 'message', 'error']);
+        if (detail) {
+          return detail;
+        }
+      }
+    }
+
+    return 'We could not load search results right now.';
   }
 }
