@@ -3,9 +3,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { NavbarComponent } from '../../components/layout/navbar.component';
+import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
+import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
 import { FooterComponent } from '../../components/layout/footer.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 interface SearchResultSection {
   title: string;
@@ -19,7 +21,8 @@ interface SearchResultSection {
   imports: [
     CommonModule,
     RouterLink,
-    NavbarComponent,
+    BuyerDashboardNavbarComponent,
+    PublicHomeNavbarComponent,
     ListingCardComponent,
     FooterComponent,
     StoreCardComponent
@@ -58,10 +61,12 @@ interface SearchResultSection {
 })
 export class CategoryPageComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly authSession = inject(AuthSessionService);
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
   });
 
+  readonly isAuthenticated = this.authSession.isAuthenticated;
   readonly searchTerm = computed(() => this.queryParamMap().get('q') ?? 'iPhone');
   readonly listingsCount = signal('23,356');
   readonly floatingSearchTerm = computed(() => this.queryParamMap().get('q') ?? 'Mustard seed');
