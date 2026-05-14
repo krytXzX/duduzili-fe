@@ -12,10 +12,20 @@ import {
 } from '@angular/core';
 import { NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { HOME_HERO_CARD_SETS, HOME_HERO_HEADLINE_ITEMS } from './home-hero.config';
+import {
+  HomeAdvertisementResponse,
+  HomeCategoryResponse,
+  HomeListingResponse,
+  HomeResponse,
+  HomeService,
+  HomeStoreResponse,
+} from '../../services/home.service';
+import { environment } from '../../../environments/environment';
 
 type HomeCategory = {
   id: string;
@@ -35,6 +45,40 @@ type HomeListing = {
 type HomePromotion = {
   id: string;
   image: string;
+};
+
+const CATEGORY_ICON_BY_SLUG: Record<string, string> = {
+  automotives: '/assets/images/category-automotives.png',
+  'real-estate': '/assets/images/category-real-estate-properties.png',
+  properties: '/assets/images/category-real-estate-properties.png',
+  'real-estate-properties': '/assets/images/category-real-estate-properties.png',
+  'phones-laptops': '/assets/images/category-phone-tablet.png',
+  phones: '/assets/images/category-phone-tablet.png',
+  laptops: '/assets/images/category-phone-tablet.png',
+  'phone-tablet': '/assets/images/category-phone-tablet.png',
+  electronics: '/assets/images/category-electronics.png',
+  'home-furniture-appliances': '/assets/images/category-home-furniture-appliances.png',
+  home: '/assets/images/category-home-furniture-appliances.png',
+  furniture: '/assets/images/category-home-furniture-appliances.png',
+  appliances: '/assets/images/category-home-furniture-appliances.png',
+  'mens-fashion': '/assets/images/category-mens-fashion.png',
+  menswear: '/assets/images/category-mens-fashion.png',
+  'women-fashion': '/assets/images/category-womens-fashion.png',
+  womenswear: '/assets/images/category-womens-fashion.png',
+  'children-baby-fashion': '/assets/images/category-children-baby-fashion.png',
+  'fashion-design': '/assets/images/category-fashion-design.png',
+  beauty: '/assets/images/category-beauty-personal-care.png',
+  'beauty-personal-care': '/assets/images/category-beauty-personal-care.png',
+  'industrial-home-supplies': '/assets/images/category-industrial-home-supplies.png',
+  'business-industrial': '/assets/images/category-business-industrial.png',
+  'school-office-general-supplies': '/assets/images/category-school-office-general-supplies.png',
+  leisure: '/assets/images/category-leisure-activities.png',
+  grocery: '/assets/images/category-grocery.png',
+  'party-supplies': '/assets/images/category-party-supplies.png',
+  'food-agriculture-farming': '/assets/images/category-food-agriculture-farming.png',
+  pets: '/assets/images/category-animals-pets.png',
+  'animals-pets': '/assets/images/category-animals-pets.png',
+  'books-movies-music': '/assets/images/category-books-movies-music.png',
 };
 
 type HomeLocationValue =
@@ -101,8 +145,11 @@ type HomeLocationGroup = {
 export class HomePageComponent {
   private readonly categoryRail = viewChild<ElementRef<HTMLDivElement>>('categoryRail');
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly homeService = inject(HomeService);
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private heroCarouselIntervalId: number | null = null;
   private heroCarouselAdvanceTimeoutId: number | null = null;
+  private currentHomeRequestId = 0;
 
   readonly showPublicChrome = input(true);
   readonly showBottomNav = input(true);
@@ -123,6 +170,9 @@ export class HomePageComponent {
   readonly isHeroHeadlineAnimating = signal(false);
   readonly isHeroHeadlineResetting = signal(false);
   readonly mobileSearchQuery = signal('');
+  readonly isHomeLoading = signal(false);
+  readonly homeError = signal<string | null>(null);
+  readonly homeResponse = signal<HomeResponse | null>(null);
   readonly recentSearches = signal([
     'bags for men',
     'watch for men',
@@ -349,7 +399,7 @@ export class HomePageComponent {
     };
   });
 
-  readonly categories: HomeCategory[] = [
+  readonly fallbackCategories: readonly HomeCategory[] = [
     { id: 'automotives', label: 'Automotives', icon: '/assets/images/category-automotives.png' },
     {
       id: 'real-estate',
@@ -445,7 +495,7 @@ export class HomePageComponent {
     return this.isHeroHeadlineAnimating() ? Math.max(activeWidth, enteringWidth) : activeWidth;
   });
 
-  readonly sponsoredListings: HomeListing[] = [
+  readonly fallbackSponsoredListings: readonly HomeListing[] = [
     {
       id: 's1',
       title: 'Nike sneaker',
@@ -480,7 +530,7 @@ export class HomePageComponent {
     },
   ];
 
-  readonly nearbyListings: HomeListing[] = [
+  readonly fallbackNearbyListings: readonly HomeListing[] = [
     {
       id: 'n1',
       title: 'Orange iPhone',
@@ -558,13 +608,13 @@ export class HomePageComponent {
     },
   ];
 
-  readonly promotions: HomePromotion[] = [
+  readonly fallbackPromotions: readonly HomePromotion[] = [
     { id: 'p1', image: '/assets/images/home-promo-1.png' },
     { id: 'p2', image: '/assets/images/home-promo-2.png' },
     { id: 'p3', image: '/assets/images/home-promo-3.png' },
   ];
 
-  readonly featuredStores: Store[] = [
+  readonly fallbackFeaturedStores: readonly Store[] = [
     {
       id: 'st1',
       name: 'The Vine Collections',
@@ -647,18 +697,74 @@ export class HomePageComponent {
     },
   ];
 
-  readonly sponsoredListingCards: Listing[] = this.sponsoredListings.map((listing) =>
-    this.toReusableListing(listing),
-  );
+  readonly categories = computed(() => {
+    const response = this.homeResponse();
+    if (!response) {
+      return this.fallbackCategories;
+    }
 
-  readonly nearbyListingCards: Listing[] = this.nearbyListings.map((listing) =>
-    this.toReusableListing(listing),
-  );
+    return (response.categories ?? []).map((category) => this.toHomeCategory(category));
+  });
+
+  readonly sponsoredListingCards = computed(() => {
+    const response = this.homeResponse();
+    if (!response) {
+      return this.fallbackSponsoredListings.map((listing) => this.toReusableListing(listing));
+    }
+
+    return (response.sponsored_listings ?? []).map((listing, index) =>
+      this.toListingCard(listing, `sponsored-${index}`),
+    );
+  });
+
+  readonly nearbyListingCards = computed(() => {
+    const response = this.homeResponse();
+    if (!response) {
+      return this.fallbackNearbyListings.map((listing) => this.toReusableListing(listing));
+    }
+
+    return (response.nearby_listings ?? []).map((listing, index) =>
+      this.toListingCard(listing, `nearby-${index}`),
+    );
+  });
+
+  readonly promotions = computed(() => {
+    const response = this.homeResponse();
+    if (!response) {
+      return this.fallbackPromotions;
+    }
+
+    return (response.advertisements ?? [])
+      .map((advertisement, index) => this.toPromotion(advertisement, index))
+      .filter((promotion): promotion is HomePromotion => promotion !== null);
+  });
+
+  readonly featuredStores = computed(() => {
+    const response = this.homeResponse();
+    if (!response) {
+      return this.fallbackFeaturedStores;
+    }
+
+    return (response.featured_stores ?? []).map((store, index) =>
+      this.toStoreCard(store, `featured-store-${index}`),
+    );
+  });
+
+  readonly mobilePromotion = computed(() => {
+    const promotions = this.promotions();
+    if (promotions.length > 0) {
+      return promotions[0];
+    }
+
+    return this.homeResponse() ? null : this.fallbackPromotions[0];
+  });
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.startHeroCarousel();
     }
+
+    void this.loadHome();
   }
 
   dismissAppDownloadBanner(): void {
@@ -698,12 +804,14 @@ export class HomePageComponent {
     this.selectedLocation.set(location);
     this.selectedCity.set(city);
     this.closeLocationPicker();
+    void this.loadHome();
   }
 
   selectLocationGroup(location: HomeLocationValue): void {
     this.selectedLocation.set(location);
     this.selectedCity.set(null);
     this.closeLocationPicker();
+    void this.loadHome();
   }
 
   openCategoriesSheet(): void {
@@ -744,6 +852,35 @@ export class HomePageComponent {
       left: 540,
       behavior: 'smooth',
     });
+  }
+
+  private async loadHome(): Promise<void> {
+    const requestId = ++this.currentHomeRequestId;
+    this.isHomeLoading.set(true);
+    this.homeError.set(null);
+
+    try {
+      const response = await firstValueFrom(
+        this.homeService.getHome(this.selectedLocationQuery()),
+      );
+
+      if (requestId !== this.currentHomeRequestId) {
+        return;
+      }
+
+      this.homeResponse.set(response);
+    } catch (error: unknown) {
+      if (requestId !== this.currentHomeRequestId) {
+        return;
+      }
+
+      this.homeError.set(error instanceof Error ? error.message : 'Request failed.');
+      this.homeResponse.set(null);
+    } finally {
+      if (requestId === this.currentHomeRequestId) {
+        this.isHomeLoading.set(false);
+      }
+    }
   }
 
   private startHeroCarousel(): void {
@@ -799,6 +936,294 @@ export class HomePageComponent {
       discountBadge:
         listing.tag && listing.tag !== 'Verified' ? listing.tag.toUpperCase() : undefined,
     };
+  }
+
+  private selectedLocationQuery(): string | undefined {
+    const location = this.selectedLocationOption();
+    if (location.value === 'all-nigeria') {
+      return 'All Nigeria';
+    }
+
+    if (this.selectedCity()) {
+      return `${this.selectedCity()}, ${location.label}`;
+    }
+
+    return location.label;
+  }
+
+  private toHomeCategory(category: HomeCategoryResponse): HomeCategory {
+    const fallbackIcon =
+      (category.slug ? CATEGORY_ICON_BY_SLUG[category.slug] : null) ??
+      CATEGORY_ICON_BY_SLUG[this.slugify(category.name)] ??
+      '/assets/images/category-electronics.png';
+
+    return {
+      id: String(category.id),
+      label: category.name,
+      icon: this.resolveMediaUrl(category.icon) ?? fallbackIcon,
+    };
+  }
+
+  private toListingCard(record: HomeListingResponse, fallbackId: string): Listing {
+    const images = this.extractImageList(record);
+    const location = this.buildLocationLabel(record);
+    const verified =
+      this.readBoolean(record['is_verified']) ??
+      this.readBoolean(record['verified']) ??
+      this.readBoolean(record['isVerified']) ??
+      false;
+
+    return {
+      id: this.readId(record, fallbackId),
+      title:
+        this.readString(record['title']) ??
+        this.readString(record['name']) ??
+        this.readString(record['listing_name']) ??
+        'Listing',
+      price: this.formatPrice(
+        record['price'] ??
+          record['amount'] ??
+          record['sale_price'] ??
+          record['formatted_price'],
+      ),
+      location,
+      images: images.length > 0 ? images : ['/assets/images/home-item-placeholder.png'],
+      timeAgo:
+        this.readString(record['time_ago']) ??
+        this.readString(record['condition']) ??
+        this.relativeTimeFromDate(
+          this.readString(record['created_at']) ?? this.readString(record['createdAt']),
+        ) ??
+        '',
+      isVerified: verified,
+      discountBadge:
+        this.readString(record['discount_badge']) ??
+        this.readString(record['badge']) ??
+        undefined,
+    };
+  }
+
+  private toPromotion(
+    record: HomeAdvertisementResponse,
+    index: number,
+  ): HomePromotion | null {
+    const image =
+      this.resolveMediaUrl(this.readString(record['image'])) ??
+      this.resolveMediaUrl(this.readString(record['banner'])) ??
+      this.resolveMediaUrl(this.readString(record['image_url'])) ??
+      this.resolveMediaUrl(this.readString(record['banner_url']));
+
+    if (!image) {
+      return null;
+    }
+
+    return {
+      id: this.readId(record, `advertisement-${index}`),
+      image,
+    };
+  }
+
+  private toStoreCard(record: HomeStoreResponse, fallbackId: string): Store {
+    const banner =
+      this.resolveMediaUrl(record.cover_image ?? null) ??
+      this.resolveMediaUrl(this.readString(record['banner'])) ??
+      this.resolveMediaUrl(this.readString(record['cover'])) ??
+      '/assets/images/store-vine-cover-desktop.png';
+    const user = record.user ?? null;
+    const logo =
+      this.resolveMediaUrl(record.profile_photo ?? null) ??
+      this.resolveMediaUrl(user?.avatar ?? null) ??
+      this.resolveMediaUrl(this.readString(record['logo'])) ??
+      this.resolveMediaUrl(this.readString(record['avatar'])) ??
+      this.resolveMediaUrl(this.readString(record['profile_image'])) ??
+      '/assets/images/store-vine-logo-desktop.png';
+
+    return {
+      id: this.readId(record, fallbackId),
+      name:
+        record.store_name?.trim() ||
+        this.readString(record['name']) ||
+        this.readString(record['business_name']) ||
+        'Store',
+      description:
+        record.store_bio?.trim() ||
+        this.readString(record['description']) ||
+        this.readString(record['bio']) ||
+        undefined,
+      location: this.buildLocationLabel(record),
+      coverImage: banner,
+      mobileCoverImage: banner,
+      logoImage: logo,
+      mobileLogoImage: logo,
+      isVerified:
+        user?.is_verified ??
+        this.readBoolean(record['is_verified']) ??
+        this.readBoolean(record['verified']) ??
+        true,
+      followers:
+        record.followers_count !== undefined && record.followers_count !== null
+          ? `${record.followers_count} followers`
+          : undefined,
+      callNumber: record.call_number?.trim() || undefined,
+      route: ['/'],
+    };
+  }
+
+  private extractImageList(record: Record<string, unknown>): string[] {
+    const directList = this.readStringArray(record['images']);
+    if (directList.length > 0) {
+      return directList
+        .map((image) => this.resolveMediaUrl(image))
+        .filter((image): image is string => image !== null);
+    }
+
+    const imageObjects = record['images'];
+    if (Array.isArray(imageObjects)) {
+      const mapped = imageObjects
+        .map((imageObject) => {
+          if (!imageObject || typeof imageObject !== 'object') {
+            return null;
+          }
+
+          const objectRecord = imageObject as Record<string, unknown>;
+          return (
+            this.resolveMediaUrl(this.readString(objectRecord['image'])) ??
+            this.resolveMediaUrl(this.readString(objectRecord['url'])) ??
+            this.resolveMediaUrl(this.readString(objectRecord['src']))
+          );
+        })
+        .filter((image): image is string => image !== null);
+
+      if (mapped.length > 0) {
+        return mapped;
+      }
+    }
+
+    const singleImage =
+      this.resolveMediaUrl(this.readString(record['image'])) ??
+      this.resolveMediaUrl(this.readString(record['thumbnail'])) ??
+      this.resolveMediaUrl(this.readString(record['photo'])) ??
+      this.resolveMediaUrl(this.readString(record['image_url']));
+
+    return singleImage ? [singleImage] : [];
+  }
+
+  private buildLocationLabel(record: Record<string, unknown>): string {
+    const location =
+      this.readString(record['location']) ??
+      this.readString(record['city']) ??
+      this.readString(record['address']);
+
+    const state = this.readString(record['state']);
+
+    if (location && state && !location.includes(state)) {
+      return `${location}, ${state}`;
+    }
+
+    return location ?? state ?? 'Nigeria';
+  }
+
+  private readId(record: Record<string, unknown>, fallbackId: string): string {
+    const id = record['id'];
+    if (typeof id === 'number' || typeof id === 'string') {
+      return String(id);
+    }
+
+    const slug = this.readString(record['slug']);
+    return slug ?? fallbackId;
+  }
+
+  private formatPrice(value: unknown): string {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.includes('₦') ? value : `₦${value}`;
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return `₦${value.toLocaleString('en-NG')}`;
+    }
+
+    return '₦0';
+  }
+
+  private resolveMediaUrl(value: string | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(value) || value.startsWith('data:')) {
+      return value;
+    }
+
+    if (value.startsWith('/')) {
+      return `${this.apiOrigin}${value}`;
+    }
+
+    return `${this.apiOrigin}/${value.replace(/^\/+/, '')}`;
+  }
+
+  private slugify(value: string): string {
+    return value
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
+  }
+
+  private readStringArray(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  }
+
+  private relativeTimeFromDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const createdAt = new Date(value);
+    if (Number.isNaN(createdAt.getTime())) {
+      return null;
+    }
+
+    const diffMs = Date.now() - createdAt.getTime();
+    const diffMinutes = Math.max(1, Math.floor(diffMs / 60000));
+
+    if (diffMinutes < 60) {
+      return `${diffMinutes}m ago`;
+    }
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+      return `${diffHours}h ago`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) {
+      return `${diffDays}d ago`;
+    }
+
+    const diffWeeks = Math.floor(diffDays / 7);
+    if (diffWeeks < 5) {
+      return `${diffWeeks}w ago`;
+    }
+
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12) {
+      return `${diffMonths}mo ago`;
+    }
+
+    const diffYears = Math.floor(diffDays / 365);
+    return `${diffYears}y ago`;
   }
 
   ngOnDestroy(): void {
