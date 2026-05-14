@@ -65,6 +65,7 @@ export type RegisterRequest = {
 };
 
 export type RegisterResponse = AuthResponse;
+export type ProfileResponse = AuthUser | { user: AuthUser };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -93,5 +94,9 @@ export class AuthService {
 
   register(payload: RegisterRequest): Observable<RegisterResponse> {
     return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register/`, payload);
+  }
+
+  getProfile(): Observable<ProfileResponse> {
+    return this.http.get<ProfileResponse>(`${this.apiUrl}/auth/profile/`);
   }
 }

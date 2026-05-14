@@ -1,5 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
-import type { CheckEmailResponse, LoginResponse } from './auth.service';
+import type { AuthUser, CheckEmailResponse, LoginResponse, ProfileResponse } from './auth.service';
 
 type TokenBundle = {
   accessToken: string;
@@ -34,20 +34,29 @@ export class AuthSessionService {
 
   saveLoginSession(loginResponse: LoginResponse, profile: CheckEmailResponse | null): void {
     const tokens = this.extractTokens(loginResponse);
-    const resolvedProfile =
-      profile ??
-      (loginResponse.user
-        ? {
-            username: loginResponse.user.username,
-            avatar: loginResponse.user.avatar,
-          }
-        : null);
+    const resolvedUser = this.resolveUser(loginResponse);
+    const resolvedProfile = profile ?? this.toCheckEmailProfile(resolvedUser);
 
     this.session.set({
       accessToken: tokens?.accessToken ?? null,
       refreshToken: tokens?.refreshToken ?? null,
-      loginResponse,
+      loginResponse: resolvedUser ? { ...loginResponse, user: resolvedUser } : loginResponse,
       profile: resolvedProfile,
+    });
+  }
+
+  initializeFromProfile(profileResponse: ProfileResponse): void {
+    const user = this.resolveUser(profileResponse);
+    if (!user) {
+      this.clearSession();
+      return;
+    }
+
+    this.session.set({
+      accessToken: this.session()?.accessToken ?? null,
+      refreshToken: this.session()?.refreshToken ?? null,
+      loginResponse: { user },
+      profile: this.toCheckEmailProfile(user),
     });
   }
 
@@ -96,5 +105,43 @@ export class AuthSessionService {
 
     const value = (container as Record<string, unknown>)[key];
     return this.readString(value);
+  }
+
+  private resolveUser(payload: ProfileResponse | LoginResponse): AuthUser | null {
+    const directUser = this.isAuthUser(payload) ? payload : null;
+    if (directUser) {
+      return directUser;
+    }
+
+    const nestedUser =
+      payload && typeof payload === 'object' && 'user' in payload
+        ? (payload as { user?: unknown }).user
+        : undefined;
+
+    return this.isAuthUser(nestedUser) ? nestedUser : null;
+  }
+
+  private toCheckEmailProfile(user: AuthUser | null): CheckEmailResponse | null {
+    if (!user) {
+      return null;
+    }
+
+    return {
+      username: user.username,
+      avatar: user.avatar,
+    };
+  }
+
+  private isAuthUser(value: unknown): value is AuthUser {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as Partial<AuthUser>;
+    return (
+      typeof candidate.id === 'number' &&
+      typeof candidate.username === 'string' &&
+      typeof candidate.email === 'string'
+    );
   }
 }

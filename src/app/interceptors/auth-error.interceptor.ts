@@ -15,7 +15,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
     catchError((error: unknown) => {
       const isApiRequest = request.url.startsWith(apiUrl);
       const isHttp401 = error instanceof HttpErrorResponse && error.status === 401;
-      const isAuthRequest = /\/auth\/(login|login\/check-email|logout|refresh)\/?$/.test(
+      const isAuthRequest = /\/auth\/(login|login\/check-email|logout|refresh|profile)\/?$/.test(
         request.url,
       );
 

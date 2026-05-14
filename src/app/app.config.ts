@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, provideBrowserGlobalErrorListeners, inject } from '@angular/core';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideRouter, TitleStrategy } from '@angular/router';
 
@@ -7,6 +7,7 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 import { AppTitleStrategy } from './app-title.strategy';
 import { apiAuthInterceptor } from './interceptors/api-auth.interceptor';
 import { authErrorInterceptor } from './interceptors/auth-error.interceptor';
+import { AuthBootstrapService } from './services/auth-bootstrap.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,6 +18,14 @@ export const appConfig: ApplicationConfig = {
     {
       provide: TitleStrategy,
       useClass: AppTitleStrategy,
+    },
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: () => {
+        const authBootstrapService = inject(AuthBootstrapService);
+        return () => authBootstrapService.initialize();
+      },
     },
   ],
 };
