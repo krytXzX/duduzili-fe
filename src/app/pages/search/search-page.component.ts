@@ -119,11 +119,11 @@ export class SearchPageComponent {
     'Nearest to me',
   ];
 
-  readonly selectedCategories = signal<string[]>(['Phones & Laptops']);
-  readonly selectedLocations = signal<string[]>(['Akwa Ibom', 'Lagos', 'Rivers']);
-  readonly selectedCondition = signal<string[]>(['Fairly used']);
-  readonly selectedVerification = signal<string[]>(['Verified']);
-  readonly selectedFollowing = signal<string[]>(['Amazing Fragrances']);
+  readonly selectedCategories = signal<string[]>([]);
+  readonly selectedLocations = signal<string[]>([]);
+  readonly selectedCondition = signal<string[]>([]);
+  readonly selectedVerification = signal<string[]>([]);
+  readonly selectedFollowing = signal<string[]>([]);
   readonly selectedSort = signal('Recommended (default)');
   readonly vendorSearch = signal('');
   readonly minPrice = signal(2000);
@@ -273,13 +273,13 @@ export class SearchPageComponent {
   }
 
   resetAllFilters(): void {
-    this.selectedCategories.set(['Phones & Laptops']);
-    this.selectedLocations.set(['Akwa Ibom', 'Lagos', 'Rivers']);
+    this.selectedCategories.set([]);
+    this.selectedLocations.set([]);
     this.minPrice.set(2000);
     this.maxPrice.set(700000000);
-    this.selectedCondition.set(['Fairly used']);
-    this.selectedVerification.set(['Verified']);
-    this.selectedFollowing.set(['Amazing Fragrances']);
+    this.selectedCondition.set([]);
+    this.selectedVerification.set([]);
+    this.selectedFollowing.set([]);
     this.selectedSort.set('Recommended (default)');
     this.vendorSearch.set('');
     this.closeFilters();
