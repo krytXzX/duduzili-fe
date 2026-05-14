@@ -11,7 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgOptimizedImage, isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
@@ -146,6 +146,7 @@ export class HomePageComponent {
   private readonly categoryRail = viewChild<ElementRef<HTMLDivElement>>('categoryRail');
   private readonly platformId = inject(PLATFORM_ID);
   private readonly homeService = inject(HomeService);
+  private readonly router = inject(Router);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private heroCarouselIntervalId: number | null = null;
   private heroCarouselAdvanceTimeoutId: number | null = null;
@@ -169,6 +170,7 @@ export class HomePageComponent {
   readonly enteringHeroHeadlineIndex = signal(1);
   readonly isHeroHeadlineAnimating = signal(false);
   readonly isHeroHeadlineResetting = signal(false);
+  readonly homeSearchQuery = signal('');
   readonly mobileSearchQuery = signal('');
   readonly isHomeLoading = signal(false);
   readonly homeError = signal<string | null>(null);
@@ -835,6 +837,19 @@ export class HomePageComponent {
     this.mobileSearchQuery.set(target?.value ?? '');
   }
 
+  updateHomeSearchQuery(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    this.homeSearchQuery.set(target?.value ?? '');
+  }
+
+  submitHomeSearch(event?: Event): void {
+    event?.preventDefault();
+
+    const query = this.homeSearchQuery().trim() || this.mobileSearchQuery().trim() || 'iPhone';
+    this.isMobileSearchOverlayOpen.set(false);
+    void this.router.navigate(['/category'], { queryParams: { q: query } });
+  }
+
   removeRecentSearch(term: string): void {
     this.recentSearches.update((current) => current.filter((item) => item !== term));
   }
@@ -845,6 +860,7 @@ export class HomePageComponent {
 
   applySearchTerm(term: string): void {
     this.mobileSearchQuery.set(term);
+    this.homeSearchQuery.set(term);
   }
 
   scrollCategories(): void {
