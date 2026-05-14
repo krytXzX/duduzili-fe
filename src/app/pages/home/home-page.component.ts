@@ -1012,6 +1012,7 @@ export class HomePageComponent {
           record['sale_price'] ??
           record['formatted_price'],
       ),
+      originalPrice: this.formatPriceOptional(record['original_price'] ?? record['originalPrice']),
       location,
       images: images.length > 0 ? images : ['/assets/images/home-item-placeholder.png'],
       timeAgo:
@@ -1023,6 +1024,7 @@ export class HomePageComponent {
         '',
       isVerified: verified,
       discountBadge:
+        this.formatDiscountBadge(record['discount_percentage']) ??
         this.readString(record['discount_badge']) ??
         this.readString(record['badge']) ??
         undefined,
@@ -1160,15 +1162,46 @@ export class HomePageComponent {
   }
 
   private formatPrice(value: unknown): string {
-    if (typeof value === 'string' && value.trim().length > 0) {
-      return value.includes('₦') ? value : `₦${value}`;
-    }
+    const normalized = this.normalizePriceValue(value);
+    return normalized === null ? '₦0' : `₦${new Intl.NumberFormat('en-NG').format(normalized)}`;
+  }
 
+  private formatPriceOptional(value: unknown): string | undefined {
+    const normalized = this.normalizePriceValue(value);
+    return normalized === null ? undefined : `₦${new Intl.NumberFormat('en-NG').format(normalized)}`;
+  }
+
+  private normalizePriceValue(value: unknown): number | null {
     if (typeof value === 'number' && Number.isFinite(value)) {
-      return `₦${value.toLocaleString('en-NG')}`;
+      return value;
     }
 
-    return '₦0';
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return null;
+      }
+
+      const numeric = Number(trimmed.replace(/[^0-9.]/g, ''));
+      return Number.isFinite(numeric) ? numeric : null;
+    }
+
+    return null;
+  }
+
+  private formatDiscountBadge(value: unknown): string | undefined {
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+      return `${Math.round(value)}% off`;
+    }
+
+    if (typeof value === 'string' && value.trim()) {
+      const numeric = Number(value.trim());
+      if (Number.isFinite(numeric) && numeric > 0) {
+        return `${Math.round(numeric)}% off`;
+      }
+    }
+
+    return undefined;
   }
 
   private resolveMediaUrl(value: string | null | undefined): string | null {

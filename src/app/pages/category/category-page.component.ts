@@ -163,11 +163,10 @@ export class CategoryPageComponent {
   private toListing(item: ListingsApiItem, index: number): Listing | null {
     const id = this.readId(item, index);
     const title = this.readString(item, ['title', 'name', 'listing_name']);
-    const priceValue = this.readString(item, ['price', 'amount', 'price_display'])
-      || this.formatNumericPrice(item['price']);
+    const priceValue = this.formatPriceValue(item['price'] ?? item['amount'] ?? item['price_display']);
     const images = this.extractImageList(item);
 
-    if (!title || !priceValue || images.length === 0) {
+    if (!title || !priceValue) {
       return null;
     }
 
@@ -175,6 +174,8 @@ export class CategoryPageComponent {
       id,
       title,
       price: priceValue,
+      originalPrice: this.formatPriceOptional(item['original_price'] ?? item['originalPrice']),
+      discountBadge: this.formatDiscountBadge(item['discount_percentage']),
       location: this.buildLocationLabel(item),
       timeAgo: this.relativeTimeFromDate(this.readString(item, ['created_at', 'published_at', 'date_created'])),
       isVerified: this.readBoolean(item, ['is_verified', 'verified']) || false,
@@ -208,7 +209,11 @@ export class CategoryPageComponent {
     }
 
     const singleImage = this.readString(item, ['image', 'thumbnail', 'photo', 'featured_image', 'cover_image']);
-    return singleImage ? [this.resolveMediaUrl(singleImage)] : [];
+    if (singleImage) {
+      return [this.resolveMediaUrl(singleImage)];
+    }
+
+    return ['/assets/images/home-item-placeholder.png'];
   }
 
   private buildLocationLabel(item: ListingsApiItem): string {
@@ -265,12 +270,47 @@ export class CategoryPageComponent {
     return String(raw);
   }
 
-  private formatNumericPrice(value: unknown): string {
-    if (typeof value !== 'number' || Number.isNaN(value)) {
-      return '';
+  private formatPriceValue(value: unknown): string {
+    const normalized = this.normalizePriceValue(value);
+    return normalized === null ? '' : `₦${new Intl.NumberFormat('en-NG').format(normalized)}`;
+  }
+
+  private formatPriceOptional(value: unknown): string | undefined {
+    const normalized = this.normalizePriceValue(value);
+    return normalized === null ? undefined : `₦${new Intl.NumberFormat('en-NG').format(normalized)}`;
+  }
+
+  private normalizePriceValue(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
     }
 
-    return `₦${new Intl.NumberFormat('en-NG').format(value)}`;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return null;
+      }
+
+      const numeric = Number(trimmed.replace(/[^0-9.]/g, ''));
+      return Number.isFinite(numeric) ? numeric : null;
+    }
+
+    return null;
+  }
+
+  private formatDiscountBadge(value: unknown): string | undefined {
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+      return `${Math.round(value)}% off`;
+    }
+
+    if (typeof value === 'string' && value.trim()) {
+      const numeric = Number(value.trim());
+      if (Number.isFinite(numeric) && numeric > 0) {
+        return `${Math.round(numeric)}% off`;
+      }
+    }
+
+    return undefined;
   }
 
   private relativeTimeFromDate(value: string | null): string {
