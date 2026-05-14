@@ -8,8 +8,8 @@
   <main
     [class]="
       isAuthenticated()
-        ? 'mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8'
-        : 'mx-auto max-w-7xl px-4 py-10 pt-6 sm:px-6 lg:px-8 lg:pt-[112px]'
+        ? 'mx-auto max-w-7xl px-4 py-10 pb-36 sm:px-6 lg:px-8 lg:pb-44'
+        : 'mx-auto max-w-7xl px-4 py-10 pb-36 pt-6 sm:px-6 lg:px-8 lg:pb-44 lg:pt-[112px]'
     "
   >
     <header class="mb-7">
@@ -292,28 +292,33 @@
         <app-listing-card [listing]="listing" />
         }
       </div>
-
-      @if (sectionIndex === 0 && !!floatingSearchTerm()) {
-      <div class="pointer-events-none -mt-4 flex justify-center">
-        <div class="pointer-events-auto flex w-full max-w-[560px] items-center rounded-full border border-[#E6E8EF] bg-white p-1.5 shadow-[0_18px_36px_-24px_rgba(17,24,39,0.28)]">
-          <input
-            type="text"
-            [value]="floatingSearchTerm()"
-            class="h-12 flex-1 bg-transparent px-7 text-[16px] font-medium text-[#1A1C21] outline-none"
-            aria-label="Search query"
-          >
-          <button type="button" class="inline-flex h-12 items-center gap-2 rounded-full bg-[#6558F5] px-6 text-[16px] font-medium text-white shadow-[0_12px_24px_-16px_rgba(99,102,241,0.85)] transition hover:bg-[#5848F1]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            Search
-          </button>
-        </div>
-      </div>
-      }
     </section>
     }
   </main>
+
+  @if (!isSearchLoading() && !searchError() && sections().length > 0) {
+  <div class="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4 lg:bottom-8">
+    <form
+      class="pointer-events-auto flex w-full max-w-[560px] items-center rounded-full border border-[#E6E8EF] bg-white p-1.5 shadow-[0_18px_36px_-24px_rgba(17,24,39,0.28)]"
+      (submit)="submitFloatingSearch($event)"
+    >
+      <input
+        type="text"
+        [value]="floatingSearchQuery()"
+        (input)="updateFloatingSearchQuery(floatingInput.value)"
+        #floatingInput
+        class="h-11 flex-1 bg-transparent px-5 text-[15px] font-medium text-[#1A1C21] outline-none lg:h-12 lg:px-7 lg:text-[16px]"
+        aria-label="Search query"
+      >
+      <button type="submit" class="inline-flex h-11 items-center gap-2 rounded-full bg-[#6558F5] px-5 text-[15px] font-medium text-white shadow-[0_12px_24px_-16px_rgba(99,102,241,0.85)] transition hover:bg-[#5848F1] lg:h-12 lg:px-6 lg:text-[16px]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        Search
+      </button>
+    </form>
+  </div>
+  }
 
   <div class="relative overflow-hidden">
     <div class="pointer-events-none absolute -bottom-40 left-0 right-0 h-[420px] select-none overflow-hidden opacity-[0.04]">

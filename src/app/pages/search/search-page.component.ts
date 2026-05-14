@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
 import { FooterComponent } from '../../components/layout/footer.component';
@@ -64,6 +64,7 @@ interface SearchResultSection {
 })
 export class SearchPageComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly authSession = inject(AuthSessionService);
   private readonly listingsService = inject(ListingsService);
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
@@ -75,7 +76,7 @@ export class SearchPageComponent {
   readonly isAuthenticated = this.authSession.isAuthenticated;
   readonly searchTerm = computed(() => this.queryParamMap().get('q')?.trim() ?? '');
   readonly listingsCount = computed(() => new Intl.NumberFormat('en-NG').format(this.resultCount()));
-  readonly floatingSearchTerm = computed(() => this.searchTerm());
+  readonly floatingSearchQuery = signal('');
   readonly activeFilter = signal<string | null>(null);
   readonly isSearchLoading = signal(false);
   readonly searchError = signal<string | null>(null);
@@ -180,7 +181,21 @@ export class SearchPageComponent {
   constructor() {
     effect(() => {
       const term = this.searchTerm();
+      this.floatingSearchQuery.set(term);
       void this.loadSearchResults(term);
+    });
+  }
+
+  updateFloatingSearchQuery(value: string): void {
+    this.floatingSearchQuery.set(value);
+  }
+
+  submitFloatingSearch(event?: Event): void {
+    event?.preventDefault();
+
+    const query = this.floatingSearchQuery().trim();
+    void this.router.navigate(['/search'], {
+      queryParams: query ? { q: query } : {},
     });
   }
 
