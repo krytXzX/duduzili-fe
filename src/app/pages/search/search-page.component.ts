@@ -202,13 +202,8 @@ export class SearchPageComponent {
       params.is_verified = VERIFICATION_PARAM_BY_LABEL[selectedVerification];
     }
 
-    if (this.minPrice() > 2000) {
-      params.min_price = String(this.minPrice());
-    }
-
-    if (this.maxPrice() < 700000000) {
-      params.max_price = String(this.maxPrice());
-    }
+    params.min_price = String(this.minPrice());
+    params.max_price = String(this.maxPrice());
 
     if (ordering) {
       params.ordering = ordering;
