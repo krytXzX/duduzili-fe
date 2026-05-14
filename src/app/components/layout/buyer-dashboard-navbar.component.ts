@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroBars3, heroChevronRight, heroMagnifyingGlass } from '@ng-icons/heroicons/outline';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { AuthFlowService } from '../../services/auth-flow.service';
 
 type BuyerMenuEntry = {
   readonly label: string;
@@ -417,6 +418,7 @@ type BuyerMenuEntry = {
 export class BuyerDashboardNavbarComponent {
   private readonly router = inject(Router);
   private readonly authSession = inject(AuthSessionService);
+  private readonly authFlow = inject(AuthFlowService);
 
   readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
@@ -505,9 +507,8 @@ export class BuyerDashboardNavbarComponent {
     void this.router.navigateByUrl(this.buyerRoutes.sellerHome);
   }
 
-  logOut(): void {
+  async logOut(): Promise<void> {
     this.closeAccountMenu();
-    this.authSession.clearSession();
-    void this.router.navigateByUrl(this.buyerRoutes.signIn);
+    await this.authFlow.logout();
   }
 }

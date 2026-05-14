@@ -99,4 +99,8 @@ export class AuthService {
   getProfile(): Observable<ProfileResponse> {
     return this.http.get<ProfileResponse>(`${this.apiUrl}/auth/profile/`);
   }
+
+  logout(): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/auth/logout/`, {});
+  }
 }

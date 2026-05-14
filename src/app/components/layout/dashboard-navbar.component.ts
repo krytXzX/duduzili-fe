@@ -8,6 +8,7 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { AuthFlowService } from '../../services/auth-flow.service';
 
 type SellerMenuEntry = {
   readonly label: string;
@@ -520,6 +521,7 @@ type SellerMenuEntry = {
 export class DashboardNavbarComponent {
   private readonly router = inject(Router);
   private readonly authSession = inject(AuthSessionService);
+  private readonly authFlow = inject(AuthFlowService);
 
   readonly sellerMenuEntries: SellerMenuEntry[] = [
     { label: 'Listings', iconSrc: 'assets/icons/seller-menu-listings.svg', route: '/seller/listings' },
@@ -583,9 +585,8 @@ export class DashboardNavbarComponent {
     this.isLogoutConfirmOpen.set(true);
   }
 
-  confirmLogout(): void {
+  async confirmLogout(): Promise<void> {
     this.isLogoutConfirmOpen.set(false);
-    this.authSession.clearSession();
-    void this.router.navigate(['/sign-in']);
+    await this.authFlow.logout();
   }
 }

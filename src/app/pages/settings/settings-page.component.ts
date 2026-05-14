@@ -7,6 +7,7 @@ import {
   ProfileSettingsPanelComponent,
 } from './components/profile-settings-panel.component';
 import { SettingsActionModalComponent } from './components/settings-action-modal.component';
+import { AuthFlowService } from '../../services/auth-flow.service';
 import {
   SettingsTwoFactorModalComponent,
   TwoFactorMethod,
@@ -1365,6 +1366,7 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
 })
 export class SettingsPageComponent {
   private readonly router = inject(Router);
+  private readonly authFlow = inject(AuthFlowService);
   protected readonly mobileBackRoute = computed(() => {
     const currentUrl = this.router.url.split('?')[0] ?? this.router.url;
 
@@ -1811,9 +1813,9 @@ export class SettingsPageComponent {
     }));
   }
 
-  confirmLogout(): void {
+  async confirmLogout(): Promise<void> {
     this.isLogoutConfirmOpen.set(false);
-    void this.router.navigate(['/sign-in']);
+    await this.authFlow.logout();
   }
 
   confirmDeleteAccount(): void {

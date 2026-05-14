@@ -9,6 +9,7 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { NgOptimizedImage } from '@angular/common';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { AuthFlowService } from '../../services/auth-flow.service';
 
 @Component({
   selector: 'app-admin-dashboard-navbar',
@@ -171,6 +172,7 @@ import { AuthSessionService } from '../../services/auth-session.service';
 export class AdminDashboardNavbarComponent {
   private readonly router = inject(Router);
   private readonly authSession = inject(AuthSessionService);
+  private readonly authFlow = inject(AuthFlowService);
 
   readonly menuRequested = output<void>();
   readonly searchQuery = signal('');
@@ -223,9 +225,8 @@ export class AdminDashboardNavbarComponent {
     void this.router.navigateByUrl(path);
   }
 
-  logOut(): void {
+  async logOut(): Promise<void> {
     this.closeAccountMenu();
-    this.authSession.clearSession();
-    void this.router.navigate(['/sign-in']);
+    await this.authFlow.logout();
   }
 }
