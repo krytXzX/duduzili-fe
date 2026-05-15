@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { Review } from '../../components/product/review-card.component';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -954,6 +954,7 @@ interface ProductSection {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BuyerFollowedStoreDetailsPageComponent {
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
   private readonly authSession = inject(AuthSessionService);
@@ -969,9 +970,10 @@ export class BuyerFollowedStoreDetailsPageComponent {
   readonly selectedReviewTags = signal<string[]>(['Friendly']);
   readonly reviewText = signal('');
   readonly reviewImagePreviews = signal<string[]>([]);
+  private readonly storeId = this.route.snapshot.paramMap.get('id') ?? 'bf1';
 
   readonly store = signal<BuyerStoreProfile>({
-    id: 'bf1',
+    id: this.storeId,
     name: 'The Vine Collections',
     logo: '/assets/images/product_sneakers_lifestyle.png',
     banner: '/assets/images/fashion_menswear_hero.png',
