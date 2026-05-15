@@ -211,11 +211,12 @@ export class BuyerWishlistPageComponent {
   }
 
   private toWishlistEntry(item: ListingsApiItem, index: number): WishlistEntry | null {
+    const listingDetails = this.readRecord(item['listing_details']) ?? item;
     const title =
-      this.readString(item['title']) ??
-      this.readString(item['name']) ??
-      this.readString(item['listing_name']);
-    const price = this.formatPrice(item['price']);
+      this.readString(listingDetails['title']) ??
+      this.readString(listingDetails['name']) ??
+      this.readString(listingDetails['listing_name']);
+    const price = this.formatPrice(listingDetails['price']);
 
     if (!title || !price) {
       return null;
@@ -224,15 +225,15 @@ export class BuyerWishlistPageComponent {
     return {
       createdAt: this.readString(item['created_at']),
       listing: {
-        id: this.readString(item['id']) ?? `favorite-${index + 1}`,
+        id: this.readString(listingDetails['id']) ?? `favorite-${index + 1}`,
         title,
         price,
-        originalPrice: this.formatPrice(item['original_price']) ?? undefined,
-        discountBadge: this.formatDiscountBadge(item['discount_percentage']) ?? undefined,
-        location: this.composeLocation(item) ?? 'Nigeria',
-        timeAgo: this.formatCondition(item['condition']) ?? 'Recently',
-        isVerified: this.readBoolean(item['is_verified']) ?? false,
-        images: this.extractImages(item),
+        originalPrice: this.formatPrice(listingDetails['original_price']) ?? undefined,
+        discountBadge: this.formatDiscountBadge(listingDetails['discount_percentage']) ?? undefined,
+        location: this.composeLocation(listingDetails) ?? 'Nigeria',
+        timeAgo: this.formatCondition(listingDetails['condition']) ?? 'Recently',
+        isVerified: this.readBoolean(listingDetails['is_verified']) ?? false,
+        images: this.extractImages(listingDetails),
       },
     };
   }
