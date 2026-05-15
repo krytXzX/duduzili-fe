@@ -24,13 +24,15 @@ import { WishlistToastService } from '../../services/wishlist-toast.service';
             <p class="truncate text-[14px] font-medium text-white/95">{{ toastMessage() }}</p>
           </div>
 
-          <button
-            type="button"
-            (click)="undo()"
-            class="shrink-0 text-[14px] font-medium text-white underline underline-offset-4 transition hover:text-white/80"
-          >
-            Undo
-          </button>
+          @if (canUndo()) {
+            <button
+              type="button"
+              (click)="undo()"
+              class="shrink-0 text-[14px] font-medium text-white underline underline-offset-4 transition hover:text-white/80"
+            >
+              Undo
+            </button>
+          }
         </div>
       </div>
     }
@@ -45,8 +47,14 @@ export class WishlistToastComponent {
     () => this.toast()?.listing.images[0] ?? '/assets/images/product_watch_luxury.png',
   );
   readonly toastMessage = computed(() =>
-    this.toast()?.action === 'removed' ? 'Removed from Wishlist' : 'Added to Wishlist',
+    this.toast()?.message
+      ?? (this.toast()?.action === 'removed'
+        ? 'Removed from Wishlist'
+        : this.toast()?.action === 'auth_required'
+          ? 'Please sign in to continue'
+          : 'Added to Wishlist'),
   );
+  readonly canUndo = computed(() => this.toast()?.action !== 'auth_required');
 
   undo(): void {
     this.wishlistToastService.undoLastAction();

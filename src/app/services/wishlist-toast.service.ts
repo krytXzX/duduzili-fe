@@ -2,8 +2,9 @@ import { Injectable, signal } from '@angular/core';
 import type { Listing } from '../components/listings/listing-card.component';
 
 type WishlistToastState = {
-  action: 'added' | 'removed';
+  action: 'added' | 'removed' | 'auth_required';
   listing: Listing;
+  message?: string;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -34,9 +35,18 @@ export class WishlistToastService {
     return this.favoritedIds().includes(id);
   }
 
+  showAuthRequiredToast(listing: Listing, message = 'Please sign in to continue'): void {
+    this.showToast({ action: 'auth_required', listing, message });
+  }
+
   undoLastAction(): void {
     const toast = this.activeToast();
     if (!toast) {
+      return;
+    }
+
+    if (toast.action === 'auth_required') {
+      this.dismissToast();
       return;
     }
 

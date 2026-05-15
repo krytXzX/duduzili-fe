@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { WishlistToastService } from '../../services/wishlist-toast.service';
+import { AuthSessionService } from '../../services/auth-session.service';
+import { ListingsService, ToggleFavoriteResponse } from '../../services/listings.service';
 
 export interface Listing {
   id: string;
@@ -29,6 +32,9 @@ export interface Listing {
 })
 export class ListingCardComponent {
   private readonly wishlistToastService = inject(WishlistToastService);
+  private readonly authSession = inject(AuthSessionService);
+  private readonly listingsService = inject(ListingsService);
+  private readonly router = inject(Router);
 
   listing = input.required<Listing>();
   listingRoute = input<string[]>(
@@ -38,6 +44,7 @@ export class ListingCardComponent {
   favoriteFilled = input(false);
   removedInitiallyFavorited = signal(false);
   currentImageIndex = signal(0);
+  isFavoritePending = signal(false);
 
   currentImage = computed(() => {
     const images = this.listing().images;
@@ -50,21 +57,46 @@ export class ListingCardComponent {
     || this.wishlistToastService.isInWishlist(this.listing().id),
   );
 
-  toggleFavorite(event: Event) {
+  async toggleFavorite(event: Event): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
 
-    if (this.isFavorited()) {
+    if (this.isFavoritePending()) {
+      return;
+    }
+
+    if (!this.authSession.isAuthenticated()) {
+      this.wishlistToastService.showAuthRequiredToast(
+        this.listing(),
+        'Please sign in to add listings to your wishlist',
+      );
+      setTimeout(() => {
+        void this.router.navigate(['/sign-in']);
+      }, 1200);
+      return;
+    }
+
+    const wasFavorited = this.isFavorited();
+    this.isFavoritePending.set(true);
+
+    try {
+      const response = await firstValueFrom(this.listingsService.toggleFavorite(this.listing().id));
+      const nextIsFavorited = this.resolveFavoriteState(response, wasFavorited);
+
+      if (nextIsFavorited) {
+        this.removedInitiallyFavorited.set(false);
+        this.wishlistToastService.addToWishlist(this.listing());
+        return;
+      }
+
       if (this.favoriteFilled()) {
         this.removedInitiallyFavorited.set(true);
       }
 
       this.wishlistToastService.removeFromWishlist(this.listing());
-      return;
+    } finally {
+      this.isFavoritePending.set(false);
     }
-
-    this.removedInitiallyFavorited.set(false);
-    this.wishlistToastService.addToWishlist(this.listing());
   }
 
   nextImage(event: Event) {
@@ -83,5 +115,26 @@ export class ListingCardComponent {
     if (images && images.length > 0) {
       this.currentImageIndex.update(idx => (idx - 1 + images.length) % images.length);
     }
+  }
+
+  private resolveFavoriteState(
+    response: ToggleFavoriteResponse,
+    previousState: boolean,
+  ): boolean {
+    const explicitState = response['is_favorited'];
+    if (typeof explicitState === 'boolean') {
+      return explicitState;
+    }
+
+    const nestedState =
+      typeof response['data'] === 'object' && response['data'] !== null
+        ? (response['data'] as Record<string, unknown>)['is_favorited']
+        : null;
+
+    if (typeof nestedState === 'boolean') {
+      return nestedState;
+    }
+
+    return !previousState;
   }
 }
