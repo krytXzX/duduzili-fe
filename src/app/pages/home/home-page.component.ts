@@ -730,6 +730,17 @@ export class HomePageComponent {
     );
   });
 
+  readonly initialFavoritedListingIds = computed(() => {
+    const response = this.homeResponse();
+    if (!response) {
+      return [];
+    }
+
+    return [...(response.sponsored_listings ?? []), ...(response.nearby_listings ?? [])]
+      .filter((listing) => listing['is_favorited'] === true)
+      .map((listing) => String(listing['id']));
+  });
+
   readonly promotions = computed(() => {
     const response = this.homeResponse();
     if (!response) {
