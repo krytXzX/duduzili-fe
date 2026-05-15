@@ -31,6 +31,10 @@ export class ListingsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
+  getMyFavorites(): Observable<ListingsSearchResponse> {
+    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/my_favorites/`);
+  }
+
   getListingDetails(id: string): Observable<ListingsApiItem> {
     return this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`);
   }

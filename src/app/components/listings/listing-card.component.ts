@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -42,6 +42,7 @@ export class ListingCardComponent {
   );
   showFavorite = input(true);
   favoriteFilled = input(false);
+  favoriteChanged = output<{ id: string; isFavorited: boolean }>();
   removedInitiallyFavorited = signal(false);
   currentImageIndex = signal(0);
   isFavoritePending = signal(false);
@@ -86,6 +87,7 @@ export class ListingCardComponent {
       if (nextIsFavorited) {
         this.removedInitiallyFavorited.set(false);
         this.wishlistToastService.addToWishlist(this.listing());
+        this.favoriteChanged.emit({ id: this.listing().id, isFavorited: true });
         return;
       }
 
@@ -94,6 +96,7 @@ export class ListingCardComponent {
       }
 
       this.wishlistToastService.removeFromWishlist(this.listing());
+      this.favoriteChanged.emit({ id: this.listing().id, isFavorited: false });
     } finally {
       this.isFavoritePending.set(false);
     }
