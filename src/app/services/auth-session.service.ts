@@ -1,5 +1,11 @@
 import { Injectable, computed, signal } from '@angular/core';
-import type { AuthUser, CheckEmailResponse, LoginResponse, ProfileResponse } from './auth.service';
+import type {
+  AuthResponse,
+  AuthUser,
+  CheckEmailResponse,
+  LoginResponse,
+  ProfileResponse,
+} from './auth.service';
 
 type TokenBundle = {
   accessToken: string;
@@ -58,6 +64,26 @@ export class AuthSessionService {
       loginResponse: { user },
       profile: this.toCheckEmailProfile(user),
     });
+  }
+
+  updateTokens(response: AuthResponse): string | null {
+    const currentSession = this.session();
+    if (!currentSession) {
+      return null;
+    }
+
+    const tokens = this.extractTokens(response);
+    if (!tokens?.accessToken) {
+      return null;
+    }
+
+    this.session.set({
+      ...currentSession,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken ?? null,
+    });
+
+    return tokens.accessToken;
   }
 
   clearSession(): void {

@@ -66,6 +66,10 @@ export type RegisterRequest = {
 
 export type RegisterResponse = AuthResponse;
 export type ProfileResponse = AuthUser | { user: AuthUser };
+export type RefreshTokenResponse = {
+  access: string;
+  refresh: string;
+};
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -98,6 +102,10 @@ export class AuthService {
 
   getProfile(): Observable<ProfileResponse> {
     return this.http.get<ProfileResponse>(`${this.apiUrl}/auth/profile/`);
+  }
+
+  refreshTokens(): Observable<RefreshTokenResponse> {
+    return this.http.post<RefreshTokenResponse>(`${this.apiUrl}/auth/token/refresh/`, {});
   }
 
   logout(): Observable<unknown> {
