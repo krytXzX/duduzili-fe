@@ -124,6 +124,10 @@ export class ListingCardComponent {
     response: ToggleFavoriteResponse,
     previousState: boolean,
   ): boolean {
+    if (!response || typeof response !== 'object') {
+      return !previousState;
+    }
+
     const explicitState = response['is_favorited'];
     if (typeof explicitState === 'boolean') {
       return explicitState;

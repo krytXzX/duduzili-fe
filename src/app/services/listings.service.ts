@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export type ListingsApiItem = Record<string, unknown>;
-export type ToggleFavoriteResponse = Record<string, unknown>;
+export type ToggleFavoriteResponse = Record<string, unknown> | null;
 export interface SearchListingsParams {
   search?: string;
   condition?: string;
@@ -40,7 +40,7 @@ export class ListingsService {
   }
 
   toggleFavorite(id: string): Observable<ToggleFavoriteResponse> {
-    return this.http.post<ToggleFavoriteResponse>(`${this.apiUrl}/listings/${id}/toggle_favorite/`, {});
+    return this.http.post<ToggleFavoriteResponse>(`${this.apiUrl}/wishlist/${id}/toggle/`, {});
   }
 
   searchListings(params: SearchListingsParams): Observable<ListingsSearchResponse> {
