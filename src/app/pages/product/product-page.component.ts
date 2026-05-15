@@ -8,6 +8,8 @@ import { Listing, ListingCardComponent } from '../../components/listings/listing
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { Review } from '../../components/product/review-card.component';
 import { ListingsApiItem, ListingsService } from '../../services/listings.service';
+import { AuthSessionService } from '../../services/auth-session.service';
+import { VendorsService, VendorFollowResponse } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
 
 interface ProductGalleryImage {
@@ -31,6 +33,7 @@ interface ProductDetails {
 }
 
 interface StoreDetails {
+  readonly id: string;
   readonly name: string;
   readonly location: string;
   readonly whatsappNumber: string;
@@ -39,6 +42,7 @@ interface StoreDetails {
   readonly rating: string;
   readonly joined: string;
   readonly isVerified: boolean;
+  readonly isFollowed: boolean;
   readonly initials: string;
   readonly accentFrom: string;
   readonly accentTo: string;
@@ -69,6 +73,8 @@ export class ProductPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly formBuilder = inject(FormBuilder);
   private readonly listingsService = inject(ListingsService);
+  private readonly vendorsService = inject(VendorsService);
+  private readonly authSession = inject(AuthSessionService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   readonly productId = this.route.snapshot.paramMap.get('id') ?? 'iphone-16-pro';
@@ -85,6 +91,7 @@ export class ProductPageComponent {
   readonly sellerReportStep = signal<SellerReportStep>(1);
   readonly selectedSellerReportReason = signal<string | null>(null);
   readonly currentGalleryIndex = signal(0);
+  readonly isFollowPending = signal(false);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
@@ -163,6 +170,7 @@ export class ProductPageComponent {
   });
 
   readonly store = signal<StoreDetails>({
+    id: 'the-vine-collections-7691',
     name: 'The Vine Collections',
     location: 'Ikeja, Lagos',
     whatsappNumber: '08169397454',
@@ -171,6 +179,7 @@ export class ProductPageComponent {
     rating: '4.8',
     joined: '16 Feb, 2024',
     isVerified: true,
+    isFollowed: false,
     initials: 'VC',
     accentFrom: '#E3A03B',
     accentTo: '#3D785F',
@@ -419,6 +428,46 @@ export class ProductPageComponent {
     this.isMakeOfferModalOpen.set(true);
   }
 
+  async toggleVendorFollow(): Promise<void> {
+    if (this.isFollowPending()) {
+      return;
+    }
+
+    if (!this.authSession.isAuthenticated()) {
+      if (typeof window !== 'undefined') {
+        void Promise.resolve().then(() => (window.location.href = '/sign-in'));
+      }
+      return;
+    }
+
+    const vendorId = this.store().id;
+    if (!vendorId) {
+      return;
+    }
+
+    const previousState = this.store().isFollowed;
+    this.isFollowPending.set(true);
+
+    try {
+      const response = await firstValueFrom(this.vendorsService.toggleFollow(vendorId));
+      const nextState = this.resolveVendorFollowState(response, previousState);
+      const nextFollowers = this.resolveFollowerCount(
+        response['followers_count'],
+        this.store().followers,
+        previousState,
+        nextState,
+      );
+
+      this.store.update((store) => ({
+        ...store,
+        isFollowed: nextState,
+        followers: nextFollowers,
+      }));
+    } finally {
+      this.isFollowPending.set(false);
+    }
+  }
+
   closeCallVendorModal(): void {
     this.isCallVendorModalOpen.set(false);
   }
@@ -558,6 +607,10 @@ export class ProductPageComponent {
     });
     this.store.set({
       ...this.store(),
+      id:
+        this.readString(record['vendor_id']) ??
+        this.readString(record['store_id']) ??
+        this.store().id,
       name: storeName,
       location: storeLocation,
       whatsappNumber: callNumber,
@@ -570,6 +623,7 @@ export class ProductPageComponent {
         this.readBoolean(
           this.readRecord(record['user'])?.['is_verified'] ?? record['is_verified'],
         ) ?? this.store().isVerified,
+      isFollowed: this.readBoolean(record['is_followed']) ?? this.store().isFollowed,
       initials: this.buildInitials(storeName),
       bannerImage,
     });
@@ -877,7 +931,13 @@ export class ProductPageComponent {
     }
 
     if (typeof value === 'string') {
-      const parsed = Number(value.replace(/,/g, '').trim());
+      const normalized = value.trim().toLowerCase();
+      if (normalized.endsWith('k')) {
+        const parsed = Number(normalized.slice(0, -1));
+        return Number.isFinite(parsed) ? parsed * 1000 : null;
+      }
+
+      const parsed = Number(normalized.replace(/,/g, ''));
       return Number.isFinite(parsed) ? parsed : null;
     }
 
@@ -902,5 +962,46 @@ export class ProductPageComponent {
       .slice(0, 2)
       .map((word) => word[0]?.toUpperCase() ?? '')
       .join('');
+  }
+
+  private resolveVendorFollowState(
+    response: VendorFollowResponse,
+    previousState: boolean,
+  ): boolean {
+    const directState = response['is_followed'];
+    if (typeof directState === 'boolean') {
+      return directState;
+    }
+
+    const nestedState =
+      typeof response['data'] === 'object' && response['data'] !== null
+        ? (response['data'] as Record<string, unknown>)['is_followed']
+        : null;
+
+    if (typeof nestedState === 'boolean') {
+      return nestedState;
+    }
+
+    return !previousState;
+  }
+
+  private resolveFollowerCount(
+    backendValue: unknown,
+    currentValue: string,
+    previousState: boolean,
+    nextState: boolean,
+  ): string {
+    const backendCount = this.formatCount(backendValue);
+    if (backendCount) {
+      return backendCount;
+    }
+
+    const currentCount = this.readNumber(currentValue);
+    if (currentCount === null || previousState === nextState) {
+      return currentValue;
+    }
+
+    const nextCount = nextState ? currentCount + 1 : Math.max(0, currentCount - 1);
+    return this.formatCount(nextCount) ?? currentValue;
   }
 }

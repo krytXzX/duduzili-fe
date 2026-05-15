@@ -32,7 +32,7 @@ export class ListingsService {
   private readonly apiUrl = environment.apiUrl;
 
   getMyFavorites(): Observable<ListingsSearchResponse> {
-    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/my_favorites/`);
+    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/wishlist/`);
   }
 
   getListingDetails(id: string): Observable<ListingsApiItem> {

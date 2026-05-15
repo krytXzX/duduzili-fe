@@ -492,9 +492,10 @@
                 </button>
                 <button
                   type="button"
+                  (click)="toggleVendorFollow()"
                   class="h-10 rounded-full bg-[#F4F4F4] px-4 text-[14px] font-medium text-[#2D2D2D] transition hover:bg-[#ECECEC]"
                 >
-                  Follow vendor
+                  {{ store().isFollowed ? 'Unfollow vendor' : 'Follow vendor' }}
                 </button>
               </div>
             </div>

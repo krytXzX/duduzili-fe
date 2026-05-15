@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { Review } from '../../components/product/review-card.component';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { firstValueFrom } from 'rxjs';
 import {
   heroChevronRight,
   heroMapPin,
@@ -18,6 +19,8 @@ import {
   heroChatBubbleOvalLeftEllipsis,
 } from '@ng-icons/heroicons/outline';
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
+import { AuthSessionService } from '../../services/auth-session.service';
+import { VendorsService, VendorFollowResponse } from '../../services/vendors.service';
 
 type BuyerStoreTab = 'products' | 'reviews';
 
@@ -35,6 +38,7 @@ interface BuyerStoreProfile {
   banner: string;
   location: string;
   isVerified: boolean;
+  isFollowed: boolean;
   stats: BuyerStoreStats;
 }
 
@@ -158,9 +162,10 @@ interface ProductSection {
           <div class="mt-4 flex items-center justify-center gap-2">
             <button
               type="button"
+              (click)="toggleVendorFollow()"
               class="h-10 w-[122px] rounded-full bg-[#6453d9] text-[14px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4)]"
             >
-              Follow
+              {{ store().isFollowed ? 'Unfollow' : 'Follow' }}
             </button>
             <button
               type="button"
@@ -441,9 +446,10 @@ interface ProductSection {
               <div class="flex flex-wrap items-center gap-3 self-end">
                 <button
                   type="button"
+                  (click)="toggleVendorFollow()"
                   class="rounded-full bg-[#F3F4F6] px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#EDEEF2]"
                 >
-                  Unfollow seller
+                  {{ store().isFollowed ? 'Unfollow seller' : 'Follow seller' }}
                 </button>
 
                 <div class="relative">
@@ -950,11 +956,14 @@ interface ProductSection {
 export class BuyerFollowedStoreDetailsPageComponent {
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
+  private readonly authSession = inject(AuthSessionService);
+  private readonly vendorsService = inject(VendorsService);
 
   readonly activeTab = signal<BuyerStoreTab>('products');
   readonly activeCategory = signal('All');
   readonly showContactMenu = signal(false);
   readonly showLeaveReviewModal = signal(false);
+  readonly isFollowPending = signal(false);
   readonly sellerPhoneNumber = '08169397454';
   readonly reviewRating = signal(2);
   readonly selectedReviewTags = signal<string[]>(['Friendly']);
@@ -968,6 +977,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     banner: '/assets/images/fashion_menswear_hero.png',
     location: 'Ikeja, Lagos',
     isVerified: true,
+    isFollowed: true,
     stats: {
       followers: '2.5k',
       products: '1,456',
@@ -1363,5 +1373,118 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   submitReview() {
     this.showLeaveReviewModal.set(false);
+  }
+
+  async toggleVendorFollow(): Promise<void> {
+    if (this.isFollowPending()) {
+      return;
+    }
+
+    if (!this.authSession.isAuthenticated()) {
+      if (typeof window !== 'undefined') {
+        void Promise.resolve().then(() => (window.location.href = '/sign-in'));
+      }
+      return;
+    }
+
+    const vendorId = this.store().id;
+    if (!vendorId) {
+      return;
+    }
+
+    const previousState = this.store().isFollowed;
+    this.isFollowPending.set(true);
+
+    try {
+      const response = await firstValueFrom(this.vendorsService.toggleFollow(vendorId));
+      const nextState = this.resolveFollowState(response, previousState);
+      const nextFollowers = this.resolveFollowerCount(
+        response['followers_count'],
+        this.store().stats.followers,
+        previousState,
+        nextState,
+      );
+
+      this.store.update((store) => ({
+        ...store,
+        isFollowed: nextState,
+        stats: {
+          ...store.stats,
+          followers: nextFollowers,
+        },
+      }));
+    } finally {
+      this.isFollowPending.set(false);
+    }
+  }
+
+  private resolveFollowState(response: VendorFollowResponse, previousState: boolean): boolean {
+    const directState = response['is_followed'];
+    if (typeof directState === 'boolean') {
+      return directState;
+    }
+
+    const nestedState =
+      typeof response['data'] === 'object' && response['data'] !== null
+        ? (response['data'] as Record<string, unknown>)['is_followed']
+        : null;
+
+    if (typeof nestedState === 'boolean') {
+      return nestedState;
+    }
+
+    return !previousState;
+  }
+
+  private resolveFollowerCount(
+    backendValue: unknown,
+    currentValue: string,
+    previousState: boolean,
+    nextState: boolean,
+  ): string {
+    const backendCount = this.formatCompactCount(backendValue);
+    if (backendCount) {
+      return backendCount;
+    }
+
+    const currentCount = this.toNumber(currentValue);
+    if (currentCount === null || previousState === nextState) {
+      return currentValue;
+    }
+
+    const nextCount = nextState ? currentCount + 1 : Math.max(0, currentCount - 1);
+    return this.formatCompactCount(nextCount) ?? currentValue;
+  }
+
+  private formatCompactCount(value: unknown): string | null {
+    const parsed = this.toNumber(value);
+    if (parsed === null) {
+      return null;
+    }
+
+    if (parsed >= 1000) {
+      return `${(parsed / 1000).toFixed(parsed >= 10000 ? 0 : 1).replace(/\.0$/, '')}k`;
+    }
+
+    return new Intl.NumberFormat('en-NG').format(parsed);
+  }
+
+  private toNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (normalized.endsWith('k')) {
+        const parsed = Number(normalized.slice(0, -1));
+        return Number.isFinite(parsed) ? parsed * 1000 : null;
+      }
+
+      const parsed = Number(normalized.replace(/,/g, ''));
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
   }
 }
