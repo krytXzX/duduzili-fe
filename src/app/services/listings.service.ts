@@ -30,6 +30,10 @@ export class ListingsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
+  getListingDetails(id: string): Observable<ListingsApiItem> {
+    return this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`);
+  }
+
   searchListings(params: SearchListingsParams): Observable<ListingsSearchResponse> {
     return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/`, {
       params: this.toHttpParams(params),

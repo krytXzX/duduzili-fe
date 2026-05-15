@@ -2,10 +2,13 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { Review } from '../../components/product/review-card.component';
+import { ListingsApiItem, ListingsService } from '../../services/listings.service';
+import { environment } from '../../../environments/environment';
 
 interface ProductGalleryImage {
   readonly src: string;
@@ -65,6 +68,8 @@ type SellerReportStep = 1 | 2;
 export class ProductPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly listingsService = inject(ListingsService);
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   readonly productId = this.route.snapshot.paramMap.get('id') ?? 'iphone-16-pro';
   readonly isListingActionsMenuOpen = signal(false);
@@ -305,6 +310,10 @@ export class ProductPageComponent {
 
   readonly ratingStars = [1, 2, 3, 4, 5] as const;
 
+  constructor() {
+    void this.loadProductDetails();
+  }
+
   setGalleryIndex(index: number): void {
     this.currentGalleryIndex.set(index);
   }
@@ -477,5 +486,421 @@ export class ProductPageComponent {
   private resetSellerReportFlow(): void {
     this.sellerReportStep.set(1);
     this.selectedSellerReportReason.set(null);
+  }
+
+  private async loadProductDetails(): Promise<void> {
+    try {
+      const record = await firstValueFrom(this.listingsService.getListingDetails(this.productId));
+      this.applyProductDetails(record);
+    } catch {
+      // Keep the existing fallback content when the detail request fails.
+    }
+  }
+
+  private applyProductDetails(record: ListingsApiItem): void {
+    const galleryImages = this.extractGalleryImages(record);
+    const productName = this.readString(record['title']) ?? this.product().name;
+    const formattedPrice =
+      this.formatPrice(record['price']) ?? this.product().price;
+    const formattedOldPrice =
+      this.formatPrice(record['original_price']) ?? this.product().oldPrice;
+    const formattedDiscount =
+      this.formatDiscountBadge(record['discount_percentage']) ?? this.product().discount;
+    const description =
+      this.readString(record['description']) ?? this.product().description;
+    const condition =
+      this.formatCondition(record['condition']) ?? this.product().condition;
+    const lastUpdated =
+      this.formatDate(record['updated_at'] ?? record['created_at']) ?? this.product().lastUpdated;
+    const likes =
+      this.formatCount(record['likes_count']) ?? this.product().likes;
+    const deliveryOptions =
+      this.extractDeliveryOptions(record) ?? this.product().deliveryOptions;
+    const storeName =
+      this.readString(record['store_name']) ??
+      this.readString(record['vendor_name']) ??
+      this.store().name;
+    const storeLocation =
+      this.readString(record['store_location']) ??
+      this.composeLocation(record) ??
+      this.store().location;
+    const callNumber =
+      this.readString(record['whatsapp_number']) ??
+      this.readString(record['call_number']) ??
+      this.store().whatsappNumber;
+    const joined =
+      this.formatDate(record['date_joined'] ?? record['created_at']) ?? this.store().joined;
+    const bannerImage =
+      this.resolveMediaUrl(
+        this.readString(record['store_cover_image']) ??
+          this.readString(record['cover_image']) ??
+          this.readString(record['banner_image']),
+      ) ?? this.store().bannerImage;
+    const relatedListings = this.extractRelatedListings(record['related_items']);
+    const sellerListings = this.extractRelatedListings(
+      record['more_from_seller'] ?? record['seller_listings'],
+    );
+
+    this.currentGalleryIndex.set(0);
+    this.product.set({
+      ...this.product(),
+      id: this.readString(record['id']) ?? this.productId,
+      name: productName,
+      price: formattedPrice,
+      oldPrice: formattedOldPrice,
+      discount: formattedDiscount,
+      lastUpdated,
+      description,
+      condition,
+      likes,
+      deliveryOptions,
+      images: galleryImages,
+    });
+    this.store.set({
+      ...this.store(),
+      name: storeName,
+      location: storeLocation,
+      whatsappNumber: callNumber,
+      followers: this.formatCount(record['followers_count']) ?? this.store().followers,
+      products: this.formatCount(record['products_count']) ?? this.store().products,
+      rating:
+        this.formatRating(record['average_rating'] ?? record['store_rating']) ?? this.store().rating,
+      joined,
+      isVerified:
+        this.readBoolean(
+          this.readRecord(record['user'])?.['is_verified'] ?? record['is_verified'],
+        ) ?? this.store().isVerified,
+      initials: this.buildInitials(storeName),
+      bannerImage,
+    });
+
+    if (sellerListings.length > 0) {
+      this.moreFromSeller.set(sellerListings);
+    }
+
+    if (relatedListings.length > 0) {
+      this.relatedItems.set(relatedListings);
+    }
+  }
+
+  private extractGalleryImages(record: ListingsApiItem): readonly ProductGalleryImage[] {
+    const galleryCandidates = [
+      record['images'],
+      record['gallery'],
+      record['photos'],
+      record['media'],
+    ];
+
+    for (const candidate of galleryCandidates) {
+      const images = this.toGalleryImages(candidate);
+      if (images.length > 0) {
+        return images;
+      }
+    }
+
+    const singleImage =
+      this.resolveMediaUrl(this.readString(record['thumbnail'])) ??
+      this.resolveMediaUrl(this.readString(record['image'])) ??
+      this.resolveMediaUrl(this.readString(record['cover_image']));
+
+    if (singleImage) {
+      return [{ src: singleImage, alt: this.readString(record['title']) ?? 'Listing image' }];
+    }
+
+    return this.product().images;
+  }
+
+  private toGalleryImages(value: unknown): ProductGalleryImage[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    const images = value
+      .map((entry, index) => {
+        if (typeof entry === 'string') {
+          return {
+            src: this.resolveMediaUrl(entry) ?? '',
+            alt: `${this.product().name} image ${index + 1}`,
+          };
+        }
+
+        const record = this.readRecord(entry);
+        if (!record) {
+          return null;
+        }
+
+        const src =
+          this.resolveMediaUrl(this.readString(record['image'])) ??
+          this.resolveMediaUrl(this.readString(record['url'])) ??
+          this.resolveMediaUrl(this.readString(record['src'])) ??
+          this.resolveMediaUrl(this.readString(record['thumbnail']));
+
+        if (!src) {
+          return null;
+        }
+
+        return {
+          src,
+          alt:
+            this.readString(record['alt']) ??
+            this.readString(record['label']) ??
+            `${this.product().name} image ${index + 1}`,
+          eyebrow: this.readString(record['eyebrow']) ?? undefined,
+        };
+      })
+      .filter((image): image is ProductGalleryImage => image !== null && image.src.length > 0);
+
+    return images;
+  }
+
+  private extractDeliveryOptions(record: ListingsApiItem): readonly string[] | null {
+    const candidate = record['delivery_options'];
+    if (Array.isArray(candidate)) {
+      const options = candidate.filter((option): option is string => typeof option === 'string');
+      return options.length > 0 ? options : null;
+    }
+
+    return null;
+  }
+
+  private extractRelatedListings(value: unknown): Listing[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map((entry, index) => {
+        const record = this.readRecord(entry);
+        return record ? this.toListingCard(record, index) : null;
+      })
+      .filter((listing): listing is Listing => listing !== null);
+  }
+
+  private toListingCard(record: ListingsApiItem, index: number): Listing | null {
+    const title =
+      this.readString(record['title']) ??
+      this.readString(record['name']) ??
+      this.readString(record['listing_name']);
+    const price = this.formatPrice(record['price']);
+
+    if (!title || !price) {
+      return null;
+    }
+
+    return {
+      id: this.readString(record['id']) ?? `related-${index + 1}`,
+      title,
+      price,
+      originalPrice: this.formatPrice(record['original_price']) ?? undefined,
+      discountBadge: this.formatDiscountBadge(record['discount_percentage']) ?? undefined,
+      location: this.composeLocation(record) ?? 'Nigeria',
+      timeAgo: this.formatRelativeTime(record['created_at']) ?? 'Recently',
+      isVerified:
+        this.readBoolean(
+          this.readRecord(record['user'])?.['is_verified'] ?? record['is_verified'],
+        ) ?? false,
+      images: this.extractListingImages(record),
+    };
+  }
+
+  private extractListingImages(record: ListingsApiItem): string[] {
+    const arrayCandidates = [record['images'], record['gallery'], record['photos']];
+
+    for (const candidate of arrayCandidates) {
+      if (!Array.isArray(candidate)) {
+        continue;
+      }
+
+      const images = candidate
+        .map((entry) => {
+          if (typeof entry === 'string') {
+            return this.resolveMediaUrl(entry);
+          }
+
+          const entryRecord = this.readRecord(entry);
+          if (!entryRecord) {
+            return null;
+          }
+
+          return (
+            this.resolveMediaUrl(this.readString(entryRecord['image'])) ??
+            this.resolveMediaUrl(this.readString(entryRecord['url'])) ??
+            this.resolveMediaUrl(this.readString(entryRecord['src'])) ??
+            this.resolveMediaUrl(this.readString(entryRecord['thumbnail']))
+          );
+        })
+        .filter((image): image is string => typeof image === 'string' && image.length > 0);
+
+      if (images.length > 0) {
+        return images;
+      }
+    }
+
+    const singleImage =
+      this.resolveMediaUrl(this.readString(record['thumbnail'])) ??
+      this.resolveMediaUrl(this.readString(record['image'])) ??
+      this.resolveMediaUrl(this.readString(record['cover_image']));
+
+    return singleImage ? [singleImage] : ['/assets/images/home-item-placeholder.png'];
+  }
+
+  private formatPrice(value: unknown): string | null {
+    const parsed = this.readNumber(value);
+    if (parsed === null) {
+      return null;
+    }
+
+    return `₦${new Intl.NumberFormat('en-NG').format(parsed)}`;
+  }
+
+  private formatDiscountBadge(value: unknown): string | null {
+    const parsed = this.readNumber(value);
+    if (parsed === null || parsed <= 0) {
+      return null;
+    }
+
+    return `-${Math.round(parsed)}%`;
+  }
+
+  private formatDate(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) {
+      return null;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  private formatRelativeTime(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) {
+      return null;
+    }
+
+    const createdAt = new Date(value);
+    if (Number.isNaN(createdAt.getTime())) {
+      return null;
+    }
+
+    const diffInMinutes = Math.max(1, Math.floor((Date.now() - createdAt.getTime()) / 60000));
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} mins ago`;
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `${diffInHours} hrs ago`;
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays} days ago`;
+  }
+
+  private formatCount(value: unknown): string | null {
+    const parsed = this.readNumber(value);
+    if (parsed === null) {
+      return null;
+    }
+
+    if (parsed >= 1000) {
+      return `${(parsed / 1000).toFixed(parsed >= 10000 ? 0 : 1).replace(/\.0$/, '')}k`;
+    }
+
+    return new Intl.NumberFormat('en-NG').format(parsed);
+  }
+
+  private formatRating(value: unknown): string | null {
+    const parsed = this.readNumber(value);
+    if (parsed === null) {
+      return null;
+    }
+
+    return parsed.toFixed(1);
+  }
+
+  private formatCondition(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) {
+      return null;
+    }
+
+    return value
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  private composeLocation(record: ListingsApiItem): string | null {
+    const location = this.readString(record['location']);
+    if (location) {
+      return location;
+    }
+
+    const city = this.readString(record['city']);
+    const state = this.readString(record['state']);
+
+    if (city && state && !city.includes(state)) {
+      return `${city}, ${state}`;
+    }
+
+    return city ?? state ?? null;
+  }
+
+  private resolveMediaUrl(value: string | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    if (value.startsWith('/')) {
+      return `${this.apiOrigin}${value}`;
+    }
+
+    return `${this.apiOrigin}/${value}`;
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value.replace(/,/g, '').trim());
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
+  }
+
+  private buildInitials(name: string): string {
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      return 'DV';
+    }
+
+    return words
+      .slice(0, 2)
+      .map((word) => word[0]?.toUpperCase() ?? '')
+      .join('');
   }
 }

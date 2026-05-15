@@ -2,7 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { PromoteListingModalComponent } from '../../components/listings/promote-listing-modal.component';
+import { ListingsApiItem, ListingsService } from '../../services/listings.service';
+import { environment } from '../../../environments/environment';
 
 type ListingTab = 'overview' | 'requests' | 'activities';
 type ListingStatus = 'Available' | 'Paused' | 'Sold';
@@ -2685,8 +2688,11 @@ export class ListingDetailsPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly listingsService = inject(ListingsService);
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   protected readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? '1');
+  private readonly listingRecord = signal<ListingsApiItem | null>(null);
   protected readonly activeTab = signal<ListingTab>('overview');
   protected readonly activeImageIndex = signal(0);
   protected readonly showPromoteListingModal = signal(false);
@@ -2804,15 +2810,50 @@ export class ListingDetailsPageComponent {
     { label: 'Sold', value: 'Sold', tone: 'sold' },
   ] as const;
 
-  protected readonly details = computed<readonly ListingDetailItem[]>(() => [
-    { label: 'Category', value: 'Electronics / Phones & Tablets' },
-    { label: 'Condition', value: 'Used' },
-    { label: 'Location', value: 'Ikeja, Lagos' },
-    { label: 'Delivery options', value: 'Nationwide' },
-    { label: 'WhatsApp number', value: '08169397454' },
-    { label: 'Call number', value: '08169397454' },
-    { label: 'Accept offers', value: 'Yes' },
-  ]);
+  protected readonly details = computed<readonly ListingDetailItem[]>(() => {
+    const record = this.listingRecord();
+    const detailEntries: ListingDetailItem[] = [
+      {
+        label: 'Category',
+        value:
+          this.readString(record?.['category']) ??
+          this.readString(record?.['category_name']) ??
+          'Electronics / Phones & Tablets',
+      },
+      {
+        label: 'Condition',
+        value: this.formatCondition(record?.['condition']) ?? 'Used',
+      },
+      {
+        label: 'Location',
+        value: this.listing().location,
+      },
+      {
+        label: 'Delivery options',
+        value: this.extractDeliveryOptions(record) ?? 'Nationwide',
+      },
+      {
+        label: 'WhatsApp number',
+        value:
+          this.readString(record?.['whatsapp_number']) ??
+          this.readString(record?.['phone_number']) ??
+          '08169397454',
+      },
+      {
+        label: 'Call number',
+        value:
+          this.readString(record?.['call_number']) ??
+          this.readString(record?.['whatsapp_number']) ??
+          '08169397454',
+      },
+      {
+        label: 'Accept offers',
+        value: this.readBoolean(record?.['accept_offers']) === false ? 'No' : 'Yes',
+      },
+    ];
+
+    return detailEntries;
+  });
 
   protected readonly requests = signal<ListingRequest[]>([
     {
@@ -3142,5 +3183,291 @@ export class ListingDetailsPageComponent {
   protected markListingAsPromoted(): void {
     this.showPromoteListingModal.set(false);
     this.listing.update((listing) => ({ ...listing, isPromoted: true }));
+  }
+
+  constructor() {
+    void this.loadListingDetails();
+  }
+
+  private async loadListingDetails(): Promise<void> {
+    try {
+      const record = await firstValueFrom(this.listingsService.getListingDetails(this.listingId()));
+      this.applyListingDetails(record);
+    } catch {
+      // Keep the existing mocked page content as the fallback state on request failure.
+    }
+  }
+
+  private applyListingDetails(record: ListingsApiItem): void {
+    this.listingRecord.set(record);
+
+    const gallery = this.extractGalleryImages(record);
+    const storeName =
+      this.readString(record['store_name']) ??
+      this.readString(record['vendor_name']) ??
+      this.listing().store.name;
+    const listingLocation = this.composeLocation(record) ?? this.listing().location;
+    const createdAt = record['created_at'];
+    const updatedAt = record['updated_at'] ?? createdAt;
+
+    this.activeImageIndex.set(0);
+    this.listing.set({
+      ...this.listing(),
+      id: this.readString(record['id']) ?? this.listingId(),
+      name: this.readString(record['title']) ?? this.listing().name,
+      previewImage: gallery[0]?.src ?? this.listing().previewImage,
+      lastUpdated: this.formatDate(updatedAt) ?? this.listing().lastUpdated,
+      datePosted: this.formatDate(createdAt) ?? this.listing().datePosted,
+      location: listingLocation,
+      price: this.formatPlainPrice(record['price']) ?? this.listing().price,
+      description: this.readString(record['description']) ?? this.listing().description,
+      status: this.mapListingStatus(record['status']),
+      messages:
+        this.readNumber(record['messages_count']) ??
+        this.readNumber(record['inquiries_count']) ??
+        this.listing().messages,
+      views:
+        this.formatCount(record['views_count']) ??
+        this.formatCount(record['views']) ??
+        this.listing().views,
+      saves:
+        this.readNumber(record['likes_count']) ??
+        this.readNumber(record['saves_count']) ??
+        this.listing().saves,
+      isPromoted: this.readBoolean(record['is_promoted']) ?? this.listing().isPromoted,
+      gallery,
+      store: {
+        name: storeName,
+        logo:
+          this.resolveMediaUrl(this.readString(record['profile_photo'])) ??
+          this.resolveMediaUrl(this.readString(record['store_profile_photo'])) ??
+          this.resolveMediaUrl(this.readString(this.readRecord(record['user'])?.['avatar'])) ??
+          this.listing().store.logo,
+      },
+    });
+
+    this.editListingForm.patchValue({
+      name: this.readString(record['title']) ?? this.editListingForm.controls.name.getRawValue(),
+      category:
+        this.readString(record['category']) ?? this.editListingForm.controls.category.getRawValue(),
+      condition:
+        this.formatCondition(record['condition']) ??
+        this.editListingForm.controls.condition.getRawValue(),
+      store: storeName,
+      description:
+        this.readString(record['description']) ??
+        this.editListingForm.controls.description.getRawValue(),
+      location: listingLocation,
+      whatsAppNumber:
+        this.readString(record['whatsapp_number']) ??
+        this.editListingForm.controls.whatsAppNumber.getRawValue(),
+      callNumber:
+        this.readString(record['call_number']) ??
+        this.readString(record['whatsapp_number']) ??
+        this.editListingForm.controls.callNumber.getRawValue(),
+      price: this.formatPlainPrice(record['price']) ?? this.editListingForm.controls.price.getRawValue(),
+      discountPrice:
+        this.formatPlainPrice(record['original_price'] ?? record['discount_price']) ??
+        this.editListingForm.controls.discountPrice.getRawValue(),
+    });
+  }
+
+  private extractGalleryImages(record: ListingsApiItem): GalleryImage[] {
+    const arrayCandidates = [
+      record['images'],
+      record['gallery'],
+      record['photos'],
+      record['media'],
+    ];
+
+    for (const candidate of arrayCandidates) {
+      if (!Array.isArray(candidate)) {
+        continue;
+      }
+
+      const images = candidate
+        .map((entry, index) => {
+          if (typeof entry === 'string') {
+            const src = this.resolveMediaUrl(entry);
+            return src
+              ? { src, alt: `${this.listing().name} image ${index + 1}` }
+              : null;
+          }
+
+          const entryRecord = this.readRecord(entry);
+          if (!entryRecord) {
+            return null;
+          }
+
+          const src =
+            this.resolveMediaUrl(this.readString(entryRecord['image'])) ??
+            this.resolveMediaUrl(this.readString(entryRecord['url'])) ??
+            this.resolveMediaUrl(this.readString(entryRecord['src'])) ??
+            this.resolveMediaUrl(this.readString(entryRecord['thumbnail']));
+
+          if (!src) {
+            return null;
+          }
+
+          return {
+            src,
+            alt:
+              this.readString(entryRecord['alt']) ??
+              `${this.listing().name} image ${index + 1}`,
+          };
+        })
+        .filter((image): image is GalleryImage => image !== null);
+
+      if (images.length > 0) {
+        return images;
+      }
+    }
+
+    const fallbackImage =
+      this.resolveMediaUrl(this.readString(record['thumbnail'])) ??
+      this.resolveMediaUrl(this.readString(record['image'])) ??
+      this.resolveMediaUrl(this.readString(record['cover_image']));
+
+    if (fallbackImage) {
+      return [{ src: fallbackImage, alt: this.readString(record['title']) ?? 'Listing image' }];
+    }
+
+    return this.listing().gallery;
+  }
+
+  private extractDeliveryOptions(record: ListingsApiItem | null): string | null {
+    if (!record) {
+      return null;
+    }
+
+    const options = record['delivery_options'];
+    if (Array.isArray(options)) {
+      const labels = options.filter((option): option is string => typeof option === 'string');
+      if (labels.length > 0) {
+        return labels.join(', ');
+      }
+    }
+
+    const deliveryRange = this.readString(record['delivery_range']);
+    const deliveryMethod = this.readString(record['delivery_method']);
+    const labels = [deliveryMethod, deliveryRange].filter(
+      (label): label is string => typeof label === 'string' && label.length > 0,
+    );
+
+    return labels.length > 0 ? labels.join(', ') : null;
+  }
+
+  private mapListingStatus(value: unknown): ListingStatus {
+    if (typeof value !== 'string') {
+      return this.listing().status;
+    }
+
+    switch (value.trim().toLowerCase()) {
+      case 'sold':
+        return 'Sold';
+      case 'paused':
+      case 'pause':
+        return 'Paused';
+      default:
+        return 'Available';
+    }
+  }
+
+  private formatPlainPrice(value: unknown): string | null {
+    const parsed = this.readNumber(value);
+    if (parsed === null) {
+      return null;
+    }
+
+    return new Intl.NumberFormat('en-NG').format(parsed);
+  }
+
+  private formatDate(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) {
+      return null;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  private formatCount(value: unknown): string | null {
+    const parsed = this.readNumber(value);
+    return parsed === null ? null : new Intl.NumberFormat('en-NG').format(parsed);
+  }
+
+  private formatCondition(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) {
+      return null;
+    }
+
+    return value
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  private composeLocation(record: ListingsApiItem): string | null {
+    const location = this.readString(record['location']);
+    if (location) {
+      return location;
+    }
+
+    const city = this.readString(record['city']);
+    const state = this.readString(record['state']);
+
+    if (city && state && !city.includes(state)) {
+      return `${city}, ${state}`;
+    }
+
+    return city ?? state ?? null;
+  }
+
+  private resolveMediaUrl(value: string | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    if (value.startsWith('/')) {
+      return `${this.apiOrigin}${value}`;
+    }
+
+    return `${this.apiOrigin}/${value}`;
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value.replace(/,/g, '').trim());
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
   }
 }
