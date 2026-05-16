@@ -20,6 +20,8 @@ export class AuthBootstrapService {
       }
 
       this.authSession.clearSession();
+    } finally {
+      this.authSession.markBootstrapComplete();
     }
   }
 }

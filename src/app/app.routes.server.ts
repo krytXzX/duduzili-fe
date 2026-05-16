@@ -11,6 +11,42 @@ export const serverRoutes: ServerRoute[] = [
   },
   // Dashboard routes (CSR only)
   {
+    path: 'home',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: 'wishlist',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: 'chats',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: 'followed-stores',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: 'stores/:id',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: 'recently-viewed',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: 'settings',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: 'more',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: 'notifications',
+    renderMode: RenderMode.Client,
+  },
+  {
     path: 'seller/listings/**',
     renderMode: RenderMode.Client,
   },

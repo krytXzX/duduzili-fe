@@ -22,14 +22,23 @@ type AuthSessionState = {
 @Injectable({ providedIn: 'root' })
 export class AuthSessionService {
   private readonly session = signal<AuthSessionState | null>(null);
+  private readonly bootstrapCompleteState = signal(false);
+  private bootstrapResolver: (() => void) | null = null;
+  private readonly bootstrapReady = new Promise<void>((resolve) => {
+    this.bootstrapResolver = resolve;
+  });
 
   readonly user = computed(() => this.session()?.loginResponse.user ?? null);
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
   readonly refreshToken = computed(() => this.session()?.refreshToken ?? null);
   readonly profile = computed(() => this.session()?.profile ?? null);
+  readonly isBootstrapComplete = computed(() => this.bootstrapCompleteState());
   readonly isAuthenticated = computed(() => this.session() !== null);
   readonly role = computed(() => this.user()?.role?.toLowerCase() ?? null);
-  readonly isSuperuser = computed(() => this.role() === 'admin');
+  readonly isSuperuser = computed(() => {
+    const role = this.role();
+    return role === 'admin';
+  });
   readonly isSeller = computed(() => {
     const role = this.role();
     return this.user()?.is_vendor === true || role === 'seller' || role === 'vendor';
@@ -88,6 +97,20 @@ export class AuthSessionService {
 
   clearSession(): void {
     this.session.set(null);
+  }
+
+  markBootstrapComplete(): void {
+    if (this.bootstrapCompleteState()) {
+      return;
+    }
+
+    this.bootstrapCompleteState.set(true);
+    this.bootstrapResolver?.();
+    this.bootstrapResolver = null;
+  }
+
+  waitForBootstrap(): Promise<void> {
+    return this.bootstrapCompleteState() ? Promise.resolve() : this.bootstrapReady;
   }
 
   private extractTokens(response: LoginResponse): TokenBundle | null {

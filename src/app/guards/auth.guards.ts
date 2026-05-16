@@ -2,9 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router';
 import { AuthSessionService } from '../services/auth-session.service';
 
-function signedInRedirectTarget(): string[] {
-  const authSession = inject(AuthSessionService);
-
+function signedInRedirectTarget(authSession: AuthSessionService): string[] {
   if (authSession.isSuperuser()) {
     return ['/admin'];
   }
@@ -12,62 +10,67 @@ function signedInRedirectTarget(): string[] {
   return ['/home'];
 }
 
-function redirectAuthenticatedUsers(): boolean | ReturnType<Router['createUrlTree']> {
+async function redirectAuthenticatedUsers(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
+  await authSession.waitForBootstrap();
 
   return authSession.isAuthenticated()
-    ? router.createUrlTree(signedInRedirectTarget())
+    ? router.createUrlTree(signedInRedirectTarget(authSession))
     : true;
 }
 
-function requireAuthentication(): boolean | ReturnType<Router['createUrlTree']> {
+async function requireAuthentication(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
+  await authSession.waitForBootstrap();
 
   return authSession.isAuthenticated() ? true : router.createUrlTree(['/sign-in']);
 }
 
-function requireBuyerAccess(): boolean | ReturnType<Router['createUrlTree']> {
+async function requireBuyerAccess(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
+  await authSession.waitForBootstrap();
 
   if (!authSession.isAuthenticated()) {
     return router.createUrlTree(['/sign-in']);
   }
 
   if (authSession.isSuperuser()) {
-    return router.createUrlTree(signedInRedirectTarget());
+    return router.createUrlTree(signedInRedirectTarget(authSession));
   }
 
   return true;
 }
 
-function requireSellerAccess(): boolean | ReturnType<Router['createUrlTree']> {
+async function requireSellerAccess(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
+  await authSession.waitForBootstrap();
 
   if (!authSession.isAuthenticated()) {
     return router.createUrlTree(['/sign-in']);
   }
 
   if (authSession.isSuperuser()) {
-    return router.createUrlTree(signedInRedirectTarget());
+    return router.createUrlTree(signedInRedirectTarget(authSession));
   }
 
   return true;
 }
 
-function requireAdminAccess(): boolean | ReturnType<Router['createUrlTree']> {
+async function requireAdminAccess(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
+  await authSession.waitForBootstrap();
 
   if (!authSession.isAuthenticated()) {
     return router.createUrlTree(['/sign-in']);
   }
 
   if (!authSession.isSuperuser()) {
-    return router.createUrlTree(signedInRedirectTarget());
+    return router.createUrlTree(signedInRedirectTarget(authSession));
   }
 
   return true;
