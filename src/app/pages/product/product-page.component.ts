@@ -547,6 +547,7 @@ export class ProductPageComponent {
   }
 
   private applyProductDetails(record: ListingsApiItem): void {
+    const storeInfo = this.readRecord(record['store_info']);
     const galleryImages = this.extractGalleryImages(record);
     const productName = this.readString(record['title']) ?? this.product().name;
     const formattedPrice =
@@ -566,22 +567,29 @@ export class ProductPageComponent {
     const deliveryOptions =
       this.extractDeliveryOptions(record) ?? this.product().deliveryOptions;
     const storeName =
+      this.readString(storeInfo?.['store_name']) ??
       this.readString(record['store_name']) ??
       this.readString(record['vendor_name']) ??
       this.store().name;
     const storeLocation =
+      this.readString(storeInfo?.['location']) ??
       this.readString(record['store_location']) ??
       this.composeLocation(record) ??
       this.store().location;
     const callNumber =
+      this.readString(storeInfo?.['whatsapp_number']) ??
+      this.readString(storeInfo?.['call_number']) ??
       this.readString(record['whatsapp_number']) ??
       this.readString(record['call_number']) ??
       this.store().whatsappNumber;
     const joined =
-      this.formatDate(record['date_joined'] ?? record['created_at']) ?? this.store().joined;
+      this.formatDate(storeInfo?.['date_joined'] ?? record['date_joined'] ?? record['created_at']) ??
+      this.store().joined;
     const bannerImage =
       this.resolveMediaUrl(
-        this.readString(record['store_cover_image']) ??
+        this.readString(storeInfo?.['cover_image']) ??
+          this.readString(storeInfo?.['banner_image']) ??
+          this.readString(record['store_cover_image']) ??
           this.readString(record['cover_image']) ??
           this.readString(record['banner_image']),
       ) ?? this.store().bannerImage;
@@ -608,20 +616,32 @@ export class ProductPageComponent {
     this.store.set({
       ...this.store(),
       id:
+        this.readString(storeInfo?.['id']) ??
         this.readString(record['vendor_id']) ??
         this.readString(record['store_id']) ??
         this.store().id,
       name: storeName,
       location: storeLocation,
       whatsappNumber: callNumber,
-      followers: this.formatCount(record['followers_count']) ?? this.store().followers,
-      products: this.formatCount(record['products_count']) ?? this.store().products,
+      followers:
+        this.formatCount(storeInfo?.['followers_count'] ?? record['followers_count']) ??
+        this.store().followers,
+      products:
+        this.formatCount(storeInfo?.['products_count'] ?? record['products_count']) ??
+        this.store().products,
       rating:
-        this.formatRating(record['average_rating'] ?? record['store_rating']) ?? this.store().rating,
+        this.formatRating(
+          storeInfo?.['average_rating'] ??
+            storeInfo?.['store_rating'] ??
+            record['average_rating'] ??
+            record['store_rating'],
+        ) ?? this.store().rating,
       joined,
       isVerified:
         this.readBoolean(
-          this.readRecord(record['user'])?.['is_verified'] ?? record['is_verified'],
+          storeInfo?.['is_verified'] ??
+            this.readRecord(record['user'])?.['is_verified'] ??
+            record['is_verified'],
         ) ?? this.store().isVerified,
       isFollowed: this.readBoolean(record['is_followed']) ?? this.store().isFollowed,
       initials: this.buildInitials(storeName),
