@@ -66,6 +66,15 @@ type MobileProductSection = {
   items: Listing[];
 };
 
+type StoreReview = Review & {
+  tags?: string[];
+};
+
+type VendorTagSummary = {
+  label: string;
+  count: number;
+};
+
 @Component({
   selector: 'app-followed-store-details-page',
   imports: [CommonModule, RouterLink, ListingCardComponent, NgIcon, NgOptimizedImage],
@@ -232,14 +241,15 @@ type MobileProductSection = {
         @if (activeTab() === 'products') {
           <div class="mt-4 overflow-x-auto px-5 pb-1">
             <div class="flex min-w-max gap-[10px]">
-              @for (chip of mobileCategoryChips; track chip) {
+              @for (chip of mobileCategoryChips(); track chip) {
                 <button
                   type="button"
+                  (click)="activeCategory.set(chip)"
                   class="h-10 rounded-[16px] px-4 text-[14px] font-medium"
-                  [class.bg-[#1a1a1a]]="chip === 'All'"
-                  [class.text-white]="chip === 'All'"
-                  [class.bg-[#f4f4f4]]="chip !== 'All'"
-                  [class.text-black]="chip !== 'All'"
+                  [class.bg-[#1a1a1a]]="activeCategory() === chip"
+                  [class.text-white]="activeCategory() === chip"
+                  [class.bg-[#f4f4f4]]="activeCategory() !== chip"
+                  [class.text-black]="activeCategory() !== chip"
                 >
                   {{ chip }}
                 </button>
@@ -253,7 +263,7 @@ type MobileProductSection = {
                 <div class="mb-4 flex items-center justify-between">
                   <h2 class="text-[20px] font-medium text-[#1f1f1f]">{{ section.title }}</h2>
                   <button type="button" class="flex items-center gap-1 text-[16px] text-[#1f1f1f]">
-                    View all (3,341)
+                    View all ({{ section.items.length }})
                     <ng-icon name="heroChevronRightOutline" class="text-[16px]"></ng-icon>
                   </button>
                 </div>
@@ -269,7 +279,9 @@ type MobileProductSection = {
           <div class="mt-4 px-5">
             <div class="rounded-[16px] bg-white p-4 shadow-[0_2px_14px_rgba(17,24,39,0.06)]">
               <div class="mb-3 flex items-end gap-1">
-                <span class="text-[40px] font-semibold leading-none text-[#1A1C21]">4.57</span>
+                <span class="text-[40px] font-semibold leading-none text-[#1A1C21]">
+                  {{ store().stats.rating }}
+                </span>
                 <span class="pb-1 text-[18px] font-semibold text-[#C8CBD4]">/5</span>
               </div>
               <div class="mb-4 flex items-center gap-1 text-[#D3DC35]">
@@ -320,16 +332,18 @@ type MobileProductSection = {
               </button>
             </div>
 
-            <p class="text-[16px] font-medium text-[#1A1C21]">This vendor is great at..</p>
-            <div class="mt-3 flex flex-wrap gap-2">
-              @for (tag of vendorTags; track tag.label) {
-                <div
-                  class="rounded-full border border-[#E6E8EF] px-3 py-1.5 text-[12px] text-[#4B5563]"
-                >
-                  {{ tag.label }} ({{ tag.count }})
-                </div>
-              }
-            </div>
+            @if (vendorTags().length) {
+              <p class="text-[16px] font-medium text-[#1A1C21]">This vendor is great at..</p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                @for (tag of vendorTags(); track tag.label) {
+                  <div
+                    class="rounded-full border border-[#E6E8EF] px-3 py-1.5 text-[12px] text-[#4B5563]"
+                  >
+                    {{ tag.label }} ({{ tag.count }})
+                  </div>
+                }
+              </div>
+            }
 
             <div class="mt-5 space-y-6">
               @for (review of reviews(); track review.author + review.date) {
@@ -563,7 +577,7 @@ type MobileProductSection = {
               <div class="pt-8">
                 <div class="mb-8 overflow-x-auto pb-2">
                   <div class="flex min-w-max items-center gap-3">
-                    @for (chip of categoryChips; track chip) {
+                    @for (chip of categoryChips(); track chip) {
                       <button
                         type="button"
                         (click)="activeCategory.set(chip)"
@@ -626,9 +640,9 @@ type MobileProductSection = {
                   <div class="space-y-5">
                     <div class="rounded-[28px] bg-[#FCFCFD] p-6">
                       <div class="mb-4 flex items-end gap-2">
-                        <span class="text-[58px] font-semibold leading-none text-[#1A1C21]"
-                          >4.57</span
-                        >
+                        <span class="text-[58px] font-semibold leading-none text-[#1A1C21]">
+                          {{ store().stats.rating }}
+                        </span>
                         <span class="mb-1 text-[22px] font-semibold text-[#C8CBD4]">/5</span>
                       </div>
 
@@ -677,19 +691,21 @@ type MobileProductSection = {
                         <h2 class="text-[18px] font-semibold text-[#1A1C21]">
                           {{ reviewCountLabel() }} reviews
                         </h2>
-                        <p class="mt-8 text-[18px] font-medium text-[#1A1C21]">
-                          This vendor is great at..
-                        </p>
+                        @if (vendorTags().length) {
+                          <p class="mt-8 text-[18px] font-medium text-[#1A1C21]">
+                            This vendor is great at..
+                          </p>
 
-                        <div class="mt-4 flex flex-wrap gap-3">
-                          @for (tag of vendorTags; track tag.label) {
-                            <div
-                              class="rounded-full border border-[#E6E8EF] px-4 py-2 text-[15px] text-[#4B5563]"
-                            >
-                              {{ tag.label }} ({{ tag.count }})
-                            </div>
-                          }
-                        </div>
+                          <div class="mt-4 flex flex-wrap gap-3">
+                            @for (tag of vendorTags(); track tag.label) {
+                              <div
+                                class="rounded-full border border-[#E6E8EF] px-4 py-2 text-[15px] text-[#4B5563]"
+                              >
+                                {{ tag.label }} ({{ tag.count }})
+                              </div>
+                            }
+                          </div>
+                        }
                       </div>
 
                       <button
@@ -878,7 +894,7 @@ type MobileProductSection = {
                     </h3>
 
                     <div class="mt-5 flex flex-wrap gap-3">
-                      @for (tag of vendorTags; track tag.label) {
+                      @for (tag of vendorTags(); track tag.label) {
                         <button
                           type="button"
                           (click)="toggleReviewTag(tag.label)"
@@ -992,27 +1008,28 @@ export class BuyerFollowedStoreDetailsPageComponent {
   readonly showLeaveReviewModal = signal(false);
   readonly isFollowPending = signal(false);
   readonly reviewRating = signal(2);
-  readonly selectedReviewTags = signal<string[]>(['Friendly']);
+  readonly selectedReviewTags = signal<string[]>([]);
   readonly reviewText = signal('');
   readonly reviewImagePreviews = signal<string[]>([]);
+  readonly reviewTagSummaries = signal<VendorTagSummary[]>([]);
   private readonly storeId = this.route.snapshot.paramMap.get('id') ?? 'bf1';
 
   readonly store = signal<BuyerStoreProfile>({
     id: this.storeId,
-    name: 'The Vine Collections',
+    name: 'Store',
     logo: '/assets/images/product_sneakers_lifestyle.png',
     banner: '/assets/images/fashion_menswear_hero.png',
-    location: 'Ikeja, Lagos',
-    description: 'We deal with all kinds of phones and gadgets',
-    whatsappNumber: '08169397454',
-    callNumber: '08169397454',
-    isVerified: true,
-    isFollowed: true,
+    location: '',
+    description: '',
+    whatsappNumber: '',
+    callNumber: '',
+    isVerified: false,
+    isFollowed: false,
     stats: {
-      followers: '2.5k',
-      products: '1,456',
-      rating: '4.8',
-      dateJoined: '16 Feb, 2024',
+      followers: '0',
+      products: '0',
+      rating: '0.0',
+      dateJoined: '',
     },
   });
 
@@ -1022,20 +1039,12 @@ export class BuyerFollowedStoreDetailsPageComponent {
     void this.loadVendorReviews();
   }
 
-  readonly categoryChips = [
+  readonly categoryChips = computed(() => [
     'All',
-    'Phones & Laptops',
-    'Women',
-    'Men',
-    'Beauty',
-    'Food & Drinks',
-    'Baby & Toddler',
-    'Home',
-    'Properties',
-    'Fitness & Wellness',
-  ];
+    ...this.productSections().map((section) => section.title),
+  ]);
 
-  readonly mobileCategoryChips = ['All', 'Phones & Laptops', 'Women', 'Men', 'Beauty'] as const;
+  readonly mobileCategoryChips = computed(() => this.categoryChips().slice(0, 5));
 
   readonly mobileSections = computed<readonly MobileProductSection[]>(() =>
     this.filteredSections()
@@ -1046,216 +1055,29 @@ export class BuyerFollowedStoreDetailsPageComponent {
       })),
   );
 
-  readonly productSections = signal<ProductSection[]>([
-    {
-      id: 'phones',
-      title: 'Phones & Laptops',
-      countLabel: '3,341',
-      items: [
-        this.createListing(
-          'iphone-17',
-          'Iphone 17 pro max',
-          '₦2,500,000',
-          '/assets/images/image-1-1.jpg',
-          'Phones & Laptops',
-        ),
-        this.createListing(
-          'mouse-1',
-          'Logitech ergonomic mouse',
-          '₦35,000',
-          '/assets/images/image-2-1.jpg',
-          'Phones & Laptops',
-        ),
-        this.createListing(
-          'keyboard-1',
-          'RGB keyboard',
-          '₦35,000',
-          '/assets/images/product_keyboard_rgb.png',
-          'Phones & Laptops',
-        ),
-        this.createListing(
-          'iphone-x',
-          'Iphone X (64 gig)',
-          '₦35,000',
-          '/assets/images/image-3-1.jpg',
-          'Phones & Laptops',
-        ),
-        this.createListing(
-          'chair-1',
-          'Ergonomic chair',
-          '₦35,000',
-          '/assets/images/image-4-1.jpg',
-          'Phones & Laptops',
-        ),
-      ],
-    },
-    {
-      id: 'men',
-      title: 'Men',
-      countLabel: '3,341',
-      items: [
-        this.createListing(
-          'tie-1',
-          'Tie',
-          '₦35,000',
-          '/assets/images/fashion_menswear_hero.png',
-          'Men',
-        ),
-        this.createListing(
-          'car-1',
-          'Masarati',
-          '₦35,000',
-          '/assets/images/product_watch_luxury.png',
-          'Men',
-        ),
-        this.createListing(
-          'sneaker-1',
-          'Nike sneaker',
-          '₦35,000',
-          '/assets/images/product_sneakers_lifestyle.png',
-          'Men',
-        ),
-        this.createListing(
-          'perfume-1',
-          'Dior sauvage',
-          '₦35,000',
-          '/assets/images/product_perfume.png',
-          'Men',
-        ),
-        this.createListing(
-          'watch-1',
-          'G-shock wrist watch',
-          '₦35,000',
-          '/assets/images/product_watch_luxury.png',
-          'Men',
-        ),
-      ],
-    },
-    {
-      id: 'women',
-      title: 'Women',
-      countLabel: '3,341',
-      items: [
-        this.createListing(
-          'sneaker-2',
-          'Nike sneaker',
-          '₦35,000',
-          '/assets/images/product_sneakers_lifestyle.png',
-          'Women',
-        ),
-        this.createListing(
-          'wig-1',
-          'Bone straight wig',
-          '₦35,000',
-          '/assets/images/image-4-1.jpg',
-          'Women',
-        ),
-        this.createListing(
-          'chair-2',
-          'Ergonomic chair',
-          '₦35,000',
-          '/assets/images/image-2-1.jpg',
-          'Women',
-        ),
-        this.createListing(
-          'plate-1',
-          'Kitchen utensils',
-          '₦35,000',
-          '/assets/images/image-3-1.jpg',
-          'Women',
-        ),
-        this.createListing(
-          'hoodie-1',
-          'Sweatshirt',
-          '₦35,000',
-          '/assets/images/fashion_menswear.png',
-          'Women',
-        ),
-      ],
-    },
-    {
-      id: 'beauty',
-      title: 'Beauty',
-      countLabel: '3,341',
-      items: [
-        this.createListing(
-          'perfume-2',
-          'Luxury perfume set',
-          '₦35,000',
-          '/assets/images/product_perfume.png',
-          'Beauty',
-        ),
-        this.createListing(
-          'wig-2',
-          'Bone straight wig',
-          '₦35,000',
-          '/assets/images/image-4-1.jpg',
-          'Beauty',
-        ),
-        this.createListing(
-          'plate-2',
-          'Skin care collection',
-          '₦35,000',
-          '/assets/images/image-3-1.jpg',
-          'Beauty',
-        ),
-        this.createListing(
-          'hoodie-2',
-          'Beauty essentials',
-          '₦35,000',
-          '/assets/images/fashion_menswear.png',
-          'Beauty',
-        ),
-        this.createListing(
-          'chair-3',
-          'Salon chair',
-          '₦35,000',
-          '/assets/images/image-2-1.jpg',
-          'Beauty',
-        ),
-      ],
-    },
-  ]);
+  readonly productSections = signal<ProductSection[]>([]);
 
-  readonly reviews = signal<Review[]>([
-    {
-      author: 'Mary Jane',
-      avatar: 'https://i.pravatar.cc/150?u=mary-jane',
-      rating: 5,
-      text: 'Contacted the seller. Went to their office to purchase the item and the hospitality was okay. Truly reliable. And he’s a funny man 😂',
-      date: 'August 14, 2025',
-    },
-    {
-      author: 'Apeli Obubra',
-      avatar: 'https://i.pravatar.cc/150?u=apeli-obubra',
-      rating: 4,
-      text: 'Straightforward guy! easy transaction great goods',
-      date: 'August 14, 2025',
-    },
-    {
-      author: 'Ibiso Amiesimaka',
-      avatar: 'https://i.pravatar.cc/150?u=ibiso-amiesimaka',
-      rating: 4,
-      text: 'infact it was amazing if everyone is like this Nigeria will be better than this i advice everybody that wants to by laptop should call this man',
-      date: 'August 14, 2025',
-      images: [
-        '/assets/images/image-1-1.jpg',
-        '/assets/images/image-2-1.jpg',
-        '/assets/images/image-3-1.jpg',
-        '/assets/images/image-4-1.jpg',
-        '/assets/images/product_keyboard_rgb.png',
-        '/assets/images/product_watch_luxury.png',
-      ],
-    },
-  ]);
+  readonly reviews = signal<StoreReview[]>([]);
 
-  readonly vendorTags = [
-    { label: 'Fast response', count: 16 },
-    { label: 'Friendly', count: 7 },
-    { label: 'Smooth transaction', count: 7 },
-    { label: 'On-time delivery', count: 7 },
-    { label: 'Honest pricing', count: 7 },
-  ];
+  readonly vendorTags = computed(() => {
+    if (this.reviewTagSummaries().length > 0) {
+      return this.reviewTagSummaries();
+    }
+
+    const counts = new Map<string, number>();
+
+    for (const review of this.reviews()) {
+      const tags = this.extractReviewTags(review);
+      for (const tag of tags) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+
+    return Array.from(counts.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
+      .slice(0, 5);
+  });
 
   readonly ratingBreakdown = computed(() => {
     const reviews = this.reviews();
@@ -1296,24 +1118,6 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
     return this.productSections().filter((section) => section.title === category);
   });
-
-  private createListing(
-    id: string,
-    title: string,
-    price: string,
-    image: string,
-    _category: string,
-  ): Listing {
-    return {
-      id,
-      title,
-      price,
-      images: [image],
-      location: 'Ikeja, Lagos',
-      timeAgo: 'Just now',
-      isVerified: true,
-    };
-  }
 
   reviewStars(rating: number) {
     return Array.from({ length: 5 }, (_, index) => index < rating);
@@ -1431,9 +1235,11 @@ export class BuyerFollowedStoreDetailsPageComponent {
   private async loadVendorReviews(): Promise<void> {
     try {
       const response = await firstValueFrom(this.vendorsService.getVendorReviews(this.storeId));
-      const reviews = this.extractVendorReviewItems(response)
+      const items = this.extractVendorReviewItems(response);
+      const reviews = items
         .map((review, index) => this.toReview(review, index))
         .filter((review): review is Review => review !== null);
+      this.reviewTagSummaries.set(this.extractVendorTagSummaries(items));
       this.reviews.set(reviews);
     } catch {
       // Keep fallback reviews when the vendor reviews request fails.
@@ -1585,10 +1391,12 @@ export class BuyerFollowedStoreDetailsPageComponent {
     return [];
   }
 
-  private toReview(record: VendorReviewRecord, index: number): Review | null {
+  private toReview(record: VendorReviewRecord, index: number): StoreReview | null {
+    const reviewerRecord = this.readRecord(record['reviewer']);
     const author =
       this.readString(record['author']) ??
       this.readString(record['username']) ??
+      this.readString(reviewerRecord?.['username']) ??
       this.readString(this.readRecord(record['user'])?.['username']) ??
       this.readString(record['full_name']) ??
       `Customer ${index + 1}`;
@@ -1607,13 +1415,65 @@ export class BuyerFollowedStoreDetailsPageComponent {
       author,
       avatar:
         this.resolveMediaUrl(this.readString(record['avatar'])) ??
+        this.resolveMediaUrl(this.readString(reviewerRecord?.['avatar'])) ??
         this.resolveMediaUrl(this.readString(this.readRecord(record['user'])?.['avatar'])) ??
         undefined,
       rating,
       text,
       date: this.formatReviewDate(record['created_at']) ?? 'Recently',
       images: this.extractReviewImages(record),
+      tags:
+        this.readStringArray(record['tags']).length > 0
+          ? this.readStringArray(record['tags'])
+          : this.readStringArray(record['highlights']).length > 0
+            ? this.readStringArray(record['highlights'])
+            : this.readStringArray(record['strengths']),
     };
+  }
+
+  private extractVendorTagSummaries(records: VendorReviewRecord[]): VendorTagSummary[] {
+    const counts = new Map<string, number>();
+
+    for (const record of records) {
+      const value = record['tags'];
+      if (!Array.isArray(value)) {
+        continue;
+      }
+
+      for (const item of value) {
+        if (typeof item === 'string' && item.trim().length > 0) {
+          counts.set(item.trim(), (counts.get(item.trim()) ?? 0) + 1);
+          continue;
+        }
+
+        if (typeof item !== 'object' || item === null) {
+          continue;
+        }
+
+        const tagRecord = item as Record<string, unknown>;
+        const label = this.readString(tagRecord['name']) ?? this.readString(tagRecord['label']);
+        const count = this.toNumber(tagRecord['count']) ?? 1;
+        if (!label) {
+          continue;
+        }
+
+        counts.set(label, Math.max(counts.get(label) ?? 0, count));
+      }
+    }
+
+    return Array.from(counts.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
+      .slice(0, 5);
+  }
+
+  private extractReviewTags(review: StoreReview): string[] {
+    const tags = this.readStringArray(review.tags);
+    if (tags.length > 0) {
+      return tags;
+    }
+
+    return [];
   }
 
   private resolveFollowState(response: VendorFollowResponse, previousState: boolean): boolean {
@@ -1765,7 +1625,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   }
 
   private extractReviewImages(record: VendorReviewRecord): string[] | undefined {
-    const value = record['images'];
+    const value = Array.isArray(record['photos']) ? record['photos'] : record['images'];
     if (!Array.isArray(value)) {
       return undefined;
     }
@@ -1790,6 +1650,27 @@ export class BuyerFollowedStoreDetailsPageComponent {
       .filter((image): image is string => image !== null);
 
     return images.length > 0 ? images : undefined;
+  }
+
+  private readStringArray(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map((item) => {
+        if (typeof item === 'string') {
+          return item.trim();
+        }
+
+        if (typeof item === 'object' && item !== null) {
+          const record = item as Record<string, unknown>;
+          return this.readString(record['name']) ?? this.readString(record['label']) ?? '';
+        }
+
+        return '';
+      })
+      .filter((item) => item.length > 0);
   }
 
   private clampRating(value: unknown): number | null {
