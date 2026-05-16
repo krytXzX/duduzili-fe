@@ -23,7 +23,7 @@ type BuyerMenuEntry = {
     }),
   ],
   template: `
-    <div class="lg:fixed lg:inset-x-0 lg:top-0 lg:z-[70]">
+    <div class="lg:fixed lg:inset-x-0 lg:top-0 lg:z-[30]">
       <header
         class="bg-white text-[#15162B] lg:mx-4 lg:my-1 lg:rounded-full lg:bg-black lg:px-6 lg:text-white lg:shadow-lg"
       >
