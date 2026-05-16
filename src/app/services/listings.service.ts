@@ -41,7 +41,7 @@ export class ListingsService {
 
   toggleFavorite(id: string): Observable<ToggleFavoriteResponse> {
     return this.http.post<ToggleFavoriteResponse>(
-      `${this.apiUrl}/listings/${id}/toggle_favourite/`,
+      `${this.apiUrl}/listings/${id}/toggle_favorite/`,
       {},
     );
   }
