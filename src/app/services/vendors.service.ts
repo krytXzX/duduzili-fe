@@ -19,6 +19,10 @@ export class VendorsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
+  getVendorDetails(id: string): Observable<VendorRecord> {
+    return this.http.get<VendorRecord>(`${this.apiUrl}/vendors/${id}/`);
+  }
+
   toggleFollow(id: string): Observable<VendorFollowResponse> {
     return this.http.post<VendorFollowResponse>(`${this.apiUrl}/vendors/${id}/follow/`, {});
   }

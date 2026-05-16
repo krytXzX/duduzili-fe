@@ -625,7 +625,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-vine-cover-mobile.png',
       logoImage: '/assets/images/store-vine-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-vine-logo-mobile.png',
-      route: ['/'],
+      route: ['/stores', 'st1'],
     },
     {
       id: 'st2',
@@ -635,7 +635,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-eden-cover-mobile.png',
       logoImage: '/assets/images/store-eden-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-eden-logo-mobile.png',
-      route: ['/'],
+      route: ['/stores', 'st2'],
     },
     {
       id: 'st3',
@@ -645,7 +645,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-snap-cover-mobile.png',
       logoImage: '/assets/images/store-snap-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-snap-logo-mobile.png',
-      route: ['/'],
+      route: ['/stores', 'st3'],
     },
     {
       id: 'st4',
@@ -655,7 +655,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-gomelon-cover-mobile.png',
       logoImage: '/assets/images/store-gomelon-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-gomelon-logo-mobile.png',
-      route: ['/'],
+      route: ['/stores', 'st4'],
     },
     {
       id: 'st5',
@@ -665,7 +665,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-amazing-cover-desktop.png',
       logoImage: '/assets/images/store-amazing-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-amazing-logo-desktop.png',
-      route: ['/'],
+      route: ['/stores', 'st5'],
     },
     {
       id: 'st6',
@@ -675,7 +675,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-none-cover-desktop.png',
       logoImage: '/assets/images/store-none-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-none-logo-desktop.png',
-      route: ['/'],
+      route: ['/stores', 'st6'],
     },
     {
       id: 'st7',
@@ -685,7 +685,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-newage-cover-desktop.png',
       logoImage: '/assets/images/store-newage-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-newage-logo-desktop.png',
-      route: ['/'],
+      route: ['/stores', 'st7'],
     },
     {
       id: 'st8',
@@ -695,7 +695,7 @@ export class HomePageComponent {
       mobileCoverImage: '/assets/images/store-swift-cover-desktop.png',
       logoImage: '/assets/images/store-swift-logo-desktop.png',
       mobileLogoImage: '/assets/images/store-swift-logo-desktop.png',
-      route: ['/'],
+      route: ['/stores', 'st8'],
     },
   ];
 
@@ -1104,7 +1104,7 @@ export class HomePageComponent {
           ? `${record.followers_count} followers`
           : undefined,
       callNumber: record.call_number?.trim() || undefined,
-      route: ['/'],
+      route: ['/stores', this.readId(record, fallbackId)],
     };
   }
 

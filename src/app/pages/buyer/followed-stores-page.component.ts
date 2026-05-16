@@ -21,7 +21,7 @@ type MobileFollowedStore = {
 };
 
 @Component({
-  selector: 'app-followed-stores-page',
+  selector: 'app-stores-page',
   imports: [CommonModule, StoreCardComponent, NgOptimizedImage, RouterLink],
   template: `
     <section class="min-h-full bg-[#f5f5f5] md:bg-white">
@@ -222,7 +222,7 @@ export class BuyerFollowedStoresPageComponent {
       id: store.id,
       name: store.name,
       location: store.location ?? store.metaLabel ?? 'Nigeria',
-      route: store.route ?? ['/followed-stores', store.id],
+      route: store.route ?? ['/stores', store.id],
       coverImage:
         store.mobileCoverImage ??
         store.coverImage ??
@@ -241,10 +241,18 @@ export class BuyerFollowedStoresPageComponent {
     const query = this.searchQuery().trim().toLowerCase();
 
     if (!query) {
-      return this.stores();
+      return this.stores().map((store) => ({
+        ...store,
+        route: ['/stores', store.id] as const,
+      }));
     }
 
-    return this.stores().filter((store) => store.name.toLowerCase().includes(query));
+    return this.stores()
+      .filter((store) => store.name.toLowerCase().includes(query))
+      .map((store) => ({
+        ...store,
+        route: ['/stores', store.id] as const,
+      }));
   });
 
   constructor() {
@@ -326,7 +334,7 @@ export class BuyerFollowedStoresPageComponent {
         this.readBoolean(this.readRecord(record['user'])?.['is_verified']) ??
         this.readBoolean(record['is_verified']) ??
         false,
-      route: ['/followed-stores', id],
+      route: ['/stores', id],
       coverImage: banner ?? '/assets/images/product_sneakers_lifestyle.png',
       mobileCoverImage: banner ?? '/assets/images/product_sneakers_lifestyle.png',
       logoImage: logo ?? '/assets/images/product_sneakers_lifestyle.png',

@@ -20,7 +20,12 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
 import { AuthSessionService } from '../../services/auth-session.service';
-import { VendorsService, VendorFollowResponse } from '../../services/vendors.service';
+import {
+  VendorFollowResponse,
+  VendorRecord,
+  VendorsService,
+} from '../../services/vendors.service';
+import { environment } from '../../../environments/environment';
 
 type BuyerStoreTab = 'products' | 'reviews';
 
@@ -37,6 +42,9 @@ interface BuyerStoreProfile {
   logo: string;
   banner: string;
   location: string;
+  description: string;
+  whatsappNumber: string;
+  callNumber: string;
   isVerified: boolean;
   isFollowed: boolean;
   stats: BuyerStoreStats;
@@ -74,7 +82,7 @@ interface ProductSection {
         <div class="h-[54px] px-5">
           <div class="flex h-full items-center">
             <a
-              routerLink="/followed-stores"
+              routerLink="/stores"
               aria-label="Back"
               class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f3f3f3]"
             >
@@ -86,8 +94,8 @@ interface ProductSection {
         <div class="px-5">
           <div class="relative h-[91px] overflow-hidden rounded-t-[11px]">
             <img
-              ngSrc="/assets/images/store-vine-cover-mobile.png"
-              alt="The Vine Collections banner"
+              [src]="store().banner"
+              [alt]="store().name + ' banner'"
               width="350"
               height="91"
               class="h-full w-full object-cover"
@@ -102,8 +110,8 @@ interface ProductSection {
               class="h-[74px] w-[74px] overflow-hidden rounded-full border-4 border-white bg-[#3d785f]"
             >
               <img
-                ngSrc="/assets/images/store-vine-logo-mobile.png"
-                alt="The Vine Collections logo"
+                [src]="store().logo"
+                [alt]="store().name + ' logo'"
                 width="74"
                 height="74"
                 class="h-full w-full object-cover"
@@ -112,15 +120,17 @@ interface ProductSection {
             <h1
               class="mt-2 flex items-center gap-1 text-[18px] font-medium leading-[1.1] text-[#1f1f1f]"
             >
-              The Vine Collections
-              <img
-                ngSrc="/assets/icons/home-store-verified.svg"
-                alt=""
-                width="16"
-                height="16"
-                class="h-4 w-4"
-                aria-hidden="true"
-              />
+              {{ store().name }}
+              @if (store().isVerified) {
+                <img
+                  ngSrc="/assets/icons/home-store-verified.svg"
+                  alt=""
+                  width="16"
+                  height="16"
+                  class="h-4 w-4"
+                  aria-hidden="true"
+                />
+              }
             </h1>
             <p class="mt-1 flex items-center gap-1 text-[14px] text-[#959595]">
               <img
@@ -131,31 +141,33 @@ interface ProductSection {
                 class="h-[14px] w-[14px]"
                 aria-hidden="true"
               />
-              Ikeja, Lagos
+              {{ store().location }}
             </p>
           </div>
 
           <div class="mt-4 flex items-center justify-between rounded-[16px]">
             <div class="text-left">
               <p class="text-[12px] text-[#777]">Followers</p>
-              <p class="text-[14px] font-medium text-[#1f1f1f]">2.5k</p>
+              <p class="text-[14px] font-medium text-[#1f1f1f]">{{ store().stats.followers }}</p>
             </div>
             <div class="h-9 w-px bg-[#eaeaea]"></div>
             <div class="text-left">
               <p class="text-[12px] text-[#777]">Products</p>
-              <p class="text-[14px] font-medium text-[#1f1f1f]">1,456</p>
+              <p class="text-[14px] font-medium text-[#1f1f1f]">{{ store().stats.products }}</p>
             </div>
             <div class="h-9 w-px bg-[#eaeaea]"></div>
             <div class="text-left">
               <p class="text-[12px] text-[#777]">Rating</p>
               <p class="flex items-center gap-0.5 text-[14px] font-medium text-[#1f1f1f]">
-                4.8 <span class="text-[#E0C419]">★</span>
+                {{ store().stats.rating }} <span class="text-[#E0C419]">★</span>
               </p>
             </div>
             <div class="h-9 w-px bg-[#eaeaea]"></div>
             <div class="text-left">
               <p class="text-[12px] text-[#777]">Date joined</p>
-              <p class="text-[14px] font-medium text-[#1f1f1f]">16 Feb, 2024</p>
+              <p class="text-[14px] font-medium text-[#1f1f1f]">
+                {{ store().stats.dateJoined }}
+              </p>
             </div>
           </div>
 
@@ -177,7 +189,7 @@ interface ProductSection {
           </div>
 
           <p class="mt-4 text-center text-[16px] leading-[1.2] text-[#1f1f1f]">
-            We deal with all kinds of phones and gadgets
+            {{ store().description }}
           </p>
         </div>
 
@@ -360,7 +372,7 @@ interface ProductSection {
 
       <section class="hidden min-h-full px-6 py-6 md:block md:px-8">
         <nav class="mb-6 flex items-center gap-3 text-sm text-[#8C8C92]">
-          <a routerLink="/followed-stores" class="transition-colors hover:text-[#5932EA]">
+          <a routerLink="/stores" class="transition-colors hover:text-[#5932EA]">
             Followed vendors
           </a>
           <span>/</span>
@@ -486,7 +498,7 @@ interface ProductSection {
                           class="flex h-[18px] w-[18px] items-center justify-center text-[#6B7280]"
                           >⌾</span
                         >
-                        Message on WhatsApp ({{ sellerPhoneNumber }})
+                        Message on WhatsApp ({{ store().whatsappNumber || store().callNumber }})
                       </button>
                       <button
                         type="button"
@@ -494,7 +506,7 @@ interface ProductSection {
                         class="flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA]"
                       >
                         <ng-icon name="heroPhone" class="text-[18px] text-[#6B7280]"></ng-icon>
-                        Call phone number ({{ sellerPhoneNumber }})
+                        Call phone number ({{ store().callNumber || store().whatsappNumber }})
                       </button>
                     </div>
                     <button
@@ -959,13 +971,13 @@ export class BuyerFollowedStoreDetailsPageComponent {
   private readonly document = inject(DOCUMENT);
   private readonly authSession = inject(AuthSessionService);
   private readonly vendorsService = inject(VendorsService);
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   readonly activeTab = signal<BuyerStoreTab>('products');
   readonly activeCategory = signal('All');
   readonly showContactMenu = signal(false);
   readonly showLeaveReviewModal = signal(false);
   readonly isFollowPending = signal(false);
-  readonly sellerPhoneNumber = '08169397454';
   readonly reviewRating = signal(2);
   readonly selectedReviewTags = signal<string[]>(['Friendly']);
   readonly reviewText = signal('');
@@ -978,6 +990,9 @@ export class BuyerFollowedStoreDetailsPageComponent {
     logo: '/assets/images/product_sneakers_lifestyle.png',
     banner: '/assets/images/fashion_menswear_hero.png',
     location: 'Ikeja, Lagos',
+    description: 'We deal with all kinds of phones and gadgets',
+    whatsappNumber: '08169397454',
+    callNumber: '08169397454',
     isVerified: true,
     isFollowed: true,
     stats: {
@@ -987,6 +1002,10 @@ export class BuyerFollowedStoreDetailsPageComponent {
       dateJoined: '16 Feb, 2024',
     },
   });
+
+  constructor() {
+    void this.loadVendorProfile();
+  }
 
   readonly categoryChips = [
     'All',
@@ -1347,14 +1366,24 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   openWhatsApp() {
     this.showContactMenu.set(false);
-    const sanitizedNumber = this.sellerPhoneNumber.replace(/\D/g, '');
+    const phoneNumber = this.store().whatsappNumber || this.store().callNumber;
+    if (!phoneNumber) {
+      return;
+    }
+
+    const sanitizedNumber = phoneNumber.replace(/\D/g, '');
     const whatsappUrl = `https://wa.me/234${sanitizedNumber.replace(/^0/, '')}`;
     globalThis.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   }
 
   callSeller() {
     this.showContactMenu.set(false);
-    this.document.location.href = `tel:${this.sellerPhoneNumber}`;
+    const phoneNumber = this.store().callNumber || this.store().whatsappNumber;
+    if (!phoneNumber) {
+      return;
+    }
+
+    this.document.location.href = `tel:${phoneNumber}`;
   }
 
   toggleReviewTag(tag: string) {
@@ -1420,6 +1449,69 @@ export class BuyerFollowedStoreDetailsPageComponent {
     }
   }
 
+  private async loadVendorProfile(): Promise<void> {
+    try {
+      const record = await firstValueFrom(this.vendorsService.getVendorDetails(this.storeId));
+      this.applyVendorProfile(record);
+    } catch {
+      // Keep fallback profile data when the vendor profile request fails.
+    }
+  }
+
+  private applyVendorProfile(record: VendorRecord): void {
+    const userRecord = this.readRecord(record['user']);
+    const location = this.composeLocation(record);
+    const storeName = this.readString(record['store_name']) ?? this.readString(record['name']);
+    const description =
+      this.readString(record['store_bio']) ?? this.readString(record['description']);
+    const logo =
+      this.resolveMediaUrl(this.readString(record['profile_photo'])) ??
+      this.resolveMediaUrl(this.readString(record['logo'])) ??
+      this.resolveMediaUrl(this.readString(userRecord?.['avatar']));
+    const banner =
+      this.resolveMediaUrl(this.readString(record['cover_image'])) ??
+      this.resolveMediaUrl(this.readString(record['banner'])) ??
+      this.resolveMediaUrl(this.readString(record['image']));
+    const rating =
+      this.formatRating(record['average_rating']) ?? this.formatRating(record['store_rating']);
+    const followers =
+      this.formatCompactCount(record['followers_count']) ?? this.store().stats.followers;
+    const products =
+      this.formatCompactCount(record['products_count']) ?? this.store().stats.products;
+    const dateJoined =
+      this.formatDate(record['date_joined']) ??
+      this.formatDate(record['created_at']) ??
+      this.store().stats.dateJoined;
+    const isVerified =
+      this.readBoolean(userRecord?.['is_verified']) ??
+      this.readBoolean(record['is_verified']) ??
+      this.store().isVerified;
+    const isFollowed = this.readBoolean(record['is_followed']) ?? this.store().isFollowed;
+    const whatsappNumber =
+      this.readString(record['whatsapp_number']) ?? this.store().whatsappNumber;
+    const callNumber = this.readString(record['call_number']) ?? this.store().callNumber;
+
+    this.store.update((store) => ({
+      ...store,
+      id: this.readString(record['id']) ?? store.id,
+      name: storeName ?? store.name,
+      logo: logo ?? store.logo,
+      banner: banner ?? store.banner,
+      location: location ?? store.location,
+      description: description ?? store.description,
+      whatsappNumber,
+      callNumber,
+      isVerified,
+      isFollowed,
+      stats: {
+        followers,
+        products,
+        rating: rating ?? store.stats.rating,
+        dateJoined,
+      },
+    }));
+  }
+
   private resolveFollowState(response: VendorFollowResponse, previousState: boolean): boolean {
     const directState = response['is_followed'];
     if (typeof directState === 'boolean') {
@@ -1456,6 +1548,67 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
     const nextCount = nextState ? currentCount + 1 : Math.max(0, currentCount - 1);
     return this.formatCompactCount(nextCount) ?? currentValue;
+  }
+
+  private composeLocation(record: VendorRecord): string | null {
+    const directLocation = this.readString(record['location']);
+    if (directLocation) {
+      return directLocation;
+    }
+
+    const city = this.readString(record['city']);
+    const state = this.readString(record['state']);
+    return [city, state].filter((value): value is string => Boolean(value)).join(', ') || null;
+  }
+
+  private resolveMediaUrl(value: string | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(value) || value.startsWith('data:')) {
+      return value;
+    }
+
+    return value.startsWith('/') ? `${this.apiOrigin}${value}` : `${this.apiOrigin}/${value}`;
+  }
+
+  private formatDate(value: unknown): string | null {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsed);
+  }
+
+  private formatRating(value: unknown): string | null {
+    const parsed = this.toNumber(value);
+    if (parsed === null) {
+      return null;
+    }
+
+    return parsed.toFixed(1);
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
   }
 
   private formatCompactCount(value: unknown): string | null {

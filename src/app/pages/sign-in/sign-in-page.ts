@@ -6,10 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import {
-  AuthService,
-  CheckEmailResponse,
-} from '../../services/auth.service';
+import { AuthService, CheckEmailResponse } from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
@@ -180,7 +177,9 @@ export class SignInPageComponent {
   }
 
   private resolvePostLoginRoute(loginResponse: { user?: { role?: string } }): string[] {
-    return loginResponse.user?.role === 'superuser' ? ['/admin'] : ['/home'];
+    console.log('Login response:', loginResponse);
+    console.log(loginResponse.user?.role === 'admin');
+    return loginResponse.user?.role === 'admin' ? ['/admin'] : ['/home'];
   }
 
   private readBackendMessage(payload: unknown): string | null {

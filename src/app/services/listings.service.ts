@@ -32,7 +32,7 @@ export class ListingsService {
   private readonly apiUrl = environment.apiUrl;
 
   getMyFavorites(): Observable<ListingsSearchResponse> {
-    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/wishlist/`);
+    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/favorites/`);
   }
 
   getListingDetails(id: string): Observable<ListingsApiItem> {
@@ -40,7 +40,10 @@ export class ListingsService {
   }
 
   toggleFavorite(id: string): Observable<ToggleFavoriteResponse> {
-    return this.http.post<ToggleFavoriteResponse>(`${this.apiUrl}/wishlist/${id}/toggle/`, {});
+    return this.http.post<ToggleFavoriteResponse>(
+      `${this.apiUrl}/listings/${id}/toggle_favourite/`,
+      {},
+    );
   }
 
   searchListings(params: SearchListingsParams): Observable<ListingsSearchResponse> {

@@ -87,7 +87,7 @@ export class MorePageComponent {
   protected readonly items: readonly BuyerMoreItem[] = [
     {
       label: 'Followed stores',
-      route: '/followed-stores',
+      route: '/stores',
       icon: '/assets/icons/more-mobile-figma/shop.svg',
       iconBg: '#e2b448',
     },

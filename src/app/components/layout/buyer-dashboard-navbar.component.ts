@@ -435,7 +435,7 @@ export class BuyerDashboardNavbarComponent {
   protected readonly buyerRoutes = {
     chats: '/chats',
     wishlist: '/wishlist',
-    followedStores: '/followed-stores',
+    followedStores: '/stores',
     recentlyViewed: '/recently-viewed',
     settings: '/settings',
     notifications: '/notifications',

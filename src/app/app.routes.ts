@@ -45,15 +45,15 @@ export const routes: Routes = [
           import('./pages/messages/messages-page.component').then((m) => m.MessagesPageComponent),
       },
       {
-        path: 'followed-stores',
-        title: 'Followed Stores',
+        path: 'stores',
+        title: 'Stores',
         loadComponent: () =>
           import('./pages/buyer/followed-stores-page.component').then(
             (m) => m.BuyerFollowedStoresPageComponent,
           ),
       },
       {
-        path: 'followed-stores/:id',
+        path: 'stores/:id',
         title: 'Store Details',
         loadComponent: () =>
           import('./pages/buyer/followed-store-details-page.component').then(
