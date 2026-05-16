@@ -22,7 +22,11 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
 import { AuthSessionService } from '../../services/auth-session.service';
 import {
   VendorFollowResponse,
+  VendorListingRecord,
   VendorRecord,
+  VendorReviewRecord,
+  VendorListingsResponse,
+  VendorReviewsResponse,
   VendorsService,
 } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
@@ -57,6 +61,11 @@ interface ProductSection {
   items: Listing[];
 }
 
+type MobileProductSection = {
+  title: string;
+  items: Listing[];
+};
+
 @Component({
   selector: 'app-followed-store-details-page',
   imports: [CommonModule, RouterLink, ListingCardComponent, NgIcon, NgOptimizedImage],
@@ -82,7 +91,7 @@ interface ProductSection {
         <div class="h-[54px] px-5">
           <div class="flex h-full items-center">
             <a
-              routerLink="/stores"
+              routerLink="/followed-stores"
               aria-label="Back"
               class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f3f3f3]"
             >
@@ -239,7 +248,7 @@ interface ProductSection {
           </div>
 
           <div class="mt-4 space-y-8 px-5">
-            @for (section of mobileSections; track section.title) {
+            @for (section of mobileSections(); track section.title) {
               <section>
                 <div class="mb-4 flex items-center justify-between">
                   <h2 class="text-[20px] font-medium text-[#1f1f1f]">{{ section.title }}</h2>
@@ -270,7 +279,7 @@ interface ProductSection {
               </div>
               <p class="mb-3 text-[14px] font-semibold text-[#1A1C21]">Overall rating</p>
               <div class="space-y-2.5">
-                @for (bar of ratingBreakdown; track bar.stars) {
+                @for (bar of ratingBreakdown(); track bar.stars) {
                   <div class="flex items-center gap-2">
                     <span class="w-6 text-[12px] font-medium text-[#1A1C21]"
                       >{{ bar.stars }} ★</span
@@ -299,7 +308,9 @@ interface ProductSection {
 
           <div class="mt-6 px-5">
             <div class="mb-5 flex items-center justify-between gap-4">
-              <h2 class="text-[18px] font-semibold text-[#1A1C21]">215 reviews</h2>
+                <h2 class="text-[18px] font-semibold text-[#1A1C21]">
+                  {{ reviewCountLabel() }} reviews
+                </h2>
               <button
                 type="button"
                 class="flex items-center gap-1 rounded-full border border-[#E6E8EF] px-3 py-1.5 text-[13px] text-[#1A1C21]"
@@ -372,7 +383,7 @@ interface ProductSection {
 
       <section class="hidden min-h-full px-6 py-6 md:block md:px-8">
         <nav class="mb-6 flex items-center gap-3 text-sm text-[#8C8C92]">
-          <a routerLink="/stores" class="transition-colors hover:text-[#5932EA]">
+          <a routerLink="/followed-stores" class="transition-colors hover:text-[#5932EA]">
             Followed vendors
           </a>
           <span>/</span>
@@ -630,7 +641,7 @@ interface ProductSection {
                       <p class="mb-4 text-[16px] font-semibold text-[#1A1C21]">Overall rating</p>
 
                       <div class="space-y-3">
-                        @for (bar of ratingBreakdown; track bar.stars) {
+                        @for (bar of ratingBreakdown(); track bar.stars) {
                           <div class="flex items-center gap-3">
                             <span class="w-7 text-[15px] font-medium text-[#1A1C21]"
                               >{{ bar.stars }} ★</span
@@ -663,7 +674,9 @@ interface ProductSection {
                       class="mb-7 flex flex-col gap-5 md:flex-row md:items-start md:justify-between"
                     >
                       <div>
-                        <h2 class="text-[18px] font-semibold text-[#1A1C21]">215 reviews</h2>
+                        <h2 class="text-[18px] font-semibold text-[#1A1C21]">
+                          {{ reviewCountLabel() }} reviews
+                        </h2>
                         <p class="mt-8 text-[18px] font-medium text-[#1A1C21]">
                           This vendor is great at..
                         </p>
@@ -1005,6 +1018,8 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   constructor() {
     void this.loadVendorProfile();
+    void this.loadVendorListings();
+    void this.loadVendorReviews();
   }
 
   readonly categoryChips = [
@@ -1022,74 +1037,14 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   readonly mobileCategoryChips = ['All', 'Phones & Laptops', 'Women', 'Men', 'Beauty'] as const;
 
-  readonly mobileSections: readonly { title: string; items: Listing[] }[] = [
-    {
-      title: 'Phones & Laptops',
-      items: [
-        this.createListing(
-          'm-nike-1',
-          'Nike sneaker',
-          '₦35,000',
-          '/assets/images/listing-nike-sneaker-figma.png',
-          'Phones & Laptops',
-        ),
-        this.createListing(
-          'm-wig-1',
-          'Bone straight wig',
-          '₦35,000',
-          '/assets/images/listing-bone-straight-wig-figma.png',
-          'Phones & Laptops',
-        ),
-        this.createListing(
-          'm-iphonex-1',
-          'Iphone X (64 gig)',
-          '₦35,000',
-          '/assets/images/image-3-1.jpg',
-          'Phones & Laptops',
-        ),
-        this.createListing(
-          'm-chair-1',
-          'Ergonomic chair',
-          'Free',
-          '/assets/images/image-2-1.jpg',
-          'Phones & Laptops',
-        ),
-      ],
-    },
-    {
-      title: 'Men',
-      items: [
-        this.createListing(
-          'm-nike-2',
-          'Nike sneaker',
-          '₦35,000',
-          '/assets/images/listing-nike-sneaker-figma.png',
-          'Men',
-        ),
-        this.createListing(
-          'm-wig-2',
-          'Bone straight wig',
-          '₦35,000',
-          '/assets/images/listing-bone-straight-wig-figma.png',
-          'Men',
-        ),
-        this.createListing(
-          'm-iphonex-2',
-          'Iphone X (64 gig)',
-          '₦35,000',
-          '/assets/images/image-3-1.jpg',
-          'Men',
-        ),
-        this.createListing(
-          'm-chair-2',
-          'Ergonomic chair',
-          'Free',
-          '/assets/images/image-2-1.jpg',
-          'Men',
-        ),
-      ],
-    },
-  ];
+  readonly mobileSections = computed<readonly MobileProductSection[]>(() =>
+    this.filteredSections()
+      .slice(0, 2)
+      .map((section) => ({
+        title: section.title,
+        items: section.items.slice(0, 4),
+      })),
+  );
 
   readonly productSections = signal<ProductSection[]>([
     {
@@ -1302,13 +1257,18 @@ export class BuyerFollowedStoreDetailsPageComponent {
     { label: 'Honest pricing', count: 7 },
   ];
 
-  readonly ratingBreakdown = [
-    { stars: 5, percentage: 65 },
-    { stars: 4, percentage: 11 },
-    { stars: 3, percentage: 9 },
-    { stars: 2, percentage: 3 },
-    { stars: 1, percentage: 2 },
-  ];
+  readonly ratingBreakdown = computed(() => {
+    const reviews = this.reviews();
+    const total = reviews.length;
+
+    return [5, 4, 3, 2, 1].map((stars) => {
+      const matching = reviews.filter((review) => review.rating === stars).length;
+      const percentage = total > 0 ? Math.round((matching / total) * 100) : 0;
+      return { stars, percentage };
+    });
+  });
+
+  readonly reviewCountLabel = computed(() => new Intl.NumberFormat('en-NG').format(this.reviews().length));
 
   readonly ratingLabel = computed(() => {
     switch (this.reviewRating()) {
@@ -1458,6 +1418,28 @@ export class BuyerFollowedStoreDetailsPageComponent {
     }
   }
 
+  private async loadVendorListings(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.vendorsService.getVendorListings(this.storeId));
+      const sections = this.groupVendorListings(this.extractVendorListingItems(response));
+      this.productSections.set(sections);
+    } catch {
+      // Keep fallback product sections when the vendor listings request fails.
+    }
+  }
+
+  private async loadVendorReviews(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.vendorsService.getVendorReviews(this.storeId));
+      const reviews = this.extractVendorReviewItems(response)
+        .map((review, index) => this.toReview(review, index))
+        .filter((review): review is Review => review !== null);
+      this.reviews.set(reviews);
+    } catch {
+      // Keep fallback reviews when the vendor reviews request fails.
+    }
+  }
+
   private applyVendorProfile(record: VendorRecord): void {
     const userRecord = this.readRecord(record['user']);
     const location = this.composeLocation(record);
@@ -1512,6 +1494,128 @@ export class BuyerFollowedStoreDetailsPageComponent {
     }));
   }
 
+  private extractVendorListingItems(response: VendorListingsResponse): VendorListingRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.listings)) {
+      return response.listings;
+    }
+
+    return [];
+  }
+
+  private groupVendorListings(records: VendorListingRecord[]): ProductSection[] {
+    const sectionMap = new Map<string, ProductSection>();
+
+    records.forEach((record, index) => {
+      const listing = this.toListing(record, index);
+      if (!listing) {
+        return;
+      }
+
+      const category = this.readString(record['category']) ?? 'Products';
+      const section = sectionMap.get(category);
+
+      if (section) {
+        section.items.push(listing);
+        section.countLabel = new Intl.NumberFormat('en-NG').format(section.items.length);
+        return;
+      }
+
+      sectionMap.set(category, {
+        id: this.slugify(category),
+        title: category,
+        countLabel: '1',
+        items: [listing],
+      });
+    });
+
+    return Array.from(sectionMap.values());
+  }
+
+  private toListing(record: VendorListingRecord, index: number): Listing | null {
+    const id = this.readString(record['id']) ?? `vendor-listing-${index + 1}`;
+    const title = this.readString(record['title']) ?? this.readString(record['name']);
+    const price = this.formatPrice(record['price']);
+
+    if (!title || !price) {
+      return null;
+    }
+
+    return {
+      id,
+      title,
+      price,
+      originalPrice: this.formatPrice(record['original_price']) ?? undefined,
+      discountBadge: this.formatDiscountBadge(record['discount_percentage']) ?? undefined,
+      images: this.extractListingImages(record),
+      location: this.composeListingLocation(record) ?? this.store().location,
+      timeAgo: this.formatRelativeTime(record['created_at']) ?? 'Just now',
+      isVerified: this.readBoolean(record['is_verified']) ?? false,
+    };
+  }
+
+  private extractVendorReviewItems(response: VendorReviewsResponse): VendorReviewRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.reviews)) {
+      return response.reviews;
+    }
+
+    return [];
+  }
+
+  private toReview(record: VendorReviewRecord, index: number): Review | null {
+    const author =
+      this.readString(record['author']) ??
+      this.readString(record['username']) ??
+      this.readString(this.readRecord(record['user'])?.['username']) ??
+      this.readString(record['full_name']) ??
+      `Customer ${index + 1}`;
+    const text =
+      this.readString(record['text']) ??
+      this.readString(record['comment']) ??
+      this.readString(record['review']) ??
+      this.readString(record['content']);
+    const rating = this.clampRating(record['rating']);
+
+    if (!text || rating === null) {
+      return null;
+    }
+
+    return {
+      author,
+      avatar:
+        this.resolveMediaUrl(this.readString(record['avatar'])) ??
+        this.resolveMediaUrl(this.readString(this.readRecord(record['user'])?.['avatar'])) ??
+        undefined,
+      rating,
+      text,
+      date: this.formatReviewDate(record['created_at']) ?? 'Recently',
+      images: this.extractReviewImages(record),
+    };
+  }
+
   private resolveFollowState(response: VendorFollowResponse, previousState: boolean): boolean {
     const directState = response['is_followed'];
     if (typeof directState === 'boolean') {
@@ -1548,6 +1652,178 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
     const nextCount = nextState ? currentCount + 1 : Math.max(0, currentCount - 1);
     return this.formatCompactCount(nextCount) ?? currentValue;
+  }
+
+  private extractListingImages(record: VendorListingRecord): string[] {
+    const directImages = record['images'];
+    if (Array.isArray(directImages)) {
+      const mapped = directImages
+        .map((image) => {
+          if (typeof image === 'string') {
+            return this.resolveMediaUrl(image);
+          }
+
+          if (typeof image === 'object' && image !== null) {
+            const imageRecord = image as Record<string, unknown>;
+            return this.resolveMediaUrl(
+              this.readString(imageRecord['image']) ??
+                this.readString(imageRecord['url']) ??
+                this.readString(imageRecord['src']),
+            );
+          }
+
+          return null;
+        })
+        .filter((image): image is string => image !== null);
+
+      if (mapped.length > 0) {
+        return mapped;
+      }
+    }
+
+    const thumbnail =
+      this.resolveMediaUrl(this.readString(record['thumbnail'])) ??
+      this.resolveMediaUrl(this.readString(record['image'])) ??
+      this.resolveMediaUrl(this.readString(record['cover_image'])) ??
+      this.resolveMediaUrl(this.readString(record['featured_image']));
+
+    return thumbnail ? [thumbnail] : ['/assets/images/product_sneakers_lifestyle.png'];
+  }
+
+  private composeListingLocation(record: VendorListingRecord): string | null {
+    const location = this.readString(record['location']);
+    if (location) {
+      return location;
+    }
+
+    const city = this.readString(record['city']);
+    const state = this.readString(record['state']);
+    return [city, state].filter((value): value is string => Boolean(value)).join(', ') || null;
+  }
+
+  private formatPrice(value: unknown): string | null {
+    const parsed = this.toNumber(value);
+    if (parsed === null) {
+      return null;
+    }
+
+    return `₦${new Intl.NumberFormat('en-NG', { maximumFractionDigits: 0 }).format(parsed)}`;
+  }
+
+  private formatDiscountBadge(value: unknown): string | null {
+    const parsed = this.toNumber(value);
+    if (parsed === null || parsed <= 0) {
+      return null;
+    }
+
+    return `${Math.round(parsed)}% off`;
+  }
+
+  private formatRelativeTime(value: unknown): string | null {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    const diffMs = Date.now() - parsed.getTime();
+    const diffMinutes = Math.max(0, Math.floor(diffMs / 60000));
+
+    if (diffMinutes < 1) {
+      return 'Just now';
+    }
+
+    if (diffMinutes < 60) {
+      return `${diffMinutes}m ago`;
+    }
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+      return `${diffHours}h ago`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) {
+      return `${diffDays}d ago`;
+    }
+
+    const diffWeeks = Math.floor(diffDays / 7);
+    if (diffWeeks < 5) {
+      return `${diffWeeks}w ago`;
+    }
+
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12) {
+      return `${diffMonths}mo ago`;
+    }
+
+    const diffYears = Math.floor(diffDays / 365);
+    return `${diffYears}y ago`;
+  }
+
+  private extractReviewImages(record: VendorReviewRecord): string[] | undefined {
+    const value = record['images'];
+    if (!Array.isArray(value)) {
+      return undefined;
+    }
+
+    const images = value
+      .map((image) => {
+        if (typeof image === 'string') {
+          return this.resolveMediaUrl(image);
+        }
+
+        if (typeof image === 'object' && image !== null) {
+          const imageRecord = image as Record<string, unknown>;
+          return this.resolveMediaUrl(
+            this.readString(imageRecord['image']) ??
+              this.readString(imageRecord['url']) ??
+              this.readString(imageRecord['src']),
+          );
+        }
+
+        return null;
+      })
+      .filter((image): image is string => image !== null);
+
+    return images.length > 0 ? images : undefined;
+  }
+
+  private clampRating(value: unknown): number | null {
+    const parsed = this.toNumber(value);
+    if (parsed === null) {
+      return null;
+    }
+
+    return Math.min(5, Math.max(1, Math.round(parsed)));
+  }
+
+  private formatReviewDate(value: unknown): string | null {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(parsed);
+  }
+
+  private slugify(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
 
   private composeLocation(record: VendorRecord): string | null {

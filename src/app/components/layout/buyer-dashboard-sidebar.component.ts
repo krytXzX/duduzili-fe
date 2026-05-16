@@ -45,7 +45,7 @@ import {
           Wishlist
         </a>
         <a
-          routerLink="/stores"
+          routerLink="/followed-stores"
           routerLinkActive="bg-white rounded-xl text-[#1A1C21] shadow-sm"
           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
         >

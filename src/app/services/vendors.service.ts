@@ -5,6 +5,8 @@ import { environment } from '../../environments/environment';
 
 export type VendorFollowResponse = Record<string, unknown>;
 export type VendorRecord = Record<string, unknown>;
+export type VendorListingRecord = Record<string, unknown>;
+export type VendorReviewRecord = Record<string, unknown>;
 export type VendorsFollowingResponse =
   | VendorRecord[]
   | {
@@ -12,6 +14,22 @@ export type VendorsFollowingResponse =
       results?: VendorRecord[];
       data?: VendorRecord[];
       vendors?: VendorRecord[];
+    };
+export type VendorListingsResponse =
+  | VendorListingRecord[]
+  | {
+      count?: number;
+      results?: VendorListingRecord[];
+      data?: VendorListingRecord[];
+      listings?: VendorListingRecord[];
+    };
+export type VendorReviewsResponse =
+  | VendorReviewRecord[]
+  | {
+      count?: number;
+      results?: VendorReviewRecord[];
+      data?: VendorReviewRecord[];
+      reviews?: VendorReviewRecord[];
     };
 
 @Injectable({ providedIn: 'root' })
@@ -29,5 +47,13 @@ export class VendorsService {
 
   getFollowing(): Observable<VendorsFollowingResponse> {
     return this.http.get<VendorsFollowingResponse>(`${this.apiUrl}/vendors/following/`);
+  }
+
+  getVendorListings(id: string): Observable<VendorListingsResponse> {
+    return this.http.get<VendorListingsResponse>(`${this.apiUrl}/vendors/${id}/listings/`);
+  }
+
+  getVendorReviews(id: string): Observable<VendorReviewsResponse> {
+    return this.http.get<VendorReviewsResponse>(`${this.apiUrl}/vendors/${id}/reviews/`);
   }
 }

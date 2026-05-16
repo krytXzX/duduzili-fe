@@ -45,8 +45,8 @@ export const routes: Routes = [
           import('./pages/messages/messages-page.component').then((m) => m.MessagesPageComponent),
       },
       {
-        path: 'stores',
-        title: 'Stores',
+        path: 'followed-stores',
+        title: 'Followed Stores',
         loadComponent: () =>
           import('./pages/buyer/followed-stores-page.component').then(
             (m) => m.BuyerFollowedStoresPageComponent,
