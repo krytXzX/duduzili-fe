@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angu
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { NgOptimizedImage } from '@angular/common';
-import { WishlistToastComponent } from '../common/wishlist-toast.component';
+import { AppToastComponent } from '../common/app-toast.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, NgOptimizedImage, WishlistToastComponent],
+  imports: [CommonModule, RouterLink, NgOptimizedImage, AppToastComponent],
   templateUrl: './navbar.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,

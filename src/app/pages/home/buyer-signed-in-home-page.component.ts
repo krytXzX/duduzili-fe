@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
-import { WishlistToastComponent } from '../../components/common/wishlist-toast.component';
+import { AppToastComponent } from '../../components/common/app-toast.component';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { HomePageComponent } from './home-page.component';
 
@@ -8,7 +8,7 @@ import { HomePageComponent } from './home-page.component';
   selector: 'app-buyer-signed-in-home-page',
   imports: [
     BuyerDashboardNavbarComponent,
-    WishlistToastComponent,
+    AppToastComponent,
     MobileBottomNavComponent,
     HomePageComponent,
   ],
@@ -23,7 +23,7 @@ import { HomePageComponent } from './home-page.component';
     </div>
 
     <app-mobile-bottom-nav variant="buyer" />
-    <app-wishlist-toast />
+    <app-toast />
   `,
   host: { class: 'block h-screen w-full' },
   changeDetection: ChangeDetectionStrategy.OnPush,

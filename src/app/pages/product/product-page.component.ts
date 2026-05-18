@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
+import { AppToastComponent } from '../../components/common/app-toast.component';
 import { Review } from '../../components/product/review-card.component';
 import { ListingsApiItem, ListingsService } from '../../services/listings.service';
 import { AuthSessionService } from '../../services/auth-session.service';
@@ -62,6 +63,7 @@ type SellerReportStep = 1 | 2;
     BuyerDashboardNavbarComponent,
     ListingCardComponent,
     HomeFooterComponent,
+    AppToastComponent,
   ],
   templateUrl: './product-page.component.html',
   host: {

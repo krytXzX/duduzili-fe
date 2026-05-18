@@ -8,7 +8,7 @@ import {
   ListingsService,
 } from '../../services/listings.service';
 import { environment } from '../../../environments/environment';
-import { WishlistToastService } from '../../services/wishlist-toast.service';
+import { FavoritesStateService } from '../../services/favorites-state.service';
 
 interface WishlistGroup {
   label: string;
@@ -106,7 +106,7 @@ interface WishlistEntry {
 })
 export class BuyerWishlistPageComponent {
   private readonly listingsService = inject(ListingsService);
-  private readonly wishlistToastService = inject(WishlistToastService);
+  private readonly favoritesStateService = inject(FavoritesStateService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   readonly isLoading = signal(true);
@@ -132,7 +132,7 @@ export class BuyerWishlistPageComponent {
         .filter((entry): entry is WishlistEntry => entry !== null);
 
       this.wishlistEntries.set(entries);
-      this.wishlistToastService.favoritedIds.set(entries.map((entry) => entry.listing.id));
+      this.favoritesStateService.setAll(entries.map((entry) => entry.listing.id));
     } catch {
       this.errorMessage.set('We could not load your wishlist right now.');
     } finally {
@@ -246,7 +246,7 @@ export class BuyerWishlistPageComponent {
     this.wishlistEntries.update((entries) =>
       entries.filter((entry) => entry.listing.id !== event.id),
     );
-    this.wishlistToastService.favoritedIds.update((ids) => ids.filter((id) => id !== event.id));
+    this.favoritesStateService.remove(event.id);
   }
 
   private extractImages(item: ListingsApiItem): string[] {

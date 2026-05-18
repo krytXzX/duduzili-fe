@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminDashboardNavbarComponent } from './admin-dashboard-navbar.component';
 import { AdminDashboardSidebarComponent } from './admin-dashboard-sidebar.component';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { AppToastComponent } from '../common/app-toast.component';
 
 @Component({
   selector: 'app-admin-dashboard-layout',
@@ -15,6 +16,7 @@ import { AuthSessionService } from '../../services/auth-session.service';
     NgOptimizedImage,
     AdminDashboardNavbarComponent,
     AdminDashboardSidebarComponent,
+    AppToastComponent,
   ],
   host: { class: 'block h-screen w-full' },
   template: `
@@ -200,6 +202,8 @@ import { AuthSessionService } from '../../services/auth-session.service';
         </nav>
       }
     </div>
+
+    <app-toast />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

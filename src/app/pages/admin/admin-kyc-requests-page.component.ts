@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
@@ -21,6 +21,7 @@ import {
   AdminDeclineKycModalComponent,
   DeclineKycPayload,
 } from './components/admin-decline-kyc-modal.component';
+import { AppToastService } from '../../services/app-toast.service';
 
 type KycStatus = 'pending approval' | 'approved' | 'declined';
 type KycFilterId = 'all' | KycStatus;
@@ -49,11 +50,6 @@ interface KycRequestRecord {
   reviewedByName?: string;
   reviewedByAvatar?: string;
   reviewedAt?: string;
-}
-
-interface AdminToast {
-  id: number;
-  message: string;
 }
 
 @Component({
@@ -362,43 +358,7 @@ interface AdminToast {
         ></app-admin-decline-kyc-modal>
       }
 
-      <div class="pointer-events-none fixed inset-x-0 bottom-6 z-[240] flex justify-center px-4">
-        @for (toast of toasts(); track toast.id) {
-          <div class="admin-toast-slide-up pointer-events-auto flex min-h-12 w-full max-w-[360px] items-center justify-between gap-4 rounded-[18px] bg-[#111111] px-6 py-4 text-white shadow-[0_24px_48px_-24px_rgba(0,0,0,0.85)]">
-            <div class="flex items-center gap-3">
-              <ng-icon name="heroCheckCircle" class="text-[18px] text-white"></ng-icon>
-              <p class="text-[14px] font-medium text-white">{{ toast.message }}</p>
-            </div>
-
-            <button
-              type="button"
-              (click)="dismissToast(toast.id)"
-              class="flex h-6 w-6 items-center justify-center rounded-full text-white/90 transition hover:text-white"
-              aria-label="Dismiss notification"
-            >
-              <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
-            </button>
-          </div>
-        }
-      </div>
     </section>
-  `,
-  styles: `
-    .admin-toast-slide-up {
-      animation: admin-toast-slide-up 220ms ease-out;
-    }
-
-    @keyframes admin-toast-slide-up {
-      from {
-        opacity: 0;
-        transform: translateY(16px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
   `,
   host: {
     class: 'block h-full',
@@ -406,6 +366,7 @@ interface AdminToast {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminKycRequestsPageComponent {
+  private readonly appToastService = inject(AppToastService);
   readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
   readonly categoryOptions: readonly CustomDropdownOption<KycCategoryFilter>[] = [
     { value: 'all', label: 'All categories' },
@@ -446,7 +407,6 @@ export class AdminKycRequestsPageComponent {
   readonly selectedRequest = signal<AdminKycRequestDetails | null>(null);
   readonly approveRequestId = signal<string | null>(null);
   readonly declineRequestId = signal<string | null>(null);
-  readonly toasts = signal<AdminToast[]>([]);
 
   readonly requests = signal<KycRequestRecord[]>([
     {
@@ -648,10 +608,6 @@ export class AdminKycRequestsPageComponent {
     this.showToast('KYC request successfully declined');
   }
 
-  dismissToast(toastId: number): void {
-    this.toasts.update((current) => current.filter((toast) => toast.id !== toastId));
-  }
-
   private updateRequestStatus(requestId: string, status: KycStatus, declineReason?: string): void {
     this.requests.update((records) =>
       records.map((record) =>
@@ -682,12 +638,7 @@ export class AdminKycRequestsPageComponent {
   }
 
   private showToast(message: string): void {
-    const toast = { id: Date.now(), message };
-    this.toasts.update((current) => [...current, toast]);
-
-    setTimeout(() => {
-      this.dismissToast(toast.id);
-    }, 3000);
+    this.appToastService.show({ message, durationMs: 3000 });
   }
 
   private categoryKey(idType: string): KycCategoryFilter {

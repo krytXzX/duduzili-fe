@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
+import { AppToastService } from '../../services/app-toast.service';
 
 type WalletStatus = 'successful' | 'failed';
 type WalletTransactionType = 'all' | 'wallet funding' | 'subscription payment';
@@ -575,6 +576,7 @@ interface MobileWalletTransaction {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WalletPageComponent {
+  private readonly appToastService = inject(AppToastService);
   readonly transactionTypeOptions: readonly CustomDropdownOption<WalletTransactionType>[] = [
     { value: 'all', label: 'All transaction types' },
     { value: 'wallet funding', label: 'Wallet funding' },
@@ -748,6 +750,7 @@ export class WalletPageComponent {
   copyAccountNumber(): void {
     void globalThis.navigator?.clipboard?.writeText(this.fundWallet.accountNumber);
     this.hasCopiedAccount.set(true);
+    this.appToastService.show({ message: 'Account number copied', durationMs: 2200 });
   }
 
   statusBadgeClass(status: WalletStatus): string {

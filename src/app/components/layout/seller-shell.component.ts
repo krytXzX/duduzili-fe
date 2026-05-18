@@ -3,6 +3,7 @@ import { DashboardNavbarComponent } from './dashboard-navbar.component';
 import { DashboardSidebarComponent } from './dashboard-sidebar.component';
 import { MobileBottomNavComponent } from './mobile-bottom-nav.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+import { AppToastComponent } from '../common/app-toast.component';
 
 @Component({
   selector: 'app-seller-shell',
@@ -10,6 +11,7 @@ import { MobileOverlayService } from '../../services/mobile-overlay.service';
     DashboardNavbarComponent,
     DashboardSidebarComponent,
     MobileBottomNavComponent,
+    AppToastComponent,
   ],
   template: `
     <div class="flex h-screen flex-col bg-[#f7f7fa] lg:gap-4 lg:bg-[#f4f4f4] lg:p-4">
@@ -46,6 +48,8 @@ import { MobileOverlayService } from '../../services/mobile-overlay.service';
         />
       }
     </div>
+
+    <app-toast />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -8,6 +8,7 @@ import { PublicHomeNavbarComponent } from '../../components/layout/public-home-n
 import { FooterComponent } from '../../components/layout/footer.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { AppToastComponent } from '../../components/common/app-toast.component';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
@@ -73,6 +74,7 @@ const VERIFICATION_PARAM_BY_LABEL: Record<string, 'true' | 'false'> = {
     ListingCardComponent,
     FooterComponent,
     StoreCardComponent,
+    AppToastComponent,
   ],
   templateUrl: './search-page.component.html',
   styles: `

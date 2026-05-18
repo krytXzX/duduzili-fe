@@ -20,6 +20,7 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { AppToastComponent } from '../../components/common/app-toast.component';
 import {
   VendorFollowResponse,
   VendorListingRecord,
@@ -77,7 +78,7 @@ type VendorTagSummary = {
 
 @Component({
   selector: 'app-followed-store-details-page',
-  imports: [CommonModule, RouterLink, ListingCardComponent, NgIcon, NgOptimizedImage],
+  imports: [CommonModule, RouterLink, ListingCardComponent, NgIcon, NgOptimizedImage, AppToastComponent],
   providers: [
     provideIcons({
       heroChevronRight,
@@ -991,6 +992,8 @@ type VendorTagSummary = {
         }
       </section>
     </div>
+
+    <app-toast />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

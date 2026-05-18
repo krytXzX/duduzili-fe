@@ -8,6 +8,7 @@ import {
 } from './components/profile-settings-panel.component';
 import { SettingsActionModalComponent } from './components/settings-action-modal.component';
 import { AuthFlowService } from '../../services/auth-flow.service';
+import { AppToastService } from '../../services/app-toast.service';
 import {
   SettingsTwoFactorModalComponent,
   TwoFactorMethod,
@@ -1353,13 +1354,6 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
       </div>
     }
 
-    <div class="pointer-events-none fixed bottom-6 right-6 z-[230] flex flex-col gap-2">
-      @for (toast of toasts(); track toast.id) {
-        <div class="rounded-[10px] bg-[#111215] px-4 py-2.5 text-[11px] font-medium text-white shadow-lg">
-          {{ toast.message }}
-        </div>
-      }
-    </div>
   `,
   host: { class: 'block h-full' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -1367,6 +1361,7 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
 export class SettingsPageComponent {
   private readonly router = inject(Router);
   private readonly authFlow = inject(AuthFlowService);
+  private readonly appToastService = inject(AppToastService);
   protected readonly mobileBackRoute = computed(() => {
     const currentUrl = this.router.url.split('?')[0] ?? this.router.url;
 
@@ -1420,7 +1415,6 @@ export class SettingsPageComponent {
   readonly verificationMode = signal<VerificationMode>(null);
   readonly verificationReturnMode = signal<Exclude<ModalMode, 'name' | null> | null>(null);
   readonly modalValue = signal('');
-  readonly toasts = signal<Array<{ id: number; message: string }>>([]);
   readonly passwordChecks = computed(() => {
     const password = this.newPassword();
 
@@ -1832,11 +1826,6 @@ export class SettingsPageComponent {
   }
 
   private showToast(message: string): void {
-    const toast = { id: Date.now(), message };
-    this.toasts.update(current => [...current, toast]);
-
-    setTimeout(() => {
-      this.toasts.update(current => current.filter(item => item.id !== toast.id));
-    }, 2600);
+    this.appToastService.show({ message, durationMs: 2600 });
   }
 }

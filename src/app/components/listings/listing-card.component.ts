@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output, si
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { WishlistToastService } from '../../services/wishlist-toast.service';
+import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { FavoritesStateService } from '../../services/favorites-state.service';
 import { ListingsService, ToggleFavoriteResponse } from '../../services/listings.service';
 
 export interface Listing {
@@ -31,8 +32,9 @@ export interface Listing {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListingCardComponent {
-  private readonly wishlistToastService = inject(WishlistToastService);
+  private readonly appToastService = inject(AppToastService);
   private readonly authSession = inject(AuthSessionService);
+  private readonly favoritesStateService = inject(FavoritesStateService);
   private readonly listingsService = inject(ListingsService);
   private readonly router = inject(Router);
 
@@ -55,7 +57,7 @@ export class ListingCardComponent {
 
   isFavorited = computed(() =>
     (this.favoriteFilled() && !this.removedInitiallyFavorited())
-    || this.wishlistToastService.isInWishlist(this.listing().id),
+    || this.favoritesStateService.isFavorited(this.listing().id),
   );
 
   async toggleFavorite(event: Event): Promise<void> {
@@ -67,10 +69,12 @@ export class ListingCardComponent {
     }
 
     if (!this.authSession.isAuthenticated()) {
-      this.wishlistToastService.showAuthRequiredToast(
-        this.listing(),
-        'Please sign in to add listings to your wishlist',
-      );
+      this.appToastService.show({
+        message: 'Please sign in to add listings to your wishlist',
+        imageSrc: this.listing().images[0] ?? '/assets/images/home-item-placeholder.png',
+        imageAlt: this.listing().title,
+        durationMs: 1200,
+      });
       setTimeout(() => {
         void this.router.navigate(['/sign-in']);
       }, 1200);
@@ -86,7 +90,14 @@ export class ListingCardComponent {
 
       if (nextIsFavorited) {
         this.removedInitiallyFavorited.set(false);
-        this.wishlistToastService.addToWishlist(this.listing());
+        this.favoritesStateService.add(this.listing().id);
+        this.appToastService.show({
+          message: 'Added to Wishlist',
+          imageSrc: this.listing().images[0] ?? '/assets/images/home-item-placeholder.png',
+          imageAlt: this.listing().title,
+          actionLabel: 'Undo',
+          action: () => this.favoritesStateService.remove(this.listing().id),
+        });
         this.favoriteChanged.emit({ id: this.listing().id, isFavorited: true });
         return;
       }
@@ -95,7 +106,14 @@ export class ListingCardComponent {
         this.removedInitiallyFavorited.set(true);
       }
 
-      this.wishlistToastService.removeFromWishlist(this.listing());
+      this.favoritesStateService.remove(this.listing().id);
+      this.appToastService.show({
+        message: 'Removed from Wishlist',
+        imageSrc: this.listing().images[0] ?? '/assets/images/home-item-placeholder.png',
+        imageAlt: this.listing().title,
+        actionLabel: 'Undo',
+        action: () => this.favoritesStateService.add(this.listing().id),
+      });
       this.favoriteChanged.emit({ id: this.listing().id, isFavorited: false });
     } finally {
       this.isFavoritePending.set(false);

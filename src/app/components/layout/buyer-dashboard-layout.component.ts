@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { BuyerDashboardNavbarComponent } from './buyer-dashboard-navbar.component';
 import { BuyerDashboardSidebarComponent } from './buyer-dashboard-sidebar.component';
-import { WishlistToastComponent } from '../common/wishlist-toast.component';
+import { AppToastComponent } from '../common/app-toast.component';
 import { MobileBottomNavComponent } from './mobile-bottom-nav.component';
 
 @Component({
@@ -11,7 +11,7 @@ import { MobileBottomNavComponent } from './mobile-bottom-nav.component';
     RouterOutlet,
     BuyerDashboardNavbarComponent,
     BuyerDashboardSidebarComponent,
-    WishlistToastComponent,
+    AppToastComponent,
     MobileBottomNavComponent,
   ],
   template: `
@@ -31,7 +31,7 @@ import { MobileBottomNavComponent } from './mobile-bottom-nav.component';
     </div>
 
     <app-mobile-bottom-nav variant="buyer" />
-    <app-wishlist-toast />
+    <app-toast />
   `,
   host: { class: 'block h-screen w-full' },
   changeDetection: ChangeDetectionStrategy.OnPush,
