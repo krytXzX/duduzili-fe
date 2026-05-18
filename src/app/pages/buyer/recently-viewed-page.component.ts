@@ -8,6 +8,7 @@ import {
   ListingsSearchResponse,
   ListingsService,
 } from '../../services/listings.service';
+import { FavoritesStateService } from '../../services/favorites-state.service';
 import { environment } from '../../../environments/environment';
 
 interface RecentlyViewedGroup {
@@ -65,7 +66,11 @@ interface RecentlyViewedEntry {
                 <h2 class="mb-4 text-[20px] font-medium leading-[1.2] text-[#2a2a2a]">{{ group.label }}</h2>
                 <div class="grid grid-cols-2 gap-2">
                   @for (listing of group.listings; track listing.id) {
-                    <app-listing-card [listing]="listing" [favoriteFilled]="listing.favoriteFilled ?? false" />
+                    <app-listing-card
+                      [listing]="listing"
+                      [favoriteFilled]="listing.favoriteFilled ?? false"
+                      (favoriteChanged)="handleFavoriteChanged($event)"
+                    />
                   }
                 </div>
               </section>
@@ -102,6 +107,7 @@ interface RecentlyViewedEntry {
                     <app-listing-card
                       [listing]="listing"
                       [favoriteFilled]="listing.favoriteFilled ?? false"
+                      (favoriteChanged)="handleFavoriteChanged($event)"
                     />
                   }
                 </div>
@@ -116,6 +122,7 @@ interface RecentlyViewedEntry {
 })
 export class BuyerRecentlyViewedPageComponent {
   private readonly listingsService = inject(ListingsService);
+  private readonly favoritesStateService = inject(FavoritesStateService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   readonly isLoading = signal(true);
@@ -141,11 +148,41 @@ export class BuyerRecentlyViewedPageComponent {
         .filter((entry): entry is RecentlyViewedEntry => entry !== null);
 
       this.recentlyViewedEntries.set(entries);
+      const mergedFavoritedIds = new Set(this.favoritesStateService.favoritedIds());
+      for (const entry of entries) {
+        if (entry.listing.favoriteFilled) {
+          mergedFavoritedIds.add(entry.listing.id);
+        }
+      }
+      this.favoritesStateService.setAll(Array.from(mergedFavoritedIds));
     } catch {
       this.errorMessage.set('We could not load your recently viewed listings right now.');
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  handleFavoriteChanged(event: { id: string; isFavorited: boolean }): void {
+    this.recentlyViewedEntries.update((entries) =>
+      entries.map((entry) => (
+        entry.listing.id === event.id
+          ? {
+              ...entry,
+              listing: {
+                ...entry.listing,
+                favoriteFilled: event.isFavorited,
+              },
+            }
+          : entry
+      )),
+    );
+
+    if (event.isFavorited) {
+      this.favoritesStateService.add(event.id);
+      return;
+    }
+
+    this.favoritesStateService.remove(event.id);
   }
 
   private buildGroups(entries: RecentlyViewedEntry[]): RecentlyViewedGroup[] {

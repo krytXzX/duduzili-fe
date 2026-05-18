@@ -96,7 +96,14 @@ export class ListingCardComponent {
           imageSrc: this.listing().images[0] ?? '/assets/images/home-item-placeholder.png',
           imageAlt: this.listing().title,
           actionLabel: 'Undo',
-          action: () => this.favoritesStateService.remove(this.listing().id),
+          action: () => {
+            if (this.favoriteFilled()) {
+              this.removedInitiallyFavorited.set(true);
+            }
+
+            this.favoritesStateService.remove(this.listing().id);
+            this.favoriteChanged.emit({ id: this.listing().id, isFavorited: false });
+          },
         });
         this.favoriteChanged.emit({ id: this.listing().id, isFavorited: true });
         return;
@@ -112,7 +119,11 @@ export class ListingCardComponent {
         imageSrc: this.listing().images[0] ?? '/assets/images/home-item-placeholder.png',
         imageAlt: this.listing().title,
         actionLabel: 'Undo',
-        action: () => this.favoritesStateService.add(this.listing().id),
+        action: () => {
+          this.removedInitiallyFavorited.set(false);
+          this.favoritesStateService.add(this.listing().id);
+          this.favoriteChanged.emit({ id: this.listing().id, isFavorited: true });
+        },
       });
       this.favoriteChanged.emit({ id: this.listing().id, isFavorited: false });
     } finally {
