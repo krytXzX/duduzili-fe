@@ -178,6 +178,7 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
           <div class="flex items-center gap-3">
             <button
               type="button"
+              (click)="openSuspendStoreConfirm()"
               class="inline-flex items-center gap-2 rounded-full border border-[#E7E9EE] bg-white px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#F8F8FB]"
             >
               <ng-icon name="heroNoSymbol" class="text-[16px]"></ng-icon>
@@ -439,6 +440,135 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
           }
         }
       </div>
+
+      @if (isSuspendStoreConfirmOpen()) {
+        <button
+          type="button"
+          class="fixed inset-0 z-40 bg-[#1A1C21]/55"
+          aria-label="Close suspend store confirmation"
+          (click)="closeSuspendStoreConfirm()"
+        ></button>
+
+        <div class="fixed inset-0 z-50 hidden items-center justify-center px-6 md:flex">
+          <section
+            class="w-full max-w-[560px] rounded-[28px] bg-white p-8 shadow-[0_30px_80px_rgba(17,24,39,0.22)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-suspend-store-title"
+            aria-describedby="admin-suspend-store-description"
+          >
+            <div class="flex items-start justify-between gap-6">
+              <div>
+                <h2 id="admin-suspend-store-title" class="text-[24px] font-semibold tracking-[-0.03em] text-[#1A1C21]">
+                  Suspend store
+                </h2>
+                <p id="admin-suspend-store-description" class="mt-2 text-[15px] leading-6 text-[#6B7280]">
+                  Please provide a reason before suspending this store.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E7E9EE] bg-white text-[#8C8C92] transition hover:bg-[#F8F8FB] hover:text-[#1A1C21]"
+                aria-label="Close suspend store confirmation"
+                (click)="closeSuspendStoreConfirm()"
+              >
+                <span class="text-[24px] leading-none">×</span>
+              </button>
+            </div>
+
+            <label class="mt-6 block">
+              <span class="mb-2 block text-sm font-medium text-[#1A1C21]">Reason for suspension</span>
+              <textarea
+                #desktopSuspensionReasonInput
+                class="min-h-[168px] w-full resize-none rounded-[20px] border border-[#E7E9EE] px-5 py-4 text-[15px] leading-6 text-[#1A1C21] outline-hidden transition placeholder:text-[#9CA3AF] focus:border-[#5932EA]"
+                placeholder="Type the reason for suspending this store"
+                [value]="suspensionReason()"
+                (input)="updateSuspensionReason(desktopSuspensionReasonInput.value)"
+              ></textarea>
+            </label>
+
+            <div class="mt-8 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                class="inline-flex h-12 items-center justify-center rounded-full border border-[#E7E9EE] bg-white px-6 text-sm font-medium text-[#1A1C21] transition hover:bg-[#F8F8FB]"
+                (click)="closeSuspendStoreConfirm()"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="inline-flex h-12 items-center justify-center rounded-full bg-[#E05555] px-6 text-sm font-semibold text-white transition hover:bg-[#C84747] disabled:cursor-not-allowed disabled:bg-[#F2B7B7]"
+                [disabled]="!canConfirmSuspendStore()"
+                (click)="confirmSuspendStore()"
+              >
+                Suspend store
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <div class="fixed inset-x-0 bottom-0 z-50 md:hidden">
+          <section
+            class="rounded-t-[32px] bg-white px-5 pb-8 pt-4 shadow-[0_-18px_40px_rgba(17,24,39,0.18)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-suspend-store-title-mobile"
+            aria-describedby="admin-suspend-store-description-mobile"
+          >
+            <div class="mx-auto mb-5 h-1.5 w-20 rounded-full bg-[#E5E7EB]"></div>
+
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="admin-suspend-store-title-mobile" class="text-[22px] font-semibold tracking-[-0.03em] text-[#1A1C21]">
+                  Suspend store
+                </h2>
+                <p id="admin-suspend-store-description-mobile" class="mt-2 text-[15px] leading-6 text-[#6B7280]">
+                  Please provide a reason before suspending this store.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E7E9EE] bg-white text-[#8C8C92] transition hover:bg-[#F8F8FB] hover:text-[#1A1C21]"
+                aria-label="Close suspend store confirmation"
+                (click)="closeSuspendStoreConfirm()"
+              >
+                <span class="text-[24px] leading-none">×</span>
+              </button>
+            </div>
+
+            <label class="mt-6 block">
+              <span class="mb-2 block text-sm font-medium text-[#1A1C21]">Reason for suspension</span>
+              <textarea
+                #mobileSuspensionReasonInput
+                class="min-h-[168px] w-full resize-none rounded-[20px] border border-[#E7E9EE] px-5 py-4 text-[15px] leading-6 text-[#1A1C21] outline-hidden transition placeholder:text-[#9CA3AF] focus:border-[#5932EA]"
+                placeholder="Type the reason for suspending this store"
+                [value]="suspensionReason()"
+                (input)="updateSuspensionReason(mobileSuspensionReasonInput.value)"
+              ></textarea>
+            </label>
+
+            <div class="mt-8 flex flex-col gap-3">
+              <button
+                type="button"
+                class="inline-flex h-12 items-center justify-center rounded-full bg-[#E05555] px-6 text-sm font-semibold text-white transition hover:bg-[#C84747] disabled:cursor-not-allowed disabled:bg-[#F2B7B7]"
+                [disabled]="!canConfirmSuspendStore()"
+                (click)="confirmSuspendStore()"
+              >
+                Suspend store
+              </button>
+              <button
+                type="button"
+                class="inline-flex h-12 items-center justify-center rounded-full border border-[#E7E9EE] bg-white px-6 text-sm font-medium text-[#1A1C21] transition hover:bg-[#F8F8FB]"
+                (click)="closeSuspendStoreConfirm()"
+              >
+                Cancel
+              </button>
+            </div>
+          </section>
+        </div>
+      }
     </section>
   `,
   host: {
@@ -453,6 +583,9 @@ export class AdminStoreDetailsPageComponent {
   readonly activeTab = signal<AdminStoreDetailsTab>('listings');
   readonly activeCategory = signal<AdminStoreCategoryChip>('All');
   readonly reviewSort = signal<AdminStoreReviewSort>('most-recent');
+  readonly isSuspendStoreConfirmOpen = signal(false);
+  readonly suspensionReason = signal('');
+  readonly canConfirmSuspendStore = computed(() => this.suspensionReason().trim().length > 0);
   readonly storeId = computed(() => this.route.snapshot.paramMap.get('id') ?? 'vine-collections');
   readonly categoryChips: AdminStoreCategoryChip[] = [
     'All',
@@ -786,5 +919,26 @@ export class AdminStoreDetailsPageComponent {
     }
 
     return `${leftParts[0]} ${parts[1].trim()}`;
+  }
+
+  openSuspendStoreConfirm(): void {
+    this.isSuspendStoreConfirmOpen.set(true);
+  }
+
+  closeSuspendStoreConfirm(): void {
+    this.isSuspendStoreConfirmOpen.set(false);
+    this.suspensionReason.set('');
+  }
+
+  updateSuspensionReason(value: string): void {
+    this.suspensionReason.set(value);
+  }
+
+  confirmSuspendStore(): void {
+    if (!this.canConfirmSuspendStore()) {
+      return;
+    }
+
+    this.closeSuspendStoreConfirm();
   }
 }

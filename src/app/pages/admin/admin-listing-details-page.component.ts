@@ -1011,9 +1011,10 @@ interface AdminListingDetailRecord {
         <div class="mt-8">
           <label for="suspend-reason-mobile" class="text-[14px] font-medium leading-5 text-[#5A5A5A]">Why are you suspending?</label>
           <textarea
+            #suspendReasonMobileInput
             id="suspend-reason-mobile"
             [value]="suspendReasonInput()"
-            (input)="updateSuspendReason($any($event.target).value)"
+            (input)="updateSuspendReason(suspendReasonMobileInput.value)"
             class="mt-[6px] h-[102px] w-full resize-none rounded-[10px] border border-[#E6E6E8] bg-white px-3 py-2 text-[16px] leading-6 text-[#252628] outline-none placeholder:text-[#A3A3A3]"
           ></textarea>
         </div>
@@ -1021,7 +1022,8 @@ interface AdminListingDetailRecord {
         <button
           type="button"
           (click)="confirmSuspendListing()"
-          class="mt-[34px] flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#FF2524] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A]"
+          [disabled]="!canConfirmSuspendListing()"
+          class="mt-[34px] flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#FF2524] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A] disabled:cursor-not-allowed disabled:border-[#F6C4C4] disabled:bg-[#F3A3A3] disabled:shadow-none"
         >
           Yes, suspend
         </button>
@@ -1048,6 +1050,17 @@ interface AdminListingDetailRecord {
             <p class="mt-4 max-w-[520px] text-[15px] leading-8 text-[#555B66]">
               This listing will be removed from public view. Provide a reason for the suspension so the seller can understand the issue.
             </p>
+
+            <div class="mt-8">
+              <label for="suspend-reason-desktop" class="text-[14px] font-medium leading-5 text-[#5A5A5A]">Why are you suspending?</label>
+              <textarea
+                #suspendReasonDesktopInput
+                id="suspend-reason-desktop"
+                [value]="suspendReasonInput()"
+                (input)="updateSuspendReason(suspendReasonDesktopInput.value)"
+                class="mt-[6px] h-[138px] w-full resize-none rounded-[16px] border border-[#E6E6E8] bg-white px-4 py-3 text-[15px] leading-6 text-[#252628] outline-hidden placeholder:text-[#A3A3A3] focus:border-[#6453D9]"
+              ></textarea>
+            </div>
           </div>
 
           <div class="flex items-center justify-end gap-3 bg-[#FBFBFC] px-6 py-4 sm:px-8">
@@ -1061,7 +1074,8 @@ interface AdminListingDetailRecord {
             <button
               type="button"
               (click)="confirmSuspendListing()"
-              class="inline-flex items-center justify-center rounded-full bg-[#FF2F2F] px-6 py-3 text-[15px] font-medium text-white shadow-[0_10px_24px_-12px_rgba(255,47,47,0.65)] transition hover:bg-[#EF2A2A]"
+              [disabled]="!canConfirmSuspendListing()"
+              class="inline-flex items-center justify-center rounded-full bg-[#FF2F2F] px-6 py-3 text-[15px] font-medium text-white shadow-[0_10px_24px_-12px_rgba(255,47,47,0.65)] transition hover:bg-[#EF2A2A] disabled:cursor-not-allowed disabled:bg-[#F3A3A3] disabled:shadow-none"
             >
               Yes, suspend
             </button>
@@ -1206,6 +1220,7 @@ export class AdminListingDetailsPageComponent {
   readonly isLiftSuspensionOpen = signal(false);
   readonly mobileActionsOpen = signal(false);
   readonly suspendReasonInput = signal('');
+  readonly canConfirmSuspendListing = computed(() => this.suspendReasonInput().trim().length > 0);
   readonly statusOverrides = signal<Record<string, AdminListingDetailStatus>>({});
   readonly reasonOverrides = signal<Record<string, string>>({});
 
@@ -1857,8 +1872,12 @@ export class AdminListingDetailsPageComponent {
   }
 
   confirmSuspendListing(): void {
+    if (!this.canConfirmSuspendListing()) {
+      return;
+    }
+
     const listingKey = this.listing().id;
-    const reason = this.suspendReasonInput().trim() || 'The title, description, or price appears misleading or incorrect.';
+    const reason = this.suspendReasonInput().trim();
 
     this.statusOverrides.update((current) => ({ ...current, [listingKey]: 'Suspended' }));
     this.reasonOverrides.update((current) => ({ ...current, [listingKey]: reason }));
