@@ -111,7 +111,12 @@ export class BuyerWishlistPageComponent {
 
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
-  readonly wishlistEntries = signal<WishlistEntry[]>([]);
+  readonly allWishlistEntries = signal<WishlistEntry[]>([]);
+  readonly wishlistEntries = computed(() => {
+    const favoritedIds = new Set(this.favoritesStateService.favoritedIds());
+
+    return this.allWishlistEntries().filter((entry) => favoritedIds.has(entry.listing.id));
+  });
 
   readonly desktopGroups = computed(() => this.buildGroups(this.wishlistEntries()));
   readonly mobileGroups = computed(() => this.buildGroups(this.wishlistEntries()));
@@ -131,7 +136,7 @@ export class BuyerWishlistPageComponent {
         .map((item, index) => this.toWishlistEntry(item, index))
         .filter((entry): entry is WishlistEntry => entry !== null);
 
-      this.wishlistEntries.set(entries);
+      this.allWishlistEntries.set(entries);
       this.favoritesStateService.setAll(entries.map((entry) => entry.listing.id));
     } catch {
       this.errorMessage.set('We could not load your wishlist right now.');
@@ -240,12 +245,10 @@ export class BuyerWishlistPageComponent {
 
   handleFavoriteChanged(event: { id: string; isFavorited: boolean }): void {
     if (event.isFavorited) {
+      this.favoritesStateService.add(event.id);
       return;
     }
 
-    this.wishlistEntries.update((entries) =>
-      entries.filter((entry) => entry.listing.id !== event.id),
-    );
     this.favoritesStateService.remove(event.id);
   }
 
