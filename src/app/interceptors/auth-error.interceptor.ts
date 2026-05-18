@@ -31,8 +31,8 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
 
       if (isApiRequest && isHttp401 && !isAuthRequest && !hasRetried) {
         return from(authRefreshService.refreshAccessToken()).pipe(
-          switchMap((accessToken) => {
-            if (!accessToken) {
+          switchMap((didRefreshSucceed) => {
+            if (!didRefreshSucceed) {
               authSession.clearSession();
               void router.navigate(['/sign-in']);
               return throwError(() => error);
@@ -41,7 +41,6 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
             return next(
               request.clone({
                 withCredentials: true,
-                headers: request.headers.set('Authorization', `Bearer ${accessToken}`),
                 context: request.context.set(HAS_REFRESH_RETRIED, true),
               }),
             );

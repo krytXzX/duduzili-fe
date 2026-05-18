@@ -67,8 +67,11 @@ export type RegisterRequest = {
 export type RegisterResponse = AuthResponse;
 export type ProfileResponse = AuthUser | { user: AuthUser };
 export type RefreshTokenResponse = {
-  access: string;
-  refresh: string;
+  access?: string;
+  refresh?: string;
+  access_token?: string;
+  refresh_token?: string;
+  [key: string]: unknown;
 };
 
 @Injectable({ providedIn: 'root' })

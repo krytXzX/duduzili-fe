@@ -9,9 +9,9 @@ export class AuthRefreshService {
   private readonly authService = inject(AuthService);
   private readonly authSession = inject(AuthSessionService);
   private readonly appMode = inject(AppModeService);
-  private refreshPromise: Promise<string | null> | null = null;
+  private refreshPromise: Promise<boolean> | null = null;
 
-  refreshAccessToken(): Promise<string | null> {
+  refreshAccessToken(): Promise<boolean> {
     if (this.refreshPromise) {
       return this.refreshPromise;
     }
@@ -22,13 +22,13 @@ export class AuthRefreshService {
     });
   }
 
-  private async runRefresh(): Promise<string | null> {
+  private async runRefresh(): Promise<boolean> {
     if (!this.appMode.isBackendEnabled()) {
-      return null;
+      return false;
     }
 
     const response = await firstValueFrom(this.authService.refreshTokens());
-    const accessToken = this.authSession.updateTokens(response);
-    return accessToken;
+    this.authSession.updateTokens(response);
+    return true;
   }
 }
