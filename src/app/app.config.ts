@@ -8,6 +8,8 @@ import { AppTitleStrategy } from './app-title.strategy';
 import { apiAuthInterceptor } from './interceptors/api-auth.interceptor';
 import { authErrorInterceptor } from './interceptors/auth-error.interceptor';
 import { AuthBootstrapService } from './services/auth-bootstrap.service';
+import { APP_ENVIRONMENT } from './config/app-environment.token';
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -26,6 +28,10 @@ export const appConfig: ApplicationConfig = {
         const authBootstrapService = inject(AuthBootstrapService);
         return () => authBootstrapService.initialize();
       },
+    },
+    {
+      provide: APP_ENVIRONMENT,
+      useValue: environment,
     },
   ],
 };

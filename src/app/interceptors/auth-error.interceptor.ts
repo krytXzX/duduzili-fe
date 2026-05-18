@@ -5,11 +5,17 @@ import { catchError, from, switchMap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthSessionService } from '../services/auth-session.service';
 import { AuthRefreshService } from '../services/auth-refresh.service';
+import { AppModeService } from '../services/app-mode.service';
 
 const apiUrl = environment.apiUrl.replace(/\/+$/, '');
 const HAS_REFRESH_RETRIED = new HttpContextToken<boolean>(() => false);
 
 export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
+  const appMode = inject(AppModeService);
+  if (!appMode.isBackendEnabled()) {
+    return next(request);
+  }
+
   const authSession = inject(AuthSessionService);
   const authRefreshService = inject(AuthRefreshService);
   const router = inject(Router);

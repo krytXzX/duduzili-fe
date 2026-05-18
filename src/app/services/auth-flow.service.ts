@@ -4,14 +4,25 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
 import { AuthSessionService } from './auth-session.service';
+import { AppModeService } from './app-mode.service';
+import { DemoAuthService } from './demo-auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthFlowService {
   private readonly authService = inject(AuthService);
   private readonly authSession = inject(AuthSessionService);
   private readonly router = inject(Router);
+  private readonly appMode = inject(AppModeService);
+  private readonly demoAuth = inject(DemoAuthService);
 
   async logout(): Promise<void> {
+    if (!this.appMode.isBackendEnabled()) {
+      this.demoAuth.signOut();
+      this.authSession.clearSession();
+      await this.router.navigate(['/sign-in']);
+      return;
+    }
+
     try {
       await firstValueFrom(this.authService.logout());
     } catch (error: unknown) {
