@@ -1,16 +1,23 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
+import {
+  ListingsApiItem,
+  ListingsSearchResponse,
+  ListingsService,
+} from '../../services/listings.service';
+import { environment } from '../../../environments/environment';
 
 interface RecentlyViewedGroup {
   label: string;
   listings: Array<Listing & { favoriteFilled?: boolean }>;
 }
 
-interface MobileRecentlyViewedGroup {
-  label: string;
-  listings: Array<Listing & { favoriteFilled?: boolean }>;
+interface RecentlyViewedEntry {
+  listing: Listing & { favoriteFilled?: boolean };
+  createdAt: string | null;
 }
 
 @Component({
@@ -40,15 +47,29 @@ interface MobileRecentlyViewedGroup {
         </header>
 
         <div class="space-y-6 px-5 pb-8 pt-3">
-          @for (group of mobileGroups(); track group.label) {
-            <section>
-              <h2 class="mb-4 text-[20px] font-medium leading-[1.2] text-[#2a2a2a]">{{ group.label }}</h2>
-              <div class="grid grid-cols-2 gap-2">
-                @for (listing of group.listings; track listing.id) {
-                  <app-listing-card [listing]="listing" [favoriteFilled]="listing.favoriteFilled ?? false" />
-                }
-              </div>
-            </section>
+          @if (isLoading()) {
+            <div class="flex min-h-[320px] items-center justify-center text-[15px] text-[#6B7280]">
+              Loading recently viewed...
+            </div>
+          } @else if (errorMessage()) {
+            <div class="flex min-h-[320px] items-center justify-center text-center text-[15px] text-[#D14343]">
+              {{ errorMessage() }}
+            </div>
+          } @else if (!mobileGroups().length) {
+            <div class="flex min-h-[320px] items-center justify-center text-[15px] text-[#6B7280]">
+              You have not viewed any listings yet.
+            </div>
+          } @else {
+            @for (group of mobileGroups(); track group.label) {
+              <section>
+                <h2 class="mb-4 text-[20px] font-medium leading-[1.2] text-[#2a2a2a]">{{ group.label }}</h2>
+                <div class="grid grid-cols-2 gap-2">
+                  @for (listing of group.listings; track listing.id) {
+                    <app-listing-card [listing]="listing" [favoriteFilled]="listing.favoriteFilled ?? false" />
+                  }
+                </div>
+              </section>
+            }
           }
         </div>
       </div>
@@ -59,19 +80,33 @@ interface MobileRecentlyViewedGroup {
         </header>
 
         <div class="space-y-12 px-8 py-8">
-          @for (group of groups(); track group.label) {
-            <section>
-              <h2 class="mb-5 text-[18px] font-medium text-[#1A1C21]">{{ group.label }}</h2>
+          @if (isLoading()) {
+            <div class="flex min-h-[320px] items-center justify-center text-[16px] text-[#6B7280]">
+              Loading recently viewed...
+            </div>
+          } @else if (errorMessage()) {
+            <div class="flex min-h-[320px] items-center justify-center text-center text-[16px] text-[#D14343]">
+              {{ errorMessage() }}
+            </div>
+          } @else if (!groups().length) {
+            <div class="flex min-h-[320px] items-center justify-center text-[16px] text-[#6B7280]">
+              You have not viewed any listings yet.
+            </div>
+          } @else {
+            @for (group of groups(); track group.label) {
+              <section>
+                <h2 class="mb-5 text-[18px] font-medium text-[#1A1C21]">{{ group.label }}</h2>
 
-              <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-                @for (listing of group.listings; track listing.id) {
-                  <app-listing-card
-                    [listing]="listing"
-                    [favoriteFilled]="listing.favoriteFilled ?? false"
-                  />
-                }
-              </div>
-            </section>
+                <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+                  @for (listing of group.listings; track listing.id) {
+                    <app-listing-card
+                      [listing]="listing"
+                      [favoriteFilled]="listing.favoriteFilled ?? false"
+                    />
+                  }
+                </div>
+              </section>
+            }
           }
         </div>
       </div>
@@ -80,129 +115,261 @@ interface MobileRecentlyViewedGroup {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BuyerRecentlyViewedPageComponent {
-  readonly groups = signal<RecentlyViewedGroup[]>([
-    {
-      label: 'Today',
-      listings: [
-        {
-          id: 'rv1',
-          title: 'Iphone 17 pro max',
-          price: '₦2,500,000',
-          location: 'Ikeja, Lagos',
-          timeAgo: 'Now',
-          isVerified: true,
-          images: ['/assets/images/image-1-1.jpg', '/assets/images/product_watch_luxury.png'],
-          favoriteFilled: false,
-        },
-        {
-          id: 'rv2',
-          title: 'Logitech ergonomic mouse',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          timeAgo: 'Now',
-          isVerified: true,
-          images: ['/assets/images/image-2-1.jpg'],
-          favoriteFilled: false,
-        },
-        {
-          id: 'rv3',
-          title: 'RGB keyboard',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          timeAgo: 'Now',
-          isVerified: true,
-          images: ['/assets/images/product_keyboard_rgb.png'],
-          favoriteFilled: true,
-        },
-        {
-          id: 'rv4',
-          title: 'RGB keyboard',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          timeAgo: 'Now',
-          isVerified: true,
-          images: ['/assets/images/product_keyboard_rgb.png'],
-          favoriteFilled: true,
-        },
-      ],
-    },
-    {
-      label: '12 February, 2026',
-      listings: [
-        {
-          id: 'rv5',
-          title: 'Sweatshirt',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          timeAgo: 'Used',
-          isVerified: true,
-          images: ['/assets/images/fashion_menswear.png'],
-          favoriteFilled: false,
-        },
-      ],
-    },
-  ]);
+  private readonly listingsService = inject(ListingsService);
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
-  readonly mobileGroups = signal<MobileRecentlyViewedGroup[]>([
-    {
-      label: 'Today',
-      listings: [
-        {
-          id: 'm-rv1',
-          title: 'Nike sneaker',
-          price: '₦35,000',
-          timeAgo: 'Used',
-          location: 'Ikeja, Lagos',
-          images: ['/assets/images/recently-viewed-mobile/nike-sneaker.png'],
-          isVerified: true,
-        },
-        {
-          id: 'm-rv2',
-          title: 'Bone straight wig',
-          price: '₦35,000',
-          timeAgo: 'Used',
-          location: 'Ikeja, Lagos',
-          images: [
-            '/assets/images/recently-viewed-mobile/bone-straight-wig.png',
-            '/assets/images/recently-viewed-mobile/nike-sneaker.png',
-          ],
-        },
-        {
-          id: 'm-rv3',
-          title: 'Iphone X (64 gig)',
-          price: '₦35,000',
-          originalPrice: '₦35,000',
-          discountBadge: '-22%',
-          timeAgo: 'Used',
-          location: 'Ikeja, Lagos',
-          images: ['/assets/images/recently-viewed-mobile/iphone-x.png'],
-          isVerified: true,
-        },
-        {
-          id: 'm-rv4',
-          title: 'Ergonomic chair',
-          price: 'Free',
-          timeAgo: 'New',
-          location: 'Ikeja, Lagos',
-          images: ['/assets/images/recently-viewed-mobile/ergonomic-chair.png'],
-          isVerified: true,
-        },
-      ],
-    },
-    {
-      label: '12 February, 2026',
-      listings: [
-        {
-          id: 'm-rv5',
-          title: 'Nike sneaker',
-          price: '₦35,000',
-          timeAgo: 'Used',
-          location: 'Ikeja, Lagos',
-          images: ['/assets/images/recently-viewed-mobile/nike-sneaker.png'],
-          isVerified: true,
-          favoriteFilled: true,
-        },
-      ],
-    },
-  ]);
+  readonly isLoading = signal(true);
+  readonly errorMessage = signal<string | null>(null);
+  readonly recentlyViewedEntries = signal<RecentlyViewedEntry[]>([]);
+
+  readonly groups = computed(() => this.buildGroups(this.recentlyViewedEntries()));
+  readonly mobileGroups = computed(() => this.buildGroups(this.recentlyViewedEntries()));
+
+  constructor() {
+    void this.loadRecentlyViewed();
+  }
+
+  private async loadRecentlyViewed(): Promise<void> {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      const response = await firstValueFrom(this.listingsService.getRecentlyViewed());
+      const items = this.extractItems(response);
+      const entries = items
+        .map((item, index) => this.toRecentlyViewedEntry(item, index))
+        .filter((entry): entry is RecentlyViewedEntry => entry !== null);
+
+      this.recentlyViewedEntries.set(entries);
+    } catch {
+      this.errorMessage.set('We could not load your recently viewed listings right now.');
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  private buildGroups(entries: RecentlyViewedEntry[]): RecentlyViewedGroup[] {
+    if (entries.length === 0) {
+      return [];
+    }
+
+    const grouped = new Map<string, Array<Listing & { favoriteFilled?: boolean }>>();
+
+    for (const entry of entries) {
+      const label = this.labelForListing(entry.createdAt);
+      grouped.set(label, [...(grouped.get(label) ?? []), entry.listing]);
+    }
+
+    return Array.from(grouped.entries()).map(([label, listings]) => ({ label, listings }));
+  }
+
+  private labelForListing(createdAtValue: string | null): string {
+    const createdAt = this.parseDate(createdAtValue);
+    if (!createdAt) {
+      return 'Recently viewed';
+    }
+
+    const now = new Date();
+    const isSameDay =
+      createdAt.getDate() === now.getDate()
+      && createdAt.getMonth() === now.getMonth()
+      && createdAt.getFullYear() === now.getFullYear();
+
+    if (isSameDay) {
+      return 'Today';
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(createdAt);
+  }
+
+  private parseDate(value: string | null): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  private extractItems(response: ListingsSearchResponse): ListingsApiItem[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.listings)) {
+      return response.listings;
+    }
+
+    return [];
+  }
+
+  private toRecentlyViewedEntry(item: ListingsApiItem, index: number): RecentlyViewedEntry | null {
+    const title =
+      this.readString(item['title']) ??
+      this.readString(item['name']) ??
+      this.readString(item['listing_name']);
+    const price = this.formatPrice(item['price'], this.readBoolean(item['is_free']) ?? false);
+
+    if (!title || !price) {
+      return null;
+    }
+
+    return {
+      createdAt: this.readString(item['viewed_at']) ?? this.readString(item['created_at']),
+      listing: {
+        id: this.readString(item['id']) ?? `recently-viewed-${index + 1}`,
+        title,
+        price,
+        originalPrice: this.formatPrice(item['original_price'], false) ?? undefined,
+        discountBadge: this.formatDiscountBadge(item['discount_percentage']) ?? undefined,
+        location: this.composeLocation(item) ?? 'Nigeria',
+        timeAgo: this.formatCondition(item['condition']) ?? 'Recently viewed',
+        isVerified: this.readBoolean(item['is_verified']) ?? false,
+        favoriteFilled: this.readBoolean(item['is_favorited']) ?? false,
+        images: this.extractImages(item),
+      },
+    };
+  }
+
+  private extractImages(item: ListingsApiItem): string[] {
+    const arrayCandidates = [item['images'], item['gallery'], item['photos']];
+
+    for (const candidate of arrayCandidates) {
+      if (!Array.isArray(candidate)) {
+        continue;
+      }
+
+      const images = candidate
+        .map((entry) => {
+          if (typeof entry === 'string') {
+            return this.resolveMediaUrl(entry);
+          }
+
+          const record = this.readRecord(entry);
+          if (!record) {
+            return null;
+          }
+
+          return (
+            this.resolveMediaUrl(this.readString(record['image'])) ??
+            this.resolveMediaUrl(this.readString(record['url'])) ??
+            this.resolveMediaUrl(this.readString(record['src'])) ??
+            this.resolveMediaUrl(this.readString(record['thumbnail']))
+          );
+        })
+        .filter((image): image is string => typeof image === 'string' && image.length > 0);
+
+      if (images.length > 0) {
+        return images;
+      }
+    }
+
+    const singleImage =
+      this.resolveMediaUrl(this.readString(item['thumbnail'])) ??
+      this.resolveMediaUrl(this.readString(item['image'])) ??
+      this.resolveMediaUrl(this.readString(item['cover_image']));
+
+    return singleImage ? [singleImage] : ['/assets/images/home-item-placeholder.png'];
+  }
+
+  private formatPrice(value: unknown, isFree: boolean): string | null {
+    if (isFree) {
+      return 'Free';
+    }
+
+    const parsed = this.readNumber(value);
+    if (parsed === null) {
+      return null;
+    }
+
+    return `₦${new Intl.NumberFormat('en-NG').format(parsed)}`;
+  }
+
+  private formatDiscountBadge(value: unknown): string | null {
+    const parsed = this.readNumber(value);
+    if (parsed === null || parsed <= 0) {
+      return null;
+    }
+
+    return `-${Math.round(parsed)}%`;
+  }
+
+  private formatCondition(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) {
+      return null;
+    }
+
+    return value
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  private composeLocation(record: ListingsApiItem): string | null {
+    const location = this.readString(record['location']);
+    if (location) {
+      return location;
+    }
+
+    const city = this.readString(record['city']);
+    const state = this.readString(record['state']);
+
+    if (city && state && !city.includes(state)) {
+      return `${city}, ${state}`;
+    }
+
+    return city ?? state ?? null;
+  }
+
+  private resolveMediaUrl(value: string | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    if (value.startsWith('/')) {
+      return `${this.apiOrigin}${value}`;
+    }
+
+    return `${this.apiOrigin}/${value}`;
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value.replace(/,/g, '').trim());
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
+  }
 }
