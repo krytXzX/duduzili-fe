@@ -20,6 +20,8 @@ export interface AddStoreFormValue {
   readonly alternateCallNumber: string;
   readonly logo: string;
   readonly banner: string;
+  readonly profileFile: File | null;
+  readonly coverFile: File | null;
 }
 
 @Component({
@@ -364,6 +366,8 @@ export class AddStoreModalComponent implements OnDestroy {
 
   protected readonly profilePreview = signal<string | null>(null);
   protected readonly coverPreview = signal<string | null>(null);
+  private profileFile: File | null = null;
+  private coverFile: File | null = null;
 
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly mobileOverlayService = inject(MobileOverlayService);
@@ -400,8 +404,10 @@ export class AddStoreModalComponent implements OnDestroy {
 
       if (type === 'profile') {
         this.profilePreview.set(result);
+        this.profileFile = file;
       } else {
         this.coverPreview.set(result);
+        this.coverFile = file;
       }
     };
 
@@ -421,6 +427,8 @@ export class AddStoreModalComponent implements OnDestroy {
       ...formValue,
       logo: this.profilePreview() ?? '/assets/images/store-vine-logo-desktop.png',
       banner: this.coverPreview() ?? '/assets/images/store-vine-cover-desktop.png',
+      profileFile: this.profileFile,
+      coverFile: this.coverFile,
     });
   }
 

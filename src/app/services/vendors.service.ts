@@ -62,6 +62,10 @@ export class VendorsService {
     return this.http.get<MyStoresResponse>(`${this.apiUrl}/vendors/my-stores/`);
   }
 
+  createStore(payload: FormData): Observable<VendorRecord> {
+    return this.http.post<VendorRecord>(`${this.apiUrl}/vendors/`, payload);
+  }
+
   getVendorListings(id: string): Observable<VendorListingsResponse> {
     return this.http.get<VendorListingsResponse>(`${this.apiUrl}/vendors/${id}/listings/`);
   }

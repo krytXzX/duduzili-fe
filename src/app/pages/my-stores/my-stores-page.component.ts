@@ -6,16 +6,21 @@ import { StoreCardComponent, Store } from '../../components/stores/store-card.co
 import { AddStoreModalComponent } from './components/add-store-modal.component';
 import { SuccessModalComponent } from './components/success-modal.component';
 import { AppModeService } from '../../services/app-mode.service';
+import { AppToastService } from '../../services/app-toast.service';
 import { MyStoresResponse, VendorRecord, VendorsService } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
 
 interface NewStoreFormData {
   readonly name: string;
   readonly description: string;
+  readonly location: string;
+  readonly whatsappNumber: string;
+  readonly callNumber: string;
+  readonly alternateCallNumber: string;
   readonly logo: string;
   readonly banner: string;
-  readonly callNumber?: string;
-  readonly alternateCallNumber?: string;
+  readonly profileFile: File | null;
+  readonly coverFile: File | null;
 }
 
 @Component({
@@ -323,6 +328,7 @@ interface NewStoreFormData {
 export class MyStoresPageComponent {
   private readonly vendorsService = inject(VendorsService);
   private readonly appMode = inject(AppModeService);
+  private readonly appToastService = inject(AppToastService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   protected readonly searchIconUrl = '/assets/icons/my-stores-search.svg';
@@ -459,32 +465,45 @@ export class MyStoresPageComponent {
   }
 
   protected onStoreSubmit(formData: NewStoreFormData): void {
-    const newStore: Store = {
-      id: crypto.randomUUID(),
-      name: formData.name,
-      description: formData.description,
-      logo: formData.logo,
-      banner: formData.banner,
-      location: 'Ikeja, Lagos',
-      callNumber: formData.callNumber,
-      alternateCallNumber: formData.alternateCallNumber,
-      followers: '0',
-      isVerified: false,
-      route: ['/seller/my-stores'],
-    };
-
-    this.stores.update((previousStores) => [newStore, ...previousStores]);
-    this.isAddingStore.set(false);
-    this.latestCreatedStoreName.set(formData.name);
-
-    setTimeout(() => {
-      this.isSuccess.set(true);
-    }, 300);
+    void this.createStore(formData);
   }
 
   protected onAddAnother(): void {
     this.isSuccess.set(false);
     this.isAddingStore.set(true);
+  }
+
+  private async createStore(formData: NewStoreFormData): Promise<void> {
+    const fallbackStore = this.buildOptimisticStore(formData);
+
+    if (!this.appMode.isBackendEnabled()) {
+      this.stores.update((previousStores) => [fallbackStore, ...previousStores]);
+      this.isAddingStore.set(false);
+      this.latestCreatedStoreName.set(formData.name);
+
+      setTimeout(() => {
+        this.isSuccess.set(true);
+      }, 300);
+      return;
+    }
+
+    try {
+      const response = await firstValueFrom(this.vendorsService.createStore(this.buildCreateStorePayload(formData)));
+      const createdStore = this.toStoreCard(response, 0) ?? fallbackStore;
+
+      this.stores.update((previousStores) => [createdStore, ...previousStores]);
+      this.isAddingStore.set(false);
+      this.latestCreatedStoreName.set(createdStore.name);
+
+      setTimeout(() => {
+        this.isSuccess.set(true);
+      }, 300);
+    } catch {
+      this.appToastService.show({
+        message: 'We could not create your store right now.',
+        durationMs: 2800,
+      });
+    }
   }
 
   private async loadMyStores(): Promise<void> {
@@ -588,6 +607,48 @@ export class MyStoresPageComponent {
         undefined,
       route: ['/seller/my-stores', id],
     };
+  }
+
+  private buildOptimisticStore(formData: NewStoreFormData): Store {
+    const generatedId = crypto.randomUUID();
+
+    return {
+      id: generatedId,
+      name: formData.name,
+      description: formData.description,
+      location: formData.location,
+      coverImage: formData.banner,
+      mobileCoverImage: formData.banner,
+      logoImage: formData.logo,
+      mobileLogoImage: formData.logo,
+      isVerified: false,
+      callNumber: formData.callNumber,
+      alternateCallNumber: formData.alternateCallNumber || formData.whatsappNumber,
+      route: ['/seller/my-stores', generatedId],
+    };
+  }
+
+  private buildCreateStorePayload(formData: NewStoreFormData): FormData {
+    const payload = new FormData();
+    payload.append('store_name', formData.name);
+    payload.append('store_bio', formData.description);
+    payload.append('location', formData.location);
+    payload.append('whatsapp_number', formData.whatsappNumber);
+    payload.append('call_number', formData.callNumber);
+
+    if (formData.alternateCallNumber.trim()) {
+      payload.append('alternate_call_number', formData.alternateCallNumber.trim());
+    }
+
+    if (formData.profileFile) {
+      payload.append('profile_photo', formData.profileFile);
+    }
+
+    if (formData.coverFile) {
+      payload.append('cover_image', formData.coverFile);
+    }
+
+    return payload;
   }
 
   private resolveMediaUrl(value: string | null): string | null {
