@@ -1,6 +1,7 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { SettingsNavComponent, SettingsTab } from './components/settings-nav.component';
 import {
   ProfileSettingsData,
@@ -14,6 +15,9 @@ import {
   TwoFactorMethod,
 } from './components/settings-two-factor-modal.component';
 import { SettingsVerificationModalComponent } from './components/settings-verification-modal.component';
+import { AuthService, AuthUser, ProfileResponse } from '../../services/auth.service';
+import { AuthSessionService } from '../../services/auth-session.service';
+import { AppModeService } from '../../services/app-mode.service';
 
 type ModalMode =
   | 'name'
@@ -1362,6 +1366,9 @@ export class SettingsPageComponent {
   private readonly router = inject(Router);
   private readonly authFlow = inject(AuthFlowService);
   private readonly appToastService = inject(AppToastService);
+  private readonly authService = inject(AuthService);
+  private readonly authSession = inject(AuthSessionService);
+  private readonly appMode = inject(AppModeService);
   protected readonly mobileBackRoute = computed(() => {
     const currentUrl = this.router.url.split('?')[0] ?? this.router.url;
 
@@ -1516,6 +1523,10 @@ export class SettingsPageComponent {
     { id: 'security' as const, label: 'Security', iconSrc: '/assets/icons/settings/mobile-security.svg' },
     { id: 'notifications' as const, label: 'Notifications', iconSrc: '/assets/icons/settings/mobile-notifications.svg' },
   ];
+
+  constructor() {
+    void this.loadProfile();
+  }
 
   openMobileMenuItem(tab: SettingsTab): void {
     this.activeTab.set(tab);
@@ -1827,5 +1838,57 @@ export class SettingsPageComponent {
 
   private showToast(message: string): void {
     this.appToastService.show({ message, durationMs: 2600 });
+  }
+
+  private async loadProfile(): Promise<void> {
+    if (!this.appMode.isBackendEnabled()) {
+      this.hydrateProfileFromUser(this.authSession.user());
+      return;
+    }
+
+    try {
+      const response = await firstValueFrom(this.authService.getProfile());
+      this.authSession.initializeFromProfile(response);
+      this.hydrateProfileFromUser(this.resolveProfileUser(response));
+    } catch {
+      this.hydrateProfileFromUser(this.authSession.user());
+    }
+  }
+
+  private hydrateProfileFromUser(user: AuthUser | null): void {
+    if (!user) {
+      return;
+    }
+
+    const phoneNumber = user.phone_number?.trim() ?? '';
+    const fullName = user.full_name?.trim() || user.username;
+
+    this.profile.set({
+      email: user.email,
+      callNumber: phoneNumber,
+      whatsappNumber: phoneNumber,
+      fullName,
+    });
+  }
+
+  private resolveProfileUser(response: ProfileResponse): AuthUser | null {
+    if (this.isAuthUser(response)) {
+      return response;
+    }
+
+    return this.isAuthUser(response.user) ? response.user : null;
+  }
+
+  private isAuthUser(value: unknown): value is AuthUser {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as Partial<AuthUser>;
+    return (
+      typeof candidate.id === 'number'
+      && typeof candidate.username === 'string'
+      && typeof candidate.email === 'string'
+    );
   }
 }

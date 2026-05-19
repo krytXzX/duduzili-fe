@@ -1,8 +1,8 @@
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:8000/api',
-  demoMode: true,
-  backendEnabled: false,
+  demoMode: false,
+  backendEnabled: true,
 };
 
 export const ENVIRIONMENT = environment;
