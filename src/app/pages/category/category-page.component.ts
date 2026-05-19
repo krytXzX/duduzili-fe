@@ -300,13 +300,13 @@ export class CategoryPageComponent {
 
   private formatDiscountBadge(value: unknown): string | undefined {
     if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
-      return `${Math.round(value)}% off`;
+      return `-${Math.round(value)}%`;
     }
 
     if (typeof value === 'string' && value.trim()) {
       const numeric = Number(value.trim());
       if (Number.isFinite(numeric) && numeric > 0) {
-        return `${Math.round(numeric)}% off`;
+        return `-${Math.round(numeric)}%`;
       }
     }
 
