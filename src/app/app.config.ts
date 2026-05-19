@@ -1,5 +1,5 @@
 import { APP_INITIALIZER, ApplicationConfig, provideBrowserGlobalErrorListeners, inject } from '@angular/core';
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import { provideRouter, TitleStrategy } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -14,7 +14,14 @@ import { environment } from '../environments/environment';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withFetch(), withInterceptors([apiAuthInterceptor, authErrorInterceptor])),
+    provideHttpClient(
+      withFetch(),
+      withXsrfConfiguration({
+        cookieName: 'csrftoken',
+        headerName: 'X-CSRFToken',
+      }),
+      withInterceptors([apiAuthInterceptor, authErrorInterceptor]),
+    ),
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
     {

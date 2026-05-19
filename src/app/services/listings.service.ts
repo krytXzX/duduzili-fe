@@ -43,6 +43,10 @@ export class ListingsService {
     return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/manage_listings`);
   }
 
+  createListing(payload: FormData): Observable<ListingsApiItem> {
+    return this.http.post<ListingsApiItem>(`${this.apiUrl}/listings/`, payload);
+  }
+
   getListingDetails(id: string): Observable<ListingsApiItem> {
     return this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`);
   }

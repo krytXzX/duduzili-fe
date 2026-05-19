@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, output, signal, computed
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { 
   heroXMark, 
@@ -21,6 +22,8 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { ListingCardComponent } from './listing-card.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+import { ListingsService } from '../../services/listings.service';
+import { AppToastService } from '../../services/app-toast.service';
 
 export interface ListingData {
   name: string;
@@ -1514,11 +1517,14 @@ type PickerOption = {
 export class AddListingModalComponent implements OnDestroy {
   private fb = inject(FormBuilder);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly listingsService = inject(ListingsService);
+  private readonly appToastService = inject(AppToastService);
   
   close = output<void>();
   save = output<ListingData>();
 
   currentStep = signal(1);
+  isPublishing = signal(false);
   
   listingForm!: FormGroup;
 
@@ -1591,9 +1597,9 @@ export class AddListingModalComponent implements OnDestroy {
     { value: 'Benin City, Edo', label: 'Benin City, Edo', subtitle: 'Edo State' },
   ];
 
-  mainImage = signal<string | null>('https://images.unsplash.com/photo-1696446701796-da61225697cc?w=800&fit=crop');
+  mainImage = signal<string | null>(null);
   additionalImages = signal<(string | null)[]>([
-    'https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=400&h=400&fit=crop',
+    null,
     null,
     null,
     null,
@@ -1602,16 +1608,19 @@ export class AddListingModalComponent implements OnDestroy {
 
   formValues: any;
   private createdObjectUrls = new Set<string>();
+  private mainImageFile: File | null = null;
+  private additionalImageFiles: Array<File | null> = [null, null, null, null, null];
 
   constructor() {
     this.mobileOverlayService.setAddListingOpen(true);
     this.listingForm = this.fb.group({
       name: ['', Validators.required],
-      category: ['Electronics/Phones & Tablets', Validators.required],
-      condition: ['Fairly used', Validators.required],
-      store: ['vine', Validators.required],
+      category: ['', Validators.required],
+      condition: ['', Validators.required],
+      store: ['', Validators.required],
       description: [''],
-      location: ['Ikeja, Lagos', Validators.required],
+      youtubeLink: [''],
+      location: ['', Validators.required],
       whatsappNumber: [''],
       callNumber: [''],
       deliveryOptions: [[] as string[], Validators.required],
@@ -1820,18 +1829,62 @@ export class AddListingModalComponent implements OnDestroy {
   }
 
   publish() {
-    if (this.listingForm.valid || true) { // Bypass strict form validation merely so Step 5 mock works seamlessly
-      this.currentStep.set(5);
-    } else {
+    void this.publishListing();
+  }
+
+  private async publishListing(): Promise<void> {
+    if (this.isPublishing()) {
+      return;
+    }
+
+    if (!this.listingForm.valid) {
       this.listingForm.markAllAsTouched();
+      return;
+    }
+
+    this.isPublishing.set(true);
+
+    try {
+      await firstValueFrom(this.listingsService.createListing(this.buildCreateListingPayload()));
+      this.currentStep.set(5);
+    } catch {
+      this.appToastService.show({
+        message: 'We could not publish your listing right now.',
+        durationMs: 2600,
+      });
+    } finally {
+      this.isPublishing.set(false);
     }
   }
 
   resetForm() {
      this.revokeAllObjectUrls();
      this.listingForm.reset();
+     this.listingForm.patchValue({
+       name: '',
+       category: '',
+       condition: '',
+       store: '',
+       description: '',
+       youtubeLink: '',
+       location: '',
+       whatsappNumber: '',
+       callNumber: '',
+       deliveryOptions: [],
+       price: null,
+       addDiscount: false,
+       discountType: 'amount',
+       discountPrice: null,
+       discountStartDate: '',
+       discountEndDate: '',
+       acceptOffers: false,
+       listForFree: false,
+       images: [],
+     });
      this.mainImage.set(null);
      this.additionalImages.set([null, null, null, null, null]);
+     this.mainImageFile = null;
+     this.additionalImageFiles = [null, null, null, null, null];
      this.currentStep.set(1);
   }
 
@@ -1853,6 +1906,7 @@ export class AddListingModalComponent implements OnDestroy {
     }
 
     this.mainImage.set(nextUrl);
+    this.mainImageFile = file;
     this.syncImagesToForm();
     this.resetFileInput(event);
   }
@@ -1872,6 +1926,7 @@ export class AddListingModalComponent implements OnDestroy {
     this.additionalImages.update((images) =>
       images.map((image, currentIndex) => currentIndex === index ? nextUrl : image),
     );
+    this.additionalImageFiles[index] = file;
     this.syncImagesToForm();
     this.resetFileInput(event);
   }
@@ -1917,6 +1972,78 @@ export class AddListingModalComponent implements OnDestroy {
       },
       { emitEvent: false },
     );
+  }
+
+  private buildCreateListingPayload(): FormData {
+    const formValue = this.listingForm.getRawValue() as {
+      name: string;
+      category: string;
+      condition: string;
+      store: string;
+      description: string;
+      youtubeLink?: string;
+      location: string;
+      whatsappNumber: string;
+      callNumber: string;
+      deliveryOptions: string[];
+      price: number | null;
+      addDiscount: boolean;
+      discountType: string;
+      discountPrice: number | null;
+      discountStartDate: string;
+      discountEndDate: string;
+      acceptOffers: boolean;
+      listForFree: boolean;
+    };
+
+    const payload = new FormData();
+    payload.append('title', formValue.name);
+    payload.append('category', formValue.category);
+    payload.append('condition', formValue.condition);
+    payload.append('store', formValue.store);
+    payload.append('description', formValue.description ?? '');
+    payload.append('location', formValue.location);
+    payload.append('whatsapp_number', formValue.whatsappNumber ?? '');
+    payload.append('call_number', formValue.callNumber ?? '');
+    payload.append('accept_offers', String(!!formValue.acceptOffers));
+    payload.append('is_free', String(!!formValue.listForFree));
+
+    if (formValue.price !== null && formValue.price !== undefined && !formValue.listForFree) {
+      payload.append('price', String(formValue.price));
+    }
+
+    if (formValue.youtubeLink?.trim()) {
+      payload.append('youtube_link', formValue.youtubeLink.trim());
+    }
+
+    for (const deliveryOption of formValue.deliveryOptions ?? []) {
+      payload.append('delivery_options', deliveryOption);
+    }
+
+    if (formValue.addDiscount && formValue.discountPrice !== null && formValue.discountPrice !== undefined) {
+      payload.append('discount_type', formValue.discountType);
+      payload.append('discount_value', String(formValue.discountPrice));
+
+      if (formValue.discountStartDate) {
+        payload.append('discount_start_date', formValue.discountStartDate);
+      }
+
+      if (formValue.discountEndDate) {
+        payload.append('discount_end_date', formValue.discountEndDate);
+      }
+    }
+
+    if (this.mainImageFile) {
+      payload.append('images', this.mainImageFile);
+    }
+
+    for (const imageFile of this.additionalImageFiles) {
+      if (imageFile) {
+        payload.append('images', imageFile);
+      }
+    }
+
+    return payload;
   }
 
   private optionsForPicker(kind: PickerKind | null): readonly PickerOption[] {
