@@ -477,6 +477,14 @@ export const routes: Routes = [
         (m) => m.TermsOfServicePageComponent,
       ),
   },
+  {
+    path: 'privacy-policy',
+    title: 'Privacy Policy',
+    loadComponent: () =>
+      import('./pages/privacy-policy/privacy-policy-page.component').then(
+        (m) => m.PrivacyPolicyPageComponent,
+      ),
+  },
   // Catch-all (Optional, but good for stability)
   {
     path: '**',
