@@ -36,6 +36,7 @@ interface AdminStoreDetailsRecord {
   name: string;
   banner: string;
   logo: string;
+  description: string;
   location: string;
   followers: string;
   listings: string;
@@ -194,6 +195,14 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
             </button>
           </div>
         </div>
+
+        @if (store().description) {
+          <div class="mt-8 max-w-[860px]">
+            <p class="text-[16px] leading-7 text-[#1A1C21]">
+              {{ store().description }}
+            </p>
+          </div>
+        }
 
         <div class="mt-8 flex items-center gap-8 border-b border-[#EEF0F4]">
           <button
@@ -606,6 +615,8 @@ export class AdminStoreDetailsPageComponent {
       name: 'The Vine Collections',
       banner: '/assets/images/store-1-banner.png',
       logo: '/assets/images/store-1-banner.png',
+      description:
+        'Premium gadgets, fashion finds, and curated essentials delivered with care across Lagos and beyond.',
       location: 'Ikeja, Lagos',
       followers: '2.5k',
       listings: '1,456',
@@ -623,6 +634,8 @@ export class AdminStoreDetailsPageComponent {
       name: 'The Vine Collections',
       banner: '/assets/images/store-1-banner.png',
       logo: '/assets/images/store-1-banner.png',
+      description:
+        'Curated accessories and fast-moving everyday pieces with a focus on quality presentation and reliable fulfilment.',
       location: 'Ikeja, Lagos',
       followers: '2.5k',
       listings: '1,456',
@@ -640,6 +653,8 @@ export class AdminStoreDetailsPageComponent {
       name: 'The Vine Collections',
       banner: '/assets/images/store-1-banner.png',
       logo: '/assets/images/store-1-banner.png',
+      description:
+        'Fashion-led collections for shoppers who want standout wardrobe staples and smooth customer support.',
       location: 'Ikeja, Lagos',
       followers: '2.5k',
       listings: '1,456',
@@ -657,6 +672,8 @@ export class AdminStoreDetailsPageComponent {
       name: 'Eden Organics',
       banner: '/assets/images/store-2-banner.png',
       logo: '/assets/images/store-2-banner.png',
+      description:
+        'A wellness-focused store offering organic staples, household picks, and carefully sourced lifestyle products.',
       location: 'Ikeja, Lagos',
       followers: '1.8k',
       listings: '300',
@@ -674,6 +691,8 @@ export class AdminStoreDetailsPageComponent {
       name: 'Eden Organics',
       banner: '/assets/images/store-2-banner.png',
       logo: '/assets/images/store-2-banner.png',
+      description:
+        'Clean, practical essentials for health-conscious buyers, with a smaller catalogue and a growing local audience.',
       location: 'Ikeja, Lagos',
       followers: '1.8k',
       listings: '28',
@@ -691,6 +710,8 @@ export class AdminStoreDetailsPageComponent {
       name: 'Amazing Fragrances',
       banner: '/assets/images/store-3-banner.png',
       logo: '/assets/images/store-3-banner.png',
+      description:
+        'Signature scents and premium fragrance selections designed for gifting, collecting, and daily wear.',
       location: 'Ikeja, Lagos',
       followers: '960',
       listings: '123',
@@ -708,6 +729,8 @@ export class AdminStoreDetailsPageComponent {
       name: 'Amazing Fragrances',
       banner: '/assets/images/store-3-banner.png',
       logo: '/assets/images/store-3-banner.png',
+      description:
+        'A boutique fragrance storefront with a refined brand voice and a compact but distinctive inventory.',
       location: 'Ikeja, Lagos',
       followers: '960',
       listings: '0',

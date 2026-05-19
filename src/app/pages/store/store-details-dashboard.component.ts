@@ -233,6 +233,13 @@ interface ProductSection {
               Reviews
             </button>
           </div>
+          @if (s.description) {
+            <div class="mt-6">
+              <p class="text-[16px] leading-7 text-[#1F1F1F]">
+                {{ s.description }}
+              </p>
+            </div>
+          }
           <div
             class="h-[2px] w-[102px] bg-[#6453D9] transition-transform duration-200"
             [style.transform]="mobileTabIndicatorTransform()"
@@ -559,6 +566,14 @@ interface ProductSection {
                 }
               </div>
             </div>
+
+            @if (s.description) {
+              <div class="mt-8 max-w-[860px] px-2">
+                <p class="text-[16px] leading-7 text-[#1F1F1F]">
+                  {{ s.description }}
+                </p>
+              </div>
+            }
 
             <div class="mt-5 border-b border-[#EAEAEA] px-1">
               <div class="flex items-end gap-2 px-2">

@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import {
   ListingsApiItem,
-  ListingsSearchResponse,
+  RecentlyViewedResponse,
   ListingsService,
 } from '../../services/listings.service';
 import { FavoritesStateService } from '../../services/favorites-state.service';
@@ -19,6 +19,7 @@ interface RecentlyViewedGroup {
 interface RecentlyViewedEntry {
   listing: Listing & { favoriteFilled?: boolean };
   createdAt: string | null;
+  groupLabel: string;
 }
 
 @Component({
@@ -142,9 +143,8 @@ export class BuyerRecentlyViewedPageComponent {
 
     try {
       const response = await firstValueFrom(this.listingsService.getRecentlyViewed());
-      const items = this.extractItems(response);
-      const entries = items
-        .map((item, index) => this.toRecentlyViewedEntry(item, index))
+      const entries = this.extractItems(response)
+        .map(({ item, label }, index) => this.toRecentlyViewedEntry(item, label, index))
         .filter((entry): entry is RecentlyViewedEntry => entry !== null);
 
       this.recentlyViewedEntries.set(entries);
@@ -193,66 +193,42 @@ export class BuyerRecentlyViewedPageComponent {
     const grouped = new Map<string, Array<Listing & { favoriteFilled?: boolean }>>();
 
     for (const entry of entries) {
-      const label = this.labelForListing(entry.createdAt);
-      grouped.set(label, [...(grouped.get(label) ?? []), entry.listing]);
+      grouped.set(entry.groupLabel, [...(grouped.get(entry.groupLabel) ?? []), entry.listing]);
     }
 
-    return Array.from(grouped.entries()).map(([label, listings]) => ({ label, listings }));
+    const orderedLabels = ['Today', 'Yesterday', 'Earlier'];
+    return orderedLabels
+      .map((label) => {
+        const listings = grouped.get(label);
+        return listings ? { label, listings } : null;
+      })
+      .filter((group): group is RecentlyViewedGroup => group !== null);
   }
 
-  private labelForListing(createdAtValue: string | null): string {
-    const createdAt = this.parseDate(createdAtValue);
-    if (!createdAt) {
-      return 'Recently viewed';
-    }
+  private extractItems(
+    response: RecentlyViewedResponse,
+  ): Array<{ item: ListingsApiItem; label: string }> {
+    const groups: Array<{ key: keyof RecentlyViewedResponse; label: string }> = [
+      { key: 'today', label: 'Today' },
+      { key: 'yesterday', label: 'Yesterday' },
+      { key: 'earlier', label: 'Earlier' },
+    ];
 
-    const now = new Date();
-    const isSameDay =
-      createdAt.getDate() === now.getDate()
-      && createdAt.getMonth() === now.getMonth()
-      && createdAt.getFullYear() === now.getFullYear();
+    return groups.flatMap(({ key, label }) => {
+      const items = response[key];
+      if (!Array.isArray(items)) {
+        return [];
+      }
 
-    if (isSameDay) {
-      return 'Today';
-    }
-
-    return new Intl.DateTimeFormat('en-NG', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(createdAt);
+      return items.map((item) => ({ item, label }));
+    });
   }
 
-  private parseDate(value: string | null): Date | null {
-    if (!value) {
-      return null;
-    }
-
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-
-  private extractItems(response: ListingsSearchResponse): ListingsApiItem[] {
-    if (Array.isArray(response)) {
-      return response;
-    }
-
-    if (Array.isArray(response.results)) {
-      return response.results;
-    }
-
-    if (Array.isArray(response.data)) {
-      return response.data;
-    }
-
-    if (Array.isArray(response.listings)) {
-      return response.listings;
-    }
-
-    return [];
-  }
-
-  private toRecentlyViewedEntry(item: ListingsApiItem, index: number): RecentlyViewedEntry | null {
+  private toRecentlyViewedEntry(
+    item: ListingsApiItem,
+    groupLabel: string,
+    index: number,
+  ): RecentlyViewedEntry | null {
     const title =
       this.readString(item['title']) ??
       this.readString(item['name']) ??
@@ -265,6 +241,7 @@ export class BuyerRecentlyViewedPageComponent {
 
     return {
       createdAt: this.readString(item['viewed_at']) ?? this.readString(item['created_at']),
+      groupLabel,
       listing: {
         id: this.readString(item['id']) ?? `recently-viewed-${index + 1}`,
         title,
