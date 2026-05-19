@@ -1,10 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroBars3, heroChevronRight, heroMagnifyingGlass } from '@ng-icons/heroicons/outline';
-import { AuthSessionService } from '../../services/auth-session.service';
+import { AppModeService } from '../../services/app-mode.service';
+import { AuthService, type ProfileResponse } from '../../services/auth.service';
 import { AuthFlowService } from '../../services/auth-flow.service';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 type BuyerMenuEntry = {
   readonly label: string;
@@ -415,10 +418,13 @@ type BuyerMenuEntry = {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BuyerDashboardNavbarComponent {
+export class BuyerDashboardNavbarComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly appMode = inject(AppModeService);
+  private readonly authService = inject(AuthService);
   private readonly authSession = inject(AuthSessionService);
   private readonly authFlow = inject(AuthFlowService);
+  private hasRequestedBuyerMode = false;
 
   readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
@@ -476,6 +482,25 @@ export class BuyerDashboardNavbarComponent {
     },
   ];
 
+  async ngOnInit(): Promise<void> {
+    if (this.hasRequestedBuyerMode || !this.appMode.isBackendEnabled()) {
+      return;
+    }
+
+    this.hasRequestedBuyerMode = true;
+
+    try {
+      const response = await firstValueFrom(
+        this.authService.switchMode({ is_vendor: false }),
+      );
+      if (this.isProfileLikeResponse(response)) {
+        this.authSession.initializeFromProfile(response);
+      }
+    } catch {
+      // Keep buyer navigation usable even if the mode switch request fails.
+    }
+  }
+
   updateSearchQuery(value: string): void {
     this.searchQuery.set(value);
   }
@@ -510,5 +535,31 @@ export class BuyerDashboardNavbarComponent {
   async logOut(): Promise<void> {
     this.closeAccountMenu();
     await this.authFlow.logout();
+  }
+
+  private isProfileLikeResponse(value: unknown): value is ProfileResponse {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as { user?: unknown; id?: unknown; username?: unknown; email?: unknown };
+    if (
+      typeof candidate.id === 'number' &&
+      typeof candidate.username === 'string' &&
+      typeof candidate.email === 'string'
+    ) {
+      return true;
+    }
+
+    if (!candidate.user || typeof candidate.user !== 'object') {
+      return false;
+    }
+
+    const nestedUser = candidate.user as { id?: unknown; username?: unknown; email?: unknown };
+    return (
+      typeof nestedUser.id === 'number' &&
+      typeof nestedUser.username === 'string' &&
+      typeof nestedUser.email === 'string'
+    );
   }
 }

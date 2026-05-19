@@ -1,9 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, input } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { DashboardNavbarComponent } from './dashboard-navbar.component';
 import { DashboardSidebarComponent } from './dashboard-sidebar.component';
 import { MobileBottomNavComponent } from './mobile-bottom-nav.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 import { AppToastComponent } from '../common/app-toast.component';
+import { AppModeService } from '../../services/app-mode.service';
+import { AuthService, type ProfileResponse } from '../../services/auth.service';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
   selector: 'app-seller-shell',
@@ -53,19 +57,68 @@ import { AppToastComponent } from '../common/app-toast.component';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SellerShellComponent {
+export class SellerShellComponent implements OnInit {
   private readonly defaultMainClass =
     'min-h-0 flex-1 overflow-y-auto bg-transparent pb-24 lg:rounded-[32px] lg:bg-white lg:p-8 lg:pb-8 lg:shadow-sm';
 
   protected readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly appMode = inject(AppModeService);
+  private readonly authService = inject(AuthService);
+  private readonly authSession = inject(AuthSessionService);
+  private hasRequestedSellerMode = false;
 
   readonly showDesktopNavbar = input(true);
   readonly showDesktopSidebar = input(true);
   readonly showMobileBottomNav = input(true);
   readonly contentClass = input('');
 
+  async ngOnInit(): Promise<void> {
+    if (this.hasRequestedSellerMode || !this.appMode.isBackendEnabled()) {
+      return;
+    }
+
+    this.hasRequestedSellerMode = true;
+
+    try {
+      const response = await firstValueFrom(
+        this.authService.switchMode({ is_vendor: true }),
+      );
+      if (this.isProfileLikeResponse(response)) {
+        this.authSession.initializeFromProfile(response);
+      }
+    } catch {
+      // Keep seller navigation usable even if the mode switch request fails.
+    }
+  }
+
   mainClass(): string {
     const extraClass = this.contentClass().trim();
     return extraClass ? `${this.defaultMainClass} ${extraClass}` : this.defaultMainClass;
+  }
+
+  private isProfileLikeResponse(value: unknown): value is ProfileResponse {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as { user?: unknown; id?: unknown; username?: unknown; email?: unknown };
+    if (
+      typeof candidate.id === 'number' &&
+      typeof candidate.username === 'string' &&
+      typeof candidate.email === 'string'
+    ) {
+      return true;
+    }
+
+    if (!candidate.user || typeof candidate.user !== 'object') {
+      return false;
+    }
+
+    const nestedUser = candidate.user as { id?: unknown; username?: unknown; email?: unknown };
+    return (
+      typeof nestedUser.id === 'number' &&
+      typeof nestedUser.username === 'string' &&
+      typeof nestedUser.email === 'string'
+    );
   }
 }

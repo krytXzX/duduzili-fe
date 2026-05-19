@@ -71,6 +71,10 @@ export type UpdateProfileRequest = {
   phone_number?: string;
 };
 
+export type SwitchModeRequest = {
+  is_vendor: boolean;
+};
+
 export type RegisterResponse = AuthResponse;
 export type ProfileResponse = AuthUser | { user: AuthUser };
 export type RefreshTokenResponse = {
@@ -116,6 +120,13 @@ export class AuthService {
 
   updateProfile(payload: UpdateProfileRequest): Observable<ProfileResponse> {
     return this.http.put<ProfileResponse>(`${this.apiUrl}/auth/profile/`, payload);
+  }
+
+  switchMode(payload: SwitchModeRequest): Observable<ProfileResponse | AuthResponse | unknown> {
+    return this.http.post<ProfileResponse | AuthResponse | unknown>(
+      `${this.apiUrl}/auth/switch-mode/`,
+      payload,
+    );
   }
 
   refreshTokens(): Observable<RefreshTokenResponse> {

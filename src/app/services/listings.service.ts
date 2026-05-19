@@ -5,6 +5,23 @@ import { environment } from '../../environments/environment';
 
 export type ListingsApiItem = Record<string, unknown>;
 export type ToggleFavoriteResponse = Record<string, unknown> | null;
+export type ManageListingsCategory = {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string | null;
+  limit_type: string;
+  subcategories: readonly ManageListingsCategory[];
+};
+
+export type ManageListingsStore = Record<string, unknown>;
+
+export interface ManageListingsResponse {
+  all?: ListingsApiItem[];
+  stats?: Record<string, number>;
+  stores?: ManageListingsStore[];
+  categories?: ManageListingsCategory[];
+}
 export interface SearchListingsParams {
   search?: string;
   condition?: string;
@@ -45,8 +62,8 @@ export class ListingsService {
     return this.http.get<RecentlyViewedResponse>(`${this.apiUrl}/listings/recently-viewed`);
   }
 
-  getManageListings(): Observable<ListingsSearchResponse> {
-    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/manage_listings`);
+  getManageListings(): Observable<ManageListingsResponse> {
+    return this.http.get<ManageListingsResponse>(`${this.apiUrl}/listings/manage_listings`);
   }
 
   createListing(payload: FormData): Observable<ListingsApiItem> {

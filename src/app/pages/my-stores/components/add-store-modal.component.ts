@@ -9,6 +9,7 @@ import {
 import { NgOptimizedImage } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { AppToastService } from '../../../services/app-toast.service';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 
 export interface AddStoreFormValue {
@@ -20,6 +21,8 @@ export interface AddStoreFormValue {
   readonly alternateCallNumber: string;
   readonly logo: string;
   readonly banner: string;
+  readonly profileFile: File | null;
+  readonly coverFile: File | null;
 }
 
 @Component({
@@ -296,7 +299,6 @@ export interface AddStoreFormValue {
             <button
               type="button"
               class="flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453d9] text-[16px] leading-6 font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8] disabled:opacity-50"
-              [disabled]="storeForm.invalid"
               (click)="onSubmit()"
             >
               Add store
@@ -315,7 +317,6 @@ export interface AddStoreFormValue {
             <button
               type="button"
               class="inline-flex h-10 items-center justify-center rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] disabled:opacity-50"
-              [disabled]="storeForm.invalid"
               (click)="onSubmit()"
             >
               Add store
@@ -364,13 +365,16 @@ export class AddStoreModalComponent implements OnDestroy {
 
   protected readonly profilePreview = signal<string | null>(null);
   protected readonly coverPreview = signal<string | null>(null);
+  private profileFile: File | null = null;
+  private coverFile: File | null = null;
 
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly appToastService = inject(AppToastService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
 
   protected readonly storeForm = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(2)]],
-    description: ['', [Validators.required, Validators.minLength(10)]],
+    name: ['', [Validators.required]],
+    description: ['', [Validators.required]],
     location: ['', Validators.required],
     whatsappNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],
     callNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],
@@ -400,8 +404,10 @@ export class AddStoreModalComponent implements OnDestroy {
 
       if (type === 'profile') {
         this.profilePreview.set(result);
+        this.profileFile = file;
       } else {
         this.coverPreview.set(result);
+        this.coverFile = file;
       }
     };
 
@@ -410,8 +416,21 @@ export class AddStoreModalComponent implements OnDestroy {
   }
 
   protected onSubmit(): void {
+    this.storeForm.patchValue({
+      name: this.storeForm.controls.name.value.trim(),
+      description: this.storeForm.controls.description.value.trim(),
+      location: this.storeForm.controls.location.value.trim(),
+      whatsappNumber: this.storeForm.controls.whatsappNumber.value.trim(),
+      callNumber: this.storeForm.controls.callNumber.value.trim(),
+      alternateCallNumber: this.storeForm.controls.alternateCallNumber.value.trim(),
+    });
+
     if (this.storeForm.invalid) {
       this.storeForm.markAllAsTouched();
+      this.appToastService.show({
+        message: 'Please complete all required store details correctly.',
+        durationMs: 2600,
+      });
       return;
     }
 
@@ -421,6 +440,8 @@ export class AddStoreModalComponent implements OnDestroy {
       ...formValue,
       logo: this.profilePreview() ?? '/assets/images/store-vine-logo-desktop.png',
       banner: this.coverPreview() ?? '/assets/images/store-vine-cover-desktop.png',
+      profileFile: this.profileFile,
+      coverFile: this.coverFile,
     });
   }
 
