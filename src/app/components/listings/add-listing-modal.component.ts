@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, output, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -394,7 +394,7 @@ type PickerOption = {
                         (click)="openPicker('category')"
                         class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none"
                       >
-                        <span>{{ listingForm.value.category || 'Select category' }}</span>
+                        <span>{{ selectedCategoryLabel() || 'Select category' }}</span>
                         <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
                       </button>
                     </div>
@@ -462,7 +462,7 @@ type PickerOption = {
                         (click)="openPicker('category')"
                         class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all"
                       >
-                        <span>{{ listingForm.value.category || 'Select category' }}</span>
+                        <span>{{ selectedCategoryLabel() || 'Select category' }}</span>
                         <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
                       </button>
                     </div>
@@ -983,7 +983,7 @@ type PickerOption = {
                             <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.name || '---' }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Category</span>
-                            <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ listingForm.value.category || '---' }}</span>
+                            <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ selectedCategoryLabel() || '---' }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Condition</span>
                             <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.condition || '---' }}</span>
@@ -1087,7 +1087,7 @@ type PickerOption = {
                              </div>
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Category</span>
-                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ listingForm.value.category || '---' }}</span>
+                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ selectedCategoryLabel() || '---' }}</span>
                              </div>
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Condition</span>
@@ -1522,6 +1522,8 @@ export class AddListingModalComponent implements OnDestroy {
   
   close = output<void>();
   save = output<ListingData>();
+  readonly categoryOptionsInput = input<readonly PickerOption[]>([]);
+  readonly storeOptionsInput = input<readonly PickerOption[]>([]);
 
   currentStep = signal(1);
   isPublishing = signal(false);
@@ -1538,50 +1540,9 @@ export class AddListingModalComponent implements OnDestroy {
   readonly activePicker = signal<PickerKind | null>(null);
   readonly pickerSearch = signal('');
 
-  readonly categoryOptions: readonly PickerOption[] = [
-    { value: 'Electronics/Phones & Tablets', label: 'Electronics/Phones & Tablets' },
-    { value: 'Automotives', label: 'Automotives' },
-    { value: 'Real Estate & Properties', label: 'Real Estate & Properties' },
-    { value: 'Home, Furniture & Appliances', label: 'Home, Furniture & Appliances' },
-    { value: 'Men’s fashion', label: 'Men’s fashion' },
-    { value: 'Women’s fashion', label: 'Women’s fashion' },
-    { value: 'Children & Baby fashion', label: 'Children & Baby fashion' },
-    { value: 'Fashion & Design', label: 'Fashion & Design' },
-    { value: 'Beauty & Personal Care', label: 'Beauty & Personal Care' },
-    { value: 'Industrial & Home Supplies', label: 'Industrial & Home Supplies' },
-    { value: 'Business & Industrial', label: 'Business & Industrial' },
-    { value: 'School, Office & General Supplies', label: 'School, Office & General Supplies' },
-    { value: 'Leisure & Activities', label: 'Leisure & Activities' },
-    { value: 'Grocery', label: 'Grocery' },
-    { value: 'Party Supplies', label: 'Party Supplies' },
-    { value: 'Food, Agriculture & Farming', label: 'Food, Agriculture & Farming' },
-    { value: 'Animals & Pets', label: 'Animals & Pets' },
-    { value: 'Services', label: 'Services' },
-    { value: 'Pharmacy', label: 'Pharmacy' },
-    { value: 'Vision Center', label: 'Vision Center' },
-  ];
-
   readonly conditionOptions: readonly PickerOption[] = [
     { value: 'Brand new', label: 'Brand new' },
     { value: 'Fairly used', label: 'Fairly used' },
-  ];
-
-  readonly storeOptions: readonly PickerOption[] = [
-    {
-      value: 'vine',
-      label: 'The Vine Collections',
-      image: '/assets/images/store-vine-logo-mobile.png',
-    },
-    {
-      value: 'eden',
-      label: 'Eden Organics',
-      image: '/assets/images/store-eden-logo-mobile.png',
-    },
-    {
-      value: 'personal',
-      label: 'Personal account',
-      image: '/assets/images/dashboard-avatar-mobile.png',
-    },
   ];
 
   readonly locationOptions: readonly PickerOption[] = [
@@ -1605,6 +1566,9 @@ export class AddListingModalComponent implements OnDestroy {
     null,
     null,
   ]);
+
+  readonly categoryOptions = computed(() => this.categoryOptionsInput());
+  readonly storeOptions = computed(() => this.storeOptionsInput());
 
   formValues: any;
   private createdObjectUrls = new Set<string>();
@@ -1744,9 +1708,14 @@ export class AddListingModalComponent implements OnDestroy {
     }
   }
 
+  selectedCategoryLabel(): string {
+    const currentValue = this.listingForm.value.category as string | null;
+    return this.categoryOptions().find((option) => option.value === currentValue)?.label ?? '';
+  }
+
   selectedStoreLabel(): string {
     const currentValue = this.listingForm.value.store as string | null;
-    return this.storeOptions.find((option) => option.value === currentValue)?.label ?? '';
+    return this.storeOptions().find((option) => option.value === currentValue)?.label ?? '';
   }
 
   openPicker(kind: PickerKind): void {
@@ -2049,11 +2018,11 @@ export class AddListingModalComponent implements OnDestroy {
   private optionsForPicker(kind: PickerKind | null): readonly PickerOption[] {
     switch (kind) {
       case 'category':
-        return this.categoryOptions;
+        return this.categoryOptions();
       case 'condition':
         return this.conditionOptions;
       case 'store':
-        return this.storeOptions;
+        return this.storeOptions();
       case 'location':
         return this.locationOptions;
       default:

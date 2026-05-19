@@ -7,7 +7,13 @@ import { IdentityVerificationModalComponent } from '../../components/listings/id
 import { VerificationDetailsModalComponent } from '../../components/listings/verification-details-modal.component';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
-import { ListingsApiItem, ListingsSearchResponse, ListingsService } from '../../services/listings.service';
+import {
+  ListingsApiItem,
+  ListingsService,
+  ManageListingsCategory,
+  ManageListingsResponse,
+  ManageListingsStore,
+} from '../../services/listings.service';
 import { environment } from '../../../environments/environment';
 
 type ListingStatus = 'Available' | 'Sold' | 'Draft' | 'Paused' | 'Suspended';
@@ -35,6 +41,13 @@ type ListingStat = {
   key: ListingFilter;
   label: string;
   value: string;
+};
+
+type AddListingPickerOption = {
+  readonly value: string;
+  readonly label: string;
+  readonly subtitle?: string;
+  readonly image?: string;
 };
 
 @Component({
@@ -385,7 +398,11 @@ type ListingStat = {
       </section>
 
       @if (showAddListingModal()) {
-        <app-add-listing-modal (close)="showAddListingModal.set(false)" />
+        <app-add-listing-modal
+          [categoryOptionsInput]="addListingCategoryOptions()"
+          [storeOptionsInput]="addListingStoreOptions()"
+          (close)="showAddListingModal.set(false)"
+        />
       }
 
       @if (showIdentityModal()) {
@@ -425,6 +442,8 @@ export class ListingsPageComponent {
   protected readonly categoryFilter = signal<ListingCategoryFilter>('all');
   protected readonly storeFilter = signal<ListingStoreFilter>('all');
   protected readonly statusFilter = signal<ListingStatusFilter>('all');
+  private readonly manageListingCategories = signal<readonly ManageListingsCategory[]>([]);
+  private readonly manageListingStores = signal<readonly ManageListingsStore[]>([]);
 
   protected readonly verificationIllustrationDesktop = '/assets/images/listings-verify-illustration-desktop-v2.png';
   protected readonly verificationIllustrationMobile = '/assets/images/listings-verify-illustration-mobile-v2.png';
@@ -505,6 +524,29 @@ export class ListingsPageComponent {
   ];
 
   protected readonly filteredMobileListings = computed(() => this.filteredDesktopListings().slice(0, 5));
+  protected readonly addListingCategoryOptions = computed<readonly AddListingPickerOption[]>(() =>
+    this.manageListingCategories().map((category) => ({
+      value: String(category.id),
+      label: category.name,
+    })),
+  );
+  protected readonly addListingStoreOptions = computed<readonly AddListingPickerOption[]>(() =>
+    this.manageListingStores().map((store, index) => ({
+      value: this.readString(store['id']) ?? this.readString(store['store_id']) ?? `store-${index + 1}`,
+      label:
+        this.readString(store['store_name']) ??
+        this.readString(store['name']) ??
+        this.readString(store['vendor_name']) ??
+        `Store ${index + 1}`,
+      image:
+        this.resolveMediaUrl(
+          this.readString(store['profile_photo']) ??
+            this.readString(store['logo']) ??
+            this.readString(store['avatar']) ??
+            this.readNestedString(store['user'], 'avatar'),
+        ) ?? '/assets/images/dashboard-avatar-mobile.png',
+    })),
+  );
 
   constructor() {
     effect(() => {
@@ -586,34 +628,33 @@ export class ListingsPageComponent {
         .map((item, index) => this.toListingRow(item, index))
         .filter((item): item is ListingRow => item !== null);
 
+      this.manageListingCategories.set(this.extractCategories(response));
+      this.manageListingStores.set(this.extractStores(response));
       this.listings.set(mappedListings);
     } catch {
       this.errorMessage.set('We could not load your listings right now.');
+      this.manageListingCategories.set([]);
+      this.manageListingStores.set([]);
       this.listings.set([]);
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  private extractListings(response: ListingsSearchResponse): ListingsApiItem[] {
-    if (Array.isArray(response)) {
-      return response;
-    }
-
+  private extractListings(response: ManageListingsResponse): ListingsApiItem[] {
     if (!response || typeof response !== 'object') {
       return [];
     }
 
-    const record = response as Record<string, unknown>;
-    const candidates = [record['results'], record['data'], record['listings']];
+    return Array.isArray(response.all) ? response.all : [];
+  }
 
-    for (const candidate of candidates) {
-      if (Array.isArray(candidate)) {
-        return candidate as ListingsApiItem[];
-      }
-    }
+  private extractCategories(response: ManageListingsResponse): readonly ManageListingsCategory[] {
+    return Array.isArray(response.categories) ? response.categories : [];
+  }
 
-    return [];
+  private extractStores(response: ManageListingsResponse): readonly ManageListingsStore[] {
+    return Array.isArray(response.stores) ? response.stores : [];
   }
 
   private toListingRow(item: ListingsApiItem, index: number): ListingRow | null {
@@ -722,5 +763,13 @@ export class ListingsPageComponent {
 
   private readBoolean(value: unknown): boolean | null {
     return typeof value === 'boolean' ? value : null;
+  }
+
+  private readNestedString(container: unknown, key: string): string | null {
+    if (!container || typeof container !== 'object') {
+      return null;
+    }
+
+    return this.readString((container as Record<string, unknown>)[key]);
   }
 }
