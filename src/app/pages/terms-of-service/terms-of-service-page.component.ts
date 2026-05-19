@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
@@ -38,6 +38,7 @@ type DecorativeAsset = {
 })
 export class TermsOfServicePageComponent {
   private readonly authSession = inject(AuthSessionService);
+  private readonly document = inject(DOCUMENT);
   readonly isAuthenticated = this.authSession.isAuthenticated;
 
   readonly sections: readonly LegalSection[] = [
@@ -186,5 +187,10 @@ export class TermsOfServicePageComponent {
       className: 'absolute left-0 top-[12px] h-[20px] w-[20px] -rotate-[4.21deg] opacity-40',
     },
   ];
+
+  scrollToSection(sectionId: string): void {
+    const section = this.document.getElementById(sectionId);
+    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
 }

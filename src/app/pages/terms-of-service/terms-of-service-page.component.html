@@ -114,13 +114,14 @@
             <p class="text-[16px] leading-6 tracking-[-0.24px] text-[#101010]">On this page</p>
             <nav class="flex flex-col gap-3 text-[14px] text-[rgba(16,16,16,0.8)]">
               @for (section of sections; track section.id) {
-                <a
-                  [attr.href]="'#' + section.id"
-                  class="leading-5"
+                <button
+                  type="button"
+                  (click)="scrollToSection(section.id)"
+                  class="leading-5 text-left"
                   [class]="section.id === 'background' ? 'font-bold leading-[1.2] text-[#6453D9]' : 'font-medium text-[rgba(16,16,16,0.8)]'"
                 >
                   {{ section.title }}
-                </a>
+                </button>
               }
             </nav>
           </div>

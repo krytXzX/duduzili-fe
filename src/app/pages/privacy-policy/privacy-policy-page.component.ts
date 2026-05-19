@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
@@ -40,6 +40,7 @@ type DecorativeAsset = {
 })
 export class PrivacyPolicyPageComponent {
   private readonly authSession = inject(AuthSessionService);
+  private readonly document = inject(DOCUMENT);
   readonly isAuthenticated = this.authSession.isAuthenticated;
 
   readonly sections: readonly PrivacySection[] = [
@@ -214,5 +215,10 @@ export class PrivacyPolicyPageComponent {
     { src: '/assets/images/privacy-policy/document-mobile.svg', width: 20, height: 20, alt: '', className: 'absolute left-[127px] top-[60px] h-[20px] w-[20px] -rotate-[4.21deg] opacity-40' },
     { src: '/assets/images/privacy-policy/document-mobile.svg', width: 20, height: 20, alt: '', className: 'absolute left-0 top-[12px] h-[20px] w-[20px] -rotate-[4.21deg] opacity-40' },
   ];
+
+  scrollToSection(sectionId: string): void {
+    const section = this.document.getElementById(sectionId);
+    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
 }
