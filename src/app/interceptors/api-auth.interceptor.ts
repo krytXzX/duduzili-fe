@@ -6,6 +6,8 @@ import { AppModeService } from '../services/app-mode.service';
 
 const apiUrl = environment.apiUrl.replace(/\/+$/, '');
 const isAuthEndpoint = (url: string): boolean => /\/auth\/(?:.+)\/?$/.test(url);
+const isMutationMethod = (method: string): boolean =>
+  method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE';
 
 export const apiAuthInterceptor: HttpInterceptorFn = (request, next) => {
   const appMode = inject(AppModeService);
@@ -19,11 +21,19 @@ export const apiAuthInterceptor: HttpInterceptorFn = (request, next) => {
 
   const authSession = inject(AuthSessionService);
   const accessToken = authSession.accessToken();
+  const csrfToken = authSession.csrfToken();
   const shouldAttachAuthorization = !isAuthEndpoint(request.url) && !!accessToken;
+  const shouldAttachCsrfToken = isMutationMethod(request.method) && !!csrfToken;
 
-  const headers = shouldAttachAuthorization
-    ? request.headers.set('Authorization', `Bearer ${accessToken}`)
-    : request.headers;
+  let headers = request.headers;
+
+  if (shouldAttachAuthorization) {
+    headers = headers.set('Authorization', `Bearer ${accessToken}`);
+  }
+
+  if (shouldAttachCsrfToken) {
+    headers = headers.set('X-CSRFToken', csrfToken);
+  }
 
   return next(
     request.clone({
