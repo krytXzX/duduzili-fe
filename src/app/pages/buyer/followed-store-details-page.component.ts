@@ -21,6 +21,7 @@ import {
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AppToastComponent } from '../../components/common/app-toast.component';
+import { AppModeService } from '../../services/app-mode.service';
 import {
   VendorFollowResponse,
   VendorListingRecord,
@@ -1009,6 +1010,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
+  private readonly appModeService = inject(AppModeService);
   private readonly authSession = inject(AuthSessionService);
   private readonly vendorsService = inject(VendorsService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
@@ -1044,7 +1046,478 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
   });
 
+  private readonly demoStores: Record<string, BuyerStoreProfile> = {
+    st1: {
+      id: 'st1',
+      name: 'The Vine Collections',
+      logo: '/assets/images/store-vine-logo-desktop.png',
+      banner: '/assets/images/store-vine-cover-desktop.png',
+      location: 'Ikeja, Lagos',
+      description:
+        'A polished lifestyle store for premium electronics, home upgrades, and standout everyday finds with fast fulfilment in Lagos.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: true,
+      isFollowed: false,
+      stats: {
+        followers: '2.5k',
+        products: '18',
+        rating: '4.8',
+        dateJoined: 'May 2024',
+      },
+    },
+    st2: {
+      id: 'st2',
+      name: 'Eden Organics',
+      logo: '/assets/images/store-eden-logo-desktop.png',
+      banner: '/assets/images/store-eden-cover-desktop.png',
+      location: 'Ikeja, Lagos',
+      description:
+        'A warm, wellness-led store focused on home essentials, organic picks, and practical lifestyle upgrades for everyday buyers.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: true,
+      isFollowed: true,
+      stats: {
+        followers: '1.8k',
+        products: '11',
+        rating: '4.4',
+        dateJoined: 'Apr 2024',
+      },
+    },
+    st3: {
+      id: 'st3',
+      name: 'Snap Thrifts',
+      logo: '/assets/images/store-snap-logo-desktop.png',
+      banner: '/assets/images/store-snap-cover-desktop.png',
+      location: 'Wuse II, Abuja',
+      description:
+        'A fashion-forward Abuja store blending thrift gems, trending wardrobe pieces, and reliable customer service for daily shoppers.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: true,
+      isFollowed: true,
+      stats: {
+        followers: '1.9k',
+        products: '14',
+        rating: '4.2',
+        dateJoined: 'Apr 2024',
+      },
+    },
+    st4: {
+      id: 'st4',
+      name: 'goMelon',
+      logo: '/assets/images/store-gomelon-logo-desktop.png',
+      banner: '/assets/images/store-gomelon-cover-desktop.png',
+      location: 'Garki, Abuja',
+      description:
+        'Cars, gadgets, and fast-moving deals from a trusted Abuja storefront with a reputation for accurate listings and smooth conversations.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: true,
+      isFollowed: false,
+      stats: {
+        followers: '488',
+        products: '9',
+        rating: '4.7',
+        dateJoined: 'May 2024',
+      },
+    },
+    st5: {
+      id: 'st5',
+      name: 'Amazing Fragrances',
+      logo: '/assets/images/store-amazing-logo-desktop.png',
+      banner: '/assets/images/store-amazing-cover-desktop.png',
+      location: 'Ikeja, Lagos',
+      description:
+        'Signature scents, gift-ready perfume picks, and a boutique experience for buyers who want something memorable.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: true,
+      isFollowed: false,
+      stats: {
+        followers: '960',
+        products: '8',
+        rating: '5.0',
+        dateJoined: 'Apr 2024',
+      },
+    },
+    st6: {
+      id: 'st6',
+      name: 'None Electronics',
+      logo: '/assets/images/store-none-logo-desktop.png',
+      banner: '/assets/images/store-none-cover-desktop.png',
+      location: 'Ikeja, Lagos',
+      description:
+        'A focused electronics seller with practical gadgets, work-from-home tools, and straightforward pricing for quick decisions.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: true,
+      isFollowed: false,
+      stats: {
+        followers: '720',
+        products: '10',
+        rating: '4.3',
+        dateJoined: 'Mar 2024',
+      },
+    },
+    st7: {
+      id: 'st7',
+      name: 'New Age Properties',
+      logo: '/assets/images/store-newage-logo-desktop.png',
+      banner: '/assets/images/store-newage-cover-desktop.png',
+      location: 'Trans Amadi, Port Harcourt',
+      description:
+        'Property listings for buyers looking for trusted land opportunities, documented estate options, and clear listing details.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: false,
+      isFollowed: true,
+      stats: {
+        followers: '1.1k',
+        products: '6',
+        rating: '4.4',
+        dateJoined: 'Mar 2024',
+      },
+    },
+    st8: {
+      id: 'st8',
+      name: 'Swift Wears',
+      logo: '/assets/images/store-swift-logo-desktop.png',
+      banner: '/assets/images/store-swift-cover-desktop.png',
+      location: 'Ikeja, Lagos',
+      description:
+        'Bold, fast-moving fashion basics and occasion wear assembled for buyers who want clean style without the guesswork.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: true,
+      isFollowed: false,
+      stats: {
+        followers: '840',
+        products: '12',
+        rating: '4.5',
+        dateJoined: 'Feb 2024',
+      },
+    },
+    'the-vine-collections-7691': {
+      id: 'the-vine-collections-7691',
+      name: 'The Vine Collections',
+      logo: '/assets/images/store-1-banner.png',
+      banner: '/assets/images/store-1-banner.png',
+      location: '54 Ajao Estate, Lagos',
+      description:
+        'A polished lifestyle store for premium electronics, home upgrades, and standout everyday finds with fast fulfilment in Lagos.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: true,
+      isFollowed: false,
+      stats: {
+        followers: '2.5k',
+        products: '18',
+        rating: '4.8',
+        dateJoined: 'May 2024',
+      },
+    },
+    'snap-thrifts-8646': {
+      id: 'snap-thrifts-8646',
+      name: 'Snap Thrifts',
+      logo: '/assets/images/store-2-banner.png',
+      banner: '/assets/images/store-2-banner.png',
+      location: 'Wuse II, Abuja',
+      description:
+        'A fashion-forward Abuja store blending thrift gems, trending wardrobe pieces, and reliable customer service for daily shoppers.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: true,
+      isFollowed: true,
+      stats: {
+        followers: '1.9k',
+        products: '14',
+        rating: '4.2',
+        dateJoined: 'Apr 2024',
+      },
+    },
+    'gomelon-2046': {
+      id: 'gomelon-2046',
+      name: 'goMelon',
+      logo: '/assets/images/store-3-banner.png',
+      banner: '/assets/images/store-3-banner.png',
+      location: 'Garki, Abuja',
+      description:
+        'Cars, gadgets, and fast-moving deals from a trusted Abuja storefront with a reputation for accurate listings and smooth conversations.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: true,
+      isFollowed: false,
+      stats: {
+        followers: '488',
+        products: '9',
+        rating: '4.7',
+        dateJoined: 'May 2024',
+      },
+    },
+    'new-age-properties-579': {
+      id: 'new-age-properties-579',
+      name: 'New Age Properties',
+      logo: '/assets/images/store-1-banner.png',
+      banner: '/assets/images/store-1-banner.png',
+      location: 'Trans Amadi, Port Harcourt',
+      description:
+        'Property listings for buyers looking for trusted land opportunities, documented estate options, and clear listing details.',
+      whatsappNumber: '+2348161234568',
+      callNumber: '+2348161234568',
+      isVerified: false,
+      isFollowed: true,
+      stats: {
+        followers: '1.1k',
+        products: '6',
+        rating: '4.4',
+        dateJoined: 'Mar 2024',
+      },
+    },
+  };
+
+  private readonly demoProductSectionsByStore: Record<string, ProductSection[]> = {
+    'the-vine-collections-7691': [
+      {
+        id: 'phones-laptops',
+        title: 'Phones & Laptops',
+        countLabel: '3',
+        items: [
+          this.createDemoListing(
+            'iphone-17-pro-max-256gb-6751',
+            'iPhone 17 Pro Max 256GB',
+            '₦2,500,000',
+            'Ikeja, Lagos',
+            '/assets/images/home-item-placeholder.png',
+            { originalPrice: '₦2,800,000', discountBadge: '10% off', isVerified: true },
+          ),
+          this.createDemoListing(
+            'macbook-pro-m3-14-inch-2709',
+            'MacBook Pro M3 14-inch',
+            '₦1,800,000',
+            'Ikeja, Lagos',
+            '/assets/images/home-item-placeholder.png',
+            { originalPrice: '₦2,000,000', discountBadge: '10% off', isVerified: true },
+          ),
+          this.createDemoListing(
+            'ninja-professional-blender-7512',
+            'Ninja Professional Blender',
+            '₦65,000',
+            'Lekki, Lagos',
+            '/assets/images/home-item-placeholder.png',
+            { originalPrice: '₦75,000', discountBadge: '13% off', isVerified: true },
+          ),
+        ],
+      },
+      {
+        id: 'home-garden',
+        title: 'Home & Garden',
+        countLabel: '2',
+        items: [
+          this.createDemoListing(
+            'modern-floor-lamp-1402',
+            'Modern Floor Lamp',
+            '₦42,000',
+            'Lekki, Lagos',
+            '/assets/images/home-item-placeholder.png',
+          ),
+          this.createDemoListing(
+            'accent-chair-set-3302',
+            'Accent Chair Set',
+            '₦210,000',
+            'Yaba, Lagos',
+            '/assets/images/home-item-placeholder.png',
+          ),
+        ],
+      },
+    ],
+    'snap-thrifts-8646': [
+      {
+        id: 'womens-fashion',
+        title: "Women's Fashion",
+        countLabel: '3',
+        items: [
+          this.createDemoListing(
+            'ankara-maxi-dress-8004',
+            'Ankara Maxi Dress',
+            '₦18,000',
+            'Wuse, Abuja',
+            '/assets/images/home-item-placeholder.png',
+            { isVerified: true },
+          ),
+          this.createDemoListing(
+            'bone-straight-wig-30-inches-5225',
+            'Bone Straight Wig 30 inches',
+            '₦150,000',
+            'Wuse, Abuja',
+            '/assets/images/home-item-placeholder.png',
+            { isVerified: true },
+          ),
+          this.createDemoListing(
+            'heels-and-clutch-set-1123',
+            'Heels and Clutch Set',
+            '₦35,000',
+            'Maitama, Abuja',
+            '/assets/images/home-item-placeholder.png',
+            { isVerified: true },
+          ),
+        ],
+      },
+      {
+        id: 'mens-fashion',
+        title: "Men's Fashion",
+        countLabel: '2',
+        items: [
+          this.createDemoListing(
+            'adidas-ultraboost-22-9100',
+            'Adidas Ultraboost 22',
+            '₦75,000',
+            'Maitama, Abuja',
+            '/assets/images/home-item-placeholder.png',
+            { isVerified: true },
+          ),
+          this.createDemoListing(
+            'linen-kaftan-set-0042',
+            'Linen Kaftan Set',
+            '₦58,000',
+            'Wuse II, Abuja',
+            '/assets/images/home-item-placeholder.png',
+          ),
+        ],
+      },
+    ],
+    'gomelon-2046': [
+      {
+        id: 'automobiles',
+        title: 'Automobiles',
+        countLabel: '2',
+        items: [
+          this.createDemoListing(
+            'toyota-camry-2019-se-8961',
+            'Toyota Camry 2019 SE',
+            '₦9,500,000',
+            'Garki, Abuja',
+            '/assets/images/home-item-placeholder.png',
+            { isVerified: true },
+          ),
+          this.createDemoListing(
+            'honda-accord-2018-5010',
+            'Honda Accord 2018',
+            '₦8,200,000',
+            'Gwarinpa, Abuja',
+            '/assets/images/home-item-placeholder.png',
+          ),
+        ],
+      },
+      {
+        id: 'phones-laptops',
+        title: 'Phones & Laptops',
+        countLabel: '1',
+        items: [
+          this.createDemoListing(
+            'samsung-s24-ultra-1188',
+            'Samsung S24 Ultra',
+            '₦1,420,000',
+            'Garki, Abuja',
+            '/assets/images/home-item-placeholder.png',
+            { isVerified: true },
+          ),
+        ],
+      },
+    ],
+    'new-age-properties-579': [
+      {
+        id: 'properties',
+        title: 'Properties',
+        countLabel: '3',
+        items: [
+          this.createDemoListing(
+            'dry-land-500sqm-epe-3571',
+            'Dry Land 500sqm Epe',
+            '₦3,500,000',
+            'Epe, Lagos',
+            '/assets/images/home-item-placeholder.png',
+          ),
+          this.createDemoListing(
+            'serviced-plot-ibeju-0048',
+            'Serviced Plot Ibeju',
+            '₦4,800,000',
+            'Ibeju-Lekki, Lagos',
+            '/assets/images/home-item-placeholder.png',
+          ),
+          this.createDemoListing(
+            '2-bedroom-bungalow-0309',
+            '2 Bedroom Bungalow',
+            '₦16,500,000',
+            'Port Harcourt',
+            '/assets/images/home-item-placeholder.png',
+            { isVerified: true },
+          ),
+        ],
+      },
+    ],
+  };
+
+  private readonly demoReviewsByStore: Record<string, StoreReview[]> = {
+    'the-vine-collections-7691': [
+      this.createDemoReview(
+        'Ada',
+        5,
+        'Very smooth purchase. The seller communicated clearly and the item matched the listing.',
+        '2 days ago',
+        ['Accurate description', 'Fast response'],
+      ),
+      this.createDemoReview(
+        'Daniel',
+        4,
+        'Packaging was neat and delivery was quicker than I expected.',
+        '1 week ago',
+        ['Fast delivery', 'Good communication'],
+      ),
+    ],
+    'snap-thrifts-8646': [
+      this.createDemoReview(
+        'Mary',
+        5,
+        'Lovely pieces and the seller helped me choose the right fit.',
+        '3 days ago',
+        ['Friendly', 'Accurate description'],
+      ),
+      this.createDemoReview(
+        'Tobi',
+        4,
+        'Good experience overall. I would buy again.',
+        '6 days ago',
+        ['Good communication'],
+      ),
+    ],
+    'gomelon-2046': [
+      this.createDemoReview(
+        'Kelechi',
+        5,
+        'Inspection went well and the car details were exactly as described.',
+        '4 days ago',
+        ['Safety', 'Accurate description'],
+      ),
+    ],
+    'new-age-properties-579': [
+      this.createDemoReview(
+        'Boma',
+        4,
+        'The agent was responsive and documentation was explained clearly.',
+        '5 days ago',
+        ['Safety', 'Good communication'],
+      ),
+    ],
+  };
+
   constructor() {
+    if (!this.appModeService.isBackendEnabled()) {
+      this.loadDemoState();
+      return;
+    }
+
     void this.loadVendorProfile();
     void this.loadVendorListings();
     void this.loadVendorReviews();
@@ -1186,6 +1659,21 @@ export class BuyerFollowedStoreDetailsPageComponent {
       return;
     }
 
+    if (!this.appModeService.isBackendEnabled()) {
+      const previousState = this.store().isFollowed;
+      const nextState = !previousState;
+      const nextFollowers = this.resolveFollowerCount(undefined, this.store().stats.followers, previousState, nextState);
+      this.store.update((store) => ({
+        ...store,
+        isFollowed: nextState,
+        stats: {
+          ...store.stats,
+          followers: nextFollowers,
+        },
+      }));
+      return;
+    }
+
     if (!this.authSession.isAuthenticated()) {
       if (typeof window !== 'undefined') {
         void Promise.resolve().then(() => (window.location.href = '/sign-in'));
@@ -1255,6 +1743,75 @@ export class BuyerFollowedStoreDetailsPageComponent {
     } catch {
       // Keep fallback reviews when the vendor reviews request fails.
     }
+  }
+
+  private loadDemoState(): void {
+    const demoStoreKey = this.resolveDemoStoreKey(this.storeId);
+    const store = this.demoStores[demoStoreKey] ?? this.demoStores['the-vine-collections-7691'];
+    const sections =
+      this.demoProductSectionsByStore[demoStoreKey] ?? this.demoProductSectionsByStore['the-vine-collections-7691'];
+    const reviews = this.demoReviewsByStore[demoStoreKey] ?? this.demoReviewsByStore['the-vine-collections-7691'];
+
+    this.store.set(store);
+    this.productSections.set(sections);
+    this.reviews.set(reviews);
+    this.reviewTagSummaries.set([]);
+  }
+
+  private resolveDemoStoreKey(storeId: string): string {
+    const aliases: Record<string, string> = {
+      st1: 'the-vine-collections-7691',
+      st2: 'the-vine-collections-7691',
+      st3: 'snap-thrifts-8646',
+      st4: 'gomelon-2046',
+      st5: 'snap-thrifts-8646',
+      st6: 'the-vine-collections-7691',
+      st7: 'new-age-properties-579',
+      st8: 'snap-thrifts-8646',
+    };
+
+    return aliases[storeId] ?? storeId;
+  }
+
+  private createDemoListing(
+    id: string,
+    title: string,
+    price: string,
+    location: string,
+    image: string,
+    options?: {
+      originalPrice?: string;
+      discountBadge?: string;
+      isVerified?: boolean;
+    },
+  ): Listing {
+    return {
+      id,
+      title,
+      price,
+      originalPrice: options?.originalPrice,
+      discountBadge: options?.discountBadge,
+      images: [image],
+      location,
+      timeAgo: 'Recently added',
+      isVerified: options?.isVerified ?? false,
+    };
+  }
+
+  private createDemoReview(
+    author: string,
+    rating: number,
+    text: string,
+    date: string,
+    tags: string[],
+  ): StoreReview {
+    return {
+      author,
+      rating,
+      text,
+      date,
+      tags,
+    };
   }
 
   private applyVendorProfile(record: VendorRecord): void {
