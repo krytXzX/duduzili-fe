@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, output, signal, computed, viewChild, inject } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { 
   heroXMark, 
@@ -20,7 +21,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
 
 @Component({
   selector: 'app-identity-verification-modal',
-  imports: [CommonModule, NgIcon, FormsModule, NgOptimizedImage],
+  imports: [CommonModule, NgIcon, FormsModule, NgOptimizedImage, RouterLink],
   providers: [
     provideIcons({ 
       heroXMark, 
@@ -189,7 +190,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
 
                   <p class="mt-5 text-[10px] leading-4 text-[#8A8F9A]">
                     Your ID will be handled according to our
-                    <a href="#" class="text-[#5E44EE] underline">Privacy Policy</a>
+                    <a routerLink="/privacy-policy" class="text-[#5E44EE] underline">Privacy Policy</a>
                     and won’t be shared with anyone.
                   </p>
                 }
@@ -626,7 +627,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                   </div>
 
                   <p class="mb-12 text-[12px] text-gray-400">
-                    Your ID will be handled according to our <a href="#" class="text-[#5932EA] underline font-medium">Privacy Policy</a> and won't be shared with anyone
+                    Your ID will be handled according to our <a routerLink="/privacy-policy" class="text-[#5932EA] underline font-medium">Privacy Policy</a> and won't be shared with anyone
                   </p>
 
                   <div class="flex items-center justify-between gap-4">

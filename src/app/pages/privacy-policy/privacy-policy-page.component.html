@@ -1,0 +1,143 @@
+@if (isAuthenticated()) {
+  <app-buyer-dashboard-navbar />
+} @else {
+  <app-public-home-navbar />
+}
+
+<div
+  [class]="
+    isAuthenticated()
+      ? 'min-h-full bg-[#FCFCFC] lg:pt-[88px]'
+      : 'min-h-full bg-[#FCFCFC] lg:pt-[112px]'
+  "
+>
+  <section class="relative hidden h-[413px] overflow-hidden bg-white lg:block">
+    @for (item of desktopDecorativeDocs; track item.src + item.className) {
+      <img [ngSrc]="item.src" [alt]="item.alt" [width]="item.width" [height]="item.height" [class]="item.className" aria-hidden="true" />
+    }
+    <img ngSrc="/assets/images/privacy-policy/hero-left-desktop.png" alt="" width="100" height="100" class="absolute left-[11px] top-1/2 h-[100px] w-[100px] -translate-y-1/2" aria-hidden="true" />
+    <img ngSrc="/assets/images/privacy-policy/hero-right-desktop.png" alt="" width="100" height="100" class="absolute right-[10px] top-1/2 h-[100px] w-[100px] -translate-y-1/2 rotate-[20.26deg]" aria-hidden="true" />
+    <img ngSrc="/assets/images/privacy-policy/hero-center-desktop.png" alt="Privacy illustration" width="243" height="243" priority class="absolute left-1/2 top-1/2 h-[243px] w-[243px] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_16px_40px_rgba(81,81,81,0.25)]" />
+  </section>
+
+  <section class="relative overflow-hidden bg-white lg:hidden">
+    <div class="relative mx-auto h-[147px] max-w-[390px] overflow-hidden bg-white">
+      @for (item of mobileDecorativeDocs; track item.src + item.className) {
+        <img [ngSrc]="item.src" [alt]="item.alt" [width]="item.width" [height]="item.height" [class]="item.className" aria-hidden="true" />
+      }
+      <img ngSrc="/assets/images/privacy-policy/hero-left-mobile.png" alt="" width="40" height="40" class="absolute left-[15px] top-[46px] h-10 w-10" aria-hidden="true" />
+      <img ngSrc="/assets/images/privacy-policy/hero-right-mobile.png" alt="" width="47" height="47" class="absolute right-[8px] top-[62px] h-[47px] w-[47px] rotate-[20.26deg]" aria-hidden="true" />
+      <img ngSrc="/assets/images/privacy-policy/hero-center-mobile.png" alt="Privacy illustration" width="94" height="94" priority class="absolute left-1/2 top-1/2 h-[94px] w-[94px] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_6px_16px_rgba(81,81,81,0.25)]" />
+    </div>
+  </section>
+
+  <main class="bg-[#FCFCFC]">
+    <div class="mx-auto hidden max-w-[1440px] px-[100px] py-[44px] lg:block">
+      <div class="grid grid-cols-[204px_1fr] gap-0">
+        <aside>
+          <div class="sticky top-28 flex flex-col gap-[19px]">
+            <p class="text-[18px] leading-[1.5] tracking-[-0.27px] text-[#101010]">On this page</p>
+            <nav class="flex flex-col gap-3 text-[16px] tracking-[-0.24px] text-[rgba(16,16,16,0.7)]">
+              @for (section of sections; track section.id) {
+                <button
+                  type="button"
+                  (click)="scrollToSection(section.id)"
+                  class="text-left"
+                  [class]="section.id === 'preface' ? 'font-medium leading-[1.5] text-[#6453D9]' : 'font-medium leading-[1.5] text-[rgba(16,16,16,0.7)]'"
+                >
+                  {{ section.navLabel }}
+                </button>
+              }
+            </nav>
+          </div>
+        </aside>
+
+        <article class="ml-auto flex w-full max-w-[709px] flex-col gap-[45px]">
+          <header class="flex flex-col gap-3">
+            <h1 class="text-[52px] font-medium leading-[1.1] tracking-[-0.52px] text-[#101010]">Privacy Policy</h1>
+            <p class="text-[16px] leading-6 text-[rgba(16,16,16,0.8)]">DATE OF LAST REVISION: DECEMBER 2025</p>
+          </header>
+
+          <div class="flex flex-col gap-8">
+            @for (section of sections; track section.id) {
+              <section [id]="section.id" class="scroll-mt-28">
+                <div class="flex flex-col gap-4">
+                  <h2 class="text-[32px] font-medium leading-[1.2] tracking-[-0.32px] text-[#101010]">{{ section.title }}</h2>
+                  @if (section.lead) {
+                    <p class="text-[16px] leading-6 text-[rgba(16,16,16,0.8)]">{{ section.lead }}</p>
+                  }
+                  @if (section.paragraphs?.length) {
+                    <div class="flex flex-col gap-4 text-[16px] leading-6 text-[rgba(16,16,16,0.8)]">
+                      @for (paragraph of section.paragraphs; track paragraph) {
+                        <p>{{ paragraph }}</p>
+                      }
+                    </div>
+                  }
+                  @if (section.bullets?.length) {
+                    <ul class="ml-6 list-disc space-y-1 text-[16px] leading-6 text-[rgba(16,16,16,0.8)]">
+                      @for (bullet of section.bullets; track bullet) {
+                        <li>{{ bullet }}</li>
+                      }
+                    </ul>
+                  }
+                  @if (section.nestedBullets?.length) {
+                    <ul class="ml-10 list-disc space-y-1 text-[16px] leading-6 text-[rgba(16,16,16,0.8)]">
+                      @for (bullet of section.nestedBullets; track bullet) {
+                        <li>{{ bullet }}</li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </section>
+            }
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="mx-auto max-w-[390px] bg-white px-5 pb-10 pt-10 lg:hidden">
+      <article class="flex flex-col gap-8 text-[#101010]">
+        <header class="flex flex-col gap-2">
+          <h1 class="text-[40px] font-semibold leading-[48px] text-[#101010]">Privacy Policy</h1>
+          <p class="text-[16px] leading-6 text-[rgba(16,16,16,0.8)]">DATE OF LAST REVISION: DECEMBER 2025</p>
+        </header>
+
+        <div class="flex flex-col gap-8">
+          @for (section of sections; track section.id) {
+            <section [id]="section.id" class="scroll-mt-24">
+              <div class="flex flex-col gap-4">
+                <h2 class="text-[24px] font-medium leading-8 text-[#101010]">{{ section.title }}</h2>
+                @if (section.lead) {
+                  <p class="text-[14px] leading-5 text-[rgba(16,16,16,0.8)]">{{ section.lead }}</p>
+                }
+                @if (section.paragraphs?.length) {
+                  <div class="flex flex-col gap-4 text-[14px] leading-5 text-[rgba(16,16,16,0.8)]">
+                    @for (paragraph of section.paragraphs; track paragraph) {
+                      <p>{{ paragraph }}</p>
+                    }
+                  </div>
+                }
+                @if (section.bullets?.length) {
+                  <ul class="ml-5 list-disc space-y-1 text-[14px] leading-5 text-[rgba(16,16,16,0.8)]">
+                    @for (bullet of section.bullets; track bullet) {
+                      <li>{{ bullet }}</li>
+                    }
+                  </ul>
+                }
+                @if (section.nestedBullets?.length) {
+                  <ul class="ml-8 list-disc space-y-1 text-[14px] leading-5 text-[rgba(16,16,16,0.8)]">
+                    @for (bullet of section.nestedBullets; track bullet) {
+                      <li>{{ bullet }}</li>
+                    }
+                  </ul>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <app-home-footer />
+</div>

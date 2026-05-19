@@ -15,6 +15,7 @@ type TokenBundle = {
 type AuthSessionState = {
   accessToken: string | null;
   refreshToken: string | null;
+  csrfToken: string | null;
   loginResponse: LoginResponse;
   profile: CheckEmailResponse | null;
 };
@@ -31,6 +32,7 @@ export class AuthSessionService {
   readonly user = computed(() => this.session()?.loginResponse.user ?? null);
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
   readonly refreshToken = computed(() => this.session()?.refreshToken ?? null);
+  readonly csrfToken = computed(() => this.session()?.csrfToken ?? null);
   readonly profile = computed(() => this.session()?.profile ?? null);
   readonly isBootstrapComplete = computed(() => this.bootstrapCompleteState());
   readonly isAuthenticated = computed(() => this.session() !== null);
@@ -55,6 +57,7 @@ export class AuthSessionService {
     this.session.set({
       accessToken: tokens?.accessToken ?? null,
       refreshToken: tokens?.refreshToken ?? null,
+      csrfToken: this.extractCsrfToken(loginResponse),
       loginResponse: resolvedUser ? { ...loginResponse, user: resolvedUser } : loginResponse,
       profile: resolvedProfile,
     });
@@ -70,6 +73,7 @@ export class AuthSessionService {
     this.session.set({
       accessToken: this.session()?.accessToken ?? null,
       refreshToken: this.session()?.refreshToken ?? null,
+      csrfToken: this.session()?.csrfToken ?? null,
       loginResponse: { user },
       profile: this.toCheckEmailProfile(user),
     });
@@ -90,6 +94,7 @@ export class AuthSessionService {
       ...currentSession,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken ?? null,
+      csrfToken: this.extractCsrfToken(response) ?? currentSession.csrfToken,
     });
 
     return tokens.accessToken;
@@ -154,6 +159,10 @@ export class AuthSessionService {
 
     const value = (container as Record<string, unknown>)[key];
     return this.readString(value);
+  }
+
+  private extractCsrfToken(response: AuthResponse): string | null {
+    return this.readString(response['csrfToken']) ?? this.readString(response['csrf_token']);
   }
 
   private resolveUser(payload: ProfileResponse | LoginResponse): AuthUser | null {

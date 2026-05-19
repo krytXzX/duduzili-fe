@@ -38,6 +38,7 @@ export type LoginRequest = {
 
 export type AuthResponse = {
   user?: AuthUser;
+  csrfToken?: string;
   access?: string;
   refresh?: string;
   access_token?: string;

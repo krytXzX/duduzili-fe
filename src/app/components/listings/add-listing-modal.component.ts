@@ -1696,7 +1696,7 @@ export class AddListingModalComponent implements OnDestroy {
         title: form.name || 'Untitled listing',
         price: `₦${discountedPrice.toLocaleString()}`,
         originalPrice: hasDiscount ? `₦${basePrice.toLocaleString()}` : undefined,
-        discountBadge: hasDiscount && form.discountType === 'percentage' ? `${discountValue}% off` : undefined,
+        discountBadge: hasDiscount && form.discountType === 'percentage' ? `-${discountValue}%` : undefined,
         images: previewImages.length > 0 ? previewImages : ['https://via.placeholder.com/400'],
         location: form.location || 'Location',
         timeAgo: 'Just now',

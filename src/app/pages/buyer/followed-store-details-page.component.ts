@@ -1290,7 +1290,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
             '₦2,500,000',
             'Ikeja, Lagos',
             '/assets/images/home-item-placeholder.png',
-            { originalPrice: '₦2,800,000', discountBadge: '10% off', isVerified: true },
+            { originalPrice: '₦2,800,000', discountBadge: '-10%', isVerified: true },
           ),
           this.createDemoListing(
             'macbook-pro-m3-14-inch-2709',
@@ -1298,7 +1298,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
             '₦1,800,000',
             'Ikeja, Lagos',
             '/assets/images/home-item-placeholder.png',
-            { originalPrice: '₦2,000,000', discountBadge: '10% off', isVerified: true },
+            { originalPrice: '₦2,000,000', discountBadge: '-10%', isVerified: true },
           ),
           this.createDemoListing(
             'ninja-professional-blender-7512',
@@ -1306,7 +1306,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
             '₦65,000',
             'Lekki, Lagos',
             '/assets/images/home-item-placeholder.png',
-            { originalPrice: '₦75,000', discountBadge: '13% off', isVerified: true },
+            { originalPrice: '₦75,000', discountBadge: '-13%', isVerified: true },
           ),
         ],
       },
@@ -2144,7 +2144,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
       return null;
     }
 
-    return `${Math.round(parsed)}% off`;
+    return `-${Math.round(parsed)}%`;
   }
 
   private formatRelativeTime(value: unknown): string | null {
