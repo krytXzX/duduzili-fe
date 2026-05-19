@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { AuthSessionService } from '../../services/auth-session.service';
+import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
+import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 type LegalSection = {
   id: string;
@@ -22,7 +23,13 @@ type DecorativeAsset = {
 
 @Component({
   selector: 'app-terms-of-service-page',
-  imports: [CommonModule, RouterLink, NgOptimizedImage, HomeFooterComponent],
+  imports: [
+    CommonModule,
+    NgOptimizedImage,
+    BuyerDashboardNavbarComponent,
+    PublicHomeNavbarComponent,
+    HomeFooterComponent,
+  ],
   templateUrl: './terms-of-service-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -31,6 +38,7 @@ type DecorativeAsset = {
 })
 export class TermsOfServicePageComponent {
   private readonly authSession = inject(AuthSessionService);
+  readonly isAuthenticated = this.authSession.isAuthenticated;
 
   readonly sections: readonly LegalSection[] = [
     {
@@ -179,6 +187,4 @@ export class TermsOfServicePageComponent {
     },
   ];
 
-  readonly fallbackAvatar = '/assets/images/auth-avatar-fallback.svg';
-  readonly userAvatar = computed(() => this.authSession.user()?.avatar?.trim() || this.fallbackAvatar);
 }

@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { AuthSessionService } from '../../services/auth-session.service';
+import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
+import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 type PrivacySection = {
   id: string;
@@ -24,7 +25,13 @@ type DecorativeAsset = {
 
 @Component({
   selector: 'app-privacy-policy-page',
-  imports: [CommonModule, RouterLink, NgOptimizedImage, HomeFooterComponent],
+  imports: [
+    CommonModule,
+    NgOptimizedImage,
+    BuyerDashboardNavbarComponent,
+    PublicHomeNavbarComponent,
+    HomeFooterComponent,
+  ],
   templateUrl: './privacy-policy-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -33,6 +40,7 @@ type DecorativeAsset = {
 })
 export class PrivacyPolicyPageComponent {
   private readonly authSession = inject(AuthSessionService);
+  readonly isAuthenticated = this.authSession.isAuthenticated;
 
   readonly sections: readonly PrivacySection[] = [
     {
@@ -207,6 +215,4 @@ export class PrivacyPolicyPageComponent {
     { src: '/assets/images/privacy-policy/document-mobile.svg', width: 20, height: 20, alt: '', className: 'absolute left-0 top-[12px] h-[20px] w-[20px] -rotate-[4.21deg] opacity-40' },
   ];
 
-  readonly fallbackAvatar = '/assets/images/auth-avatar-fallback.svg';
-  readonly userAvatar = computed(() => this.authSession.user()?.avatar?.trim() || this.fallbackAvatar);
 }

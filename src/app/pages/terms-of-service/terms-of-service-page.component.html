@@ -1,97 +1,16 @@
-<div class="min-h-full bg-[#FCFCFC]">
-  <header class="sticky top-0 z-40 bg-[#FCFCFC]/95 backdrop-blur-[6px] lg:hidden">
-    <div class="mx-auto flex h-[72px] max-w-[390px] items-center justify-between px-5">
-      <a routerLink="/" class="block" aria-label="Duduzili home">
-        <img
-          ngSrc="/assets/images/duduzili-text-logo.svg"
-          alt="Duduzili"
-          width="111"
-          height="24"
-          priority
-          class="h-6 w-auto"
-        />
-      </a>
+@if (isAuthenticated()) {
+  <app-buyer-dashboard-navbar />
+} @else {
+  <app-public-home-navbar />
+}
 
-      <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full">
-        <img
-          [src]="userAvatar()"
-          alt="User avatar"
-          width="36"
-          height="36"
-          class="h-9 w-9 rounded-full object-cover"
-        />
-      </button>
-    </div>
-  </header>
-
-  <div class="hidden lg:block">
-    <div class="mx-auto max-w-[1440px] px-[48px] pt-6">
-      <div class="mx-auto flex max-w-[1238px] items-center justify-between rounded-full bg-[#1A1A1A] px-6 py-[9px] shadow-[0_12px_28px_rgba(0,0,0,0.14)]">
-        <div class="flex items-center gap-6">
-          <a routerLink="/" class="block" aria-label="Duduzili home">
-            <img
-              ngSrc="/assets/icons/home-logo-light.svg"
-              alt="Duduzili"
-              width="112"
-              height="26"
-              priority
-              class="h-[26px] w-auto"
-            />
-          </a>
-
-          <button
-            type="button"
-            class="flex h-10 items-center justify-between gap-3 rounded-full bg-[#2F2F2F] py-1 pl-3 pr-1 text-white"
-            aria-label="Location"
-          >
-            <span class="flex items-center gap-1 text-sm font-semibold tracking-[0.01em]">
-              <img
-                ngSrc="/assets/icons/home-location.svg"
-                alt=""
-                width="16"
-                height="16"
-                class="h-4 w-4"
-                aria-hidden="true"
-              />
-              All of Nigeria
-            </span>
-            <span class="flex h-8 w-10 items-center justify-center rounded-full bg-[#515151]">
-              <img
-                ngSrc="/assets/icons/home-chevron-down.svg"
-                alt=""
-                width="16"
-                height="16"
-                class="h-4 w-4"
-                aria-hidden="true"
-              />
-            </span>
-          </button>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <span class="text-[14px] font-medium leading-5 text-white">Switch to seller mode</span>
-          <button
-            type="button"
-            class="flex h-10 items-center gap-4 rounded-full bg-white pl-1 pr-4"
-            aria-label="Open profile menu"
-          >
-            <img
-              [src]="userAvatar()"
-              alt="User avatar"
-              width="32"
-              height="32"
-              class="h-8 w-8 rounded-full object-cover"
-            />
-            <span class="flex flex-col gap-[3px]">
-              <span class="block h-[2px] w-5 rounded-full bg-[#1A1A1A]"></span>
-              <span class="block h-[2px] w-5 rounded-full bg-[#1A1A1A]"></span>
-              <span class="block h-[2px] w-5 rounded-full bg-[#1A1A1A]"></span>
-            </span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+<div
+  [class]="
+    isAuthenticated()
+      ? 'min-h-full bg-[#FCFCFC] lg:pt-[88px]'
+      : 'min-h-full bg-[#FCFCFC] lg:pt-[112px]'
+  "
+>
 
   <section class="relative hidden h-[413px] overflow-hidden bg-white lg:block">
     @for (item of desktopDecorativeDocs; track item.src + item.className) {
