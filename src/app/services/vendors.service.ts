@@ -15,6 +15,15 @@ export type VendorsFollowingResponse =
       data?: VendorRecord[];
       vendors?: VendorRecord[];
     };
+export type MyStoresResponse =
+  | VendorRecord[]
+  | {
+      count?: number;
+      results?: VendorRecord[];
+      data?: VendorRecord[];
+      stores?: VendorRecord[];
+      vendors?: VendorRecord[];
+    };
 export type VendorListingsResponse =
   | VendorListingRecord[]
   | {
@@ -47,6 +56,10 @@ export class VendorsService {
 
   getFollowing(): Observable<VendorsFollowingResponse> {
     return this.http.get<VendorsFollowingResponse>(`${this.apiUrl}/vendors/following/`);
+  }
+
+  getMyStores(): Observable<MyStoresResponse> {
+    return this.http.get<MyStoresResponse>(`${this.apiUrl}/vendors/my-stores/`);
   }
 
   getVendorListings(id: string): Observable<VendorListingsResponse> {

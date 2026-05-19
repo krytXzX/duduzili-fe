@@ -1,9 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 
 import { StoreCardComponent, Store } from '../../components/stores/store-card.component';
 import { AddStoreModalComponent } from './components/add-store-modal.component';
 import { SuccessModalComponent } from './components/success-modal.component';
+import { AppModeService } from '../../services/app-mode.service';
+import { MyStoresResponse, VendorRecord, VendorsService } from '../../services/vendors.service';
+import { environment } from '../../../environments/environment';
 
 interface NewStoreFormData {
   readonly name: string;
@@ -136,6 +140,17 @@ interface NewStoreFormData {
             <p class="mt-2 max-w-[320px] text-[14px] leading-5 text-[#6c6c6c]">
               Try a different search term to find one of your stores.
             </p>
+          </div>
+        </div>
+      } @else if (isLoading()) {
+        <div class="flex flex-1 items-center justify-center px-5 pb-10 pt-[134px] text-center md:px-4 md:pb-0 md:pt-[72px] lg:px-0">
+          <p class="text-[16px] font-medium text-[#6c6c6c] md:text-[18px]">Loading your stores...</p>
+        </div>
+      } @else if (errorMessage()) {
+        <div class="flex flex-1 items-center justify-center px-5 pb-10 pt-[134px] text-center md:px-4 md:pb-0 md:pt-[72px] lg:px-0">
+          <div class="max-w-[360px] rounded-[24px] border border-[#efefef] bg-white px-6 py-10 shadow-[0_6px_24px_rgba(0,0,0,0.03)]">
+            <h2 class="text-[18px] leading-6 font-medium text-[#1a1b1d]">We couldn’t load your stores</h2>
+            <p class="mt-2 text-[14px] leading-5 text-[#6c6c6c]">{{ errorMessage() }}</p>
           </div>
         </div>
       } @else {
@@ -306,6 +321,10 @@ interface NewStoreFormData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyStoresPageComponent {
+  private readonly vendorsService = inject(VendorsService);
+  private readonly appMode = inject(AppModeService);
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
+
   protected readonly searchIconUrl = '/assets/icons/my-stores-search.svg';
   protected readonly addOutlineIconUrl = '/assets/icons/my-stores-add-outline.svg';
   protected readonly addLinearIconUrl = '/assets/icons/my-stores-add-linear.svg';
@@ -409,6 +428,8 @@ export class MyStoresPageComponent {
   protected readonly searchQuery = signal('');
   protected readonly isAddingStore = signal(false);
   protected readonly isSuccess = signal(false);
+  protected readonly isLoading = signal(false);
+  protected readonly errorMessage = signal<string | null>(null);
   protected readonly latestCreatedStoreName = signal('The Vine Collections');
   protected readonly hasStores = computed(() => this.stores().length > 0);
 
@@ -421,6 +442,12 @@ export class MyStoresPageComponent {
 
     return this.stores().filter((store) => store.name.toLowerCase().includes(query));
   });
+
+  constructor() {
+    if (this.appMode.isBackendEnabled()) {
+      void this.loadMyStores();
+    }
+  }
 
   protected openStoreSearch(): void {
     // Reserved for the shell-aligned mobile search interaction.
@@ -458,5 +485,159 @@ export class MyStoresPageComponent {
   protected onAddAnother(): void {
     this.isSuccess.set(false);
     this.isAddingStore.set(true);
+  }
+
+  private async loadMyStores(): Promise<void> {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      const response = await firstValueFrom(this.vendorsService.getMyStores());
+      const mappedStores = this.extractStores(response)
+        .map((store, index) => this.toStoreCard(store, index))
+        .filter((store): store is Store => store !== null);
+
+      this.stores.set(mappedStores);
+    } catch {
+      this.errorMessage.set('We could not load your stores right now.');
+      this.stores.set([]);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  private extractStores(response: MyStoresResponse): VendorRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.stores)) {
+      return response.stores;
+    }
+
+    if (Array.isArray(response.vendors)) {
+      return response.vendors;
+    }
+
+    return [];
+  }
+
+  private toStoreCard(store: VendorRecord, index: number): Store | null {
+    const id = this.readString(store['id']) ?? this.readString(store['store_id']) ?? `my-store-${index + 1}`;
+    const name =
+      this.readString(store['store_name']) ??
+      this.readString(store['name']) ??
+      this.readString(store['vendor_name']);
+
+    if (!name) {
+      return null;
+    }
+
+    return {
+      id,
+      name,
+      description:
+        this.readString(store['store_bio']) ??
+        this.readString(store['description']) ??
+        undefined,
+      location:
+        this.readString(store['location']) ??
+        this.buildLocation(store) ??
+        undefined,
+      coverImage:
+        this.resolveMediaUrl(
+          this.readString(store['cover_image']) ??
+            this.readString(store['banner']) ??
+            this.readString(store['image']),
+        ) ?? '/assets/images/store-none-cover-desktop.png',
+      mobileCoverImage:
+        this.resolveMediaUrl(
+          this.readString(store['cover_image']) ??
+            this.readString(store['banner']) ??
+            this.readString(store['image']),
+        ) ?? '/assets/images/store-none-cover-desktop.png',
+      logoImage:
+        this.resolveMediaUrl(
+          this.readString(store['profile_photo']) ??
+            this.readString(store['logo']) ??
+            this.readNestedString(store['user'], 'avatar'),
+        ) ?? '/assets/images/dashboard-avatar-mobile.png',
+      mobileLogoImage:
+        this.resolveMediaUrl(
+          this.readString(store['profile_photo']) ??
+            this.readString(store['logo']) ??
+            this.readNestedString(store['user'], 'avatar'),
+        ) ?? '/assets/images/dashboard-avatar-mobile.png',
+      isVerified:
+        this.readBoolean(store['is_verified']) ??
+        this.readNestedBoolean(store['user'], 'is_verified') ??
+        false,
+      callNumber:
+        this.readString(store['call_number']) ??
+        undefined,
+      alternateCallNumber:
+        this.readString(store['whatsapp_number']) ??
+        undefined,
+      route: ['/seller/my-stores', id],
+    };
+  }
+
+  private resolveMediaUrl(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    if (value.startsWith('/')) {
+      return `${this.apiOrigin}${value}`;
+    }
+
+    return `${this.apiOrigin}/${value}`;
+  }
+
+  private buildLocation(store: VendorRecord): string | null {
+    const city = this.readString(store['city']);
+    const state = this.readString(store['state']);
+
+    if (city && state) {
+      return `${city}, ${state}`;
+    }
+
+    return city ?? state ?? null;
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
+  }
+
+  private readNestedString(container: unknown, key: string): string | null {
+    if (!container || typeof container !== 'object') {
+      return null;
+    }
+
+    return this.readString((container as Record<string, unknown>)[key]);
+  }
+
+  private readNestedBoolean(container: unknown, key: string): boolean | null {
+    if (!container || typeof container !== 'object') {
+      return null;
+    }
+
+    return this.readBoolean((container as Record<string, unknown>)[key]);
   }
 }
