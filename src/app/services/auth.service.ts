@@ -25,8 +25,8 @@ export type AuthUser = {
   is_vendor: boolean;
   is_verified: boolean;
   is_2fa_enabled?: boolean | null;
-  vendor_profile_ids?: readonly number[];
-  vendor_profile_id?: number | null;
+  vendor_profile_ids?: readonly (string | number)[];
+  vendor_profile_id?: string | number | null;
   created_at: string;
   role?: string;
 };

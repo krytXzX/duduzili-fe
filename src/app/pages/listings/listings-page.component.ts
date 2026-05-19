@@ -1,26 +1,29 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { AddListingModalComponent } from '../../components/listings/add-listing-modal.component';
 import { IdentityVerificationModalComponent } from '../../components/listings/identity-verification-modal.component';
 import { VerificationDetailsModalComponent } from '../../components/listings/verification-details-modal.component';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+import { ListingsApiItem, ListingsSearchResponse, ListingsService } from '../../services/listings.service';
+import { environment } from '../../../environments/environment';
 
 type ListingStatus = 'Available' | 'Sold' | 'Draft' | 'Paused' | 'Suspended';
 type ListingFilter = 'All' | ListingStatus;
-type ListingCategoryFilter = 'all' | 'phones-laptops' | 'electronics' | 'mens-fashion' | 'womens-fashion' | 'automobiles';
-type ListingStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'personal';
+type ListingCategoryFilter = string;
+type ListingStoreFilter = string;
 type ListingStatusFilter = 'all' | ListingStatus;
 
 type ListingRow = {
   id: string;
   name: string;
-  categoryKey: Exclude<ListingCategoryFilter, 'all'>;
+  categoryKey: string;
   category: string;
   priceWhole: string;
   priceFraction: string;
-  storeKey: Exclude<ListingStoreFilter, 'all'>;
+  storeKey: string;
   store: string;
   storeLogo: string;
   image: string;
@@ -109,7 +112,7 @@ type ListingStat = {
         <div class="mt-6 lg:mx-4">
           <div class="no-scrollbar overflow-x-auto lg:overflow-visible">
             <div class="flex min-w-max gap-3 lg:grid lg:min-w-0 lg:grid-cols-6">
-              @for (stat of stats; track stat.key) {
+              @for (stat of stats(); track stat.key) {
                 <button
                   type="button"
                   (click)="activeFilter.set(stat.key)"
@@ -148,7 +151,7 @@ type ListingStat = {
           <div class="flex items-center justify-between px-[15px] py-[15px]">
             <div class="flex items-center gap-2">
               <app-custom-dropdown
-                [options]="categoryFilterOptions"
+                [options]="categoryFilterOptions()"
                 [value]="categoryFilter()"
                 [ariaLabel]="'Filter listings by category'"
                 [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]'"
@@ -161,7 +164,7 @@ type ListingStat = {
               ></app-custom-dropdown>
 
               <app-custom-dropdown
-                [options]="storeFilterOptions"
+                [options]="storeFilterOptions()"
                 [value]="storeFilter()"
                 [ariaLabel]="'Filter listings by store'"
                 [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#ebebeb] px-3 text-sm text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]'"
@@ -303,6 +306,11 @@ type ListingStat = {
         </div>
         } @else {
         <div class="flex flex-col items-center pb-8 pt-[74px] text-center lg:px-6 lg:pb-12 lg:pt-10">
+          @if (isLoading()) {
+            <div class="text-[16px] font-medium text-[#6c6c6c]">Loading listings...</div>
+          } @else if (errorMessage()) {
+            <div class="max-w-[420px] text-[16px] leading-[1.4] text-[#D14343]">{{ errorMessage() }}</div>
+          } @else {
           <div class="relative h-[142px] w-[168px] lg:h-[261px] lg:w-[309px]">
             <div class="absolute left-[1px] top-[9px] h-[133px] w-[168px] rounded-[11px] bg-[linear-gradient(181deg,rgba(255,255,255,0)_1.5%,#ffffff_90.4%)] lg:left-0 lg:top-[20px] lg:h-[242px] lg:w-[309px] lg:rounded-[18px]"></div>
 
@@ -371,6 +379,7 @@ type ListingStat = {
             <span class="text-[20px] leading-none lg:text-[18px]">+</span>
             Sell an item
           </button>
+          }
         </div>
         }
       </section>
@@ -402,11 +411,15 @@ type ListingStat = {
 })
 export class ListingsPageComponent {
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly listingsService = inject(ListingsService);
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   protected readonly showAddListingModal = signal(false);
   protected readonly showIdentityModal = signal(false);
   protected readonly showVerificationDetailsModal = signal(false);
   protected readonly isVerificationSubmitted = signal(false);
+  protected readonly isLoading = signal(true);
+  protected readonly errorMessage = signal<string | null>(null);
   protected readonly searchTerm = signal('');
   protected readonly activeFilter = signal<ListingFilter>('All');
   protected readonly categoryFilter = signal<ListingCategoryFilter>('all');
@@ -418,111 +431,21 @@ export class ListingsPageComponent {
 
   protected readonly hasListings = computed(() => this.listings().length > 0);
 
-  protected readonly stats: ListingStat[] = [
-    { key: 'All', label: 'All', value: '65' },
-    { key: 'Available', label: 'Available', value: '09' },
-    { key: 'Sold', label: 'Sold', value: '09' },
-    { key: 'Paused', label: 'Paused', value: '09' },
-    { key: 'Suspended', label: 'Suspended', value: '03' },
-    { key: 'Draft', label: 'Draft', value: '03' },
-  ];
+  protected readonly stats = computed<ListingStat[]>(() => {
+    const listings = this.listings();
+    const countFor = (status: ListingStatus) => listings.filter((listing) => listing.status === status).length;
 
-  private readonly listings = signal<ListingRow[]>([
-    {
-      id: 'iphone-17',
-      name: 'Iphone 17 pro max',
-      categoryKey: 'phones-laptops',
-      category: 'Phones & Laptops',
-      priceWhole: '2,500,000.',
-      priceFraction: '00',
-      storeKey: 'vine',
-      store: 'The Vine Collections',
-      storeLogo: '/assets/images/store-vine-logo-desktop.png',
-      image: '/assets/images/listings-item-iphone.png',
-      status: 'Available',
-      promoted: true,
-    },
-    {
-      id: 'mouse',
-      name: 'Logitech ergonomic mouse',
-      categoryKey: 'electronics',
-      category: 'Electronics',
-      priceWhole: '150,000.',
-      priceFraction: '00',
-      storeKey: 'eden',
-      store: 'Eden Organics',
-      storeLogo: '/assets/images/store-eden-logo-desktop.png',
-      image: '/assets/images/listings-item-mouse.png',
-      status: 'Sold',
-      promoted: true,
-    },
-    {
-      id: 'sneaker',
-      name: 'Nike sneaker',
-      categoryKey: 'mens-fashion',
-      category: 'Men’s fashion',
-      priceWhole: '150,000.',
-      priceFraction: '00',
-      storeKey: 'amazing',
-      store: 'Amazing Fragrances',
-      storeLogo: '/assets/images/store-amazing-logo-desktop.png',
-      image: '/assets/images/listings-item-sneaker.png',
-      status: 'Draft',
-    },
-    {
-      id: 'wig',
-      name: 'Bone straight wig',
-      categoryKey: 'womens-fashion',
-      category: 'Women’s fashion',
-      priceWhole: '150,000.',
-      priceFraction: '00',
-      storeKey: 'personal',
-      store: 'Personal account',
-      storeLogo: '/assets/images/dashboard-avatar-mobile.png',
-      image: '/assets/images/listings-item-wig.png',
-      status: 'Paused',
-      promoted: true,
-    },
-    {
-      id: 'maserati',
-      name: 'Maserati',
-      categoryKey: 'automobiles',
-      category: 'Automobiles',
-      priceWhole: '150,000.',
-      priceFraction: '00',
-      storeKey: 'vine',
-      store: 'The Vine Collections',
-      storeLogo: '/assets/images/store-vine-logo-desktop.png',
-      image: '/assets/images/listings-item-maserati.png',
-      status: 'Suspended',
-    },
-    {
-      id: 'keyboard',
-      name: 'RGB keyboard',
-      categoryKey: 'electronics',
-      category: 'Electronics',
-      priceWhole: '2,500,000.',
-      priceFraction: '00',
-      storeKey: 'personal',
-      store: 'Personal account',
-      storeLogo: '/assets/images/dashboard-avatar-mobile.png',
-      image: '/assets/images/store-none-cover-desktop.png',
-      status: 'Suspended',
-    },
-    {
-      id: 'sweatshirt',
-      name: 'Sweatshirt',
-      categoryKey: 'mens-fashion',
-      category: 'Men’s fashion',
-      priceWhole: '2,500,000.',
-      priceFraction: '00',
-      storeKey: 'vine',
-      store: 'The Vine Collections',
-      storeLogo: '/assets/images/store-vine-logo-desktop.png',
-      image: '/assets/images/store-swift-cover-desktop.png',
-      status: 'Sold',
-    },
-  ]);
+    return [
+      { key: 'All', label: 'All', value: String(listings.length).padStart(2, '0') },
+      { key: 'Available', label: 'Available', value: String(countFor('Available')).padStart(2, '0') },
+      { key: 'Sold', label: 'Sold', value: String(countFor('Sold')).padStart(2, '0') },
+      { key: 'Paused', label: 'Paused', value: String(countFor('Paused')).padStart(2, '0') },
+      { key: 'Suspended', label: 'Suspended', value: String(countFor('Suspended')).padStart(2, '0') },
+      { key: 'Draft', label: 'Draft', value: String(countFor('Draft')).padStart(2, '0') },
+    ];
+  });
+
+  private readonly listings = signal<ListingRow[]>([]);
 
   protected readonly filteredDesktopListings = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
@@ -542,22 +465,35 @@ export class ListingsPageComponent {
     });
   });
 
-  protected readonly categoryFilterOptions: readonly CustomDropdownOption<ListingCategoryFilter>[] = [
-    { value: 'all', label: 'All categories' },
-    { value: 'phones-laptops', label: 'Phones & Laptops' },
-    { value: 'electronics', label: 'Electronics' },
-    { value: 'mens-fashion', label: 'Men’s fashion' },
-    { value: 'womens-fashion', label: 'Women’s fashion' },
-    { value: 'automobiles', label: 'Automobiles' },
-  ];
+  protected readonly categoryFilterOptions = computed<
+    readonly CustomDropdownOption<ListingCategoryFilter>[]
+  >(() => {
+    const options = new Map<string, string>();
 
-  protected readonly storeFilterOptions: readonly CustomDropdownOption<ListingStoreFilter>[] = [
-    { value: 'all', label: 'All stores' },
-    { value: 'vine', label: 'The Vine Collections' },
-    { value: 'eden', label: 'Eden Organics' },
-    { value: 'amazing', label: 'Amazing Fragrances' },
-    { value: 'personal', label: 'Personal account' },
-  ];
+    for (const listing of this.listings()) {
+      options.set(listing.categoryKey, listing.category);
+    }
+
+    return [
+      { value: 'all', label: 'All categories' },
+      ...Array.from(options.entries()).map(([value, label]) => ({ value, label })),
+    ];
+  });
+
+  protected readonly storeFilterOptions = computed<
+    readonly CustomDropdownOption<ListingStoreFilter>[]
+  >(() => {
+    const options = new Map<string, string>();
+
+    for (const listing of this.listings()) {
+      options.set(listing.storeKey, listing.store);
+    }
+
+    return [
+      { value: 'all', label: 'All stores' },
+      ...Array.from(options.entries()).map(([value, label]) => ({ value, label })),
+    ];
+  });
 
   protected readonly statusFilterOptions: readonly CustomDropdownOption<ListingStatusFilter>[] = [
     { value: 'all', label: 'All statuses' },
@@ -579,6 +515,8 @@ export class ListingsPageComponent {
       this.showAddListingModal.set(true);
       this.mobileOverlayService.consumeOpenAddListingRequest();
     });
+
+    void this.loadListings();
   }
 
   protected verificationIllustration(): string {
@@ -635,5 +573,154 @@ export class ListingsPageComponent {
 
   protected mobileAmount(listing: ListingRow): string {
     return `${listing.priceWhole}${listing.priceFraction}`;
+  }
+
+  private async loadListings(): Promise<void> {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      const response = await firstValueFrom(this.listingsService.getManageListings());
+      const items = this.extractListings(response);
+      const mappedListings = items
+        .map((item, index) => this.toListingRow(item, index))
+        .filter((item): item is ListingRow => item !== null);
+
+      this.listings.set(mappedListings);
+    } catch {
+      this.errorMessage.set('We could not load your listings right now.');
+      this.listings.set([]);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  private extractListings(response: ListingsSearchResponse): ListingsApiItem[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (!response || typeof response !== 'object') {
+      return [];
+    }
+
+    const record = response as Record<string, unknown>;
+    const candidates = [record['results'], record['data'], record['listings']];
+
+    for (const candidate of candidates) {
+      if (Array.isArray(candidate)) {
+        return candidate as ListingsApiItem[];
+      }
+    }
+
+    return [];
+  }
+
+  private toListingRow(item: ListingsApiItem, index: number): ListingRow | null {
+    const name =
+      this.readString(item['title']) ??
+      this.readString(item['name']) ??
+      this.readString(item['listing_name']);
+    const category = this.readString(item['category']) ?? 'Uncategorized';
+    const price = this.readNumber(item['price']);
+    const store = this.readString(item['store_name']) ?? this.readString(item['vendor_name']) ?? 'My store';
+
+    if (!name || price === null) {
+      return null;
+    }
+
+    const [priceWhole, priceFraction] = this.formatPriceParts(price);
+    const storeKey = this.slugify(store || `store-${index + 1}`);
+
+    return {
+      id: this.readString(item['id']) ?? `listing-${index + 1}`,
+      name,
+      categoryKey: this.slugify(category),
+      category,
+      priceWhole,
+      priceFraction,
+      storeKey,
+      store,
+      storeLogo:
+        this.resolveMediaUrl(this.readString(item['store_logo'])) ??
+        this.resolveMediaUrl(this.readString(item['profile_photo'])) ??
+        this.resolveMediaUrl(this.readString(item['store_profile_photo'])) ??
+        '/assets/images/dashboard-avatar-mobile.png',
+      image:
+        this.resolveMediaUrl(this.readString(item['thumbnail'])) ??
+        this.resolveMediaUrl(this.readString(item['image'])) ??
+        '/assets/images/store-none-cover-desktop.png',
+      status: this.normalizeStatus(item['status']),
+      promoted: this.readBoolean(item['is_promoted']) ?? false,
+    };
+  }
+
+  private normalizeStatus(value: unknown): ListingStatus {
+    const status = this.readString(value)?.toLowerCase() ?? 'available';
+
+    switch (status) {
+      case 'sold':
+        return 'Sold';
+      case 'draft':
+        return 'Draft';
+      case 'paused':
+        return 'Paused';
+      case 'suspended':
+        return 'Suspended';
+      case 'published':
+      case 'available':
+      default:
+        return 'Available';
+    }
+  }
+
+  private formatPriceParts(price: number): [string, string] {
+    const [whole = '0', fraction = '00'] = price.toFixed(2).split('.');
+    return [new Intl.NumberFormat('en-NG').format(Number(whole)) + '.', fraction];
+  }
+
+  private resolveMediaUrl(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    if (value.startsWith('/')) {
+      return `${this.apiOrigin}${value}`;
+    }
+
+    return `${this.apiOrigin}/${value}`;
+  }
+
+  private slugify(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'unknown';
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value.replace(/,/g, '').trim());
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
   }
 }

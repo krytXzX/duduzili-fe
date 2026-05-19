@@ -39,6 +39,10 @@ export class ListingsService {
     return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/recently-viewed`);
   }
 
+  getManageListings(): Observable<ListingsSearchResponse> {
+    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/manage_listings`);
+  }
+
   getListingDetails(id: string): Observable<ListingsApiItem> {
     return this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`);
   }
