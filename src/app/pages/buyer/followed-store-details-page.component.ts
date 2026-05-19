@@ -546,7 +546,15 @@ type VendorTagSummary = {
               </div>
             </div>
 
-            <div class="mt-8 flex items-center gap-8 border-b border-[#EEF0F4]">
+            @if (store().description) {
+              <div class="mb-8 max-w-[860px]">
+                <p class="text-[16px] leading-7 text-[#1F1F1F]">
+                  {{ store().description }}
+                </p>
+              </div>
+            }
+
+            <div class="flex items-center gap-8 border-b border-[#EEF0F4]">
               <button
                 type="button"
                 (click)="activeTab.set('products')"

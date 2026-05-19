@@ -26,6 +26,12 @@ export type ListingsSearchResponse =
       listings?: ListingsApiItem[];
     };
 
+export interface RecentlyViewedResponse {
+  today?: ListingsApiItem[];
+  yesterday?: ListingsApiItem[];
+  earlier?: ListingsApiItem[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class ListingsService {
   private readonly http = inject(HttpClient);
@@ -35,8 +41,8 @@ export class ListingsService {
     return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/favorites/`);
   }
 
-  getRecentlyViewed(): Observable<ListingsSearchResponse> {
-    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/recently-viewed`);
+  getRecentlyViewed(): Observable<RecentlyViewedResponse> {
+    return this.http.get<RecentlyViewedResponse>(`${this.apiUrl}/listings/recently-viewed`);
   }
 
   getManageListings(): Observable<ListingsSearchResponse> {
