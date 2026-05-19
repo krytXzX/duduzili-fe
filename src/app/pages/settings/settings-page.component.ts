@@ -15,7 +15,12 @@ import {
   TwoFactorMethod,
 } from './components/settings-two-factor-modal.component';
 import { SettingsVerificationModalComponent } from './components/settings-verification-modal.component';
-import { AuthService, AuthUser, ProfileResponse } from '../../services/auth.service';
+import {
+  AuthService,
+  AuthUser,
+  ProfileResponse,
+  UpdateProfileRequest,
+} from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AppModeService } from '../../services/app-mode.service';
 
@@ -1672,10 +1677,13 @@ export class SettingsPageComponent {
     }
   }
 
-  handleModalConfirm(): void {
+  async handleModalConfirm(): Promise<void> {
     switch (this.modalMode()) {
       case 'name':
-        this.profile.update(profile => ({ ...profile, fullName: this.modalValue() }));
+        if (!(await this.persistProfileChanges({ full_name: this.modalValue() }))) {
+          return;
+        }
+
         this.showToast('Profile updated successfully');
         this.modalMode.set(null);
         break;
@@ -1732,14 +1740,20 @@ export class SettingsPageComponent {
     this.verificationReturnMode.set(null);
   }
 
-  completeVerification(): void {
+  async completeVerification(): Promise<void> {
     switch (this.verificationMode()) {
       case 'email':
-        this.profile.update(profile => ({ ...profile, email: this.modalValue() }));
+        if (!(await this.persistProfileChanges({ email: this.modalValue() }))) {
+          return;
+        }
+
         this.showToast('Profile updated successfully');
         break;
       case 'call':
-        this.profile.update(profile => ({ ...profile, callNumber: this.modalValue() }));
+        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+          return;
+        }
+
         this.showToast(
           this.verificationReturnMode() === 'call-add'
             ? 'Phone number added successfully'
@@ -1747,7 +1761,10 @@ export class SettingsPageComponent {
         );
         break;
       case 'whatsapp':
-        this.profile.update(profile => ({ ...profile, whatsappNumber: this.modalValue() }));
+        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+          return;
+        }
+
         this.showToast(
           this.verificationReturnMode() === 'whatsapp-add'
             ? 'Phone number added successfully'
@@ -1869,6 +1886,33 @@ export class SettingsPageComponent {
       whatsappNumber: phoneNumber,
       fullName,
     });
+  }
+
+  private async persistProfileChanges(payload: UpdateProfileRequest): Promise<boolean> {
+    if (!this.appMode.isBackendEnabled()) {
+      this.applyProfilePayloadLocally(payload);
+      return true;
+    }
+
+    try {
+      const response = await firstValueFrom(this.authService.updateProfile(payload));
+      this.authSession.initializeFromProfile(response);
+      this.hydrateProfileFromUser(this.resolveProfileUser(response));
+      return true;
+    } catch {
+      this.showToast('We could not update your profile right now.');
+      return false;
+    }
+  }
+
+  private applyProfilePayloadLocally(payload: UpdateProfileRequest): void {
+    this.profile.update((profile) => ({
+      ...profile,
+      email: payload.email ?? profile.email,
+      fullName: payload.full_name ?? profile.fullName,
+      callNumber: payload.phone_number ?? profile.callNumber,
+      whatsappNumber: payload.phone_number ?? profile.whatsappNumber,
+    }));
   }
 
   private resolveProfileUser(response: ProfileResponse): AuthUser | null {

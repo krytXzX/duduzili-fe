@@ -64,6 +64,12 @@ export type RegisterRequest = {
   confirm_password: string;
 };
 
+export type UpdateProfileRequest = {
+  email?: string;
+  full_name?: string;
+  phone_number?: string;
+};
+
 export type RegisterResponse = AuthResponse;
 export type ProfileResponse = AuthUser | { user: AuthUser };
 export type RefreshTokenResponse = {
@@ -105,6 +111,10 @@ export class AuthService {
 
   getProfile(): Observable<ProfileResponse> {
     return this.http.get<ProfileResponse>(`${this.apiUrl}/auth/profile/`);
+  }
+
+  updateProfile(payload: UpdateProfileRequest): Observable<ProfileResponse> {
+    return this.http.put<ProfileResponse>(`${this.apiUrl}/auth/profile/`, payload);
   }
 
   refreshTokens(): Observable<RefreshTokenResponse> {
