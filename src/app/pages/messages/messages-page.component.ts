@@ -8,8 +8,10 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FormBuilder, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { SellerReportModalComponent } from '../../components/product/seller-report-modal.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import {
@@ -30,6 +32,8 @@ interface Conversation {
   mobileAvatar?: string;
   storeBadge: string;
   mobileStoreBadge?: string;
+  vendorId?: string;
+  listingId?: string;
 }
 
 const EMPTY_CONVERSATION: Conversation = {
@@ -96,7 +100,7 @@ type ChatDay = {
 
 @Component({
   selector: 'app-messages-page',
-  imports: [CommonModule, NgOptimizedImage],
+  imports: [CommonModule, NgOptimizedImage, SellerReportModalComponent],
   host: {
     class: 'block h-full min-h-0',
   },
@@ -534,6 +538,7 @@ type ChatDay = {
                           <div class="space-y-1">
                             <button
                               type="button"
+                              (click)="viewActiveConversationProfile()"
                               class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FAFAFA]"
                             >
                               <img
@@ -550,6 +555,7 @@ type ChatDay = {
 
                             <button
                               type="button"
+                              (click)="openSellerReportPage()"
                               class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FFF7F7]"
                             >
                               <img
@@ -1449,6 +1455,7 @@ type ChatDay = {
             <div class="space-y-2">
               <button
                 type="button"
+                (click)="viewActiveConversationProfile()"
                 class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
               >
                 <img
@@ -1463,6 +1470,7 @@ type ChatDay = {
 
               <button
                 type="button"
+                (click)="openSellerReportPage()"
                 class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
               >
                 <img
@@ -1848,6 +1856,86 @@ type ChatDay = {
         </div>
       </section>
     }
+
+    <app-seller-report-modal
+      [open]="isSellerReportModalOpen()"
+      [step]="sellerReportStep()"
+      [selectedReason]="selectedSellerReportReason()"
+      [reasons]="sellerReportReasons"
+      [form]="sellerReportForm"
+      (closed)="closeSellerReportModal()"
+      (back)="backSellerReportStep()"
+      (reasonSelected)="selectSellerReportReason($event)"
+      (advanced)="advanceSellerReportStep()"
+      (submitted)="submitSellerReport()"
+    />
+
+    @if (isSellerReportSuccessModalOpen()) {
+      <div
+        class="fixed inset-0 z-[150] flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] md:items-center md:p-4"
+        (click)="closeSellerReportSuccessModal()"
+      >
+        <div
+          class="relative w-full rounded-t-[36px] bg-white px-4 pb-[42px] pt-3 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] md:max-w-[550px] md:rounded-[32px] md:px-4 md:pb-10 md:pt-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="seller-report-success-title"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="relative h-6 md:hidden">
+            <div class="absolute left-1/2 top-2.5 h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB]"></div>
+          </div>
+
+          <button
+            type="button"
+            (click)="closeSellerReportSuccessModal()"
+            class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#434455] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#FAFAFA] md:right-5 md:top-5"
+            aria-label="Close seller report success modal"
+          >
+            <img
+              ngSrc="/assets/icons/product-modal/seller-report-close.svg"
+              alt=""
+              width="24"
+              height="24"
+              class="h-6 w-6"
+            />
+          </button>
+
+          <div class="mx-auto mt-10 flex w-full max-w-[334px] flex-col items-center gap-11 md:mt-[65px]">
+            <div class="flex w-full flex-col items-center gap-4 text-center">
+              <img
+                ngSrc="/assets/images/product-modal/seller-report-success-hero.png"
+                alt=""
+                width="164"
+                height="164"
+                priority
+                class="h-[164px] w-[164px] object-contain"
+              />
+
+              <div class="space-y-3">
+                <h2
+                  id="seller-report-success-title"
+                  class="text-[24px] font-semibold leading-none text-[#15162B] md:text-[28px]"
+                >
+                  Thank you for keeping Duduzili safe
+                </h2>
+                <p class="text-[14px] leading-[1.5] tracking-[-0.5px] text-[#48484A]">
+                  Our team will review this report and take the necessary steps.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="closeSellerReportSuccessModal()"
+              class="flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5645cb]"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [
     `
@@ -1879,6 +1967,8 @@ type ChatDay = {
 })
 export class MessagesPageComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly formBuilder = inject(FormBuilder);
   private readonly messagesService = inject(MessagesService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly authSession = inject(AuthSessionService);
@@ -1952,6 +2042,8 @@ export class MessagesPageComponent implements OnDestroy {
   readonly isReplyComposerOpen = computed(() => this.activeReplyTarget() !== null);
   readonly isRecordingVoice = signal(false);
   readonly isStoreSelectorOpen = signal(false);
+  readonly isSellerReportModalOpen = signal(false);
+  readonly isSellerReportSuccessModalOpen = signal(false);
   readonly activeChatId = signal('');
   readonly draftMessage = signal('');
   readonly storeSearchTerm = signal('');
@@ -1979,6 +2071,8 @@ export class MessagesPageComponent implements OnDestroy {
     this.deleteIntent() === 'messages' ? 'Delete' : 'Remove',
   );
   readonly hasDraftMessage = computed(() => this.draftMessage().trim().length > 0);
+  readonly sellerReportStep = signal<1 | 2>(1);
+  readonly selectedSellerReportReason = signal<string | null>(null);
   private longPressTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly storeOptions = signal<readonly StoreOption[]>([]);
@@ -1986,6 +2080,16 @@ export class MessagesPageComponent implements OnDestroy {
   readonly conversations = signal<Conversation[]>([]);
 
   readonly conversationDays = signal<Record<string, readonly ChatDay[]>>({});
+  readonly sellerReportForm = this.formBuilder.nonNullable.group({
+    details: ['', [Validators.required]],
+  });
+  readonly sellerReportReasons = [
+    'Suspected scam or fraud',
+    'Seller is unresponsive after payment',
+    'Selling prohibited or illegal items',
+    'Repeatedly listing sold/unavailable items',
+    'Other reason',
+  ] as const;
 
   readonly selectedStoreLabel = computed(
     () =>
@@ -2254,7 +2358,28 @@ export class MessagesPageComponent implements OnDestroy {
       mobileStoreBadge:
         this.resolveMediaUrl(this.readString(item['mobile_store_badge']) ?? this.readString(item['store_badge'])) ??
         '/assets/images/chats-store-badge-mobile.png',
+      vendorId: this.readId(item['vendor']) ?? undefined,
+      listingId: this.readId(item['listing']) ?? undefined,
     };
+  }
+
+  private resolveActiveConversation(): Conversation | null {
+    const activeConversationId = this.activeChatId();
+
+    if (activeConversationId) {
+      const matchedConversation = this.conversations().find((conversation) => conversation.id === activeConversationId);
+      if (matchedConversation) {
+        return matchedConversation;
+      }
+    }
+
+    return this.conversations()[0] ?? null;
+  }
+
+  private resetSellerReportFlow(): void {
+    this.sellerReportStep.set(1);
+    this.selectedSellerReportReason.set(null);
+    this.sellerReportForm.reset({ details: '' });
   }
 
   private toStoreOption(item: SellerStoreApiItem, index: number): StoreOption | null {
@@ -2636,6 +2761,65 @@ export class MessagesPageComponent implements OnDestroy {
 
   protected closeProfileMenu(): void {
     this.isProfileMenuOpen.set(false);
+  }
+
+  protected async viewActiveConversationProfile(): Promise<void> {
+    const conversation = this.resolveActiveConversation();
+    const vendorId = conversation?.vendorId;
+
+    this.closeProfileMenu();
+
+    if (!vendorId) {
+      return;
+    }
+
+    if (this.isSeller()) {
+      await this.router.navigate(['/seller/my-stores', vendorId]);
+      return;
+    }
+
+    await this.router.navigate(['/stores', vendorId]);
+  }
+
+  protected openSellerReportPage(): void {
+    this.closeProfileMenu();
+    this.isSellerReportModalOpen.set(true);
+  }
+
+  protected closeSellerReportModal(): void {
+    this.isSellerReportModalOpen.set(false);
+    this.resetSellerReportFlow();
+  }
+
+  protected closeSellerReportSuccessModal(): void {
+    this.isSellerReportSuccessModalOpen.set(false);
+    this.resetSellerReportFlow();
+  }
+
+  protected selectSellerReportReason(reason: string): void {
+    this.selectedSellerReportReason.set(reason);
+  }
+
+  protected advanceSellerReportStep(): void {
+    if (!this.selectedSellerReportReason()) {
+      return;
+    }
+
+    this.sellerReportStep.set(2);
+  }
+
+  protected backSellerReportStep(): void {
+    this.sellerReportStep.set(1);
+  }
+
+  protected submitSellerReport(): void {
+    if (this.sellerReportForm.invalid) {
+      this.sellerReportForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSellerReportModalOpen.set(false);
+    this.isSellerReportSuccessModalOpen.set(true);
   }
 
   protected openClearChatConfirm(): void {

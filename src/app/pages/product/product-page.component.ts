@@ -8,6 +8,7 @@ import { Listing, ListingCardComponent } from '../../components/listings/listing
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { Review } from '../../components/product/review-card.component';
+import { SellerReportModalComponent } from '../../components/product/seller-report-modal.component';
 import { ListingsApiItem, ListingsService } from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
@@ -66,6 +67,7 @@ type SellerReportStep = 1 | 2;
     ListingCardComponent,
     HomeFooterComponent,
     AppToastComponent,
+    SellerReportModalComponent,
   ],
   templateUrl: './product-page.component.html',
   host: {
@@ -330,6 +332,10 @@ export class ProductPageComponent {
 
   constructor() {
     void this.loadProductDetails();
+
+    if (this.route.snapshot.queryParamMap.get('report') === 'seller') {
+      this.openReportModal('seller');
+    }
   }
 
   setGalleryIndex(index: number): void {
