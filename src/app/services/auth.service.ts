@@ -76,7 +76,7 @@ export type SwitchModeRequest = {
 };
 
 export type RegisterResponse = AuthResponse;
-export type ProfileResponse = AuthUser | { user: AuthUser };
+export type ProfileResponse = AuthResponse | AuthUser | { user: AuthUser };
 export type RefreshTokenResponse = {
   access?: string;
   refresh?: string;
