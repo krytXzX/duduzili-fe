@@ -22,4 +22,8 @@ export class MessagesService {
   getMessages(): Observable<MessagesResponse> {
     return this.http.get<MessagesResponse>(`${this.apiUrl}/messages/`);
   }
+
+  getMessageDetails(id: string): Observable<Record<string, unknown>> {
+    return this.http.get<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/`);
+  }
 }

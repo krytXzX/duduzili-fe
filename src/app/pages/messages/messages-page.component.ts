@@ -28,6 +28,12 @@ interface Conversation {
   mobileStoreBadge?: string;
 }
 
+interface MessageDetailsResponse extends Record<string, unknown> {
+  results?: readonly Record<string, unknown>[];
+  messages?: readonly Record<string, unknown>[];
+  data?: readonly Record<string, unknown>[];
+}
+
 interface StoreOption {
   id: string;
   label: string;
@@ -1854,7 +1860,7 @@ export class MessagesPageComponent implements OnDestroy {
   readonly isReplyComposerOpen = computed(() => this.activeReplyTarget() !== null);
   readonly isRecordingVoice = signal(false);
   readonly isStoreSelectorOpen = signal(false);
-  readonly activeChatId = signal('2');
+  readonly activeChatId = signal('');
   readonly draftMessage = signal('');
   readonly storeSearchTerm = signal('');
   readonly selectedStoreId = signal('all');
@@ -1866,6 +1872,7 @@ export class MessagesPageComponent implements OnDestroy {
   readonly selectedMessageCount = computed(() => this.selectedMessageIds().length);
   readonly isLoadingConversations = signal(true);
   readonly conversationsError = signal<string | null>(null);
+  readonly isLoadingConversationDetails = signal(false);
   readonly clearChatConfirmTitle = computed(() =>
     this.deleteIntent() === 'messages' ? 'Delete selected messages?' : 'Remove this chat?',
   );
@@ -1973,13 +1980,13 @@ export class MessagesPageComponent implements OnDestroy {
   readonly activeDesktopConversation = computed(
     () =>
       this.conversations().find((conversation) => conversation.id === this.activeChatId()) ??
-      this.conversations()[1],
+      this.conversations()[0],
   );
 
   readonly activeMobileConversation = computed(
     () =>
       this.conversations().find((conversation) => conversation.id === this.activeChatId()) ??
-      this.conversations()[1],
+      this.conversations()[0],
   );
 
   readonly activeConversationDays = computed(() => {
@@ -2014,6 +2021,8 @@ export class MessagesPageComponent implements OnDestroy {
       this.mobileOverlayService.openMobileModal();
       this.mobileConversationOverlayOpen = true;
     }
+
+    void this.loadConversationDetails(chatId);
   }
 
   private async loadConversations(): Promise<void> {
@@ -2034,6 +2043,7 @@ export class MessagesPageComponent implements OnDestroy {
           ? currentActiveChatId
           : mappedConversations[0].id;
         this.activeChatId.set(nextActiveChatId);
+        void this.loadConversationDetails(nextActiveChatId);
       }
     } catch {
       this.conversationsError.set('We could not load your chats right now.');
@@ -2068,13 +2078,18 @@ export class MessagesPageComponent implements OnDestroy {
 
   private toConversation(item: MessageConversationApiItem, index: number): Conversation | null {
     const id = this.readId(item['id']) ?? this.readId(item['chat_id']) ?? `conversation-${index + 1}`;
+    const buyer = this.readRecord(item['buyer']);
+    const lastMessage = this.readRecord(item['last_message']);
     const name =
+      this.readString(item['vendor_name']) ??
       this.readString(item['name']) ??
       this.readString(item['title']) ??
       this.readString(item['other_user_name']) ??
+      this.readString(buyer?.['username']) ??
       this.readString(this.readRecord(item['other_user'])?.['username']) ??
       this.readString(this.readRecord(item['user'])?.['username']);
     const preview =
+      this.readString(this.readRecord(item['last_message'])?.['body']) ??
       this.readString(item['preview']) ??
       this.readString(item['last_message']) ??
       this.readString(item['last_message_text']) ??
@@ -2092,20 +2107,25 @@ export class MessagesPageComponent implements OnDestroy {
       time:
         this.relativeTimeFromDate(
           this.readString(item['updated_at']) ??
+            this.readString(lastMessage?.['created_at']) ??
             this.readString(item['created_at']) ??
             this.readString(item['last_message_at']),
         ) ?? 'Recently',
       unreadCount: this.readNumber(item['unread_count']) ?? undefined,
       avatar:
         this.resolveMediaUrl(
-          this.readString(item['avatar']) ??
+          this.readString(item['vendor_photo']) ??
+            this.readString(item['avatar']) ??
+            this.readString(buyer?.['avatar']) ??
             this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
             this.readString(this.readRecord(item['user'])?.['avatar']),
         ) ?? '/assets/images/chats-store-selector-personal.png',
       mobileAvatar:
         this.resolveMediaUrl(
-          this.readString(item['mobile_avatar']) ??
+          this.readString(item['vendor_photo']) ??
+            this.readString(item['mobile_avatar']) ??
             this.readString(item['avatar']) ??
+            this.readString(buyer?.['avatar']) ??
             this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
             this.readString(this.readRecord(item['user'])?.['avatar']),
         ) ?? '/assets/images/chats-store-selector-personal.png',
@@ -2116,6 +2136,86 @@ export class MessagesPageComponent implements OnDestroy {
         this.resolveMediaUrl(this.readString(item['mobile_store_badge']) ?? this.readString(item['store_badge'])) ??
         '/assets/images/chats-store-badge-mobile.png',
     };
+  }
+
+  private async loadConversationDetails(chatId: string): Promise<void> {
+    this.isLoadingConversationDetails.set(true);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.getMessageDetails(chatId));
+      const mappedDays = this.toConversationDays(response);
+
+      if (mappedDays.length > 0) {
+        this.conversationDays.update((current) => ({
+          ...current,
+          [chatId]: mappedDays,
+        }));
+      }
+    } catch {
+      // Keep existing fallback messages when the thread endpoint fails.
+    } finally {
+      this.isLoadingConversationDetails.set(false);
+    }
+  }
+
+  private toConversationDays(response: MessageDetailsResponse): readonly ChatDay[] {
+    const records = this.extractConversationDetailItems(response);
+    if (records.length === 0) {
+      return [];
+    }
+
+    const daysByLabel = new Map<string, ChatMessage[]>();
+
+    for (const record of records) {
+      const createdAt = this.readString(record['created_at']) ?? this.readString(record['timestamp']);
+      const label = this.formatConversationDayLabel(createdAt);
+      const sender = this.readString(record['sender']) ?? this.readString(record['author']) ?? 'Unknown';
+      const body = this.readString(record['body']) ?? this.readString(record['text']) ?? this.readString(record['message']);
+
+      if (!body) {
+        continue;
+      }
+
+      const message: ChatTextMessage = {
+        id: this.readId(record['id']) ?? `${label}-${daysByLabel.get(label)?.length ?? 0}`,
+        kind: 'text',
+        author: sender,
+        text: body,
+        outgoing: this.isOutgoingMessage(record, sender),
+      };
+
+      daysByLabel.set(label, [...(daysByLabel.get(label) ?? []), message]);
+    }
+
+    return Array.from(daysByLabel.entries()).map(([label, messages], index) => ({
+      id: `day-${index + 1}`,
+      label,
+      messages,
+    }));
+  }
+
+  private extractConversationDetailItems(response: MessageDetailsResponse): readonly Record<string, unknown>[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.messages)) {
+      return response.messages;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (this.readString(response['body']) || this.readString(response['text']) || this.readString(response['message'])) {
+      return [response];
+    }
+
+    return [];
   }
 
   private readString(value: unknown): string | null {
@@ -2142,6 +2242,20 @@ export class MessagesPageComponent implements OnDestroy {
     return value && typeof value === 'object' && !Array.isArray(value)
       ? (value as Record<string, unknown>)
       : null;
+  }
+
+  private isOutgoingMessage(record: Record<string, unknown>, sender: string): boolean {
+    const explicitOutgoing = record['outgoing'];
+    if (typeof explicitOutgoing === 'boolean') {
+      return explicitOutgoing;
+    }
+
+    const authUsername = this.readString(this.readRecord(record['current_user'])?.['username']);
+    if (authUsername && sender.toLowerCase() === authUsername.toLowerCase()) {
+      return true;
+    }
+
+    return false;
   }
 
   private relativeTimeFromDate(value: string | null): string | null {
@@ -2178,6 +2292,36 @@ export class MessagesPageComponent implements OnDestroy {
     });
   }
 
+  private formatConversationDayLabel(value: string | null): string {
+    if (!value) {
+      return 'Today';
+    }
+
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return 'Today';
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const target = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()).getTime();
+    const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return 'Today';
+    }
+
+    if (diffDays === -1) {
+      return 'Yesterday';
+    }
+
+    return parsedDate.toLocaleDateString('en-NG', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
   private resolveMediaUrl(value: string | null): string | null {
     if (!value) {
       return null;
@@ -2202,6 +2346,7 @@ export class MessagesPageComponent implements OnDestroy {
     this.isRecordingVoice.set(false);
     this.isStoreSelectorOpen.set(false);
     this.selectedMessageIds.set([]);
+    void this.loadConversationDetails(chatId);
   }
 
   protected closeMobileConversation(): void {
