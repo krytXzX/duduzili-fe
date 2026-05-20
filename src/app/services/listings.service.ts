@@ -49,6 +49,12 @@ export interface RecentlyViewedResponse {
   earlier?: ListingsApiItem[];
 }
 
+export interface WishlistResponse {
+  today?: ListingsApiItem[];
+  yesterday?: ListingsApiItem[];
+  earlier?: ListingsApiItem[];
+}
+
 export interface CreateReportRequest {
   listing: string;
   details: string;
@@ -59,8 +65,8 @@ export class ListingsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
-  getMyFavorites(): Observable<ListingsSearchResponse> {
-    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/favorites/`);
+  getMyFavorites(): Observable<WishlistResponse> {
+    return this.http.get<WishlistResponse>(`${this.apiUrl}/wishlist/`);
   }
 
   getRecentlyViewed(): Observable<RecentlyViewedResponse> {
