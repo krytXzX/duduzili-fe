@@ -28,6 +28,17 @@ interface Conversation {
   mobileStoreBadge?: string;
 }
 
+const EMPTY_CONVERSATION: Conversation = {
+  id: '',
+  name: '',
+  preview: '',
+  time: '',
+  avatar: '/assets/images/chats-store-selector-personal.png',
+  mobileAvatar: '/assets/images/chats-store-selector-personal.png',
+  storeBadge: '/assets/images/chats-store-badge-desktop.png',
+  mobileStoreBadge: '/assets/images/chats-store-badge-mobile.png',
+};
+
 interface MessageDetailsResponse extends Record<string, unknown> {
   results?: readonly Record<string, unknown>[];
   messages?: readonly Record<string, unknown>[];
@@ -315,70 +326,86 @@ type ChatDay = {
               />
             </label>
 
-            <div class="mt-3 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 chats-scrollbar">
-              @for (chat of conversations(); track chat.id) {
-                <button
-                  type="button"
-                  (click)="selectDesktopConversation(chat.id)"
-                  class="w-full rounded-[18px] px-3 py-4 text-left"
-                  [class.bg-[#F6F6F6]]="activeChatId() === chat.id"
-                >
-                  <div class="flex items-center gap-[9px]">
-                    <div class="relative h-12 w-12 shrink-0">
-                      <img
-                        [ngSrc]="chat.avatar"
-                        width="48"
-                        height="48"
-                        [alt]="chat.name"
-                        class="h-12 w-12 rounded-full object-cover"
-                      />
-                      <span
-                        class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
-                      >
-                        <img
-                          [ngSrc]="chat.storeBadge"
-                          width="20"
-                          height="20"
-                          alt=""
-                          class="h-5 w-5 object-cover"
-                        />
-                      </span>
-                    </div>
-
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center">
-                        <div class="min-w-0 flex-1">
-                          <p class="truncate text-[16px] font-semibold leading-6 text-[#002F35]">
-                            {{ chat.name }}
-                          </p>
+            <div class="mt-3 min-h-0 flex-1 overflow-y-auto pr-1 chats-scrollbar">
+              @if (isLoadingConversations()) {
+                <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#6C6C6C]">
+                  Loading chats...
+                </div>
+              } @else if (conversationsError()) {
+                <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#D14343]">
+                  {{ conversationsError() }}
+                </div>
+              } @else if (!hasConversations()) {
+                <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#6C6C6C]">
+                  No chats yet.
+                </div>
+              } @else {
+                <div class="space-y-1">
+                  @for (chat of conversations(); track chat.id) {
+                    <button
+                      type="button"
+                      (click)="selectDesktopConversation(chat.id)"
+                      class="w-full rounded-[18px] px-3 py-4 text-left"
+                      [class.bg-[#F6F6F6]]="activeChatId() === chat.id"
+                    >
+                      <div class="flex items-center gap-[9px]">
+                        <div class="relative h-12 w-12 shrink-0">
+                          <img
+                            [ngSrc]="chat.avatar"
+                            width="48"
+                            height="48"
+                            [alt]="chat.name"
+                            class="h-12 w-12 rounded-full object-cover"
+                          />
+                          <span
+                            class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
+                          >
+                            <img
+                              [ngSrc]="chat.storeBadge"
+                              width="20"
+                              height="20"
+                              alt=""
+                              class="h-5 w-5 object-cover"
+                            />
+                          </span>
                         </div>
 
-                        <span
-                          class="w-[104px] shrink-0 text-right text-[12px] leading-4"
-                          [class.text-[#6453D9]]="chat.unreadCount"
-                          [class.font-medium]="chat.unreadCount"
-                          [class.text-[#6C6C6C]]="!chat.unreadCount"
-                        >
-                          {{ chat.time }}
-                        </span>
-                      </div>
+                        <div class="min-w-0 flex-1">
+                          <div class="flex items-center">
+                            <div class="min-w-0 flex-1">
+                              <p class="truncate text-[16px] font-semibold leading-6 text-[#002F35]">
+                                {{ chat.name }}
+                              </p>
+                            </div>
 
-                      <div class="mt-1 flex items-center gap-[19px]">
-                        <p class="min-w-0 flex-1 truncate text-[14px] leading-5 text-[#7A7A7A]">
-                          {{ chat.preview }}
-                        </p>
+                            <span
+                              class="w-[104px] shrink-0 text-right text-[12px] leading-4"
+                              [class.text-[#6453D9]]="chat.unreadCount"
+                              [class.font-medium]="chat.unreadCount"
+                              [class.text-[#6C6C6C]]="!chat.unreadCount"
+                            >
+                              {{ chat.time }}
+                            </span>
+                          </div>
 
-                        @if (chat.unreadCount) {
-                          <span
-                            class="inline-flex h-5 min-w-[33px] items-center justify-center rounded-[12px] bg-[#6453D9] px-[6px] text-[12px] leading-4 text-white"
-                          >
-                            {{ chat.unreadCount }}
-                          </span>
-                        }
+                          <div class="mt-1 flex items-center gap-[19px]">
+                            <p class="min-w-0 flex-1 truncate text-[14px] leading-5 text-[#7A7A7A]">
+                              {{ chat.preview }}
+                            </p>
+
+                            @if (chat.unreadCount) {
+                              <span
+                                class="inline-flex h-5 min-w-[33px] items-center justify-center rounded-[12px] bg-[#6453D9] px-[6px] text-[12px] leading-4 text-white"
+                              >
+                                {{ chat.unreadCount }}
+                              </span>
+                            }
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </button>
+                    </button>
+                  }
+                </div>
               }
             </div>
           </aside>
@@ -386,6 +413,11 @@ type ChatDay = {
           <section
             class="grid min-h-0 min-w-0 flex-1 grid-rows-[83px_minmax(0,1fr)_77px] overflow-hidden rounded-[16px] border border-[#F1F1F1] bg-white"
           >
+            @if (!hasConversations()) {
+              <div class="col-span-full row-span-full flex min-h-0 items-center justify-center px-8 text-center text-[16px] text-[#6C6C6C]">
+                Select a conversation once chats are available.
+              </div>
+            } @else {
             <header class="border-b border-[#EAEAEA] bg-white px-[23px] py-[12.5px]">
                 <div class="flex items-center justify-between">
                   @if (isSelectionMode()) {
@@ -787,22 +819,44 @@ type ChatDay = {
                 >
                   <input
                     type="text"
+                    [value]="draftMessage()"
+                    (input)="updateDraftMessage($event)"
+                    (keydown.enter)="sendDraftMessage()"
                     placeholder="Type a message..."
                     class="w-full bg-transparent pr-10 text-[14px] leading-5 text-[#0D0D0D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
                   />
-                  <button type="button" class="absolute right-[11px] top-1/2 -translate-y-1/2">
-                    <img
-                      [ngSrc]="assets.micDesktop"
-                      width="24"
-                      height="24"
-                      alt=""
-                      class="h-6 w-6"
-                    />
-                  </button>
+                  @if (hasDraftMessage()) {
+                    <button
+                      type="button"
+                      (click)="sendDraftMessage()"
+                      [disabled]="isSendingMessage()"
+                      class="absolute right-[8px] top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-[#6453D9] disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label="Send message"
+                    >
+                      <img
+                        [ngSrc]="assets.sendMobile"
+                        width="18"
+                        height="18"
+                        alt=""
+                        class="h-[18px] w-[18px]"
+                      />
+                    </button>
+                  } @else {
+                    <button type="button" class="absolute right-[11px] top-1/2 -translate-y-1/2">
+                      <img
+                        [ngSrc]="assets.micDesktop"
+                        width="24"
+                        height="24"
+                        alt=""
+                        class="h-6 w-6"
+                      />
+                    </button>
+                  }
                 </div>
               </div>
               </div>
             </footer>
+            }
           </section>
         </div>
       </section>
@@ -905,68 +959,84 @@ type ChatDay = {
             </span>
           </button>
 
-          <div class="mt-4 space-y-1">
-            @for (chat of conversations(); track chat.id) {
-              <button
-                type="button"
-                (click)="openMobileConversation(chat.id)"
-                class="w-full py-4 text-left"
-              >
-                <div class="flex items-center gap-[9px]">
-                  <div class="relative h-12 w-12 shrink-0">
-                    <img
-                      [ngSrc]="chat.mobileAvatar ?? chat.avatar"
-                      width="48"
-                      height="48"
-                      [alt]="chat.name"
-                      class="h-12 w-12 rounded-full object-cover"
-                    />
-                    <span
-                      class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
-                    >
-                      <img
-                        [ngSrc]="chat.mobileStoreBadge ?? assets.storeBadgeMobile"
-                        width="20"
-                        height="20"
-                        alt=""
-                        class="h-5 w-5 object-cover"
-                      />
-                    </span>
-                  </div>
-
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center">
-                      <p
-                        class="min-w-0 flex-1 truncate text-[16px] font-semibold leading-6 text-[#002F35]"
-                      >
-                        {{ chat.name }}
-                      </p>
-                      <span
-                        class="w-[104px] shrink-0 text-right text-[12px] leading-4"
-                        [class.text-[#6453D9]]="chat.unreadCount"
-                        [class.font-medium]="chat.unreadCount"
-                        [class.text-[#6C6C6C]]="!chat.unreadCount"
-                      >
-                        {{ chat.time }}
-                      </span>
-                    </div>
-
-                    <div class="mt-1 flex items-center gap-[19px]">
-                      <p class="min-w-0 flex-1 truncate text-[14px] leading-5 text-[#7A7A7A]">
-                        {{ chat.preview }}
-                      </p>
-
-                      @if (chat.unreadCount) {
+          <div class="mt-4">
+            @if (isLoadingConversations()) {
+              <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#6C6C6C]">
+                Loading chats...
+              </div>
+            } @else if (conversationsError()) {
+              <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#D14343]">
+                {{ conversationsError() }}
+              </div>
+            } @else if (!hasConversations()) {
+              <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#6C6C6C]">
+                No chats yet.
+              </div>
+            } @else {
+              <div class="space-y-1">
+                @for (chat of conversations(); track chat.id) {
+                  <button
+                    type="button"
+                    (click)="openMobileConversation(chat.id)"
+                    class="w-full py-4 text-left"
+                  >
+                    <div class="flex items-center gap-[9px]">
+                      <div class="relative h-12 w-12 shrink-0">
+                        <img
+                          [ngSrc]="chat.mobileAvatar ?? chat.avatar"
+                          width="48"
+                          height="48"
+                          [alt]="chat.name"
+                          class="h-12 w-12 rounded-full object-cover"
+                        />
                         <span
-                          class="inline-flex h-5 min-w-[33px] items-center justify-center rounded-[12px] bg-[#6453D9] px-[6px] text-[12px] leading-4 text-white"
+                          class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
                         >
-                          {{ chat.unreadCount }}
+                          <img
+                            [ngSrc]="chat.mobileStoreBadge ?? assets.storeBadgeMobile"
+                            width="20"
+                            height="20"
+                            alt=""
+                            class="h-5 w-5 object-cover"
+                          />
                         </span>
-                      }
+                      </div>
+
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center">
+                          <p
+                            class="min-w-0 flex-1 truncate text-[16px] font-semibold leading-6 text-[#002F35]"
+                          >
+                            {{ chat.name }}
+                          </p>
+                          <span
+                            class="w-[104px] shrink-0 text-right text-[12px] leading-4"
+                            [class.text-[#6453D9]]="chat.unreadCount"
+                            [class.font-medium]="chat.unreadCount"
+                            [class.text-[#6C6C6C]]="!chat.unreadCount"
+                          >
+                            {{ chat.time }}
+                          </span>
+                        </div>
+
+                        <div class="mt-1 flex items-center gap-[19px]">
+                          <p class="min-w-0 flex-1 truncate text-[14px] leading-5 text-[#7A7A7A]">
+                            {{ chat.preview }}
+                          </p>
+
+                          @if (chat.unreadCount) {
+                            <span
+                              class="inline-flex h-5 min-w-[33px] items-center justify-center rounded-[12px] bg-[#6453D9] px-[6px] text-[12px] leading-4 text-white"
+                            >
+                              {{ chat.unreadCount }}
+                            </span>
+                          }
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </button>
+                  </button>
+                }
+              </div>
             }
           </div>
         </section>
@@ -1288,6 +1358,7 @@ type ChatDay = {
                   type="text"
                   [value]="draftMessage()"
                   (input)="updateDraftMessage($event)"
+                  (keydown.enter)="sendDraftMessage()"
                   placeholder="Type a message..."
                   class="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#2D2D2D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
                 />
@@ -1305,6 +1376,8 @@ type ChatDay = {
                   <button
                     type="button"
                     aria-label="Send message"
+                    (click)="sendDraftMessage()"
+                    [disabled]="isSendingMessage()"
                     class="flex h-10 w-[58px] shrink-0 items-center justify-center rounded-full bg-[#6453D9]"
                   >
                     <img
@@ -1873,6 +1946,8 @@ export class MessagesPageComponent implements OnDestroy {
   readonly isLoadingConversations = signal(true);
   readonly conversationsError = signal<string | null>(null);
   readonly isLoadingConversationDetails = signal(false);
+  readonly isSendingMessage = signal(false);
+  readonly hasConversations = computed(() => this.conversations().length > 0);
   readonly clearChatConfirmTitle = computed(() =>
     this.deleteIntent() === 'messages' ? 'Delete selected messages?' : 'Remove this chat?',
   );
@@ -1911,45 +1986,9 @@ export class MessagesPageComponent implements OnDestroy {
     },
   ];
 
-  readonly conversations = signal<Conversation[]>([
-    {
-      id: '1',
-      name: 'Bryan Odjede',
-      preview: 'I’m glad you like the perfume',
-      time: '15 hrs',
-      unreadCount: 148,
-      avatar: '/assets/images/chats-bryan-avatar-desktop.png',
-      mobileAvatar: '/assets/images/chats-bryan-avatar-mobile.png',
-      storeBadge: '/assets/icons/chats-bryan-badge-desktop.svg',
-      mobileStoreBadge: '/assets/icons/chats-bryan-badge-mobile.svg',
-    },
-    {
-      id: '2',
-      name: 'Angela Ugorji',
-      preview: 'That’s no problem at all. We can meet at Co...',
-      time: 'Just now',
-      avatar: '/assets/images/chats-angela-avatar-desktop.png',
-      mobileAvatar: '/assets/images/chats-angela-avatar-mobile.png',
-      storeBadge: '/assets/images/chats-store-badge-desktop.png',
-      mobileStoreBadge: '/assets/images/chats-store-badge-mobile.png',
-    },
-    {
-      id: '3',
-      name: 'Ediri Oghenemaro',
-      preview: 'Can we meet on Thursday?',
-      time: '20/02/2024',
-      avatar: '/assets/images/chats-ediri-avatar-desktop.png',
-      mobileAvatar: '/assets/images/chats-ediri-avatar-mobile.png',
-      storeBadge: '/assets/images/chats-store-badge-desktop.png',
-      mobileStoreBadge: '/assets/images/chats-store-badge-mobile.png',
-    },
-  ]);
+  readonly conversations = signal<Conversation[]>([]);
 
-  readonly conversationDays = signal<Record<string, readonly ChatDay[]>>({
-    '1': this.createMockConversationDays(),
-    '2': this.createMockConversationDays(),
-    '3': this.createMockConversationDays(),
-  });
+  readonly conversationDays = signal<Record<string, readonly ChatDay[]>>({});
 
   readonly selectedStoreLabel = computed(
     () =>
@@ -1980,17 +2019,19 @@ export class MessagesPageComponent implements OnDestroy {
   readonly activeDesktopConversation = computed(
     () =>
       this.conversations().find((conversation) => conversation.id === this.activeChatId()) ??
-      this.conversations()[0],
+      this.conversations()[0] ??
+      EMPTY_CONVERSATION,
   );
 
   readonly activeMobileConversation = computed(
     () =>
       this.conversations().find((conversation) => conversation.id === this.activeChatId()) ??
-      this.conversations()[0],
+      this.conversations()[0] ??
+      EMPTY_CONVERSATION,
   );
 
   readonly activeConversationDays = computed(() => {
-    const days = this.conversationDays()[this.activeChatId()] ?? this.createMockConversationDays();
+    const days = this.conversationDays()[this.activeChatId()] ?? [];
 
     return days
       .map((day) => ({
@@ -2371,12 +2412,85 @@ export class MessagesPageComponent implements OnDestroy {
     this.draftMessage.set(input?.value ?? '');
   }
 
+  protected async sendDraftMessage(): Promise<void> {
+    const chatId = this.activeChatId();
+    const body = this.draftMessage().trim();
+
+    if (!chatId || !body || this.isSendingMessage()) {
+      return;
+    }
+
+    this.isSendingMessage.set(true);
+
+    try {
+      await firstValueFrom(this.messagesService.sendMessage(chatId, { body }));
+      this.appendOutgoingMessage(chatId, body);
+      this.draftMessage.set('');
+      this.activeReplyTarget.set(null);
+    } catch {
+      // Keep the draft intact if the send request fails.
+    } finally {
+      this.isSendingMessage.set(false);
+    }
+  }
+
   protected openStoreSelector(): void {
     this.isClearChatConfirmOpen.set(false);
     this.isMessageMenuOpen.set(false);
     this.isProfileMenuOpen.set(false);
     this.messageMenuTarget.set(null);
     this.isStoreSelectorOpen.set(true);
+  }
+
+  private appendOutgoingMessage(chatId: string, body: string): void {
+    const nextMessage: ChatTextMessage = {
+      id: `local-${Date.now()}`,
+      kind: 'text',
+      author: 'You',
+      text: body,
+      outgoing: true,
+    };
+
+    const currentDays = this.conversationDays()[chatId] ?? [];
+
+    if (currentDays.length === 0) {
+      this.conversationDays.update((current) => ({
+        ...current,
+        [chatId]: [
+          {
+            id: `day-${Date.now()}`,
+            label: 'Today',
+            messages: [nextMessage],
+          },
+        ],
+      }));
+    } else {
+      const lastDay = currentDays[currentDays.length - 1];
+      const updatedDays = [
+        ...currentDays.slice(0, -1),
+        {
+          ...lastDay,
+          messages: [...lastDay.messages, nextMessage],
+        },
+      ];
+
+      this.conversationDays.update((current) => ({
+        ...current,
+        [chatId]: updatedDays,
+      }));
+    }
+
+    this.conversations.update((items) =>
+      items.map((conversation) =>
+        conversation.id === chatId
+          ? {
+              ...conversation,
+              preview: body,
+              time: 'Just now',
+            }
+          : conversation,
+      ),
+    );
   }
 
   protected openProfileMenu(): void {

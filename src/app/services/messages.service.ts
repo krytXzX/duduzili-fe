@@ -14,6 +14,10 @@ export type MessagesResponse =
       data?: MessageConversationApiItem[];
     };
 
+export interface SendMessageRequest {
+  body: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MessagesService {
   private readonly http = inject(HttpClient);
@@ -25,5 +29,9 @@ export class MessagesService {
 
   getMessageDetails(id: string): Observable<Record<string, unknown>> {
     return this.http.get<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/`);
+  }
+
+  sendMessage(id: string, payload: SendMessageRequest): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/send/`, payload);
   }
 }
