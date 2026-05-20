@@ -19,6 +19,11 @@ export interface SendMessageRequest {
   body: string;
 }
 
+export interface BulkMessageActionRequest {
+  action: 'clear_selected';
+  conversation_ids: readonly string[];
+}
+
 export type StartConversationResponse = Record<string, unknown>;
 
 @Injectable({ providedIn: 'root' })
@@ -44,6 +49,10 @@ export class MessagesService {
 
   sendMessage(id: string, payload: SendMessageRequest): Observable<Record<string, unknown>> {
     return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/send/`, payload);
+  }
+
+  bulkAction(payload: BulkMessageActionRequest): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/bulk-action/`, payload);
   }
 
   startConversation(id: string): Observable<StartConversationResponse> {

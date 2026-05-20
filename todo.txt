@@ -3,7 +3,7 @@ In admin add two pages called Category and location.
 Category: admin can add categories name, sub categories and icon.
 
 
-Location: admin should be able to states, cities/town attached to each state.
+Location: admin should be able to add states, cities/town attached to each state.
 
 
 

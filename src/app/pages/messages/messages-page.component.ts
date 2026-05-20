@@ -12,6 +12,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { SellerReportModalComponent } from '../../components/product/seller-report-modal.component';
+import { AppToastService } from '../../services/app-toast.service';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import {
@@ -1970,6 +1971,7 @@ export class MessagesPageComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly messagesService = inject(MessagesService);
+  private readonly appToastService = inject(AppToastService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly authSession = inject(AuthSessionService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
@@ -2058,6 +2060,7 @@ export class MessagesPageComponent implements OnDestroy {
   readonly conversationsError = signal<string | null>(null);
   readonly isLoadingConversationDetails = signal(false);
   readonly isSendingMessage = signal(false);
+  readonly isDeletingMessages = signal(false);
   readonly hasConversations = computed(() => this.conversations().length > 0);
   readonly clearChatConfirmTitle = computed(() =>
     this.deleteIntent() === 'messages' ? 'Delete selected messages?' : 'Remove this chat?',
@@ -2836,15 +2839,42 @@ export class MessagesPageComponent implements OnDestroy {
     this.deleteIntent.set('chat');
   }
 
-  protected confirmClearChat(): void {
+  protected async confirmClearChat(): Promise<void> {
     if (this.deleteIntent() === 'messages') {
-      this.deletedMessageIds.update((current) => [
-        ...current,
-        ...this.selectedMessageIds().filter((messageId) => !current.includes(messageId)),
-      ]);
-      this.exitSelectionMode();
-      this.deleteIntent.set('chat');
-      this.isClearChatConfirmOpen.set(false);
+      if (this.isDeletingMessages()) {
+        return;
+      }
+
+      const messageIds = this.selectedMessageIds();
+      if (!messageIds.length) {
+        return;
+      }
+
+      this.isDeletingMessages.set(true);
+
+      try {
+        await firstValueFrom(
+          this.messagesService.bulkAction({
+            action: 'clear_selected',
+            conversation_ids: messageIds,
+          }),
+        );
+
+        this.deletedMessageIds.update((current) => [
+          ...current,
+          ...messageIds.filter((messageId) => !current.includes(messageId)),
+        ]);
+        this.exitSelectionMode();
+        this.deleteIntent.set('chat');
+        this.isClearChatConfirmOpen.set(false);
+      } catch {
+        this.appToastService.show({
+          message: 'We could not delete those messages right now.',
+        });
+      } finally {
+        this.isDeletingMessages.set(false);
+      }
+
       return;
     }
 
