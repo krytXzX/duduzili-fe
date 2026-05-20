@@ -2074,14 +2074,24 @@ export class MessagesPageComponent implements OnDestroy {
       const mappedStores = response
         .map((item, index) => this.toStoreOption(item, index))
         .filter((store): store is StoreOption => store !== null);
+      const allStoresOption: StoreOption = {
+        id: 'all',
+        label: `All stores (${mappedStores.length})`,
+        variant: 'all',
+      };
+      const selectableStores = [allStoresOption, ...mappedStores];
 
-      this.storeOptions.set(mappedStores);
+      this.storeOptions.set(selectableStores);
 
-      const initialStoreId = mappedStores[0]?.id ?? '';
+      const initialStoreId = selectableStores[0]?.id ?? '';
       this.selectedStoreId.set(initialStoreId);
 
       if (initialStoreId) {
-        await this.loadSellerStoreConversations(initialStoreId);
+        if (initialStoreId === 'all') {
+          await this.loadBuyerConversations();
+        } else {
+          await this.loadSellerStoreConversations(initialStoreId);
+        }
         return;
       }
 
@@ -2911,6 +2921,11 @@ export class MessagesPageComponent implements OnDestroy {
     this.draftMessage.set('');
 
     if (this.isSeller()) {
+      if (storeId === 'all') {
+        await this.loadBuyerConversations();
+        return;
+      }
+
       await this.loadSellerStoreConversations(storeId);
     }
   }
