@@ -19,6 +19,8 @@ export interface SendMessageRequest {
   body: string;
 }
 
+export type StartConversationResponse = Record<string, unknown>;
+
 @Injectable({ providedIn: 'root' })
 export class MessagesService {
   private readonly http = inject(HttpClient);
@@ -42,5 +44,9 @@ export class MessagesService {
 
   sendMessage(id: string, payload: SendMessageRequest): Observable<Record<string, unknown>> {
     return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/send/`, payload);
+  }
+
+  startConversation(id: string): Observable<StartConversationResponse> {
+    return this.http.post<StartConversationResponse>(`${this.apiUrl}/messages/start/${id}/`, {});
   }
 }

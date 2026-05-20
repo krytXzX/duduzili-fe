@@ -11,6 +11,7 @@ import { Review } from '../../components/product/review-card.component';
 import { ListingsApiItem, ListingsService } from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { MessagesService } from '../../services/messages.service';
 import { VendorsService, VendorFollowResponse } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
 
@@ -80,6 +81,7 @@ export class ProductPageComponent {
   private readonly vendorsService = inject(VendorsService);
   private readonly appToastService = inject(AppToastService);
   private readonly authSession = inject(AuthSessionService);
+  private readonly messagesService = inject(MessagesService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   readonly productId = this.route.snapshot.paramMap.get('id') ?? 'iphone-16-pro';
@@ -98,6 +100,7 @@ export class ProductPageComponent {
   readonly currentGalleryIndex = signal(0);
   readonly isFollowPending = signal(false);
   readonly isSubmittingListingReport = signal(false);
+  readonly isStartingConversation = signal(false);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
@@ -441,6 +444,40 @@ export class ProductPageComponent {
     }
 
     await this.router.navigate(['/stores', storeId]);
+  }
+
+  async startInAppConversation(): Promise<void> {
+    if (this.isStartingConversation()) {
+      return;
+    }
+
+    if (!this.authSession.isAuthenticated()) {
+      await this.router.navigate(['/sign-in']);
+      return;
+    }
+
+    const storeId = this.store().id;
+    if (!storeId) {
+      return;
+    }
+
+    this.isStartingConversation.set(true);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.startConversation(storeId));
+      const conversationId = this.readString(response['id']) ?? this.readString(response['chat_id']);
+
+      this.isMessageVendorModalOpen.set(false);
+      await this.router.navigate(['/chats'], {
+        queryParams: conversationId ? { conversation: conversationId } : undefined,
+      });
+    } catch {
+      this.appToastService.show({
+        message: 'Unable to start conversation right now.',
+      });
+    } finally {
+      this.isStartingConversation.set(false);
+    }
   }
 
   async toggleVendorFollow(): Promise<void> {

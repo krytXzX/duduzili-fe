@@ -7,6 +7,8 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 import { AuthSessionService } from '../../services/auth-session.service';
@@ -1876,10 +1878,14 @@ type ChatDay = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessagesPageComponent implements OnDestroy {
+  private readonly route = inject(ActivatedRoute);
   private readonly messagesService = inject(MessagesService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly authSession = inject(AuthSessionService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
+  private readonly queryParamMap = toSignal(this.route.queryParamMap, {
+    initialValue: this.route.snapshot.queryParamMap,
+  });
   private mobileConversationOverlayOpen = false;
 
   readonly assets = {
@@ -1934,6 +1940,9 @@ export class MessagesPageComponent implements OnDestroy {
 
   readonly isMobileConversationOpen = signal(false);
   readonly isSeller = this.authSession.isSeller;
+  readonly requestedConversationId = computed(
+    () => this.queryParamMap().get('conversation')?.trim() ?? '',
+  );
   readonly isClearChatConfirmOpen = signal(false);
   readonly isMessageMenuOpen = signal(false);
   readonly isProfileMenuOpen = signal(false);
@@ -2151,10 +2160,13 @@ export class MessagesPageComponent implements OnDestroy {
       return;
     }
 
+    const requestedConversationId = this.requestedConversationId();
     const currentActiveChatId = this.activeChatId();
-    const nextActiveChatId = mappedConversations.some((conversation) => conversation.id === currentActiveChatId)
-      ? currentActiveChatId
-      : mappedConversations[0].id;
+    const nextActiveChatId = mappedConversations.some((conversation) => conversation.id === requestedConversationId)
+      ? requestedConversationId
+      : mappedConversations.some((conversation) => conversation.id === currentActiveChatId)
+        ? currentActiveChatId
+        : mappedConversations[0].id;
     this.activeChatId.set(nextActiveChatId);
     await this.loadConversationDetails(nextActiveChatId);
   }
