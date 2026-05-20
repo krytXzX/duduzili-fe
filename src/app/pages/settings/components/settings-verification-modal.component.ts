@@ -118,7 +118,7 @@ export class SettingsVerificationModalComponent {
 
   readonly close = output<void>();
   readonly back = output<void>();
-  readonly confirm = output<void>();
+  readonly confirm = output<string>();
 
   protected readonly otpValue = signal('');
   protected readonly submitted = signal(false);
@@ -130,6 +130,6 @@ export class SettingsVerificationModalComponent {
       return;
     }
 
-    this.confirm.emit();
+    this.confirm.emit(this.otpValue());
   }
 }

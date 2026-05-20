@@ -49,13 +49,23 @@ export interface RecentlyViewedResponse {
   earlier?: ListingsApiItem[];
 }
 
+export interface WishlistResponse {
+  today?: ListingsApiItem[];
+  yesterday?: ListingsApiItem[];
+  earlier?: ListingsApiItem[];
+}
+
+export interface CreateListingReportRequest {
+  description: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ListingsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
-  getMyFavorites(): Observable<ListingsSearchResponse> {
-    return this.http.get<ListingsSearchResponse>(`${this.apiUrl}/listings/favorites/`);
+  getMyFavorites(): Observable<WishlistResponse> {
+    return this.http.get<WishlistResponse>(`${this.apiUrl}/wishlist/`);
   }
 
   getRecentlyViewed(): Observable<RecentlyViewedResponse> {
@@ -70,12 +80,25 @@ export class ListingsService {
     return this.http.post<ListingsApiItem>(`${this.apiUrl}/listings/`, payload);
   }
 
+  createListingReport(
+    listingId: string,
+    payload: CreateListingReportRequest,
+  ): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(
+      `${this.apiUrl}/reports/${listingId}/report/`,
+      payload,
+      {
+        params: { type: 'listing' },
+      },
+    );
+  }
+
   getListingDetails(id: string): Observable<ListingsApiItem> {
     return this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`);
   }
 
   toggleFavorite(id: string): Observable<ToggleFavoriteResponse> {
-    return this.http.get<ToggleFavoriteResponse>(
+    return this.http.post<ToggleFavoriteResponse>(
       `${this.apiUrl}/listings/${id}/toggle_favorite/`,
       {},
     );

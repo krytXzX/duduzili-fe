@@ -1,6 +1,6 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
@@ -8,8 +8,11 @@ import { Listing, ListingCardComponent } from '../../components/listings/listing
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { Review } from '../../components/product/review-card.component';
+import { SellerReportModalComponent } from '../../components/product/seller-report-modal.component';
 import { ListingsApiItem, ListingsService } from '../../services/listings.service';
+import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { MessagesService } from '../../services/messages.service';
 import { VendorsService, VendorFollowResponse } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
 
@@ -64,6 +67,7 @@ type SellerReportStep = 1 | 2;
     ListingCardComponent,
     HomeFooterComponent,
     AppToastComponent,
+    SellerReportModalComponent,
   ],
   templateUrl: './product-page.component.html',
   host: {
@@ -73,10 +77,13 @@ type SellerReportStep = 1 | 2;
 })
 export class ProductPageComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly listingsService = inject(ListingsService);
   private readonly vendorsService = inject(VendorsService);
+  private readonly appToastService = inject(AppToastService);
   private readonly authSession = inject(AuthSessionService);
+  private readonly messagesService = inject(MessagesService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   readonly productId = this.route.snapshot.paramMap.get('id') ?? 'iphone-16-pro';
@@ -94,6 +101,8 @@ export class ProductPageComponent {
   readonly selectedSellerReportReason = signal<string | null>(null);
   readonly currentGalleryIndex = signal(0);
   readonly isFollowPending = signal(false);
+  readonly isSubmittingListingReport = signal(false);
+  readonly isStartingConversation = signal(false);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
@@ -323,6 +332,10 @@ export class ProductPageComponent {
 
   constructor() {
     void this.loadProductDetails();
+
+    if (this.route.snapshot.queryParamMap.get('report') === 'seller') {
+      this.openReportModal('seller');
+    }
   }
 
   setGalleryIndex(index: number): void {
@@ -430,6 +443,49 @@ export class ProductPageComponent {
     this.isMakeOfferModalOpen.set(true);
   }
 
+  async viewStoreProfile(): Promise<void> {
+    const storeId = this.store().id;
+    if (!storeId) {
+      return;
+    }
+
+    await this.router.navigate(['/stores', storeId]);
+  }
+
+  async startInAppConversation(): Promise<void> {
+    if (this.isStartingConversation()) {
+      return;
+    }
+
+    if (!this.authSession.isAuthenticated()) {
+      await this.router.navigate(['/sign-in']);
+      return;
+    }
+
+    const storeId = this.store().id;
+    if (!storeId) {
+      return;
+    }
+
+    this.isStartingConversation.set(true);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.startConversation(storeId));
+      const conversationId = this.readString(response['id']) ?? this.readString(response['chat_id']);
+
+      this.isMessageVendorModalOpen.set(false);
+      await this.router.navigate(['/chats'], {
+        queryParams: conversationId ? { conversation: conversationId } : undefined,
+      });
+    } catch {
+      this.appToastService.show({
+        message: 'Unable to start conversation right now.',
+      });
+    } finally {
+      this.isStartingConversation.set(false);
+    }
+  }
+
   async toggleVendorFollow(): Promise<void> {
     if (this.isFollowPending()) {
       return;
@@ -518,15 +574,34 @@ export class ProductPageComponent {
     this.makeOfferForm.reset({ amount: '' });
   }
 
-  submitReport(): void {
+  async submitReport(): Promise<void> {
     if (this.reportForm.invalid) {
       this.reportForm.markAllAsTouched();
       return;
     }
 
     if (this.reportSubject() === 'listing') {
-      this.closeReportModal();
-      this.isReportSuccessModalOpen.set(true);
+      if (this.isSubmittingListingReport()) {
+        return;
+      }
+
+      this.isSubmittingListingReport.set(true);
+
+      try {
+        await firstValueFrom(
+          this.listingsService.createListingReport(this.product().id, {
+            description: this.reportForm.controls.details.getRawValue().trim(),
+          }),
+        );
+        this.closeReportModal();
+        this.isReportSuccessModalOpen.set(true);
+      } catch {
+        this.appToastService.show({
+          message: 'Unable to submit listing report right now.',
+        });
+      } finally {
+        this.isSubmittingListingReport.set(false);
+      }
       return;
     }
 

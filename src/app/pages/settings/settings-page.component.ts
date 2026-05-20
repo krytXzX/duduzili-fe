@@ -1043,7 +1043,7 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
         [destination]="verification.destination"
         (close)="verificationMode.set(null)"
         (back)="handleVerificationBack()"
-        (confirm)="completeVerification()"
+        (confirm)="completeVerification($event)"
       ></app-settings-verification-modal>
     }
 
@@ -1647,7 +1647,7 @@ export class SettingsPageComponent {
       case 'call':
       case 'whatsapp':
         return {
-          destination: '+234 816 939 7454',
+          destination: this.modalValue(),
         };
       default:
         return null;
@@ -1668,11 +1668,11 @@ export class SettingsPageComponent {
         break;
       case 'edit-call':
         this.modalMode.set(profile.callNumber ? 'call-update' : 'call-add');
-        this.modalValue.set(profile.callNumber || '+234 816 939 7454');
+        this.modalValue.set(profile.callNumber);
         break;
       case 'edit-whatsapp':
         this.modalMode.set(profile.whatsappNumber ? 'whatsapp-update' : 'whatsapp-add');
-        this.modalValue.set(profile.whatsappNumber || '+234 816 939 7454');
+        this.modalValue.set(profile.whatsappNumber);
         break;
     }
   }
@@ -1688,26 +1688,46 @@ export class SettingsPageComponent {
         this.modalMode.set(null);
         break;
       case 'call-add':
+        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+          return;
+        }
+
         this.verificationReturnMode.set('call-add');
         this.verificationMode.set('call');
         this.modalMode.set(null);
         break;
       case 'whatsapp-add':
+        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+          return;
+        }
+
         this.verificationReturnMode.set('whatsapp-add');
         this.verificationMode.set('whatsapp');
         this.modalMode.set(null);
         break;
       case 'call-update':
+        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+          return;
+        }
+
         this.verificationReturnMode.set('call-update');
         this.verificationMode.set('call');
         this.modalMode.set(null);
         break;
       case 'whatsapp-update':
+        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+          return;
+        }
+
         this.verificationReturnMode.set('whatsapp-update');
         this.verificationMode.set('whatsapp');
         this.modalMode.set(null);
         break;
       case 'email':
+        if (!(await this.persistProfileChanges({ email: this.modalValue() }))) {
+          return;
+        }
+
         this.verificationReturnMode.set('email');
         this.verificationMode.set('email');
         this.modalMode.set(null);
@@ -1740,20 +1760,18 @@ export class SettingsPageComponent {
     this.verificationReturnMode.set(null);
   }
 
-  async completeVerification(): Promise<void> {
+  async completeVerification(otpCode: string): Promise<void> {
+    if (!(await this.confirmProfileOtp(otpCode))) {
+      return;
+    }
+
     switch (this.verificationMode()) {
       case 'email':
-        if (!(await this.persistProfileChanges({ email: this.modalValue() }))) {
-          return;
-        }
-
+        await this.refreshProfileFromBackend();
         this.showToast('Profile updated successfully');
         break;
       case 'call':
-        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
-          return;
-        }
-
+        await this.refreshProfileFromBackend();
         this.showToast(
           this.verificationReturnMode() === 'call-add'
             ? 'Phone number added successfully'
@@ -1761,10 +1779,7 @@ export class SettingsPageComponent {
         );
         break;
       case 'whatsapp':
-        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
-          return;
-        }
-
+        await this.refreshProfileFromBackend();
         this.showToast(
           this.verificationReturnMode() === 'whatsapp-add'
             ? 'Phone number added successfully'
@@ -1902,6 +1917,57 @@ export class SettingsPageComponent {
     } catch {
       this.showToast('We could not update your profile right now.');
       return false;
+    }
+  }
+
+  private async confirmProfileOtp(otpCode: string): Promise<boolean> {
+    if (!this.appMode.isBackendEnabled()) {
+      return true;
+    }
+
+    const verificationType = this.currentVerificationType();
+    if (!verificationType) {
+      return false;
+    }
+
+    try {
+      await firstValueFrom(
+        this.authService.verifyProfileOtp({
+          type: verificationType,
+          otp_code: otpCode,
+        }),
+      );
+      return true;
+    } catch {
+      this.showToast('We could not verify that code right now.');
+      return false;
+    }
+  }
+
+  private async refreshProfileFromBackend(): Promise<void> {
+    if (!this.appMode.isBackendEnabled()) {
+      return;
+    }
+
+    try {
+      const response = await firstValueFrom(this.authService.getProfile());
+      this.authSession.initializeFromProfile(response);
+      this.hydrateProfileFromUser(this.resolveProfileUser(response));
+    } catch {
+      // Keep the optimistic profile state if the refresh request fails.
+    }
+  }
+
+  private currentVerificationType(): 'phone' | 'whatsapp' | 'email' | null {
+    switch (this.verificationMode()) {
+      case 'call':
+        return 'phone';
+      case 'whatsapp':
+        return 'whatsapp';
+      case 'email':
+        return 'email';
+      default:
+        return null;
     }
   }
 

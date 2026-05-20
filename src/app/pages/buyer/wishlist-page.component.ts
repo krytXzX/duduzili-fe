@@ -4,8 +4,8 @@ import { firstValueFrom } from 'rxjs';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import {
   ListingsApiItem,
-  ListingsSearchResponse,
   ListingsService,
+  WishlistResponse,
 } from '../../services/listings.service';
 import { environment } from '../../../environments/environment';
 import { FavoritesStateService } from '../../services/favorites-state.service';
@@ -16,8 +16,8 @@ interface WishlistGroup {
 }
 
 interface WishlistEntry {
+  label: string;
   listing: Listing;
-  createdAt: string | null;
 }
 
 @Component({
@@ -131,9 +131,8 @@ export class BuyerWishlistPageComponent {
 
     try {
       const response = await firstValueFrom(this.listingsService.getMyFavorites());
-      const items = this.extractItems(response);
-      const entries = items
-        .map((item, index) => this.toWishlistEntry(item, index))
+      const entries = this.extractEntries(response)
+        .map((entry, index) => this.toWishlistEntry(entry.label, entry.item, index))
         .filter((entry): entry is WishlistEntry => entry !== null);
 
       this.allWishlistEntries.set(entries);
@@ -153,92 +152,46 @@ export class BuyerWishlistPageComponent {
     const grouped = new Map<string, Listing[]>();
 
     for (const entry of entries) {
-      const label = this.labelForListing(entry.createdAt);
-      grouped.set(label, [...(grouped.get(label) ?? []), entry.listing]);
+      grouped.set(entry.label, [...(grouped.get(entry.label) ?? []), entry.listing]);
     }
 
-    return Array.from(grouped.entries()).map(([label, groupedListings]) => ({
-      label,
-      listings: groupedListings,
-    }));
+    return this.groupLabels
+      .map((label) => ({
+        label,
+        listings: grouped.get(label) ?? [],
+      }))
+      .filter((group) => group.listings.length > 0);
   }
 
-  private labelForListing(createdAtValue: string | null): string {
-    const createdAt = this.parseDate(createdAtValue);
-    if (!createdAt) {
-      return 'Favorites';
-    }
-
-    const now = new Date();
-    const isSameDay =
-      createdAt.getDate() === now.getDate()
-      && createdAt.getMonth() === now.getMonth()
-      && createdAt.getFullYear() === now.getFullYear();
-
-    if (isSameDay) {
-      return 'Today';
-    }
-
-    return new Intl.DateTimeFormat('en-NG', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(createdAt);
+  private extractEntries(response: WishlistResponse): Array<{ label: string; item: ListingsApiItem }> {
+    return this.groupLabels.flatMap((label) =>
+      (response[this.toResponseKey(label)] ?? []).map((item) => ({ label, item })),
+    );
   }
 
-  private parseDate(value: string | null): Date | null {
-    if (!value) {
-      return null;
-    }
-
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-
-  private extractItems(response: ListingsSearchResponse): ListingsApiItem[] {
-    if (Array.isArray(response)) {
-      return response;
-    }
-
-    if (Array.isArray(response.results)) {
-      return response.results;
-    }
-
-    if (Array.isArray(response.data)) {
-      return response.data;
-    }
-
-    if (Array.isArray(response.listings)) {
-      return response.listings;
-    }
-
-    return [];
-  }
-
-  private toWishlistEntry(item: ListingsApiItem, index: number): WishlistEntry | null {
-    const listingDetails = this.readRecord(item['listing_details']) ?? item;
+  private toWishlistEntry(label: string, item: ListingsApiItem, index: number): WishlistEntry | null {
     const title =
-      this.readString(listingDetails['title']) ??
-      this.readString(listingDetails['name']) ??
-      this.readString(listingDetails['listing_name']);
-    const price = this.formatPrice(listingDetails['price']);
+      this.readString(item['title']) ??
+      this.readString(item['name']) ??
+      this.readString(item['listing_name']);
+    const price = this.formatPrice(item['price']);
 
     if (!title || !price) {
       return null;
     }
 
     return {
-      createdAt: this.readString(item['created_at']),
+      label,
       listing: {
-        id: this.readString(listingDetails['id']) ?? `favorite-${index + 1}`,
+        id: this.readString(item['id']) ?? `favorite-${index + 1}`,
         title,
         price,
-        originalPrice: this.formatPrice(listingDetails['original_price']) ?? undefined,
-        discountBadge: this.formatDiscountBadge(listingDetails['discount_percentage']) ?? undefined,
-        location: this.composeLocation(listingDetails) ?? 'Nigeria',
-        timeAgo: this.formatCondition(listingDetails['condition']) ?? 'Recently',
-        isVerified: this.readBoolean(listingDetails['is_verified']) ?? false,
-        images: this.extractImages(listingDetails),
+        originalPrice: this.formatPrice(item['original_price']) ?? undefined,
+        discountBadge: this.formatDiscountBadge(item['discount_percentage']) ?? undefined,
+        location: this.composeLocation(item) ?? 'Nigeria',
+        timeAgo: this.formatCondition(item['condition']) ?? 'Recently',
+        isVerified: this.readBoolean(item['is_verified']) ?? false,
+        images: this.extractImages(item),
       },
     };
   }
@@ -376,5 +329,18 @@ export class BuyerWishlistPageComponent {
 
   private readRecord(value: unknown): Record<string, unknown> | null {
     return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
+  }
+
+  private readonly groupLabels = ['Today', 'Yesterday', 'Earlier'] as const;
+
+  private toResponseKey(label: (typeof this.groupLabels)[number]): keyof WishlistResponse {
+    switch (label) {
+      case 'Today':
+        return 'today';
+      case 'Yesterday':
+        return 'yesterday';
+      default:
+        return 'earlier';
+    }
   }
 }

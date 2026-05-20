@@ -7,7 +7,21 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FormBuilder, Validators } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { SellerReportModalComponent } from '../../components/product/seller-report-modal.component';
+import { AppToastService } from '../../services/app-toast.service';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+import { AuthSessionService } from '../../services/auth-session.service';
+import {
+  MessageConversationApiItem,
+  MessagesResponse,
+  MessagesService,
+  SellerStoreApiItem,
+} from '../../services/messages.service';
+import { environment } from '../../../environments/environment';
 
 interface Conversation {
   id: string;
@@ -19,6 +33,25 @@ interface Conversation {
   mobileAvatar?: string;
   storeBadge: string;
   mobileStoreBadge?: string;
+  vendorId?: string;
+  listingId?: string;
+}
+
+const EMPTY_CONVERSATION: Conversation = {
+  id: '',
+  name: '',
+  preview: '',
+  time: '',
+  avatar: '/assets/images/chats-store-selector-personal.png',
+  mobileAvatar: '/assets/images/chats-store-selector-personal.png',
+  storeBadge: '/assets/images/chats-store-badge-desktop.png',
+  mobileStoreBadge: '/assets/images/chats-store-badge-mobile.png',
+};
+
+interface MessageDetailsResponse extends Record<string, unknown> {
+  results?: readonly Record<string, unknown>[];
+  messages?: readonly Record<string, unknown>[];
+  data?: readonly Record<string, unknown>[];
 }
 
 interface StoreOption {
@@ -68,7 +101,7 @@ type ChatDay = {
 
 @Component({
   selector: 'app-messages-page',
-  imports: [CommonModule, NgOptimizedImage],
+  imports: [CommonModule, NgOptimizedImage, SellerReportModalComponent],
   host: {
     class: 'block h-full min-h-0',
   },
@@ -85,210 +118,212 @@ type ChatDay = {
         >
           <h1 class="text-[24px] font-medium leading-normal text-[#0D0D0D]">Chats</h1>
 
-          <div class="relative">
-            <button
-              type="button"
-              (click)="openStoreSelector()"
-              class="flex h-12 w-[296px] items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
-              aria-haspopup="listbox"
-              [attr.aria-expanded]="isStoreSelectorOpen()"
-            >
-              <span class="flex items-center gap-2">
-                <span class="relative h-8 w-[68px] shrink-0">
-                  @if (selectedStore().variant === 'all') {
-                    <img
-                      [ngSrc]="assets.selectorAvatarOne"
-                      width="32"
-                      height="32"
-                      alt=""
-                      class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                    />
-                    <img
-                      [ngSrc]="assets.selectorAvatarTwo"
-                      width="32"
-                      height="32"
-                      alt=""
-                      class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                    />
-                    <img
-                      [ngSrc]="assets.selectorAvatarThree"
-                      width="32"
-                      height="32"
-                      alt=""
-                      class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                    />
-                    <span
-                      class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                    >
-                      <img
-                        [ngSrc]="assets.selectorStoreIconDesktop"
-                        width="21"
-                        height="16"
-                        alt=""
-                        class="h-4 w-[21px]"
-                      />
-                    </span>
-                  } @else if (selectedStore().variant === 'store') {
-                    <span
-                      class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
-                    >
-                      <img
-                        [ngSrc]="assets.selectorStoreIconDesktop"
-                        width="21"
-                        height="16"
-                        alt=""
-                        class="h-4 w-[21px]"
-                      />
-                    </span>
-                  } @else {
-                    <img
-                      [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
-                      width="32"
-                      height="32"
-                      alt=""
-                      class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
-                    />
-                  }
-                </span>
-
-                <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
-                  {{ selectedStoreLabel() }}
-                </span>
-              </span>
-
-              <span class="flex items-center gap-[10px]">
-                <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
-                <span class="rounded-full bg-[#EDEDED] p-1">
-                  <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
-                </span>
-              </span>
-            </button>
-
-            @if (isStoreSelectorOpen()) {
+          @if (isSeller()) {
+            <div class="relative">
               <button
                 type="button"
-                (click)="closeStoreSelector()"
-                aria-label="Close store selector"
-                class="fixed inset-0 z-[119] hidden md:block"
-              ></button>
-
-              <section
-                class="absolute right-0 top-[calc(100%+12px)] z-[120] hidden w-[366px] rounded-[24px] border border-[#EAEAEA] bg-white p-4 shadow-[0_20px_40px_rgba(0,0,0,0.08)] md:block"
-                aria-label="Select store"
-                role="listbox"
+                (click)="openStoreSelector()"
+                class="flex h-12 w-[296px] items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
+                aria-haspopup="listbox"
+                [attr.aria-expanded]="isStoreSelectorOpen()"
               >
-                <label class="flex h-10 items-center gap-2 rounded-full bg-[#FAFAFA] px-3">
-                  <img [ngSrc]="assets.searchDesktop" width="16" height="16" alt="" class="h-4 w-4" />
-                  <input
-                    type="text"
-                    [value]="storeSearchTerm()"
-                    (input)="updateStoreSearch($event)"
-                    placeholder="Search stores"
-                    class="w-full bg-transparent text-[14px] leading-5 text-[#0D0D0D] outline-none placeholder:text-[#777777]"
-                  />
-                </label>
+                <span class="flex items-center gap-2">
+                  <span class="relative h-8 w-[68px] shrink-0">
+                    @if (selectedStore().variant === 'all') {
+                      <img
+                        [ngSrc]="assets.selectorAvatarOne"
+                        width="32"
+                        height="32"
+                        alt=""
+                        class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                      />
+                      <img
+                        [ngSrc]="assets.selectorAvatarTwo"
+                        width="32"
+                        height="32"
+                        alt=""
+                        class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                      />
+                      <img
+                        [ngSrc]="assets.selectorAvatarThree"
+                        width="32"
+                        height="32"
+                        alt=""
+                        class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                      />
+                      <span
+                        class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                      >
+                        <img
+                          [ngSrc]="assets.selectorStoreIconDesktop"
+                          width="21"
+                          height="16"
+                          alt=""
+                          class="h-4 w-[21px]"
+                        />
+                      </span>
+                    } @else if (selectedStore().variant === 'store') {
+                      <span
+                        class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
+                      >
+                        <img
+                          [ngSrc]="assets.selectorStoreIconDesktop"
+                          width="21"
+                          height="16"
+                          alt=""
+                          class="h-4 w-[21px]"
+                        />
+                      </span>
+                    } @else {
+                      <img
+                        [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
+                        width="32"
+                        height="32"
+                        alt=""
+                        class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
+                      />
+                    }
+                  </span>
 
-                <div class="mt-4 space-y-4">
-                  @for (store of filteredStoreOptions(); track store.id) {
-                    <button
-                      type="button"
-                      (click)="selectStore(store.id)"
-                      class="flex w-full items-center justify-between text-left"
-                    >
-                      <span class="flex min-w-0 items-center gap-2">
-                        @if (store.variant === 'all') {
-                          <span class="relative h-[19px] w-10 shrink-0">
-                            <img
-                              [ngSrc]="assets.selectorAvatarOne"
-                              width="19"
-                              height="19"
-                              alt=""
-                              class="absolute left-0 top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                            />
-                            <img
-                              [ngSrc]="assets.selectorAvatarTwo"
-                              width="19"
-                              height="19"
-                              alt=""
-                              class="absolute left-[7px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                            />
-                            <img
-                              [ngSrc]="assets.selectorAvatarThree"
-                              width="19"
-                              height="19"
-                              alt=""
-                              class="absolute left-[14px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                            />
-                            <span
-                              class="absolute left-[21px] top-0 flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                            >
+                  <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
+                    {{ selectedStoreLabel() }}
+                  </span>
+                </span>
+
+                <span class="flex items-center gap-[10px]">
+                  <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
+                  <span class="rounded-full bg-[#EDEDED] p-1">
+                    <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
+                  </span>
+                </span>
+              </button>
+
+              @if (isStoreSelectorOpen()) {
+                <button
+                  type="button"
+                  (click)="closeStoreSelector()"
+                  aria-label="Close store selector"
+                  class="fixed inset-0 z-[119] hidden md:block"
+                ></button>
+
+                <section
+                  class="absolute right-0 top-[calc(100%+12px)] z-[120] hidden w-[366px] rounded-[24px] border border-[#EAEAEA] bg-white p-4 shadow-[0_20px_40px_rgba(0,0,0,0.08)] md:block"
+                  aria-label="Select store"
+                  role="listbox"
+                >
+                  <label class="flex h-10 items-center gap-2 rounded-full bg-[#FAFAFA] px-3">
+                    <img [ngSrc]="assets.searchDesktop" width="16" height="16" alt="" class="h-4 w-4" />
+                    <input
+                      type="text"
+                      [value]="storeSearchTerm()"
+                      (input)="updateStoreSearch($event)"
+                      placeholder="Search stores"
+                      class="w-full bg-transparent text-[14px] leading-5 text-[#0D0D0D] outline-none placeholder:text-[#777777]"
+                    />
+                  </label>
+
+                  <div class="mt-4 space-y-4">
+                    @for (store of filteredStoreOptions(); track store.id) {
+                      <button
+                        type="button"
+                        (click)="selectStore(store.id)"
+                        class="flex w-full items-center justify-between text-left"
+                      >
+                        <span class="flex min-w-0 items-center gap-2">
+                          @if (store.variant === 'all') {
+                            <span class="relative h-[19px] w-10 shrink-0">
                               <img
-                                [ngSrc]="assets.selectorStoreIconMobile"
-                                width="12"
-                                height="10"
+                                [ngSrc]="assets.selectorAvatarOne"
+                                width="19"
+                                height="19"
                                 alt=""
-                                class="h-[10px] w-3"
+                                class="absolute left-0 top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
                               />
+                              <img
+                                [ngSrc]="assets.selectorAvatarTwo"
+                                width="19"
+                                height="19"
+                                alt=""
+                                class="absolute left-[7px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
+                              />
+                              <img
+                                [ngSrc]="assets.selectorAvatarThree"
+                                width="19"
+                                height="19"
+                                alt=""
+                                class="absolute left-[14px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
+                              />
+                              <span
+                                class="absolute left-[21px] top-0 flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                              >
+                                <img
+                                  [ngSrc]="assets.selectorStoreIconMobile"
+                                  width="12"
+                                  height="10"
+                                  alt=""
+                                  class="h-[10px] w-3"
+                                />
+                              </span>
                             </span>
-                          </span>
 
-                          <span class="text-[16px] font-medium leading-5 text-[#0D0D0D]">
-                            {{ store.label }}
-                          </span>
-                        } @else {
-                          <span
-                            class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
-                            [class.bg-[#3D785F]]="store.id === 'vine'"
-                            [class.bg-white]="store.id === 'eden'"
-                            [class.bg-[#F3F3F3]]="store.id === 'personal'"
-                          >
-                            @if (store.id === 'vine') {
-                              <img
-                                [ngSrc]="assets.selectorStoreIconMobile"
-                                width="24"
-                                height="18"
-                                alt=""
-                                class="h-[18px] w-6"
-                              />
-                            } @else {
-                              <img
-                                [ngSrc]="store.avatar ?? assets.storeSelectorEden"
-                                width="40"
-                                height="40"
-                                alt=""
-                                class="h-10 w-10 object-cover"
-                              />
-                            }
-                          </span>
-
-                          <span class="min-w-0">
-                            <span class="block truncate text-[16px] font-medium leading-5 text-[#1A1B1D]">
+                            <span class="text-[16px] font-medium leading-5 text-[#0D0D0D]">
                               {{ store.label }}
                             </span>
-                            <span class="mt-1 block truncate text-[12px] leading-5 text-[#8C8C8C]">
-                              {{ store.subtitle }}
+                          } @else {
+                            <span
+                              class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
+                              [class.bg-[#3D785F]]="store.id === 'vine'"
+                              [class.bg-white]="store.id === 'eden'"
+                              [class.bg-[#F3F3F3]]="store.id === 'personal'"
+                            >
+                              @if (store.id === 'vine') {
+                                <img
+                                  [ngSrc]="assets.selectorStoreIconMobile"
+                                  width="24"
+                                  height="18"
+                                  alt=""
+                                  class="h-[18px] w-6"
+                                />
+                              } @else {
+                                <img
+                                  [ngSrc]="store.avatar ?? assets.storeSelectorEden"
+                                  width="40"
+                                  height="40"
+                                  alt=""
+                                  class="h-10 w-10 object-cover"
+                                />
+                              }
                             </span>
-                          </span>
-                        }
-                      </span>
 
-                      <span class="flex h-6 w-6 shrink-0 items-center justify-center">
-                        @if (selectedStoreId() === store.id) {
-                          <img
-                            [ngSrc]="assets.storeSelectorCheck"
-                            width="24"
-                            height="24"
-                            alt=""
-                            class="h-6 w-6"
-                          />
-                        }
-                      </span>
-                    </button>
-                  }
-                </div>
-              </section>
-            }
-          </div>
+                            <span class="min-w-0">
+                              <span class="block truncate text-[16px] font-medium leading-5 text-[#1A1B1D]">
+                                {{ store.label }}
+                              </span>
+                              <span class="mt-1 block truncate text-[12px] leading-5 text-[#8C8C8C]">
+                                {{ store.subtitle }}
+                              </span>
+                            </span>
+                          }
+                        </span>
+
+                        <span class="flex h-6 w-6 shrink-0 items-center justify-center">
+                          @if (selectedStoreId() === store.id) {
+                            <img
+                              [ngSrc]="assets.storeSelectorCheck"
+                              width="24"
+                              height="24"
+                              alt=""
+                              class="h-6 w-6"
+                            />
+                          }
+                        </span>
+                      </button>
+                    }
+                  </div>
+                </section>
+              }
+            </div>
+          }
         </header>
 
         <div class="flex min-h-0 flex-1 items-stretch gap-8 px-6 pb-6 pt-6">
@@ -302,70 +337,86 @@ type ChatDay = {
               />
             </label>
 
-            <div class="mt-3 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 chats-scrollbar">
-              @for (chat of conversations(); track chat.id) {
-                <button
-                  type="button"
-                  (click)="selectDesktopConversation(chat.id)"
-                  class="w-full rounded-[18px] px-3 py-4 text-left"
-                  [class.bg-[#F6F6F6]]="activeChatId() === chat.id"
-                >
-                  <div class="flex items-center gap-[9px]">
-                    <div class="relative h-12 w-12 shrink-0">
-                      <img
-                        [ngSrc]="chat.avatar"
-                        width="48"
-                        height="48"
-                        [alt]="chat.name"
-                        class="h-12 w-12 rounded-full object-cover"
-                      />
-                      <span
-                        class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
-                      >
-                        <img
-                          [ngSrc]="chat.storeBadge"
-                          width="20"
-                          height="20"
-                          alt=""
-                          class="h-5 w-5 object-cover"
-                        />
-                      </span>
-                    </div>
-
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center">
-                        <div class="min-w-0 flex-1">
-                          <p class="truncate text-[16px] font-semibold leading-6 text-[#002F35]">
-                            {{ chat.name }}
-                          </p>
+            <div class="mt-3 min-h-0 flex-1 overflow-y-auto pr-1 chats-scrollbar">
+              @if (isLoadingConversations()) {
+                <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#6C6C6C]">
+                  Loading chats...
+                </div>
+              } @else if (conversationsError()) {
+                <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#D14343]">
+                  {{ conversationsError() }}
+                </div>
+              } @else if (!hasConversations()) {
+                <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#6C6C6C]">
+                  No chats yet.
+                </div>
+              } @else {
+                <div class="space-y-1">
+                  @for (chat of conversations(); track chat.id) {
+                    <button
+                      type="button"
+                      (click)="selectDesktopConversation(chat.id)"
+                      class="w-full rounded-[18px] px-3 py-4 text-left"
+                      [class.bg-[#F6F6F6]]="activeChatId() === chat.id"
+                    >
+                      <div class="flex items-center gap-[9px]">
+                        <div class="relative h-12 w-12 shrink-0">
+                          <img
+                            [ngSrc]="chat.avatar"
+                            width="48"
+                            height="48"
+                            [alt]="chat.name"
+                            class="h-12 w-12 rounded-full object-cover"
+                          />
+                          <span
+                            class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
+                          >
+                            <img
+                              [ngSrc]="chat.storeBadge"
+                              width="20"
+                              height="20"
+                              alt=""
+                              class="h-5 w-5 object-cover"
+                            />
+                          </span>
                         </div>
 
-                        <span
-                          class="w-[104px] shrink-0 text-right text-[12px] leading-4"
-                          [class.text-[#6453D9]]="chat.unreadCount"
-                          [class.font-medium]="chat.unreadCount"
-                          [class.text-[#6C6C6C]]="!chat.unreadCount"
-                        >
-                          {{ chat.time }}
-                        </span>
-                      </div>
+                        <div class="min-w-0 flex-1">
+                          <div class="flex items-center">
+                            <div class="min-w-0 flex-1">
+                              <p class="truncate text-[16px] font-semibold leading-6 text-[#002F35]">
+                                {{ chat.name }}
+                              </p>
+                            </div>
 
-                      <div class="mt-1 flex items-center gap-[19px]">
-                        <p class="min-w-0 flex-1 truncate text-[14px] leading-5 text-[#7A7A7A]">
-                          {{ chat.preview }}
-                        </p>
+                            <span
+                              class="w-[104px] shrink-0 text-right text-[12px] leading-4"
+                              [class.text-[#6453D9]]="chat.unreadCount"
+                              [class.font-medium]="chat.unreadCount"
+                              [class.text-[#6C6C6C]]="!chat.unreadCount"
+                            >
+                              {{ chat.time }}
+                            </span>
+                          </div>
 
-                        @if (chat.unreadCount) {
-                          <span
-                            class="inline-flex h-5 min-w-[33px] items-center justify-center rounded-[12px] bg-[#6453D9] px-[6px] text-[12px] leading-4 text-white"
-                          >
-                            {{ chat.unreadCount }}
-                          </span>
-                        }
+                          <div class="mt-1 flex items-center gap-[19px]">
+                            <p class="min-w-0 flex-1 truncate text-[14px] leading-5 text-[#7A7A7A]">
+                              {{ chat.preview }}
+                            </p>
+
+                            @if (chat.unreadCount) {
+                              <span
+                                class="inline-flex h-5 min-w-[33px] items-center justify-center rounded-[12px] bg-[#6453D9] px-[6px] text-[12px] leading-4 text-white"
+                              >
+                                {{ chat.unreadCount }}
+                              </span>
+                            }
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </button>
+                    </button>
+                  }
+                </div>
               }
             </div>
           </aside>
@@ -373,6 +424,11 @@ type ChatDay = {
           <section
             class="grid min-h-0 min-w-0 flex-1 grid-rows-[83px_minmax(0,1fr)_77px] overflow-hidden rounded-[16px] border border-[#F1F1F1] bg-white"
           >
+            @if (!hasConversations()) {
+              <div class="col-span-full row-span-full flex min-h-0 items-center justify-center px-8 text-center text-[16px] text-[#6C6C6C]">
+                Select a conversation once chats are available.
+              </div>
+            } @else {
             <header class="border-b border-[#EAEAEA] bg-white px-[23px] py-[12.5px]">
                 <div class="flex items-center justify-between">
                   @if (isSelectionMode()) {
@@ -483,6 +539,7 @@ type ChatDay = {
                           <div class="space-y-1">
                             <button
                               type="button"
+                              (click)="viewActiveConversationProfile()"
                               class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FAFAFA]"
                             >
                               <img
@@ -499,6 +556,7 @@ type ChatDay = {
 
                             <button
                               type="button"
+                              (click)="openSellerReportPage()"
                               class="flex w-full items-center gap-[10px] rounded-[12px] px-3 py-3 text-left hover:bg-[#FFF7F7]"
                             >
                               <img
@@ -774,22 +832,44 @@ type ChatDay = {
                 >
                   <input
                     type="text"
+                    [value]="draftMessage()"
+                    (input)="updateDraftMessage($event)"
+                    (keydown.enter)="sendDraftMessage()"
                     placeholder="Type a message..."
                     class="w-full bg-transparent pr-10 text-[14px] leading-5 text-[#0D0D0D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
                   />
-                  <button type="button" class="absolute right-[11px] top-1/2 -translate-y-1/2">
-                    <img
-                      [ngSrc]="assets.micDesktop"
-                      width="24"
-                      height="24"
-                      alt=""
-                      class="h-6 w-6"
-                    />
-                  </button>
+                  @if (hasDraftMessage()) {
+                    <button
+                      type="button"
+                      (click)="sendDraftMessage()"
+                      [disabled]="isSendingMessage()"
+                      class="absolute right-[8px] top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-[#6453D9] disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label="Send message"
+                    >
+                      <img
+                        [ngSrc]="assets.sendMobile"
+                        width="18"
+                        height="18"
+                        alt=""
+                        class="h-[18px] w-[18px]"
+                      />
+                    </button>
+                  } @else {
+                    <button type="button" class="absolute right-[11px] top-1/2 -translate-y-1/2">
+                      <img
+                        [ngSrc]="assets.micDesktop"
+                        width="24"
+                        height="24"
+                        alt=""
+                        class="h-6 w-6"
+                      />
+                    </button>
+                  }
                 </div>
               </div>
               </div>
             </footer>
+            }
           </section>
         </div>
       </section>
@@ -814,147 +894,167 @@ type ChatDay = {
             </button>
           </div>
 
-          <button
-            type="button"
-            (click)="openStoreSelector()"
-            class="mt-6 flex h-12 w-full items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2"
-            aria-haspopup="dialog"
-            [attr.aria-expanded]="isStoreSelectorOpen()"
-          >
-            <span class="flex items-center gap-2">
-              <span class="relative h-8 w-[68px] shrink-0">
-                @if (selectedStore().variant === 'all') {
-                  <img
-                    [ngSrc]="assets.selectorAvatarOne"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <img
-                    [ngSrc]="assets.selectorAvatarTwo"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <img
-                    [ngSrc]="assets.selectorAvatarThree"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                  />
-                  <span
-                    class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                  >
-                    <img
-                      [ngSrc]="assets.selectorStoreIconMobile"
-                      width="21"
-                      height="16"
-                      alt=""
-                      class="h-4 w-[21px]"
-                    />
-                  </span>
-                } @else if (selectedStore().variant === 'store') {
-                  <span
-                    class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
-                  >
-                    <img
-                      [ngSrc]="assets.selectorStoreIconMobile"
-                      width="21"
-                      height="16"
-                      alt=""
-                      class="h-4 w-[21px]"
-                    />
-                  </span>
-                } @else {
-                  <img
-                    [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
-                    width="32"
-                    height="32"
-                    alt=""
-                    class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
-                  />
-                }
-              </span>
-
-              <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
-                {{ selectedStoreLabel() }}
-              </span>
-            </span>
-
-            <span class="flex items-center gap-[10px]">
-              <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
-              <span class="rounded-full bg-[#EDEDED] p-1">
-                <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
-              </span>
-            </span>
-          </button>
-
-          <div class="mt-4 space-y-1">
-            @for (chat of conversations(); track chat.id) {
+          <div [class.mt-6]="isSeller()" [class.mt-4]="!isSeller()">
+            @if (isSeller()) {
               <button
                 type="button"
-                (click)="openMobileConversation(chat.id)"
-                class="w-full py-4 text-left"
+                (click)="openStoreSelector()"
+                class="flex h-12 w-full items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white px-2"
+                aria-haspopup="dialog"
+                [attr.aria-expanded]="isStoreSelectorOpen()"
               >
-                <div class="flex items-center gap-[9px]">
-                  <div class="relative h-12 w-12 shrink-0">
-                    <img
-                      [ngSrc]="chat.mobileAvatar ?? chat.avatar"
-                      width="48"
-                      height="48"
-                      [alt]="chat.name"
-                      class="h-12 w-12 rounded-full object-cover"
-                    />
-                    <span
-                      class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
-                    >
+                <span class="flex items-center gap-2">
+                  <span class="relative h-8 w-[68px] shrink-0">
+                    @if (selectedStore().variant === 'all') {
                       <img
-                        [ngSrc]="chat.mobileStoreBadge ?? assets.storeBadgeMobile"
-                        width="20"
-                        height="20"
+                        [ngSrc]="assets.selectorAvatarOne"
+                        width="32"
+                        height="32"
                         alt=""
-                        class="h-5 w-5 object-cover"
+                        class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
                       />
-                    </span>
-                  </div>
-
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center">
-                      <p
-                        class="min-w-0 flex-1 truncate text-[16px] font-semibold leading-6 text-[#002F35]"
-                      >
-                        {{ chat.name }}
-                      </p>
+                      <img
+                        [ngSrc]="assets.selectorAvatarTwo"
+                        width="32"
+                        height="32"
+                        alt=""
+                        class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                      />
+                      <img
+                        [ngSrc]="assets.selectorAvatarThree"
+                        width="32"
+                        height="32"
+                        alt=""
+                        class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
+                      />
                       <span
-                        class="w-[104px] shrink-0 text-right text-[12px] leading-4"
-                        [class.text-[#6453D9]]="chat.unreadCount"
-                        [class.font-medium]="chat.unreadCount"
-                        [class.text-[#6C6C6C]]="!chat.unreadCount"
+                        class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
                       >
-                        {{ chat.time }}
+                        <img
+                          [ngSrc]="assets.selectorStoreIconMobile"
+                          width="21"
+                          height="16"
+                          alt=""
+                          class="h-4 w-[21px]"
+                        />
                       </span>
-                    </div>
+                    } @else if (selectedStore().variant === 'store') {
+                      <span
+                        class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
+                      >
+                        <img
+                          [ngSrc]="assets.selectorStoreIconMobile"
+                          width="21"
+                          height="16"
+                          alt=""
+                          class="h-4 w-[21px]"
+                        />
+                      </span>
+                    } @else {
+                      <img
+                        [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
+                        width="32"
+                        height="32"
+                        alt=""
+                        class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
+                      />
+                    }
+                  </span>
 
-                    <div class="mt-1 flex items-center gap-[19px]">
-                      <p class="min-w-0 flex-1 truncate text-[14px] leading-5 text-[#7A7A7A]">
-                        {{ chat.preview }}
-                      </p>
+                  <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
+                    {{ selectedStoreLabel() }}
+                  </span>
+                </span>
 
-                      @if (chat.unreadCount) {
-                        <span
-                          class="inline-flex h-5 min-w-[33px] items-center justify-center rounded-[12px] bg-[#6453D9] px-[6px] text-[12px] leading-4 text-white"
-                        >
-                          {{ chat.unreadCount }}
-                        </span>
-                      }
-                    </div>
-                  </div>
-                </div>
+                <span class="flex items-center gap-[10px]">
+                  <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
+                  <span class="rounded-full bg-[#EDEDED] p-1">
+                    <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
+                  </span>
+                </span>
               </button>
             }
+
+            <div [class.mt-4]="isSeller()">
+            @if (isLoadingConversations()) {
+              <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#6C6C6C]">
+                Loading chats...
+              </div>
+            } @else if (conversationsError()) {
+              <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#D14343]">
+                {{ conversationsError() }}
+              </div>
+            } @else if (!hasConversations()) {
+              <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#6C6C6C]">
+                No chats yet.
+              </div>
+            } @else {
+              <div class="space-y-1">
+                @for (chat of conversations(); track chat.id) {
+                  <button
+                    type="button"
+                    (click)="openMobileConversation(chat.id)"
+                    class="w-full py-4 text-left"
+                  >
+                    <div class="flex items-center gap-[9px]">
+                      <div class="relative h-12 w-12 shrink-0">
+                        <img
+                          [ngSrc]="chat.mobileAvatar ?? chat.avatar"
+                          width="48"
+                          height="48"
+                          [alt]="chat.name"
+                          class="h-12 w-12 rounded-full object-cover"
+                        />
+                        <span
+                          class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
+                        >
+                          <img
+                            [ngSrc]="chat.mobileStoreBadge ?? assets.storeBadgeMobile"
+                            width="20"
+                            height="20"
+                            alt=""
+                            class="h-5 w-5 object-cover"
+                          />
+                        </span>
+                      </div>
+
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center">
+                          <p
+                            class="min-w-0 flex-1 truncate text-[16px] font-semibold leading-6 text-[#002F35]"
+                          >
+                            {{ chat.name }}
+                          </p>
+                          <span
+                            class="w-[104px] shrink-0 text-right text-[12px] leading-4"
+                            [class.text-[#6453D9]]="chat.unreadCount"
+                            [class.font-medium]="chat.unreadCount"
+                            [class.text-[#6C6C6C]]="!chat.unreadCount"
+                          >
+                            {{ chat.time }}
+                          </span>
+                        </div>
+
+                        <div class="mt-1 flex items-center gap-[19px]">
+                          <p class="min-w-0 flex-1 truncate text-[14px] leading-5 text-[#7A7A7A]">
+                            {{ chat.preview }}
+                          </p>
+
+                          @if (chat.unreadCount) {
+                            <span
+                              class="inline-flex h-5 min-w-[33px] items-center justify-center rounded-[12px] bg-[#6453D9] px-[6px] text-[12px] leading-4 text-white"
+                            >
+                              {{ chat.unreadCount }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                }
+              </div>
+            }
+            </div>
           </div>
         </section>
       }
@@ -1275,6 +1375,7 @@ type ChatDay = {
                   type="text"
                   [value]="draftMessage()"
                   (input)="updateDraftMessage($event)"
+                  (keydown.enter)="sendDraftMessage()"
                   placeholder="Type a message..."
                   class="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#2D2D2D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
                 />
@@ -1292,6 +1393,8 @@ type ChatDay = {
                   <button
                     type="button"
                     aria-label="Send message"
+                    (click)="sendDraftMessage()"
+                    [disabled]="isSendingMessage()"
                     class="flex h-10 w-[58px] shrink-0 items-center justify-center rounded-full bg-[#6453D9]"
                   >
                     <img
@@ -1353,6 +1456,7 @@ type ChatDay = {
             <div class="space-y-2">
               <button
                 type="button"
+                (click)="viewActiveConversationProfile()"
                 class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
               >
                 <img
@@ -1367,6 +1471,7 @@ type ChatDay = {
 
               <button
                 type="button"
+                (click)="openSellerReportPage()"
                 class="flex w-full items-center gap-[10px] rounded-[8px] py-3 text-left"
               >
                 <img
@@ -1752,6 +1857,86 @@ type ChatDay = {
         </div>
       </section>
     }
+
+    <app-seller-report-modal
+      [open]="isSellerReportModalOpen()"
+      [step]="sellerReportStep()"
+      [selectedReason]="selectedSellerReportReason()"
+      [reasons]="sellerReportReasons"
+      [form]="sellerReportForm"
+      (closed)="closeSellerReportModal()"
+      (back)="backSellerReportStep()"
+      (reasonSelected)="selectSellerReportReason($event)"
+      (advanced)="advanceSellerReportStep()"
+      (submitted)="submitSellerReport()"
+    />
+
+    @if (isSellerReportSuccessModalOpen()) {
+      <div
+        class="fixed inset-0 z-[150] flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] md:items-center md:p-4"
+        (click)="closeSellerReportSuccessModal()"
+      >
+        <div
+          class="relative w-full rounded-t-[36px] bg-white px-4 pb-[42px] pt-3 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] md:max-w-[550px] md:rounded-[32px] md:px-4 md:pb-10 md:pt-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="seller-report-success-title"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="relative h-6 md:hidden">
+            <div class="absolute left-1/2 top-2.5 h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB]"></div>
+          </div>
+
+          <button
+            type="button"
+            (click)="closeSellerReportSuccessModal()"
+            class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#434455] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#FAFAFA] md:right-5 md:top-5"
+            aria-label="Close seller report success modal"
+          >
+            <img
+              ngSrc="/assets/icons/product-modal/seller-report-close.svg"
+              alt=""
+              width="24"
+              height="24"
+              class="h-6 w-6"
+            />
+          </button>
+
+          <div class="mx-auto mt-10 flex w-full max-w-[334px] flex-col items-center gap-11 md:mt-[65px]">
+            <div class="flex w-full flex-col items-center gap-4 text-center">
+              <img
+                ngSrc="/assets/images/product-modal/seller-report-success-hero.png"
+                alt=""
+                width="164"
+                height="164"
+                priority
+                class="h-[164px] w-[164px] object-contain"
+              />
+
+              <div class="space-y-3">
+                <h2
+                  id="seller-report-success-title"
+                  class="text-[24px] font-semibold leading-none text-[#15162B] md:text-[28px]"
+                >
+                  Thank you for keeping Duduzili safe
+                </h2>
+                <p class="text-[14px] leading-[1.5] tracking-[-0.5px] text-[#48484A]">
+                  Our team will review this report and take the necessary steps.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="closeSellerReportSuccessModal()"
+              class="flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5645cb]"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [
     `
@@ -1782,7 +1967,17 @@ type ChatDay = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessagesPageComponent implements OnDestroy {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly messagesService = inject(MessagesService);
+  private readonly appToastService = inject(AppToastService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly authSession = inject(AuthSessionService);
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
+  private readonly queryParamMap = toSignal(this.route.queryParamMap, {
+    initialValue: this.route.snapshot.queryParamMap,
+  });
   private mobileConversationOverlayOpen = false;
 
   readonly assets = {
@@ -1836,6 +2031,10 @@ export class MessagesPageComponent implements OnDestroy {
   } as const;
 
   readonly isMobileConversationOpen = signal(false);
+  readonly isSeller = this.authSession.isSeller;
+  readonly requestedConversationId = computed(
+    () => this.queryParamMap().get('conversation')?.trim() ?? '',
+  );
   readonly isClearChatConfirmOpen = signal(false);
   readonly isMessageMenuOpen = signal(false);
   readonly isProfileMenuOpen = signal(false);
@@ -1845,16 +2044,24 @@ export class MessagesPageComponent implements OnDestroy {
   readonly isReplyComposerOpen = computed(() => this.activeReplyTarget() !== null);
   readonly isRecordingVoice = signal(false);
   readonly isStoreSelectorOpen = signal(false);
-  readonly activeChatId = signal('2');
+  readonly isSellerReportModalOpen = signal(false);
+  readonly isSellerReportSuccessModalOpen = signal(false);
+  readonly activeChatId = signal('');
   readonly draftMessage = signal('');
   readonly storeSearchTerm = signal('');
-  readonly selectedStoreId = signal('all');
+  readonly selectedStoreId = signal('');
   readonly selectedMessageIds = signal<readonly string[]>([]);
   readonly deletedMessageIds = signal<readonly string[]>([]);
   readonly desktopMessageMenuAnchor = signal<{ left: number; top: number } | null>(null);
   readonly deleteIntent = signal<DeleteIntent>('chat');
   readonly isSelectionMode = computed(() => this.selectedMessageIds().length > 0);
   readonly selectedMessageCount = computed(() => this.selectedMessageIds().length);
+  readonly isLoadingConversations = signal(true);
+  readonly conversationsError = signal<string | null>(null);
+  readonly isLoadingConversationDetails = signal(false);
+  readonly isSendingMessage = signal(false);
+  readonly isDeletingMessages = signal(false);
+  readonly hasConversations = computed(() => this.conversations().length > 0);
   readonly clearChatConfirmTitle = computed(() =>
     this.deleteIntent() === 'messages' ? 'Delete selected messages?' : 'Remove this chat?',
   );
@@ -1867,92 +2074,48 @@ export class MessagesPageComponent implements OnDestroy {
     this.deleteIntent() === 'messages' ? 'Delete' : 'Remove',
   );
   readonly hasDraftMessage = computed(() => this.draftMessage().trim().length > 0);
+  readonly sellerReportStep = signal<1 | 2>(1);
+  readonly selectedSellerReportReason = signal<string | null>(null);
   private longPressTimer: ReturnType<typeof setTimeout> | null = null;
 
-  readonly storeOptions: readonly StoreOption[] = [
-    { id: 'all', label: 'All stores (4)', variant: 'all' },
-    {
-      id: 'vine',
-      label: 'The Vine Collections',
-      subtitle: 'Ikeja, Lagos',
-      variant: 'store',
-    },
-    {
-      id: 'eden',
-      label: 'Eden Organics',
-      subtitle: 'Warri, Delta',
-      variant: 'profile',
-      avatar: '/assets/images/chats-store-selector-eden.png',
-    },
-    {
-      id: 'personal',
-      label: 'Personal profile',
-      subtitle: 'Bryan Odjede',
-      variant: 'profile',
-      avatar: '/assets/images/chats-store-selector-personal.png',
-    },
-  ];
+  readonly storeOptions = signal<readonly StoreOption[]>([]);
 
-  readonly conversations = signal<Conversation[]>([
-    {
-      id: '1',
-      name: 'Bryan Odjede',
-      preview: 'I’m glad you like the perfume',
-      time: '15 hrs',
-      unreadCount: 148,
-      avatar: '/assets/images/chats-bryan-avatar-desktop.png',
-      mobileAvatar: '/assets/images/chats-bryan-avatar-mobile.png',
-      storeBadge: '/assets/icons/chats-bryan-badge-desktop.svg',
-      mobileStoreBadge: '/assets/icons/chats-bryan-badge-mobile.svg',
-    },
-    {
-      id: '2',
-      name: 'Angela Ugorji',
-      preview: 'That’s no problem at all. We can meet at Co...',
-      time: 'Just now',
-      avatar: '/assets/images/chats-angela-avatar-desktop.png',
-      mobileAvatar: '/assets/images/chats-angela-avatar-mobile.png',
-      storeBadge: '/assets/images/chats-store-badge-desktop.png',
-      mobileStoreBadge: '/assets/images/chats-store-badge-mobile.png',
-    },
-    {
-      id: '3',
-      name: 'Ediri Oghenemaro',
-      preview: 'Can we meet on Thursday?',
-      time: '20/02/2024',
-      avatar: '/assets/images/chats-ediri-avatar-desktop.png',
-      mobileAvatar: '/assets/images/chats-ediri-avatar-mobile.png',
-      storeBadge: '/assets/images/chats-store-badge-desktop.png',
-      mobileStoreBadge: '/assets/images/chats-store-badge-mobile.png',
-    },
-  ]);
+  readonly conversations = signal<Conversation[]>([]);
 
-  readonly conversationDays = signal<Record<string, readonly ChatDay[]>>({
-    '1': this.createMockConversationDays(),
-    '2': this.createMockConversationDays(),
-    '3': this.createMockConversationDays(),
+  readonly conversationDays = signal<Record<string, readonly ChatDay[]>>({});
+  readonly sellerReportForm = this.formBuilder.nonNullable.group({
+    details: ['', [Validators.required]],
   });
+  readonly sellerReportReasons = [
+    'Suspected scam or fraud',
+    'Seller is unresponsive after payment',
+    'Selling prohibited or illegal items',
+    'Repeatedly listing sold/unavailable items',
+    'Other reason',
+  ] as const;
 
   readonly selectedStoreLabel = computed(
     () =>
-      this.storeOptions.find((store) => store.id === this.selectedStoreId())?.label ??
-      'All stores (4)',
+      this.storeOptions().find((store) => store.id === this.selectedStoreId())?.label ??
+      'Select store',
   );
 
   readonly selectedStore = computed(
     () =>
-      this.storeOptions.find((store) => store.id === this.selectedStoreId()) ??
-      this.storeOptions[0],
+      this.storeOptions().find((store) => store.id === this.selectedStoreId()) ??
+      this.storeOptions()[0] ??
+      { id: '', label: 'Select store', variant: 'store' as const },
   );
 
   readonly filteredStoreOptions = computed(() => {
     const query = this.storeSearchTerm().trim().toLowerCase();
+    const storeOptions = this.storeOptions();
 
     if (!query) {
-      return this.storeOptions;
+      return storeOptions;
     }
 
-    return this.storeOptions.filter((store) =>
+    return storeOptions.filter((store) =>
       [store.label, store.subtitle]
         .filter((value): value is string => Boolean(value))
         .some((value) => value.toLowerCase().includes(query)),
@@ -1962,17 +2125,19 @@ export class MessagesPageComponent implements OnDestroy {
   readonly activeDesktopConversation = computed(
     () =>
       this.conversations().find((conversation) => conversation.id === this.activeChatId()) ??
-      this.conversations()[1],
+      this.conversations()[0] ??
+      EMPTY_CONVERSATION,
   );
 
   readonly activeMobileConversation = computed(
     () =>
       this.conversations().find((conversation) => conversation.id === this.activeChatId()) ??
-      this.conversations()[1],
+      this.conversations()[0] ??
+      EMPTY_CONVERSATION,
   );
 
   readonly activeConversationDays = computed(() => {
-    const days = this.conversationDays()[this.activeChatId()] ?? this.createMockConversationDays();
+    const days = this.conversationDays()[this.activeChatId()] ?? [];
 
     return days
       .map((day) => ({
@@ -1981,6 +2146,10 @@ export class MessagesPageComponent implements OnDestroy {
       }))
       .filter((day) => day.messages.length > 0);
   });
+
+  constructor() {
+    void this.initializePage();
+  }
 
   protected openMobileConversation(chatId: string): void {
     this.activeChatId.set(chatId);
@@ -1999,6 +2168,473 @@ export class MessagesPageComponent implements OnDestroy {
       this.mobileOverlayService.openMobileModal();
       this.mobileConversationOverlayOpen = true;
     }
+
+    void this.loadConversationDetails(chatId);
+  }
+
+  private async initializePage(): Promise<void> {
+    if (this.isSeller()) {
+      await this.loadSellerStores();
+      return;
+    }
+
+    await this.loadBuyerConversations();
+  }
+
+  private async loadSellerStores(): Promise<void> {
+    this.isLoadingConversations.set(true);
+    this.conversationsError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.getSellerStores());
+      const mappedStores = response
+        .map((item, index) => this.toStoreOption(item, index))
+        .filter((store): store is StoreOption => store !== null);
+      const allStoresOption: StoreOption = {
+        id: 'all',
+        label: `All stores (${mappedStores.length})`,
+        variant: 'all',
+      };
+      const selectableStores = [allStoresOption, ...mappedStores];
+
+      this.storeOptions.set(selectableStores);
+
+      const initialStoreId = selectableStores[0]?.id ?? '';
+      this.selectedStoreId.set(initialStoreId);
+
+      if (initialStoreId) {
+        if (initialStoreId === 'all') {
+          await this.loadBuyerConversations();
+        } else {
+          await this.loadSellerStoreConversations(initialStoreId);
+        }
+        return;
+      }
+
+      this.conversations.set([]);
+      this.activeChatId.set('');
+    } catch {
+      this.conversations.set([]);
+      this.activeChatId.set('');
+      this.conversationsError.set('We could not load your chats right now.');
+    } finally {
+      this.isLoadingConversations.set(false);
+    }
+  }
+
+  private async loadBuyerConversations(): Promise<void> {
+    this.isLoadingConversations.set(true);
+    this.conversationsError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.getMessages());
+      await this.applyConversationsResponse(response);
+    } catch {
+      this.conversations.set([]);
+      this.activeChatId.set('');
+      this.conversationsError.set('We could not load your chats right now.');
+    } finally {
+      this.isLoadingConversations.set(false);
+    }
+  }
+
+  private async loadSellerStoreConversations(storeId: string): Promise<void> {
+    this.isLoadingConversations.set(true);
+    this.conversationsError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.getSellerStoreConversations(storeId));
+      await this.applyConversationsResponse(response);
+    } catch {
+      this.conversations.set([]);
+      this.activeChatId.set('');
+      this.conversationsError.set('We could not load your chats right now.');
+    } finally {
+      this.isLoadingConversations.set(false);
+    }
+  }
+
+  private async applyConversationsResponse(response: MessagesResponse): Promise<void> {
+    const items = this.extractConversationItems(response);
+    const mappedConversations = items
+      .map((item, index) => this.toConversation(item, index))
+      .filter((conversation): conversation is Conversation => conversation !== null);
+
+    this.conversations.set(mappedConversations);
+
+    if (mappedConversations.length === 0) {
+      this.activeChatId.set('');
+      return;
+    }
+
+    const requestedConversationId = this.requestedConversationId();
+    const currentActiveChatId = this.activeChatId();
+    const nextActiveChatId = mappedConversations.some((conversation) => conversation.id === requestedConversationId)
+      ? requestedConversationId
+      : mappedConversations.some((conversation) => conversation.id === currentActiveChatId)
+        ? currentActiveChatId
+        : mappedConversations[0].id;
+    this.activeChatId.set(nextActiveChatId);
+    await this.loadConversationDetails(nextActiveChatId);
+  }
+
+  private extractConversationItems(response: MessagesResponse): MessageConversationApiItem[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.messages)) {
+      return response.messages;
+    }
+
+    if (Array.isArray(response.conversations)) {
+      return response.conversations;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    return [];
+  }
+
+  private toConversation(item: MessageConversationApiItem, index: number): Conversation | null {
+    const id = this.readId(item['id']) ?? this.readId(item['chat_id']) ?? `conversation-${index + 1}`;
+    const buyer = this.readRecord(item['buyer']);
+    const lastMessage = this.readRecord(item['last_message']);
+    const name =
+      this.readString(item['vendor_name']) ??
+      this.readString(item['name']) ??
+      this.readString(item['title']) ??
+      this.readString(item['other_user_name']) ??
+      this.readString(buyer?.['username']) ??
+      this.readString(this.readRecord(item['other_user'])?.['username']) ??
+      this.readString(this.readRecord(item['user'])?.['username']);
+    const preview =
+      this.readString(this.readRecord(item['last_message'])?.['body']) ??
+      this.readString(item['preview']) ??
+      this.readString(item['last_message']) ??
+      this.readString(item['last_message_text']) ??
+      this.readString(item['body']) ??
+      'Start a conversation';
+
+    if (!name) {
+      return null;
+    }
+
+    return {
+      id,
+      name,
+      preview,
+      time:
+        this.relativeTimeFromDate(
+          this.readString(item['updated_at']) ??
+            this.readString(lastMessage?.['created_at']) ??
+            this.readString(item['created_at']) ??
+            this.readString(item['last_message_at']),
+        ) ?? 'Recently',
+      unreadCount: this.readNumber(item['unread_count']) ?? undefined,
+      avatar:
+        this.resolveMediaUrl(
+          this.readString(item['vendor_photo']) ??
+            this.readString(item['avatar']) ??
+            this.readString(buyer?.['avatar']) ??
+            this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
+            this.readString(this.readRecord(item['user'])?.['avatar']),
+        ) ?? '/assets/images/chats-store-selector-personal.png',
+      mobileAvatar:
+        this.resolveMediaUrl(
+          this.readString(item['vendor_photo']) ??
+            this.readString(item['mobile_avatar']) ??
+            this.readString(item['avatar']) ??
+            this.readString(buyer?.['avatar']) ??
+            this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
+            this.readString(this.readRecord(item['user'])?.['avatar']),
+        ) ?? '/assets/images/chats-store-selector-personal.png',
+      storeBadge:
+        this.resolveMediaUrl(this.readString(item['store_badge'])) ??
+        '/assets/images/chats-store-badge-desktop.png',
+      mobileStoreBadge:
+        this.resolveMediaUrl(this.readString(item['mobile_store_badge']) ?? this.readString(item['store_badge'])) ??
+        '/assets/images/chats-store-badge-mobile.png',
+      vendorId: this.readId(item['vendor']) ?? undefined,
+      listingId: this.readId(item['listing']) ?? undefined,
+    };
+  }
+
+  private resolveActiveConversation(): Conversation | null {
+    const activeConversationId = this.activeChatId();
+
+    if (activeConversationId) {
+      const matchedConversation = this.conversations().find((conversation) => conversation.id === activeConversationId);
+      if (matchedConversation) {
+        return matchedConversation;
+      }
+    }
+
+    return this.conversations()[0] ?? null;
+  }
+
+  private resetSellerReportFlow(): void {
+    this.sellerReportStep.set(1);
+    this.selectedSellerReportReason.set(null);
+    this.sellerReportForm.reset({ details: '' });
+  }
+
+  private toStoreOption(item: SellerStoreApiItem, index: number): StoreOption | null {
+    const id = this.readId(item['id']) ?? `store-${index + 1}`;
+    const label =
+      this.readString(item['store_name']) ??
+      this.readString(item['name']) ??
+      this.readString(item['title']);
+
+    if (!label) {
+      return null;
+    }
+
+    const subtitle =
+      this.readString(item['location']) ??
+      this.composeLocationFromRecord(item) ??
+      undefined;
+    const avatar =
+      this.resolveMediaUrl(
+        this.readString(item['profile_photo']) ??
+          this.readString(item['avatar']) ??
+          this.readString(item['cover_image']),
+      ) ?? undefined;
+
+    return {
+      id,
+      label,
+      subtitle,
+      variant: avatar ? 'profile' : 'store',
+      avatar,
+    };
+  }
+
+  private async loadConversationDetails(chatId: string): Promise<void> {
+    this.isLoadingConversationDetails.set(true);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.getMessageDetails(chatId));
+      const mappedDays = this.toConversationDays(response);
+
+      if (mappedDays.length > 0) {
+        this.conversationDays.update((current) => ({
+          ...current,
+          [chatId]: mappedDays,
+        }));
+      }
+    } catch {
+      // Keep existing fallback messages when the thread endpoint fails.
+    } finally {
+      this.isLoadingConversationDetails.set(false);
+    }
+  }
+
+  private toConversationDays(response: MessageDetailsResponse): readonly ChatDay[] {
+    const records = this.extractConversationDetailItems(response);
+    if (records.length === 0) {
+      return [];
+    }
+
+    const daysByLabel = new Map<string, ChatMessage[]>();
+
+    for (const record of records) {
+      const createdAt = this.readString(record['created_at']) ?? this.readString(record['timestamp']);
+      const label = this.formatConversationDayLabel(createdAt);
+      const sender = this.readString(record['sender']) ?? this.readString(record['author']) ?? 'Unknown';
+      const body = this.readString(record['body']) ?? this.readString(record['text']) ?? this.readString(record['message']);
+
+      if (!body) {
+        continue;
+      }
+
+      const message: ChatTextMessage = {
+        id: this.readId(record['id']) ?? `${label}-${daysByLabel.get(label)?.length ?? 0}`,
+        kind: 'text',
+        author: sender,
+        text: body,
+        outgoing: this.isOutgoingMessage(record, sender),
+      };
+
+      daysByLabel.set(label, [...(daysByLabel.get(label) ?? []), message]);
+    }
+
+    return Array.from(daysByLabel.entries()).map(([label, messages], index) => ({
+      id: `day-${index + 1}`,
+      label,
+      messages,
+    }));
+  }
+
+  private extractConversationDetailItems(response: MessageDetailsResponse): readonly Record<string, unknown>[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.messages)) {
+      return response.messages;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (this.readString(response['body']) || this.readString(response['text']) || this.readString(response['message'])) {
+      return [response];
+    }
+
+    return [];
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readId(value: unknown): string | null {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    return null;
+  }
+
+  private readNumber(value: unknown): number | null {
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : null;
+  }
+
+  private composeLocationFromRecord(record: Record<string, unknown>): string | null {
+    const city = this.readString(record['city']);
+    const state = this.readString(record['state']);
+
+    if (city && state) {
+      return `${city}, ${state}`;
+    }
+
+    return city ?? state ?? null;
+  }
+
+  private isOutgoingMessage(record: Record<string, unknown>, sender: string): boolean {
+    const explicitOutgoing = record['outgoing'];
+    if (typeof explicitOutgoing === 'boolean') {
+      return explicitOutgoing;
+    }
+
+    const currentUser = this.authSession.user();
+    const authUsername = this.readString(currentUser?.username);
+    const authUserId = currentUser?.id;
+    const senderId = this.readNumber(record['sender_id']) ?? this.readNumber(this.readRecord(record['sender'])?.['id']);
+    const senderUsername =
+      this.readString(record['sender']) ??
+      this.readString(record['author']) ??
+      this.readString(this.readRecord(record['sender'])?.['username']) ??
+      sender;
+
+    if (typeof authUserId === 'number' && typeof senderId === 'number' && authUserId === senderId) {
+      return true;
+    }
+
+    if (authUsername && senderUsername.toLowerCase() === authUsername.toLowerCase()) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private relativeTimeFromDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return null;
+    }
+
+    const diffMilliseconds = Date.now() - parsedDate.getTime();
+    const diffMinutes = Math.max(1, Math.floor(diffMilliseconds / (1000 * 60)));
+
+    if (diffMinutes < 60) {
+      return `${diffMinutes} min${diffMinutes === 1 ? '' : 's'} ago`;
+    }
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+      return `${diffHours} hr${diffHours === 1 ? '' : 's'}`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) {
+      return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+    }
+
+    return parsedDate.toLocaleDateString('en-NG', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+
+  private formatConversationDayLabel(value: string | null): string {
+    if (!value) {
+      return 'Today';
+    }
+
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return 'Today';
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const target = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()).getTime();
+    const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return 'Today';
+    }
+
+    if (diffDays === -1) {
+      return 'Yesterday';
+    }
+
+    return parsedDate.toLocaleDateString('en-NG', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  private resolveMediaUrl(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^(?:https?:)?\/\//.test(value) || value.startsWith('data:')) {
+      return value;
+    }
+
+    const normalizedValue = value.startsWith('/') ? value : `/${value}`;
+    return `${this.apiOrigin}${normalizedValue}`;
   }
 
   protected selectDesktopConversation(chatId: string): void {
@@ -2012,6 +2648,7 @@ export class MessagesPageComponent implements OnDestroy {
     this.isRecordingVoice.set(false);
     this.isStoreSelectorOpen.set(false);
     this.selectedMessageIds.set([]);
+    void this.loadConversationDetails(chatId);
   }
 
   protected closeMobileConversation(): void {
@@ -2036,12 +2673,85 @@ export class MessagesPageComponent implements OnDestroy {
     this.draftMessage.set(input?.value ?? '');
   }
 
+  protected async sendDraftMessage(): Promise<void> {
+    const chatId = this.activeChatId();
+    const body = this.draftMessage().trim();
+
+    if (!chatId || !body || this.isSendingMessage()) {
+      return;
+    }
+
+    this.isSendingMessage.set(true);
+
+    try {
+      await firstValueFrom(this.messagesService.sendMessage(chatId, { body }));
+      this.appendOutgoingMessage(chatId, body);
+      this.draftMessage.set('');
+      this.activeReplyTarget.set(null);
+    } catch {
+      // Keep the draft intact if the send request fails.
+    } finally {
+      this.isSendingMessage.set(false);
+    }
+  }
+
   protected openStoreSelector(): void {
     this.isClearChatConfirmOpen.set(false);
     this.isMessageMenuOpen.set(false);
     this.isProfileMenuOpen.set(false);
     this.messageMenuTarget.set(null);
     this.isStoreSelectorOpen.set(true);
+  }
+
+  private appendOutgoingMessage(chatId: string, body: string): void {
+    const nextMessage: ChatTextMessage = {
+      id: `local-${Date.now()}`,
+      kind: 'text',
+      author: 'You',
+      text: body,
+      outgoing: true,
+    };
+
+    const currentDays = this.conversationDays()[chatId] ?? [];
+
+    if (currentDays.length === 0) {
+      this.conversationDays.update((current) => ({
+        ...current,
+        [chatId]: [
+          {
+            id: `day-${Date.now()}`,
+            label: 'Today',
+            messages: [nextMessage],
+          },
+        ],
+      }));
+    } else {
+      const lastDay = currentDays[currentDays.length - 1];
+      const updatedDays = [
+        ...currentDays.slice(0, -1),
+        {
+          ...lastDay,
+          messages: [...lastDay.messages, nextMessage],
+        },
+      ];
+
+      this.conversationDays.update((current) => ({
+        ...current,
+        [chatId]: updatedDays,
+      }));
+    }
+
+    this.conversations.update((items) =>
+      items.map((conversation) =>
+        conversation.id === chatId
+          ? {
+              ...conversation,
+              preview: body,
+              time: 'Just now',
+            }
+          : conversation,
+      ),
+    );
   }
 
   protected openProfileMenu(): void {
@@ -2054,6 +2764,65 @@ export class MessagesPageComponent implements OnDestroy {
 
   protected closeProfileMenu(): void {
     this.isProfileMenuOpen.set(false);
+  }
+
+  protected async viewActiveConversationProfile(): Promise<void> {
+    const conversation = this.resolveActiveConversation();
+    const vendorId = conversation?.vendorId;
+
+    this.closeProfileMenu();
+
+    if (!vendorId) {
+      return;
+    }
+
+    if (this.isSeller()) {
+      await this.router.navigate(['/seller/my-stores', vendorId]);
+      return;
+    }
+
+    await this.router.navigate(['/stores', vendorId]);
+  }
+
+  protected openSellerReportPage(): void {
+    this.closeProfileMenu();
+    this.isSellerReportModalOpen.set(true);
+  }
+
+  protected closeSellerReportModal(): void {
+    this.isSellerReportModalOpen.set(false);
+    this.resetSellerReportFlow();
+  }
+
+  protected closeSellerReportSuccessModal(): void {
+    this.isSellerReportSuccessModalOpen.set(false);
+    this.resetSellerReportFlow();
+  }
+
+  protected selectSellerReportReason(reason: string): void {
+    this.selectedSellerReportReason.set(reason);
+  }
+
+  protected advanceSellerReportStep(): void {
+    if (!this.selectedSellerReportReason()) {
+      return;
+    }
+
+    this.sellerReportStep.set(2);
+  }
+
+  protected backSellerReportStep(): void {
+    this.sellerReportStep.set(1);
+  }
+
+  protected submitSellerReport(): void {
+    if (this.sellerReportForm.invalid) {
+      this.sellerReportForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSellerReportModalOpen.set(false);
+    this.isSellerReportSuccessModalOpen.set(true);
   }
 
   protected openClearChatConfirm(): void {
@@ -2070,15 +2839,42 @@ export class MessagesPageComponent implements OnDestroy {
     this.deleteIntent.set('chat');
   }
 
-  protected confirmClearChat(): void {
+  protected async confirmClearChat(): Promise<void> {
     if (this.deleteIntent() === 'messages') {
-      this.deletedMessageIds.update((current) => [
-        ...current,
-        ...this.selectedMessageIds().filter((messageId) => !current.includes(messageId)),
-      ]);
-      this.exitSelectionMode();
-      this.deleteIntent.set('chat');
-      this.isClearChatConfirmOpen.set(false);
+      if (this.isDeletingMessages()) {
+        return;
+      }
+
+      const messageIds = this.selectedMessageIds();
+      if (!messageIds.length) {
+        return;
+      }
+
+      this.isDeletingMessages.set(true);
+
+      try {
+        await firstValueFrom(
+          this.messagesService.bulkAction({
+            action: 'clear_selected',
+            conversation_ids: messageIds,
+          }),
+        );
+
+        this.deletedMessageIds.update((current) => [
+          ...current,
+          ...messageIds.filter((messageId) => !current.includes(messageId)),
+        ]);
+        this.exitSelectionMode();
+        this.deleteIntent.set('chat');
+        this.isClearChatConfirmOpen.set(false);
+      } catch {
+        this.appToastService.show({
+          message: 'We could not delete those messages right now.',
+        });
+      } finally {
+        this.isDeletingMessages.set(false);
+      }
+
       return;
     }
 
@@ -2133,8 +2929,9 @@ export class MessagesPageComponent implements OnDestroy {
     text: string,
   ): void {
     this.clearLongPressTimer();
+    const anchor = this.resolveMenuAnchorFromTarget(event);
     this.longPressTimer = setTimeout(() => {
-      this.openMessageMenu(messageId, author, text, this.resolveMenuAnchorFromTarget(event));
+      this.openMessageMenu(messageId, author, text, anchor);
     }, 420);
 
     (event.currentTarget as HTMLElement | null)?.setPointerCapture(event.pointerId);
@@ -2354,9 +3151,23 @@ export class MessagesPageComponent implements OnDestroy {
     this.storeSearchTerm.set('');
   }
 
-  protected selectStore(storeId: string): void {
+  protected async selectStore(storeId: string): Promise<void> {
     this.selectedStoreId.set(storeId);
     this.closeStoreSelector();
+    this.conversationDays.set({});
+    this.deletedMessageIds.set([]);
+    this.selectedMessageIds.set([]);
+    this.activeReplyTarget.set(null);
+    this.draftMessage.set('');
+
+    if (this.isSeller()) {
+      if (storeId === 'all') {
+        await this.loadBuyerConversations();
+        return;
+      }
+
+      await this.loadSellerStoreConversations(storeId);
+    }
   }
 
   protected updateStoreSearch(event: Event): void {

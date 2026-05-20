@@ -148,7 +148,7 @@ export class ProfileSettingsPanelComponent {
       {
         label: 'WhatsApp number',
         value: this.profile().whatsappNumber || '---',
-        mobileValue: this.profile().whatsappNumber || '08169397443',
+        mobileValue: this.profile().whatsappNumber || '---',
         action: 'edit-whatsapp',
       },
       { label: 'Full name', value: this.profile().fullName, action: 'edit-name' },

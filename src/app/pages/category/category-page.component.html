@@ -62,7 +62,7 @@
       } @else {
         <div class="grid grid-cols-5 gap-x-5 gap-y-6 pt-8">
           @for (listing of listings(); track listing.id) {
-            <app-listing-card [listing]="listing" [showFavorite]="false" />
+            <app-listing-card [listing]="listing" [favoriteFilled]="listing.favoriteFilled ?? false" />
           }
         </div>
       }
@@ -120,7 +120,7 @@
     } @else {
       <div class="grid grid-cols-2 gap-x-3 gap-y-4 pb-8 pt-1">
         @for (listing of visibleMobileListings(); track listing.id) {
-          <app-listing-card [listing]="listing" [showFavorite]="false" />
+          <app-listing-card [listing]="listing" [favoriteFilled]="listing.favoriteFilled ?? false" />
         }
       </div>
 
@@ -139,4 +139,5 @@
   </section>
 </main>
 
+<app-toast />
 <app-home-footer />

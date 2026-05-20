@@ -73,7 +73,7 @@ export class AuthSessionService {
     this.session.set({
       accessToken: this.session()?.accessToken ?? null,
       refreshToken: this.session()?.refreshToken ?? null,
-      csrfToken: this.session()?.csrfToken ?? null,
+      csrfToken: this.extractCsrfToken(profileResponse) ?? this.session()?.csrfToken ?? null,
       loginResponse: { user },
       profile: this.toCheckEmailProfile(user),
     });

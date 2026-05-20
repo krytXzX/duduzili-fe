@@ -58,6 +58,11 @@ export type VerifyOtpRequest = {
   code: string;
 };
 
+export type VerifyProfileOtpRequest = {
+  type: 'phone' | 'whatsapp' | 'email';
+  otp_code: string;
+};
+
 export type RegisterRequest = {
   email: string;
   full_name: string;
@@ -76,7 +81,7 @@ export type SwitchModeRequest = {
 };
 
 export type RegisterResponse = AuthResponse;
-export type ProfileResponse = AuthUser | { user: AuthUser };
+export type ProfileResponse = AuthResponse | AuthUser | { user: AuthUser };
 export type RefreshTokenResponse = {
   access?: string;
   refresh?: string;
@@ -106,6 +111,10 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/auth/verify-otp/`, payload);
   }
 
+  verifyProfileOtp(payload: VerifyProfileOtpRequest): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/auth/profile/verify-otp/`, payload);
+  }
+
   resendOtp(payload: SendOtpRequest): Observable<unknown> {
     return this.http.post(`${this.apiUrl}/auth/resend-otp/`, payload);
   }
@@ -119,7 +128,7 @@ export class AuthService {
   }
 
   updateProfile(payload: UpdateProfileRequest): Observable<ProfileResponse> {
-    return this.http.put<ProfileResponse>(`${this.apiUrl}/auth/profile/`, payload);
+    return this.http.patch<ProfileResponse>(`${this.apiUrl}/auth/profile/`, payload);
   }
 
   switchMode(payload: SwitchModeRequest): Observable<ProfileResponse | AuthResponse | unknown> {

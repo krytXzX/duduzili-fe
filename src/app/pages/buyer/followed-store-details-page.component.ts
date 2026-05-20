@@ -21,7 +21,9 @@ import {
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AppToastComponent } from '../../components/common/app-toast.component';
+import { AppToastService } from '../../services/app-toast.service';
 import { AppModeService } from '../../services/app-mode.service';
+import { MessagesService } from '../../services/messages.service';
 import {
   VendorFollowResponse,
   VendorListingRecord,
@@ -1012,6 +1014,8 @@ export class BuyerFollowedStoreDetailsPageComponent {
   private readonly document = inject(DOCUMENT);
   private readonly appModeService = inject(AppModeService);
   private readonly authSession = inject(AuthSessionService);
+  private readonly appToastService = inject(AppToastService);
+  private readonly messagesService = inject(MessagesService);
   private readonly vendorsService = inject(VendorsService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
@@ -1020,6 +1024,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   readonly showContactMenu = signal(false);
   readonly showLeaveReviewModal = signal(false);
   readonly isFollowPending = signal(false);
+  readonly isStartingConversation = signal(false);
   readonly reviewRating = signal(2);
   readonly selectedReviewTags = signal<string[]>([]);
   readonly reviewText = signal('');
@@ -1607,9 +1612,40 @@ export class BuyerFollowedStoreDetailsPageComponent {
     return Array.from({ length: 5 }, (_, index) => index < rating);
   }
 
-  openInAppChat() {
+  async openInAppChat(): Promise<void> {
     this.showContactMenu.set(false);
-    void this.router.navigate(['/chats']);
+
+    if (this.isStartingConversation()) {
+      return;
+    }
+
+    if (!this.authSession.isAuthenticated()) {
+      await this.router.navigate(['/sign-in']);
+      return;
+    }
+
+    const storeId = this.store().id;
+    if (!storeId) {
+      return;
+    }
+
+    this.isStartingConversation.set(true);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.startConversation(storeId));
+      const conversationId =
+        this.readString(response['id']) ?? this.readString(response['chat_id']);
+
+      await this.router.navigate(['/chats'], {
+        queryParams: conversationId ? { conversation: conversationId } : undefined,
+      });
+    } catch {
+      this.appToastService.show({
+        message: 'Unable to start conversation right now.',
+      });
+    } finally {
+      this.isStartingConversation.set(false);
+    }
   }
 
   openWhatsApp() {
