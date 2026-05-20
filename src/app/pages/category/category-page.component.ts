@@ -16,6 +16,10 @@ interface CategoryFilterChip {
   trailingIcon?: 'chevron' | 'close';
 }
 
+interface CategoryListingView extends Listing {
+  favoriteFilled?: boolean;
+}
+
 @Component({
   selector: 'app-category-page',
   imports: [
@@ -46,7 +50,7 @@ export class CategoryPageComponent {
   readonly isCategoryLoading = signal(false);
   readonly categoryError = signal<string | null>(null);
   readonly resultCount = signal(0);
-  readonly listings = signal<Listing[]>([]);
+  readonly listings = signal<CategoryListingView[]>([]);
 
   readonly categoryId = computed(() => this.queryParamMap().get('category')?.trim() || '1');
   readonly categoryName = computed(() => this.queryParamMap().get('name')?.trim() || 'Phone & Tablet');
@@ -160,7 +164,7 @@ export class CategoryPageComponent {
     return typeof response.count === 'number' ? response.count : fallback;
   }
 
-  private toListing(item: ListingsApiItem, index: number): Listing | null {
+  private toListing(item: ListingsApiItem, index: number): CategoryListingView | null {
     const id = this.readId(item, index);
     const title = this.readString(item, ['title', 'name', 'listing_name']);
     const priceValue = this.formatPriceValue(item['price'] ?? item['amount'] ?? item['price_display']);
@@ -179,6 +183,7 @@ export class CategoryPageComponent {
       location: this.buildLocationLabel(item),
       timeAgo: this.relativeTimeFromDate(this.readString(item, ['created_at', 'published_at', 'date_created'])),
       isVerified: this.readBoolean(item, ['is_verified', 'verified']) || false,
+      favoriteFilled: this.readBoolean(item, ['is_favorited']) || false,
       images,
     };
   }
