@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export type MessageConversationApiItem = Record<string, unknown>;
+export type SellerStoreApiItem = Record<string, unknown>;
 
 export type MessagesResponse =
   | MessageConversationApiItem[]
@@ -25,6 +26,14 @@ export class MessagesService {
 
   getMessages(): Observable<MessagesResponse> {
     return this.http.get<MessagesResponse>(`${this.apiUrl}/messages/`);
+  }
+
+  getSellerStores(): Observable<SellerStoreApiItem[]> {
+    return this.http.get<SellerStoreApiItem[]>(`${this.apiUrl}/seller-stores/`);
+  }
+
+  getSellerStoreConversations(id: string): Observable<MessagesResponse> {
+    return this.http.get<MessagesResponse>(`${this.apiUrl}/seller-stores/${id}/conversations/`);
   }
 
   getMessageDetails(id: string): Observable<Record<string, unknown>> {

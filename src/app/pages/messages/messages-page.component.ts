@@ -14,6 +14,7 @@ import {
   MessageConversationApiItem,
   MessagesResponse,
   MessagesService,
+  SellerStoreApiItem,
 } from '../../services/messages.service';
 import { environment } from '../../../environments/environment';
 
@@ -1945,7 +1946,7 @@ export class MessagesPageComponent implements OnDestroy {
   readonly activeChatId = signal('');
   readonly draftMessage = signal('');
   readonly storeSearchTerm = signal('');
-  readonly selectedStoreId = signal('all');
+  readonly selectedStoreId = signal('');
   readonly selectedMessageIds = signal<readonly string[]>([]);
   readonly deletedMessageIds = signal<readonly string[]>([]);
   readonly desktopMessageMenuAnchor = signal<{ left: number; top: number } | null>(null);
@@ -1971,29 +1972,7 @@ export class MessagesPageComponent implements OnDestroy {
   readonly hasDraftMessage = computed(() => this.draftMessage().trim().length > 0);
   private longPressTimer: ReturnType<typeof setTimeout> | null = null;
 
-  readonly storeOptions: readonly StoreOption[] = [
-    { id: 'all', label: 'All stores (4)', variant: 'all' },
-    {
-      id: 'vine',
-      label: 'The Vine Collections',
-      subtitle: 'Ikeja, Lagos',
-      variant: 'store',
-    },
-    {
-      id: 'eden',
-      label: 'Eden Organics',
-      subtitle: 'Warri, Delta',
-      variant: 'profile',
-      avatar: '/assets/images/chats-store-selector-eden.png',
-    },
-    {
-      id: 'personal',
-      label: 'Personal profile',
-      subtitle: 'Bryan Odjede',
-      variant: 'profile',
-      avatar: '/assets/images/chats-store-selector-personal.png',
-    },
-  ];
+  readonly storeOptions = signal<readonly StoreOption[]>([]);
 
   readonly conversations = signal<Conversation[]>([]);
 
@@ -2001,24 +1980,26 @@ export class MessagesPageComponent implements OnDestroy {
 
   readonly selectedStoreLabel = computed(
     () =>
-      this.storeOptions.find((store) => store.id === this.selectedStoreId())?.label ??
-      'All stores (4)',
+      this.storeOptions().find((store) => store.id === this.selectedStoreId())?.label ??
+      'Select store',
   );
 
   readonly selectedStore = computed(
     () =>
-      this.storeOptions.find((store) => store.id === this.selectedStoreId()) ??
-      this.storeOptions[0],
+      this.storeOptions().find((store) => store.id === this.selectedStoreId()) ??
+      this.storeOptions()[0] ??
+      { id: '', label: 'Select store', variant: 'store' as const },
   );
 
   readonly filteredStoreOptions = computed(() => {
     const query = this.storeSearchTerm().trim().toLowerCase();
+    const storeOptions = this.storeOptions();
 
     if (!query) {
-      return this.storeOptions;
+      return storeOptions;
     }
 
-    return this.storeOptions.filter((store) =>
+    return storeOptions.filter((store) =>
       [store.label, store.subtitle]
         .filter((value): value is string => Boolean(value))
         .some((value) => value.toLowerCase().includes(query)),
@@ -2051,7 +2032,7 @@ export class MessagesPageComponent implements OnDestroy {
   });
 
   constructor() {
-    void this.loadConversations();
+    void this.initializePage();
   }
 
   protected openMobileConversation(chatId: string): void {
@@ -2075,31 +2056,97 @@ export class MessagesPageComponent implements OnDestroy {
     void this.loadConversationDetails(chatId);
   }
 
-  private async loadConversations(): Promise<void> {
+  private async initializePage(): Promise<void> {
+    if (this.isSeller()) {
+      await this.loadSellerStores();
+      return;
+    }
+
+    await this.loadBuyerConversations();
+  }
+
+  private async loadSellerStores(): Promise<void> {
+    this.isLoadingConversations.set(true);
+    this.conversationsError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.getSellerStores());
+      const mappedStores = response
+        .map((item, index) => this.toStoreOption(item, index))
+        .filter((store): store is StoreOption => store !== null);
+
+      this.storeOptions.set(mappedStores);
+
+      const initialStoreId = mappedStores[0]?.id ?? '';
+      this.selectedStoreId.set(initialStoreId);
+
+      if (initialStoreId) {
+        await this.loadSellerStoreConversations(initialStoreId);
+        return;
+      }
+
+      this.conversations.set([]);
+      this.activeChatId.set('');
+    } catch {
+      this.conversations.set([]);
+      this.activeChatId.set('');
+      this.conversationsError.set('We could not load your chats right now.');
+    } finally {
+      this.isLoadingConversations.set(false);
+    }
+  }
+
+  private async loadBuyerConversations(): Promise<void> {
     this.isLoadingConversations.set(true);
     this.conversationsError.set(null);
 
     try {
       const response = await firstValueFrom(this.messagesService.getMessages());
-      const items = this.extractConversationItems(response);
-      const mappedConversations = items
-        .map((item, index) => this.toConversation(item, index))
-        .filter((conversation): conversation is Conversation => conversation !== null);
-
-      if (mappedConversations.length > 0) {
-        this.conversations.set(mappedConversations);
-        const currentActiveChatId = this.activeChatId();
-        const nextActiveChatId = mappedConversations.some((conversation) => conversation.id === currentActiveChatId)
-          ? currentActiveChatId
-          : mappedConversations[0].id;
-        this.activeChatId.set(nextActiveChatId);
-        void this.loadConversationDetails(nextActiveChatId);
-      }
+      await this.applyConversationsResponse(response);
     } catch {
+      this.conversations.set([]);
+      this.activeChatId.set('');
       this.conversationsError.set('We could not load your chats right now.');
     } finally {
       this.isLoadingConversations.set(false);
     }
+  }
+
+  private async loadSellerStoreConversations(storeId: string): Promise<void> {
+    this.isLoadingConversations.set(true);
+    this.conversationsError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.getSellerStoreConversations(storeId));
+      await this.applyConversationsResponse(response);
+    } catch {
+      this.conversations.set([]);
+      this.activeChatId.set('');
+      this.conversationsError.set('We could not load your chats right now.');
+    } finally {
+      this.isLoadingConversations.set(false);
+    }
+  }
+
+  private async applyConversationsResponse(response: MessagesResponse): Promise<void> {
+    const items = this.extractConversationItems(response);
+    const mappedConversations = items
+      .map((item, index) => this.toConversation(item, index))
+      .filter((conversation): conversation is Conversation => conversation !== null);
+
+    this.conversations.set(mappedConversations);
+
+    if (mappedConversations.length === 0) {
+      this.activeChatId.set('');
+      return;
+    }
+
+    const currentActiveChatId = this.activeChatId();
+    const nextActiveChatId = mappedConversations.some((conversation) => conversation.id === currentActiveChatId)
+      ? currentActiveChatId
+      : mappedConversations[0].id;
+    this.activeChatId.set(nextActiveChatId);
+    await this.loadConversationDetails(nextActiveChatId);
   }
 
   private extractConversationItems(response: MessagesResponse): MessageConversationApiItem[] {
@@ -2185,6 +2232,37 @@ export class MessagesPageComponent implements OnDestroy {
       mobileStoreBadge:
         this.resolveMediaUrl(this.readString(item['mobile_store_badge']) ?? this.readString(item['store_badge'])) ??
         '/assets/images/chats-store-badge-mobile.png',
+    };
+  }
+
+  private toStoreOption(item: SellerStoreApiItem, index: number): StoreOption | null {
+    const id = this.readId(item['id']) ?? `store-${index + 1}`;
+    const label =
+      this.readString(item['store_name']) ??
+      this.readString(item['name']) ??
+      this.readString(item['title']);
+
+    if (!label) {
+      return null;
+    }
+
+    const subtitle =
+      this.readString(item['location']) ??
+      this.composeLocationFromRecord(item) ??
+      undefined;
+    const avatar =
+      this.resolveMediaUrl(
+        this.readString(item['profile_photo']) ??
+          this.readString(item['avatar']) ??
+          this.readString(item['cover_image']),
+      ) ?? undefined;
+
+    return {
+      id,
+      label,
+      subtitle,
+      variant: avatar ? 'profile' : 'store',
+      avatar,
     };
   }
 
@@ -2292,6 +2370,17 @@ export class MessagesPageComponent implements OnDestroy {
     return value && typeof value === 'object' && !Array.isArray(value)
       ? (value as Record<string, unknown>)
       : null;
+  }
+
+  private composeLocationFromRecord(record: Record<string, unknown>): string | null {
+    const city = this.readString(record['city']);
+    const state = this.readString(record['state']);
+
+    if (city && state) {
+      return `${city}, ${state}`;
+    }
+
+    return city ?? state ?? null;
   }
 
   private isOutgoingMessage(record: Record<string, unknown>, sender: string): boolean {
@@ -2812,9 +2901,18 @@ export class MessagesPageComponent implements OnDestroy {
     this.storeSearchTerm.set('');
   }
 
-  protected selectStore(storeId: string): void {
+  protected async selectStore(storeId: string): Promise<void> {
     this.selectedStoreId.set(storeId);
     this.closeStoreSelector();
+    this.conversationDays.set({});
+    this.deletedMessageIds.set([]);
+    this.selectedMessageIds.set([]);
+    this.activeReplyTarget.set(null);
+    this.draftMessage.set('');
+
+    if (this.isSeller()) {
+      await this.loadSellerStoreConversations(storeId);
+    }
   }
 
   protected updateStoreSearch(event: Event): void {
