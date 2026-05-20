@@ -7,7 +7,14 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+import {
+  MessageConversationApiItem,
+  MessagesResponse,
+  MessagesService,
+} from '../../services/messages.service';
+import { environment } from '../../../environments/environment';
 
 interface Conversation {
   id: string;
@@ -1782,7 +1789,9 @@ type ChatDay = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessagesPageComponent implements OnDestroy {
+  private readonly messagesService = inject(MessagesService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private mobileConversationOverlayOpen = false;
 
   readonly assets = {
@@ -1855,6 +1864,8 @@ export class MessagesPageComponent implements OnDestroy {
   readonly deleteIntent = signal<DeleteIntent>('chat');
   readonly isSelectionMode = computed(() => this.selectedMessageIds().length > 0);
   readonly selectedMessageCount = computed(() => this.selectedMessageIds().length);
+  readonly isLoadingConversations = signal(true);
+  readonly conversationsError = signal<string | null>(null);
   readonly clearChatConfirmTitle = computed(() =>
     this.deleteIntent() === 'messages' ? 'Delete selected messages?' : 'Remove this chat?',
   );
@@ -1982,6 +1993,10 @@ export class MessagesPageComponent implements OnDestroy {
       .filter((day) => day.messages.length > 0);
   });
 
+  constructor() {
+    void this.loadConversations();
+  }
+
   protected openMobileConversation(chatId: string): void {
     this.activeChatId.set(chatId);
     this.isClearChatConfirmOpen.set(false);
@@ -1999,6 +2014,181 @@ export class MessagesPageComponent implements OnDestroy {
       this.mobileOverlayService.openMobileModal();
       this.mobileConversationOverlayOpen = true;
     }
+  }
+
+  private async loadConversations(): Promise<void> {
+    this.isLoadingConversations.set(true);
+    this.conversationsError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.getMessages());
+      const items = this.extractConversationItems(response);
+      const mappedConversations = items
+        .map((item, index) => this.toConversation(item, index))
+        .filter((conversation): conversation is Conversation => conversation !== null);
+
+      if (mappedConversations.length > 0) {
+        this.conversations.set(mappedConversations);
+        const currentActiveChatId = this.activeChatId();
+        const nextActiveChatId = mappedConversations.some((conversation) => conversation.id === currentActiveChatId)
+          ? currentActiveChatId
+          : mappedConversations[0].id;
+        this.activeChatId.set(nextActiveChatId);
+      }
+    } catch {
+      this.conversationsError.set('We could not load your chats right now.');
+    } finally {
+      this.isLoadingConversations.set(false);
+    }
+  }
+
+  private extractConversationItems(response: MessagesResponse): MessageConversationApiItem[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.messages)) {
+      return response.messages;
+    }
+
+    if (Array.isArray(response.conversations)) {
+      return response.conversations;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    return [];
+  }
+
+  private toConversation(item: MessageConversationApiItem, index: number): Conversation | null {
+    const id = this.readId(item['id']) ?? this.readId(item['chat_id']) ?? `conversation-${index + 1}`;
+    const name =
+      this.readString(item['name']) ??
+      this.readString(item['title']) ??
+      this.readString(item['other_user_name']) ??
+      this.readString(this.readRecord(item['other_user'])?.['username']) ??
+      this.readString(this.readRecord(item['user'])?.['username']);
+    const preview =
+      this.readString(item['preview']) ??
+      this.readString(item['last_message']) ??
+      this.readString(item['last_message_text']) ??
+      this.readString(item['body']) ??
+      'Start a conversation';
+
+    if (!name) {
+      return null;
+    }
+
+    return {
+      id,
+      name,
+      preview,
+      time:
+        this.relativeTimeFromDate(
+          this.readString(item['updated_at']) ??
+            this.readString(item['created_at']) ??
+            this.readString(item['last_message_at']),
+        ) ?? 'Recently',
+      unreadCount: this.readNumber(item['unread_count']) ?? undefined,
+      avatar:
+        this.resolveMediaUrl(
+          this.readString(item['avatar']) ??
+            this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
+            this.readString(this.readRecord(item['user'])?.['avatar']),
+        ) ?? '/assets/images/chats-store-selector-personal.png',
+      mobileAvatar:
+        this.resolveMediaUrl(
+          this.readString(item['mobile_avatar']) ??
+            this.readString(item['avatar']) ??
+            this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
+            this.readString(this.readRecord(item['user'])?.['avatar']),
+        ) ?? '/assets/images/chats-store-selector-personal.png',
+      storeBadge:
+        this.resolveMediaUrl(this.readString(item['store_badge'])) ??
+        '/assets/images/chats-store-badge-desktop.png',
+      mobileStoreBadge:
+        this.resolveMediaUrl(this.readString(item['mobile_store_badge']) ?? this.readString(item['store_badge'])) ??
+        '/assets/images/chats-store-badge-mobile.png',
+    };
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readId(value: unknown): string | null {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    return null;
+  }
+
+  private readNumber(value: unknown): number | null {
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : null;
+  }
+
+  private relativeTimeFromDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return null;
+    }
+
+    const diffMilliseconds = Date.now() - parsedDate.getTime();
+    const diffMinutes = Math.max(1, Math.floor(diffMilliseconds / (1000 * 60)));
+
+    if (diffMinutes < 60) {
+      return `${diffMinutes} min${diffMinutes === 1 ? '' : 's'} ago`;
+    }
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+      return `${diffHours} hr${diffHours === 1 ? '' : 's'}`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) {
+      return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+    }
+
+    return parsedDate.toLocaleDateString('en-NG', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+
+  private resolveMediaUrl(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^(?:https?:)?\/\//.test(value) || value.startsWith('data:')) {
+      return value;
+    }
+
+    const normalizedValue = value.startsWith('/') ? value : `/${value}`;
+    return `${this.apiOrigin}${normalizedValue}`;
   }
 
   protected selectDesktopConversation(chatId: string): void {
