@@ -250,6 +250,7 @@ interface AppNotification {
                     (click)="dismissNotification(item.id); $event.stopPropagation()"
                     class="flex h-7 w-7 items-center justify-center rounded-full text-[#1A1A1A] transition hover:bg-[#F7F7F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
                     [attr.aria-label]="'Dismiss ' + item.title"
+                    [disabled]="deletingNotificationIds().includes(item.id)"
                   >
                     <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                       <path
@@ -443,6 +444,7 @@ export class NotificationsPageComponent {
   readonly errorMessage = signal<string | null>(null);
   readonly selectedNotification = signal<AppNotification | null>(null);
   readonly isNotificationDetailsLoading = signal(false);
+  readonly deletingNotificationIds = signal<string[]>([]);
 
   readonly filterTabs = [
     { id: 'all' as const, label: 'All notifications' },
@@ -500,10 +502,23 @@ export class NotificationsPageComponent {
     this.isNotificationDetailsLoading.set(false);
   }
 
-  dismissNotification(id: string): void {
-    this.notifications.update((items) => items.filter((item) => item.id !== id));
-    if (this.selectedNotification()?.id === id) {
-      this.closeNotification();
+  async dismissNotification(id: string): Promise<void> {
+    if (this.deletingNotificationIds().includes(id)) {
+      return;
+    }
+
+    this.deletingNotificationIds.update((ids) => [...ids, id]);
+
+    try {
+      await firstValueFrom(this.notificationsService.deleteNotification(id));
+      this.notifications.update((items) => items.filter((item) => item.id !== id));
+      if (this.selectedNotification()?.id === id) {
+        this.closeNotification();
+      }
+    } catch {
+      // Keep the notification visible if deletion fails.
+    } finally {
+      this.deletingNotificationIds.update((ids) => ids.filter((existingId) => existingId !== id));
     }
   }
 

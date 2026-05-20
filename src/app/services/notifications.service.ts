@@ -25,4 +25,8 @@ export class NotificationsService {
   getNotificationDetails(id: string): Observable<NotificationApiItem> {
     return this.http.get<NotificationApiItem>(`${this.apiUrl}/notifications/${id}/`);
   }
+
+  deleteNotification(id: string): Observable<unknown> {
+    return this.http.delete(`${this.apiUrl}/notifications/${id}/delete`);
+  }
 }
