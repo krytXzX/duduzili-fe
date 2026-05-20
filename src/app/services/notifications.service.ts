@@ -27,6 +27,6 @@ export class NotificationsService {
   }
 
   deleteNotification(id: string): Observable<unknown> {
-    return this.http.delete(`${this.apiUrl}/notifications/${id}/delete`);
+    return this.http.delete(`${this.apiUrl}/notifications/${id}/delete/`);
   }
 }
