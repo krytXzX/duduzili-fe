@@ -49,6 +49,11 @@ export interface RecentlyViewedResponse {
   earlier?: ListingsApiItem[];
 }
 
+export interface CreateReportRequest {
+  listing: string;
+  details: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ListingsService {
   private readonly http = inject(HttpClient);
@@ -68,6 +73,10 @@ export class ListingsService {
 
   createListing(payload: FormData): Observable<ListingsApiItem> {
     return this.http.post<ListingsApiItem>(`${this.apiUrl}/listings/`, payload);
+  }
+
+  createReport(payload: CreateReportRequest): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/reports/`, payload);
   }
 
   getListingDetails(id: string): Observable<ListingsApiItem> {

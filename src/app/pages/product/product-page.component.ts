@@ -9,6 +9,7 @@ import { HomeFooterComponent } from '../../components/layout/home-footer.compone
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { Review } from '../../components/product/review-card.component';
 import { ListingsApiItem, ListingsService } from '../../services/listings.service';
+import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { VendorsService, VendorFollowResponse } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
@@ -77,6 +78,7 @@ export class ProductPageComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly listingsService = inject(ListingsService);
   private readonly vendorsService = inject(VendorsService);
+  private readonly appToastService = inject(AppToastService);
   private readonly authSession = inject(AuthSessionService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
@@ -95,6 +97,7 @@ export class ProductPageComponent {
   readonly selectedSellerReportReason = signal<string | null>(null);
   readonly currentGalleryIndex = signal(0);
   readonly isFollowPending = signal(false);
+  readonly isSubmittingListingReport = signal(false);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
@@ -528,15 +531,35 @@ export class ProductPageComponent {
     this.makeOfferForm.reset({ amount: '' });
   }
 
-  submitReport(): void {
+  async submitReport(): Promise<void> {
     if (this.reportForm.invalid) {
       this.reportForm.markAllAsTouched();
       return;
     }
 
     if (this.reportSubject() === 'listing') {
-      this.closeReportModal();
-      this.isReportSuccessModalOpen.set(true);
+      if (this.isSubmittingListingReport()) {
+        return;
+      }
+
+      this.isSubmittingListingReport.set(true);
+
+      try {
+        await firstValueFrom(
+          this.listingsService.createReport({
+            listing: this.product().id,
+            details: this.reportForm.controls.details.getRawValue().trim(),
+          }),
+        );
+        this.closeReportModal();
+        this.isReportSuccessModalOpen.set(true);
+      } catch {
+        this.appToastService.show({
+          message: 'Unable to submit listing report right now.',
+        });
+      } finally {
+        this.isSubmittingListingReport.set(false);
+      }
       return;
     }
 
