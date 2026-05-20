@@ -2411,8 +2411,21 @@ export class MessagesPageComponent implements OnDestroy {
       return explicitOutgoing;
     }
 
-    const authUsername = this.readString(this.readRecord(record['current_user'])?.['username']);
-    if (authUsername && sender.toLowerCase() === authUsername.toLowerCase()) {
+    const currentUser = this.authSession.user();
+    const authUsername = this.readString(currentUser?.username);
+    const authUserId = currentUser?.id;
+    const senderId = this.readNumber(record['sender_id']) ?? this.readNumber(this.readRecord(record['sender'])?.['id']);
+    const senderUsername =
+      this.readString(record['sender']) ??
+      this.readString(record['author']) ??
+      this.readString(this.readRecord(record['sender'])?.['username']) ??
+      sender;
+
+    if (typeof authUserId === 'number' && typeof senderId === 'number' && authUserId === senderId) {
+      return true;
+    }
+
+    if (authUsername && senderUsername.toLowerCase() === authUsername.toLowerCase()) {
       return true;
     }
 
