@@ -2715,8 +2715,9 @@ export class MessagesPageComponent implements OnDestroy {
     text: string,
   ): void {
     this.clearLongPressTimer();
+    const anchor = this.resolveMenuAnchorFromTarget(event);
     this.longPressTimer = setTimeout(() => {
-      this.openMessageMenu(messageId, author, text, this.resolveMenuAnchorFromTarget(event));
+      this.openMessageMenu(messageId, author, text, anchor);
     }, 420);
 
     (event.currentTarget as HTMLElement | null)?.setPointerCapture(event.pointerId);
