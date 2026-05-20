@@ -1688,26 +1688,46 @@ export class SettingsPageComponent {
         this.modalMode.set(null);
         break;
       case 'call-add':
+        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+          return;
+        }
+
         this.verificationReturnMode.set('call-add');
         this.verificationMode.set('call');
         this.modalMode.set(null);
         break;
       case 'whatsapp-add':
+        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+          return;
+        }
+
         this.verificationReturnMode.set('whatsapp-add');
         this.verificationMode.set('whatsapp');
         this.modalMode.set(null);
         break;
       case 'call-update':
+        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+          return;
+        }
+
         this.verificationReturnMode.set('call-update');
         this.verificationMode.set('call');
         this.modalMode.set(null);
         break;
       case 'whatsapp-update':
+        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+          return;
+        }
+
         this.verificationReturnMode.set('whatsapp-update');
         this.verificationMode.set('whatsapp');
         this.modalMode.set(null);
         break;
       case 'email':
+        if (!(await this.persistProfileChanges({ email: this.modalValue() }))) {
+          return;
+        }
+
         this.verificationReturnMode.set('email');
         this.verificationMode.set('email');
         this.modalMode.set(null);
@@ -1747,17 +1767,11 @@ export class SettingsPageComponent {
 
     switch (this.verificationMode()) {
       case 'email':
-        if (!(await this.persistProfileChanges({ email: this.modalValue() }))) {
-          return;
-        }
-
+        await this.refreshProfileFromBackend();
         this.showToast('Profile updated successfully');
         break;
       case 'call':
-        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
-          return;
-        }
-
+        await this.refreshProfileFromBackend();
         this.showToast(
           this.verificationReturnMode() === 'call-add'
             ? 'Phone number added successfully'
@@ -1765,10 +1779,7 @@ export class SettingsPageComponent {
         );
         break;
       case 'whatsapp':
-        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
-          return;
-        }
-
+        await this.refreshProfileFromBackend();
         this.showToast(
           this.verificationReturnMode() === 'whatsapp-add'
             ? 'Phone number added successfully'
@@ -1930,6 +1941,20 @@ export class SettingsPageComponent {
     } catch {
       this.showToast('We could not verify that code right now.');
       return false;
+    }
+  }
+
+  private async refreshProfileFromBackend(): Promise<void> {
+    if (!this.appMode.isBackendEnabled()) {
+      return;
+    }
+
+    try {
+      const response = await firstValueFrom(this.authService.getProfile());
+      this.authSession.initializeFromProfile(response);
+      this.hydrateProfileFromUser(this.resolveProfileUser(response));
+    } catch {
+      // Keep the optimistic profile state if the refresh request fails.
     }
   }
 

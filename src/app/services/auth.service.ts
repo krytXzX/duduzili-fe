@@ -128,7 +128,7 @@ export class AuthService {
   }
 
   updateProfile(payload: UpdateProfileRequest): Observable<ProfileResponse> {
-    return this.http.put<ProfileResponse>(`${this.apiUrl}/auth/profile/`, payload);
+    return this.http.patch<ProfileResponse>(`${this.apiUrl}/auth/profile/`, payload);
   }
 
   switchMode(payload: SwitchModeRequest): Observable<ProfileResponse | AuthResponse | unknown> {
