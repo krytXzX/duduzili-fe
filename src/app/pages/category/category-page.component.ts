@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
+import { AppToastComponent } from '../../components/common/app-toast.component';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { ListingsApiItem, ListingsSearchResponse, ListingsService } from '../../services/listings.service';
@@ -27,6 +28,7 @@ interface CategoryListingView extends Listing {
     BuyerDashboardNavbarComponent,
     PublicHomeNavbarComponent,
     HomeFooterComponent,
+    AppToastComponent,
     ListingCardComponent,
   ],
   templateUrl: './category-page.component.html',
