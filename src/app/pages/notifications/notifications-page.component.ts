@@ -1,5 +1,11 @@
 import { Location, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import {
+  NotificationApiItem,
+  NotificationsResponse,
+  NotificationsService,
+} from '../../services/notifications.service';
 
 type NotificationFilter = 'all' | 'unread' | 'read';
 type NotificationKind = 'warning' | 'message' | 'listing' | 'followers' | 'offer' | 'subscription';
@@ -53,7 +59,28 @@ interface AppNotification {
           }
         </div>
 
-        @if (visibleNotifications().length) {
+        @if (isLoading()) {
+          <div class="flex min-h-[598px] flex-col items-center px-5 pt-[112px] text-center">
+            <div class="flex flex-col items-center">
+              <h2 class="text-[20px] font-semibold leading-5 tracking-[0] text-[#1A1B1D]">
+                Loading notifications...
+              </h2>
+            </div>
+          </div>
+        } @else if (errorMessage()) {
+          <div class="flex min-h-[598px] flex-col items-center px-5 pt-[112px] text-center">
+            <div class="flex flex-col items-center">
+              <h2 class="text-[20px] font-semibold leading-5 tracking-[0] text-[#1A1B1D]">
+                Couldn’t load notifications
+              </h2>
+              <p
+                class="mt-[10px] max-w-[274px] text-[14px] font-medium leading-4 text-[rgba(26,27,29,0.6)]"
+              >
+                {{ errorMessage() }}
+              </p>
+            </div>
+          </div>
+        } @else if (visibleNotifications().length) {
           <div class="mt-[26px]">
             @for (item of visibleNotifications(); track item.id) {
               <div
@@ -154,7 +181,28 @@ interface AppNotification {
             }
           </div>
 
-          @if (visibleNotifications().length) {
+          @if (isLoading()) {
+            <div class="flex flex-1 items-center justify-center pb-[102px] text-center">
+              <div class="flex flex-col items-center">
+                <h2 class="text-[20px] font-semibold leading-5 tracking-[0] text-[#1A1B1D]">
+                  Loading notifications...
+                </h2>
+              </div>
+            </div>
+          } @else if (errorMessage()) {
+            <div class="flex flex-1 items-center justify-center pb-[102px] text-center">
+              <div class="flex flex-col items-center">
+                <h2 class="text-[20px] font-semibold leading-5 tracking-[0] text-[#1A1B1D]">
+                  Couldn’t load notifications
+                </h2>
+                <p
+                  class="mt-[10px] max-w-[274px] text-[14px] font-medium leading-4 text-[rgba(26,27,29,0.6)]"
+                >
+                  {{ errorMessage() }}
+                </p>
+              </div>
+            </div>
+          } @else if (visibleNotifications().length) {
             <div class="mt-[30px]">
               @for (item of visibleNotifications(); track item.id) {
                 <div
@@ -261,9 +309,12 @@ interface AppNotification {
 })
 export class NotificationsPageComponent {
   private readonly location = inject(Location);
+  private readonly notificationsService = inject(NotificationsService);
 
   readonly activeFilter = signal<NotificationFilter>('unread');
   readonly notifications = signal<AppNotification[]>([]);
+  readonly isLoading = signal(true);
+  readonly errorMessage = signal<string | null>(null);
 
   readonly filterTabs = [
     { id: 'all' as const, label: 'All notifications' },
@@ -285,6 +336,10 @@ export class NotificationsPageComponent {
 
     return notifications;
   });
+
+  constructor() {
+    void this.loadNotifications();
+  }
 
   goBack(): void {
     this.location.back();
@@ -309,5 +364,143 @@ export class NotificationsPageComponent {
       case 'subscription':
         return '/assets/icons/notifications/notification-subscription.svg';
     }
+  }
+
+  private async loadNotifications(): Promise<void> {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      const response = await firstValueFrom(this.notificationsService.getNotifications());
+      const items = this.extractItems(response);
+      const notifications = items
+        .map((item, index) => this.toNotification(item, index))
+        .filter((item): item is AppNotification => item !== null);
+
+      this.notifications.set(notifications);
+    } catch {
+      this.notifications.set([]);
+      this.errorMessage.set('We could not load your notifications right now.');
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  private extractItems(response: NotificationsResponse): NotificationApiItem[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.notifications)) {
+      return response.notifications;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    return [];
+  }
+
+  private toNotification(item: NotificationApiItem, index: number): AppNotification | null {
+    const title =
+      this.readString(item['title']) ??
+      this.readString(item['message']) ??
+      this.readString(item['body']) ??
+      this.readString(item['text']) ??
+      this.readString(item['description']);
+
+    if (!title) {
+      return null;
+    }
+
+    return {
+      id: this.readString(item['id']) ?? `notification-${index + 1}`,
+      title,
+      time:
+        this.relativeTimeFromDate(
+          this.readString(item['created_at']) ??
+            this.readString(item['timestamp']) ??
+            this.readString(item['date']),
+        ) ?? 'Recently',
+      kind: this.resolveKind(item),
+      read: this.readBoolean(item['read']) ?? this.readBoolean(item['is_read']) ?? false,
+    };
+  }
+
+  private resolveKind(item: NotificationApiItem): NotificationKind {
+    const rawType =
+      (this.readString(item['kind']) ??
+        this.readString(item['type']) ??
+        this.readString(item['category']) ??
+        '').toLowerCase();
+
+    if (rawType.includes('message') || rawType.includes('chat')) {
+      return 'message';
+    }
+
+    if (rawType.includes('listing') || rawType.includes('product')) {
+      return 'listing';
+    }
+
+    if (rawType.includes('follow')) {
+      return 'followers';
+    }
+
+    if (rawType.includes('offer') || rawType.includes('bid')) {
+      return 'offer';
+    }
+
+    if (rawType.includes('subscription') || rawType.includes('plan')) {
+      return 'subscription';
+    }
+
+    return 'warning';
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
+  }
+
+  private relativeTimeFromDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return null;
+    }
+
+    const diffMilliseconds = Date.now() - parsedDate.getTime();
+    const diffMinutes = Math.max(1, Math.floor(diffMilliseconds / (1000 * 60)));
+
+    if (diffMinutes < 60) {
+      return `${diffMinutes} min${diffMinutes === 1 ? '' : 's'} ago`;
+    }
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+      return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) {
+      return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+    }
+
+    return parsedDate.toLocaleDateString('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
   }
 }
