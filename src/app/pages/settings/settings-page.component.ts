@@ -1043,7 +1043,7 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
         [destination]="verification.destination"
         (close)="verificationMode.set(null)"
         (back)="handleVerificationBack()"
-        (confirm)="completeVerification()"
+        (confirm)="completeVerification($event)"
       ></app-settings-verification-modal>
     }
 
@@ -1740,7 +1740,11 @@ export class SettingsPageComponent {
     this.verificationReturnMode.set(null);
   }
 
-  async completeVerification(): Promise<void> {
+  async completeVerification(otpCode: string): Promise<void> {
+    if (!(await this.confirmProfileOtp(otpCode))) {
+      return;
+    }
+
     switch (this.verificationMode()) {
       case 'email':
         if (!(await this.persistProfileChanges({ email: this.modalValue() }))) {
@@ -1902,6 +1906,43 @@ export class SettingsPageComponent {
     } catch {
       this.showToast('We could not update your profile right now.');
       return false;
+    }
+  }
+
+  private async confirmProfileOtp(otpCode: string): Promise<boolean> {
+    if (!this.appMode.isBackendEnabled()) {
+      return true;
+    }
+
+    const verificationType = this.currentVerificationType();
+    if (!verificationType) {
+      return false;
+    }
+
+    try {
+      await firstValueFrom(
+        this.authService.verifyProfileOtp({
+          type: verificationType,
+          otp_code: otpCode,
+        }),
+      );
+      return true;
+    } catch {
+      this.showToast('We could not verify that code right now.');
+      return false;
+    }
+  }
+
+  private currentVerificationType(): 'phone' | 'whatsapp' | 'email' | null {
+    switch (this.verificationMode()) {
+      case 'call':
+        return 'phone';
+      case 'whatsapp':
+        return 'whatsapp';
+      case 'email':
+        return 'email';
+      default:
+        return null;
     }
   }
 

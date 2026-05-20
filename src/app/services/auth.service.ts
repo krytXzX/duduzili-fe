@@ -58,6 +58,11 @@ export type VerifyOtpRequest = {
   code: string;
 };
 
+export type VerifyProfileOtpRequest = {
+  type: 'phone' | 'whatsapp' | 'email';
+  otp_code: string;
+};
+
 export type RegisterRequest = {
   email: string;
   full_name: string;
@@ -104,6 +109,10 @@ export class AuthService {
 
   verifyOtp(payload: VerifyOtpRequest): Observable<unknown> {
     return this.http.post(`${this.apiUrl}/auth/verify-otp/`, payload);
+  }
+
+  verifyProfileOtp(payload: VerifyProfileOtpRequest): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/auth/profile/verify-otp/`, payload);
   }
 
   resendOtp(payload: SendOtpRequest): Observable<unknown> {
