@@ -1647,7 +1647,7 @@ export class SettingsPageComponent {
       case 'call':
       case 'whatsapp':
         return {
-          destination: '+234 816 939 7454',
+          destination: this.modalValue(),
         };
       default:
         return null;
@@ -1668,11 +1668,11 @@ export class SettingsPageComponent {
         break;
       case 'edit-call':
         this.modalMode.set(profile.callNumber ? 'call-update' : 'call-add');
-        this.modalValue.set(profile.callNumber || '+234 816 939 7454');
+        this.modalValue.set(profile.callNumber);
         break;
       case 'edit-whatsapp':
         this.modalMode.set(profile.whatsappNumber ? 'whatsapp-update' : 'whatsapp-add');
-        this.modalValue.set(profile.whatsappNumber || '+234 816 939 7454');
+        this.modalValue.set(profile.whatsappNumber);
         break;
     }
   }
