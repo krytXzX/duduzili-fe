@@ -1,6 +1,6 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
@@ -73,6 +73,7 @@ type SellerReportStep = 1 | 2;
 })
 export class ProductPageComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly listingsService = inject(ListingsService);
   private readonly vendorsService = inject(VendorsService);
@@ -428,6 +429,15 @@ export class ProductPageComponent {
 
   openMakeOfferModal(): void {
     this.isMakeOfferModalOpen.set(true);
+  }
+
+  async viewStoreProfile(): Promise<void> {
+    const storeId = this.store().id;
+    if (!storeId) {
+      return;
+    }
+
+    await this.router.navigate(['/stores', storeId]);
   }
 
   async toggleVendorFollow(): Promise<void> {
