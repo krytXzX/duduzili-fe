@@ -589,9 +589,8 @@ export class ProductPageComponent {
 
       try {
         await firstValueFrom(
-          this.listingsService.createReport({
-            listing: this.product().id,
-            details: this.reportForm.controls.details.getRawValue().trim(),
+          this.listingsService.createListingReport(this.product().id, {
+            description: this.reportForm.controls.details.getRawValue().trim(),
           }),
         );
         this.closeReportModal();

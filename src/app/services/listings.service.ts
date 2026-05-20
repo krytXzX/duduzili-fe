@@ -55,9 +55,8 @@ export interface WishlistResponse {
   earlier?: ListingsApiItem[];
 }
 
-export interface CreateReportRequest {
-  listing: string;
-  details: string;
+export interface CreateListingReportRequest {
+  description: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -81,8 +80,17 @@ export class ListingsService {
     return this.http.post<ListingsApiItem>(`${this.apiUrl}/listings/`, payload);
   }
 
-  createReport(payload: CreateReportRequest): Observable<Record<string, unknown>> {
-    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/reports/`, payload);
+  createListingReport(
+    listingId: string,
+    payload: CreateListingReportRequest,
+  ): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(
+      `${this.apiUrl}/reports/${listingId}/report/`,
+      payload,
+      {
+        params: { type: 'listing' },
+      },
+    );
   }
 
   getListingDetails(id: string): Observable<ListingsApiItem> {
