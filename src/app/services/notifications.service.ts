@@ -21,4 +21,8 @@ export class NotificationsService {
   getNotifications(): Observable<NotificationsResponse> {
     return this.http.get<NotificationsResponse>(`${this.apiUrl}/notifications`);
   }
+
+  getNotificationDetails(id: string): Observable<NotificationApiItem> {
+    return this.http.get<NotificationApiItem>(`${this.apiUrl}/notifications/${id}/`);
+  }
 }

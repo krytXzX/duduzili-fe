@@ -365,7 +365,11 @@ interface AppNotification {
           </div>
 
           <div class="mt-5 rounded-[20px] bg-[#F8F8FB] px-4 py-4">
-            <p class="text-[15px] leading-6 text-[#33363F]">{{ notification.body }}</p>
+            @if (isNotificationDetailsLoading()) {
+              <p class="text-[15px] leading-6 text-[#7A7D87]">Loading notification...</p>
+            } @else {
+              <p class="text-[15px] leading-6 text-[#33363F]">{{ notification.body }}</p>
+            }
           </div>
         </section>
       </div>
@@ -416,7 +420,11 @@ interface AppNotification {
           </div>
 
           <div class="mt-6 rounded-[24px] bg-[#F8F8FB] px-5 py-5">
-            <p class="text-[16px] leading-7 text-[#33363F]">{{ notification.body }}</p>
+            @if (isNotificationDetailsLoading()) {
+              <p class="text-[16px] leading-7 text-[#7A7D87]">Loading notification...</p>
+            } @else {
+              <p class="text-[16px] leading-7 text-[#33363F]">{{ notification.body }}</p>
+            }
           </div>
         </section>
       </div>
@@ -434,6 +442,7 @@ export class NotificationsPageComponent {
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly selectedNotification = signal<AppNotification | null>(null);
+  readonly isNotificationDetailsLoading = signal(false);
 
   readonly filterTabs = [
     { id: 'all' as const, label: 'All notifications' },
@@ -464,12 +473,31 @@ export class NotificationsPageComponent {
     this.location.back();
   }
 
-  openNotification(notification: AppNotification): void {
+  async openNotification(notification: AppNotification): Promise<void> {
     this.selectedNotification.set(notification);
+    this.isNotificationDetailsLoading.set(true);
+
+    try {
+      const response = await firstValueFrom(this.notificationsService.getNotificationDetails(notification.id));
+      const detailedNotification = this.toNotification(response, 0);
+      if (!detailedNotification) {
+        return;
+      }
+
+      this.selectedNotification.set(detailedNotification);
+      this.notifications.update((items) =>
+        items.map((item) => (item.id === detailedNotification.id ? detailedNotification : item)),
+      );
+    } catch {
+      // Keep the list payload visible if the detail endpoint fails.
+    } finally {
+      this.isNotificationDetailsLoading.set(false);
+    }
   }
 
   closeNotification(): void {
     this.selectedNotification.set(null);
+    this.isNotificationDetailsLoading.set(false);
   }
 
   dismissNotification(id: string): void {
@@ -556,7 +584,7 @@ export class NotificationsPageComponent {
     const notificationType = this.readString(item['notification_type']);
 
     return {
-      id: this.readString(item['id']) ?? `notification-${index + 1}`,
+      id: this.readId(item['id']) ?? `notification-${index + 1}`,
       title,
       body,
       time:
@@ -602,6 +630,18 @@ export class NotificationsPageComponent {
 
   private readString(value: unknown): string | null {
     return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readId(value: unknown): string | null {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    return null;
   }
 
   private readBoolean(value: unknown): boolean | null {
