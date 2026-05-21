@@ -130,7 +130,7 @@ export class BuyerWishlistPageComponent {
     this.errorMessage.set(null);
 
     try {
-      const response = await firstValueFrom(this.listingsService.getMyFavorites());
+      const response = await firstValueFrom(this.listingsService.getWishlist());
       const entries = this.extractEntries(response)
         .map((entry, index) => this.toWishlistEntry(entry.label, entry.item, index))
         .filter((entry): entry is WishlistEntry => entry !== null);

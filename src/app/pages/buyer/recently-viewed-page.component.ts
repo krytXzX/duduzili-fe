@@ -251,7 +251,8 @@ export class BuyerRecentlyViewedPageComponent {
         location: this.composeLocation(item) ?? 'Nigeria',
         timeAgo: this.formatCondition(item['condition']) ?? 'Recently viewed',
         isVerified: this.readBoolean(item['is_verified']) ?? false,
-        favoriteFilled: this.readBoolean(item['is_favorited']) ?? false,
+        favoriteFilled:
+          this.readBoolean(item['is_saved']) ?? this.readBoolean(item['is_favorited']) ?? false,
         images: this.extractImages(item),
       },
     };
