@@ -39,7 +39,7 @@ export class AuthSessionService {
   readonly role = computed(() => this.user()?.role?.toLowerCase() ?? null);
   readonly isSuperuser = computed(() => {
     const role = this.role();
-    return role === 'admin';
+    return role === 'admin' || role === 'superuser';
   });
   readonly isSeller = computed(() => {
     const role = this.role();

@@ -1697,7 +1697,7 @@ export class SettingsPageComponent {
         this.modalMode.set(null);
         break;
       case 'whatsapp-add':
-        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+        if (!(await this.persistProfileChanges({ whatsapp_number: this.modalValue() }))) {
           return;
         }
 
@@ -1715,7 +1715,7 @@ export class SettingsPageComponent {
         this.modalMode.set(null);
         break;
       case 'whatsapp-update':
-        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+        if (!(await this.persistProfileChanges({ whatsapp_number: this.modalValue() }))) {
           return;
         }
 
@@ -1893,12 +1893,13 @@ export class SettingsPageComponent {
     }
 
     const phoneNumber = user.phone_number?.trim() ?? '';
+    const whatsappNumber = user.whatsapp_number?.trim() ?? '';
     const fullName = user.full_name?.trim() || user.username;
 
     this.profile.set({
       email: user.email,
       callNumber: phoneNumber,
-      whatsappNumber: phoneNumber,
+      whatsappNumber,
       fullName,
     });
   }
@@ -1977,7 +1978,7 @@ export class SettingsPageComponent {
       email: payload.email ?? profile.email,
       fullName: payload.full_name ?? profile.fullName,
       callNumber: payload.phone_number ?? profile.callNumber,
-      whatsappNumber: payload.phone_number ?? profile.whatsappNumber,
+      whatsappNumber: payload.whatsapp_number ?? profile.whatsappNumber,
     }));
   }
 

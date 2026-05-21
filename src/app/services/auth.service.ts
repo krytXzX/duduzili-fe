@@ -19,6 +19,7 @@ export type AuthUser = {
   full_name?: string | null;
   avatar: string | null;
   phone_number?: string | null;
+  whatsapp_number?: string | null;
   location?: string | null;
   state?: string | null;
   city?: string | null;
@@ -74,6 +75,7 @@ export type UpdateProfileRequest = {
   email?: string;
   full_name?: string;
   phone_number?: string;
+  whatsapp_number?: string;
 };
 
 export type SwitchModeRequest = {

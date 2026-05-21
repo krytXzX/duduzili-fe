@@ -2855,8 +2855,8 @@ export class MessagesPageComponent implements OnDestroy {
       try {
         await firstValueFrom(
           this.messagesService.bulkAction({
-            action: 'clear_selected',
-            conversation_ids: messageIds,
+            action: 'delete',
+            message_ids: messageIds,
           }),
         );
 

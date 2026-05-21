@@ -20,8 +20,8 @@ export interface SendMessageRequest {
 }
 
 export interface BulkMessageActionRequest {
-  action: 'clear_selected';
-  conversation_ids: readonly string[];
+  action: 'delete';
+  message_ids: readonly string[];
 }
 
 export type StartConversationResponse = Record<string, unknown>;
