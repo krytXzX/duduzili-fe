@@ -49,11 +49,18 @@ export interface RecentlyViewedResponse {
   earlier?: ListingsApiItem[];
 }
 
-export interface WishlistResponse {
-  today?: ListingsApiItem[];
-  yesterday?: ListingsApiItem[];
-  earlier?: ListingsApiItem[];
-}
+export type WishlistResponse =
+  | {
+      today?: ListingsApiItem[];
+      yesterday?: ListingsApiItem[];
+      earlier?: ListingsApiItem[];
+    }
+  | {
+      count?: number;
+      next?: string | null;
+      previous?: string | null;
+      results?: Array<Record<string, unknown>>;
+    };
 
 export interface CreateListingReportRequest {
   description: string;
