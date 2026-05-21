@@ -737,11 +737,7 @@ export class HomePageComponent {
     }
 
     return [...(response.sponsored_listings ?? []), ...(response.nearby_listings ?? [])]
-      .filter(
-        (listing) =>
-          listing['is_saved'] === true ||
-          (listing['is_saved'] !== true && listing['is_favorited'] === true),
-      )
+      .filter((listing) => listing['is_saved'] === true)
       .map((listing) => String(listing['id']));
   });
 
