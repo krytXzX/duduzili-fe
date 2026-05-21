@@ -1,25 +1,35 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { OtpInputComponent } from '../../components/common/otp-input/otp-input.component';
 import { AuthService } from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-two-factor-page',
-  imports: [RouterLink, OtpInputComponent],
+  imports: [RouterLink, OtpInputComponent, ReactiveFormsModule],
   templateUrl: './two-factor-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'flex flex-col items-center gap-8 w-full max-w-[440px]',
   },
 })
-export class TwoFactorPageComponent {
+export class TwoFactorPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
   private readonly authSession = inject(AuthSessionService);
+
+  protected formGroup!: FormGroup;
 
   protected readonly submitted = signal(false);
   protected readonly isProcessing = signal(false);
@@ -72,9 +82,21 @@ export class TwoFactorPageComponent {
       );
 
       this.authSession.saveLoginSession(response, null);
+      const isSessionStable = await this.stabilizeAuthenticatedSession();
+
+      if (!isSessionStable) {
+        this.authSession.clearSession();
+        this.errorMessage.set(
+          'We verified your code, but could not finish signing you in. Please try again.',
+        );
+        return;
+      }
+
       await this.router.navigate(this.resolvePostLoginRoute(response.user?.role));
     } catch (error: unknown) {
-      this.errorMessage.set(this.readBackendMessage(error) ?? 'We could not verify that code right now.');
+      this.errorMessage.set(
+        this.readBackendMessage(error) ?? 'We could not verify that code right now.',
+      );
     } finally {
       this.isProcessing.set(false);
     }
@@ -82,6 +104,26 @@ export class TwoFactorPageComponent {
 
   private resolvePostLoginRoute(role: string | undefined): string[] {
     return role === 'admin' ? ['/admin'] : ['/home'];
+  }
+
+  private async stabilizeAuthenticatedSession(): Promise<boolean> {
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      try {
+        const profile = await firstValueFrom(this.authService.getProfile());
+        this.authSession.initializeFromProfile(profile);
+        return true;
+      } catch {
+        await this.delay(250 * (attempt + 1));
+      }
+    }
+
+    return false;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
   }
 
   private readBackendMessage(error: unknown): string | null {
@@ -113,5 +155,13 @@ export class TwoFactorPageComponent {
     }
 
     return null;
+  }
+  ngOnInit(): void {
+    this.formGroup = new FormGroup({
+      otp: new FormControl(''),
+    });
+    if (!this.userId) {
+      this.router.navigate(['/sign-in']);
+    }
   }
 }
