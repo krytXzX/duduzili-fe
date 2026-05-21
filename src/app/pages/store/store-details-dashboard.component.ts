@@ -18,6 +18,7 @@ import {
 import { StoreEditSidePanelComponent } from '../../components/stores/store-edit-side-panel.component';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { AppModeService } from '../../services/app-mode.service';
+import { AppToastService } from '../../services/app-toast.service';
 import {
   VendorsService,
   type VendorListingRecord,
@@ -25,6 +26,7 @@ import {
   type VendorRecord,
   type VendorReviewRecord,
   type VendorReviewsResponse,
+  type UpdateVendorPayload,
 } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
 
@@ -886,6 +888,7 @@ export class StoreDetailsDashboardComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly vendorsService = inject(VendorsService);
   private readonly appMode = inject(AppModeService);
+  private readonly appToastService = inject(AppToastService);
   private readonly apiOrigin = this.resolveApiOrigin();
 
   protected readonly assets = {
@@ -1617,9 +1620,35 @@ export class StoreDetailsDashboardComponent {
     this.showEditModal.set(true);
   }
 
-  onSaveStore(updatedStore: Partial<StoreProfile>): void {
-    this.store.update((previousStore) => ({ ...previousStore, ...updatedStore }));
-    this.showEditModal.set(false);
+  async onSaveStore(updatedStore: Partial<StoreProfile>): Promise<void> {
+    if (!this.appMode.isBackendEnabled()) {
+      this.store.update((previousStore) => ({ ...previousStore, ...updatedStore }));
+      this.showEditModal.set(false);
+      return;
+    }
+
+    const storeId = this.store().id;
+    if (!storeId) {
+      this.appToastService.show({
+        message: 'We could not save this store right now.',
+      });
+      return;
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.vendorsService.updateStore(storeId, this.toUpdateStorePayload(updatedStore)),
+      );
+      this.store.set(this.mapStore(response));
+      this.showEditModal.set(false);
+      this.appToastService.show({
+        message: 'Store details updated.',
+      });
+    } catch {
+      this.appToastService.show({
+        message: 'We could not update this store right now.',
+      });
+    }
   }
 
   onPublishListing(data: ListingData): void {
@@ -1646,5 +1675,18 @@ export class StoreDetailsDashboardComponent {
       ),
     );
     this.showAddListingModal.set(false);
+  }
+
+  private toUpdateStorePayload(updatedStore: Partial<StoreProfile>): UpdateVendorPayload {
+    return {
+      store_name: updatedStore.name?.trim() || this.store().name,
+      store_bio: updatedStore.description?.trim() ?? this.store().description ?? '',
+      location: updatedStore.location?.trim() || this.store().location,
+      whatsapp_number:
+        updatedStore.whatsappNumber?.trim() ?? this.store().whatsappNumber ?? '',
+      call_number: updatedStore.callNumber?.trim() ?? this.store().callNumber ?? '',
+      call_number_2:
+        updatedStore.alternateCallNumber?.trim() ?? this.store().alternateCallNumber ?? '',
+    };
   }
 }

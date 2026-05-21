@@ -8,6 +8,14 @@ export type VendorRecord = Record<string, unknown>;
 export type VendorListingRecord = Record<string, unknown>;
 export type VendorReviewRecord = Record<string, unknown>;
 export type VendorAnalyticsRecord = Record<string, unknown>;
+export type UpdateVendorPayload = {
+  store_name?: string;
+  store_bio?: string;
+  location?: string;
+  whatsapp_number?: string;
+  call_number?: string;
+  call_number_2?: string;
+};
 export type CreateVendorReviewPayload = {
   vendor: string;
   rating: number;
@@ -71,6 +79,10 @@ export class VendorsService {
 
   createStore(payload: FormData): Observable<VendorRecord> {
     return this.http.post<VendorRecord>(`${this.apiUrl}/vendors/`, payload);
+  }
+
+  updateStore(id: string, payload: UpdateVendorPayload): Observable<VendorRecord> {
+    return this.http.patch<VendorRecord>(`${this.apiUrl}/vendors/${id}/`, payload);
   }
 
   getVendorListings(id: string): Observable<VendorListingsResponse> {
