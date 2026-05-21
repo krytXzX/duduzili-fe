@@ -7,6 +7,12 @@ export type VendorFollowResponse = Record<string, unknown>;
 export type VendorRecord = Record<string, unknown>;
 export type VendorListingRecord = Record<string, unknown>;
 export type VendorReviewRecord = Record<string, unknown>;
+export type CreateVendorReviewPayload = {
+  vendor: string;
+  rating: number;
+  comment?: string;
+  tag_ids?: number[];
+};
 export type VendorsFollowingResponse =
   | VendorRecord[]
   | {
@@ -72,5 +78,9 @@ export class VendorsService {
 
   getVendorReviews(id: string): Observable<VendorReviewsResponse> {
     return this.http.get<VendorReviewsResponse>(`${this.apiUrl}/vendors/${id}/reviews/`);
+  }
+
+  createVendorReview(id: string, payload: CreateVendorReviewPayload): Observable<VendorReviewRecord> {
+    return this.http.post<VendorReviewRecord>(`${this.apiUrl}/vendors/${id}/reviews/create/`, payload);
   }
 }
