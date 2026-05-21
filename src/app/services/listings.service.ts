@@ -98,11 +98,11 @@ export class ListingsService {
   }
 
   createSellerReport(
-    listingId: string,
+    vendorId: string,
     payload: CreateSellerReportRequest,
   ): Observable<Record<string, unknown>> {
     return this.http.post<Record<string, unknown>>(
-      `${this.apiUrl}/reports/${listingId}/report/`,
+      `${this.apiUrl}/reports/${vendorId}/report/`,
       payload,
       {
         params: { type: 'vendor' },

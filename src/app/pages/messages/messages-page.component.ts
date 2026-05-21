@@ -51,6 +51,7 @@ const EMPTY_CONVERSATION: Conversation = {
 
 interface MessageDetailsResponse extends Record<string, unknown> {
   listing?: unknown;
+  vendor?: unknown;
   results?: readonly Record<string, unknown>[];
   messages?: readonly Record<string, unknown>[];
   data?: readonly Record<string, unknown>[];
@@ -2085,7 +2086,7 @@ export class MessagesPageComponent implements OnDestroy {
   readonly storeOptions = signal<readonly StoreOption[]>([]);
 
   readonly conversations = signal<Conversation[]>([]);
-  readonly conversationListingIds = signal<Record<string, string>>({});
+  readonly conversationVendorIds = signal<Record<string, string>>({});
 
   readonly conversationDays = signal<Record<string, readonly ChatDay[]>>({});
   readonly sellerReportForm = this.formBuilder.nonNullable.group({
@@ -2443,13 +2444,13 @@ export class MessagesPageComponent implements OnDestroy {
 
     try {
       const response = await firstValueFrom(this.messagesService.getMessageDetails(chatId));
-      const listingId = this.readId(response['listing']);
+      const vendorId = this.readId(response['vendor']);
       const mappedDays = this.toConversationDays(response);
 
-      if (listingId) {
-        this.conversationListingIds.update((current) => ({
+      if (vendorId) {
+        this.conversationVendorIds.update((current) => ({
           ...current,
-          [chatId]: listingId,
+          [chatId]: vendorId,
         }));
       }
 
@@ -2858,13 +2859,13 @@ export class MessagesPageComponent implements OnDestroy {
   protected async submitSellerReport(): Promise<void> {
     const activeConversation = this.resolveActiveConversation();
     const activeChatId = activeConversation?.id ?? '';
-    const listingId =
-      activeConversation?.listingId ??
-      this.conversationListingIds()[activeChatId] ??
+    const vendorId =
+      activeConversation?.vendorId ??
+      this.conversationVendorIds()[activeChatId] ??
       null;
     const sellerReason = this.toSellerReportReason(this.selectedSellerReportReason());
 
-    if (!listingId || !sellerReason) {
+    if (!vendorId || !sellerReason) {
       this.appToastService.show({
         message: 'Unable to submit seller report right now.',
       });
@@ -2879,7 +2880,7 @@ export class MessagesPageComponent implements OnDestroy {
 
     try {
       await firstValueFrom(
-        this.listingsService.createSellerReport(listingId, {
+        this.listingsService.createSellerReport(vendorId, {
           reason: sellerReason,
         }),
       );

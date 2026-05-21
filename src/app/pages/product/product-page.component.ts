@@ -606,10 +606,10 @@ export class ProductPageComponent {
       return;
     }
 
-    const listingId = this.product().id;
+    const vendorId = this.store().id;
     const sellerReason = this.toSellerReportReason(this.selectedSellerReportReason());
 
-    if (!listingId || !sellerReason) {
+    if (!vendorId || !sellerReason) {
       this.appToastService.show({
         message: 'Unable to submit seller report right now.',
       });
@@ -624,7 +624,7 @@ export class ProductPageComponent {
 
     try {
       await firstValueFrom(
-        this.listingsService.createSellerReport(listingId, {
+        this.listingsService.createSellerReport(vendorId, {
           reason: sellerReason,
         }),
       );
