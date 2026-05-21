@@ -232,15 +232,17 @@ interface OfferRecord {
 
             <div class="flex items-center justify-between">
               <p class="text-[16px] font-medium leading-normal text-[#1A1B1D]">
-                {{ filteredOffers().length }} <span class="text-[rgba(26,27,29,0.5)]">results</span>
+                {{ totalResults() }} <span class="text-[rgba(26,27,29,0.5)]">results</span>
               </p>
 
               <div class="flex items-center gap-2 opacity-50">
                 <div class="flex items-end gap-[5px]">
                   <button
                     type="button"
+                    (click)="goToPreviousPage()"
+                    [disabled]="!hasPreviousPage()"
                     aria-label="Previous page"
-                    class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                    class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <img
                       ngSrc="/assets/icons/offers-chevron-left.svg"
@@ -255,12 +257,14 @@ interface OfferRecord {
                     aria-current="page"
                     class="flex h-8 w-[33px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
                   >
-                    <span class="text-[14px] font-medium leading-5 text-[#1A1B1D]">1</span>
+                    <span class="text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ currentPage() }}</span>
                   </button>
                   <button
                     type="button"
+                    (click)="goToNextPage()"
+                    [disabled]="!hasNextPage()"
                     aria-label="Next page"
-                    class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                    class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <img
                       ngSrc="/assets/icons/offers-chevron-right.svg"
@@ -272,7 +276,7 @@ interface OfferRecord {
                   </button>
                 </div>
 
-                <span class="text-[16px] leading-normal text-[#1C1F1D]">of 12</span>
+                <span class="text-[16px] leading-normal text-[#1C1F1D]">of {{ totalPages() }}</span>
               </div>
             </div>
           </div>
@@ -686,6 +690,10 @@ export class OffersPageComponent implements OnDestroy {
 
   readonly searchTerm = signal('');
   readonly selectedOffer = signal<OfferRecord | null>(null);
+  readonly currentPage = signal(1);
+  readonly totalResults = signal(0);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
 
   readonly offers = signal<readonly OfferRecord[]>([
     {
@@ -760,6 +768,9 @@ export class OffersPageComponent implements OnDestroy {
       ),
     );
   });
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.totalResults() / this.sellerRequestsService.getPageSize())),
+  );
 
   constructor() {
     if (this.appMode.isBackendEnabled()) {
@@ -797,12 +808,37 @@ export class OffersPageComponent implements OnDestroy {
   }
 
   private async loadOffers(): Promise<void> {
+    await this.loadOffersPage(this.currentPage());
+  }
+
+  protected goToPreviousPage(): void {
+    if (!this.hasPreviousPage()) {
+      return;
+    }
+
+    void this.loadOffersPage(this.currentPage() - 1);
+  }
+
+  protected goToNextPage(): void {
+    if (!this.hasNextPage()) {
+      return;
+    }
+
+    void this.loadOffersPage(this.currentPage() + 1);
+  }
+
+  private async loadOffersPage(page: number): Promise<void> {
     try {
-      const response = await firstValueFrom(this.sellerRequestsService.getReceivedOffers());
+      const response = await firstValueFrom(this.sellerRequestsService.getReceivedOffers(page));
       const items = this.extractOfferRecords(response);
       this.offers.set(items.map((record, index) => this.mapOfferRecord(record, index)));
+      this.applyPagination(response, page, items.length);
     } catch {
       this.offers.set([]);
+      this.totalResults.set(0);
+      this.currentPage.set(1);
+      this.hasNextPage.set(false);
+      this.hasPreviousPage.set(false);
     }
   }
 
@@ -828,6 +864,24 @@ export class OffersPageComponent implements OnDestroy {
     }
 
     return [];
+  }
+
+  private applyPagination(response: SellerOffersResponse, page: number, itemCount: number): void {
+    if (Array.isArray(response)) {
+      this.totalResults.set(itemCount);
+      this.currentPage.set(1);
+      this.hasNextPage.set(false);
+      this.hasPreviousPage.set(false);
+      return;
+    }
+
+    const count = this.readNumber(response.count) ?? itemCount;
+    this.totalResults.set(count);
+    this.currentPage.set(page);
+    this.hasNextPage.set(typeof response.next === 'string' && response.next.trim().length > 0);
+    this.hasPreviousPage.set(
+      typeof response.previous === 'string' && response.previous.trim().length > 0,
+    );
   }
 
   private mapOfferRecord(record: SellerOfferRecord, index: number): OfferRecord {

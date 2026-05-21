@@ -30,12 +30,21 @@ export type SellerCallbacksResponse =
 export class SellerRequestsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl.replace(/\/+$/, '');
+  private readonly pageSize = 20;
 
-  getReceivedOffers(): Observable<SellerOffersResponse> {
-    return this.http.get<SellerOffersResponse>(`${this.apiUrl}/offers/received/`);
+  getReceivedOffers(page = 1): Observable<SellerOffersResponse> {
+    return this.http.get<SellerOffersResponse>(`${this.apiUrl}/offers/received/`, {
+      params: { page: String(page) },
+    });
   }
 
-  getReceivedCallbacks(): Observable<SellerCallbacksResponse> {
-    return this.http.get<SellerCallbacksResponse>(`${this.apiUrl}/callback-requests/received/`);
+  getReceivedCallbacks(page = 1): Observable<SellerCallbacksResponse> {
+    return this.http.get<SellerCallbacksResponse>(`${this.apiUrl}/callback-requests/received/`, {
+      params: { page: String(page) },
+    });
+  }
+
+  getPageSize(): number {
+    return this.pageSize;
   }
 }
