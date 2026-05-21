@@ -15,6 +15,7 @@ import { SellerReportModalComponent } from '../../components/product/seller-repo
 import { AppToastService } from '../../services/app-toast.service';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { ListingsService } from '../../services/listings.service';
 import {
   MessageConversationApiItem,
   MessagesResponse,
@@ -33,6 +34,7 @@ interface Conversation {
   mobileAvatar?: string;
   storeBadge: string;
   mobileStoreBadge?: string;
+  buyerId?: string;
   vendorId?: string;
   listingId?: string;
 }
@@ -49,6 +51,8 @@ const EMPTY_CONVERSATION: Conversation = {
 };
 
 interface MessageDetailsResponse extends Record<string, unknown> {
+  listing?: unknown;
+  vendor?: unknown;
   results?: readonly Record<string, unknown>[];
   messages?: readonly Record<string, unknown>[];
   data?: readonly Record<string, unknown>[];
@@ -1971,6 +1975,7 @@ export class MessagesPageComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly messagesService = inject(MessagesService);
+  private readonly listingsService = inject(ListingsService);
   private readonly appToastService = inject(AppToastService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly authSession = inject(AuthSessionService);
@@ -2035,6 +2040,9 @@ export class MessagesPageComponent implements OnDestroy {
   readonly requestedConversationId = computed(
     () => this.queryParamMap().get('conversation')?.trim() ?? '',
   );
+  readonly requestedBuyerId = computed(() => this.queryParamMap().get('buyer')?.trim() ?? '');
+  readonly requestedVendorId = computed(() => this.queryParamMap().get('store')?.trim() ?? '');
+  readonly requestedListingId = computed(() => this.queryParamMap().get('listing')?.trim() ?? '');
   readonly isClearChatConfirmOpen = signal(false);
   readonly isMessageMenuOpen = signal(false);
   readonly isProfileMenuOpen = signal(false);
@@ -2061,6 +2069,7 @@ export class MessagesPageComponent implements OnDestroy {
   readonly isLoadingConversationDetails = signal(false);
   readonly isSendingMessage = signal(false);
   readonly isDeletingMessages = signal(false);
+  readonly isSubmittingSellerReport = signal(false);
   readonly hasConversations = computed(() => this.conversations().length > 0);
   readonly clearChatConfirmTitle = computed(() =>
     this.deleteIntent() === 'messages' ? 'Delete selected messages?' : 'Remove this chat?',
@@ -2081,10 +2090,11 @@ export class MessagesPageComponent implements OnDestroy {
   readonly storeOptions = signal<readonly StoreOption[]>([]);
 
   readonly conversations = signal<Conversation[]>([]);
+  readonly conversationVendorIds = signal<Record<string, string>>({});
 
   readonly conversationDays = signal<Record<string, readonly ChatDay[]>>({});
   readonly sellerReportForm = this.formBuilder.nonNullable.group({
-    details: ['', [Validators.required]],
+    details: [''],
   });
   readonly sellerReportReasons = [
     'Suspected scam or fraud',
@@ -2268,9 +2278,29 @@ export class MessagesPageComponent implements OnDestroy {
     }
 
     const requestedConversationId = this.requestedConversationId();
+    const requestedBuyerId = this.requestedBuyerId();
+    const requestedVendorId = this.requestedVendorId();
+    const requestedListingId = this.requestedListingId();
     const currentActiveChatId = this.activeChatId();
+    const requestedContextConversationId =
+      requestedConversationId.length === 0
+        ? mappedConversations.find((conversation) => {
+            const matchesBuyer =
+              requestedBuyerId.length === 0 || conversation.buyerId === requestedBuyerId;
+            const matchesVendor =
+              requestedVendorId.length === 0 || conversation.vendorId === requestedVendorId;
+            const matchesListing =
+              requestedListingId.length === 0 || conversation.listingId === requestedListingId;
+
+            return matchesBuyer && matchesVendor && matchesListing;
+          })?.id ?? ''
+        : '';
     const nextActiveChatId = mappedConversations.some((conversation) => conversation.id === requestedConversationId)
       ? requestedConversationId
+      : mappedConversations.some(
+            (conversation) => conversation.id === requestedContextConversationId,
+          )
+        ? requestedContextConversationId
       : mappedConversations.some((conversation) => conversation.id === currentActiveChatId)
         ? currentActiveChatId
         : mappedConversations[0].id;
@@ -2306,14 +2336,19 @@ export class MessagesPageComponent implements OnDestroy {
     const id = this.readId(item['id']) ?? this.readId(item['chat_id']) ?? `conversation-${index + 1}`;
     const buyer = this.readRecord(item['buyer']);
     const lastMessage = this.readRecord(item['last_message']);
-    const name =
+    const buyerName =
+      this.readString(buyer?.['full_name']) ??
+      this.readString(buyer?.['username']) ??
+      this.readString(this.readRecord(item['other_user'])?.['full_name']) ??
+      this.readString(this.readRecord(item['other_user'])?.['username']) ??
+      this.readString(this.readRecord(item['user'])?.['full_name']) ??
+      this.readString(this.readRecord(item['user'])?.['username']);
+    const vendorName =
       this.readString(item['vendor_name']) ??
       this.readString(item['name']) ??
       this.readString(item['title']) ??
-      this.readString(item['other_user_name']) ??
-      this.readString(buyer?.['username']) ??
-      this.readString(this.readRecord(item['other_user'])?.['username']) ??
-      this.readString(this.readRecord(item['user'])?.['username']);
+      this.readString(item['other_user_name']);
+    const name = this.isSeller() ? buyerName ?? vendorName : vendorName ?? buyerName;
     const preview =
       this.readString(this.readRecord(item['last_message'])?.['body']) ??
       this.readString(item['preview']) ??
@@ -2325,6 +2360,19 @@ export class MessagesPageComponent implements OnDestroy {
     if (!name) {
       return null;
     }
+
+    const buyerAvatar =
+      this.resolveMediaUrl(
+        this.readString(buyer?.['avatar']) ??
+          this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
+          this.readString(this.readRecord(item['user'])?.['avatar']),
+      ) ?? '/assets/images/chats-store-selector-personal.png';
+    const vendorAvatar =
+      this.resolveMediaUrl(
+        this.readString(item['vendor_photo']) ??
+          this.readString(item['avatar']) ??
+          this.readString(item['mobile_avatar']),
+      ) ?? buyerAvatar;
 
     return {
       id,
@@ -2338,29 +2386,15 @@ export class MessagesPageComponent implements OnDestroy {
             this.readString(item['last_message_at']),
         ) ?? 'Recently',
       unreadCount: this.readNumber(item['unread_count']) ?? undefined,
-      avatar:
-        this.resolveMediaUrl(
-          this.readString(item['vendor_photo']) ??
-            this.readString(item['avatar']) ??
-            this.readString(buyer?.['avatar']) ??
-            this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
-            this.readString(this.readRecord(item['user'])?.['avatar']),
-        ) ?? '/assets/images/chats-store-selector-personal.png',
-      mobileAvatar:
-        this.resolveMediaUrl(
-          this.readString(item['vendor_photo']) ??
-            this.readString(item['mobile_avatar']) ??
-            this.readString(item['avatar']) ??
-            this.readString(buyer?.['avatar']) ??
-            this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
-            this.readString(this.readRecord(item['user'])?.['avatar']),
-        ) ?? '/assets/images/chats-store-selector-personal.png',
+      avatar: this.isSeller() ? buyerAvatar : vendorAvatar,
+      mobileAvatar: this.isSeller() ? buyerAvatar : vendorAvatar,
       storeBadge:
         this.resolveMediaUrl(this.readString(item['store_badge'])) ??
         '/assets/images/chats-store-badge-desktop.png',
       mobileStoreBadge:
         this.resolveMediaUrl(this.readString(item['mobile_store_badge']) ?? this.readString(item['store_badge'])) ??
         '/assets/images/chats-store-badge-mobile.png',
+      buyerId: this.readId(buyer?.['id']) ?? undefined,
       vendorId: this.readId(item['vendor']) ?? undefined,
       listingId: this.readId(item['listing']) ?? undefined,
     };
@@ -2383,6 +2417,23 @@ export class MessagesPageComponent implements OnDestroy {
     this.sellerReportStep.set(1);
     this.selectedSellerReportReason.set(null);
     this.sellerReportForm.reset({ details: '' });
+  }
+
+  private toSellerReportReason(reason: string | null): string | null {
+    switch (reason) {
+      case 'Suspected scam or fraud':
+        return 'scam';
+      case 'Seller is unresponsive after payment':
+        return 'unresponsive';
+      case 'Selling prohibited or illegal items':
+        return 'prohibited';
+      case 'Repeatedly listing sold/unavailable items':
+        return 'spam';
+      case 'Other reason':
+        return 'other';
+      default:
+        return null;
+    }
   }
 
   private toStoreOption(item: SellerStoreApiItem, index: number): StoreOption | null {
@@ -2421,7 +2472,15 @@ export class MessagesPageComponent implements OnDestroy {
 
     try {
       const response = await firstValueFrom(this.messagesService.getMessageDetails(chatId));
+      const vendorId = this.readId(response['vendor']);
       const mappedDays = this.toConversationDays(response);
+
+      if (vendorId) {
+        this.conversationVendorIds.update((current) => ({
+          ...current,
+          [chatId]: vendorId,
+        }));
+      }
 
       if (mappedDays.length > 0) {
         this.conversationDays.update((current) => ({
@@ -2507,6 +2566,16 @@ export class MessagesPageComponent implements OnDestroy {
 
     if (typeof value === 'number' && Number.isFinite(value)) {
       return String(value);
+    }
+
+    const record = this.readRecord(value);
+    if (record) {
+      return (
+        this.readId(record['id']) ??
+        this.readId(record['pk']) ??
+        this.readId(record['listing_id']) ??
+        null
+      );
     }
 
     return null;
@@ -2815,14 +2884,44 @@ export class MessagesPageComponent implements OnDestroy {
     this.sellerReportStep.set(1);
   }
 
-  protected submitSellerReport(): void {
-    if (this.sellerReportForm.invalid) {
-      this.sellerReportForm.markAllAsTouched();
+  protected async submitSellerReport(): Promise<void> {
+    const activeConversation = this.resolveActiveConversation();
+    const activeChatId = activeConversation?.id ?? '';
+    const vendorId =
+      activeConversation?.vendorId ??
+      this.conversationVendorIds()[activeChatId] ??
+      null;
+    const sellerReason = this.toSellerReportReason(this.selectedSellerReportReason());
+
+    if (!vendorId || !sellerReason) {
+      this.appToastService.show({
+        message: 'Unable to submit seller report right now.',
+      });
       return;
     }
 
-    this.isSellerReportModalOpen.set(false);
-    this.isSellerReportSuccessModalOpen.set(true);
+    if (this.isSubmittingSellerReport()) {
+      return;
+    }
+
+    this.isSubmittingSellerReport.set(true);
+
+    try {
+      await firstValueFrom(
+        this.listingsService.createSellerReport(vendorId, {
+          reason: sellerReason,
+        }),
+      );
+      this.isSellerReportModalOpen.set(false);
+      this.isSellerReportSuccessModalOpen.set(true);
+      this.resetSellerReportFlow();
+    } catch {
+      this.appToastService.show({
+        message: 'Unable to submit seller report right now.',
+      });
+    } finally {
+      this.isSubmittingSellerReport.set(false);
+    }
   }
 
   protected openClearChatConfirm(): void {
@@ -2855,8 +2954,8 @@ export class MessagesPageComponent implements OnDestroy {
       try {
         await firstValueFrom(
           this.messagesService.bulkAction({
-            action: 'clear_selected',
-            conversation_ids: messageIds,
+            action: 'delete',
+            message_ids: messageIds,
           }),
         );
 
@@ -2878,7 +2977,42 @@ export class MessagesPageComponent implements OnDestroy {
       return;
     }
 
-    this.isClearChatConfirmOpen.set(false);
+    const conversationId = this.activeChatId() || this.resolveActiveConversation()?.id;
+    if (!conversationId || this.isDeletingMessages()) {
+      return;
+    }
+
+    this.isDeletingMessages.set(true);
+
+    try {
+      await firstValueFrom(this.messagesService.clearConversation(conversationId));
+
+      this.conversationDays.update((current) => ({
+        ...current,
+        [conversationId]: [],
+      }));
+      this.deletedMessageIds.set([]);
+      this.selectedMessageIds.set([]);
+      this.activeReplyTarget.set(null);
+      this.conversations.update((items) =>
+        items.map((conversation) =>
+          conversation.id === conversationId
+            ? {
+                ...conversation,
+                preview: 'No messages yet',
+              }
+            : conversation,
+        ),
+      );
+      this.isClearChatConfirmOpen.set(false);
+      this.deleteIntent.set('chat');
+    } catch {
+      this.appToastService.show({
+        message: 'We could not clear this chat right now.',
+      });
+    } finally {
+      this.isDeletingMessages.set(false);
+    }
   }
 
   protected closeReplyComposer(): void {

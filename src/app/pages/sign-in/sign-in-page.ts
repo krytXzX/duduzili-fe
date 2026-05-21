@@ -6,7 +6,11 @@ import { Router, RouterLink } from '@angular/router';
 import { inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { AuthService, CheckEmailResponse } from '../../services/auth.service';
+import {
+  AuthService,
+  CheckEmailResponse,
+  LoginTwoFactorChallengeResponse,
+} from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AppModeService } from '../../services/app-mode.service';
 import { DemoAuthService } from '../../services/demo-auth.service';
@@ -108,6 +112,19 @@ export class SignInPageComponent {
             password: this.passwordControl.getRawValue(),
           }),
         );
+
+        if (this.isTwoFactorChallenge(loginResponse)) {
+          await this.router.navigate(['/two-factor'], {
+            queryParams: {
+              user_id: loginResponse.user_id,
+              method: loginResponse.method,
+              masked_phone: loginResponse.masked_phone ?? undefined,
+              email: this.emailControl.getRawValue().trim(),
+            },
+          });
+          return;
+        }
+
         this.authSessionService.saveLoginSession(loginResponse, this.checkedEmailProfile());
         this.passwordErrorMessage.set(null);
         await this.router.navigate(this.resolvePostLoginRoute(loginResponse));
@@ -245,5 +262,18 @@ export class SignInPageComponent {
     }
 
     return null;
+  }
+
+  private isTwoFactorChallenge(value: unknown): value is LoginTwoFactorChallengeResponse {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as Partial<LoginTwoFactorChallengeResponse>;
+    return (
+      candidate.requires_2fa === true &&
+      typeof candidate.user_id === 'string' &&
+      (candidate.method === 'sms' || candidate.method === 'email' || candidate.method === 'authenticator')
+    );
   }
 }

@@ -8,8 +8,10 @@ import {
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CustomDropdownComponent, type CustomDropdownOption } from '../ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
 export interface EditableStoreProfile {
@@ -34,7 +36,7 @@ export interface EditableStoreUpdate {
 
 @Component({
   selector: 'app-store-edit-side-panel',
-  imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage],
+  imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage, CustomDropdownComponent],
   template: `
     <div class="fixed inset-0 z-100">
       <button
@@ -90,23 +92,19 @@ export interface EditableStoreUpdate {
                     <span class="text-[14px] font-medium leading-[1.2] text-[#5A5A5A]"
                       >Location</span
                     >
-                    <span class="relative block">
-                      <select
-                        formControlName="location"
-                        class="h-10 w-full appearance-none rounded-[8px] border border-[#EAEAEA] bg-white px-3 pr-10 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none focus:border-[#6453D9]"
-                      >
-                        @for (option of locations; track option) {
-                          <option [value]="option">{{ option }}</option>
-                        }
-                      </select>
-                      <img
-                        [ngSrc]="assets.chevron"
-                        width="20"
-                        height="20"
-                        alt=""
-                        class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 rotate-90"
-                      />
-                    </span>
+                    <app-custom-dropdown
+                      [options]="locationOptions"
+                      [value]="selectedLocation()"
+                      ariaLabel="Select store location"
+                      [fullWidth]="true"
+                      [buttonClass]="desktopLocationDropdownButtonClass"
+                      [labelClass]="locationDropdownLabelClass"
+                      [iconClass]="locationDropdownIconClass"
+                      [menuClass]="locationDropdownMenuClass"
+                      [optionClass]="locationDropdownOptionClass"
+                      [activeOptionClass]="locationDropdownActiveOptionClass"
+                      (valueChange)="updateLocation($event)"
+                    />
                   </label>
 
                   <label class="block space-y-2">
@@ -304,23 +302,19 @@ export interface EditableStoreUpdate {
                       <span class="text-[14px] font-medium leading-[1.2] text-[#5A5A5A]"
                         >Location</span
                       >
-                      <span class="relative block">
-                        <select
-                          formControlName="location"
-                          class="h-12 w-full appearance-none rounded-[8px] border border-[#EAEAEA] bg-white px-3 pr-10 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none focus:border-[#6453D9]"
-                        >
-                          @for (option of locations; track option) {
-                            <option [value]="option">{{ option }}</option>
-                          }
-                        </select>
-                        <img
-                          [ngSrc]="assets.chevron"
-                          width="20"
-                          height="20"
-                          alt=""
-                          class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 rotate-90"
-                        />
-                      </span>
+                      <app-custom-dropdown
+                        [options]="locationOptions"
+                        [value]="selectedLocation()"
+                        ariaLabel="Select store location"
+                        [fullWidth]="true"
+                        [buttonClass]="mobileLocationDropdownButtonClass"
+                        [labelClass]="locationDropdownLabelClass"
+                        [iconClass]="locationDropdownIconClass"
+                        [menuClass]="locationDropdownMenuClass"
+                        [optionClass]="locationDropdownOptionClass"
+                        [activeOptionClass]="locationDropdownActiveOptionClass"
+                        (valueChange)="updateLocation($event)"
+                      />
                     </label>
 
                     <label class="block space-y-2">
@@ -468,9 +462,9 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
   readonly store = input.required<EditableStoreProfile>();
   readonly close = output<void>();
   readonly save = output<EditableStoreUpdate>();
+  private readonly defaultLocation = 'Ikeja, Lagos';
 
   protected readonly assets = {
-    chevron: '/assets/icons/store-edit-chevron.svg',
     closeDesktop: '/assets/icons/store-edit-close-desktop.svg',
     closeMobile: '/assets/icons/store-edit-close-mobile.svg',
     cover: '/assets/images/store-edit-cover.jpg',
@@ -484,6 +478,23 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
     'Yaba, Lagos',
     'Abuja, Nigeria',
   ] as const;
+  protected readonly locationOptions: readonly CustomDropdownOption[] = this.locations.map(
+    (location) => ({
+      value: location,
+      label: location,
+    }),
+  );
+  protected readonly selectedLocation = signal<string>(this.defaultLocation);
+  protected readonly desktopLocationDropdownButtonClass =
+    'flex h-10 w-full items-center justify-between rounded-[8px] border border-[#EAEAEA] bg-white px-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none';
+  protected readonly mobileLocationDropdownButtonClass =
+    'flex h-12 w-full items-center justify-between rounded-[8px] border border-[#EAEAEA] bg-white px-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none';
+  protected readonly locationDropdownLabelClass = 'truncate text-left';
+  protected readonly locationDropdownIconClass = 'text-[#0D0D0D]';
+  protected readonly locationDropdownMenuClass = 'w-[min(100vw-32px,420px)]';
+  protected readonly locationDropdownOptionClass =
+    'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]';
+  protected readonly locationDropdownActiveOptionClass = 'bg-[#F5F1FF] text-[#5932EA]';
 
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly fb = inject(FormBuilder);
@@ -506,17 +517,27 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
 
   ngOnInit(): void {
     const store = this.store();
+    const selectedLocation =
+      this.locations.find((location) => location === store.location) ?? this.defaultLocation;
+    this.selectedLocation.set(selectedLocation);
     this.editForm.patchValue(
       {
         name: store.name,
         description: store.description || '',
-        location: store.location || 'Ikeja, Lagos',
+        location: selectedLocation,
         whatsappNumber: store.whatsappNumber || '0816 939 7444',
         callNumber: store.callNumber || '0816 939 7444',
         alternateCallNumber: store.alternateCallNumber || '',
       },
       { emitEvent: false },
     );
+  }
+
+  updateLocation(value: string): void {
+    this.selectedLocation.set(value);
+    this.editForm.controls.location.setValue(value);
+    this.editForm.controls.location.markAsDirty();
+    this.editForm.controls.location.markAsTouched();
   }
 
   onSubmit(): void {

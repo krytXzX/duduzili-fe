@@ -25,6 +25,7 @@ import { AppToastService } from '../../services/app-toast.service';
 import { AppModeService } from '../../services/app-mode.service';
 import { MessagesService } from '../../services/messages.service';
 import {
+  CreateVendorReviewPayload,
   VendorFollowResponse,
   VendorListingRecord,
   VendorRecord,
@@ -75,6 +76,7 @@ type StoreReview = Review & {
 };
 
 type VendorTagSummary = {
+  id?: number;
   label: string;
   count: number;
 };
@@ -991,9 +993,11 @@ type VendorTagSummary = {
                     <button
                       type="button"
                       (click)="submitReview()"
+                      [disabled]="isSubmittingReview()"
                       class="rounded-full bg-[#5932EA] px-6 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-12px_rgba(89,50,234,0.7)] transition hover:bg-[#4E27DD]"
+                      [class.opacity-70]="isSubmittingReview()"
                     >
-                      Submit review
+                      {{ isSubmittingReview() ? 'Submitting...' : 'Submit review' }}
                     </button>
                   </div>
                 </div>
@@ -1025,6 +1029,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   readonly showLeaveReviewModal = signal(false);
   readonly isFollowPending = signal(false);
   readonly isStartingConversation = signal(false);
+  readonly isSubmittingReview = signal(false);
   readonly reviewRating = signal(2);
   readonly selectedReviewTags = signal<string[]>([]);
   readonly reviewText = signal('');
@@ -1684,10 +1689,69 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   closeLeaveReviewModal() {
     this.showLeaveReviewModal.set(false);
+    this.resetReviewDraft();
   }
 
-  submitReview() {
-    this.showLeaveReviewModal.set(false);
+  async submitReview(): Promise<void> {
+    if (this.isSubmittingReview()) {
+      return;
+    }
+
+    if (!this.authSession.isAuthenticated()) {
+      await this.router.navigate(['/sign-in']);
+      return;
+    }
+
+    const vendorId = this.store().id;
+    if (!vendorId) {
+      this.appToastService.show({
+        message: 'Unable to submit your review right now.',
+      });
+      return;
+    }
+
+    const payload = this.buildReviewPayload();
+
+    if (!this.appModeService.isBackendEnabled()) {
+      this.reviews.update((current) => [
+        {
+          author: this.authSession.user()?.username ?? 'You',
+          avatar: undefined,
+          rating: payload.rating,
+          text: payload.comment?.trim() || 'No additional details shared.',
+          date: 'Just now',
+          tags: this.selectedReviewTags(),
+          images: this.reviewImagePreviews(),
+        },
+        ...current,
+      ]);
+      this.reviewTagSummaries.update((current) => this.mergeReviewTagSummaries(current, this.selectedReviewTags()));
+      this.showLeaveReviewModal.set(false);
+      this.resetReviewDraft();
+      this.appToastService.show({
+        message: 'Review submitted.',
+      });
+      return;
+    }
+
+    this.isSubmittingReview.set(true);
+
+    try {
+      await firstValueFrom(this.vendorsService.createVendorReview(vendorId, payload));
+      await this.loadVendorReviews();
+      this.showLeaveReviewModal.set(false);
+      this.resetReviewDraft();
+      this.appToastService.show({
+        message: 'Review submitted.',
+      });
+    } catch (error: unknown) {
+      this.appToastService.show({
+        message: this.extractReviewErrorMessage(error),
+        durationMs: 5000,
+      });
+    } finally {
+      this.isSubmittingReview.set(false);
+    }
   }
 
   async toggleVendorFollow(): Promise<void> {
@@ -1792,6 +1856,27 @@ export class BuyerFollowedStoreDetailsPageComponent {
     this.productSections.set(sections);
     this.reviews.set(reviews);
     this.reviewTagSummaries.set([]);
+  }
+
+  private resetReviewDraft(): void {
+    this.reviewRating.set(2);
+    this.selectedReviewTags.set([]);
+    this.reviewText.set('');
+    this.reviewImagePreviews.set([]);
+  }
+
+  private buildReviewPayload(): CreateVendorReviewPayload {
+    const vendorId = this.store().id;
+    const tagIds = this.selectedReviewTags()
+      .map((label) => this.reviewTagSummaries().find((tag) => tag.label === label)?.id)
+      .filter((tagId): tagId is number => typeof tagId === 'number');
+
+    return {
+      vendor: vendorId,
+      rating: this.reviewRating(),
+      comment: this.reviewText().trim(),
+      tag_ids: tagIds,
+    };
   }
 
   private resolveDemoStoreKey(storeId: string): string {
@@ -2036,7 +2121,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   }
 
   private extractVendorTagSummaries(records: VendorReviewRecord[]): VendorTagSummary[] {
-    const counts = new Map<string, number>();
+    const tags = new Map<string, VendorTagSummary>();
 
     for (const record of records) {
       const value = record['tags'];
@@ -2046,7 +2131,13 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
       for (const item of value) {
         if (typeof item === 'string' && item.trim().length > 0) {
-          counts.set(item.trim(), (counts.get(item.trim()) ?? 0) + 1);
+          const label = item.trim();
+          const current = tags.get(label);
+          tags.set(label, {
+            id: current?.id,
+            label,
+            count: (current?.count ?? 0) + 1,
+          });
           continue;
         }
 
@@ -2057,18 +2148,77 @@ export class BuyerFollowedStoreDetailsPageComponent {
         const tagRecord = item as Record<string, unknown>;
         const label = this.readString(tagRecord['name']) ?? this.readString(tagRecord['label']);
         const count = this.toNumber(tagRecord['count']) ?? 1;
+        const id = this.toNumber(tagRecord['id']) ?? undefined;
         if (!label) {
           continue;
         }
 
-        counts.set(label, Math.max(counts.get(label) ?? 0, count));
+        const current = tags.get(label);
+        tags.set(label, {
+          id: current?.id ?? id,
+          label,
+          count: Math.max(current?.count ?? 0, count),
+        });
       }
     }
 
-    return Array.from(counts.entries())
-      .map(([label, count]) => ({ label, count }))
+    return Array.from(tags.values())
       .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
       .slice(0, 5);
+  }
+
+  private mergeReviewTagSummaries(
+    current: readonly VendorTagSummary[],
+    labels: readonly string[],
+  ): VendorTagSummary[] {
+    const tags = new Map(current.map((tag) => [tag.label, { ...tag }]));
+
+    for (const label of labels) {
+      const currentTag = tags.get(label);
+      tags.set(label, {
+        id: currentTag?.id,
+        label,
+        count: (currentTag?.count ?? 0) + 1,
+      });
+    }
+
+    return Array.from(tags.values())
+      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
+      .slice(0, 5);
+  }
+
+  private extractReviewErrorMessage(error: unknown): string {
+    if (typeof error !== 'object' || error === null) {
+      return 'Unable to submit your review right now.';
+    }
+
+    const errorRecord = error as Record<string, unknown>;
+    const responseError =
+      typeof errorRecord['error'] === 'object' && errorRecord['error'] !== null
+        ? (errorRecord['error'] as Record<string, unknown>)
+        : null;
+
+    const detail = this.readString(responseError?.['detail']);
+    if (detail) {
+      return detail;
+    }
+
+    const nonField = this.readStringArray(responseError?.['non_field_errors']);
+    if (nonField.length > 0) {
+      return nonField[0];
+    }
+
+    const commentError = this.readStringArray(responseError?.['comment']);
+    if (commentError.length > 0) {
+      return commentError[0];
+    }
+
+    const ratingError = this.readStringArray(responseError?.['rating']);
+    if (ratingError.length > 0) {
+      return ratingError[0];
+    }
+
+    return 'Unable to submit your review right now.';
   }
 
   private extractReviewTags(review: StoreReview): string[] {

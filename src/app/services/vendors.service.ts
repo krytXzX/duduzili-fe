@@ -7,6 +7,21 @@ export type VendorFollowResponse = Record<string, unknown>;
 export type VendorRecord = Record<string, unknown>;
 export type VendorListingRecord = Record<string, unknown>;
 export type VendorReviewRecord = Record<string, unknown>;
+export type VendorAnalyticsRecord = Record<string, unknown>;
+export type UpdateVendorPayload = {
+  store_name?: string;
+  store_bio?: string;
+  location?: string;
+  whatsapp_number?: string;
+  call_number?: string;
+  call_number_2?: string;
+};
+export type CreateVendorReviewPayload = {
+  vendor: string;
+  rating: number;
+  comment?: string;
+  tag_ids?: number[];
+};
 export type VendorsFollowingResponse =
   | VendorRecord[]
   | {
@@ -66,11 +81,23 @@ export class VendorsService {
     return this.http.post<VendorRecord>(`${this.apiUrl}/vendors/`, payload);
   }
 
+  updateStore(id: string, payload: UpdateVendorPayload): Observable<VendorRecord> {
+    return this.http.patch<VendorRecord>(`${this.apiUrl}/vendors/${id}/`, payload);
+  }
+
   getVendorListings(id: string): Observable<VendorListingsResponse> {
     return this.http.get<VendorListingsResponse>(`${this.apiUrl}/vendors/${id}/listings/`);
   }
 
   getVendorReviews(id: string): Observable<VendorReviewsResponse> {
     return this.http.get<VendorReviewsResponse>(`${this.apiUrl}/vendors/${id}/reviews/`);
+  }
+
+  createVendorReview(id: string, payload: CreateVendorReviewPayload): Observable<VendorReviewRecord> {
+    return this.http.post<VendorReviewRecord>(`${this.apiUrl}/vendors/${id}/reviews/create/`, payload);
+  }
+
+  getVendorAnalytics(id: string): Observable<VendorAnalyticsRecord> {
+    return this.http.get<VendorAnalyticsRecord>(`${this.apiUrl}/vendors/${id}/analytics/`);
   }
 }

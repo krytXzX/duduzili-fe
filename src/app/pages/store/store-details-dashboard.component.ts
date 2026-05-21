@@ -1,6 +1,7 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import {
   AddListingModalComponent,
   ListingData,
@@ -16,6 +17,18 @@ import {
 } from '../../components/stores/store-review-card.component';
 import { StoreEditSidePanelComponent } from '../../components/stores/store-edit-side-panel.component';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
+import { AppModeService } from '../../services/app-mode.service';
+import { AppToastService } from '../../services/app-toast.service';
+import {
+  VendorsService,
+  type VendorListingRecord,
+  type VendorListingsResponse,
+  type VendorRecord,
+  type VendorReviewRecord,
+  type VendorReviewsResponse,
+  type UpdateVendorPayload,
+} from '../../services/vendors.service';
+import { environment } from '../../../environments/environment';
 
 type StoreTab = 'listings' | 'reviews';
 type StoreReviewSort = 'most-recent' | 'highest-rated';
@@ -48,6 +61,11 @@ interface ProductSection {
   title: string;
   viewAllLabel: string;
   items: StoreProduct[];
+}
+
+interface ReviewTagCount {
+  readonly label: string;
+  readonly count: number;
 }
 
 @Component({
@@ -250,7 +268,7 @@ interface ProductSection {
               class="mt-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <div class="flex min-w-max gap-[10px]">
-                @for (chip of chips; track chip) {
+                @for (chip of chips(); track chip) {
                   <button
                     type="button"
                     (click)="activeChip.set(chip)"
@@ -310,7 +328,7 @@ interface ProductSection {
                 <div class="flex items-start gap-8">
                   <div class="space-y-[2px]">
                     <p class="text-[40px] font-semibold leading-[48px] text-[#2D2D2D]">
-                      4.57<span class="text-[20px] font-medium leading-6 text-[#BFBFBF]">/5</span>
+                      {{ overallRating() }}<span class="text-[20px] font-medium leading-6 text-[#BFBFBF]">/5</span>
                     </p>
                     <div class="flex h-5 items-center gap-1">
                       @for (star of reviewStarsRange; track star) {
@@ -329,7 +347,7 @@ interface ProductSection {
                     <p class="text-[16px] font-semibold leading-6 text-[#2D2D2D]">Overall rating</p>
 
                     <div class="space-y-2">
-                      @for (bar of reviewDistribution; track bar.stars) {
+                      @for (bar of reviewDistribution(); track bar.stars) {
                         <div class="grid grid-cols-[23px_84px_31px] items-center gap-3">
                           <div class="flex items-center gap-0.5">
                             <span
@@ -364,7 +382,7 @@ interface ProductSection {
 
               <div class="space-y-7">
                 <div class="flex items-center justify-between gap-4">
-                  <h3 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h3>
+                  <h3 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">{{ reviewCount() }} reviews</h3>
                   <app-custom-dropdown
                     [options]="reviewSortOptions"
                     [value]="reviewSort()"
@@ -384,7 +402,7 @@ interface ProductSection {
                     This listing is great at..
                   </p>
                   <div class="flex flex-wrap gap-x-[7px] gap-y-[13px]">
-                    @for (tag of mobileReviewTags; track tag.label) {
+                    @for (tag of mobileReviewTags(); track tag.label) {
                       <span
                         class="inline-flex items-center justify-center rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-3 py-2 text-[16px] font-medium leading-6 text-[#5A5A5A]"
                       >
@@ -622,7 +640,7 @@ interface ProductSection {
                 <div
                   class="flex items-center gap-[10px] overflow-x-auto pr-12 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 >
-                  @for (chip of chips; track chip) {
+                  @for (chip of chips(); track chip) {
                     <button
                       type="button"
                       (click)="activeChip.set(chip)"
@@ -734,7 +752,7 @@ interface ProductSection {
                         <p
                           class="text-center text-[56px] font-semibold leading-[64px] text-[#2D2D2D]"
                         >
-                          4.57<span class="text-[28px] font-medium leading-10 text-[#BFBFBF]"
+                          {{ overallRating() }}<span class="text-[28px] font-medium leading-10 text-[#BFBFBF]"
                             >/5</span
                           >
                         </p>
@@ -758,7 +776,7 @@ interface ProductSection {
                         </p>
 
                         <div class="space-y-2">
-                          @for (bar of reviewDistribution; track bar.stars) {
+                          @for (bar of reviewDistribution(); track bar.stars) {
                             <div class="grid grid-cols-[23px_132px_1fr] items-center gap-3">
                               <div class="flex items-center gap-0.5">
                                 <span
@@ -794,7 +812,7 @@ interface ProductSection {
 
                 <div class="space-y-7">
                   <div class="flex items-center justify-between gap-4">
-                    <h3 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h3>
+                    <h3 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">{{ reviewCount() }} reviews</h3>
                     <app-custom-dropdown
                       [options]="reviewSortOptions"
                       [value]="reviewSort()"
@@ -814,7 +832,7 @@ interface ProductSection {
                       This vendor is great at..
                     </p>
                     <div class="flex flex-wrap gap-3">
-                      @for (tag of desktopReviewTags; track tag.label) {
+                      @for (tag of desktopReviewTags(); track tag.label) {
                         <span
                           class="inline-flex items-center justify-center rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-4 py-2 text-[16px] font-medium leading-6 text-[#5A5A5A]"
                         >
@@ -867,25 +885,12 @@ interface ProductSection {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StoreDetailsDashboardComponent {
-  protected readonly chips = [
-    'All',
-    'Phones & Laptops',
-    'Women',
-    'Men',
-    'Beauty',
-    'Food & Drinks',
-    'Baby & Toddler',
-    'Home',
-    'Properties',
-    'Fitness & Nutrition',
-    'Accessories',
-    'Pet supplies',
-    'Toys & Games',
-    'Electronics',
-    'Arts & Crafts',
-    'Luggage & Bags',
-    'Sporting goods',
-  ] as const;
+  private readonly route = inject(ActivatedRoute);
+  private readonly vendorsService = inject(VendorsService);
+  private readonly appMode = inject(AppModeService);
+  private readonly appToastService = inject(AppToastService);
+  private readonly apiOrigin = this.resolveApiOrigin();
+
   protected readonly assets = {
     awardDesktop: '/assets/icons/store-filled-award-desktop.svg',
     backMobile: '/assets/icons/store-filled-back-mobile.svg',
@@ -1169,14 +1174,31 @@ export class StoreDetailsDashboardComponent {
       ],
     },
   ]);
+  readonly reviewRecords = signal<readonly VendorReviewRecord[]>([]);
+  readonly chips = computed(() => [
+    'All',
+    ...this.desktopSections().map((section) => section.id),
+  ]);
   readonly visibleReviews = computed(() => {
     const reviews = [...this.reviews()];
-    return this.reviewSort() === 'highest-rated' ? reviews.sort((a, b) => b.rating - a.rating) : reviews;
+    return this.reviewSort() === 'highest-rated'
+      ? reviews.sort((a, b) => b.rating - a.rating)
+      : reviews;
   });
   readonly reviewSortOptions: readonly CustomDropdownOption<StoreReviewSort>[] = [
     { value: 'most-recent', label: 'Most recent' },
     { value: 'highest-rated', label: 'Highest rated' },
   ];
+  readonly reviewCount = computed(() => this.reviews().length);
+  readonly overallRating = computed(() => {
+    const reviews = this.reviews();
+    if (reviews.length === 0) {
+      return '0.00';
+    }
+
+    const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return (total / reviews.length).toFixed(2);
+  });
 
   protected readonly desktopStats = computed(() => [
     { label: 'Followers', value: this.store().followers },
@@ -1204,29 +1226,26 @@ export class StoreDetailsDashboardComponent {
     return chip === 'All' ? sections : sections.filter((section) => section.id === chip);
   });
 
-  protected readonly reviewDistribution = [
-    { stars: 5, percentage: 65 },
-    { stars: 4, percentage: 11 },
-    { stars: 3, percentage: 9 },
-    { stars: 2, percentage: 3 },
-    { stars: 1, percentage: 2 },
-  ] as const;
+  protected readonly reviewDistribution = computed(() => {
+    const reviews = this.reviews();
+    const total = reviews.length;
 
-  protected readonly desktopReviewTags = [
-    { label: 'Timely response', count: 16 },
-    { label: 'Safety', count: 7 },
-    { label: 'Credibility', count: 7 },
-    { label: 'Manners', count: 7 },
-    { label: 'Hospitality', count: 7 },
-  ] as const;
+    return [5, 4, 3, 2, 1].map((stars) => {
+      const count = reviews.filter((review) => review.rating === stars).length;
+      return {
+        stars,
+        percentage: total === 0 ? 0 : Math.round((count / total) * 100),
+      };
+    });
+  });
 
-  protected readonly mobileReviewTags = [
-    { label: 'Fast response', count: 16 },
-    { label: 'Friendly', count: 7 },
-    { label: 'Smooth transaction', count: 7 },
-    { label: 'On-time delivery', count: 7 },
-    { label: 'Honest pricing', count: 7 },
-  ] as const;
+  protected readonly desktopReviewTags = computed<readonly ReviewTagCount[]>(() =>
+    this.extractReviewTags().slice(0, 5),
+  );
+
+  protected readonly mobileReviewTags = computed<readonly ReviewTagCount[]>(() =>
+    this.extractReviewTags().slice(0, 5),
+  );
 
   protected readonly reviewStarsRange = [1, 2, 3, 4, 5] as const;
 
@@ -1238,13 +1257,398 @@ export class StoreDetailsDashboardComponent {
     this.activeTab() === 'listings' ? 'translateX(12px)' : 'translateX(114px)',
   );
 
+  constructor() {
+    if (this.appMode.isBackendEnabled()) {
+      void this.loadStorePage();
+    }
+  }
+
+  private async loadStorePage(): Promise<void> {
+    const storeId = this.route.snapshot.paramMap.get('id')?.trim();
+    if (!storeId) {
+      return;
+    }
+
+    const [storeResult, listingsResult, reviewsResult] = await Promise.allSettled([
+      firstValueFrom(this.vendorsService.getVendorDetails(storeId)),
+      firstValueFrom(this.vendorsService.getVendorListings(storeId)),
+      firstValueFrom(this.vendorsService.getVendorReviews(storeId)),
+    ]);
+
+    if (storeResult.status === 'fulfilled') {
+      this.store.set(this.mapStore(storeResult.value));
+    }
+
+    if (listingsResult.status === 'fulfilled') {
+      const listings = this.extractListingRecords(listingsResult.value);
+      const sections = this.mapProductSections(listings);
+      this.desktopSections.set(sections);
+      this.mobileSections.set(
+        sections.map((section) => ({
+          ...section,
+          items: section.items.slice(0, 4),
+        })),
+      );
+    }
+
+    if (reviewsResult.status === 'fulfilled') {
+      const reviewRecords = this.extractReviewRecords(reviewsResult.value);
+      const reviews = reviewRecords.map((review) =>
+        this.mapReview(review),
+      );
+      this.reviewRecords.set(reviewRecords);
+      this.reviews.set(reviews);
+    }
+  }
+
+  private mapStore(record: VendorRecord): StoreProfile {
+    const name = this.readString(record['store_name']) ?? this.store().name;
+    const profilePhoto =
+      this.resolveMediaUrl(this.readString(record['profile_photo'])) ?? this.store().logo;
+    const coverImage =
+      this.resolveMediaUrl(this.readString(record['cover_image'])) ?? this.store().banner;
+    const averageRating = this.readNumber(record['average_rating']);
+    const productCount = this.readNumber(record['products_count']);
+    const followerCount = this.readNumber(record['followers_count']);
+    const joinedAt = this.readString(record['date_joined']);
+
+    return {
+      id: this.readId(record['id']) ?? this.store().id,
+      name,
+      description: this.readString(record['store_bio']) ?? '',
+      logo: profilePhoto,
+      mobileLogo: profilePhoto,
+      banner: coverImage,
+      mobileBanner: coverImage,
+      isVerified: this.readBoolean(this.readRecord(record['user'])?.['is_verified']) ?? false,
+      products: productCount !== null ? this.formatCount(productCount) : '0',
+      followers: followerCount !== null ? this.formatCount(followerCount) : '0',
+      rating: averageRating !== null ? averageRating.toFixed(1) : '0.0',
+      dateCreated: this.formatDate(joinedAt) ?? '---',
+      dateJoined: this.formatDate(joinedAt) ?? '---',
+      promoted: this.readBoolean(record['is_promoted']) ?? false,
+      location:
+        this.readString(record['location']) ??
+        this.composeLocation(record) ??
+        this.store().location,
+      whatsappNumber: this.readString(record['whatsapp_number']) ?? undefined,
+      callNumber: this.readString(record['call_number']) ?? undefined,
+      alternateCallNumber: this.readString(record['call_number_2']) ?? undefined,
+    };
+  }
+
+  private extractListingRecords(response: VendorListingsResponse): VendorListingRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.listings)) {
+      return response.listings;
+    }
+
+    return [];
+  }
+
+  private extractReviewRecords(response: VendorReviewsResponse): VendorReviewRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.reviews)) {
+      return response.reviews;
+    }
+
+    return [];
+  }
+
+  private mapProductSections(records: readonly VendorListingRecord[]): ProductSection[] {
+    const grouped = new Map<string, StoreProduct[]>();
+
+    for (const record of records) {
+      const category = this.readString(record['category']) ?? 'Other';
+      const current = grouped.get(category) ?? [];
+      current.push(this.mapStoreProduct(record));
+      grouped.set(category, current);
+    }
+
+    return Array.from(grouped.entries()).map(([category, items]) => ({
+      id: category,
+      title: category,
+      viewAllLabel: `View all (${items.length})`,
+      items,
+    }));
+  }
+
+  private mapStoreProduct(record: VendorListingRecord): StoreProduct {
+    const price = this.readNumber(record['price']);
+    const originalPrice = this.readNumber(record['original_price']);
+    const condition = this.readString(record['condition']);
+
+    return {
+      id: this.readId(record['id']) ?? this.readString(record['title']) ?? `listing-${Date.now()}`,
+      title: this.readString(record['title']) ?? 'Untitled listing',
+      image:
+        this.resolveMediaUrl(this.readString(record['thumbnail'])) ??
+        '/assets/images/store-filled-item-01.png',
+      price: this.readBoolean(record['is_free']) ? 'Free' : this.formatCurrency(price),
+      originalPrice:
+        originalPrice !== null && !this.readBoolean(record['is_free'])
+          ? this.formatCurrency(originalPrice)
+          : undefined,
+      location:
+        this.readString(record['location']) ??
+        this.composeLocation(record) ??
+        this.store().location,
+      condition:
+        condition === 'new' ? 'New' : condition === 'used' ? 'Used' : undefined,
+      isVerified: this.readBoolean(record['is_verified']) ?? false,
+      discount:
+        this.readNumber(record['discount_percentage']) !== null
+          ? `-${this.readNumber(record['discount_percentage'])}%`
+          : undefined,
+    };
+  }
+
+  private mapReview(record: VendorReviewRecord): StoreReviewCardData {
+    const reviewer = this.readRecord(record['reviewer']);
+    const createdAt = this.readString(record['created_at']);
+    const photos = Array.isArray(record['photos']) ? record['photos'] : [];
+    const galleryImages = photos
+      .map((photo) => this.resolveMediaUrl(this.readString(this.readRecord(photo)?.['image'])))
+      .filter((value): value is string => Boolean(value));
+
+    return {
+      author:
+        this.readString(reviewer?.['full_name']) ??
+        this.readString(reviewer?.['username']) ??
+        'Anonymous',
+      avatar:
+        this.resolveMediaUrl(this.readString(reviewer?.['avatar'])) ??
+        '/assets/images/store-reviews-avatar-mary.jpg',
+      rating: this.readNumber(record['rating']) ?? 0,
+      text: this.readString(record['comment']) ?? '',
+      desktopDate: this.formatLongDate(createdAt) ?? '---',
+      mobileDate: this.formatMonthDate(createdAt) ?? '---',
+      galleryImages: galleryImages.length > 0 ? galleryImages.slice(0, 6) : undefined,
+      galleryOverflowCount:
+        galleryImages.length > 6 ? galleryImages.length - 6 : undefined,
+    };
+  }
+
+  private extractReviewTags(): readonly ReviewTagCount[] {
+    const tagCounts = new Map<string, number>();
+
+    for (const review of this.reviewRecords()) {
+      const tags = Array.isArray(review['tags']) ? review['tags'] : [];
+
+      for (const tag of tags) {
+        const tagRecord = this.readRecord(tag);
+        const label = this.readString(tagRecord?.['name']);
+        const count = this.readNumber(tagRecord?.['count']) ?? 1;
+
+        if (!label) {
+          continue;
+        }
+
+        tagCounts.set(label, Math.max(tagCounts.get(label) ?? 0, count));
+      }
+    }
+
+    return Array.from(tagCounts.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((left, right) => right.count - left.count);
+  }
+
+  private resolveApiOrigin(): string {
+    const apiUrl = (environment.apiUrl ?? '').replace(/\/+$/, '');
+
+    try {
+      return new URL(apiUrl).origin;
+    } catch {
+      return '';
+    }
+  }
+
+  private resolveMediaUrl(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    if (value.startsWith('/')) {
+      return `${this.apiOrigin}${value}`;
+    }
+
+    return `${this.apiOrigin}/${value}`;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readId(value: unknown): string | null {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    return null;
+  }
+
+  private readNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value.replace(/,/g, '').trim());
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
+  }
+
+  private composeLocation(record: Record<string, unknown>): string | null {
+    const city = this.readString(record['city']);
+    const state = this.readString(record['state']);
+
+    if (city && state && city !== state) {
+      return `${city}, ${state}`;
+    }
+
+    return city ?? state;
+  }
+
+  private formatCount(value: number): string {
+    if (value >= 1000) {
+      const formatted = value / 1000;
+      return `${Number.isInteger(formatted) ? formatted.toFixed(0) : formatted.toFixed(1)}k`;
+    }
+
+    return value.toLocaleString('en-NG');
+  }
+
+  private formatCurrency(value: number | null): string {
+    if (value === null) {
+      return '₦0';
+    }
+
+    return `₦${value.toLocaleString('en-NG')}`;
+  }
+
+  private formatDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsed);
+  }
+
+  private formatLongDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(parsed);
+  }
+
+  private formatMonthDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      month: 'long',
+      year: 'numeric',
+    }).format(parsed);
+  }
+
   openEditModal(): void {
     this.showEditModal.set(true);
   }
 
-  onSaveStore(updatedStore: Partial<StoreProfile>): void {
-    this.store.update((previousStore) => ({ ...previousStore, ...updatedStore }));
-    this.showEditModal.set(false);
+  async onSaveStore(updatedStore: Partial<StoreProfile>): Promise<void> {
+    if (!this.appMode.isBackendEnabled()) {
+      this.store.update((previousStore) => ({ ...previousStore, ...updatedStore }));
+      this.showEditModal.set(false);
+      return;
+    }
+
+    const storeId = this.store().id;
+    if (!storeId) {
+      this.appToastService.show({
+        message: 'We could not save this store right now.',
+      });
+      return;
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.vendorsService.updateStore(storeId, this.toUpdateStorePayload(updatedStore)),
+      );
+      this.store.set(this.mapStore(response));
+      this.showEditModal.set(false);
+      this.appToastService.show({
+        message: 'Store details updated.',
+      });
+    } catch {
+      this.appToastService.show({
+        message: 'We could not update this store right now.',
+      });
+    }
   }
 
   onPublishListing(data: ListingData): void {
@@ -1271,5 +1675,18 @@ export class StoreDetailsDashboardComponent {
       ),
     );
     this.showAddListingModal.set(false);
+  }
+
+  private toUpdateStorePayload(updatedStore: Partial<StoreProfile>): UpdateVendorPayload {
+    return {
+      store_name: updatedStore.name?.trim() || this.store().name,
+      store_bio: updatedStore.description?.trim() ?? this.store().description ?? '',
+      location: updatedStore.location?.trim() || this.store().location,
+      whatsapp_number:
+        updatedStore.whatsappNumber?.trim() ?? this.store().whatsappNumber ?? '',
+      call_number: updatedStore.callNumber?.trim() ?? this.store().callNumber ?? '',
+      call_number_2:
+        updatedStore.alternateCallNumber?.trim() ?? this.store().alternateCallNumber ?? '',
+    };
   }
 }

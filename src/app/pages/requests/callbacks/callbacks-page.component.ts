@@ -8,7 +8,21 @@ import {
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
+import {
+  CustomDropdownComponent,
+  type CustomDropdownOption,
+} from '../../../components/ui/custom-dropdown.component';
+import {
+  SellerRequestsService,
+  type SellerCallbackRecord,
+  type SellerCallbacksResponse,
+} from '../../../services/seller-requests.service';
+import { AppModeService } from '../../../services/app-mode.service';
+
+type CallbackStoreFilter = 'all' | string;
+type CallbackDateFilter = 'newest' | 'oldest';
 
 interface CallbackRecord {
   readonly id: string;
@@ -21,11 +35,12 @@ interface CallbackRecord {
   readonly storeImage: string;
   readonly storeUsesContain?: boolean;
   readonly dateRequested: string;
+  readonly dateRequestedAt: number | null;
 }
 
 @Component({
   selector: 'app-callbacks-page',
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [NgOptimizedImage, RouterLink, CustomDropdownComponent],
   template: `
     <div class="flex h-full min-h-0 flex-col bg-white md:bg-[#FFFEFD]">
       <div class="hidden h-full min-h-0 md:flex md:flex-col">
@@ -42,41 +57,35 @@ interface CallbackRecord {
             </section>
 
             <section
-              class="overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white shadow-[0_1px_0_rgba(0,0,0,0.01)]"
+              class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white shadow-[0_1px_0_rgba(0,0,0,0.01)]"
             >
               <div class="flex items-center justify-between gap-6 px-[15px] pb-[15px] pt-[15px]">
                 <div class="flex items-start gap-2">
-                  <button
-                    type="button"
-                    class="flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] px-3 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                  >
-                    <span class="text-[14px] font-medium leading-5 text-[#36394A]">
-                      <span class="text-[rgba(26,27,29,0.5)]">Store:</span> All
-                    </span>
-                    <img
-                      ngSrc="/assets/icons/offers-chevron-down.svg"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="h-4 w-4"
-                    />
-                  </button>
+                  <app-custom-dropdown
+                    [options]="storeFilterOptions()"
+                    [value]="selectedStoreFilter()"
+                    ariaLabel="Filter callback requests by store"
+                    [buttonClass]="dropdownButtonClass"
+                    [labelClass]="dropdownLabelClass"
+                    [iconClass]="dropdownIconClass"
+                    [menuClass]="dropdownMenuClass"
+                    [optionClass]="dropdownOptionClass"
+                    [activeOptionClass]="dropdownActiveOptionClass"
+                    (valueChange)="updateStoreFilter($event)"
+                  />
 
-                  <button
-                    type="button"
-                    class="flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] px-3 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                  >
-                    <span class="text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)]">
-                      Date requested
-                    </span>
-                    <img
-                      ngSrc="/assets/icons/offers-chevron-down.svg"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="h-4 w-4"
-                    />
-                  </button>
+                  <app-custom-dropdown
+                    [options]="dateFilterOptions"
+                    [value]="selectedDateFilter()"
+                    ariaLabel="Sort callback requests by date requested"
+                    [buttonClass]="dropdownButtonClass"
+                    [labelClass]="dropdownLabelClass"
+                    [iconClass]="dropdownIconClass"
+                    [menuClass]="dropdownMenuClass"
+                    [optionClass]="dropdownOptionClass"
+                    [activeOptionClass]="dropdownActiveOptionClass"
+                    (valueChange)="updateDateFilter($event)"
+                  />
                 </div>
 
                 <label
@@ -101,7 +110,7 @@ interface CallbackRecord {
                 </label>
               </div>
 
-              <div class="max-h-[520px] overflow-auto border-t border-[#F0F0F0]">
+              <div class="min-h-0 flex-1 overflow-auto border-t border-[#F0F0F0]">
                 <div class="min-w-[944px]">
                   <div
                     class="grid grid-cols-[180px_150px_208px_205px_124px_77px] items-center bg-[#FAFAFA] px-[23px] py-[11px]"
@@ -214,7 +223,7 @@ interface CallbackRecord {
 
             <div class="flex items-center justify-between">
               <p class="text-[16px] font-medium leading-normal text-[#1A1B1D]">
-                {{ filteredCallbacks().length }}
+                {{ visibleResultsCount() }}
                 <span class="text-[rgba(26,27,29,0.5)]">results</span>
               </p>
 
@@ -222,8 +231,10 @@ interface CallbackRecord {
                 <div class="flex items-end gap-[5px]">
                   <button
                     type="button"
+                    (click)="goToPreviousPage()"
+                    [disabled]="!hasPreviousPage()"
                     aria-label="Previous page"
-                    class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                    class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <img
                       ngSrc="/assets/icons/offers-chevron-left.svg"
@@ -238,12 +249,14 @@ interface CallbackRecord {
                     aria-current="page"
                     class="flex h-8 w-[33px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
                   >
-                    <span class="text-[14px] font-medium leading-5 text-[#1A1B1D]">1</span>
+                    <span class="text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ currentPage() }}</span>
                   </button>
                   <button
                     type="button"
+                    (click)="goToNextPage()"
+                    [disabled]="!hasNextPage()"
                     aria-label="Next page"
-                    class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                    class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <img
                       ngSrc="/assets/icons/offers-chevron-right.svg"
@@ -255,7 +268,7 @@ interface CallbackRecord {
                   </button>
                 </div>
 
-                <span class="text-[16px] leading-normal text-[#1C1F1D]">of 12</span>
+                <span class="text-[16px] leading-normal text-[#1C1F1D]">of {{ totalPages() }}</span>
               </div>
             </div>
           </div>
@@ -640,9 +653,29 @@ interface CallbackRecord {
 })
 export class CallbacksPageComponent implements OnDestroy {
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly sellerRequestsService = inject(SellerRequestsService);
+  private readonly appMode = inject(AppModeService);
 
   readonly searchTerm = signal('');
   readonly selectedRequest = signal<CallbackRecord | null>(null);
+  readonly selectedStoreFilter = signal<CallbackStoreFilter>('all');
+  readonly selectedDateFilter = signal<CallbackDateFilter>('newest');
+  readonly currentPage = signal(1);
+  readonly totalResults = signal(0);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
+  readonly dropdownButtonClass =
+    'flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] px-3 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]';
+  readonly dropdownLabelClass = 'text-[14px] font-medium leading-5 text-[#36394A]';
+  readonly dropdownIconClass = 'text-[#36394A]';
+  readonly dropdownMenuClass = 'min-w-[220px]';
+  readonly dropdownOptionClass =
+    'flex w-full items-center rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F7F7FA]';
+  readonly dropdownActiveOptionClass = 'bg-[#F7F7FA] text-[#1A1B1D]';
+  readonly dateFilterOptions: readonly CustomDropdownOption<CallbackDateFilter>[] = [
+    { value: 'newest', label: 'Date requested: Newest first' },
+    { value: 'oldest', label: 'Date requested: Oldest first' },
+  ] as const;
 
   readonly callbacks = signal<readonly CallbackRecord[]>([
     {
@@ -656,6 +689,7 @@ export class CallbacksPageComponent implements OnDestroy {
       storeImage: '/assets/icons/offers-store-vine.svg',
       storeUsesContain: true,
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '2',
@@ -667,6 +701,7 @@ export class CallbacksPageComponent implements OnDestroy {
       storeName: 'Eden Organics',
       storeImage: '/assets/images/offers-store-eden.png',
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '3',
@@ -678,6 +713,7 @@ export class CallbacksPageComponent implements OnDestroy {
       storeName: 'Amazing Fragrances',
       storeImage: '/assets/images/offers-store-amazing.png',
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '4',
@@ -689,6 +725,7 @@ export class CallbacksPageComponent implements OnDestroy {
       storeName: 'Personal account',
       storeImage: '/assets/images/offers-store-personal.png',
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '5',
@@ -701,26 +738,70 @@ export class CallbacksPageComponent implements OnDestroy {
       storeImage: '/assets/icons/offers-store-vine.svg',
       storeUsesContain: true,
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
   ]);
 
   readonly filteredCallbacks = computed(() => {
     const query = this.searchTerm().trim().toLowerCase();
+    const storeFilter = this.selectedStoreFilter();
+    const matches = this.callbacks().filter((request) => {
+      const matchesQuery =
+        !query ||
+        [request.buyerName, request.listingName, request.storeName, request.phoneNumber].some(
+          (value) => value.toLowerCase().includes(query),
+        );
+      const matchesStore = storeFilter === 'all' || request.storeName === storeFilter;
+      return matchesQuery && matchesStore;
+    });
 
-    if (!query) {
-      return this.callbacks();
-    }
-
-    return this.callbacks().filter((request) =>
-      [request.buyerName, request.listingName, request.storeName, request.phoneNumber].some(
-        (value) => value.toLowerCase().includes(query),
-      ),
-    );
+    return [...matches].sort((left, right) => {
+      const leftTime = left.dateRequestedAt ?? 0;
+      const rightTime = right.dateRequestedAt ?? 0;
+      return this.selectedDateFilter() === 'oldest' ? leftTime - rightTime : rightTime - leftTime;
+    });
   });
+  readonly visibleResultsCount = computed(() => this.filteredCallbacks().length);
+  readonly storeFilterOptions = computed<readonly CustomDropdownOption<CallbackStoreFilter>[]>(
+    () => {
+      const names = Array.from(
+        new Set(
+          this.callbacks()
+            .map((request) => request.storeName.trim())
+            .filter((storeName) => storeName.length > 0),
+        ),
+      ).sort((left, right) => left.localeCompare(right));
+
+      return [
+        { value: 'all', label: 'Store: All' },
+        ...names.map((storeName) => ({
+          value: storeName,
+          label: `Store: ${storeName}`,
+        })),
+      ];
+    },
+  );
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.totalResults() / this.sellerRequestsService.getPageSize())),
+  );
+
+  constructor() {
+    if (this.appMode.isBackendEnabled()) {
+      void this.loadCallbacks();
+    }
+  }
 
   protected updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     this.searchTerm.set(input?.value ?? '');
+  }
+
+  protected updateStoreFilter(value: CallbackStoreFilter): void {
+    this.selectedStoreFilter.set(value);
+  }
+
+  protected updateDateFilter(value: CallbackDateFilter): void {
+    this.selectedDateFilter.set(value);
   }
 
   protected openDetails(request: CallbackRecord): void {
@@ -737,6 +818,168 @@ export class CallbacksPageComponent implements OnDestroy {
     }
 
     this.selectedRequest.set(null);
+  }
+
+  private async loadCallbacks(): Promise<void> {
+    await this.loadCallbacksPage(this.currentPage());
+  }
+
+  protected goToPreviousPage(): void {
+    if (!this.hasPreviousPage()) {
+      return;
+    }
+
+    void this.loadCallbacksPage(this.currentPage() - 1);
+  }
+
+  protected goToNextPage(): void {
+    if (!this.hasNextPage()) {
+      return;
+    }
+
+    void this.loadCallbacksPage(this.currentPage() + 1);
+  }
+
+  private async loadCallbacksPage(page: number): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.sellerRequestsService.getReceivedCallbacks(page));
+      const items = this.extractCallbackRecords(response);
+      this.callbacks.set(items.map((record, index) => this.mapCallbackRecord(record, index)));
+      this.applyPagination(response, page, items.length);
+    } catch {
+      this.callbacks.set([]);
+      this.totalResults.set(0);
+      this.currentPage.set(1);
+      this.hasNextPage.set(false);
+      this.hasPreviousPage.set(false);
+    }
+  }
+
+  private extractCallbackRecords(response: SellerCallbacksResponse): SellerCallbackRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (!response || typeof response !== 'object') {
+      return [];
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.callbacks)) {
+      return response.callbacks;
+    }
+
+    return [];
+  }
+
+  private applyPagination(response: SellerCallbacksResponse, page: number, itemCount: number): void {
+    if (Array.isArray(response)) {
+      this.totalResults.set(itemCount);
+      this.currentPage.set(1);
+      this.hasNextPage.set(false);
+      this.hasPreviousPage.set(false);
+      return;
+    }
+
+    const count = this.readNumber(response.count) ?? itemCount;
+    this.totalResults.set(count);
+    this.currentPage.set(page);
+    this.hasNextPage.set(typeof response.next === 'string' && response.next.trim().length > 0);
+    this.hasPreviousPage.set(
+      typeof response.previous === 'string' && response.previous.trim().length > 0,
+    );
+  }
+
+  private readNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value.replace(/,/g, '').trim());
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  private mapCallbackRecord(record: SellerCallbackRecord, index: number): CallbackRecord {
+    const buyer = this.readRecord(record['buyer']);
+
+    return {
+      id: this.readId(record['id']) ?? `callback-${index + 1}`,
+      buyerName:
+        this.readString(record['buyer_name']) ??
+        this.readString(buyer?.['full_name']) ??
+        this.readString(buyer?.['username']) ??
+        `Buyer ${index + 1}`,
+      buyerAvatar: '/assets/images/offers-buyer-halima.png',
+      phoneNumber: this.readString(record['phone_number']) ?? '---',
+      listingName:
+        this.readString(record['product_name']) ??
+        this.readString(record['listing_title']) ??
+        `Listing ${index + 1}`,
+      listingImage: '/assets/images/offers-listing-iphone.png',
+      storeName: this.readString(record['store_name']) ?? 'Store',
+      storeImage: '/assets/icons/offers-store-vine.svg',
+      storeUsesContain: true,
+      dateRequested: this.formatDate(this.readString(record['date_requested'])) ?? '---',
+      dateRequestedAt: this.readTimestamp(record['date_requested']),
+    };
+  }
+
+  private readTimestamp(value: unknown): number | null {
+    const raw = this.readString(value);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = new Date(raw).getTime();
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private formatDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsed);
+  }
+
+  private readId(value: unknown): string | null {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    return null;
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
   }
 
   ngOnDestroy(): void {

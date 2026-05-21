@@ -20,6 +20,13 @@ interface WishlistEntry {
   listing: Listing;
 }
 
+type WishlistGroupedKey = 'today' | 'yesterday' | 'earlier';
+type WishlistGroupedResponse = {
+  today?: ListingsApiItem[];
+  yesterday?: ListingsApiItem[];
+  earlier?: ListingsApiItem[];
+};
+
 @Component({
   selector: 'app-buyer-wishlist-page',
   imports: [CommonModule, ListingCardComponent],
@@ -130,7 +137,7 @@ export class BuyerWishlistPageComponent {
     this.errorMessage.set(null);
 
     try {
-      const response = await firstValueFrom(this.listingsService.getMyFavorites());
+      const response = await firstValueFrom(this.listingsService.getWishlist());
       const entries = this.extractEntries(response)
         .map((entry, index) => this.toWishlistEntry(entry.label, entry.item, index))
         .filter((entry): entry is WishlistEntry => entry !== null);
@@ -164,8 +171,34 @@ export class BuyerWishlistPageComponent {
   }
 
   private extractEntries(response: WishlistResponse): Array<{ label: string; item: ListingsApiItem }> {
+    if ('results' in response && Array.isArray(response.results)) {
+      return response.results
+        .map((entry) => {
+          const record = this.readRecord(entry);
+          if (!record) {
+            return null;
+          }
+
+          const listingDetails = this.readRecord(record['listing_details']);
+          if (!listingDetails) {
+            return null;
+          }
+
+          return {
+            label: this.groupLabelFromDate(this.readString(record['created_at'])),
+            item: listingDetails,
+          };
+        })
+        .filter((entry): entry is { label: string; item: ListingsApiItem } => entry !== null);
+    }
+
+    const groupedResponse = response as WishlistGroupedResponse;
+
     return this.groupLabels.flatMap((label) =>
-      (response[this.toResponseKey(label)] ?? []).map((item) => ({ label, item })),
+      (groupedResponse[this.toResponseKey(label)] ?? []).map((item) => ({
+        label,
+        item,
+      })),
     );
   }
 
@@ -333,7 +366,33 @@ export class BuyerWishlistPageComponent {
 
   private readonly groupLabels = ['Today', 'Yesterday', 'Earlier'] as const;
 
-  private toResponseKey(label: (typeof this.groupLabels)[number]): keyof WishlistResponse {
+  private groupLabelFromDate(value: string | null): string {
+    if (!value) {
+      return 'Earlier';
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return 'Earlier';
+    }
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart);
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+    if (parsed >= todayStart) {
+      return 'Today';
+    }
+
+    if (parsed >= yesterdayStart) {
+      return 'Yesterday';
+    }
+
+    return 'Earlier';
+  }
+
+  private toResponseKey(label: (typeof this.groupLabels)[number]): WishlistGroupedKey {
     switch (label) {
       case 'Today':
         return 'today';

@@ -18,7 +18,9 @@ import { SettingsVerificationModalComponent } from './components/settings-verifi
 import {
   AuthService,
   AuthUser,
+  ChangePasswordRequest,
   ProfileResponse,
+  TwoFactorSetupResponse,
   UpdateProfileRequest,
 } from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
@@ -47,6 +49,11 @@ type AuthenticationMethodConfig = {
 
 type NotificationChannelId = 'sms' | 'email' | 'push';
 type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyerActivity' | 'performance';
+type NotificationChannelSettings = Record<NotificationChannelId, boolean>;
+type NotificationPreferenceSettings = Record<
+  NotificationPreferenceCategoryId,
+  NotificationChannelSettings
+>;
 
 @Component({
   selector: 'app-settings-page',
@@ -225,6 +232,7 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
                       id="mobile-current-password"
                       type="password"
                       [value]="currentPassword()"
+                      (input)="updateCurrentPassword($event)"
                       class="h-11 w-full rounded-lg border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none focus:border-[#6453D9]"
                     >
                   </div>
@@ -383,7 +391,7 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
                       <div class="mt-4 h-px bg-[#DFDFDF]"></div>
 
                       <p class="mt-[14px] text-[13px] leading-4 text-[#828282]">
-                        Enabled on {{ twoFactorEnabledDate }}
+                        Enabled on {{ twoFactorEnabledDate() }}
                       </p>
                     </section>
 
@@ -410,9 +418,12 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
             <div class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3">
               <button
                 type="button"
+                (click)="submitPasswordChange()"
+                [disabled]="isPasswordSubmitting()"
                 class="h-[52px] w-full rounded-[100px] bg-[#6453D9] text-[14px] font-semibold leading-5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                [class.opacity-70]="isPasswordSubmitting()"
               >
-                Update and logout
+                {{ isPasswordSubmitting() ? 'Updating...' : 'Update and logout' }}
               </button>
               <button
                 type="button"
@@ -426,10 +437,12 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
             <div class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3">
               <button
                 type="button"
-                (click)="isTwoFactorModalOpen.set(true)"
+                (click)="beginTwoFactorSetup()"
+                [disabled]="isTwoFactorSubmitting()"
                 class="h-[52px] w-full rounded-[100px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                [class.opacity-70]="isTwoFactorSubmitting()"
               >
-                Confirm and update
+                {{ isTwoFactorSubmitting() ? 'Preparing...' : 'Confirm and update' }}
               </button>
             </div>
           } @else {
@@ -654,6 +667,7 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
                             id="current-password"
                             type="password"
                             [value]="currentPassword()"
+                            (input)="updateCurrentPassword($event)"
                             class="h-8 w-full rounded-lg border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none focus:border-[#6453D9]"
                           >
                         </div>
@@ -729,9 +743,12 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
                         </button>
                         <button
                           type="button"
+                          (click)="submitPasswordChange()"
+                          [disabled]="isPasswordSubmitting()"
                           class="h-10 rounded-full bg-[#6453D9] px-4 text-[14px] font-semibold leading-5 text-white transition hover:bg-[#5945DB] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                          [class.opacity-70]="isPasswordSubmitting()"
                         >
-                          Update and logout
+                          {{ isPasswordSubmitting() ? 'Updating...' : 'Update and logout' }}
                         </button>
                       </div>
                     </div>
@@ -784,10 +801,12 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
 
                       <button
                         type="button"
-                        (click)="isTwoFactorModalOpen.set(true)"
+                        (click)="beginTwoFactorSetup()"
+                        [disabled]="isTwoFactorSubmitting()"
                         class="mt-8 h-10 w-full rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5945DB] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                        [class.opacity-70]="isTwoFactorSubmitting()"
                       >
-                        Turn on
+                        {{ isTwoFactorSubmitting() ? 'Preparing...' : 'Turn on' }}
                       </button>
                     </div>
                   } @else {
@@ -836,7 +855,7 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
                                 <div class="mt-4 h-px bg-[#DFDFDF]"></div>
 
                                 <p class="mt-4 text-[13px] leading-4 text-[#828282]">
-                                  Enabled on {{ twoFactorEnabledDate }}
+                                  Enabled on {{ twoFactorEnabledDate() }}
                                 </p>
                               </div>
                             </div>
@@ -1051,8 +1070,11 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
       <app-settings-two-factor-modal
         [method]="selectedAuthMethod()"
         [destination]="twoFactorDestination()"
+        [qrCode]="twoFactorQrCode()"
+        [manualSecret]="twoFactorManualSecret()"
+        [isSubmitting]="isTwoFactorSubmitting()"
         (close)="isTwoFactorModalOpen.set(false)"
-        (complete)="completeTwoFactorSetup()"
+        (complete)="completeTwoFactorSetup($event)"
       ></app-settings-two-factor-modal>
     }
 
@@ -1110,7 +1132,9 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
               <button
                 type="button"
                 (click)="disableTwoFactor()"
+                [disabled]="isTwoFactorSubmitting()"
                 class="h-[52px] w-full rounded-[64px] border border-white bg-[#FF2524] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                [class.opacity-70]="isTwoFactorSubmitting()"
               >
                 Turn off
               </button>
@@ -1134,7 +1158,9 @@ type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyer
               <button
                 type="button"
                 (click)="disableTwoFactor()"
+                [disabled]="isTwoFactorSubmitting()"
                 class="h-10 rounded-[64px] border border-white bg-[#FF2524] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_8px_rgba(173,35,35,0.4),0_0_0_1px_#E82A2A] transition hover:bg-[#F32322] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                [class.opacity-70]="isTwoFactorSubmitting()"
               >
                 Turn off
               </button>
@@ -1391,24 +1417,29 @@ export class SettingsPageComponent {
   readonly mobileSettingsStep = signal<'menu' | 'profile' | 'security' | 'notifications'>('menu');
   readonly securityTab = signal<'password' | '2fa'>('password');
   readonly notificationsTab = signal<'method' | 'preferences'>('method');
-  readonly currentPassword = signal('password123');
-  readonly newPassword = signal('password');
+  readonly currentPassword = signal('');
+  readonly newPassword = signal('');
   readonly confirmPassword = signal('');
   readonly showNewPassword = signal(false);
   readonly selectedAuthMethod = signal<TwoFactorMethod>('sms');
   readonly isTwoFactorModalOpen = signal(false);
-  readonly isTwoFactorEnabled = signal(true);
+  readonly isTwoFactorEnabled = signal(false);
   readonly isTurnOffTwoFactorModalOpen = signal(false);
+  readonly isPasswordSubmitting = signal(false);
+  readonly isTwoFactorSubmitting = signal(false);
+  readonly isNotificationSubmitting = signal(false);
   readonly isLogoutConfirmOpen = signal(false);
   readonly isDeleteAccountConfirmOpen = signal(false);
   readonly mobilePreferenceCategory = signal<NotificationPreferenceCategoryId | null>(null);
-  readonly twoFactorEnabledDate = 'February 7, 2026';
-  readonly notificationSettings = signal({
+  readonly twoFactorEnabledDate = signal('');
+  readonly twoFactorQrCode = signal<string | null>(null);
+  readonly twoFactorManualSecret = signal<string | null>(null);
+  readonly notificationSettings = signal<NotificationChannelSettings>({
     email: true,
     sms: false,
     push: true,
   });
-  readonly notificationPreferences = signal({
+  readonly notificationPreferences = signal<NotificationPreferenceSettings>({
     messages: { sms: true, email: true, push: true },
     listings: { sms: true, email: true, push: false },
     ads: { sms: true, email: true, push: true },
@@ -1417,10 +1448,10 @@ export class SettingsPageComponent {
   });
 
   readonly profile = signal<ProfileSettingsData>({
-    email: 'bryan@email.com',
+    email: '',
     callNumber: '',
     whatsappNumber: '',
-    fullName: 'Bryan Odjede',
+    fullName: '',
   });
 
   readonly modalMode = signal<ModalMode>(null);
@@ -1449,7 +1480,7 @@ export class SettingsPageComponent {
     {
       id: 'sms',
       label: 'SMS code',
-      meta: '(+234 816 *** 7454)',
+      meta: '',
       description: 'Use your mobile phone to receive a text message with an authentication code to enter when you log in.',
       activeDescription: 'Verification codes are sent to this number when logging in from a new device.',
       warningMessage: 'Keep your phone number secure. If you lose access, you may be locked out of your account',
@@ -1531,6 +1562,7 @@ export class SettingsPageComponent {
 
   constructor() {
     void this.loadProfile();
+    void this.loadTwoFactorStatus();
   }
 
   openMobileMenuItem(tab: SettingsTab): void {
@@ -1558,7 +1590,7 @@ export class SettingsPageComponent {
       case 'app':
         return 'your authenticator app';
       default:
-        return '+234 816 *** 7454';
+        return this.profile().callNumber || 'your phone number';
     }
   });
   readonly activeAuthMethodConfig = computed(
@@ -1697,7 +1729,7 @@ export class SettingsPageComponent {
         this.modalMode.set(null);
         break;
       case 'whatsapp-add':
-        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+        if (!(await this.persistProfileChanges({ whatsapp_number: this.modalValue() }))) {
           return;
         }
 
@@ -1715,7 +1747,7 @@ export class SettingsPageComponent {
         this.modalMode.set(null);
         break;
       case 'whatsapp-update':
-        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+        if (!(await this.persistProfileChanges({ whatsapp_number: this.modalValue() }))) {
           return;
         }
 
@@ -1799,34 +1831,157 @@ export class SettingsPageComponent {
     this.newPassword.set(input.value);
   }
 
+  updateCurrentPassword(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.currentPassword.set(input.value);
+  }
+
   updateConfirmPassword(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.confirmPassword.set(input.value);
   }
 
   resetPasswordForm(): void {
-    this.currentPassword.set('password123');
-    this.newPassword.set('password');
+    this.currentPassword.set('');
+    this.newPassword.set('');
     this.confirmPassword.set('');
   }
 
-  completeTwoFactorSetup(): void {
-    this.isTwoFactorModalOpen.set(false);
-    this.isTwoFactorEnabled.set(true);
-    this.showToast('2-Factor Authentication enabled successfully');
+  async submitPasswordChange(): Promise<void> {
+    if (this.isPasswordSubmitting()) {
+      return;
+    }
+
+    const payload: ChangePasswordRequest = {
+      old_password: this.currentPassword().trim(),
+      new_password: this.newPassword(),
+      confirm_password: this.confirmPassword(),
+    };
+
+    if (!payload.old_password || !payload.new_password || !payload.confirm_password) {
+      this.showToast('Please complete all password fields.');
+      return;
+    }
+
+    if (!this.appMode.isBackendEnabled()) {
+      this.resetPasswordForm();
+      this.showToast('Password updated successfully');
+      await this.authFlow.logout();
+      return;
+    }
+
+    this.isPasswordSubmitting.set(true);
+    try {
+      await firstValueFrom(this.authService.changePassword(payload));
+      this.resetPasswordForm();
+      this.showToast('Password updated successfully');
+      await this.authFlow.logout();
+    } catch (error: unknown) {
+      this.showToast(this.extractSettingsErrorMessage(error, 'We could not update your password right now.'));
+    } finally {
+      this.isPasswordSubmitting.set(false);
+    }
   }
 
-  disableTwoFactor(): void {
-    this.isTurnOffTwoFactorModalOpen.set(false);
-    this.isTwoFactorEnabled.set(false);
-    this.showToast('2-Factor Authentication disabled successfully');
+  async beginTwoFactorSetup(): Promise<void> {
+    if (this.isTwoFactorSubmitting()) {
+      return;
+    }
+
+    if (!this.appMode.isBackendEnabled()) {
+      this.twoFactorQrCode.set(null);
+      this.twoFactorManualSecret.set(null);
+      this.isTwoFactorModalOpen.set(true);
+      return;
+    }
+
+    this.isTwoFactorSubmitting.set(true);
+    try {
+      const method = this.toTwoFactorApiMethod(this.selectedAuthMethod());
+      const payload = {
+        method,
+        phone_number: method === 'sms' ? this.profile().callNumber : undefined,
+      };
+      const response = await firstValueFrom(this.authService.setupTwoFactor(payload));
+      this.twoFactorQrCode.set(response.qr_code ?? null);
+      this.twoFactorManualSecret.set(response.secret ?? null);
+      this.isTwoFactorModalOpen.set(true);
+    } catch (error: unknown) {
+      this.showToast(this.extractSettingsErrorMessage(error, 'We could not start 2FA setup right now.'));
+    } finally {
+      this.isTwoFactorSubmitting.set(false);
+    }
   }
 
-  toggleNotificationMethod(method: 'email' | 'sms' | 'push'): void {
-    this.notificationSettings.update(settings => ({
-      ...settings,
-      [method]: !settings[method],
-    }));
+  async completeTwoFactorSetup(code: string): Promise<void> {
+    if (this.isTwoFactorSubmitting()) {
+      return;
+    }
+
+    if (!this.appMode.isBackendEnabled()) {
+      this.isTwoFactorModalOpen.set(false);
+      this.isTwoFactorEnabled.set(true);
+      this.twoFactorEnabledDate.set(this.formatEnabledDate(new Date().toISOString()));
+      this.showToast('2-Factor Authentication enabled successfully');
+      return;
+    }
+
+    this.isTwoFactorSubmitting.set(true);
+    try {
+      const response = await firstValueFrom(this.authService.enableTwoFactor({ code }));
+      this.isTwoFactorModalOpen.set(false);
+      this.isTwoFactorEnabled.set(true);
+      this.twoFactorEnabledDate.set(this.formatEnabledDate(response.enabled_at));
+      this.showToast('2-Factor Authentication enabled successfully');
+    } catch (error: unknown) {
+      this.showToast(this.extractSettingsErrorMessage(error, 'We could not verify that 2FA code right now.'));
+    } finally {
+      this.isTwoFactorSubmitting.set(false);
+    }
+  }
+
+  async disableTwoFactor(): Promise<void> {
+    if (this.isTwoFactorSubmitting()) {
+      return;
+    }
+
+    if (!this.appMode.isBackendEnabled()) {
+      this.isTurnOffTwoFactorModalOpen.set(false);
+      this.isTwoFactorEnabled.set(false);
+      this.twoFactorEnabledDate.set('');
+      this.showToast('2-Factor Authentication disabled successfully');
+      return;
+    }
+
+    this.isTwoFactorSubmitting.set(true);
+    try {
+      await firstValueFrom(this.authService.disableTwoFactor());
+      this.isTurnOffTwoFactorModalOpen.set(false);
+      this.isTwoFactorEnabled.set(false);
+      this.twoFactorEnabledDate.set('');
+      this.showToast('2-Factor Authentication disabled successfully');
+    } catch (error: unknown) {
+      this.showToast(this.extractSettingsErrorMessage(error, 'We could not disable 2FA right now.'));
+    } finally {
+      this.isTwoFactorSubmitting.set(false);
+    }
+  }
+
+  async toggleNotificationMethod(method: NotificationChannelId): Promise<void> {
+    const previousSettings = this.notificationSettings();
+    const nextSettings: NotificationChannelSettings = {
+      ...previousSettings,
+      [method]: !previousSettings[method],
+    };
+
+    this.notificationSettings.set(nextSettings);
+    const didPersist = await this.persistNotificationSettings({
+      notification_channels: nextSettings,
+    });
+
+    if (!didPersist) {
+      this.notificationSettings.set(previousSettings);
+    }
   }
 
   isNotificationMethodEnabled(method: 'email' | 'sms' | 'push'): boolean {
@@ -1837,17 +1992,27 @@ export class SettingsPageComponent {
     return `Notify me about ${category.label.toLowerCase()} via:`;
   }
 
-  toggleNotificationPreference(
+  async toggleNotificationPreference(
     category: NotificationPreferenceCategoryId,
     channel: NotificationChannelId,
-  ): void {
-    this.notificationPreferences.update(preferences => ({
-      ...preferences,
+  ): Promise<void> {
+    const previousPreferences = this.notificationPreferences();
+    const nextPreferences: NotificationPreferenceSettings = {
+      ...previousPreferences,
       [category]: {
-        ...preferences[category],
-        [channel]: !preferences[category][channel],
+        ...previousPreferences[category],
+        [channel]: !previousPreferences[category][channel],
       },
-    }));
+    };
+
+    this.notificationPreferences.set(nextPreferences);
+    const didPersist = await this.persistNotificationSettings({
+      notification_preferences: nextPreferences,
+    });
+
+    if (!didPersist) {
+      this.notificationPreferences.set(previousPreferences);
+    }
   }
 
   async confirmLogout(): Promise<void> {
@@ -1887,20 +2052,39 @@ export class SettingsPageComponent {
     }
   }
 
+  private async loadTwoFactorStatus(): Promise<void> {
+    if (!this.appMode.isBackendEnabled()) {
+      return;
+    }
+
+    try {
+      const response = await firstValueFrom(this.authService.getTwoFactorStatus());
+      this.syncTwoFactorStatus(response);
+    } catch {
+      this.isTwoFactorEnabled.set(false);
+      this.twoFactorEnabledDate.set('');
+    }
+  }
+
   private hydrateProfileFromUser(user: AuthUser | null): void {
     if (!user) {
       return;
     }
 
     const phoneNumber = user.phone_number?.trim() ?? '';
-    const fullName = user.full_name?.trim() || user.username;
+    const whatsappNumber = user.whatsapp_number?.trim() ?? '';
+    const fullName = user.full_name?.trim() ?? '';
 
     this.profile.set({
       email: user.email,
       callNumber: phoneNumber,
-      whatsappNumber: phoneNumber,
+      whatsappNumber,
       fullName,
     });
+    this.notificationSettings.set(this.normalizeNotificationChannels(user.notification_channels));
+    this.notificationPreferences.set(
+      this.normalizeNotificationPreferences(user.notification_preferences),
+    );
   }
 
   private async persistProfileChanges(payload: UpdateProfileRequest): Promise<boolean> {
@@ -1917,6 +2101,31 @@ export class SettingsPageComponent {
     } catch {
       this.showToast('We could not update your profile right now.');
       return false;
+    }
+  }
+
+  private async persistNotificationSettings(
+    payload: Pick<UpdateProfileRequest, 'notification_channels' | 'notification_preferences'>,
+  ): Promise<boolean> {
+    if (!this.appMode.isBackendEnabled()) {
+      return true;
+    }
+
+    if (this.isNotificationSubmitting()) {
+      return false;
+    }
+
+    this.isNotificationSubmitting.set(true);
+    try {
+      const response = await firstValueFrom(this.authService.updateProfile(payload));
+      this.authSession.initializeFromProfile(response);
+      this.hydrateProfileFromUser(this.resolveProfileUser(response));
+      return true;
+    } catch {
+      this.showToast('We could not update your notification settings right now.');
+      return false;
+    } finally {
+      this.isNotificationSubmitting.set(false);
     }
   }
 
@@ -1958,6 +2167,31 @@ export class SettingsPageComponent {
     }
   }
 
+  private syncTwoFactorStatus(response: {
+    is_enabled: boolean;
+    method?: 'sms' | 'email' | 'authenticator' | null;
+    enabled_at?: string | null;
+    phone_number?: string | null;
+  }): void {
+    this.isTwoFactorEnabled.set(response.is_enabled === true);
+    this.twoFactorEnabledDate.set(this.formatEnabledDate(response.enabled_at));
+    this.twoFactorQrCode.set(null);
+    this.twoFactorManualSecret.set(null);
+
+    const method = this.fromTwoFactorApiMethod(response.method);
+    if (method) {
+      this.selectedAuthMethod.set(method);
+    }
+
+    const phoneNumber = this.readString(response.phone_number);
+    if (phoneNumber) {
+      this.profile.update((profile) => ({
+        ...profile,
+        callNumber: profile.callNumber || phoneNumber,
+      }));
+    }
+  }
+
   private currentVerificationType(): 'phone' | 'whatsapp' | 'email' | null {
     switch (this.verificationMode()) {
       case 'call':
@@ -1971,14 +2205,150 @@ export class SettingsPageComponent {
     }
   }
 
+  private toTwoFactorApiMethod(method: TwoFactorMethod): 'sms' | 'email' | 'authenticator' {
+    switch (method) {
+      case 'app':
+        return 'authenticator';
+      case 'email':
+        return 'email';
+      default:
+        return 'sms';
+    }
+  }
+
+  private fromTwoFactorApiMethod(method: 'sms' | 'email' | 'authenticator' | null | undefined): TwoFactorMethod | null {
+    switch (method) {
+      case 'authenticator':
+        return 'app';
+      case 'email':
+        return 'email';
+      case 'sms':
+        return 'sms';
+      default:
+        return null;
+    }
+  }
+
+  private formatEnabledDate(value: string | null | undefined): string {
+    if (!value) {
+      return '';
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  private normalizeNotificationChannels(value: unknown): NotificationChannelSettings {
+    const record = this.readRecord(value);
+    return {
+      email: this.readBoolean(record?.['email']) ?? true,
+      sms: this.readBoolean(record?.['sms']) ?? false,
+      push: this.readBoolean(record?.['push']) ?? true,
+    };
+  }
+
+  private normalizeNotificationPreferences(value: unknown): NotificationPreferenceSettings {
+    const record = this.readRecord(value);
+    return {
+      messages: this.normalizeNotificationChannelGroup(record?.['messages'], {
+        sms: true,
+        email: true,
+        push: true,
+      }),
+      listings: this.normalizeNotificationChannelGroup(record?.['listings'], {
+        sms: true,
+        email: true,
+        push: false,
+      }),
+      ads: this.normalizeNotificationChannelGroup(record?.['ads'], {
+        sms: true,
+        email: true,
+        push: true,
+      }),
+      buyerActivity: this.normalizeNotificationChannelGroup(record?.['buyerActivity'], {
+        sms: false,
+        email: true,
+        push: true,
+      }),
+      performance: this.normalizeNotificationChannelGroup(record?.['performance'], {
+        sms: true,
+        email: false,
+        push: true,
+      }),
+    };
+  }
+
+  private normalizeNotificationChannelGroup(
+    value: unknown,
+    fallback: NotificationChannelSettings,
+  ): NotificationChannelSettings {
+    const record = this.readRecord(value);
+    return {
+      sms: this.readBoolean(record?.['sms']) ?? fallback.sms,
+      email: this.readBoolean(record?.['email']) ?? fallback.email,
+      push: this.readBoolean(record?.['push']) ?? fallback.push,
+    };
+  }
+
+  private extractSettingsErrorMessage(error: unknown, fallback: string): string {
+    if (typeof error !== 'object' || error === null) {
+      return fallback;
+    }
+
+    const errorRecord = error as Record<string, unknown>;
+    const responseError =
+      typeof errorRecord['error'] === 'object' && errorRecord['error'] !== null
+        ? (errorRecord['error'] as Record<string, unknown>)
+        : null;
+
+    const detail = this.readString(responseError?.['detail']);
+    if (detail) {
+      return detail;
+    }
+
+    const code = this.readString(responseError?.['code']);
+    if (code) {
+      return code;
+    }
+
+    for (const key of ['old_password', 'new_password', 'confirm_password', 'phone_number'] as const) {
+      const values = this.readStringArray(responseError?.[key]);
+      if (values.length > 0) {
+        return values[0];
+      }
+    }
+
+    return fallback;
+  }
+
   private applyProfilePayloadLocally(payload: UpdateProfileRequest): void {
     this.profile.update((profile) => ({
       ...profile,
       email: payload.email ?? profile.email,
       fullName: payload.full_name ?? profile.fullName,
       callNumber: payload.phone_number ?? profile.callNumber,
-      whatsappNumber: payload.phone_number ?? profile.whatsappNumber,
+      whatsappNumber: payload.whatsapp_number ?? profile.whatsappNumber,
     }));
+
+    if (payload.notification_channels) {
+      this.notificationSettings.set(
+        this.normalizeNotificationChannels(payload.notification_channels),
+      );
+    }
+
+    if (payload.notification_preferences) {
+      this.notificationPreferences.set(
+        this.normalizeNotificationPreferences(payload.notification_preferences),
+      );
+    }
   }
 
   private resolveProfileUser(response: ProfileResponse): AuthUser | null {
@@ -2000,5 +2370,25 @@ export class SettingsPageComponent {
       && typeof candidate.username === 'string'
       && typeof candidate.email === 'string'
     );
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readStringArray(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
   }
 }

@@ -89,7 +89,11 @@ type PickerOption = {
           </div>
 
           @if (currentStep() < 5) {
-            <button type="button" class="text-[14px] font-medium text-[#2A2D34] underline underline-offset-2">
+            <button
+              type="button"
+              (click)="saveDraft()"
+              class="text-[14px] font-medium text-[#2A2D34] underline underline-offset-2"
+            >
               Save to drafts
             </button>
           }
@@ -123,7 +127,11 @@ type PickerOption = {
         </div>
         @if (currentStep() < 5) {
           <div>
-            <button class="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors tracking-tight">
+            <button
+              type="button"
+              (click)="saveDraft()"
+              class="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors tracking-tight"
+            >
               Save to drafts
             </button>
           </div>
@@ -407,7 +415,7 @@ type PickerOption = {
                           (click)="openPicker('condition')"
                           class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none"
                         >
-                          <span>{{ listingForm.value.condition || 'Select condition' }}</span>
+                          <span>{{ selectedConditionLabel() || 'Select condition' }}</span>
                           <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
                         </button>
                       </div>
@@ -474,7 +482,7 @@ type PickerOption = {
                         (click)="openPicker('condition')"
                         class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all"
                       >
-                        <span>{{ listingForm.value.condition || 'Select condition' }}</span>
+                        <span>{{ selectedConditionLabel() || 'Select condition' }}</span>
                         <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
                       </button>
                     </div>
@@ -986,7 +994,7 @@ type PickerOption = {
                             <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ selectedCategoryLabel() || '---' }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Condition</span>
-                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.condition || '---' }}</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ selectedConditionLabel() || '---' }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Store</span>
                             <span class="text-right text-[12px] font-medium text-[#202335]">{{ selectedStoreLabel() || '---' }}</span>
@@ -1091,7 +1099,7 @@ type PickerOption = {
                              </div>
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Condition</span>
-                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ listingForm.value.condition || '---' }}</span>
+                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ selectedConditionLabel() || '---' }}</span>
                              </div>
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Store</span>
@@ -1522,11 +1530,13 @@ export class AddListingModalComponent implements OnDestroy {
   
   close = output<void>();
   save = output<ListingData>();
+  draftSaved = output<void>();
   readonly categoryOptionsInput = input<readonly PickerOption[]>([]);
   readonly storeOptionsInput = input<readonly PickerOption[]>([]);
 
   currentStep = signal(1);
   isPublishing = signal(false);
+  isSavingDraft = signal(false);
   
   listingForm!: FormGroup;
 
@@ -1541,8 +1551,8 @@ export class AddListingModalComponent implements OnDestroy {
   readonly pickerSearch = signal('');
 
   readonly conditionOptions: readonly PickerOption[] = [
-    { value: 'Brand new', label: 'Brand new' },
-    { value: 'Fairly used', label: 'Fairly used' },
+    { value: 'new', label: 'Brand new' },
+    { value: 'used', label: 'Fairly used' },
   ];
 
   readonly locationOptions: readonly PickerOption[] = [
@@ -1718,6 +1728,11 @@ export class AddListingModalComponent implements OnDestroy {
     return this.storeOptions().find((option) => option.value === currentValue)?.label ?? '';
   }
 
+  selectedConditionLabel(): string {
+    const currentValue = this.listingForm.value.condition as string | null;
+    return this.conditionOptions.find((option) => option.value === currentValue)?.label ?? '';
+  }
+
   openPicker(kind: PickerKind): void {
     this.pickerSearch.set('');
     this.activePicker.set(kind);
@@ -1801,6 +1816,10 @@ export class AddListingModalComponent implements OnDestroy {
     void this.publishListing();
   }
 
+  saveDraft(): void {
+    void this.persistDraft();
+  }
+
   private async publishListing(): Promise<void> {
     if (this.isPublishing()) {
       return;
@@ -1823,6 +1842,40 @@ export class AddListingModalComponent implements OnDestroy {
       });
     } finally {
       this.isPublishing.set(false);
+    }
+  }
+
+  private async persistDraft(): Promise<void> {
+    if (this.isSavingDraft()) {
+      return;
+    }
+
+    if (!this.listingForm.valid) {
+      this.listingForm.markAllAsTouched();
+      this.appToastService.show({
+        message: 'Please complete the required listing details before saving this draft.',
+        durationMs: 2600,
+      });
+      return;
+    }
+
+    this.isSavingDraft.set(true);
+
+    try {
+      await firstValueFrom(this.listingsService.saveListingDraft(this.buildCreateListingPayload()));
+      this.appToastService.show({
+        message: 'Listing saved to drafts.',
+        durationMs: 2200,
+      });
+      this.draftSaved.emit();
+      this.close.emit();
+    } catch {
+      this.appToastService.show({
+        message: 'We could not save your draft right now.',
+        durationMs: 2600,
+      });
+    } finally {
+      this.isSavingDraft.set(false);
     }
   }
 

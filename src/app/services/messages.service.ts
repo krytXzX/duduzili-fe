@@ -20,8 +20,14 @@ export interface SendMessageRequest {
 }
 
 export interface BulkMessageActionRequest {
-  action: 'clear_selected';
-  conversation_ids: readonly string[];
+  action: 'delete';
+  message_ids: readonly string[];
+}
+
+export interface StartSellerConversationRequest {
+  vendor_id: string;
+  listing_id?: string;
+  message?: string;
 }
 
 export type StartConversationResponse = Record<string, unknown>;
@@ -51,11 +57,25 @@ export class MessagesService {
     return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/send/`, payload);
   }
 
+  clearConversation(id: string): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/clear/`, {});
+  }
+
   bulkAction(payload: BulkMessageActionRequest): Observable<Record<string, unknown>> {
     return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/bulk-action/`, payload);
   }
 
   startConversation(id: string): Observable<StartConversationResponse> {
     return this.http.post<StartConversationResponse>(`${this.apiUrl}/messages/start/${id}/`, {});
+  }
+
+  startSellerConversation(
+    buyerId: string,
+    payload: StartSellerConversationRequest,
+  ): Observable<StartConversationResponse> {
+    return this.http.post<StartConversationResponse>(
+      `${this.apiUrl}/messages/start-buyer/${buyerId}/`,
+      payload,
+    );
   }
 }

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export type ListingsApiItem = Record<string, unknown>;
-export type ToggleFavoriteResponse = Record<string, unknown> | null;
+export type ToggleWishlistResponse = Record<string, unknown> | null;
 export type ManageListingsCategory = {
   id: number;
   name: string;
@@ -49,14 +49,25 @@ export interface RecentlyViewedResponse {
   earlier?: ListingsApiItem[];
 }
 
-export interface WishlistResponse {
-  today?: ListingsApiItem[];
-  yesterday?: ListingsApiItem[];
-  earlier?: ListingsApiItem[];
-}
+export type WishlistResponse =
+  | {
+      today?: ListingsApiItem[];
+      yesterday?: ListingsApiItem[];
+      earlier?: ListingsApiItem[];
+    }
+  | {
+      count?: number;
+      next?: string | null;
+      previous?: string | null;
+      results?: Array<Record<string, unknown>>;
+    };
 
 export interface CreateListingReportRequest {
   description: string;
+}
+
+export interface CreateSellerReportRequest {
+  reason: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -64,7 +75,7 @@ export class ListingsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
-  getMyFavorites(): Observable<WishlistResponse> {
+  getWishlist(): Observable<WishlistResponse> {
     return this.http.get<WishlistResponse>(`${this.apiUrl}/wishlist/`);
   }
 
@@ -80,6 +91,10 @@ export class ListingsService {
     return this.http.post<ListingsApiItem>(`${this.apiUrl}/listings/`, payload);
   }
 
+  saveListingDraft(payload: FormData): Observable<ListingsApiItem> {
+    return this.http.post<ListingsApiItem>(`${this.apiUrl}/listings/save-draft/`, payload);
+  }
+
   createListingReport(
     listingId: string,
     payload: CreateListingReportRequest,
@@ -93,13 +108,26 @@ export class ListingsService {
     );
   }
 
+  createSellerReport(
+    vendorId: string,
+    payload: CreateSellerReportRequest,
+  ): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(
+      `${this.apiUrl}/reports/${vendorId}/report/`,
+      payload,
+      {
+        params: { type: 'vendor' },
+      },
+    );
+  }
+
   getListingDetails(id: string): Observable<ListingsApiItem> {
     return this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`);
   }
 
-  toggleFavorite(id: string): Observable<ToggleFavoriteResponse> {
-    return this.http.post<ToggleFavoriteResponse>(
-      `${this.apiUrl}/listings/${id}/toggle_favorite/`,
+  toggleWishlist(id: string): Observable<ToggleWishlistResponse> {
+    return this.http.post<ToggleWishlistResponse>(
+      `${this.apiUrl}/wishlist/toggle/${id}/`,
       {},
     );
   }

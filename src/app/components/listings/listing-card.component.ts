@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { FavoritesStateService } from '../../services/favorites-state.service';
-import { ListingsService, ToggleFavoriteResponse } from '../../services/listings.service';
+import { ListingsService, ToggleWishlistResponse } from '../../services/listings.service';
 
 export interface Listing {
   id: string;
@@ -17,6 +17,7 @@ export interface Listing {
   location: string;
   timeAgo: string;
   isVerified?: boolean;
+  favoriteFilled?: boolean;
 }
 
 @Component({
@@ -85,7 +86,7 @@ export class ListingCardComponent {
     this.isFavoritePending.set(true);
 
     try {
-      const response = await firstValueFrom(this.listingsService.toggleFavorite(this.listing().id));
+      const response = await firstValueFrom(this.listingsService.toggleWishlist(this.listing().id));
       const nextIsFavorited = this.resolveFavoriteState(response, wasFavorited);
 
       if (nextIsFavorited) {
@@ -150,25 +151,39 @@ export class ListingCardComponent {
   }
 
   private resolveFavoriteState(
-    response: ToggleFavoriteResponse,
+    response: ToggleWishlistResponse,
     previousState: boolean,
   ): boolean {
     if (!response || typeof response !== 'object') {
       return !previousState;
     }
 
-    const explicitState = response['is_favorited'];
+    const explicitState = response['is_saved'];
     if (typeof explicitState === 'boolean') {
       return explicitState;
     }
 
     const nestedState =
       typeof response['data'] === 'object' && response['data'] !== null
-        ? (response['data'] as Record<string, unknown>)['is_favorited']
+        ? (response['data'] as Record<string, unknown>)['is_saved']
         : null;
 
     if (typeof nestedState === 'boolean') {
       return nestedState;
+    }
+
+    const fallbackFavoriteState = response['is_favorited'];
+    if (typeof fallbackFavoriteState === 'boolean') {
+      return fallbackFavoriteState;
+    }
+
+    const nestedFavoriteState =
+      typeof response['data'] === 'object' && response['data'] !== null
+        ? (response['data'] as Record<string, unknown>)['is_favorited']
+        : null;
+
+    if (typeof nestedFavoriteState === 'boolean') {
+      return nestedFavoriteState;
     }
 
     return !previousState;
