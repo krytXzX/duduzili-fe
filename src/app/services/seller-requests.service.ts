@@ -5,17 +5,37 @@ import { environment } from '../../environments/environment';
 
 export type SellerOfferRecord = Record<string, unknown>;
 export type SellerCallbackRecord = Record<string, unknown>;
+export type SellerOffersResponse =
+  | SellerOfferRecord[]
+  | {
+      count?: number;
+      next?: string | null;
+      previous?: string | null;
+      results?: SellerOfferRecord[];
+      data?: SellerOfferRecord[];
+      offers?: SellerOfferRecord[];
+    };
+export type SellerCallbacksResponse =
+  | SellerCallbackRecord[]
+  | {
+      count?: number;
+      next?: string | null;
+      previous?: string | null;
+      results?: SellerCallbackRecord[];
+      data?: SellerCallbackRecord[];
+      callbacks?: SellerCallbackRecord[];
+    };
 
 @Injectable({ providedIn: 'root' })
 export class SellerRequestsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl.replace(/\/+$/, '');
 
-  getReceivedOffers(): Observable<SellerOfferRecord[]> {
-    return this.http.get<SellerOfferRecord[]>(`${this.apiUrl}/offers/received/`);
+  getReceivedOffers(): Observable<SellerOffersResponse> {
+    return this.http.get<SellerOffersResponse>(`${this.apiUrl}/offers/received/`);
   }
 
-  getReceivedCallbacks(): Observable<SellerCallbackRecord[]> {
-    return this.http.get<SellerCallbackRecord[]>(`${this.apiUrl}/callback-requests/received/`);
+  getReceivedCallbacks(): Observable<SellerCallbacksResponse> {
+    return this.http.get<SellerCallbacksResponse>(`${this.apiUrl}/callback-requests/received/`);
   }
 }

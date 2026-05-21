@@ -13,6 +13,7 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 import {
   SellerRequestsService,
   type SellerCallbackRecord,
+  type SellerCallbacksResponse,
 } from '../../../services/seller-requests.service';
 import { AppModeService } from '../../../services/app-mode.service';
 
@@ -756,10 +757,35 @@ export class CallbacksPageComponent implements OnDestroy {
   private async loadCallbacks(): Promise<void> {
     try {
       const response = await firstValueFrom(this.sellerRequestsService.getReceivedCallbacks());
-      this.callbacks.set(response.map((record, index) => this.mapCallbackRecord(record, index)));
+      const items = this.extractCallbackRecords(response);
+      this.callbacks.set(items.map((record, index) => this.mapCallbackRecord(record, index)));
     } catch {
       this.callbacks.set([]);
     }
+  }
+
+  private extractCallbackRecords(response: SellerCallbacksResponse): SellerCallbackRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (!response || typeof response !== 'object') {
+      return [];
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.callbacks)) {
+      return response.callbacks;
+    }
+
+    return [];
   }
 
   private mapCallbackRecord(record: SellerCallbackRecord, index: number): CallbackRecord {

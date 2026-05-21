@@ -11,7 +11,11 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
-import { SellerRequestsService, type SellerOfferRecord } from '../../../services/seller-requests.service';
+import {
+  SellerRequestsService,
+  type SellerOfferRecord,
+  type SellerOffersResponse,
+} from '../../../services/seller-requests.service';
 import { AppModeService } from '../../../services/app-mode.service';
 
 interface OfferRecord {
@@ -795,10 +799,35 @@ export class OffersPageComponent implements OnDestroy {
   private async loadOffers(): Promise<void> {
     try {
       const response = await firstValueFrom(this.sellerRequestsService.getReceivedOffers());
-      this.offers.set(response.map((record, index) => this.mapOfferRecord(record, index)));
+      const items = this.extractOfferRecords(response);
+      this.offers.set(items.map((record, index) => this.mapOfferRecord(record, index)));
     } catch {
       this.offers.set([]);
     }
+  }
+
+  private extractOfferRecords(response: SellerOffersResponse): SellerOfferRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (!response || typeof response !== 'object') {
+      return [];
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.offers)) {
+      return response.offers;
+    }
+
+    return [];
   }
 
   private mapOfferRecord(record: SellerOfferRecord, index: number): OfferRecord {
