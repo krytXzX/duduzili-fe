@@ -2047,7 +2047,7 @@ export class SettingsPageComponent {
 
     const phoneNumber = user.phone_number?.trim() ?? '';
     const whatsappNumber = user.whatsapp_number?.trim() ?? '';
-    const fullName = user.full_name?.trim() || user.username;
+    const fullName = user.full_name?.trim() ?? '';
 
     this.profile.set({
       email: user.email,
