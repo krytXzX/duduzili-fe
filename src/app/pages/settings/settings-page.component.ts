@@ -49,6 +49,11 @@ type AuthenticationMethodConfig = {
 
 type NotificationChannelId = 'sms' | 'email' | 'push';
 type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyerActivity' | 'performance';
+type NotificationChannelSettings = Record<NotificationChannelId, boolean>;
+type NotificationPreferenceSettings = Record<
+  NotificationPreferenceCategoryId,
+  NotificationChannelSettings
+>;
 
 @Component({
   selector: 'app-settings-page',
@@ -1422,18 +1427,19 @@ export class SettingsPageComponent {
   readonly isTurnOffTwoFactorModalOpen = signal(false);
   readonly isPasswordSubmitting = signal(false);
   readonly isTwoFactorSubmitting = signal(false);
+  readonly isNotificationSubmitting = signal(false);
   readonly isLogoutConfirmOpen = signal(false);
   readonly isDeleteAccountConfirmOpen = signal(false);
   readonly mobilePreferenceCategory = signal<NotificationPreferenceCategoryId | null>(null);
   readonly twoFactorEnabledDate = signal('');
   readonly twoFactorQrCode = signal<string | null>(null);
   readonly twoFactorManualSecret = signal<string | null>(null);
-  readonly notificationSettings = signal({
+  readonly notificationSettings = signal<NotificationChannelSettings>({
     email: true,
     sms: false,
     push: true,
   });
-  readonly notificationPreferences = signal({
+  readonly notificationPreferences = signal<NotificationPreferenceSettings>({
     messages: { sms: true, email: true, push: true },
     listings: { sms: true, email: true, push: false },
     ads: { sms: true, email: true, push: true },
@@ -1961,11 +1967,21 @@ export class SettingsPageComponent {
     }
   }
 
-  toggleNotificationMethod(method: 'email' | 'sms' | 'push'): void {
-    this.notificationSettings.update(settings => ({
-      ...settings,
-      [method]: !settings[method],
-    }));
+  async toggleNotificationMethod(method: NotificationChannelId): Promise<void> {
+    const previousSettings = this.notificationSettings();
+    const nextSettings: NotificationChannelSettings = {
+      ...previousSettings,
+      [method]: !previousSettings[method],
+    };
+
+    this.notificationSettings.set(nextSettings);
+    const didPersist = await this.persistNotificationSettings({
+      notification_channels: nextSettings,
+    });
+
+    if (!didPersist) {
+      this.notificationSettings.set(previousSettings);
+    }
   }
 
   isNotificationMethodEnabled(method: 'email' | 'sms' | 'push'): boolean {
@@ -1976,17 +1992,27 @@ export class SettingsPageComponent {
     return `Notify me about ${category.label.toLowerCase()} via:`;
   }
 
-  toggleNotificationPreference(
+  async toggleNotificationPreference(
     category: NotificationPreferenceCategoryId,
     channel: NotificationChannelId,
-  ): void {
-    this.notificationPreferences.update(preferences => ({
-      ...preferences,
+  ): Promise<void> {
+    const previousPreferences = this.notificationPreferences();
+    const nextPreferences: NotificationPreferenceSettings = {
+      ...previousPreferences,
       [category]: {
-        ...preferences[category],
-        [channel]: !preferences[category][channel],
+        ...previousPreferences[category],
+        [channel]: !previousPreferences[category][channel],
       },
-    }));
+    };
+
+    this.notificationPreferences.set(nextPreferences);
+    const didPersist = await this.persistNotificationSettings({
+      notification_preferences: nextPreferences,
+    });
+
+    if (!didPersist) {
+      this.notificationPreferences.set(previousPreferences);
+    }
   }
 
   async confirmLogout(): Promise<void> {
@@ -2055,6 +2081,10 @@ export class SettingsPageComponent {
       whatsappNumber,
       fullName,
     });
+    this.notificationSettings.set(this.normalizeNotificationChannels(user.notification_channels));
+    this.notificationPreferences.set(
+      this.normalizeNotificationPreferences(user.notification_preferences),
+    );
   }
 
   private async persistProfileChanges(payload: UpdateProfileRequest): Promise<boolean> {
@@ -2071,6 +2101,31 @@ export class SettingsPageComponent {
     } catch {
       this.showToast('We could not update your profile right now.');
       return false;
+    }
+  }
+
+  private async persistNotificationSettings(
+    payload: Pick<UpdateProfileRequest, 'notification_channels' | 'notification_preferences'>,
+  ): Promise<boolean> {
+    if (!this.appMode.isBackendEnabled()) {
+      return true;
+    }
+
+    if (this.isNotificationSubmitting()) {
+      return false;
+    }
+
+    this.isNotificationSubmitting.set(true);
+    try {
+      const response = await firstValueFrom(this.authService.updateProfile(payload));
+      this.authSession.initializeFromProfile(response);
+      this.hydrateProfileFromUser(this.resolveProfileUser(response));
+      return true;
+    } catch {
+      this.showToast('We could not update your notification settings right now.');
+      return false;
+    } finally {
+      this.isNotificationSubmitting.set(false);
     }
   }
 
@@ -2191,6 +2246,58 @@ export class SettingsPageComponent {
     }).format(date);
   }
 
+  private normalizeNotificationChannels(value: unknown): NotificationChannelSettings {
+    const record = this.readRecord(value);
+    return {
+      email: this.readBoolean(record?.['email']) ?? true,
+      sms: this.readBoolean(record?.['sms']) ?? false,
+      push: this.readBoolean(record?.['push']) ?? true,
+    };
+  }
+
+  private normalizeNotificationPreferences(value: unknown): NotificationPreferenceSettings {
+    const record = this.readRecord(value);
+    return {
+      messages: this.normalizeNotificationChannelGroup(record?.['messages'], {
+        sms: true,
+        email: true,
+        push: true,
+      }),
+      listings: this.normalizeNotificationChannelGroup(record?.['listings'], {
+        sms: true,
+        email: true,
+        push: false,
+      }),
+      ads: this.normalizeNotificationChannelGroup(record?.['ads'], {
+        sms: true,
+        email: true,
+        push: true,
+      }),
+      buyerActivity: this.normalizeNotificationChannelGroup(record?.['buyerActivity'], {
+        sms: false,
+        email: true,
+        push: true,
+      }),
+      performance: this.normalizeNotificationChannelGroup(record?.['performance'], {
+        sms: true,
+        email: false,
+        push: true,
+      }),
+    };
+  }
+
+  private normalizeNotificationChannelGroup(
+    value: unknown,
+    fallback: NotificationChannelSettings,
+  ): NotificationChannelSettings {
+    const record = this.readRecord(value);
+    return {
+      sms: this.readBoolean(record?.['sms']) ?? fallback.sms,
+      email: this.readBoolean(record?.['email']) ?? fallback.email,
+      push: this.readBoolean(record?.['push']) ?? fallback.push,
+    };
+  }
+
   private extractSettingsErrorMessage(error: unknown, fallback: string): string {
     if (typeof error !== 'object' || error === null) {
       return fallback;
@@ -2230,6 +2337,18 @@ export class SettingsPageComponent {
       callNumber: payload.phone_number ?? profile.callNumber,
       whatsappNumber: payload.whatsapp_number ?? profile.whatsappNumber,
     }));
+
+    if (payload.notification_channels) {
+      this.notificationSettings.set(
+        this.normalizeNotificationChannels(payload.notification_channels),
+      );
+    }
+
+    if (payload.notification_preferences) {
+      this.notificationPreferences.set(
+        this.normalizeNotificationPreferences(payload.notification_preferences),
+      );
+    }
   }
 
   private resolveProfileUser(response: ProfileResponse): AuthUser | null {
@@ -2263,5 +2382,13 @@ export class SettingsPageComponent {
     }
 
     return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
   }
 }

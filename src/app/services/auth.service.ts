@@ -26,6 +26,8 @@ export type AuthUser = {
   is_vendor: boolean;
   is_verified: boolean;
   is_2fa_enabled?: boolean | null;
+  notification_channels?: Record<string, boolean> | null;
+  notification_preferences?: Record<string, Record<string, boolean>> | null;
   vendor_profile_ids?: readonly (string | number)[];
   vendor_profile_id?: string | number | null;
   created_at: string;
@@ -107,6 +109,8 @@ export type UpdateProfileRequest = {
   full_name?: string;
   phone_number?: string;
   whatsapp_number?: string;
+  notification_channels?: Record<string, boolean>;
+  notification_preferences?: Record<string, Record<string, boolean>>;
 };
 
 export type SwitchModeRequest = {
