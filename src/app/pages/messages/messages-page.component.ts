@@ -2336,17 +2336,19 @@ export class MessagesPageComponent implements OnDestroy {
     const id = this.readId(item['id']) ?? this.readId(item['chat_id']) ?? `conversation-${index + 1}`;
     const buyer = this.readRecord(item['buyer']);
     const lastMessage = this.readRecord(item['last_message']);
-    const name =
-      this.readString(item['vendor_name']) ??
-      this.readString(item['name']) ??
-      this.readString(item['title']) ??
-      this.readString(item['other_user_name']) ??
+    const buyerName =
       this.readString(buyer?.['full_name']) ??
       this.readString(buyer?.['username']) ??
       this.readString(this.readRecord(item['other_user'])?.['full_name']) ??
       this.readString(this.readRecord(item['other_user'])?.['username']) ??
       this.readString(this.readRecord(item['user'])?.['full_name']) ??
       this.readString(this.readRecord(item['user'])?.['username']);
+    const vendorName =
+      this.readString(item['vendor_name']) ??
+      this.readString(item['name']) ??
+      this.readString(item['title']) ??
+      this.readString(item['other_user_name']);
+    const name = this.isSeller() ? buyerName ?? vendorName : vendorName ?? buyerName;
     const preview =
       this.readString(this.readRecord(item['last_message'])?.['body']) ??
       this.readString(item['preview']) ??
@@ -2358,6 +2360,19 @@ export class MessagesPageComponent implements OnDestroy {
     if (!name) {
       return null;
     }
+
+    const buyerAvatar =
+      this.resolveMediaUrl(
+        this.readString(buyer?.['avatar']) ??
+          this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
+          this.readString(this.readRecord(item['user'])?.['avatar']),
+      ) ?? '/assets/images/chats-store-selector-personal.png';
+    const vendorAvatar =
+      this.resolveMediaUrl(
+        this.readString(item['vendor_photo']) ??
+          this.readString(item['avatar']) ??
+          this.readString(item['mobile_avatar']),
+      ) ?? buyerAvatar;
 
     return {
       id,
@@ -2371,23 +2386,8 @@ export class MessagesPageComponent implements OnDestroy {
             this.readString(item['last_message_at']),
         ) ?? 'Recently',
       unreadCount: this.readNumber(item['unread_count']) ?? undefined,
-      avatar:
-        this.resolveMediaUrl(
-          this.readString(item['vendor_photo']) ??
-            this.readString(item['avatar']) ??
-            this.readString(buyer?.['avatar']) ??
-            this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
-            this.readString(this.readRecord(item['user'])?.['avatar']),
-        ) ?? '/assets/images/chats-store-selector-personal.png',
-      mobileAvatar:
-        this.resolveMediaUrl(
-          this.readString(item['vendor_photo']) ??
-            this.readString(item['mobile_avatar']) ??
-            this.readString(item['avatar']) ??
-            this.readString(buyer?.['avatar']) ??
-            this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
-            this.readString(this.readRecord(item['user'])?.['avatar']),
-        ) ?? '/assets/images/chats-store-selector-personal.png',
+      avatar: this.isSeller() ? buyerAvatar : vendorAvatar,
+      mobileAvatar: this.isSeller() ? buyerAvatar : vendorAvatar,
       storeBadge:
         this.resolveMediaUrl(this.readString(item['store_badge'])) ??
         '/assets/images/chats-store-badge-desktop.png',
