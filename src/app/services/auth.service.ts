@@ -51,6 +51,12 @@ export type AuthResponse = {
 };
 
 export type LoginResponse = AuthResponse;
+export type LoginTwoFactorChallengeResponse = {
+  requires_2fa: true;
+  method: 'sms' | 'email' | 'authenticator';
+  user_id: string;
+  masked_phone?: string | null;
+};
 
 export type SendOtpRequest = {
   email: string;
@@ -138,6 +144,10 @@ export class AuthService {
 
   login(payload: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/`, payload);
+  }
+
+  verifyTwoFactorLogin(payload: { user_id: string; code: string }): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/verify-2fa/`, payload);
   }
 
   sendOtp(payload: SendOtpRequest): Observable<unknown> {

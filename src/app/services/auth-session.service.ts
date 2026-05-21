@@ -52,13 +52,16 @@ export class AuthSessionService {
   saveLoginSession(loginResponse: LoginResponse, profile: CheckEmailResponse | null): void {
     const tokens = this.extractTokens(loginResponse);
     const resolvedUser = this.resolveUser(loginResponse);
+    if (!resolvedUser) {
+      return;
+    }
     const resolvedProfile = profile ?? this.toCheckEmailProfile(resolvedUser);
 
     this.session.set({
       accessToken: tokens?.accessToken ?? null,
       refreshToken: tokens?.refreshToken ?? null,
       csrfToken: this.extractCsrfToken(loginResponse),
-      loginResponse: resolvedUser ? { ...loginResponse, user: resolvedUser } : loginResponse,
+      loginResponse: { ...loginResponse, user: resolvedUser },
       profile: resolvedProfile,
     });
   }
