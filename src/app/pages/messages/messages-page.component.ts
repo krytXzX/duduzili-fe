@@ -34,6 +34,7 @@ interface Conversation {
   mobileAvatar?: string;
   storeBadge: string;
   mobileStoreBadge?: string;
+  buyerId?: string;
   vendorId?: string;
   listingId?: string;
 }
@@ -2039,6 +2040,9 @@ export class MessagesPageComponent implements OnDestroy {
   readonly requestedConversationId = computed(
     () => this.queryParamMap().get('conversation')?.trim() ?? '',
   );
+  readonly requestedBuyerId = computed(() => this.queryParamMap().get('buyer')?.trim() ?? '');
+  readonly requestedVendorId = computed(() => this.queryParamMap().get('store')?.trim() ?? '');
+  readonly requestedListingId = computed(() => this.queryParamMap().get('listing')?.trim() ?? '');
   readonly isClearChatConfirmOpen = signal(false);
   readonly isMessageMenuOpen = signal(false);
   readonly isProfileMenuOpen = signal(false);
@@ -2274,9 +2278,29 @@ export class MessagesPageComponent implements OnDestroy {
     }
 
     const requestedConversationId = this.requestedConversationId();
+    const requestedBuyerId = this.requestedBuyerId();
+    const requestedVendorId = this.requestedVendorId();
+    const requestedListingId = this.requestedListingId();
     const currentActiveChatId = this.activeChatId();
+    const requestedContextConversationId =
+      requestedConversationId.length === 0
+        ? mappedConversations.find((conversation) => {
+            const matchesBuyer =
+              requestedBuyerId.length === 0 || conversation.buyerId === requestedBuyerId;
+            const matchesVendor =
+              requestedVendorId.length === 0 || conversation.vendorId === requestedVendorId;
+            const matchesListing =
+              requestedListingId.length === 0 || conversation.listingId === requestedListingId;
+
+            return matchesBuyer && matchesVendor && matchesListing;
+          })?.id ?? ''
+        : '';
     const nextActiveChatId = mappedConversations.some((conversation) => conversation.id === requestedConversationId)
       ? requestedConversationId
+      : mappedConversations.some(
+            (conversation) => conversation.id === requestedContextConversationId,
+          )
+        ? requestedContextConversationId
       : mappedConversations.some((conversation) => conversation.id === currentActiveChatId)
         ? currentActiveChatId
         : mappedConversations[0].id;
@@ -2317,8 +2341,11 @@ export class MessagesPageComponent implements OnDestroy {
       this.readString(item['name']) ??
       this.readString(item['title']) ??
       this.readString(item['other_user_name']) ??
+      this.readString(buyer?.['full_name']) ??
       this.readString(buyer?.['username']) ??
+      this.readString(this.readRecord(item['other_user'])?.['full_name']) ??
       this.readString(this.readRecord(item['other_user'])?.['username']) ??
+      this.readString(this.readRecord(item['user'])?.['full_name']) ??
       this.readString(this.readRecord(item['user'])?.['username']);
     const preview =
       this.readString(this.readRecord(item['last_message'])?.['body']) ??
@@ -2367,6 +2394,7 @@ export class MessagesPageComponent implements OnDestroy {
       mobileStoreBadge:
         this.resolveMediaUrl(this.readString(item['mobile_store_badge']) ?? this.readString(item['store_badge'])) ??
         '/assets/images/chats-store-badge-mobile.png',
+      buyerId: this.readId(buyer?.['id']) ?? undefined,
       vendorId: this.readId(item['vendor']) ?? undefined,
       listingId: this.readId(item['listing']) ?? undefined,
     };

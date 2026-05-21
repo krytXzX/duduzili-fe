@@ -911,9 +911,15 @@ export class CallbacksPageComponent implements OnDestroy {
   }
 
   private mapCallbackRecord(record: SellerCallbackRecord, index: number): CallbackRecord {
+    const buyer = this.readRecord(record['buyer']);
+
     return {
       id: this.readId(record['id']) ?? `callback-${index + 1}`,
-      buyerName: this.readString(record['buyer_name']) ?? `Buyer ${index + 1}`,
+      buyerName:
+        this.readString(record['buyer_name']) ??
+        this.readString(buyer?.['full_name']) ??
+        this.readString(buyer?.['username']) ??
+        `Buyer ${index + 1}`,
       buyerAvatar: '/assets/images/offers-buyer-halima.png',
       phoneNumber: this.readString(record['phone_number']) ?? '---',
       listingName:
@@ -970,6 +976,10 @@ export class CallbacksPageComponent implements OnDestroy {
 
   private readString(value: unknown): string | null {
     return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
   }
 
   ngOnDestroy(): void {

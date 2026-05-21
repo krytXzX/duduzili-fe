@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
@@ -28,15 +28,19 @@ type OfferDateFilter = 'newest' | 'oldest';
 interface OfferRecord {
   readonly id: string;
   readonly buyerName: string;
+  readonly buyerId?: string;
   readonly buyerAvatar: string;
   readonly listingName: string;
+  readonly listingId?: string;
   readonly listingImage: string;
   readonly storeName: string;
+  readonly storeId?: string;
   readonly storeImage: string;
   readonly storeUsesContain?: boolean;
   readonly offerAmount: number;
   readonly dateRequested: string;
   readonly dateRequestedAt: number | null;
+  readonly conversationId?: string;
 }
 
 @Component({
@@ -468,9 +472,9 @@ interface OfferRecord {
             </div>
           </div>
 
-          <a
-            routerLink="/seller/messages"
-            (click)="closeDetails()"
+          <button
+            type="button"
+            (click)="openMessages(offer)"
             class="mt-5 inline-flex h-[52px] items-center gap-2 rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
           >
             <img
@@ -481,7 +485,7 @@ interface OfferRecord {
               class="h-5 w-5"
             />
             <span>Message buyer</span>
-          </a>
+          </button>
 
           <div class="mt-8 space-y-3">
             <div class="flex items-center justify-between gap-4">
@@ -596,9 +600,9 @@ interface OfferRecord {
               </div>
             </div>
 
-            <a
-              routerLink="/seller/messages"
-              (click)="closeDetails()"
+            <button
+              type="button"
+              (click)="openMessages(offer)"
               class="mt-5 inline-flex h-[52px] items-center gap-2 rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
             >
               <img
@@ -609,7 +613,7 @@ interface OfferRecord {
                 class="h-5 w-5"
               />
               <span>Message buyer</span>
-            </a>
+            </button>
 
             <div class="mt-8 space-y-3">
               <div class="flex items-center justify-between gap-4">
@@ -688,6 +692,7 @@ export class OffersPageComponent implements OnDestroy {
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly sellerRequestsService = inject(SellerRequestsService);
   private readonly appMode = inject(AppModeService);
+  private readonly router = inject(Router);
   private readonly apiOrigin = this.resolveApiOrigin();
 
   readonly searchTerm = signal('');
@@ -852,6 +857,27 @@ export class OffersPageComponent implements OnDestroy {
     this.selectedOffer.set(null);
   }
 
+  protected async openMessages(offer: OfferRecord): Promise<void> {
+    this.closeDetails();
+
+    const queryParams: Record<string, string> = {};
+
+    if (offer.conversationId) {
+      queryParams['conversation'] = offer.conversationId;
+    }
+    if (offer.buyerId) {
+      queryParams['buyer'] = offer.buyerId;
+    }
+    if (offer.storeId) {
+      queryParams['store'] = offer.storeId;
+    }
+    if (offer.listingId) {
+      queryParams['listing'] = offer.listingId;
+    }
+
+    await this.router.navigate(['/seller/messages'], { queryParams });
+  }
+
   protected amountWhole(amount: number): string {
     return amount.toLocaleString('en-NG') + '.';
   }
@@ -955,17 +981,21 @@ export class OffersPageComponent implements OnDestroy {
     return {
       id: this.readId(record['id']) ?? `offer-${index + 1}`,
       buyerName,
+      buyerId: this.readId(buyer?.['id']) ?? undefined,
       buyerAvatar,
       listingName,
+      listingId: this.readId(record['listing']) ?? undefined,
       listingImage:
         this.resolveMediaUrl(this.readString(record['listing_image'])) ??
         '/assets/images/offers-listing-iphone.png',
       storeName,
+      storeId: this.readId(record['store_id']) ?? undefined,
       storeImage: '/assets/icons/offers-store-vine.svg',
       storeUsesContain: true,
       offerAmount: amount,
       dateRequested: this.formatDate(this.readString(record['created_at'])) ?? '---',
       dateRequestedAt: this.readTimestamp(record['created_at']),
+      conversationId: this.readId(record['conversation_id']) ?? undefined,
     };
   }
 
