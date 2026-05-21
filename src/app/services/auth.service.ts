@@ -64,6 +64,37 @@ export type VerifyProfileOtpRequest = {
   otp_code: string;
 };
 
+export type ChangePasswordRequest = {
+  old_password: string;
+  new_password: string;
+  confirm_password: string;
+};
+
+export type TwoFactorMethodApi = 'sms' | 'email' | 'authenticator';
+
+export type TwoFactorStatusResponse = {
+  is_enabled: boolean;
+  method?: TwoFactorMethodApi | null;
+  phone_number?: string | null;
+  enabled_at?: string | null;
+};
+
+export type TwoFactorSetupRequest = {
+  method: TwoFactorMethodApi;
+  phone_number?: string;
+};
+
+export type TwoFactorSetupResponse = {
+  method?: TwoFactorMethodApi;
+  detail?: string;
+  qr_code?: string;
+  secret?: string;
+};
+
+export type TwoFactorVerifyRequest = {
+  code: string;
+};
+
 export type RegisterRequest = {
   email: string;
   full_name: string;
@@ -131,6 +162,29 @@ export class AuthService {
 
   updateProfile(payload: UpdateProfileRequest): Observable<ProfileResponse> {
     return this.http.patch<ProfileResponse>(`${this.apiUrl}/auth/profile/`, payload);
+  }
+
+  changePassword(payload: ChangePasswordRequest): Observable<{ detail?: string }> {
+    return this.http.post<{ detail?: string }>(`${this.apiUrl}/auth/security/change-password/`, payload);
+  }
+
+  getTwoFactorStatus(): Observable<TwoFactorStatusResponse> {
+    return this.http.get<TwoFactorStatusResponse>(`${this.apiUrl}/auth/security/2fa/`);
+  }
+
+  setupTwoFactor(payload: TwoFactorSetupRequest): Observable<TwoFactorSetupResponse> {
+    return this.http.post<TwoFactorSetupResponse>(`${this.apiUrl}/auth/security/2fa/setup/`, payload);
+  }
+
+  enableTwoFactor(payload: TwoFactorVerifyRequest): Observable<{ detail?: string; enabled_at?: string }> {
+    return this.http.post<{ detail?: string; enabled_at?: string }>(
+      `${this.apiUrl}/auth/security/2fa/enable/`,
+      payload,
+    );
+  }
+
+  disableTwoFactor(): Observable<{ detail?: string }> {
+    return this.http.post<{ detail?: string }>(`${this.apiUrl}/auth/security/2fa/disable/`, {});
   }
 
   switchMode(payload: SwitchModeRequest): Observable<ProfileResponse | AuthResponse | unknown> {

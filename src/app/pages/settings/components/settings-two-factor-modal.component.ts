@@ -105,9 +105,11 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
               <button
                 type="button"
                 (click)="verifyAndComplete()"
+                [disabled]="isSubmitting()"
                 class="mx-auto flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:w-[440px] md:text-[14px] md:leading-5"
+                [class.opacity-70]="isSubmitting()"
               >
-                Verify and set up
+                {{ isSubmitting() ? 'Verifying...' : 'Verify and set up' }}
               </button>
             </div>
           </div>
@@ -153,11 +155,10 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
                 @if (appStep() === 'qr') {
                   <div class="flex w-[256px] flex-col items-center gap-[9px]">
                     <img
-                      ngSrc="/assets/images/settings/two-factor-qr.svg"
+                      [src]="qrCode() || '/assets/images/settings/two-factor-qr.svg'"
                       width="256"
                       height="256"
                       alt="Authenticator setup QR code"
-                      priority
                     >
                     <button
                       type="button"
@@ -171,7 +172,7 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
                   <div class="flex w-full flex-col items-center gap-4">
                     <div class="flex h-[50px] w-full items-center justify-center overflow-hidden rounded-[15px] border border-[#F0F0F0] px-4">
                       <p class="text-center text-[24px] leading-[1.3] tracking-[4.8px] text-[#0D0D0D]">
-                        0xju-jkhy-pdor-jieu-lyrq
+                        {{ manualSecret() || '0xju-jkhy-pdor-jieu-lyrq' }}
                       </p>
                     </div>
                     <button
@@ -204,9 +205,12 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
 export class SettingsTwoFactorModalComponent {
   readonly method = input.required<TwoFactorMethod>();
   readonly destination = input.required<string>();
+  readonly qrCode = input<string | null>(null);
+  readonly manualSecret = input<string | null>(null);
+  readonly isSubmitting = input(false);
 
   readonly close = output<void>();
-  readonly complete = output<void>();
+  readonly complete = output<string>();
 
   readonly appStep = signal<'qr' | 'manual' | 'verify'>('qr');
   readonly otpValue = signal('');
@@ -249,6 +253,6 @@ export class SettingsTwoFactorModalComponent {
       return;
     }
 
-    this.complete.emit();
+    this.complete.emit(this.otpValue());
   }
 }
