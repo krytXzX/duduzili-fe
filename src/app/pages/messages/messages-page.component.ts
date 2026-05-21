@@ -2949,7 +2949,42 @@ export class MessagesPageComponent implements OnDestroy {
       return;
     }
 
-    this.isClearChatConfirmOpen.set(false);
+    const conversationId = this.activeChatId() || this.resolveActiveConversation()?.id;
+    if (!conversationId || this.isDeletingMessages()) {
+      return;
+    }
+
+    this.isDeletingMessages.set(true);
+
+    try {
+      await firstValueFrom(this.messagesService.clearConversation(conversationId));
+
+      this.conversationDays.update((current) => ({
+        ...current,
+        [conversationId]: [],
+      }));
+      this.deletedMessageIds.set([]);
+      this.selectedMessageIds.set([]);
+      this.activeReplyTarget.set(null);
+      this.conversations.update((items) =>
+        items.map((conversation) =>
+          conversation.id === conversationId
+            ? {
+                ...conversation,
+                preview: 'No messages yet',
+              }
+            : conversation,
+        ),
+      );
+      this.isClearChatConfirmOpen.set(false);
+      this.deleteIntent.set('chat');
+    } catch {
+      this.appToastService.show({
+        message: 'We could not clear this chat right now.',
+      });
+    } finally {
+      this.isDeletingMessages.set(false);
+    }
   }
 
   protected closeReplyComposer(): void {

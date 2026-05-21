@@ -51,6 +51,10 @@ export class MessagesService {
     return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/send/`, payload);
   }
 
+  clearConversation(id: string): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/clear/`, {});
+  }
+
   bulkAction(payload: BulkMessageActionRequest): Observable<Record<string, unknown>> {
     return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/bulk-action/`, payload);
   }
