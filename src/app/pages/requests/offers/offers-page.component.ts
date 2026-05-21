@@ -8,7 +8,11 @@ import {
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
+import { SellerRequestsService, type SellerOfferRecord } from '../../../services/seller-requests.service';
+import { AppModeService } from '../../../services/app-mode.service';
 
 interface OfferRecord {
   readonly id: string;
@@ -672,6 +676,9 @@ interface OfferRecord {
 })
 export class OffersPageComponent implements OnDestroy {
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly sellerRequestsService = inject(SellerRequestsService);
+  private readonly appMode = inject(AppModeService);
+  private readonly apiOrigin = this.resolveApiOrigin();
 
   readonly searchTerm = signal('');
   readonly selectedOffer = signal<OfferRecord | null>(null);
@@ -750,6 +757,12 @@ export class OffersPageComponent implements OnDestroy {
     );
   });
 
+  constructor() {
+    if (this.appMode.isBackendEnabled()) {
+      void this.loadOffers();
+    }
+  }
+
   protected updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     this.searchTerm.set(input?.value ?? '');
@@ -777,6 +790,122 @@ export class OffersPageComponent implements OnDestroy {
 
   protected amountFraction(): string {
     return '00';
+  }
+
+  private async loadOffers(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.sellerRequestsService.getReceivedOffers());
+      this.offers.set(response.map((record, index) => this.mapOfferRecord(record, index)));
+    } catch {
+      this.offers.set([]);
+    }
+  }
+
+  private mapOfferRecord(record: SellerOfferRecord, index: number): OfferRecord {
+    const buyer = this.readRecord(record['buyer']);
+    const buyerName =
+      this.readString(buyer?.['full_name']) ??
+      this.readString(buyer?.['username']) ??
+      `Buyer ${index + 1}`;
+    const buyerAvatar =
+      this.resolveMediaUrl(this.readString(buyer?.['avatar'])) ?? '/assets/images/offers-buyer-halima.png';
+    const listingName =
+      this.readString(record['listing_title']) ??
+      this.readString(record['product_name']) ??
+      `Listing ${index + 1}`;
+    const storeName = this.readString(record['store_name']) ?? 'Store';
+    const amount = this.readNumber(record['offer_amount']) ?? 0;
+
+    return {
+      id: this.readId(record['id']) ?? `offer-${index + 1}`,
+      buyerName,
+      buyerAvatar,
+      listingName,
+      listingImage:
+        this.resolveMediaUrl(this.readString(record['listing_image'])) ??
+        '/assets/images/offers-listing-iphone.png',
+      storeName,
+      storeImage: '/assets/icons/offers-store-vine.svg',
+      storeUsesContain: true,
+      offerAmount: amount,
+      dateRequested: this.formatDate(this.readString(record['created_at'])) ?? '---',
+    };
+  }
+
+  private resolveApiOrigin(): string {
+    const apiUrl = (environment.apiUrl ?? '').replace(/\/+$/, '');
+
+    try {
+      return new URL(apiUrl).origin;
+    } catch {
+      return '';
+    }
+  }
+
+  private resolveMediaUrl(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    if (value.startsWith('/')) {
+      return `${this.apiOrigin}${value}`;
+    }
+
+    return `${this.apiOrigin}/${value}`;
+  }
+
+  private formatDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsed);
+  }
+
+  private readId(value: unknown): string | null {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    return null;
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value.replace(/,/g, '').trim());
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
   }
 
   ngOnDestroy(): void {

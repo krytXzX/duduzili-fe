@@ -8,7 +8,13 @@ import {
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
+import {
+  SellerRequestsService,
+  type SellerCallbackRecord,
+} from '../../../services/seller-requests.service';
+import { AppModeService } from '../../../services/app-mode.service';
 
 interface CallbackRecord {
   readonly id: string;
@@ -640,6 +646,8 @@ interface CallbackRecord {
 })
 export class CallbacksPageComponent implements OnDestroy {
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly sellerRequestsService = inject(SellerRequestsService);
+  private readonly appMode = inject(AppModeService);
 
   readonly searchTerm = signal('');
   readonly selectedRequest = signal<CallbackRecord | null>(null);
@@ -718,6 +726,12 @@ export class CallbacksPageComponent implements OnDestroy {
     );
   });
 
+  constructor() {
+    if (this.appMode.isBackendEnabled()) {
+      void this.loadCallbacks();
+    }
+  }
+
   protected updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     this.searchTerm.set(input?.value ?? '');
@@ -737,6 +751,66 @@ export class CallbacksPageComponent implements OnDestroy {
     }
 
     this.selectedRequest.set(null);
+  }
+
+  private async loadCallbacks(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.sellerRequestsService.getReceivedCallbacks());
+      this.callbacks.set(response.map((record, index) => this.mapCallbackRecord(record, index)));
+    } catch {
+      this.callbacks.set([]);
+    }
+  }
+
+  private mapCallbackRecord(record: SellerCallbackRecord, index: number): CallbackRecord {
+    return {
+      id: this.readId(record['id']) ?? `callback-${index + 1}`,
+      buyerName: this.readString(record['buyer_name']) ?? `Buyer ${index + 1}`,
+      buyerAvatar: '/assets/images/offers-buyer-halima.png',
+      phoneNumber: this.readString(record['phone_number']) ?? '---',
+      listingName:
+        this.readString(record['product_name']) ??
+        this.readString(record['listing_title']) ??
+        `Listing ${index + 1}`,
+      listingImage: '/assets/images/offers-listing-iphone.png',
+      storeName: this.readString(record['store_name']) ?? 'Store',
+      storeImage: '/assets/icons/offers-store-vine.svg',
+      storeUsesContain: true,
+      dateRequested: this.formatDate(this.readString(record['date_requested'])) ?? '---',
+    };
+  }
+
+  private formatDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsed);
+  }
+
+  private readId(value: unknown): string | null {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    return null;
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
   }
 
   ngOnDestroy(): void {
