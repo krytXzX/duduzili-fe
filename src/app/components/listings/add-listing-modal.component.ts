@@ -407,7 +407,7 @@ type PickerOption = {
                           (click)="openPicker('condition')"
                           class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none"
                         >
-                          <span>{{ listingForm.value.condition || 'Select condition' }}</span>
+                          <span>{{ selectedConditionLabel() || 'Select condition' }}</span>
                           <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
                         </button>
                       </div>
@@ -474,7 +474,7 @@ type PickerOption = {
                         (click)="openPicker('condition')"
                         class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all"
                       >
-                        <span>{{ listingForm.value.condition || 'Select condition' }}</span>
+                        <span>{{ selectedConditionLabel() || 'Select condition' }}</span>
                         <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
                       </button>
                     </div>
@@ -986,7 +986,7 @@ type PickerOption = {
                             <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ selectedCategoryLabel() || '---' }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Condition</span>
-                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.condition || '---' }}</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ selectedConditionLabel() || '---' }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Store</span>
                             <span class="text-right text-[12px] font-medium text-[#202335]">{{ selectedStoreLabel() || '---' }}</span>
@@ -1091,7 +1091,7 @@ type PickerOption = {
                              </div>
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Condition</span>
-                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ listingForm.value.condition || '---' }}</span>
+                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ selectedConditionLabel() || '---' }}</span>
                              </div>
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Store</span>
@@ -1541,8 +1541,8 @@ export class AddListingModalComponent implements OnDestroy {
   readonly pickerSearch = signal('');
 
   readonly conditionOptions: readonly PickerOption[] = [
-    { value: 'Brand new', label: 'Brand new' },
-    { value: 'Fairly used', label: 'Fairly used' },
+    { value: 'new', label: 'Brand new' },
+    { value: 'used', label: 'Fairly used' },
   ];
 
   readonly locationOptions: readonly PickerOption[] = [
@@ -1716,6 +1716,11 @@ export class AddListingModalComponent implements OnDestroy {
   selectedStoreLabel(): string {
     const currentValue = this.listingForm.value.store as string | null;
     return this.storeOptions().find((option) => option.value === currentValue)?.label ?? '';
+  }
+
+  selectedConditionLabel(): string {
+    const currentValue = this.listingForm.value.condition as string | null;
+    return this.conditionOptions.find((option) => option.value === currentValue)?.label ?? '';
   }
 
   openPicker(kind: PickerKind): void {
