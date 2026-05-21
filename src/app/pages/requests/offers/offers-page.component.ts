@@ -12,11 +12,18 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 import {
+  CustomDropdownComponent,
+  type CustomDropdownOption,
+} from '../../../components/ui/custom-dropdown.component';
+import {
   SellerRequestsService,
   type SellerOfferRecord,
   type SellerOffersResponse,
 } from '../../../services/seller-requests.service';
 import { AppModeService } from '../../../services/app-mode.service';
+
+type OfferStoreFilter = 'all' | string;
+type OfferDateFilter = 'newest' | 'oldest';
 
 interface OfferRecord {
   readonly id: string;
@@ -29,11 +36,12 @@ interface OfferRecord {
   readonly storeUsesContain?: boolean;
   readonly offerAmount: number;
   readonly dateRequested: string;
+  readonly dateRequestedAt: number | null;
 }
 
 @Component({
   selector: 'app-offers-page',
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [NgOptimizedImage, RouterLink, CustomDropdownComponent],
   template: `
     <div class="flex h-full min-h-0 flex-col bg-white md:bg-[#FFFEFD]">
       <div class="hidden h-full min-h-0 md:flex md:flex-col">
@@ -54,37 +62,31 @@ interface OfferRecord {
             >
               <div class="flex items-center justify-between gap-6 px-[15px] pb-[15px] pt-[15px]">
                 <div class="flex items-start gap-2">
-                  <button
-                    type="button"
-                    class="flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] px-3 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                  >
-                    <span class="text-[14px] font-medium leading-5 text-[#36394A]">
-                      <span class="text-[rgba(26,27,29,0.5)]">Store:</span> All
-                    </span>
-                    <img
-                      ngSrc="/assets/icons/offers-chevron-down.svg"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="h-4 w-4"
-                    />
-                  </button>
+                  <app-custom-dropdown
+                    [options]="storeFilterOptions()"
+                    [value]="selectedStoreFilter()"
+                    ariaLabel="Filter offers by store"
+                    [buttonClass]="dropdownButtonClass"
+                    [labelClass]="dropdownLabelClass"
+                    [iconClass]="dropdownIconClass"
+                    [menuClass]="dropdownMenuClass"
+                    [optionClass]="dropdownOptionClass"
+                    [activeOptionClass]="dropdownActiveOptionClass"
+                    (valueChange)="updateStoreFilter($event)"
+                  />
 
-                  <button
-                    type="button"
-                    class="flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] px-3 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                  >
-                    <span class="text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)]">
-                      Date requested
-                    </span>
-                    <img
-                      ngSrc="/assets/icons/offers-chevron-down.svg"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="h-4 w-4"
-                    />
-                  </button>
+                  <app-custom-dropdown
+                    [options]="dateFilterOptions"
+                    [value]="selectedDateFilter()"
+                    ariaLabel="Sort offers by date requested"
+                    [buttonClass]="dropdownButtonClass"
+                    [labelClass]="dropdownLabelClass"
+                    [iconClass]="dropdownIconClass"
+                    [menuClass]="dropdownMenuClass"
+                    [optionClass]="dropdownOptionClass"
+                    [activeOptionClass]="dropdownActiveOptionClass"
+                    (valueChange)="updateDateFilter($event)"
+                  />
                 </div>
 
                 <label
@@ -232,7 +234,7 @@ interface OfferRecord {
 
             <div class="flex items-center justify-between">
               <p class="text-[16px] font-medium leading-normal text-[#1A1B1D]">
-                {{ totalResults() }} <span class="text-[rgba(26,27,29,0.5)]">results</span>
+                {{ visibleResultsCount() }} <span class="text-[rgba(26,27,29,0.5)]">results</span>
               </p>
 
               <div class="flex items-center gap-2 opacity-50">
@@ -690,10 +692,24 @@ export class OffersPageComponent implements OnDestroy {
 
   readonly searchTerm = signal('');
   readonly selectedOffer = signal<OfferRecord | null>(null);
+  readonly selectedStoreFilter = signal<OfferStoreFilter>('all');
+  readonly selectedDateFilter = signal<OfferDateFilter>('newest');
   readonly currentPage = signal(1);
   readonly totalResults = signal(0);
   readonly hasNextPage = signal(false);
   readonly hasPreviousPage = signal(false);
+  readonly dropdownButtonClass =
+    'flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] px-3 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]';
+  readonly dropdownLabelClass = 'text-[14px] font-medium leading-5 text-[#36394A]';
+  readonly dropdownIconClass = 'text-[#36394A]';
+  readonly dropdownMenuClass = 'min-w-[200px]';
+  readonly dropdownOptionClass =
+    'flex w-full items-center rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F7F7FA]';
+  readonly dropdownActiveOptionClass = 'bg-[#F7F7FA] text-[#1A1B1D]';
+  readonly dateFilterOptions: readonly CustomDropdownOption<OfferDateFilter>[] = [
+    { value: 'newest', label: 'Date requested: Newest first' },
+    { value: 'oldest', label: 'Date requested: Oldest first' },
+  ] as const;
 
   readonly offers = signal<readonly OfferRecord[]>([
     {
@@ -707,6 +723,7 @@ export class OffersPageComponent implements OnDestroy {
       storeUsesContain: true,
       offerAmount: 2500000,
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '2',
@@ -718,6 +735,7 @@ export class OffersPageComponent implements OnDestroy {
       storeImage: '/assets/images/offers-store-eden.png',
       offerAmount: 2500000,
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '3',
@@ -729,6 +747,7 @@ export class OffersPageComponent implements OnDestroy {
       storeImage: '/assets/images/offers-store-amazing.png',
       offerAmount: 2500000,
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '4',
@@ -740,6 +759,7 @@ export class OffersPageComponent implements OnDestroy {
       storeImage: '/assets/images/offers-store-personal.png',
       offerAmount: 2500000,
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '5',
@@ -752,21 +772,46 @@ export class OffersPageComponent implements OnDestroy {
       storeUsesContain: true,
       offerAmount: 2500000,
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
   ]);
 
   readonly filteredOffers = computed(() => {
     const query = this.searchTerm().trim().toLowerCase();
+    const storeFilter = this.selectedStoreFilter();
+    const matches = this.offers().filter((offer) => {
+      const matchesQuery =
+        !query ||
+        [offer.buyerName, offer.listingName, offer.storeName].some((value) =>
+          value.toLowerCase().includes(query),
+        );
+      const matchesStore = storeFilter === 'all' || offer.storeName === storeFilter;
+      return matchesQuery && matchesStore;
+    });
 
-    if (!query) {
-      return this.offers();
-    }
-
-    return this.offers().filter((offer) =>
-      [offer.buyerName, offer.listingName, offer.storeName].some((value) =>
-        value.toLowerCase().includes(query),
+    return [...matches].sort((left, right) => {
+      const leftTime = left.dateRequestedAt ?? 0;
+      const rightTime = right.dateRequestedAt ?? 0;
+      return this.selectedDateFilter() === 'oldest' ? leftTime - rightTime : rightTime - leftTime;
+    });
+  });
+  readonly visibleResultsCount = computed(() => this.filteredOffers().length);
+  readonly storeFilterOptions = computed<readonly CustomDropdownOption<OfferStoreFilter>[]>(() => {
+    const names = Array.from(
+      new Set(
+        this.offers()
+          .map((offer) => offer.storeName.trim())
+          .filter((storeName) => storeName.length > 0),
       ),
-    );
+    ).sort((left, right) => left.localeCompare(right));
+
+    return [
+      { value: 'all', label: 'Store: All' },
+      ...names.map((storeName) => ({
+        value: storeName,
+        label: `Store: ${storeName}`,
+      })),
+    ];
   });
   readonly totalPages = computed(() =>
     Math.max(1, Math.ceil(this.totalResults() / this.sellerRequestsService.getPageSize())),
@@ -781,6 +826,14 @@ export class OffersPageComponent implements OnDestroy {
   protected updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     this.searchTerm.set(input?.value ?? '');
+  }
+
+  protected updateStoreFilter(value: OfferStoreFilter): void {
+    this.selectedStoreFilter.set(value);
+  }
+
+  protected updateDateFilter(value: OfferDateFilter): void {
+    this.selectedDateFilter.set(value);
   }
 
   protected openDetails(offer: OfferRecord): void {
@@ -912,6 +965,7 @@ export class OffersPageComponent implements OnDestroy {
       storeUsesContain: true,
       offerAmount: amount,
       dateRequested: this.formatDate(this.readString(record['created_at'])) ?? '---',
+      dateRequestedAt: this.readTimestamp(record['created_at']),
     };
   }
 
@@ -985,6 +1039,16 @@ export class OffersPageComponent implements OnDestroy {
     }
 
     return null;
+  }
+
+  private readTimestamp(value: unknown): number | null {
+    const raw = this.readString(value);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = new Date(raw).getTime();
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private readRecord(value: unknown): Record<string, unknown> | null {

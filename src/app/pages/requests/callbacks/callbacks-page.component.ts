@@ -11,11 +11,18 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 import {
+  CustomDropdownComponent,
+  type CustomDropdownOption,
+} from '../../../components/ui/custom-dropdown.component';
+import {
   SellerRequestsService,
   type SellerCallbackRecord,
   type SellerCallbacksResponse,
 } from '../../../services/seller-requests.service';
 import { AppModeService } from '../../../services/app-mode.service';
+
+type CallbackStoreFilter = 'all' | string;
+type CallbackDateFilter = 'newest' | 'oldest';
 
 interface CallbackRecord {
   readonly id: string;
@@ -28,11 +35,12 @@ interface CallbackRecord {
   readonly storeImage: string;
   readonly storeUsesContain?: boolean;
   readonly dateRequested: string;
+  readonly dateRequestedAt: number | null;
 }
 
 @Component({
   selector: 'app-callbacks-page',
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [NgOptimizedImage, RouterLink, CustomDropdownComponent],
   template: `
     <div class="flex h-full min-h-0 flex-col bg-white md:bg-[#FFFEFD]">
       <div class="hidden h-full min-h-0 md:flex md:flex-col">
@@ -53,37 +61,31 @@ interface CallbackRecord {
             >
               <div class="flex items-center justify-between gap-6 px-[15px] pb-[15px] pt-[15px]">
                 <div class="flex items-start gap-2">
-                  <button
-                    type="button"
-                    class="flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] px-3 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                  >
-                    <span class="text-[14px] font-medium leading-5 text-[#36394A]">
-                      <span class="text-[rgba(26,27,29,0.5)]">Store:</span> All
-                    </span>
-                    <img
-                      ngSrc="/assets/icons/offers-chevron-down.svg"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="h-4 w-4"
-                    />
-                  </button>
+                  <app-custom-dropdown
+                    [options]="storeFilterOptions()"
+                    [value]="selectedStoreFilter()"
+                    ariaLabel="Filter callback requests by store"
+                    [buttonClass]="dropdownButtonClass"
+                    [labelClass]="dropdownLabelClass"
+                    [iconClass]="dropdownIconClass"
+                    [menuClass]="dropdownMenuClass"
+                    [optionClass]="dropdownOptionClass"
+                    [activeOptionClass]="dropdownActiveOptionClass"
+                    (valueChange)="updateStoreFilter($event)"
+                  />
 
-                  <button
-                    type="button"
-                    class="flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] px-3 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
-                  >
-                    <span class="text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)]">
-                      Date requested
-                    </span>
-                    <img
-                      ngSrc="/assets/icons/offers-chevron-down.svg"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="h-4 w-4"
-                    />
-                  </button>
+                  <app-custom-dropdown
+                    [options]="dateFilterOptions"
+                    [value]="selectedDateFilter()"
+                    ariaLabel="Sort callback requests by date requested"
+                    [buttonClass]="dropdownButtonClass"
+                    [labelClass]="dropdownLabelClass"
+                    [iconClass]="dropdownIconClass"
+                    [menuClass]="dropdownMenuClass"
+                    [optionClass]="dropdownOptionClass"
+                    [activeOptionClass]="dropdownActiveOptionClass"
+                    (valueChange)="updateDateFilter($event)"
+                  />
                 </div>
 
                 <label
@@ -221,7 +223,7 @@ interface CallbackRecord {
 
             <div class="flex items-center justify-between">
               <p class="text-[16px] font-medium leading-normal text-[#1A1B1D]">
-                {{ totalResults() }}
+                {{ visibleResultsCount() }}
                 <span class="text-[rgba(26,27,29,0.5)]">results</span>
               </p>
 
@@ -656,10 +658,24 @@ export class CallbacksPageComponent implements OnDestroy {
 
   readonly searchTerm = signal('');
   readonly selectedRequest = signal<CallbackRecord | null>(null);
+  readonly selectedStoreFilter = signal<CallbackStoreFilter>('all');
+  readonly selectedDateFilter = signal<CallbackDateFilter>('newest');
   readonly currentPage = signal(1);
   readonly totalResults = signal(0);
   readonly hasNextPage = signal(false);
   readonly hasPreviousPage = signal(false);
+  readonly dropdownButtonClass =
+    'flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] px-3 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]';
+  readonly dropdownLabelClass = 'text-[14px] font-medium leading-5 text-[#36394A]';
+  readonly dropdownIconClass = 'text-[#36394A]';
+  readonly dropdownMenuClass = 'min-w-[220px]';
+  readonly dropdownOptionClass =
+    'flex w-full items-center rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F7F7FA]';
+  readonly dropdownActiveOptionClass = 'bg-[#F7F7FA] text-[#1A1B1D]';
+  readonly dateFilterOptions: readonly CustomDropdownOption<CallbackDateFilter>[] = [
+    { value: 'newest', label: 'Date requested: Newest first' },
+    { value: 'oldest', label: 'Date requested: Oldest first' },
+  ] as const;
 
   readonly callbacks = signal<readonly CallbackRecord[]>([
     {
@@ -673,6 +689,7 @@ export class CallbacksPageComponent implements OnDestroy {
       storeImage: '/assets/icons/offers-store-vine.svg',
       storeUsesContain: true,
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '2',
@@ -684,6 +701,7 @@ export class CallbacksPageComponent implements OnDestroy {
       storeName: 'Eden Organics',
       storeImage: '/assets/images/offers-store-eden.png',
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '3',
@@ -695,6 +713,7 @@ export class CallbacksPageComponent implements OnDestroy {
       storeName: 'Amazing Fragrances',
       storeImage: '/assets/images/offers-store-amazing.png',
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '4',
@@ -706,6 +725,7 @@ export class CallbacksPageComponent implements OnDestroy {
       storeName: 'Personal account',
       storeImage: '/assets/images/offers-store-personal.png',
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
     {
       id: '5',
@@ -718,22 +738,49 @@ export class CallbacksPageComponent implements OnDestroy {
       storeImage: '/assets/icons/offers-store-vine.svg',
       storeUsesContain: true,
       dateRequested: '14 Feb, 2025',
+      dateRequestedAt: new Date('2025-02-14').getTime(),
     },
   ]);
 
   readonly filteredCallbacks = computed(() => {
     const query = this.searchTerm().trim().toLowerCase();
+    const storeFilter = this.selectedStoreFilter();
+    const matches = this.callbacks().filter((request) => {
+      const matchesQuery =
+        !query ||
+        [request.buyerName, request.listingName, request.storeName, request.phoneNumber].some(
+          (value) => value.toLowerCase().includes(query),
+        );
+      const matchesStore = storeFilter === 'all' || request.storeName === storeFilter;
+      return matchesQuery && matchesStore;
+    });
 
-    if (!query) {
-      return this.callbacks();
-    }
-
-    return this.callbacks().filter((request) =>
-      [request.buyerName, request.listingName, request.storeName, request.phoneNumber].some(
-        (value) => value.toLowerCase().includes(query),
-      ),
-    );
+    return [...matches].sort((left, right) => {
+      const leftTime = left.dateRequestedAt ?? 0;
+      const rightTime = right.dateRequestedAt ?? 0;
+      return this.selectedDateFilter() === 'oldest' ? leftTime - rightTime : rightTime - leftTime;
+    });
   });
+  readonly visibleResultsCount = computed(() => this.filteredCallbacks().length);
+  readonly storeFilterOptions = computed<readonly CustomDropdownOption<CallbackStoreFilter>[]>(
+    () => {
+      const names = Array.from(
+        new Set(
+          this.callbacks()
+            .map((request) => request.storeName.trim())
+            .filter((storeName) => storeName.length > 0),
+        ),
+      ).sort((left, right) => left.localeCompare(right));
+
+      return [
+        { value: 'all', label: 'Store: All' },
+        ...names.map((storeName) => ({
+          value: storeName,
+          label: `Store: ${storeName}`,
+        })),
+      ];
+    },
+  );
   readonly totalPages = computed(() =>
     Math.max(1, Math.ceil(this.totalResults() / this.sellerRequestsService.getPageSize())),
   );
@@ -747,6 +794,14 @@ export class CallbacksPageComponent implements OnDestroy {
   protected updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     this.searchTerm.set(input?.value ?? '');
+  }
+
+  protected updateStoreFilter(value: CallbackStoreFilter): void {
+    this.selectedStoreFilter.set(value);
+  }
+
+  protected updateDateFilter(value: CallbackDateFilter): void {
+    this.selectedDateFilter.set(value);
   }
 
   protected openDetails(request: CallbackRecord): void {
@@ -870,7 +925,18 @@ export class CallbacksPageComponent implements OnDestroy {
       storeImage: '/assets/icons/offers-store-vine.svg',
       storeUsesContain: true,
       dateRequested: this.formatDate(this.readString(record['date_requested'])) ?? '---',
+      dateRequestedAt: this.readTimestamp(record['date_requested']),
     };
+  }
+
+  private readTimestamp(value: unknown): number | null {
+    const raw = this.readString(value);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = new Date(raw).getTime();
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private formatDate(value: string | null): string | null {
