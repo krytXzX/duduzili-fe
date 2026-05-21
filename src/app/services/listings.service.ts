@@ -59,6 +59,10 @@ export interface CreateListingReportRequest {
   description: string;
 }
 
+export interface CreateSellerReportRequest {
+  reason: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ListingsService {
   private readonly http = inject(HttpClient);
@@ -89,6 +93,19 @@ export class ListingsService {
       payload,
       {
         params: { type: 'listing' },
+      },
+    );
+  }
+
+  createSellerReport(
+    listingId: string,
+    payload: CreateSellerReportRequest,
+  ): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(
+      `${this.apiUrl}/reports/${listingId}/report/`,
+      payload,
+      {
+        params: { type: 'vendor' },
       },
     );
   }

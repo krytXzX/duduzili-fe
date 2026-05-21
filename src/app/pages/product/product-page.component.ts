@@ -102,6 +102,7 @@ export class ProductPageComponent {
   readonly currentGalleryIndex = signal(0);
   readonly isFollowPending = signal(false);
   readonly isSubmittingListingReport = signal(false);
+  readonly isSubmittingSellerReport = signal(false);
   readonly isStartingConversation = signal(false);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
   readonly currentGalleryImage = computed(
@@ -575,12 +576,12 @@ export class ProductPageComponent {
   }
 
   async submitReport(): Promise<void> {
-    if (this.reportForm.invalid) {
-      this.reportForm.markAllAsTouched();
-      return;
-    }
-
     if (this.reportSubject() === 'listing') {
+      if (this.reportForm.invalid) {
+        this.reportForm.markAllAsTouched();
+        return;
+      }
+
       if (this.isSubmittingListingReport()) {
         return;
       }
@@ -605,13 +606,59 @@ export class ProductPageComponent {
       return;
     }
 
-    this.closeReportModal();
-    this.isSellerReportSuccessModalOpen.set(true);
+    const listingId = this.product().id;
+    const sellerReason = this.toSellerReportReason(this.selectedSellerReportReason());
+
+    if (!listingId || !sellerReason) {
+      this.appToastService.show({
+        message: 'Unable to submit seller report right now.',
+      });
+      return;
+    }
+
+    if (this.isSubmittingSellerReport()) {
+      return;
+    }
+
+    this.isSubmittingSellerReport.set(true);
+
+    try {
+      await firstValueFrom(
+        this.listingsService.createSellerReport(listingId, {
+          reason: sellerReason,
+        }),
+      );
+      this.closeReportModal();
+      this.isSellerReportSuccessModalOpen.set(true);
+    } catch {
+      this.appToastService.show({
+        message: 'Unable to submit seller report right now.',
+      });
+    } finally {
+      this.isSubmittingSellerReport.set(false);
+    }
   }
 
   private resetSellerReportFlow(): void {
     this.sellerReportStep.set(1);
     this.selectedSellerReportReason.set(null);
+  }
+
+  private toSellerReportReason(reason: string | null): string | null {
+    switch (reason) {
+      case 'Suspected scam or fraud':
+        return 'scam';
+      case 'Seller is unresponsive after payment':
+        return 'unresponsive';
+      case 'Selling prohibited or illegal items':
+        return 'prohibited';
+      case 'Repeatedly listing sold/unavailable items':
+        return 'spam';
+      case 'Other reason':
+        return 'other';
+      default:
+        return null;
+    }
   }
 
   private async loadProductDetails(): Promise<void> {

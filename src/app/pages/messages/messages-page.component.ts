@@ -15,6 +15,7 @@ import { SellerReportModalComponent } from '../../components/product/seller-repo
 import { AppToastService } from '../../services/app-toast.service';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { ListingsService } from '../../services/listings.service';
 import {
   MessageConversationApiItem,
   MessagesResponse,
@@ -49,6 +50,7 @@ const EMPTY_CONVERSATION: Conversation = {
 };
 
 interface MessageDetailsResponse extends Record<string, unknown> {
+  listing?: unknown;
   results?: readonly Record<string, unknown>[];
   messages?: readonly Record<string, unknown>[];
   data?: readonly Record<string, unknown>[];
@@ -1971,6 +1973,7 @@ export class MessagesPageComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly messagesService = inject(MessagesService);
+  private readonly listingsService = inject(ListingsService);
   private readonly appToastService = inject(AppToastService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly authSession = inject(AuthSessionService);
@@ -2061,6 +2064,7 @@ export class MessagesPageComponent implements OnDestroy {
   readonly isLoadingConversationDetails = signal(false);
   readonly isSendingMessage = signal(false);
   readonly isDeletingMessages = signal(false);
+  readonly isSubmittingSellerReport = signal(false);
   readonly hasConversations = computed(() => this.conversations().length > 0);
   readonly clearChatConfirmTitle = computed(() =>
     this.deleteIntent() === 'messages' ? 'Delete selected messages?' : 'Remove this chat?',
@@ -2081,10 +2085,11 @@ export class MessagesPageComponent implements OnDestroy {
   readonly storeOptions = signal<readonly StoreOption[]>([]);
 
   readonly conversations = signal<Conversation[]>([]);
+  readonly conversationListingIds = signal<Record<string, string>>({});
 
   readonly conversationDays = signal<Record<string, readonly ChatDay[]>>({});
   readonly sellerReportForm = this.formBuilder.nonNullable.group({
-    details: ['', [Validators.required]],
+    details: [''],
   });
   readonly sellerReportReasons = [
     'Suspected scam or fraud',
@@ -2385,6 +2390,23 @@ export class MessagesPageComponent implements OnDestroy {
     this.sellerReportForm.reset({ details: '' });
   }
 
+  private toSellerReportReason(reason: string | null): string | null {
+    switch (reason) {
+      case 'Suspected scam or fraud':
+        return 'scam';
+      case 'Seller is unresponsive after payment':
+        return 'unresponsive';
+      case 'Selling prohibited or illegal items':
+        return 'prohibited';
+      case 'Repeatedly listing sold/unavailable items':
+        return 'spam';
+      case 'Other reason':
+        return 'other';
+      default:
+        return null;
+    }
+  }
+
   private toStoreOption(item: SellerStoreApiItem, index: number): StoreOption | null {
     const id = this.readId(item['id']) ?? `store-${index + 1}`;
     const label =
@@ -2421,7 +2443,15 @@ export class MessagesPageComponent implements OnDestroy {
 
     try {
       const response = await firstValueFrom(this.messagesService.getMessageDetails(chatId));
+      const listingId = this.readId(response['listing']);
       const mappedDays = this.toConversationDays(response);
+
+      if (listingId) {
+        this.conversationListingIds.update((current) => ({
+          ...current,
+          [chatId]: listingId,
+        }));
+      }
 
       if (mappedDays.length > 0) {
         this.conversationDays.update((current) => ({
@@ -2507,6 +2537,16 @@ export class MessagesPageComponent implements OnDestroy {
 
     if (typeof value === 'number' && Number.isFinite(value)) {
       return String(value);
+    }
+
+    const record = this.readRecord(value);
+    if (record) {
+      return (
+        this.readId(record['id']) ??
+        this.readId(record['pk']) ??
+        this.readId(record['listing_id']) ??
+        null
+      );
     }
 
     return null;
@@ -2815,14 +2855,44 @@ export class MessagesPageComponent implements OnDestroy {
     this.sellerReportStep.set(1);
   }
 
-  protected submitSellerReport(): void {
-    if (this.sellerReportForm.invalid) {
-      this.sellerReportForm.markAllAsTouched();
+  protected async submitSellerReport(): Promise<void> {
+    const activeConversation = this.resolveActiveConversation();
+    const activeChatId = activeConversation?.id ?? '';
+    const listingId =
+      activeConversation?.listingId ??
+      this.conversationListingIds()[activeChatId] ??
+      null;
+    const sellerReason = this.toSellerReportReason(this.selectedSellerReportReason());
+
+    if (!listingId || !sellerReason) {
+      this.appToastService.show({
+        message: 'Unable to submit seller report right now.',
+      });
       return;
     }
 
-    this.isSellerReportModalOpen.set(false);
-    this.isSellerReportSuccessModalOpen.set(true);
+    if (this.isSubmittingSellerReport()) {
+      return;
+    }
+
+    this.isSubmittingSellerReport.set(true);
+
+    try {
+      await firstValueFrom(
+        this.listingsService.createSellerReport(listingId, {
+          reason: sellerReason,
+        }),
+      );
+      this.isSellerReportModalOpen.set(false);
+      this.isSellerReportSuccessModalOpen.set(true);
+      this.resetSellerReportFlow();
+    } catch {
+      this.appToastService.show({
+        message: 'Unable to submit seller report right now.',
+      });
+    } finally {
+      this.isSubmittingSellerReport.set(false);
+    }
   }
 
   protected openClearChatConfirm(): void {
