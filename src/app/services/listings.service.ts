@@ -91,6 +91,10 @@ export class ListingsService {
     return this.http.post<ListingsApiItem>(`${this.apiUrl}/listings/`, payload);
   }
 
+  saveListingDraft(payload: FormData): Observable<ListingsApiItem> {
+    return this.http.post<ListingsApiItem>(`${this.apiUrl}/listings/save-draft/`, payload);
+  }
+
   createListingReport(
     listingId: string,
     payload: CreateListingReportRequest,

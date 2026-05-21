@@ -89,7 +89,11 @@ type PickerOption = {
           </div>
 
           @if (currentStep() < 5) {
-            <button type="button" class="text-[14px] font-medium text-[#2A2D34] underline underline-offset-2">
+            <button
+              type="button"
+              (click)="saveDraft()"
+              class="text-[14px] font-medium text-[#2A2D34] underline underline-offset-2"
+            >
               Save to drafts
             </button>
           }
@@ -123,7 +127,11 @@ type PickerOption = {
         </div>
         @if (currentStep() < 5) {
           <div>
-            <button class="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors tracking-tight">
+            <button
+              type="button"
+              (click)="saveDraft()"
+              class="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors tracking-tight"
+            >
               Save to drafts
             </button>
           </div>
@@ -1522,11 +1530,13 @@ export class AddListingModalComponent implements OnDestroy {
   
   close = output<void>();
   save = output<ListingData>();
+  draftSaved = output<void>();
   readonly categoryOptionsInput = input<readonly PickerOption[]>([]);
   readonly storeOptionsInput = input<readonly PickerOption[]>([]);
 
   currentStep = signal(1);
   isPublishing = signal(false);
+  isSavingDraft = signal(false);
   
   listingForm!: FormGroup;
 
@@ -1806,6 +1816,10 @@ export class AddListingModalComponent implements OnDestroy {
     void this.publishListing();
   }
 
+  saveDraft(): void {
+    void this.persistDraft();
+  }
+
   private async publishListing(): Promise<void> {
     if (this.isPublishing()) {
       return;
@@ -1828,6 +1842,40 @@ export class AddListingModalComponent implements OnDestroy {
       });
     } finally {
       this.isPublishing.set(false);
+    }
+  }
+
+  private async persistDraft(): Promise<void> {
+    if (this.isSavingDraft()) {
+      return;
+    }
+
+    if (!this.listingForm.valid) {
+      this.listingForm.markAllAsTouched();
+      this.appToastService.show({
+        message: 'Please complete the required listing details before saving this draft.',
+        durationMs: 2600,
+      });
+      return;
+    }
+
+    this.isSavingDraft.set(true);
+
+    try {
+      await firstValueFrom(this.listingsService.saveListingDraft(this.buildCreateListingPayload()));
+      this.appToastService.show({
+        message: 'Listing saved to drafts.',
+        durationMs: 2200,
+      });
+      this.draftSaved.emit();
+      this.close.emit();
+    } catch {
+      this.appToastService.show({
+        message: 'We could not save your draft right now.',
+        durationMs: 2600,
+      });
+    } finally {
+      this.isSavingDraft.set(false);
     }
   }
 
