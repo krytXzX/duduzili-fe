@@ -1,9 +1,18 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
 import { createSparkBarChartOptions } from '../../components/charts/chart-mock-data';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
+import { environment } from '../../../environments/environment';
+import {
+  VendorsService,
+  type MyStoresResponse,
+  type VendorAnalyticsRecord,
+  type VendorRecord,
+} from '../../services/vendors.service';
+import { AppModeService } from '../../services/app-mode.service';
 
 interface SummaryMetric {
   label: string;
@@ -18,13 +27,13 @@ interface DistributionItem {
 }
 
 interface StoreAvatar {
-  id: 'vine' | 'eden' | 'amazing' | 'badge';
+  id: string;
   src: string;
   alt: string;
 }
 
 type AnalyticsRange = '7d' | '30d' | '90d';
-type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
+type AnalyticsStoreFilter = string;
 
 @Component({
   selector: 'app-analytics-page',
@@ -57,7 +66,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
 
         <div class="mt-[25px] overflow-x-auto border-y border-[#EDEDED] py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div class="flex min-w-max items-center gap-8 pr-8">
-            @for (metric of summaryMetrics; track metric.label) {
+            @for (metric of summaryMetrics(); track metric.label) {
               <div class="flex min-w-[72px] flex-col gap-1">
                 <p class="text-[14px] font-medium leading-[normal] text-[rgba(26,27,29,0.5)]">
                   {{ metric.label }}
@@ -113,7 +122,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
             >
               <div class="overflow-hidden rounded-[8.716px] border border-[#EAEAEA] bg-[#EFEFEF]">
                 <img
-                  [ngSrc]="assets.mostViewedImage"
+                  [ngSrc]="mostViewedImage()"
                   width="82"
                   height="98"
                   alt="Most viewed listing"
@@ -122,7 +131,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
               </div>
               <div class="px-[1.7px] pt-[5.2px]">
                 <div class="flex items-center justify-between gap-2">
-                  <span class="text-[6.1px] leading-[8.7px] text-[#1F1F1F]">Iphone 17 pro max</span>
+                  <span class="text-[6.1px] leading-[8.7px] text-[#1F1F1F]">{{ mostViewedTitle() }}</span>
                   <span class="rounded-[435px] bg-[#F0F0F0] px-[3.5px] py-[0.9px] text-[5.23px] leading-[6.97px] text-[#1F1F1F]">
                     New
                   </span>
@@ -135,7 +144,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
             </div>
 
             <p class="mt-6 max-w-[246px] text-center text-[17px] font-medium leading-[1.3] text-[rgba(13,13,13,0.5)]">
-              This item has been viewed <span class="text-[#0D0D0D]">34,002</span> times
+              {{ mostViewedViewsText() }}
             </p>
           </div>
         </section>
@@ -159,7 +168,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
           </p>
 
           <div class="mt-6 flex items-center gap-0.5">
-            @for (item of distributionItems; track item.label) {
+            @for (item of distributionItems(); track item.label) {
               <span
                 class="h-1 rounded-[14px]"
                 [style.width]="item.width"
@@ -169,7 +178,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
           </div>
 
           <div class="mt-6 space-y-6">
-            @for (item of distributionItems; track item.label) {
+            @for (item of distributionItems(); track item.label) {
               <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-[10px]">
                   <span class="h-3 w-3 rounded-[22px]" [style.background]="item.color"></span>
@@ -200,7 +209,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
           <h1 class="text-[24px] font-medium leading-[normal] text-[#0D0D0D]">Analytics</h1>
 
           <app-custom-dropdown
-            [options]="storeOptions"
+            [options]="storeOptions()"
             [value]="selectedStoreFilter()"
             [ariaLabel]="'Filter analytics by store'"
             [buttonClass]="'inline-flex h-11 items-center justify-between rounded-[32px] border border-[#EAEAEA] bg-white p-2 pr-3 w-[347px]'"
@@ -209,13 +218,13 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
             [menuClass]="'min-w-[220px]'"
             [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
             [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
-            (valueChange)="selectedStoreFilter.set($event)"
+            (valueChange)="onStoreFilterChange($event)"
           ></app-custom-dropdown>
         </div>
 
         <div class="flex-1 overflow-y-auto px-[19px] pb-5 pt-[17px]">
           <div class="grid grid-cols-4 border-y border-[#EDEDED] py-4">
-            @for (metric of summaryMetrics; track metric.label) {
+            @for (metric of summaryMetrics(); track metric.label) {
               <div class="flex min-h-[57px] flex-col justify-between pr-4">
                 <p class="text-[16px] font-medium leading-[normal] text-[rgba(26,27,29,0.5)]">
                   {{ metric.label }}
@@ -278,7 +287,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
                 >
                   <div class="overflow-hidden rounded-[8.716px] border border-[#EAEAEA] bg-[#EFEFEF]">
                     <img
-                      [ngSrc]="assets.mostViewedImage"
+                      [ngSrc]="mostViewedImage()"
                       width="82"
                       height="98"
                       alt="Most viewed listing"
@@ -287,7 +296,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
                   </div>
                   <div class="px-[1.7px] pt-[5.2px]">
                     <div class="flex items-center justify-between gap-2">
-                      <span class="text-[6.1px] leading-[8.7px] text-[#1F1F1F]">Iphone 17 pro max</span>
+                      <span class="text-[6.1px] leading-[8.7px] text-[#1F1F1F]">{{ mostViewedTitle() }}</span>
                       <span class="rounded-[435px] bg-[#F0F0F0] px-[3.5px] py-[0.9px] text-[5.23px] leading-[6.97px] text-[#1F1F1F]">
                         New
                       </span>
@@ -300,7 +309,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
                 </div>
 
                 <p class="mt-[21px] max-w-[246px] text-center text-[17px] font-medium leading-[1.3] text-[rgba(13,13,13,0.5)]">
-                  This item has been viewed <span class="text-[#0D0D0D]">34,002</span> times
+                  {{ mostViewedViewsText() }}
                 </p>
               </div>
             </section>
@@ -324,7 +333,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
               </p>
 
               <div class="mt-[18px] flex items-center gap-0.5">
-                @for (item of distributionItems; track item.label) {
+                @for (item of distributionItems(); track item.label) {
                   <span
                     class="h-1 rounded-[14px]"
                     [style.width]="item.width"
@@ -334,7 +343,7 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
               </div>
 
               <div class="mt-6 space-y-6">
-                @for (item of distributionItems; track item.label) {
+                @for (item of distributionItems(); track item.label) {
                   <div class="flex items-center justify-between gap-4">
                     <div class="flex items-center gap-[10px]">
                       <span class="h-3 w-3 rounded-[22px]" [style.background]="item.color"></span>
@@ -365,6 +374,9 @@ type AnalyticsStoreFilter = 'all' | 'vine' | 'eden' | 'amazing' | 'badge';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnalyticsPageComponent {
+  private readonly vendorsService = inject(VendorsService);
+  private readonly appMode = inject(AppModeService);
+  private readonly apiOrigin = this.resolveApiOrigin();
   readonly mobileSoldItemsChartOptions: AppChartOptions = this.withHoverDarken(
     createSparkBarChartOptions(
       220,
@@ -391,25 +403,56 @@ export class AnalyticsPageComponent {
     mostViewedImage: '/assets/images/analytics-most-viewed-phone.png',
   } as const;
 
-  readonly summaryMetrics: readonly SummaryMetric[] = [
-    { label: 'Total listings', value: '108' },
-    { label: 'Total views', value: '750,000' },
-    { label: 'Total saves', value: '562' },
-    { label: 'Total messages', value: '24' },
-  ];
+  readonly summaryMetrics = computed<readonly SummaryMetric[]>(() => [
+    { label: 'Total listings', value: this.formatInteger(this.analyticsTotals().totalListings) },
+    { label: 'Total views', value: this.formatInteger(this.analyticsTotals().totalViews) },
+    { label: 'Total saves', value: this.formatInteger(this.analyticsTotals().totalSaves) },
+    { label: 'Total messages', value: this.formatInteger(0) },
+  ]);
 
-  readonly distributionItems: readonly DistributionItem[] = [
-    { label: 'Sold', value: '2,000,000', color: '#25AD32', width: '48%' },
-    { label: 'Available', value: '1,200,000', color: '#4787FE', width: '24%' },
-    { label: 'Paused', value: '800,000', color: '#EE9C2E', width: '28%' },
-  ];
+  readonly distributionItems = computed<readonly DistributionItem[]>(() => {
+    const active = this.analyticsDistribution().active;
+    const sold = this.analyticsDistribution().sold;
+    const total = Math.max(active + sold, 1);
+
+    return [
+      {
+        label: 'Sold',
+        value: this.formatInteger(sold),
+        color: '#25AD32',
+        width: `${Math.max((sold / total) * 100, sold > 0 ? 8 : 0)}%`,
+      },
+      {
+        label: 'Available',
+        value: this.formatInteger(active),
+        color: '#4787FE',
+        width: `${Math.max((active / total) * 100, active > 0 ? 8 : 0)}%`,
+      },
+      {
+        label: 'Paused',
+        value: this.formatInteger(0),
+        color: '#EE9C2E',
+        width: '0%',
+      },
+    ];
+  });
 
   readonly stores = signal<readonly StoreAvatar[]>([
-    { id: 'vine', src: '/assets/images/analytics-store-avatar-1.png', alt: 'The Vine Collections' },
-    { id: 'eden', src: '/assets/images/analytics-store-avatar-2.png', alt: 'Eden Organics' },
-    { id: 'amazing', src: '/assets/images/analytics-store-avatar-3.png', alt: 'Amazing Fragrances' },
-    { id: 'badge', src: '', alt: 'Personal account' },
+    { id: 'all', src: '/assets/images/analytics-store-avatar-1.png', alt: 'All stores' },
   ]);
+  readonly analyticsTotals = signal({
+    totalListings: 108,
+    totalViews: 750000,
+    totalSaves: 562,
+  });
+  readonly analyticsDistribution = signal({
+    active: 0,
+    sold: 0,
+  });
+  readonly mostViewedTitle = signal<string>('Iphone 17 pro max');
+  readonly mostViewedImage = signal<string>(this.assets.mostViewedImage);
+  readonly mostViewedViewsText = signal<string>('This store has been viewed 750,000 times');
+  readonly isLoading = signal(false);
 
   readonly range = signal<AnalyticsRange>('7d');
   readonly selectedStoreFilter = signal<AnalyticsStoreFilter>('all');
@@ -422,7 +465,7 @@ export class AnalyticsPageComponent {
 
   readonly selectedStoreLabel = computed(() =>
     this.selectedStoreFilter() === 'all'
-      ? 'All stores (4)'
+      ? `All stores (${Math.max(this.stores().length - 1, 0)})`
       : this.visibleStores()[0]?.alt ?? 'The Vine Collections',
   );
   readonly rangeOptions: readonly CustomDropdownOption<AnalyticsRange>[] = [
@@ -430,13 +473,26 @@ export class AnalyticsPageComponent {
     { value: '30d', label: 'Last 30 days' },
     { value: '90d', label: 'Last 90 days' },
   ];
-  readonly storeOptions: readonly CustomDropdownOption<AnalyticsStoreFilter>[] = [
-    { value: 'all', label: 'All stores (4)' },
-    { value: 'vine', label: 'The Vine Collections' },
-    { value: 'eden', label: 'Eden Organics' },
-    { value: 'amazing', label: 'Amazing Fragrances' },
-    { value: 'badge', label: 'Personal account' },
-  ];
+  readonly storeOptions = computed<readonly CustomDropdownOption<AnalyticsStoreFilter>[]>(() => [
+    {
+      value: 'all',
+      label: `All stores (${Math.max(this.stores().length - 1, 0)})`,
+    },
+    ...this.stores()
+      .filter((store) => store.id !== 'all')
+      .map((store) => ({
+        value: store.id,
+        label: store.alt,
+      })),
+  ]);
+
+  constructor() {
+    if (!this.appMode.isBackendEnabled()) {
+      return;
+    }
+
+    void this.loadAnalyticsStores();
+  }
 
   private withHoverDarken(config: AppChartOptions): AppChartOptions {
     return {
@@ -454,5 +510,185 @@ export class AnalyticsPageComponent {
         },
       },
     };
+  }
+
+  private async loadAnalyticsStores(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.vendorsService.getMyStores());
+      const stores = this.extractStores(response);
+      const mappedStores = stores.map((store, index) => this.toStoreAvatar(store, index));
+      this.stores.set([
+        { id: 'all', src: '/assets/images/analytics-store-avatar-1.png', alt: 'All stores' },
+        ...mappedStores,
+      ]);
+
+      const firstStoreId = mappedStores[0]?.id;
+      if (firstStoreId) {
+        this.selectedStoreFilter.set(firstStoreId);
+        await this.loadVendorAnalytics(firstStoreId);
+      }
+    } catch {
+      // Keep the existing presentation fallback values on load failure.
+    }
+  }
+
+  private async loadVendorAnalytics(storeId: string): Promise<void> {
+    if (!storeId || storeId === 'all') {
+      return;
+    }
+
+    this.isLoading.set(true);
+
+    try {
+      const response = await firstValueFrom(this.vendorsService.getVendorAnalytics(storeId));
+      this.applyAnalytics(response);
+    } catch {
+      // Leave fallback metrics in place if analytics fails.
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  protected async onStoreFilterChange(storeId: AnalyticsStoreFilter): Promise<void> {
+    this.selectedStoreFilter.set(storeId);
+
+    if (!this.appMode.isBackendEnabled() || storeId === 'all') {
+      return;
+    }
+
+    await this.loadVendorAnalytics(storeId);
+  }
+
+  private applyAnalytics(record: VendorAnalyticsRecord): void {
+    const totalListings = this.readNumber(record['total_listings']) ?? 0;
+    const totalViews = this.readNumber(record['total_views']) ?? 0;
+    const totalSaves = this.readNumber(record['total_saves']) ?? 0;
+    const distribution = this.readRecord(record['distribution']);
+    const mostViewed = this.readRecord(record['most_viewed']);
+
+    this.analyticsTotals.set({
+      totalListings,
+      totalViews,
+      totalSaves,
+    });
+    this.analyticsDistribution.set({
+      active: this.readNumber(distribution?.['active']) ?? 0,
+      sold: this.readNumber(distribution?.['sold']) ?? 0,
+    });
+    this.mostViewedTitle.set(this.readString(mostViewed?.['title']) ?? 'No listings yet');
+    this.mostViewedImage.set(
+      this.resolveMediaUrl(this.readString(mostViewed?.['url'])) ?? this.assets.mostViewedImage,
+    );
+    this.mostViewedViewsText.set(
+      totalViews > 0
+        ? `This store has been viewed ${this.formatInteger(totalViews)} times`
+        : 'This store has no recorded views yet',
+    );
+  }
+
+  private extractStores(response: MyStoresResponse): readonly VendorRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (!response || typeof response !== 'object') {
+      return [];
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.stores)) {
+      return response.stores;
+    }
+
+    if (Array.isArray(response.vendors)) {
+      return response.vendors;
+    }
+
+    return [];
+  }
+
+  private toStoreAvatar(record: VendorRecord, index: number): StoreAvatar {
+    return {
+      id: this.readString(record['id']) ?? `store-${index + 1}`,
+      alt:
+        this.readString(record['store_name']) ??
+        this.readString(record['name']) ??
+        this.readString(record['vendor_name']) ??
+        `Store ${index + 1}`,
+      src:
+        this.resolveMediaUrl(
+          this.readString(record['profile_photo']) ??
+            this.readString(record['logo']) ??
+            this.readNestedString(record['user'], 'avatar'),
+        ) ?? '/assets/images/analytics-store-avatar-1.png',
+    };
+  }
+
+  private resolveApiOrigin(): string {
+    try {
+      return new URL(environment.apiUrl).origin;
+    } catch {
+      return '';
+    }
+  }
+
+  private resolveMediaUrl(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    if (!this.apiOrigin) {
+      return value;
+    }
+
+    if (value.startsWith('/')) {
+      return `${this.apiOrigin}${value}`;
+    }
+
+    return `${this.apiOrigin}/${value}`;
+  }
+
+  private formatInteger(value: number): string {
+    return new Intl.NumberFormat('en-NG').format(value);
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value.replace(/,/g, '').trim());
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
+  }
+
+  private readNestedString(value: unknown, key: string): string | null {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+
+    return this.readString((value as Record<string, unknown>)[key]);
   }
 }

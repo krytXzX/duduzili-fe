@@ -7,6 +7,7 @@ export type VendorFollowResponse = Record<string, unknown>;
 export type VendorRecord = Record<string, unknown>;
 export type VendorListingRecord = Record<string, unknown>;
 export type VendorReviewRecord = Record<string, unknown>;
+export type VendorAnalyticsRecord = Record<string, unknown>;
 export type CreateVendorReviewPayload = {
   vendor: string;
   rating: number;
@@ -82,5 +83,9 @@ export class VendorsService {
 
   createVendorReview(id: string, payload: CreateVendorReviewPayload): Observable<VendorReviewRecord> {
     return this.http.post<VendorReviewRecord>(`${this.apiUrl}/vendors/${id}/reviews/create/`, payload);
+  }
+
+  getVendorAnalytics(id: string): Observable<VendorAnalyticsRecord> {
+    return this.http.get<VendorAnalyticsRecord>(`${this.apiUrl}/vendors/${id}/analytics/`);
   }
 }
