@@ -24,6 +24,12 @@ export interface BulkMessageActionRequest {
   message_ids: readonly string[];
 }
 
+export interface StartSellerConversationRequest {
+  vendor_id: string;
+  listing_id?: string;
+  message?: string;
+}
+
 export type StartConversationResponse = Record<string, unknown>;
 
 @Injectable({ providedIn: 'root' })
@@ -61,5 +67,15 @@ export class MessagesService {
 
   startConversation(id: string): Observable<StartConversationResponse> {
     return this.http.post<StartConversationResponse>(`${this.apiUrl}/messages/start/${id}/`, {});
+  }
+
+  startSellerConversation(
+    buyerId: string,
+    payload: StartSellerConversationRequest,
+  ): Observable<StartConversationResponse> {
+    return this.http.post<StartConversationResponse>(
+      `${this.apiUrl}/messages/start-buyer/${buyerId}/`,
+      payload,
+    );
   }
 }

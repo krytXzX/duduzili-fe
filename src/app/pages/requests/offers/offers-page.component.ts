@@ -10,6 +10,8 @@ import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { AppToastService } from '../../../services/app-toast.service';
+import { MessagesService } from '../../../services/messages.service';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 import {
   CustomDropdownComponent,
@@ -689,7 +691,9 @@ interface OfferRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OffersPageComponent implements OnDestroy {
+  private readonly appToastService = inject(AppToastService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly messagesService = inject(MessagesService);
   private readonly sellerRequestsService = inject(SellerRequestsService);
   private readonly appMode = inject(AppModeService);
   private readonly router = inject(Router);
@@ -860,10 +864,35 @@ export class OffersPageComponent implements OnDestroy {
   protected async openMessages(offer: OfferRecord): Promise<void> {
     this.closeDetails();
 
+    if (!offer.buyerId || !offer.storeId) {
+      await this.navigateToMessages(offer, offer.conversationId);
+      return;
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.messagesService.startSellerConversation(offer.buyerId, {
+          vendor_id: offer.storeId,
+          listing_id: offer.listingId,
+        }),
+      );
+
+      await this.navigateToMessages(offer, this.readId(response['id']) ?? offer.conversationId);
+    } catch {
+      this.appToastService.show({
+        message: 'We could not open this chat right now.',
+      });
+    }
+  }
+
+  private async navigateToMessages(
+    offer: Pick<OfferRecord, 'buyerId' | 'storeId' | 'listingId'>,
+    conversationId?: string,
+  ): Promise<void> {
     const queryParams: Record<string, string> = {};
 
-    if (offer.conversationId) {
-      queryParams['conversation'] = offer.conversationId;
+    if (conversationId) {
+      queryParams['conversation'] = conversationId;
     }
     if (offer.buyerId) {
       queryParams['buyer'] = offer.buyerId;
