@@ -50,7 +50,7 @@ interface OfferRecord {
             </section>
 
             <section
-              class="overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white shadow-[0_1px_0_rgba(0,0,0,0.01)]"
+              class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white shadow-[0_1px_0_rgba(0,0,0,0.01)]"
             >
               <div class="flex items-center justify-between gap-6 px-[15px] pb-[15px] pt-[15px]">
                 <div class="flex items-start gap-2">
@@ -109,7 +109,7 @@ interface OfferRecord {
                 </label>
               </div>
 
-              <div class="max-h-[520px] overflow-auto border-t border-[#F0F0F0]">
+              <div class="min-h-0 flex-1 overflow-auto border-t border-[#F0F0F0]">
                 <div class="min-w-[996px]">
                   <div
                     class="grid grid-cols-[180px_150px_260px_205px_124px_77px] items-center bg-[#FAFAFA] px-[23px] py-[11px]"
