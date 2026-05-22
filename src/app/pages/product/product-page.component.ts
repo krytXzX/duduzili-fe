@@ -653,6 +653,12 @@ export class ProductPageComponent {
       });
   }
 
+  handleOfferAmountInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    const digitsOnly = input?.value.replace(/[^\d]/g, '') ?? '';
+    this.makeOfferForm.controls.amount.setValue(digitsOnly, { emitEvent: true });
+  }
+
   async submitReport(): Promise<void> {
     if (this.reportSubject() === 'listing') {
       if (this.reportForm.invalid) {

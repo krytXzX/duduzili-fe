@@ -802,7 +802,7 @@
                 How much are you offering?
               </label>
 
-              <div class="flex items-end justify-center gap-2 text-black">
+              <div class="pointer-events-none flex items-end justify-center gap-2 text-black">
                 <span class="pb-2 text-[34px] font-semibold leading-none text-[#909090]">₦</span>
                 <span class="text-[58px] leading-none tracking-[-0.03em]">{{ formattedOfferValue() }}</span>
               </div>
@@ -812,10 +812,11 @@
               <input
                 id="offer-amount"
                 type="text"
-                formControlName="amount"
                 inputmode="numeric"
                 placeholder="0"
-                class="absolute inset-x-0 top-0 h-full w-full cursor-text opacity-0"
+                [value]="makeOfferForm.controls.amount.value"
+                (input)="handleOfferAmountInput($event)"
+                class="absolute inset-x-0 top-0 h-full w-full cursor-text bg-transparent text-center text-transparent caret-[#15162B] outline-none"
                 aria-label="Offer amount"
               />
             </div>
