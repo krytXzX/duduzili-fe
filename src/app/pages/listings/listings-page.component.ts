@@ -401,6 +401,7 @@ type AddListingPickerOption = {
         <app-add-listing-modal
           [categoryOptionsInput]="addListingCategoryOptions()"
           [storeOptionsInput]="addListingStoreOptions()"
+          (listingPublished)="handleListingPublished()"
           (draftSaved)="handleDraftSaved()"
           (close)="showAddListingModal.set(false)"
         />
@@ -620,6 +621,10 @@ export class ListingsPageComponent {
 
   protected handleDraftSaved(): void {
     this.showAddListingModal.set(false);
+    void this.loadListings();
+  }
+
+  protected handleListingPublished(): void {
     void this.loadListings();
   }
 

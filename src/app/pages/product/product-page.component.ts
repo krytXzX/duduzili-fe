@@ -104,6 +104,8 @@ export class ProductPageComponent {
   readonly isSubmittingListingReport = signal(false);
   readonly isSubmittingSellerReport = signal(false);
   readonly isStartingConversation = signal(false);
+  readonly isSubmittingOffer = signal(false);
+  readonly isSubmittingCallbackRequest = signal(false);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
@@ -561,8 +563,48 @@ export class ProductPageComponent {
       return;
     }
 
-    this.closeRequestCallbackModal();
-    this.requestCallbackForm.reset({ name: 'Bryan Odjede', phoneNumber: '' });
+    if (!this.authSession.isAuthenticated()) {
+      void this.router.navigate(['/sign-in']);
+      return;
+    }
+
+    if (this.isSubmittingCallbackRequest()) {
+      return;
+    }
+
+    const formValue = this.requestCallbackForm.getRawValue();
+    const phoneNumber = formValue.phoneNumber.trim();
+    const buyerName = formValue.name.trim();
+
+    if (!phoneNumber) {
+      this.requestCallbackForm.controls.phoneNumber.markAsTouched();
+      return;
+    }
+
+    this.isSubmittingCallbackRequest.set(true);
+
+    void firstValueFrom(
+      this.listingsService.createCallbackRequest({
+        listing: this.product().id,
+        phone_number: phoneNumber,
+        message: buyerName ? `Requested by ${buyerName}` : '',
+      }),
+    )
+      .then(() => {
+        this.closeRequestCallbackModal();
+        this.requestCallbackForm.reset({ name: buyerName, phoneNumber: '' });
+        this.appToastService.show({
+          message: 'Your callback request has been sent.',
+        });
+      })
+      .catch(() => {
+        this.appToastService.show({
+          message: 'Unable to send callback request right now.',
+        });
+      })
+      .finally(() => {
+        this.isSubmittingCallbackRequest.set(false);
+      });
   }
 
   submitOffer(): void {
@@ -571,8 +613,50 @@ export class ProductPageComponent {
       return;
     }
 
-    this.closeMakeOfferModal();
-    this.makeOfferForm.reset({ amount: '' });
+    if (!this.authSession.isAuthenticated()) {
+      void this.router.navigate(['/sign-in']);
+      return;
+    }
+
+    if (this.isSubmittingOffer()) {
+      return;
+    }
+
+    const amount = this.makeOfferForm.controls.amount.getRawValue().replace(/[^\d]/g, '');
+    if (!amount) {
+      this.makeOfferForm.controls.amount.markAsTouched();
+      return;
+    }
+
+    this.isSubmittingOffer.set(true);
+
+    void firstValueFrom(
+      this.listingsService.createOffer({
+        listing: this.product().id,
+        offer_amount: amount,
+      }),
+    )
+      .then(() => {
+        this.closeMakeOfferModal();
+        this.makeOfferForm.reset({ amount: '' });
+        this.appToastService.show({
+          message: 'Your offer has been sent.',
+        });
+      })
+      .catch(() => {
+        this.appToastService.show({
+          message: 'Unable to send offer right now.',
+        });
+      })
+      .finally(() => {
+        this.isSubmittingOffer.set(false);
+      });
+  }
+
+  handleOfferAmountInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    const digitsOnly = input?.value.replace(/[^\d]/g, '') ?? '';
+    this.makeOfferForm.controls.amount.setValue(digitsOnly, { emitEvent: true });
   }
 
   async submitReport(): Promise<void> {

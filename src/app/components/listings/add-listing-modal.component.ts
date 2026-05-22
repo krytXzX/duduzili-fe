@@ -1531,6 +1531,7 @@ export class AddListingModalComponent implements OnDestroy {
   close = output<void>();
   save = output<ListingData>();
   draftSaved = output<void>();
+  listingPublished = output<void>();
   readonly categoryOptionsInput = input<readonly PickerOption[]>([]);
   readonly storeOptionsInput = input<readonly PickerOption[]>([]);
 
@@ -1834,6 +1835,7 @@ export class AddListingModalComponent implements OnDestroy {
 
     try {
       await firstValueFrom(this.listingsService.createListing(this.buildCreateListingPayload()));
+      this.listingPublished.emit();
       this.currentStep.set(5);
     } catch {
       this.appToastService.show({
@@ -2056,12 +2058,12 @@ export class AddListingModalComponent implements OnDestroy {
     }
 
     if (this.mainImageFile) {
-      payload.append('images', this.mainImageFile);
+      payload.append('uploaded_images', this.mainImageFile);
     }
 
     for (const imageFile of this.additionalImageFiles) {
       if (imageFile) {
-        payload.append('images', imageFile);
+        payload.append('uploaded_images', imageFile);
       }
     }
 

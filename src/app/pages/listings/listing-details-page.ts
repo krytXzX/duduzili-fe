@@ -1,16 +1,50 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { PromoteListingModalComponent } from '../../components/listings/promote-listing-modal.component';
-import { ListingsApiItem, ListingsService } from '../../services/listings.service';
+import {
+  ListingPromotionSelection,
+  PromoteListingModalComponent,
+} from '../../components/listings/promote-listing-modal.component';
+import {
+  ListingsApiItem,
+  ListingsService,
+  ManageListingsCategory,
+  ManageListingsDeliveryOption,
+  ManageListingsProductCondition,
+  ManageListingsResponse,
+  ManageListingsStore,
+  PromotionPlanApiItem,
+  UpdateListingRequest,
+} from '../../services/listings.service';
+import { AppToastService } from '../../services/app-toast.service';
 import { environment } from '../../../environments/environment';
 
 type ListingTab = 'overview' | 'requests' | 'activities';
 type ListingStatus = 'Available' | 'Paused' | 'Sold';
 
 interface GalleryImage {
+  id: string | null;
+  src: string;
+  alt: string;
+}
+
+interface EditableGalleryImage {
+  token: string;
+  kind: 'existing' | 'pending';
+  imageId: string | null;
+  file?: File;
+  previewUrl?: string;
   src: string;
   alt: string;
 }
@@ -21,8 +55,10 @@ interface ListingRequest {
   avatar: string;
   message: string;
   time: string;
-  offer: string;
-  status: 'New' | 'Responded';
+  sortTime: number;
+  metaLabel: string;
+  metaValue: string;
+  status: 'New' | 'Responded' | 'Called';
 }
 
 interface ListingActivity {
@@ -30,6 +66,7 @@ interface ListingActivity {
   title: string;
   description: string;
   time: string;
+  actorAvatar: string | null;
 }
 
 interface ListingDetailItem {
@@ -139,14 +176,16 @@ type EditSectionId = 'media' | 'details' | 'delivery';
               <div
                 class="relative h-[54px] w-[54px] shrink-0 overflow-hidden rounded-[10.8px] bg-[#EFEFEF]"
               >
-                <img
-                  [ngSrc]="listing().previewImage"
-                  [alt]="listing().name"
-                  fill
-                  priority
-                  sizes="15vw"
-                  class="object-cover"
-                />
+                @if (listing().previewImage) {
+                  <img
+                    [ngSrc]="listing().previewImage"
+                    [alt]="listing().name"
+                    fill
+                    priority
+                    sizes="15vw"
+                    class="object-cover"
+                  />
+                }
               </div>
 
               <div class="min-w-0 flex-1">
@@ -330,13 +369,15 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                     <div
                       class="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#EEF4F0]"
                     >
-                      <img
-                        [ngSrc]="listing().store.logo"
-                        [alt]="listing().store.name"
-                        fill
-                        sizes="12vw"
-                        class="object-cover"
-                      />
+                      @if (listing().store.logo) {
+                        <img
+                          [ngSrc]="listing().store.logo"
+                          [alt]="listing().store.name"
+                          fill
+                          sizes="12vw"
+                          class="object-cover"
+                        />
+                      }
                     </div>
 
                     <div class="min-w-0">
@@ -434,6 +475,8 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                             [class.text-[#2F9E44]]="request.status === 'New'"
                             [class.bg-[#F3F0FF]]="request.status === 'Responded'"
                             [class.text-[#5E44EE]]="request.status === 'Responded'"
+                            [class.bg-[#EEF2FF]]="request.status === 'Called'"
+                            [class.text-[#3751C7]]="request.status === 'Called'"
                           >
                             {{ request.status }}
                           </span>
@@ -444,7 +487,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         </p>
                         <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-[#8A8F9A]">
                           <span>{{ request.time }}</span>
-                          <span>Offer: {{ request.offer }}</span>
+                          <span>{{ request.metaLabel }}: {{ request.metaValue }}</span>
                         </div>
                       </div>
                     </div>
@@ -471,18 +514,32 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                 @for (activity of activities(); track activity.id) {
                   <article class="rounded-[22px] border border-[#E9EBF0] bg-white p-4">
                     <div class="flex items-start gap-3">
-                      <div
-                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]"
-                      >
-                        <img
-                          ngSrc="/assets/icons/listing-details-tab-activities.svg"
-                          alt=""
-                          width="18"
-                          height="18"
-                          class="h-[18px] w-[18px]"
-                          aria-hidden="true"
-                        />
-                      </div>
+                      @if (activity.actorAvatar) {
+                        <div
+                          class="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F3F4F7]"
+                        >
+                          <img
+                            [ngSrc]="activity.actorAvatar"
+                            [alt]="activity.title"
+                            fill
+                            sizes="12vw"
+                            class="object-cover"
+                          />
+                        </div>
+                      } @else {
+                        <div
+                          class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]"
+                        >
+                          <img
+                            ngSrc="/assets/icons/listing-details-tab-activities.svg"
+                            alt=""
+                            width="18"
+                            height="18"
+                            class="h-[18px] w-[18px]"
+                            aria-hidden="true"
+                          />
+                        </div>
+                      }
 
                       <div class="min-w-0 flex-1">
                         <p class="text-[14px] font-semibold text-[#202335]">{{ activity.title }}</p>
@@ -524,14 +581,16 @@ type EditSectionId = 'media' | 'details' | 'delivery';
               <div
                 class="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[24px] bg-[#F3F4F7]"
               >
-                <img
-                  [ngSrc]="listing().previewImage"
-                  [alt]="listing().name"
-                  fill
-                  priority
-                  sizes="8vw"
-                  class="object-cover"
-                />
+                @if (listing().previewImage) {
+                  <img
+                    [ngSrc]="listing().previewImage"
+                    [alt]="listing().name"
+                    fill
+                    priority
+                    sizes="8vw"
+                    class="object-cover"
+                  />
+                }
               </div>
 
               <div class="pt-1">
@@ -856,13 +915,15 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           <div
                             class="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-[#EEF4F0]"
                           >
-                            <img
-                              [ngSrc]="listing().store.logo"
-                              [alt]="listing().store.name"
-                              fill
-                              sizes="5vw"
-                              class="object-cover"
-                            />
+                            @if (listing().store.logo) {
+                              <img
+                                [ngSrc]="listing().store.logo"
+                                [alt]="listing().store.name"
+                                fill
+                                sizes="5vw"
+                                class="object-cover"
+                              />
+                            }
                           </div>
 
                           <div class="min-w-0">
@@ -935,6 +996,8 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               [class.text-[#2F9E44]]="request.status === 'New'"
                               [class.bg-[#F3F0FF]]="request.status === 'Responded'"
                               [class.text-[#5E44EE]]="request.status === 'Responded'"
+                              [class.bg-[#EEF2FF]]="request.status === 'Called'"
+                              [class.text-[#3751C7]]="request.status === 'Called'"
                             >
                               {{ request.status }}
                             </span>
@@ -947,7 +1010,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                             class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-[#8A8F9A]"
                           >
                             <span>{{ request.time }}</span>
-                            <span>Offer: {{ request.offer }}</span>
+                            <span>{{ request.metaLabel }}: {{ request.metaValue }}</span>
                           </div>
                         </div>
                       </div>
@@ -974,18 +1037,32 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                   @for (activity of activities(); track activity.id) {
                     <article class="rounded-[24px] border border-[#E9EBF0] bg-white p-5">
                       <div class="flex items-start gap-4">
-                        <div
-                          class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]"
-                        >
-                          <img
-                            ngSrc="/assets/icons/listing-details-tab-activities.svg"
-                            alt=""
-                            width="18"
-                            height="18"
-                            class="h-[18px] w-[18px]"
-                            aria-hidden="true"
-                          />
-                        </div>
+                        @if (activity.actorAvatar) {
+                          <div
+                            class="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-[#F3F4F7]"
+                          >
+                            <img
+                              [ngSrc]="activity.actorAvatar"
+                              [alt]="activity.title"
+                              fill
+                              sizes="5vw"
+                              class="object-cover"
+                            />
+                          </div>
+                        } @else {
+                          <div
+                            class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]"
+                          >
+                            <img
+                              ngSrc="/assets/icons/listing-details-tab-activities.svg"
+                              alt=""
+                              width="18"
+                              height="18"
+                              class="h-[18px] w-[18px]"
+                              aria-hidden="true"
+                            />
+                          </div>
+                        }
 
                         <div class="min-w-0 flex-1">
                           <p class="text-[15px] font-semibold text-[#202335]">
@@ -1035,6 +1112,14 @@ type EditSectionId = 'media' | 'details' | 'delivery';
           class="flex h-full flex-col"
           (ngSubmit)="saveEditListing()"
         >
+          <input
+            #editImageInput
+            type="file"
+            accept="image/*"
+            multiple
+            class="hidden"
+            (change)="handleEditImageSelection($event)"
+          />
           <div class="relative px-4 pb-4 pt-3">
             <div class="mx-auto h-1 w-[50px] rounded-full bg-[#E7E7E7]"></div>
 
@@ -1092,54 +1177,26 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
                 <div class="space-y-2.5">
                   <div class="grid grid-cols-3 gap-2">
-                    <div
-                      class="relative h-[230px] overflow-hidden rounded-[18px] bg-[#F4F4F4] col-span-2"
-                    >
-                      <img
-                        ngSrc="/assets/images/edit-listing-main-photo.png"
-                        alt="Main listing photo"
-                        fill
-                        priority
-                        sizes="58vw"
-                        class="object-cover"
-                      />
+                    @if (editPrimaryGalleryImage(); as primaryImage) {
                       <div
-                        class="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[12px] font-medium text-[#1A1B1D]"
-                      >
-                        Main photo
-                      </div>
-                      <button
-                        type="button"
-                        class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
-                        aria-label="Photo actions"
+                        class="relative h-[230px] overflow-hidden rounded-[18px] bg-[#F4F4F4] col-span-2"
                       >
                         <img
-                          ngSrc="/assets/icons/edit-listing-menu-dots.svg"
-                          alt=""
-                          width="16"
-                          height="16"
-                          class="h-4 w-4"
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <span
-                        class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
-                      >
-                        1
-                      </span>
-                    </div>
-
-                    <div class="flex h-[230px] flex-col gap-2 col-span-1">
-                      <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
-                        <img
-                          ngSrc="/assets/images/edit-listing-secondary-photo.png"
-                          alt="Secondary listing photo"
+                          [ngSrc]="primaryImage.src"
+                          [alt]="primaryImage.alt"
                           fill
-                          sizes="30vw"
+                          priority
+                          sizes="58vw"
                           class="object-cover"
                         />
+                        <div
+                          class="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[12px] font-medium text-[#1A1B1D]"
+                        >
+                          Main photo
+                        </div>
                         <button
                           type="button"
+                          (click)="openEditImagePicker()"
                           class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
                           aria-label="Photo actions"
                         >
@@ -1155,12 +1212,67 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         <span
                           class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
                         >
-                          2
+                          1
                         </span>
+                        <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1">
+                          <button
+                            type="button"
+                            (click)="removeEditImage(0)"
+                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[14px] text-[#D92D20]"
+                            aria-label="Remove first listing image"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
+                    }
+
+                    <div class="flex h-[230px] flex-col gap-2 col-span-1">
+                      @if (editSecondaryGalleryImage(); as secondaryImage) {
+                        <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
+                          <img
+                            [ngSrc]="secondaryImage.src"
+                            [alt]="secondaryImage.alt"
+                            fill
+                            sizes="30vw"
+                            class="object-cover"
+                          />
+                          <button
+                            type="button"
+                            (click)="openEditImagePicker()"
+                            class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
+                            aria-label="Photo actions"
+                          >
+                            <img
+                              ngSrc="/assets/icons/edit-listing-menu-dots.svg"
+                              alt=""
+                              width="16"
+                              height="16"
+                              class="h-4 w-4"
+                              aria-hidden="true"
+                            />
+                          </button>
+                          <span
+                            class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                          >
+                            2
+                          </span>
+                          <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1">
+                            <button
+                              type="button"
+                              (click)="removeEditImage(1)"
+                              class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[14px] text-[#D92D20]"
+                              aria-label="Remove second listing image"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </div>
+                      }
 
                       <button
                         type="button"
+                        (click)="openEditImagePicker()"
                         class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
                         aria-label="Add third listing photo"
                       >
@@ -1182,9 +1294,36 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                   </div>
 
                   <div class="grid grid-cols-3 gap-2">
-                    @for (slot of editMediaPlaceholderSlots; track slot) {
+                    @for (image of editRemainingGalleryImages(); track image.alt; let index = $index) {
+                      <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
+                        <img
+                          [ngSrc]="image.src"
+                          [alt]="image.alt"
+                          fill
+                          sizes="30vw"
+                          class="object-cover"
+                        />
+                        <span
+                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                        >
+                          {{ index + 3 }}
+                        </span>
+                        <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1">
+                          <button
+                            type="button"
+                            (click)="removeEditImage(index + 2)"
+                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[14px] text-[#D92D20]"
+                            [attr.aria-label]="'Remove listing image ' + (index + 3)"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    }
+                    @for (slot of editRemainingPlaceholderSlots(); track slot) {
                       <button
                         type="button"
+                        (click)="openEditImagePicker()"
                         class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
                         [attr.aria-label]="'Add listing photo ' + slot"
                       >
@@ -1250,7 +1389,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         formControlName="category"
                         class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
                       >
-                        @for (category of editCategories; track category) {
+                        @for (category of editCategories(); track category) {
                           <option [value]="category">{{ category }}</option>
                         }
                       </select>
@@ -1275,7 +1414,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           formControlName="condition"
                           class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
                         >
-                          @for (condition of editConditions; track condition) {
+                          @for (condition of editConditions(); track condition) {
                             <option [value]="condition">{{ condition }}</option>
                           }
                         </select>
@@ -1297,7 +1436,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           formControlName="store"
                           class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
                         >
-                          @for (store of editStores; track store) {
+                          @for (store of editStores(); track store) {
                             <option [value]="store">{{ store }}</option>
                           }
                         </select>
@@ -1354,7 +1493,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         formControlName="location"
                         class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
                       >
-                        @for (location of editLocations; track location) {
+                        @for (location of editLocations(); track location) {
                           <option [value]="location">{{ location }}</option>
                         }
                       </select>
@@ -1555,6 +1694,14 @@ type EditSectionId = 'media' | 'details' | 'delivery';
             class="flex min-h-0 flex-1 flex-col"
             (ngSubmit)="saveEditListing()"
           >
+            <input
+              #editImageInput
+              type="file"
+              accept="image/*"
+              multiple
+              class="hidden"
+              (change)="handleEditImageSelection($event)"
+            />
             <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-8">
               <div class="space-y-6 pb-8">
                 <section class="space-y-5">
@@ -1580,60 +1727,28 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                     <div class="space-y-8">
                       <div class="space-y-3">
                         <div class="grid grid-cols-[minmax(0,1fr)_176px] gap-3">
-                          <div
-                            class="relative h-[363px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
-                          >
-                            <img
-                              ngSrc="/assets/images/edit-listing-main-photo.png"
-                              alt="Main listing photo"
-                              fill
-                              priority
-                              sizes="(min-width: 768px) 23vw, 65vw"
-                              class="object-cover"
-                            />
-
+                          @if (editPrimaryGalleryImage(); as primaryImage) {
                             <div
-                              class="absolute left-3 top-3 rounded-full border border-[#F1F1F1] bg-white px-3 py-[6px] text-[18px] font-medium leading-[30px] text-[#1A1B1D]"
-                            >
-                              Main photo
-                            </div>
-
-                            <button
-                              type="button"
-                              class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
-                              aria-label="Photo actions"
+                              class="relative h-[363px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
                             >
                               <img
-                                ngSrc="/assets/icons/edit-listing-menu-dots.svg"
-                                alt=""
-                                width="25"
-                                height="25"
-                                class="h-[25px] w-[25px]"
-                                aria-hidden="true"
-                              />
-                            </button>
-
-                            <div
-                              class="absolute bottom-4 right-5 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
-                            >
-                              1
-                            </div>
-                          </div>
-
-                          <div class="flex h-[363px] flex-col gap-3">
-                            <div
-                              class="relative flex-1 overflow-hidden rounded-[18px] bg-[#F4F4F4]"
-                            >
-                              <img
-                                ngSrc="/assets/images/edit-listing-secondary-photo.png"
-                                alt="Secondary listing photo"
+                                [ngSrc]="primaryImage.src"
+                                [alt]="primaryImage.alt"
                                 fill
-                                sizes="(min-width: 768px) 12vw, 28vw"
+                                priority
+                                sizes="(min-width: 768px) 23vw, 65vw"
                                 class="object-cover"
                               />
 
+                              <div
+                                class="absolute left-3 top-3 rounded-full border border-[#F1F1F1] bg-white px-3 py-[6px] text-[18px] font-medium leading-[30px] text-[#1A1B1D]"
+                              >
+                                Main photo
+                              </div>
+
                               <button
                                 type="button"
+                                (click)="openEditImagePicker()"
                                 class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
                                 aria-label="Photo actions"
                               >
@@ -1648,14 +1763,73 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               </button>
 
                               <div
-                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                                class="absolute bottom-4 right-5 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
                               >
-                                2
+                                1
+                              </div>
+                              <div class="absolute bottom-4 left-4 flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  (click)="removeEditImage(0)"
+                                  class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[18px] text-[#D92D20]"
+                                  aria-label="Remove first listing image"
+                                >
+                                  ×
+                                </button>
                               </div>
                             </div>
+                          }
+
+                          <div class="flex h-[363px] flex-col gap-3">
+                            @if (editSecondaryGalleryImage(); as secondaryImage) {
+                              <div
+                                class="relative flex-1 overflow-hidden rounded-[18px] bg-[#F4F4F4]"
+                              >
+                                <img
+                                  [ngSrc]="secondaryImage.src"
+                                  [alt]="secondaryImage.alt"
+                                  fill
+                                  sizes="(min-width: 768px) 12vw, 28vw"
+                                  class="object-cover"
+                                />
+
+                                <button
+                                  type="button"
+                                  (click)="openEditImagePicker()"
+                                  class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
+                                  aria-label="Photo actions"
+                                >
+                                  <img
+                                    ngSrc="/assets/icons/edit-listing-menu-dots.svg"
+                                    alt=""
+                                    width="25"
+                                    height="25"
+                                    class="h-[25px] w-[25px]"
+                                    aria-hidden="true"
+                                  />
+                                </button>
+
+                                <div
+                                  class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                                >
+                                  2
+                                </div>
+                                <div class="absolute bottom-3 left-3 flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    (click)="removeEditImage(1)"
+                                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[18px] text-[#D92D20]"
+                                    aria-label="Remove second listing image"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              </div>
+                            }
 
                             <button
                               type="button"
+                              (click)="openEditImagePicker()"
                               class="relative flex-1 overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
                               aria-label="Add third listing photo"
                             >
@@ -1677,9 +1851,38 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         </div>
 
                         <div class="grid grid-cols-3 gap-3">
-                          @for (slot of editMediaPlaceholderSlots; track slot) {
+                          @for (image of editRemainingGalleryImages(); track image.alt; let index = $index) {
+                            <div
+                              class="relative h-[175px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
+                            >
+                              <img
+                                [ngSrc]="image.src"
+                                [alt]="image.alt"
+                                fill
+                                sizes="(min-width: 768px) 10vw, 25vw"
+                                class="object-cover"
+                              />
+                              <span
+                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                              >
+                                {{ index + 3 }}
+                              </span>
+                              <div class="absolute bottom-3 left-3 flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  (click)="removeEditImage(index + 2)"
+                                  class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[18px] text-[#D92D20]"
+                                  [attr.aria-label]="'Remove listing image ' + (index + 3)"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            </div>
+                          }
+                          @for (slot of editRemainingPlaceholderSlots(); track slot) {
                             <button
                               type="button"
+                              (click)="openEditImagePicker()"
                               class="relative h-[175px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
                               [attr.aria-label]="'Add listing photo ' + slot"
                             >
@@ -1767,7 +1970,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               formControlName="category"
                               class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
                             >
-                              @for (category of editCategories; track category) {
+                              @for (category of editCategories(); track category) {
                                 <option [value]="category">{{ category }}</option>
                               }
                             </select>
@@ -1791,7 +1994,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               formControlName="condition"
                               class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
                             >
-                              @for (condition of editConditions; track condition) {
+                              @for (condition of editConditions(); track condition) {
                                 <option [value]="condition">{{ condition }}</option>
                               }
                             </select>
@@ -1815,7 +2018,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               formControlName="store"
                               class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
                             >
-                              @for (store of editStores; track store) {
+                              @for (store of editStores(); track store) {
                                 <option [value]="store">{{ store }}</option>
                               }
                             </select>
@@ -1896,7 +2099,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               formControlName="location"
                               class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
                             >
-                              @for (location of editLocations; track location) {
+                              @for (location of editLocations(); track location) {
                                 <option [value]="location">{{ location }}</option>
                               }
                             </select>
@@ -2670,7 +2873,9 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
     @if (showPromoteListingModal()) {
       <app-promote-listing-modal
+        [isSubmitting]="isPromotingListing()"
         (close)="showPromoteListingModal.set(false)"
+        (promotionRequested)="handleListingPromotion($event)"
         (promoted)="markListingAsPromoted()"
       ></app-promote-listing-modal>
     }
@@ -2684,15 +2889,37 @@ type EditSectionId = 'media' | 'details' | 'delivery';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListingDetailsPageComponent {
+export class ListingDetailsPageComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly listingsService = inject(ListingsService);
+  private readonly appToastService = inject(AppToastService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
+  private readonly fallbackEditCategories = [
+    'Electronics/Phones & Tablets',
+    'Electronics/Computers',
+    'Fashion',
+    'Home & Kitchen',
+  ];
+  private readonly fallbackEditConditions = ['Used', 'Brand new', 'Refurbished'];
+  private readonly fallbackEditStores = ['The Vine Collections', 'Duduzili Store'];
+  private readonly fallbackEditLocations = ['Ikeja, Lagos', 'Yaba, Lagos', 'Abuja'];
+  private readonly fallbackDeliveryMethodOptions = [
+    { id: 'buyer-pickup', label: 'Buyer pickup' },
+    { id: 'seller-delivery', label: 'Seller delivery' },
+    { id: 'public-location', label: 'Public location' },
+  ];
+  private readonly fallbackDeliveryRangeOptions = [
+    { id: 'nation-wide', label: 'Nation-wide' },
+    { id: 'state-wide', label: 'State-wide' },
+    { id: 'international', label: 'International' },
+  ];
 
   protected readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? '1');
   private readonly listingRecord = signal<ListingsApiItem | null>(null);
+  private readonly manageListingsMetadata = signal<ManageListingsResponse | null>(null);
+  private readonly promotionPlans = signal<PromotionPlanApiItem[]>([]);
   protected readonly activeTab = signal<ListingTab>('overview');
   protected readonly activeImageIndex = signal(0);
   protected readonly showPromoteListingModal = signal(false);
@@ -2706,32 +2933,61 @@ export class ListingDetailsPageComponent {
   protected readonly editDiscountEnabled = signal(false);
   protected readonly editAcceptOffersEnabled = signal(false);
   protected readonly editFreeListingEnabled = signal(false);
+  protected readonly isSavingEdit = signal(false);
+  protected readonly isUpdatingStatus = signal(false);
+  protected readonly isDeletingListing = signal(false);
+  protected readonly isPromotingListing = signal(false);
   protected readonly selectedDeliveryMethods = signal<string[]>(['seller-delivery']);
   protected readonly selectedDeliveryRanges = signal<string[]>(['nation-wide']);
   protected readonly editMediaPlaceholderSlots = [4, 5, 6] as const;
-  protected readonly editCategories = [
-    'Electronics/Phones & Tablets',
-    'Electronics/Computers',
-    'Fashion',
-    'Home & Kitchen',
-  ] as const;
-  protected readonly editConditions = ['Used', 'Brand new', 'Refurbished'] as const;
-  protected readonly editStores = ['The Vine Collections', 'Duduzili Store'] as const;
-  protected readonly editLocations = ['Ikeja, Lagos', 'Yaba, Lagos', 'Abuja'] as const;
-  protected readonly deliveryMethodOptions = [
-    { id: 'buyer-pickup', label: 'Buyer pickup' },
-    { id: 'seller-delivery', label: 'Seller delivery' },
-    { id: 'public-location', label: 'Public location' },
-  ] as const;
-  protected readonly deliveryRangeOptions = [
-    { id: 'nation-wide', label: 'Nation-wide' },
-    { id: 'state-wide', label: 'State-wide' },
-    { id: 'international', label: 'International' },
-  ] as const;
+  private readonly editImageInput = viewChild<ElementRef<HTMLInputElement>>('editImageInput');
+  private readonly editableGalleryImages = signal<EditableGalleryImage[]>([]);
+  protected readonly editCategories = computed(() => {
+    const categories =
+      this.manageListingsMetadata()
+        ?.categories?.map((category) => category.name)
+        .filter((name) => name.length > 0) ?? [];
+    return categories.length > 0 ? categories : this.fallbackEditCategories;
+  });
+  protected readonly editConditions = computed(() => {
+    const conditions =
+      this.manageListingsMetadata()
+        ?.product_conditions?.map((condition) => this.normalizeConditionLabel(condition.name))
+        .filter((name) => name.length > 0) ?? [];
+    return conditions.length > 0 ? conditions : this.fallbackEditConditions;
+  });
+  protected readonly editStores = computed(() => {
+    const stores =
+      this.manageListingsMetadata()
+        ?.stores?.map((store) => this.readStoreName(store))
+        .filter((name): name is string => typeof name === 'string' && name.length > 0) ?? [];
+    return stores.length > 0 ? stores : this.fallbackEditStores;
+  });
+  protected readonly editLocations = computed(() => {
+    const currentLocation = this.editListingForm.controls.location.getRawValue().trim();
+    const metadataLocation = this.listing().location.trim();
+    const options = [currentLocation, metadataLocation, ...this.fallbackEditLocations].filter(
+      (value, index, values) => value.length > 0 && values.indexOf(value) === index,
+    );
+    return options;
+  });
+  protected readonly deliveryMethodOptions = this.fallbackDeliveryMethodOptions;
+  protected readonly deliveryRangeOptions = this.fallbackDeliveryRangeOptions;
   protected readonly mobileDeliveryOptions = computed(() => [
     ...this.deliveryMethodOptions,
     ...this.deliveryRangeOptions,
   ]);
+  protected readonly editPrimaryGalleryImage = computed(
+    () => this.editableGalleryImages()[0] ?? this.editableGalleryImages()[1] ?? null,
+  );
+  protected readonly editSecondaryGalleryImage = computed(
+    () => this.editableGalleryImages()[1] ?? this.editableGalleryImages()[0] ?? null,
+  );
+  protected readonly editRemainingGalleryImages = computed(() => this.editableGalleryImages().slice(2, 6));
+  protected readonly editRemainingPlaceholderSlots = computed(() => {
+    const count = Math.max(0, 4 - this.editRemainingGalleryImages().length);
+    return Array.from({ length: count }, (_, index) => index + this.editRemainingGalleryImages().length + 3);
+  });
   protected readonly editListingForm = this.formBuilder.nonNullable.group({
     name: 'Iphone 17 pro max',
     category: 'Electronics/Phones & Tablets',
@@ -2750,39 +3006,22 @@ export class ListingDetailsPageComponent {
 
   protected readonly listing = signal<ListingDetails>({
     id: this.listingId(),
-    name: 'Iphone 17 pro max',
-    previewImage: '/assets/images/listings-item-iphone.png',
-    lastUpdated: '24 January, 2026',
-    datePosted: '14 Feb, 2026',
-    location: 'Ikeja, Lagos',
-    price: '2,500,000',
-    description:
-      'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, strong battery health, and no repairs. Minor signs of use only. Everything shown in the gallery is included exactly as pictured.',
+    name: 'Listing details',
+    previewImage: '',
+    lastUpdated: '--',
+    datePosted: '--',
+    location: '--',
+    price: '--',
+    description: 'No description available yet.',
     status: 'Available',
-    messages: 12,
-    views: '3,990',
-    saves: 200,
+    messages: 0,
+    views: '0',
+    saves: 0,
     isPromoted: false,
-    gallery: [
-      { src: '/assets/images/listings-item-iphone.png', alt: 'Front view of iPhone 17 Pro Max' },
-      {
-        src: '/assets/images/listings-item-iphone.png',
-        alt: 'Rear camera view of iPhone 17 Pro Max',
-      },
-      { src: '/assets/images/listings-item-iphone.png', alt: 'Angled view of iPhone 17 Pro Max' },
-      {
-        src: '/assets/images/listings-item-iphone.png',
-        alt: 'Display close up of iPhone 17 Pro Max',
-      },
-      { src: '/assets/images/listings-item-iphone.png', alt: 'Side profile of iPhone 17 Pro Max' },
-      {
-        src: '/assets/images/listings-item-iphone.png',
-        alt: 'Packaging shot of iPhone 17 Pro Max',
-      },
-    ],
+    gallery: [],
     store: {
-      name: 'The Vine Collections',
-      logo: '/assets/images/seller-menu-avatar.png',
+      name: 'Store details',
+      logo: '',
     },
   });
 
@@ -2812,6 +3051,7 @@ export class ListingDetailsPageComponent {
 
   protected readonly details = computed<readonly ListingDetailItem[]>(() => {
     const record = this.listingRecord();
+    const storeInfo = this.readRecord(record?.['store_info']);
     const detailEntries: ListingDetailItem[] = [
       {
         label: 'Category',
@@ -2835,15 +3075,14 @@ export class ListingDetailsPageComponent {
       {
         label: 'WhatsApp number',
         value:
-          this.readString(record?.['whatsapp_number']) ??
-          this.readString(record?.['phone_number']) ??
+          this.readString(storeInfo?.['whatsapp_number']) ??
           '08169397454',
       },
       {
         label: 'Call number',
         value:
-          this.readString(record?.['call_number']) ??
-          this.readString(record?.['whatsapp_number']) ??
+          this.readString(storeInfo?.['call_number']) ??
+          this.readString(storeInfo?.['whatsapp_number']) ??
           '08169397454',
       },
       {
@@ -2855,49 +3094,9 @@ export class ListingDetailsPageComponent {
     return detailEntries;
   });
 
-  protected readonly requests = signal<ListingRequest[]>([
-    {
-      id: 'r1',
-      buyer: 'John Okafor',
-      avatar: '/assets/images/seller-menu-avatar.png',
-      message: 'Hi, is this still available? I would like to know if you can do a better price.',
-      time: 'Today, 7:50 pm',
-      offer: '₦2,350,000',
-      status: 'New',
-    },
-    {
-      id: 'r2',
-      buyer: 'Amaka Eze',
-      avatar: '/assets/images/seller-menu-avatar.png',
-      message:
-        'Can you deliver to Lekki tomorrow morning? I am interested and ready to pay immediately.',
-      time: 'Yesterday, 5:12 pm',
-      offer: '₦2,500,000',
-      status: 'Responded',
-    },
-  ]);
+  protected readonly requests = signal<ListingRequest[]>([]);
 
-  protected readonly activities = signal<ListingActivity[]>([
-    {
-      id: 'a1',
-      title: 'Listing promoted successfully',
-      description:
-        'Your listing started running as a promoted ad across search and category pages.',
-      time: '24 January, 2026 at 10:32 AM',
-    },
-    {
-      id: 'a2',
-      title: 'Price updated',
-      description: 'You changed the listing price from ₦2,700,000 to ₦2,500,000.',
-      time: '22 January, 2026 at 4:11 PM',
-    },
-    {
-      id: 'a3',
-      title: 'Listing created',
-      description: 'This listing was published and made visible to buyers on Duduzili.',
-      time: '14 February, 2026 at 9:08 AM',
-    },
-  ]);
+  protected readonly activities = signal<ListingActivity[]>([]);
 
   protected readonly hasRequests = computed(() => this.requests().length > 0);
   protected readonly hasActivities = computed(() => this.activities().length > 0);
@@ -3094,8 +3293,68 @@ export class ListingDetailsPageComponent {
     this.editFreeListingEnabled.update((enabled) => !enabled);
   }
 
+  ngOnDestroy(): void {
+    this.clearEditableGalleryImages();
+  }
+
   protected closeEditSheet(): void {
+    this.resetEditableGalleryImages();
     this.editSheetOpen.set(false);
+  }
+
+  protected openEditImagePicker(): void {
+    this.editImageInput()?.nativeElement.click();
+  }
+
+  protected handleEditImageSelection(event: Event): void {
+    const input = event.target instanceof HTMLInputElement ? event.target : null;
+    const files = Array.from(input?.files ?? []).filter((file) => file.type.startsWith('image/'));
+
+    if (files.length === 0) {
+      if (input) {
+        input.value = '';
+      }
+      return;
+    }
+
+    const nextImages = files.map((file, index) => {
+      const previewUrl = URL.createObjectURL(file);
+      const token =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? `pending:${crypto.randomUUID()}`
+          : `pending:${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`;
+
+      return {
+        token,
+        kind: 'pending' as const,
+        imageId: null,
+        file,
+        previewUrl,
+        src: previewUrl,
+        alt: `${this.listing().name} new image ${this.editableGalleryImages().length + index + 1}`,
+      };
+    });
+
+    this.editableGalleryImages.update((existing) => [...existing, ...nextImages]);
+
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  protected removeEditImage(index: number): void {
+    this.editableGalleryImages.update((images) => {
+      if (index < 0 || index >= images.length) {
+        return images;
+      }
+
+      const target = images[index];
+      if (target.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+
+      return images.filter((_, imageIndex) => imageIndex !== index);
+    });
   }
 
   protected handleStatusSelection(status: ListingStatus): void {
@@ -3106,7 +3365,7 @@ export class ListingDetailsPageComponent {
       return;
     }
 
-    this.listing.update((listing) => ({ ...listing, status }));
+    void this.updateListingStatus(status);
   }
 
   protected handleMobileAction(action: MobileActionId): void {
@@ -3118,12 +3377,12 @@ export class ListingDetailsPageComponent {
     }
 
     if (action === 'pause') {
-      this.listing.update((listing) => ({ ...listing, status: 'Paused' }));
+      void this.updateListingStatus('Paused');
       return;
     }
 
     if (action === 'resume') {
-      this.listing.update((listing) => ({ ...listing, status: 'Available' }));
+      void this.updateListingStatus('Available');
       return;
     }
 
@@ -3135,10 +3394,15 @@ export class ListingDetailsPageComponent {
 
   protected handleEditAction(): void {
     this.mobileEditStep.set('media');
+    this.resetEditableGalleryImages();
     this.editSheetOpen.set(true);
   }
 
   protected saveEditListing(): void {
+    if (this.isSavingEdit()) {
+      return;
+    }
+
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       const step = this.mobileEditStep();
 
@@ -3154,30 +3418,50 @@ export class ListingDetailsPageComponent {
     }
 
     const formValue = this.editListingForm.getRawValue();
+    const payload = this.buildListingUpdateFormData(formValue);
 
-    this.listing.update((listing) => ({
-      ...listing,
-      name: formValue.name,
-      description: formValue.description,
-      location: formValue.location,
-      price: formValue.price,
-      store: {
-        ...listing.store,
-        name: formValue.store,
-      },
-    }));
-
-    this.editSheetOpen.set(false);
+    this.isSavingEdit.set(true);
+    void firstValueFrom(this.listingsService.updateListing(this.listingId(), payload))
+      .then(async () => {
+        const refreshed = await firstValueFrom(
+          this.listingsService.getListingDetails(this.listingId()),
+        );
+        this.applyListingDetails(refreshed);
+        this.resetEditableGalleryImages();
+        this.editSheetOpen.set(false);
+        this.appToastService.show({ message: 'Listing updated successfully.' });
+      })
+      .catch(() => {
+        this.appToastService.show({ message: 'We could not save your listing changes right now.' });
+      })
+      .finally(() => {
+        this.isSavingEdit.set(false);
+      });
   }
 
   protected confirmDeleteListing(): void {
-    this.deleteSheetOpen.set(false);
-    void this.router.navigateByUrl('/seller/listings');
+    if (this.isDeletingListing()) {
+      return;
+    }
+
+    this.isDeletingListing.set(true);
+    void firstValueFrom(this.listingsService.deleteListing(this.listingId()))
+      .then(async () => {
+        this.deleteSheetOpen.set(false);
+        this.appToastService.show({ message: 'Listing deleted successfully.' });
+        await this.router.navigateByUrl('/seller/listings');
+      })
+      .catch(() => {
+        this.appToastService.show({ message: 'We could not delete this listing right now.' });
+      })
+      .finally(() => {
+        this.isDeletingListing.set(false);
+      });
   }
 
   protected confirmMarkSold(): void {
     this.markSoldSheetOpen.set(false);
-    this.listing.update((listing) => ({ ...listing, status: 'Sold' }));
+    void this.updateListingStatus('Sold');
   }
 
   protected markListingAsPromoted(): void {
@@ -3185,8 +3469,75 @@ export class ListingDetailsPageComponent {
     this.listing.update((listing) => ({ ...listing, isPromoted: true }));
   }
 
+  protected handleListingPromotion(selection: ListingPromotionSelection): void {
+    const plan = this.resolvePromotionPlan(selection.durationDays);
+    if (!plan) {
+      this.appToastService.show({
+        message: 'No active promotion plan matches that duration right now.',
+      });
+      return;
+    }
+
+    this.isPromotingListing.set(true);
+
+    void firstValueFrom(
+      this.listingsService.promoteListings({
+        listing_ids: [this.listingId()],
+        plan_id: plan.id,
+        payment_method: selection.paymentMethod,
+        confirm_deduction: selection.paymentMethod === 'wallet',
+      }),
+    )
+      .then(async (response) => {
+        const paymentUrl = this.readString(response['payment_url']);
+        if (paymentUrl && typeof window !== 'undefined') {
+          window.location.href = paymentUrl;
+          return;
+        }
+
+        const refreshed = await firstValueFrom(this.listingsService.getListingDetails(this.listingId()));
+        this.applyListingDetails(refreshed);
+        this.markListingAsPromoted();
+        this.appToastService.show({ message: 'Listing promoted successfully.' });
+      })
+      .catch((error: unknown) => {
+        const responseRecord = this.readRecord(this.readRecord(error)?.['error']) ??
+          this.readRecord(this.readRecord(error)?.['response']);
+        const message =
+          this.readString(responseRecord?.['error']) ??
+          this.readString(responseRecord?.['message']) ??
+          'We could not promote this listing right now.';
+        this.appToastService.show({ message });
+      })
+      .finally(() => {
+        this.isPromotingListing.set(false);
+      });
+  }
+
   constructor() {
+    void this.loadManageListingsMetadata();
+    void this.loadPromotionPlans();
     void this.loadListingDetails();
+    void this.loadListingRequests();
+    void this.loadListingActivities();
+  }
+
+  private async loadManageListingsMetadata(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.listingsService.getManageListings());
+      this.manageListingsMetadata.set(response);
+    } catch {
+      // Keep the fallback edit options if metadata fails to load.
+    }
+  }
+
+  private async loadPromotionPlans(): Promise<void> {
+    try {
+      const plans = await firstValueFrom(this.listingsService.getPromotionPlans());
+      this.promotionPlans.set(Array.isArray(plans) ? plans : []);
+    } catch {
+      this.promotionPlans.set([]);
+    }
   }
 
   private async loadListingDetails(): Promise<void> {
@@ -3198,17 +3549,66 @@ export class ListingDetailsPageComponent {
     }
   }
 
+  private async loadListingRequests(): Promise<void> {
+    try {
+      const [offers, callbacks] = await Promise.all([
+        firstValueFrom(this.listingsService.getListingOffers(this.listingId())),
+        firstValueFrom(this.listingsService.getListingCallbackRequests(this.listingId())),
+      ]);
+
+      const requestItems = [
+        ...offers.map((record) => this.mapOfferRequest(record)),
+        ...callbacks.map((record) => this.mapCallbackRequest(record)),
+      ]
+        .filter((record): record is ListingRequest => record !== null)
+        .sort((left, right) => right.sortTime - left.sortTime);
+
+      this.requests.set(requestItems);
+    } catch {
+      this.requests.set([]);
+    }
+  }
+
+  private async loadListingActivities(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.listingsService.getListingActivities(this.listingId()));
+      const rawItems = Array.isArray(response)
+        ? response
+        : Array.isArray(response.results)
+          ? response.results
+          : Array.isArray(response.timeline)
+            ? response.timeline
+            : [];
+
+      const mapped = rawItems
+        .map((record) => this.mapListingActivity(record))
+        .filter((item): item is ListingActivity => item !== null);
+
+      this.activities.set(mapped);
+    } catch {
+      this.activities.set([]);
+    }
+  }
+
   private applyListingDetails(record: ListingsApiItem): void {
     this.listingRecord.set(record);
 
-    const gallery = this.extractGalleryImages(record);
+    const listingSummary = this.findManageListingSummary();
+    const gallery = this.extractGalleryImages(record, listingSummary);
+    const storeInfo = this.readRecord(record['store_info']);
     const storeName =
+      this.readString(storeInfo?.['store_name']) ??
       this.readString(record['store_name']) ??
       this.readString(record['vendor_name']) ??
       this.listing().store.name;
     const listingLocation = this.composeLocation(record) ?? this.listing().location;
     const createdAt = record['created_at'];
     const updatedAt = record['updated_at'] ?? createdAt;
+    const originalPrice = this.formatPlainPrice(record['original_price'] ?? record['discount_price']);
+    const acceptsOffers = this.readBoolean(record['accept_offers']);
+    const isFree = this.readBoolean(record['is_free']);
+    const youtubeLink = this.readString(record['youtube_link']);
+    const deliverySelections = this.extractDeliverySelectionIds(record);
 
     this.activeImageIndex.set(0);
     this.listing.set({
@@ -3231,6 +3631,7 @@ export class ListingDetailsPageComponent {
         this.formatCount(record['views']) ??
         this.listing().views,
       saves:
+        this.readNumber(record['save_count']) ??
         this.readNumber(record['likes_count']) ??
         this.readNumber(record['saves_count']) ??
         this.listing().saves,
@@ -3239,12 +3640,19 @@ export class ListingDetailsPageComponent {
       store: {
         name: storeName,
         logo:
+          this.resolveMediaUrl(this.readString(storeInfo?.['profile_photo'])) ??
           this.resolveMediaUrl(this.readString(record['profile_photo'])) ??
           this.resolveMediaUrl(this.readString(record['store_profile_photo'])) ??
           this.resolveMediaUrl(this.readString(this.readRecord(record['user'])?.['avatar'])) ??
           this.listing().store.logo,
       },
     });
+
+    this.editAcceptOffersEnabled.set(acceptsOffers ?? true);
+    this.editFreeListingEnabled.set(isFree ?? false);
+    this.editDiscountEnabled.set(originalPrice !== null);
+    this.selectedDeliveryMethods.set(deliverySelections.methods);
+    this.selectedDeliveryRanges.set(deliverySelections.ranges);
 
     this.editListingForm.patchValue({
       name: this.readString(record['title']) ?? this.editListingForm.controls.name.getRawValue(),
@@ -3257,22 +3665,105 @@ export class ListingDetailsPageComponent {
       description:
         this.readString(record['description']) ??
         this.editListingForm.controls.description.getRawValue(),
+      embeddedVideo: youtubeLink ?? this.editListingForm.controls.embeddedVideo.getRawValue(),
       location: listingLocation,
       whatsAppNumber:
-        this.readString(record['whatsapp_number']) ??
+        this.readString(storeInfo?.['whatsapp_number']) ??
         this.editListingForm.controls.whatsAppNumber.getRawValue(),
       callNumber:
-        this.readString(record['call_number']) ??
-        this.readString(record['whatsapp_number']) ??
+        this.readString(storeInfo?.['call_number']) ??
+        this.readString(storeInfo?.['whatsapp_number']) ??
         this.editListingForm.controls.callNumber.getRawValue(),
       price: this.formatPlainPrice(record['price']) ?? this.editListingForm.controls.price.getRawValue(),
-      discountPrice:
-        this.formatPlainPrice(record['original_price'] ?? record['discount_price']) ??
-        this.editListingForm.controls.discountPrice.getRawValue(),
+      discountPrice: originalPrice ?? this.editListingForm.controls.discountPrice.getRawValue(),
     });
+
+    if (!this.editSheetOpen()) {
+      this.resetEditableGalleryImages();
+    }
   }
 
-  private extractGalleryImages(record: ListingsApiItem): GalleryImage[] {
+  private mapOfferRequest(record: ListingsApiItem): ListingRequest | null {
+    const buyerRecord = this.readRecord(record['buyer']);
+    const buyerName =
+      this.readString(buyerRecord?.['full_name']) ??
+      this.readString(buyerRecord?.['username']) ??
+      this.readString(record['buyer_name']);
+    if (!buyerName) {
+      return null;
+    }
+
+    const createdAt = this.readString(record['created_at']);
+    return {
+      id: `offer-${this.readString(record['id']) ?? crypto.randomUUID()}`,
+      buyer: buyerName,
+      avatar:
+        this.resolveMediaUrl(this.readString(buyerRecord?.['avatar'])) ??
+        '/assets/images/seller-menu-avatar.png',
+      message:
+        this.readString(record['message']) ??
+        'A buyer sent you an offer for this listing.',
+      time: this.formatDateTime(createdAt) ?? 'Recently',
+      sortTime: this.toTimestamp(createdAt),
+      metaLabel: 'Offer',
+      metaValue: this.formatCurrency(record['offer_amount']) ?? 'N/A',
+      status: this.mapRequestStatus(record['status']),
+    };
+  }
+
+  private mapCallbackRequest(record: ListingsApiItem): ListingRequest | null {
+    const buyerRecord = this.readRecord(record['buyer']);
+    const buyerName =
+      this.readString(buyerRecord?.['full_name']) ??
+      this.readString(buyerRecord?.['username']) ??
+      this.readString(record['buyer_name']);
+    if (!buyerName) {
+      return null;
+    }
+
+    const createdAt = this.readString(record['date_requested']) ?? this.readString(record['created_at']);
+    const callbackMessage =
+      this.readString(record['message']) ??
+      `Requested a call back on ${this.readString(record['phone_number']) ?? 'their number'}.`;
+
+    return {
+      id: `callback-${this.readString(record['id']) ?? crypto.randomUUID()}`,
+      buyer: buyerName,
+      avatar:
+        this.resolveMediaUrl(this.readString(buyerRecord?.['avatar'])) ??
+        '/assets/images/seller-menu-avatar.png',
+      message: callbackMessage,
+      time: this.formatDateTime(createdAt) ?? 'Recently',
+      sortTime: this.toTimestamp(createdAt),
+      metaLabel: 'Phone',
+      metaValue: this.readString(record['phone_number']) ?? 'N/A',
+      status: this.mapRequestStatus(record['status']),
+    };
+  }
+
+  private mapListingActivity(record: ListingsApiItem): ListingActivity | null {
+    const title = this.readString(record['label']) ?? this.readString(record['title']);
+    const description = this.readString(record['description']);
+    const timestamp = this.readString(record['timestamp']) ?? this.readString(record['created_at']);
+
+    if (!title || !description) {
+      return null;
+    }
+
+    return {
+      id:
+        `${this.readString(record['activity_type']) ?? 'activity'}-${this.readString(record['id']) ?? crypto.randomUUID()}`,
+      title,
+      description,
+      time: this.formatDateTime(timestamp) ?? 'Recently',
+      actorAvatar: this.resolveMediaUrl(this.readString(record['actor_avatar'])),
+    };
+  }
+
+  private extractGalleryImages(
+    record: ListingsApiItem,
+    listingSummary?: ListingsApiItem | null,
+  ): GalleryImage[] {
     const arrayCandidates = [
       record['images'],
       record['gallery'],
@@ -3289,8 +3780,8 @@ export class ListingDetailsPageComponent {
         .map((entry, index) => {
           if (typeof entry === 'string') {
             const src = this.resolveMediaUrl(entry);
-            return src
-              ? { src, alt: `${this.listing().name} image ${index + 1}` }
+          return src
+              ? { id: null, src, alt: `${this.listing().name} image ${index + 1}` }
               : null;
           }
 
@@ -3310,6 +3801,7 @@ export class ListingDetailsPageComponent {
           }
 
           return {
+            id: this.readString(entryRecord['id']),
             src,
             alt:
               this.readString(entryRecord['alt']) ??
@@ -3326,13 +3818,31 @@ export class ListingDetailsPageComponent {
     const fallbackImage =
       this.resolveMediaUrl(this.readString(record['thumbnail'])) ??
       this.resolveMediaUrl(this.readString(record['image'])) ??
-      this.resolveMediaUrl(this.readString(record['cover_image']));
+      this.resolveMediaUrl(this.readString(record['cover_image'])) ??
+      this.resolveMediaUrl(this.readString(listingSummary?.['thumbnail'])) ??
+      this.resolveMediaUrl(this.readString(listingSummary?.['image']));
 
     if (fallbackImage) {
-      return [{ src: fallbackImage, alt: this.readString(record['title']) ?? 'Listing image' }];
+      return [
+        {
+          id: null,
+          src: fallbackImage,
+          alt: this.readString(record['title']) ?? 'Listing image',
+        },
+      ];
     }
 
     return this.listing().gallery;
+  }
+
+  private findManageListingSummary(): ListingsApiItem | null {
+    const entries = this.manageListingsMetadata()?.all;
+    if (!Array.isArray(entries)) {
+      return null;
+    }
+
+    const match = entries.find((entry) => this.readString(entry['id']) === this.listingId());
+    return match ?? null;
   }
 
   private extractDeliveryOptions(record: ListingsApiItem | null): string | null {
@@ -3355,6 +3865,304 @@ export class ListingDetailsPageComponent {
     );
 
     return labels.length > 0 ? labels.join(', ') : null;
+  }
+
+  private mapRequestStatus(value: unknown): ListingRequest['status'] {
+    const status = this.readString(value)?.toLowerCase();
+    if (status === 'accepted' || status === 'responded') {
+      return 'Responded';
+    }
+
+    if (status === 'completed' || status === 'called') {
+      return 'Called';
+    }
+
+    return 'New';
+  }
+
+  private extractDeliverySelectionIds(record: ListingsApiItem): {
+    methods: string[];
+    ranges: string[];
+  } {
+    const selectedIds = new Set<string>();
+    const candidates = record['delivery_options'];
+
+    if (Array.isArray(candidates)) {
+      for (const option of candidates) {
+        if (typeof option === 'string' && option.trim().length > 0) {
+          selectedIds.add(this.slugify(option));
+          continue;
+        }
+
+        const entryRecord = this.readRecord(option);
+        const optionName =
+          this.readString(entryRecord?.['name']) ??
+          this.readString(entryRecord?.['label']) ??
+          this.readString(entryRecord?.['option']);
+
+        if (optionName) {
+          selectedIds.add(this.slugify(optionName));
+        }
+      }
+    }
+
+    const methods = this.deliveryMethodOptions
+      .map((option) => option.id)
+      .filter((id) => selectedIds.has(id));
+    const ranges = this.deliveryRangeOptions
+      .map((option) => option.id)
+      .filter((id) => selectedIds.has(id));
+
+    return {
+      methods: methods.length > 0 ? methods : this.selectedDeliveryMethods(),
+      ranges: ranges.length > 0 ? ranges : this.selectedDeliveryRanges(),
+    };
+  }
+
+  private resolvePromotionPlan(durationDays: number): PromotionPlanApiItem | null {
+    return (
+      this.promotionPlans().find(
+        (plan) =>
+          plan.status?.toLowerCase() === 'active' && plan.duration_days === durationDays,
+      ) ?? null
+    );
+  }
+
+  private async updateListingStatus(status: ListingStatus): Promise<void> {
+    const backendStatus = this.toBackendStatus(status);
+    if (!backendStatus || this.isUpdatingStatus()) {
+      return;
+    }
+
+    this.isUpdatingStatus.set(true);
+
+    try {
+      await firstValueFrom(
+        this.listingsService.updateListing(this.listingId(), { status: backendStatus }),
+      );
+      const refreshed = await firstValueFrom(this.listingsService.getListingDetails(this.listingId()));
+      this.applyListingDetails(refreshed);
+      this.appToastService.show({ message: `Listing status updated to ${status}.` });
+    } catch {
+      this.appToastService.show({ message: 'We could not update the listing status right now.' });
+    } finally {
+      this.isUpdatingStatus.set(false);
+    }
+  }
+
+  private buildListingUpdatePayload(
+    formValue: ReturnType<typeof this.editListingForm.getRawValue>,
+  ): UpdateListingRequest {
+    const payload: UpdateListingRequest = {
+      title: formValue.name.trim(),
+      description: formValue.description.trim(),
+      location: formValue.location.trim(),
+      accept_offers: this.editAcceptOffersEnabled(),
+      is_free: this.editFreeListingEnabled(),
+      youtube_link: formValue.embeddedVideo.trim() || null,
+    };
+
+    const price = this.parsePlainPrice(formValue.price);
+    if (price !== null) {
+      payload.price = this.editFreeListingEnabled() ? 0 : price;
+    }
+
+    if (this.editDiscountEnabled() && !this.editFreeListingEnabled()) {
+      payload.original_price = this.parsePlainPrice(formValue.discountPrice);
+    } else {
+      payload.original_price = null;
+    }
+
+    const categoryId = this.resolveCategoryId(formValue.category);
+    if (categoryId !== null) {
+      payload.category = categoryId;
+    }
+
+    const conditionValue = this.resolveConditionValue(formValue.condition);
+    if (conditionValue) {
+      payload.condition = conditionValue;
+    }
+
+    const storeId = this.resolveStoreId(formValue.store);
+    if (storeId) {
+      payload.store = storeId;
+    }
+
+    const deliveryOptionIds = this.resolveSelectedDeliveryOptionIds();
+    if (deliveryOptionIds.length > 0) {
+      payload.delivery_option_ids = deliveryOptionIds;
+    }
+
+    return payload;
+  }
+
+  private buildListingUpdateFormData(
+    formValue: ReturnType<typeof this.editListingForm.getRawValue>,
+  ): FormData {
+    const payload = this.buildListingUpdatePayload(formValue);
+    const formData = new FormData();
+
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value === null || typeof value === 'undefined') {
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((item) => {
+          formData.append(key, String(item));
+        });
+        return;
+      }
+
+      formData.append(key, String(value));
+    });
+
+    this.editableGalleryImages().forEach((image) => {
+      formData.append('image_order', image.token);
+      if (image.kind === 'pending' && image.file) {
+        formData.append('uploaded_image_keys', image.token);
+        formData.append('uploaded_images', image.file);
+      }
+    });
+
+    return formData;
+  }
+
+  private resetEditableGalleryImages(): void {
+    this.clearEditableGalleryImages();
+    this.editableGalleryImages.set(
+      this.listing().gallery.map((image, index) => ({
+        token: image.id ? `existing:${image.id}` : `existing:fallback-${index}`,
+        kind: 'existing',
+        imageId: image.id,
+        src: image.src,
+        alt: image.alt,
+      })),
+    );
+
+    const input = this.editImageInput()?.nativeElement;
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  private clearEditableGalleryImages(): void {
+    this.editableGalleryImages().forEach((image) => {
+      if (image.previewUrl) {
+        URL.revokeObjectURL(image.previewUrl);
+      }
+    });
+    this.editableGalleryImages.set([]);
+
+    const input = this.editImageInput()?.nativeElement;
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  private resolveCategoryId(categoryName: string): number | null {
+    const categories = this.manageListingsMetadata()?.categories ?? [];
+    const match = categories.find(
+      (category) => category.name.trim().toLowerCase() === categoryName.trim().toLowerCase(),
+    );
+    return typeof match?.id === 'number' ? match.id : null;
+  }
+
+  private resolveConditionValue(conditionLabel: string): string | null {
+    const metadataConditions = this.manageListingsMetadata()?.product_conditions ?? [];
+    const normalizedLabel = conditionLabel.trim().toLowerCase();
+    const metadataMatch = metadataConditions.find((condition) =>
+      this.normalizeConditionLabel(condition.name).trim().toLowerCase() === normalizedLabel,
+    );
+
+    if (metadataMatch) {
+      return metadataMatch.id;
+    }
+
+    if (normalizedLabel === 'brand new' || normalizedLabel === 'new') {
+      return 'new';
+    }
+
+    if (normalizedLabel === 'used' || normalizedLabel === 'fairly used') {
+      return 'used';
+    }
+
+    return this.readString(this.listingRecord()?.['condition']);
+  }
+
+  private resolveStoreId(storeName: string): string | null {
+    const stores = this.manageListingsMetadata()?.stores ?? [];
+    const match = stores.find(
+      (store) =>
+        this.readStoreName(store)?.trim().toLowerCase() === storeName.trim().toLowerCase(),
+    );
+
+    const rawId = match?.['id'];
+    if (typeof rawId === 'string' && rawId.trim().length > 0) {
+      return rawId.trim();
+    }
+
+    return typeof rawId === 'number' ? String(rawId) : null;
+  }
+
+  private resolveSelectedDeliveryOptionIds(): number[] {
+    const deliveryOptions = this.manageListingsMetadata()?.delivery_options ?? [];
+    const selectedLabels = new Set([
+      ...this.selectedDeliveryMethods(),
+      ...this.selectedDeliveryRanges(),
+    ]);
+
+    return deliveryOptions
+      .filter((option) => selectedLabels.has(this.slugify(option.name)))
+      .map((option) => option.id);
+  }
+
+  private readStoreName(store: ManageListingsStore): string | null {
+    return (
+      this.readString(store['store_name']) ??
+      this.readString(store['name']) ??
+      this.readString(store['title'])
+    );
+  }
+
+  private normalizeConditionLabel(value: string): string {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'new') {
+      return 'Brand new';
+    }
+
+    if (normalized === 'used') {
+      return 'Used';
+    }
+
+    return this.formatCondition(value) ?? value;
+  }
+
+  private parsePlainPrice(value: string): number | null {
+    const sanitized = value.replace(/[^\d.]/g, '').trim();
+    if (!sanitized) {
+      return null;
+    }
+
+    const parsed = Number(sanitized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private slugify(value: string): string {
+    return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  }
+
+  private toBackendStatus(status: ListingStatus): string | null {
+    switch (status) {
+      case 'Available':
+        return 'published';
+      case 'Paused':
+        return 'paused';
+      case 'Sold':
+        return 'sold';
+      default:
+        return null;
+    }
   }
 
   private mapListingStatus(value: unknown): ListingStatus {
@@ -3397,6 +4205,34 @@ export class ListingDetailsPageComponent {
       month: 'short',
       year: 'numeric',
     }).format(date);
+  }
+
+  private formatDateTime(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) {
+      return null;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date);
+  }
+
+  private formatCurrency(value: unknown): string | null {
+    const amount = this.readNumber(value);
+    if (amount === null) {
+      return null;
+    }
+
+    return `₦${new Intl.NumberFormat('en-NG').format(amount)}`;
   }
 
   private formatCount(value: unknown): string | null {
@@ -3461,6 +4297,15 @@ export class ListingDetailsPageComponent {
     }
 
     return null;
+  }
+
+  private toTimestamp(value: string | null): number {
+    if (!value) {
+      return 0;
+    }
+
+    const timestamp = new Date(value).getTime();
+    return Number.isFinite(timestamp) ? timestamp : 0;
   }
 
   private readBoolean(value: unknown): boolean | null {

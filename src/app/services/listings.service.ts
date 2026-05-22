@@ -15,12 +15,36 @@ export type ManageListingsCategory = {
 };
 
 export type ManageListingsStore = Record<string, unknown>;
+export interface ManageListingsState {
+  id: number;
+  name: string;
+}
+
+export interface ManageListingsCity {
+  id: number;
+  name: string;
+  state?: number;
+}
+
+export interface ManageListingsDeliveryOption {
+  id: number;
+  name: string;
+}
+
+export interface ManageListingsProductCondition {
+  id: string;
+  name: string;
+}
 
 export interface ManageListingsResponse {
   all?: ListingsApiItem[];
   stats?: Record<string, number>;
   stores?: ManageListingsStore[];
   categories?: ManageListingsCategory[];
+  states?: ManageListingsState[];
+  cities?: ManageListingsCity[];
+  delivery_options?: ManageListingsDeliveryOption[];
+  product_conditions?: ManageListingsProductCondition[];
 }
 export interface SearchListingsParams {
   search?: string;
@@ -68,6 +92,65 @@ export interface CreateListingReportRequest {
 
 export interface CreateSellerReportRequest {
   reason: string;
+}
+
+export interface CreateOfferRequest {
+  listing: string;
+  offer_amount: string;
+  message?: string;
+}
+
+export interface CreateCallbackRequest {
+  listing: string;
+  phone_number: string;
+  message?: string;
+}
+
+export interface PromotionPlanApiItem {
+  id: number;
+  name: string;
+  duration_days: number;
+  automobile_price: string;
+  property_price: string;
+  other_listing_price: string;
+  image_banner_price: string;
+  video_banner_price: string;
+  store_promotion_price: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PromoteListingsRequest {
+  listing_ids: string[];
+  plan_id: number;
+  payment_method: 'wallet' | 'online';
+  confirm_deduction?: boolean;
+}
+
+export type ListingOfferResponse = ListingsApiItem[];
+export type ListingCallbackResponse = ListingsApiItem[];
+export type ListingActivitiesResponse =
+  | ListingsApiItem[]
+  | {
+      results?: ListingsApiItem[];
+      timeline?: ListingsApiItem[];
+    };
+
+export interface UpdateListingRequest {
+  title?: string;
+  category?: number;
+  condition?: string;
+  store?: string;
+  description?: string;
+  youtube_link?: string | null;
+  location?: string;
+  price?: number;
+  original_price?: number | null;
+  accept_offers?: boolean;
+  is_free?: boolean;
+  delivery_option_ids?: number[];
+  status?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -121,8 +204,44 @@ export class ListingsService {
     );
   }
 
+  createOffer(payload: CreateOfferRequest): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/offers/`, payload);
+  }
+
+  createCallbackRequest(payload: CreateCallbackRequest): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/callback-requests/`, payload);
+  }
+
   getListingDetails(id: string): Observable<ListingsApiItem> {
     return this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`);
+  }
+
+  getListingOffers(id: string): Observable<ListingOfferResponse> {
+    return this.http.get<ListingOfferResponse>(`${this.apiUrl}/listings/${id}/offers/`);
+  }
+
+  getListingCallbackRequests(id: string): Observable<ListingCallbackResponse> {
+    return this.http.get<ListingCallbackResponse>(`${this.apiUrl}/listings/${id}/callback-requests/`);
+  }
+
+  getListingActivities(id: string): Observable<ListingActivitiesResponse> {
+    return this.http.get<ListingActivitiesResponse>(`${this.apiUrl}/listings/${id}/activities/`);
+  }
+
+  getPromotionPlans(): Observable<PromotionPlanApiItem[]> {
+    return this.http.get<PromotionPlanApiItem[]>(`${this.apiUrl}/promotion-plans/`);
+  }
+
+  promoteListings(payload: PromoteListingsRequest): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/ads/promote-listings/`, payload);
+  }
+
+  updateListing(id: string, payload: UpdateListingRequest | FormData): Observable<ListingsApiItem> {
+    return this.http.patch<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`, payload);
+  }
+
+  deleteListing(id: string): Observable<null> {
+    return this.http.delete<null>(`${this.apiUrl}/listings/${id}/`);
   }
 
   toggleWishlist(id: string): Observable<ToggleWishlistResponse> {

@@ -3,16 +3,21 @@ import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { AppToastService } from '../../services/app-toast.service';
+import {
+  SellerMonetizationService,
+  type WalletTransactionRecord,
+} from '../../services/seller-monetization.service';
 
 type WalletStatus = 'successful' | 'failed';
-type WalletTransactionType = 'all' | 'wallet funding' | 'subscription payment';
-type WalletDateFilter = 'all' | 'feb-2025' | 'mar-2025';
+type WalletTransactionType = 'all' | 'wallet funding' | 'subscription payment' | 'ad promotion' | 'other';
+type WalletDateFilter = 'all' | string;
 
 interface WalletTransaction {
+  id: string;
   amount: string;
   type: Exclude<WalletTransactionType, 'all'>;
   date: string;
-  dateKey: Exclude<WalletDateFilter, 'all'>;
+  dateKey: string;
   status: WalletStatus;
 }
 
@@ -65,7 +70,7 @@ interface MobileWalletTransaction {
         <div class="mt-12">
           <h1 class="max-w-[350px] text-[32px] font-medium leading-[1.3] text-[#414141]">
             You currently have
-            <span class="font-bold text-[#959595] line-through">N</span><span class="font-bold text-[#959595]">0.00</span>
+            <span class="font-bold text-[#959595]">{{ formattedWalletBalance() }}</span>
             in your wallet
           </h1>
         </div>
@@ -74,7 +79,7 @@ interface MobileWalletTransaction {
           <div class="flex items-start justify-between gap-4">
             <div>
               <h2 class="text-[16px] font-medium leading-5 text-[#4D4845]">Transaction history</h2>
-              <p class="mt-1 text-[12px] leading-4 text-[#928F8B]">23 total</p>
+              <p class="mt-1 text-[12px] leading-4 text-[#928F8B]">{{ transactions().length }} total</p>
             </div>
 
             <a
@@ -86,7 +91,7 @@ interface MobileWalletTransaction {
           </div>
 
           <div class="mt-6 space-y-6">
-            @for (transaction of mobileTransactions; track transaction.title + transaction.date) {
+            @for (transaction of mobileTransactions(); track transaction.title + transaction.date) {
               <article class="flex items-center gap-3">
                 <div class="relative h-10 w-10 shrink-0 rounded-full border border-[#F4F4F2] bg-white">
                   <img
@@ -143,7 +148,7 @@ interface MobileWalletTransaction {
           <div class="flex items-start justify-between gap-6">
             <h1 class="max-w-[468px] pt-[21px] text-[40px] font-medium leading-[1.3] text-[#414141]">
               You currently have
-              <span class="font-bold text-[#959595] line-through">N</span><span class="font-bold text-[#959595]">0.00</span>
+              <span class="font-bold text-[#959595]">{{ formattedWalletBalance() }}</span>
               in your wallet
             </h1>
 
@@ -164,7 +169,7 @@ interface MobileWalletTransaction {
               <div class="flex items-center justify-between px-[15px] py-[15px]">
                 <div class="flex flex-wrap gap-2">
                   <app-custom-dropdown
-                    [options]="transactionTypeOptions"
+                    [options]="transactionTypeOptions()"
                     [value]="transactionType()"
                     ariaLabel="Select transaction type"
                     buttonClass="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
@@ -174,7 +179,7 @@ interface MobileWalletTransaction {
                   ></app-custom-dropdown>
 
                   <app-custom-dropdown
-                    [options]="dateFilterOptions"
+                    [options]="dateFilterOptions()"
                     [value]="dateFilter()"
                     ariaLabel="Select transaction date"
                     buttonClass="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
@@ -232,15 +237,17 @@ interface MobileWalletTransaction {
         </div>
 
         <div class="mt-auto flex items-center justify-between px-4 pb-4 pt-10 text-[16px] leading-[normal]">
-          <p class="text-[#1A1B1D]">5 <span class="text-[rgba(26,27,29,0.5)]">results</span></p>
+          <p class="text-[#1A1B1D]">{{ totalResults() }} <span class="text-[rgba(26,27,29,0.5)]">results</span></p>
 
           <div class="flex items-center gap-2 text-[#1C1F1D] opacity-50">
             <div class="flex items-end gap-[5px]">
-              <button
-                type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
-                aria-label="Previous page"
-              >
+                <button
+                  type="button"
+                  (click)="previousPage()"
+                  [disabled]="!hasPreviousPage()"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                  aria-label="Previous page"
+                >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="none">
                   <path
                     d="M11.5 5L6.5 10L11.5 15"
@@ -254,15 +261,17 @@ interface MobileWalletTransaction {
 
               <span
                 class="inline-flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-[14px] text-[14px] font-medium shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
-              >
-                1
-              </span>
+                >
+                  {{ currentPage() }}
+                </span>
 
-              <button
-                type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
-                aria-label="Next page"
-              >
+                <button
+                  type="button"
+                  (click)="nextPage()"
+                  [disabled]="!hasNextPage()"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                  aria-label="Next page"
+                >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="none">
                   <path
                     d="M8.5 5L13.5 10L8.5 15"
@@ -275,7 +284,7 @@ interface MobileWalletTransaction {
               </button>
             </div>
 
-            <span>of 12</span>
+            <span>of {{ totalPages() }}</span>
           </div>
         </div>
       </div>
@@ -332,7 +341,7 @@ interface MobileWalletTransaction {
                             <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Account number</p>
                             <div class="mt-0.5 flex items-center gap-1.5">
                               <p class="text-[24px] font-medium leading-[1.2] tracking-[-0.03em] text-[#1A1B1D]">
-                                {{ fundWallet.accountNumber }}
+                                {{ fundWalletDetails().accountNumber || 'Loading...' }}
                               </p>
                               <button
                                 type="button"
@@ -354,7 +363,7 @@ interface MobileWalletTransaction {
                           <div>
                             <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Bank name</p>
                             <p class="mt-0.5 text-[16px] font-medium leading-6 text-[#1A1B1D]">
-                              {{ fundWallet.bankName }}
+                              {{ fundWalletDetails().bankName || 'Loading...' }}
                             </p>
                           </div>
                         </div>
@@ -367,7 +376,7 @@ interface MobileWalletTransaction {
                           <div>
                             <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Name</p>
                             <p class="mt-0.5 text-[16px] font-medium leading-6 text-[#1A1B1D]">
-                              {{ fundWallet.accountName }}
+                              {{ fundWalletDetails().accountName || 'Loading...' }}
                             </p>
                           </div>
                         </div>
@@ -392,6 +401,7 @@ interface MobileWalletTransaction {
 
                 <button
                   type="button"
+                  (click)="payOnline()"
                   class="flex h-[67px] w-full items-center justify-between rounded-[16px] bg-white px-[6px] py-[6px] text-left"
                 >
                   <span class="flex items-center gap-3">
@@ -475,7 +485,7 @@ interface MobileWalletTransaction {
                           <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Account number</p>
                           <div class="mt-0.5 flex items-center gap-1.5">
                             <p class="truncate text-[24px] font-medium leading-[1.2] tracking-[-0.03em] text-[#1A1B1D]">
-                              {{ fundWallet.accountNumber }}
+                            {{ fundWalletDetails().accountNumber || 'Loading...' }}
                             </p>
                             <button
                               type="button"
@@ -497,7 +507,7 @@ interface MobileWalletTransaction {
                         <div>
                           <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Bank name</p>
                           <p class="mt-0.5 text-[16px] font-medium leading-6 text-[#1A1B1D]">
-                            {{ fundWallet.bankName }}
+                            {{ fundWalletDetails().bankName || 'Loading...' }}
                           </p>
                         </div>
                       </div>
@@ -510,7 +520,7 @@ interface MobileWalletTransaction {
                         <div>
                           <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Name</p>
                           <p class="mt-0.5 text-[16px] font-medium leading-6 text-[#1A1B1D]">
-                            {{ fundWallet.accountName }}
+                            {{ fundWalletDetails().accountName || 'Loading...' }}
                           </p>
                         </div>
                       </div>
@@ -534,6 +544,7 @@ interface MobileWalletTransaction {
 
                 <button
                   type="button"
+                  (click)="payOnline()"
                   class="flex h-[67px] w-full items-center justify-between rounded-[16px] bg-white px-[6px] py-[6px] text-left"
                 >
                   <span class="flex items-center gap-3">
@@ -577,16 +588,7 @@ interface MobileWalletTransaction {
 })
 export class WalletPageComponent {
   private readonly appToastService = inject(AppToastService);
-  readonly transactionTypeOptions: readonly CustomDropdownOption<WalletTransactionType>[] = [
-    { value: 'all', label: 'All transaction types' },
-    { value: 'wallet funding', label: 'Wallet funding' },
-    { value: 'subscription payment', label: 'Subscription payment' },
-  ];
-  readonly dateFilterOptions: readonly CustomDropdownOption<WalletDateFilter>[] = [
-    { value: 'all', label: 'All dates' },
-    { value: 'feb-2025', label: 'Feb 2025' },
-    { value: 'mar-2025', label: 'Mar 2025' },
-  ];
+  private readonly sellerMonetizationService = inject(SellerMonetizationService);
   readonly statusFilterOptions: readonly CustomDropdownOption<'all' | WalletStatus>[] = [
     { value: 'all', label: 'All statuses' },
     { value: 'successful', label: 'Successful' },
@@ -610,72 +612,50 @@ export class WalletPageComponent {
     fundWalletPayOnlineImage: '/assets/images/wallet-fund-pay-online.png',
   } as const;
 
-  readonly fundWallet = {
-    accountNumber: '3105500602',
-    bankName: 'Wema Bank',
-    accountName: 'Bryan Odjede',
-  } as const;
-
-  readonly transactions = signal<WalletTransaction[]>([
-    {
-      amount: '₦25,000.00',
-      type: 'wallet funding',
-      date: '14 Feb, 2025',
-      dateKey: 'feb-2025',
-      status: 'successful',
-    },
-    {
-      amount: '₦25,000.00',
-      type: 'subscription payment',
-      date: '14 Feb, 2025',
-      dateKey: 'feb-2025',
-      status: 'successful',
-    },
-    {
-      amount: '₦25,000.00',
-      type: 'wallet funding',
-      date: '14 Feb, 2025',
-      dateKey: 'feb-2025',
-      status: 'failed',
-    },
-    {
-      amount: '₦25,000.00',
-      type: 'subscription payment',
-      date: '14 Feb, 2025',
-      dateKey: 'feb-2025',
-      status: 'successful',
-    },
-  ]);
-
-  readonly mobileTransactions: readonly MobileWalletTransaction[] = [
-    {
-      icon: '/assets/images/wallet-mobile-funding.png',
-      title: 'Wallet funding',
-      date: 'Today',
-      amount: '₦16,500',
-      status: 'successful',
-    },
-    {
-      icon: '/assets/images/wallet-mobile-subscription.png',
-      title: 'Subscription payment',
-      date: 'Yesterday',
-      amount: '₦2,000',
-      status: 'failed',
-    },
-    {
-      icon: '/assets/images/wallet-mobile-funding.png',
-      title: 'Wallet funding',
-      date: 'June 7, 2:30PM',
-      amount: '₦5,000',
-      status: 'successful',
-    },
-  ];
+  readonly fundWalletDetails = signal({
+    accountNumber: '',
+    bankName: '',
+    accountName: '',
+  });
+  readonly walletBalance = signal('0.00');
+  readonly transactions = signal<WalletTransaction[]>([]);
 
   readonly transactionType = signal<WalletTransactionType>('all');
   readonly dateFilter = signal<WalletDateFilter>('all');
   readonly statusFilter = signal<'all' | WalletStatus>('all');
   readonly isFundWalletOpen = signal(false);
   readonly hasCopiedAccount = signal(false);
+  readonly isLoadingTransactions = signal(false);
+  readonly isLoadingFundWalletDetails = signal(false);
+  readonly isFundingOnline = signal(false);
+  readonly currentPage = signal(1);
+  readonly totalResults = signal(0);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
+
+  readonly transactionTypeOptions = computed<readonly CustomDropdownOption<WalletTransactionType>[]>(() => [
+    { value: 'all', label: 'All transaction types' },
+    { value: 'wallet funding', label: 'Wallet funding' },
+    { value: 'subscription payment', label: 'Subscription payment' },
+    { value: 'ad promotion', label: 'Ad promotion' },
+    { value: 'other', label: 'Other' },
+  ]);
+
+  readonly dateFilterOptions = computed<readonly CustomDropdownOption<WalletDateFilter>[]>(() => {
+    const monthEntries = Array.from(
+      new Map(
+        this.transactions().map((transaction) => [
+          transaction.dateKey,
+          {
+            value: transaction.dateKey,
+            label: this.formatMonthLabel(transaction.dateKey),
+          },
+        ]),
+      ).values(),
+    );
+
+    return [{ value: 'all', label: 'All dates' }, ...monthEntries];
+  });
 
   readonly visibleTransactions = computed(() =>
     this.transactions().filter(transaction => {
@@ -686,26 +666,39 @@ export class WalletPageComponent {
     }),
   );
 
+  readonly mobileTransactions = computed<readonly MobileWalletTransaction[]>(() =>
+    this.visibleTransactions().map((transaction) => ({
+      icon:
+        transaction.type === 'subscription payment'
+          ? this.assets.mobileSubscriptionIcon
+          : this.assets.mobileFundingIcon,
+      title: this.transactionTypeText(transaction.type),
+      date: transaction.date,
+      amount: transaction.amount,
+      status: transaction.status,
+    })),
+  );
+
+  readonly formattedWalletBalance = computed(() => this.formatCurrency(this.walletBalance()));
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalResults() / 5)));
+
   readonly transactionTypeLabel = computed(() => {
     switch (this.transactionType()) {
       case 'wallet funding':
         return 'Wallet funding';
       case 'subscription payment':
         return 'Subscription payment';
+      case 'ad promotion':
+        return 'Ad promotion';
+      case 'other':
+        return 'Other';
       default:
         return 'Transaction type';
     }
   });
 
   readonly dateFilterLabel = computed(() => {
-    switch (this.dateFilter()) {
-      case 'feb-2025':
-        return 'Feb 2025';
-      case 'mar-2025':
-        return 'Mar 2025';
-      default:
-        return 'Date';
-    }
+    return this.dateFilter() === 'all' ? 'Date' : this.formatMonthLabel(this.dateFilter());
   });
 
   readonly statusFilterLabel = computed(() => {
@@ -719,14 +712,34 @@ export class WalletPageComponent {
     }
   });
 
+  constructor() {
+    this.loadWalletTransactions();
+  }
+
+  previousPage(): void {
+    if (!this.hasPreviousPage()) {
+      return;
+    }
+    this.currentPage.update((page) => Math.max(1, page - 1));
+    this.loadWalletTransactions();
+  }
+
+  nextPage(): void {
+    if (!this.hasNextPage()) {
+      return;
+    }
+    this.currentPage.update((page) => page + 1);
+    this.loadWalletTransactions();
+  }
+
   cycleTransactionType(): void {
-    const order: WalletTransactionType[] = ['all', 'wallet funding', 'subscription payment'];
+    const order: WalletTransactionType[] = ['all', 'wallet funding', 'subscription payment', 'ad promotion', 'other'];
     const currentIndex = order.indexOf(this.transactionType());
     this.transactionType.set(order[(currentIndex + 1) % order.length]);
   }
 
   cycleDateFilter(): void {
-    const order: WalletDateFilter[] = ['all', 'feb-2025', 'mar-2025'];
+    const order: WalletDateFilter[] = this.dateFilterOptions().map((option) => option.value);
     const currentIndex = order.indexOf(this.dateFilter());
     this.dateFilter.set(order[(currentIndex + 1) % order.length]);
   }
@@ -740,6 +753,7 @@ export class WalletPageComponent {
   openFundWallet(): void {
     this.hasCopiedAccount.set(false);
     this.isFundWalletOpen.set(true);
+    this.loadVirtualAccountDetails();
   }
 
   closeFundWallet(): void {
@@ -748,9 +762,170 @@ export class WalletPageComponent {
   }
 
   copyAccountNumber(): void {
-    void globalThis.navigator?.clipboard?.writeText(this.fundWallet.accountNumber);
+    const accountNumber = this.fundWalletDetails().accountNumber;
+    if (!accountNumber) {
+      return;
+    }
+    void globalThis.navigator?.clipboard?.writeText(accountNumber);
     this.hasCopiedAccount.set(true);
     this.appToastService.show({ message: 'Account number copied', durationMs: 2200 });
+  }
+
+  payOnline(): void {
+    if (this.isFundingOnline()) {
+      return;
+    }
+
+    this.isFundingOnline.set(true);
+    this.sellerMonetizationService
+      .fundWallet({ mode: 'paystack', amount: 1000, payment_type: 'wallet_funding' })
+      .subscribe({
+        next: (response) => {
+          this.isFundingOnline.set(false);
+          const paymentUrl = response.data?.authorization_url;
+          if (paymentUrl) {
+            globalThis.location?.assign(paymentUrl);
+            return;
+          }
+          this.appToastService.show({ message: 'We could not start online funding right now.' });
+        },
+        error: () => {
+          this.isFundingOnline.set(false);
+          this.appToastService.show({ message: 'We could not start online funding right now.' });
+        },
+      });
+  }
+
+  private loadWalletTransactions(): void {
+    this.isLoadingTransactions.set(true);
+    this.sellerMonetizationService.getWalletTransactions({ page: this.currentPage() }).subscribe({
+      next: (response) => {
+        this.isLoadingTransactions.set(false);
+        this.walletBalance.set(response.wallet_balance || '0.00');
+        const records = Array.isArray(response.results) ? response.results : [];
+        this.transactions.set(records.map((record) => this.mapWalletTransaction(record)));
+        this.totalResults.set(typeof response.count === 'number' ? response.count : records.length);
+        this.hasNextPage.set(Boolean(response.next));
+        this.hasPreviousPage.set(Boolean(response.previous));
+      },
+      error: () => {
+        this.isLoadingTransactions.set(false);
+        this.transactions.set([]);
+        this.totalResults.set(0);
+        this.hasNextPage.set(false);
+        this.hasPreviousPage.set(false);
+      },
+    });
+  }
+
+  private loadVirtualAccountDetails(): void {
+    if (this.fundWalletDetails().accountNumber || this.isLoadingFundWalletDetails()) {
+      return;
+    }
+
+    this.isLoadingFundWalletDetails.set(true);
+    this.sellerMonetizationService.fundWallet({ mode: 'virtual_account' }).subscribe({
+      next: (response) => {
+        this.isLoadingFundWalletDetails.set(false);
+        this.fundWalletDetails.set({
+          accountNumber: response.account_number ?? '',
+          bankName: response.bank_name ?? '',
+          accountName: response.account_name ?? '',
+        });
+      },
+      error: () => {
+        this.isLoadingFundWalletDetails.set(false);
+        this.appToastService.show({ message: 'We could not load your wallet account details.' });
+      },
+    });
+  }
+
+  private mapWalletTransaction(record: WalletTransactionRecord): WalletTransaction {
+    const type = this.mapWalletTransactionType(record.normalized_type);
+    return {
+      id: String(record.id),
+      amount: this.formatCurrency(record.amount),
+      type,
+      date: this.formatTransactionDate(record.date),
+      dateKey: this.toMonthKey(record.date),
+      status: record.status === 'failed' ? 'failed' : 'successful',
+    };
+  }
+
+  private mapWalletTransactionType(normalizedType: WalletTransactionRecord['normalized_type']): Exclude<WalletTransactionType, 'all'> {
+    switch (normalizedType) {
+      case 'subscription_payment':
+        return 'subscription payment';
+      case 'ad_promotion':
+        return 'ad promotion';
+      case 'other':
+        return 'other';
+      default:
+        return 'wallet funding';
+    }
+  }
+
+  private formatCurrency(amount: string): string {
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount)) {
+      return `₦${amount}`;
+    }
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      maximumFractionDigits: 2,
+    }).format(numericAmount);
+  }
+
+  private formatTransactionDate(date: string): string {
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsedDate);
+  }
+
+  private toMonthKey(date: string): string {
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return 'unknown';
+    }
+    return `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  private formatMonthLabel(monthKey: string): string {
+    if (!monthKey || monthKey === 'unknown') {
+      return 'Unknown';
+    }
+
+    const [year, month] = monthKey.split('-');
+    const monthIndex = Number(month) - 1;
+    const yearNumber = Number(year);
+    if (!Number.isInteger(monthIndex) || !Number.isInteger(yearNumber) || monthIndex < 0 || monthIndex > 11) {
+      return monthKey;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(yearNumber, monthIndex, 1));
+  }
+
+  private transactionTypeText(type: Exclude<WalletTransactionType, 'all'>): string {
+    switch (type) {
+      case 'subscription payment':
+        return 'Subscription payment';
+      case 'ad promotion':
+        return 'Ad promotion';
+      case 'other':
+        return 'Other transaction';
+      default:
+        return 'Wallet funding';
+    }
   }
 
   statusBadgeClass(status: WalletStatus): string {

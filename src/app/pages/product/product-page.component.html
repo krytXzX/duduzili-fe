@@ -804,29 +804,30 @@
 
               <div class="flex items-end justify-center gap-2 text-black">
                 <span class="pb-2 text-[34px] font-semibold leading-none text-[#909090]">₦</span>
-                <span class="text-[58px] leading-none tracking-[-0.03em]">{{ formattedOfferValue() }}</span>
+                <input
+                  id="offer-amount"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="0"
+                  [value]="formattedOfferValue()"
+                  (input)="handleOfferAmountInput($event)"
+                  class="min-w-0 max-w-[160px] bg-transparent text-center text-[58px] leading-none tracking-[-0.03em] text-[#15162B] outline-none placeholder:text-[#B8B8C2]"
+                  aria-label="Offer amount"
+                />
               </div>
 
               <div class="h-px w-full bg-[#909090]"></div>
-
-              <input
-                id="offer-amount"
-                type="text"
-                formControlName="amount"
-                inputmode="numeric"
-                placeholder="0"
-                class="absolute inset-x-0 top-0 h-full w-full cursor-text opacity-0"
-                aria-label="Offer amount"
-              />
             </div>
           </div>
         </div>
 
         <button
           type="submit"
+          [disabled]="isSubmittingOffer()"
           class="flex h-[52px] w-full items-center justify-center rounded-[82px] border border-[#6453D9] bg-[#6453D9] px-6 text-[16px] font-medium tracking-[-0.5px] text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5645cb]"
+          [class.opacity-70]="isSubmittingOffer()"
         >
-          Send offer
+          {{ isSubmittingOffer() ? 'Sending...' : 'Send offer' }}
         </button>
       </form>
     </div>
@@ -924,9 +925,11 @@
 
         <button
           type="submit"
+          [disabled]="isSubmittingCallbackRequest()"
           class="mt-1 flex h-10 w-full items-center justify-center rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5645cb]"
+          [class.opacity-70]="isSubmittingCallbackRequest()"
         >
-          Send details
+          {{ isSubmittingCallbackRequest() ? 'Sending...' : 'Send details' }}
         </button>
       </form>
     </div>
