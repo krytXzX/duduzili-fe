@@ -1,7 +1,16 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { AdsSubscriptionModalComponent } from './components/ads-subscription-modal.component';
+import {
+  AdsSubscriptionModalComponent,
+  type AdsSubscriptionSelection,
+} from './components/ads-subscription-modal.component';
+import { AppToastService } from '../../services/app-toast.service';
+import {
+  SellerMonetizationService,
+  type SubscriptionPlan,
+  type SubscriptionStatusData,
+} from '../../services/seller-monetization.service';
 
 type BillingFrequency = 'weekly' | 'monthly' | 'yearly';
 type PlanId = 'free' | 'pro' | 'premium' | 'enterprise';
@@ -66,7 +75,7 @@ interface PlanDefinition {
           <img [ngSrc]="infoIcon" width="18" height="18" alt="" class="h-[18px] w-[18px]" />
         </span>
         <p class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
-          Your subscription expires on 27 April, 2026
+          {{ subscriptionNotice() }}
         </p>
       </div>
 
@@ -174,7 +183,7 @@ interface PlanDefinition {
             <img [ngSrc]="infoIcon" width="18" height="18" alt="" class="h-[18px] w-[18px]" />
           </span>
           <p class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
-            Your subscription expires on 27 April, 2026
+            {{ subscriptionNotice() }}
           </p>
         </div>
 
@@ -277,7 +286,7 @@ interface PlanDefinition {
       <app-ads-subscription-modal
         [plan]="selectedPlanType()"
         (close)="isSubscriptionModalOpen.set(false)"
-        (subscribe)="isSubscriptionModalOpen.set(false)"
+        (subscribe)="handleSubscribe($event)"
       ></app-ads-subscription-modal>
     }
   `,
@@ -288,6 +297,8 @@ interface PlanDefinition {
 })
 export class AdsPlansPageComponent {
   private readonly router = inject(Router);
+  private readonly appToastService = inject(AppToastService);
+  private readonly sellerMonetizationService = inject(SellerMonetizationService);
 
   readonly infoIcon = '/assets/icons/ads-plans-info.svg';
   readonly checkIcon = '/assets/icons/ads-plans-check.svg';
@@ -371,8 +382,51 @@ export class AdsPlansPageComponent {
   readonly activeBillingTab = signal<BillingFrequency>('weekly');
   readonly isSubscriptionModalOpen = signal(false);
   readonly selectedPlanType = signal<'pro' | 'premium' | 'enterprise'>('pro');
+  readonly backendPlans = signal<SubscriptionPlan[]>([]);
+  readonly subscriptionStatus = signal<SubscriptionStatusData | null>(null);
+  readonly selectedBackendPlan = signal<SubscriptionPlan | null>(null);
+  readonly isSubmittingSubscription = signal(false);
 
-  readonly plans = computed(() => this.planDefinitions);
+  readonly plans = computed(() => {
+    const currentPlanName = this.subscriptionStatus()?.plan_name?.toLowerCase() ?? null;
+    return this.planDefinitions.map((plan) => {
+      const backendPlan = this.matchBackendPlanByDisplayPlanId(plan.id);
+      const backendPrice = backendPlan ? Number(backendPlan.computed_price) : null;
+      const isCurrent = currentPlanName === (backendPlan?.plan_name?.toLowerCase() ?? null) || plan.current === true;
+
+      return {
+        ...plan,
+        current: isCurrent,
+        cta: isCurrent ? 'Current plan' : plan.cta,
+        weeklyPrice: backendPrice ?? plan.weeklyPrice,
+        monthlyPrice: backendPrice ?? plan.monthlyPrice,
+        yearlyPrice: backendPrice ?? plan.yearlyPrice,
+      };
+    });
+  });
+
+  readonly subscriptionNotice = computed(() => {
+    const status = this.subscriptionStatus();
+    if (!status?.active_until) {
+      return 'You do not have an active subscription yet';
+    }
+
+    const parsedDate = new Date(status.active_until);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return 'Your subscription is active';
+    }
+
+    const formattedDate = new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(parsedDate);
+    return `Your subscription expires on ${formattedDate}`;
+  });
+
+  constructor() {
+    this.loadSubscriptionData();
+  }
 
   readonly selectedUnitLabel = computed(() => {
     switch (this.activeBillingTab()) {
@@ -449,11 +503,91 @@ export class AdsPlansPageComponent {
       return;
     }
 
+    const backendPlan = this.matchBackendPlanByDisplayPlanId(plan.id);
+    if (!backendPlan) {
+      this.appToastService.show({
+        message: 'This plan is not available from the backend right now.',
+      });
+      return;
+    }
+
+    this.selectedBackendPlan.set(backendPlan);
     this.selectedPlanType.set(plan.id);
     this.isSubscriptionModalOpen.set(true);
   }
 
+  handleSubscribe(selection: AdsSubscriptionSelection): void {
+    const backendPlan = this.selectedBackendPlan();
+    if (!backendPlan) {
+      this.appToastService.show({ message: 'We could not determine the selected plan.' });
+      return;
+    }
+
+    if (selection.paymentId !== 'wallet') {
+      this.appToastService.show({
+        message: 'Online subscription payment is not supported by the backend yet.',
+      });
+      return;
+    }
+
+    if (this.isSubmittingSubscription()) {
+      return;
+    }
+
+    this.isSubmittingSubscription.set(true);
+    this.sellerMonetizationService.subscribeToPlan(backendPlan.id, true).subscribe({
+      next: () => {
+        this.isSubmittingSubscription.set(false);
+        this.isSubscriptionModalOpen.set(false);
+        this.selectedBackendPlan.set(null);
+        this.loadSubscriptionData();
+        this.appToastService.show({ message: 'Subscription updated successfully.' });
+      },
+      error: (error) => {
+        this.isSubmittingSubscription.set(false);
+        const backendMessage =
+          typeof error?.error?.error === 'string'
+            ? error.error.error
+            : typeof error?.error?.message === 'string'
+              ? error.error.message
+              : 'We could not complete your subscription right now.';
+        this.appToastService.show({ message: backendMessage });
+      },
+    });
+  }
+
   goToAdsMenu(): void {
     void this.router.navigateByUrl('/seller/ads');
+  }
+
+  private loadSubscriptionData(): void {
+    this.sellerMonetizationService.getSubscriptionPlans().subscribe({
+      next: (plans) => this.backendPlans.set(plans),
+      error: () => this.backendPlans.set([]),
+    });
+
+    this.sellerMonetizationService.getSubscriptionStatus().subscribe({
+      next: (response) => {
+        this.subscriptionStatus.set(
+          response.status === 'No active plan' ? null : response.status,
+        );
+      },
+      error: () => this.subscriptionStatus.set(null),
+    });
+  }
+
+  private matchBackendPlanByDisplayPlanId(planId: PlanId): SubscriptionPlan | null {
+    const desiredName =
+      planId === 'pro'
+        ? 'pro'
+        : planId === 'premium'
+          ? 'premium'
+          : planId === 'enterprise'
+            ? 'enterprise'
+            : 'free';
+
+    return (
+      this.backendPlans().find((plan) => plan.plan_name.trim().toLowerCase() === desiredName) ?? null
+    );
   }
 }

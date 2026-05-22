@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
@@ -6,6 +6,10 @@ import {
   CreateBannerAdPayload,
 } from './components/create-banner-ad-modal.component';
 import { BannerPromotionsEmptyIllustrationComponent } from './components/banner-promotions-empty-illustration.component';
+import {
+  SellerMonetizationService,
+  type SellerAdRecord,
+} from '../../services/seller-monetization.service';
 
 type PromotionStatus = 'active' | 'paused' | 'pending approval' | 'declined' | 'expired';
 
@@ -382,6 +386,7 @@ interface BannerPromotion {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BannerPromotionsPageComponent {
+  private readonly sellerMonetizationService = inject(SellerMonetizationService);
   readonly pausedBadgeIcon = '/assets/icons/banner-status-paused.svg';
   readonly pendingApprovalBadgeIcon = '/assets/icons/banner-status-pending-approval.svg';
   readonly declinedBadgeIcon = '/assets/icons/banner-status-declined.svg';
@@ -394,100 +399,7 @@ export class BannerPromotionsPageComponent {
     { label: 'Expired', value: 'expired' },
   ];
 
-  private readonly tabCounts: Record<PromotionStatus, number> = {
-    active: 2,
-    paused: 1,
-    'pending approval': 13,
-    declined: 2,
-    expired: 8,
-  };
-
-  readonly promotions = signal<BannerPromotion[]>([
-    {
-      id: 'banner-1',
-      status: 'active',
-      imageSrc: '/assets/images/banner-promotions-card-orange.png',
-      mobileImageSrc: '/assets/images/banner-promotions-card-orange.png',
-      expiresOn: '24 May, 2025',
-      sponsorLabel: 'Sponsored',
-      views: '1K',
-      clicks: '500',
-      desktopWidth: 407,
-      route: ['/ads/running', 'banner-1'],
-      showDesktopSponsor: true,
-      showMobileSponsor: false,
-    },
-    {
-      id: 'banner-2',
-      status: 'active',
-      imageSrc: '/assets/images/banner-promotions-card-blue.png',
-      mobileImageSrc: '/assets/images/banner-promotions-card-orange.png',
-      expiresOn: '24 May, 2025',
-      sponsorLabel: 'Sponsored',
-      views: '1K',
-      clicks: '500',
-      desktopWidth: 444,
-      route: ['/ads/running', 'banner-2'],
-      showDesktopSponsor: true,
-      showMobileSponsor: true,
-    },
-    {
-      id: 'banner-3',
-      status: 'paused',
-      imageSrc: '/assets/images/banner-promotions-card-orange.png',
-      mobileImageSrc: '/assets/images/banner-promotions-card-orange.png',
-      expiresOn: '24 May, 2025',
-      sponsorLabel: 'Sponsored',
-      views: '1K',
-      clicks: '500',
-      desktopWidth: 407,
-      route: ['/ads/running', 'banner-3'],
-      showDesktopSponsor: true,
-      showMobileSponsor: true,
-    },
-    {
-      id: 'banner-4',
-      status: 'pending approval',
-      imageSrc: '/assets/images/banner-promotions-card-orange.png',
-      mobileImageSrc: '/assets/images/banner-promotions-card-orange.png',
-      expiresOn: '24 May, 2025',
-      sponsorLabel: 'Sponsored',
-      views: '1K',
-      clicks: '500',
-      desktopWidth: 407,
-      route: ['/ads/running', 'banner-4'],
-      showDesktopSponsor: true,
-      showMobileSponsor: true,
-    },
-    {
-      id: 'banner-5',
-      status: 'declined',
-      imageSrc: '/assets/images/banner-promotions-card-orange.png',
-      mobileImageSrc: '/assets/images/banner-promotions-card-orange.png',
-      expiresOn: '24 May, 2025',
-      sponsorLabel: 'Sponsored',
-      views: '1K',
-      clicks: '500',
-      desktopWidth: 407,
-      route: ['/ads/running', 'banner-5'],
-      showDesktopSponsor: true,
-      showMobileSponsor: true,
-    },
-    {
-      id: 'banner-6',
-      status: 'expired',
-      imageSrc: '/assets/images/banner-promotions-card-orange.png',
-      mobileImageSrc: '/assets/images/banner-promotions-card-orange.png',
-      expiresOn: '24 May, 2025',
-      sponsorLabel: 'Sponsored',
-      views: '1K',
-      clicks: '500',
-      desktopWidth: 407,
-      route: ['/ads/running', 'banner-6'],
-      showDesktopSponsor: true,
-      showMobileSponsor: true,
-    },
-  ]);
+  readonly promotions = signal<BannerPromotion[]>([]);
 
   readonly activeTab = signal<PromotionStatus>('active');
   readonly isCreateModalOpen = signal(false);
@@ -497,8 +409,12 @@ export class BannerPromotionsPageComponent {
     this.promotions().filter((promotion) => promotion.status === this.activeTab()),
   );
 
+  constructor() {
+    this.loadBannerPromotions();
+  }
+
   countByStatus(status: PromotionStatus): number {
-    return this.tabCounts[status];
+    return this.promotions().filter((promotion) => promotion.status === status).length;
   }
 
   statusBadgeLabel(promotion: BannerPromotion): string {
@@ -527,6 +443,72 @@ export class BannerPromotionsPageComponent {
     }
   }
 
+  onCreateBannerAd(_payload: CreateBannerAdPayload): void {
+    this.isCreateModalOpen.set(false);
+  }
+
+  private loadBannerPromotions(): void {
+    this.sellerMonetizationService.getMyAds().subscribe({
+      next: (response) => {
+        const promotions = response.results
+          .filter((ad) => ad.ad_type === 'banner')
+          .map((ad) => this.mapPromotion(ad));
+        this.promotions.set(promotions);
+      },
+      error: () => {
+        this.promotions.set([]);
+      },
+    });
+  }
+
+  private mapPromotion(ad: SellerAdRecord): BannerPromotion {
+    return {
+      id: String(ad.id),
+      status: this.mapPromotionStatus(ad.status),
+      imageSrc: ad.image || '/assets/images/empty_state.svg',
+      mobileImageSrc: ad.image || '/assets/images/empty_state.svg',
+      expiresOn: this.formatDate(ad.end_date),
+      sponsorLabel: 'Sponsored',
+      views: this.formatCompactNumber(ad.total_views),
+      clicks: this.formatCompactNumber(ad.total_clicks),
+      desktopWidth: 407,
+      route: ['/seller/ads/running', String(ad.id)],
+      showDesktopSponsor: true,
+      showMobileSponsor: true,
+    };
+  }
+
+  private mapPromotionStatus(status: SellerAdRecord['status']): PromotionStatus {
+    switch (status) {
+      case 'paused':
+        return 'paused';
+      case 'pending':
+        return 'pending approval';
+      case 'rejected':
+        return 'declined';
+      case 'expired':
+        return 'expired';
+      default:
+        return 'active';
+    }
+  }
+
+  private formatDate(date: string): string {
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsedDate);
+  }
+
+  private formatCompactNumber(value: number): string {
+    return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+  }
+
   mobileStatusBadgeClass(promotion: BannerPromotion): string {
     switch (promotion.status) {
       case 'paused':
@@ -553,30 +535,4 @@ export class BannerPromotionsPageComponent {
     }
   }
 
-  onCreateBannerAd(payload: CreateBannerAdPayload): void {
-    this.promotions.update((promotions) => [
-      {
-        id: `promo-${Date.now()}`,
-        status: 'pending approval',
-        imageSrc: payload.imagePreview?.length
-          ? payload.imagePreview
-          : '/assets/images/banner-promotions-card-orange.png',
-        mobileImageSrc: payload.imagePreview?.length
-          ? payload.imagePreview
-          : '/assets/images/banner-promotions-card-orange.png',
-        expiresOn: '24 May, 2025',
-        sponsorLabel: 'Sponsored',
-        views: '0',
-        clicks: '0',
-        desktopWidth: 407,
-        route: ['/ads/running', `promo-${Date.now()}`],
-        showDesktopSponsor: true,
-        showMobileSponsor: true,
-      },
-      ...promotions,
-    ]);
-
-    this.activeTab.set('pending approval');
-    this.isCreateModalOpen.set(false);
-  }
 }

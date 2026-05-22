@@ -9,6 +9,11 @@ import {
   CreateAdType,
   CreateAdTypeModalComponent,
 } from './components/create-ad-type-modal.component';
+import {
+  SellerMonetizationService,
+  type SellerAdRecord,
+  type SubscriptionStatusData,
+} from '../../services/seller-monetization.service';
 
 type AdPlacement = 'promoted listings' | 'store promotions' | 'banner ads';
 type AdStatus = 'active' | 'paused' | 'expired';
@@ -89,7 +94,7 @@ interface ListingSection {
 
       <div class="mt-5 overflow-hidden rounded-[12px] border border-[#EDEDED]">
         <div class="grid grid-cols-4 bg-white">
-          @for (item of planSummary; track item.label) {
+          @for (item of planSummary(); track item.label) {
             <div class="border-r border-[#EDEDED] px-4 py-2.5 last:border-r-0">
               <p class="text-[14px] font-medium leading-none text-[rgba(26,27,29,0.5)]">
                 {{ summaryLabel(item.label) }}
@@ -574,6 +579,7 @@ interface ListingSection {
 })
 export class RunningAdsPageComponent {
   private readonly router = inject(Router);
+  private readonly sellerMonetizationService = inject(SellerMonetizationService);
 
   readonly arrowLeftIcon = '/assets/icons/running-ads-arrow-left.svg';
   readonly arrowRightIcon = '/assets/icons/running-ads-arrow-right.svg';
@@ -610,17 +616,12 @@ export class RunningAdsPageComponent {
     { label: 'Expired', value: 'expired' },
   ];
 
-  readonly planSummary: readonly PlanSummaryItem[] = [
-    { label: 'current plan', value: 'Free' },
-    { label: 'automobile listings', value: '3/5 left' },
-    { label: 'property listings', value: '3/5 left' },
-    { label: 'other listings', value: '3/5 left' },
-  ];
-
   readonly activePlacement = signal<AdPlacement>('promoted listings');
   readonly activeStatus = signal<AdStatus>('active');
   readonly isCreateAdTypeModalOpen = signal(false);
   readonly isCreateBannerModalOpen = signal(false);
+  readonly backendAds = signal<SellerAdRecord[]>([]);
+  readonly subscription = signal<SubscriptionStatusData | null>(null);
 
   private readonly mobileSectionsByPlacement: Record<
     AdPlacement,
@@ -1230,15 +1231,40 @@ export class RunningAdsPageComponent {
     },
   };
 
-  readonly mobileSections = computed(
-    () => this.mobileSectionsByPlacement[this.activePlacement()][this.activeStatus()],
-  );
-  readonly desktopSections = computed(
-    () => this.desktopSectionsByPlacement[this.activePlacement()][this.activeStatus()],
-  );
+  readonly planSummary = computed<readonly PlanSummaryItem[]>(() => {
+    const subscription = this.subscription();
+    return [
+      { label: 'current plan', value: subscription?.plan_name ?? 'Free' },
+      {
+        label: 'automobile listings',
+        value: subscription
+          ? `${Math.max(subscription.usage.automobile.max - subscription.usage.automobile.used, 0)}/${subscription.usage.automobile.max} left`
+          : '0/0 left',
+      },
+      {
+        label: 'property listings',
+        value: subscription
+          ? `${Math.max(subscription.usage.property.max - subscription.usage.property.used, 0)}/${subscription.usage.property.max} left`
+          : '0/0 left',
+      },
+      {
+        label: 'other listings',
+        value: subscription
+          ? `${Math.max(subscription.usage.other.max - subscription.usage.other.used, 0)}/${subscription.usage.other.max} left`
+          : '0/0 left',
+      },
+    ];
+  });
+
+  readonly mobileSections = computed(() => this.buildSections('mobile'));
+  readonly desktopSections = computed(() => this.buildSections('desktop'));
+
+  constructor() {
+    this.loadAdsData();
+  }
 
   countByStatus(status: AdStatus): number {
-    return this.desktopSectionsByPlacement[this.activePlacement()][status].reduce(
+    return this.sectionsFor(this.activePlacement(), status).reduce(
       (total, section) => total + section.cards.length,
       0,
     );
@@ -1303,5 +1329,117 @@ export class RunningAdsPageComponent {
 
   navigateToPlans(): void {
     void this.router.navigateByUrl('/seller/ads/plans');
+  }
+
+  private loadAdsData(): void {
+    this.sellerMonetizationService.getMyAds().subscribe({
+      next: (response) => {
+        this.backendAds.set(Array.isArray(response.results) ? response.results : []);
+        this.subscription.set(response.subscription ?? null);
+      },
+      error: () => {
+        this.backendAds.set([]);
+        this.subscription.set(null);
+      },
+    });
+  }
+
+  private buildSections(mode: 'mobile' | 'desktop'): readonly ListingSection[] {
+    return this.sectionsFor(this.activePlacement(), this.activeStatus()).map((section) => ({
+      ...section,
+      viewAllCount: mode === 'desktop' || mode === 'mobile' ? section.viewAllCount : undefined,
+    }));
+  }
+
+  private sectionsFor(placement: AdPlacement, status: AdStatus): readonly ListingSection[] {
+    if (placement === 'store promotions') {
+      return [];
+    }
+
+    const matchingAds = this.backendAds().filter((ad) => {
+      const adPlacement = ad.ad_type === 'banner' ? 'banner ads' : 'promoted listings';
+      return adPlacement === placement && this.mapAdStatus(ad.status) === status;
+    });
+
+    if (matchingAds.length === 0) {
+      return [];
+    }
+
+    return [
+      {
+        id: `${placement}-${status}`,
+        title: placement === 'banner ads' ? 'Banner ads' : 'Promoted listings',
+        viewAllCount: String(matchingAds.length),
+        cards: matchingAds.map((ad) => this.mapAdCard(ad)),
+      },
+    ];
+  }
+
+  private mapAdCard(ad: SellerAdRecord): ListingCard {
+    const expiresOn = this.formatDate(ad.end_date);
+    const amountPaid = this.formatCurrency(ad.amount_paid);
+
+    return {
+      id: String(ad.id),
+      title: ad.title,
+      imageSrc: ad.image || '/assets/images/empty_state.svg',
+      expiresOn,
+      price: ad.ad_type === 'listing' ? amountPaid : undefined,
+      subtitle: ad.ad_type === 'banner' ? this.readBannerSubtitle(ad.link) : 'Promoted listing',
+      views: this.formatCompactNumber(ad.total_views),
+      clicks: this.formatCompactNumber(ad.total_clicks),
+      messages: '0',
+      calls: '0',
+    };
+  }
+
+  private mapAdStatus(status: SellerAdRecord['status']): AdStatus {
+    if (status === 'paused') {
+      return 'paused';
+    }
+    if (status === 'expired') {
+      return 'expired';
+    }
+    return 'active';
+  }
+
+  private formatDate(date: string): string {
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsedDate);
+  }
+
+  private formatCurrency(amount: string): string {
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount)) {
+      return `₦${amount}`;
+    }
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      maximumFractionDigits: 0,
+    }).format(numericAmount);
+  }
+
+  private formatCompactNumber(value: number): string {
+    return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+  }
+
+  private readBannerSubtitle(link: string): string {
+    if (!link) {
+      return 'Banner ad';
+    }
+
+    try {
+      return new URL(link).hostname.replace(/^www\./, '');
+    } catch {
+      return 'Banner ad';
+    }
   }
 }

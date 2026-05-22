@@ -17,6 +17,11 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 type BillingOptionId = 'week' | 'month' | 'year';
 type PaymentOptionId = 'wallet' | 'online';
 
+export type AdsSubscriptionSelection = {
+  billingId: BillingOptionId;
+  paymentId: PaymentOptionId;
+};
+
 interface BillingOption {
   id: BillingOptionId;
   label: string;
@@ -166,7 +171,7 @@ interface FeaturePlanConfig {
 
                 <button
                   type="button"
-                  (click)="step.set('success')"
+                  (click)="handleSubscribe()"
                   class="mt-6 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
                 >
                   Subscribe
@@ -213,7 +218,7 @@ interface FeaturePlanConfig {
 
                 <button
                   type="button"
-                  (click)="subscribe.emit()"
+                  (click)="emitSelectedSubscription()"
                   class="inline-flex h-[52px] w-[174px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5]"
                 >
                   Got it
@@ -451,7 +456,7 @@ interface FeaturePlanConfig {
 
                 <button
                   type="button"
-                  (click)="subscribe.emit()"
+                  (click)="emitSelectedSubscription()"
                   class="inline-flex h-10 w-[208px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[14px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5]"
                 >
                   Got it
@@ -467,7 +472,7 @@ interface FeaturePlanConfig {
 })
 export class AdsSubscriptionModalComponent implements OnDestroy {
   readonly close = output<void>();
-  readonly subscribe = output<void>();
+  readonly subscribe = output<AdsSubscriptionSelection>();
   readonly plan = input<'pro' | 'premium' | 'enterprise'>('pro');
 
   private readonly mobileOverlayService = inject(MobileOverlayService);
@@ -623,4 +628,15 @@ export class AdsSubscriptionModalComponent implements OnDestroy {
         return `${this.selectedOption().total}/week`;
     }
   });
+
+  handleSubscribe(): void {
+    this.subscribe.emit({
+      billingId: this.selectedBillingId(),
+      paymentId: this.selectedPaymentId(),
+    });
+  }
+
+  emitSelectedSubscription(): void {
+    this.handleSubscribe();
+  }
 }

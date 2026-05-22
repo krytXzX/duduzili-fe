@@ -1,8 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
+import {
+  SellerMonetizationService,
+  type WalletTransactionRecord,
+} from '../../services/seller-monetization.service';
 import {
   heroChevronDown,
   heroChevronLeft,
@@ -11,7 +15,7 @@ import {
 
 type BillingStatus = 'successful' | 'failed' | 'pending';
 type TransactionType = 'all' | 'subscription' | 'renewal';
-type BillingDateFilter = 'all' | 'feb-2025' | 'mar-2025' | 'apr-2025';
+type BillingDateFilter = 'all' | string;
 
 interface BillingRecord {
   id: string;
@@ -158,7 +162,7 @@ interface BillingRecord {
               ></app-custom-dropdown>
 
               <app-custom-dropdown
-                [options]="dateFilterOptions"
+                [options]="dateFilterOptions()"
                 [value]="dateFilter()"
                 ariaLabel="Select date"
                 buttonClass="inline-flex h-8 items-center gap-2 rounded-[32px] border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[rgba(26,27,29,0.5)] shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
@@ -284,16 +288,11 @@ interface BillingRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BillingHistoryPageComponent {
+  private readonly sellerMonetizationService = inject(SellerMonetizationService);
   readonly transactionTypeOptions: readonly CustomDropdownOption<TransactionType>[] = [
     { value: 'all', label: 'All transaction types' },
     { value: 'subscription', label: 'Subscription' },
     { value: 'renewal', label: 'Renewal' },
-  ];
-  readonly dateFilterOptions: readonly CustomDropdownOption<BillingDateFilter>[] = [
-    { value: 'all', label: 'All dates' },
-    { value: 'feb-2025', label: 'Feb 2025' },
-    { value: 'mar-2025', label: 'Mar 2025' },
-    { value: 'apr-2025', label: 'Apr 2025' },
   ];
   readonly statusFilterOptions: readonly CustomDropdownOption<'all' | BillingStatus>[] = [
     { value: 'all', label: 'All statuses' },
@@ -308,58 +307,28 @@ export class BillingHistoryPageComponent {
     failedIcon: '/assets/icons/billing-history-failed.svg',
   } as const;
 
-  readonly records = signal<BillingRecord[]>([
-    {
-      id: '74785GH830X',
-      transactionType: 'subscription',
-      plan: 'Pro Plan',
-      amount: '₦25,000.00',
-      date: '14 Feb, 2025',
-      dateKey: 'feb-2025',
-      status: 'successful',
-    },
-    {
-      id: '74785GH830X',
-      transactionType: 'renewal',
-      plan: 'Premium Plan',
-      amount: '₦25,000.00',
-      date: '14 Feb, 2025',
-      dateKey: 'feb-2025',
-      status: 'successful',
-    },
-    {
-      id: '74785GH830X',
-      transactionType: 'subscription',
-      plan: 'Business Plan',
-      amount: '₦25,000.00',
-      date: '14 Feb, 2025',
-      dateKey: 'feb-2025',
-      status: 'failed',
-    },
-    {
-      id: '74785GH830X',
-      transactionType: 'renewal',
-      plan: 'Enterprise Plan',
-      amount: '₦25,000.00',
-      date: '14 Feb, 2025',
-      dateKey: 'feb-2025',
-      status: 'successful',
-    },
-    {
-      id: '74785GH830X',
-      transactionType: 'subscription',
-      plan: 'Starter Plan',
-      amount: '₦25,000.00',
-      date: '14 Feb, 2025',
-      dateKey: 'feb-2025',
-      status: 'pending',
-    },
-  ]);
+  readonly records = signal<BillingRecord[]>([]);
 
   readonly searchQuery = signal('');
   readonly transactionType = signal<TransactionType>('all');
   readonly dateFilter = signal<BillingDateFilter>('all');
   readonly statusFilter = signal<'all' | BillingStatus>('all');
+  readonly dateFilterOptions = computed<readonly CustomDropdownOption<BillingDateFilter>[]>(() => {
+    const monthEntries = Array.from(
+      new Map(
+        this.records().map((record) => [
+          record.dateKey,
+          { value: record.dateKey, label: this.formatMonthLabel(record.dateKey) },
+        ]),
+      ).values(),
+    );
+
+    return [{ value: 'all', label: 'All dates' }, ...monthEntries];
+  });
+
+  constructor() {
+    this.loadBillingHistory();
+  }
 
   readonly visibleRecords = computed(() =>
     this.records().filter(record => {
@@ -393,16 +362,7 @@ export class BillingHistoryPageComponent {
   });
 
   readonly dateFilterLabel = computed(() => {
-    switch (this.dateFilter()) {
-      case 'feb-2025':
-        return 'Feb 2025';
-      case 'mar-2025':
-        return 'Mar 2025';
-      case 'apr-2025':
-        return 'Apr 2025';
-      default:
-        return 'Date';
-    }
+    return this.dateFilter() === 'all' ? 'Date' : this.formatMonthLabel(this.dateFilter());
   });
 
   readonly statusFilterLabel = computed(() => {
@@ -430,7 +390,7 @@ export class BillingHistoryPageComponent {
   }
 
   cycleDateFilter(): void {
-    const order: BillingDateFilter[] = ['all', 'feb-2025', 'mar-2025', 'apr-2025'];
+    const order: BillingDateFilter[] = this.dateFilterOptions().map((option) => option.value);
     const currentIndex = order.indexOf(this.dateFilter());
     this.dateFilter.set(order[(currentIndex + 1) % order.length]);
   }
@@ -474,5 +434,84 @@ export class BillingHistoryPageComponent {
     }
 
     return 'inline-flex h-6 items-center gap-1 rounded-[8px] bg-[#FFF7E8] px-2 py-[6px] text-[12px] font-semibold leading-4 text-[#D98A00]';
+  }
+
+  private loadBillingHistory(): void {
+    this.sellerMonetizationService.getWalletTransactions({ type: 'subscription_payment' }).subscribe({
+      next: (response) => {
+        const records = Array.isArray(response.results) ? response.results : [];
+        this.records.set(records.map((record) => this.mapBillingRecord(record)));
+      },
+      error: () => {
+        this.records.set([]);
+      },
+    });
+  }
+
+  private mapBillingRecord(record: WalletTransactionRecord): BillingRecord {
+    const parsedDate = new Date(record.date);
+    const dateKey = Number.isNaN(parsedDate.getTime())
+      ? 'unknown'
+      : `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}`;
+
+    return {
+      id: record.transaction_id,
+      transactionType: record.description.toLowerCase().includes('renew') ? 'renewal' : 'subscription',
+      plan: this.extractPlanName(record.description),
+      amount: this.formatCurrency(record.amount),
+      date: this.formatDate(record.date),
+      dateKey,
+      status:
+        record.status === 'successful' || record.status === 'failed' || record.status === 'pending'
+          ? record.status
+          : 'pending',
+    };
+  }
+
+  private extractPlanName(description: string): string {
+    const match = description.trim().match(/subscription:\s*(.+)$/i);
+    return match?.[1]?.trim() || description.trim() || 'Subscription';
+  }
+
+  private formatCurrency(amount: string): string {
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount)) {
+      return `₦${amount}`;
+    }
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      maximumFractionDigits: 2,
+    }).format(numericAmount);
+  }
+
+  private formatDate(date: string): string {
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsedDate);
+  }
+
+  private formatMonthLabel(monthKey: string): string {
+    if (!monthKey || monthKey === 'unknown') {
+      return 'Unknown';
+    }
+
+    const [year, month] = monthKey.split('-');
+    const monthIndex = Number(month) - 1;
+    const yearNumber = Number(year);
+    if (!Number.isInteger(monthIndex) || !Number.isInteger(yearNumber) || monthIndex < 0 || monthIndex > 11) {
+      return monthKey;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(yearNumber, monthIndex, 1));
   }
 }

@@ -24,6 +24,12 @@ import { AppChartComponent, AppChartOptions } from '../../components/charts/app-
 import { createPerformanceLineChartOptions } from '../../components/charts/chart-mock-data';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+import { AppToastService } from '../../services/app-toast.service';
+import {
+  SellerMonetizationService,
+  type AdAnalyticsResponse,
+  type SellerAdRecord,
+} from '../../services/seller-monetization.service';
 
 type AdPerformanceRange = '7d' | '30d' | '90d';
 
@@ -97,7 +103,7 @@ interface AdDetail {
           <div class="mt-5">
             <div class="relative h-[161px] w-[287px] overflow-hidden rounded-[24px]">
               <img
-                [ngSrc]="bannerHeroImage"
+                [ngSrc]="bannerImageSrc()"
                 width="287"
                 height="161"
                 [alt]="ad().title"
@@ -465,7 +471,7 @@ interface AdDetail {
               <div class="flex flex-col gap-4">
                 <div class="relative h-[161px] w-[287px] overflow-hidden rounded-[24px]">
                   <img
-                    [ngSrc]="bannerHeroImage"
+                    [ngSrc]="bannerImageSrc()"
                     width="287"
                     height="161"
                     [alt]="ad().title"
@@ -1104,6 +1110,8 @@ interface AdDetail {
 export class AdDetailsPageComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly sellerMonetizationService = inject(SellerMonetizationService);
+  private readonly appToastService = inject(AppToastService);
   readonly listingPrimaryImage = 'assets/images/listing-iphone-17-pro-max-figma.png';
   readonly listingSecondaryImage = 'assets/images/listing-logitech-mouse-figma.png';
   readonly storeFallbackLogo = 'assets/images/store-vine-logo-mobile.png';
@@ -1148,6 +1156,8 @@ export class AdDetailsPageComponent implements OnDestroy {
   ];
 
   readonly adId = signal(this.route.snapshot.paramMap.get('id') ?? 'other-1');
+  readonly backendAd = signal<SellerAdRecord | null>(null);
+  readonly adAnalytics = signal<AdAnalyticsResponse | null>(null);
   readonly isMenuOpen = signal(false);
   readonly isMobileActionMenuOpen = signal(false);
   readonly isDesktopActionMenuOpen = signal(false);
@@ -1368,14 +1378,22 @@ export class AdDetailsPageComponent implements OnDestroy {
     },
   };
 
-  readonly ad = computed<AdDetail>(() => this.adMap[this.adId()] ?? this.adMap['other-1']);
+  readonly ad = computed<AdDetail>(() => {
+    const backendAd = this.backendAd();
+    if (backendAd) {
+      return this.mapBackendAd(backendAd);
+    }
+    return this.adMap[this.adId()] ?? this.adMap['other-1'];
+  });
   readonly currentStatus = signal<AdDetail['status']>('Active');
   readonly currentDestinationUrl = computed(
     () => this.destinationUrlOverrides()[this.adId()] ?? this.ad().destinationUrl ?? '',
   );
+  readonly bannerImageSrc = computed(() => this.ad().image || this.bannerHeroImage);
 
   constructor() {
     this.currentStatus.set(this.ad().status);
+    this.loadAdData();
   }
 
   ngOnDestroy(): void {
@@ -1385,7 +1403,22 @@ export class AdDetailsPageComponent implements OnDestroy {
   }
 
   togglePaused(): void {
-    this.currentStatus.update((status) => (status === 'Paused' ? 'Active' : 'Paused'));
+    const backendAd = this.backendAd();
+    if (!backendAd) {
+      this.currentStatus.update((status) => (status === 'Paused' ? 'Active' : 'Paused'));
+      return;
+    }
+
+    const nextStatus = this.currentStatus() === 'Paused' ? 'active' : 'paused';
+    this.sellerMonetizationService.updateMyAd(backendAd.id, { status: nextStatus }).subscribe({
+      next: (updatedAd) => {
+        this.backendAd.set(updatedAd);
+        this.currentStatus.set(this.mapStatusLabel(updatedAd.status));
+      },
+      error: () => {
+        this.appToastService.show({ message: 'We could not update this ad status right now.' });
+      },
+    });
   }
 
   toggleMobileActionMenu(): void {
@@ -1447,11 +1480,148 @@ export class AdDetailsPageComponent implements OnDestroy {
   }
 
   saveDestinationUrl(): void {
-    this.destinationUrlOverrides.update((overrides) => ({
-      ...overrides,
-      [this.adId()]: this.editedDestinationUrl().trim(),
-    }));
-    this.isDestinationModalOpen.set(false);
-    this.mobileOverlayService.closeMobileModal();
+    const nextLink = this.editedDestinationUrl().trim();
+    const backendAd = this.backendAd();
+
+    if (!backendAd) {
+      this.destinationUrlOverrides.update((overrides) => ({
+        ...overrides,
+        [this.adId()]: nextLink,
+      }));
+      this.isDestinationModalOpen.set(false);
+      this.mobileOverlayService.closeMobileModal();
+      return;
+    }
+
+    this.sellerMonetizationService.updateMyAd(backendAd.id, { link: nextLink }).subscribe({
+      next: (updatedAd) => {
+        this.backendAd.set(updatedAd);
+        this.destinationUrlOverrides.update((overrides) => ({
+          ...overrides,
+          [this.adId()]: nextLink,
+        }));
+        this.isDestinationModalOpen.set(false);
+        this.mobileOverlayService.closeMobileModal();
+        this.appToastService.show({ message: 'Destination link updated.' });
+      },
+      error: () => {
+        this.appToastService.show({ message: 'We could not update that destination link right now.' });
+      },
+    });
+  }
+
+  private loadAdData(): void {
+    const numericId = Number(this.adId());
+    if (!Number.isFinite(numericId)) {
+      return;
+    }
+
+    this.sellerMonetizationService.getMyAd(numericId).subscribe({
+      next: (ad) => {
+        this.backendAd.set(ad);
+        this.currentStatus.set(this.mapStatusLabel(ad.status));
+      },
+      error: () => {
+        this.backendAd.set(null);
+      },
+    });
+
+    this.sellerMonetizationService.getAdAnalytics(numericId).subscribe({
+      next: (analytics) => this.adAnalytics.set(analytics),
+      error: () => this.adAnalytics.set(null),
+    });
+  }
+
+  private mapStatusLabel(status: SellerAdRecord['status']): AdDetail['status'] {
+    switch (status) {
+      case 'paused':
+        return 'Paused';
+      case 'expired':
+        return 'Expired';
+      case 'pending':
+        return 'Pending approval';
+      case 'rejected':
+        return 'Declined';
+      default:
+        return 'Active';
+    }
+  }
+
+  private mapBackendAd(ad: SellerAdRecord): AdDetail {
+    const mappedStatus = this.mapStatusLabel(ad.status);
+    const analytics = this.adAnalytics();
+    if (ad.ad_type === 'banner') {
+      return {
+        id: String(ad.id),
+        kind: 'banner',
+        title: ad.title,
+        status: mappedStatus,
+        image: ad.image ?? undefined,
+        destinationUrl: ad.link || '',
+        expiresOn: this.formatDate(ad.end_date),
+        noticePrefix: 'Your banner will be promoted across Duduzili',
+        metrics: [
+          { label: 'Total views', value: this.formatMetricNumber(analytics?.summary.total_views ?? ad.total_views) },
+          { label: 'Total clicks', value: this.formatMetricNumber(analytics?.summary.total_clicks ?? ad.total_clicks) },
+          { label: 'CTR', value: analytics?.summary.ctr ?? this.computeCtr(ad.total_views, ad.total_clicks), info: true },
+        ],
+      };
+    }
+
+    return {
+      id: String(ad.id),
+      kind: 'listing',
+      title: ad.title,
+      status: mappedStatus,
+      image: ad.image ?? undefined,
+      price: this.formatCurrency(ad.amount_paid),
+      lastUpdated: this.formatDate(ad.created_at),
+      expiresOn: this.formatDate(ad.end_date),
+      noticePrefix: 'Your listing will be promoted across Duduzili',
+      metrics: [
+        { label: 'Total views', value: this.formatMetricNumber(analytics?.summary.total_views ?? ad.total_views) },
+        { label: 'Total clicks', value: this.formatMetricNumber(analytics?.summary.total_clicks ?? ad.total_clicks) },
+        { label: 'Total calls', value: '0' },
+        { label: 'Total messages', value: '0' },
+      ],
+    };
+  }
+
+  private formatDate(date: string): string {
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(parsedDate);
+  }
+
+  private formatCurrency(amount: string): string {
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount)) {
+      return `₦${amount}`;
+    }
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      maximumFractionDigits: 0,
+    }).format(numericAmount);
+  }
+
+  private formatMetricNumber(value: number): string {
+    return new Intl.NumberFormat('en', {
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(value);
+  }
+
+  private computeCtr(views: number, clicks: number): string {
+    if (views <= 0) {
+      return '0%';
+    }
+    return `${((clicks / views) * 100).toFixed(1)}%`;
   }
 }
