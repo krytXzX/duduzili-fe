@@ -1531,6 +1531,7 @@ export class AddListingModalComponent implements OnDestroy {
   close = output<void>();
   save = output<ListingData>();
   draftSaved = output<void>();
+  listingPublished = output<void>();
   readonly categoryOptionsInput = input<readonly PickerOption[]>([]);
   readonly storeOptionsInput = input<readonly PickerOption[]>([]);
 
@@ -1834,6 +1835,7 @@ export class AddListingModalComponent implements OnDestroy {
 
     try {
       await firstValueFrom(this.listingsService.createListing(this.buildCreateListingPayload()));
+      this.listingPublished.emit();
       this.currentStep.set(5);
     } catch {
       this.appToastService.show({
