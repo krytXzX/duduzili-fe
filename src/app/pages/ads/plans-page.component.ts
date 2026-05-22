@@ -392,7 +392,9 @@ export class AdsPlansPageComponent {
     return this.planDefinitions.map((plan) => {
       const backendPlan = this.matchBackendPlanByDisplayPlanId(plan.id);
       const backendPrice = backendPlan ? Number(backendPlan.computed_price) : null;
-      const isCurrent = currentPlanName === (backendPlan?.plan_name?.toLowerCase() ?? null) || plan.current === true;
+      const isCurrent =
+        currentPlanName === (backendPlan?.plan_name?.toLowerCase() ?? null) ||
+        plan.current === true;
 
       return {
         ...plan,
@@ -562,15 +564,13 @@ export class AdsPlansPageComponent {
 
   private loadSubscriptionData(): void {
     this.sellerMonetizationService.getSubscriptionPlans().subscribe({
-      next: (plans) => this.backendPlans.set(plans),
+      next: (plans) => this.backendPlans.set(plans.results),
       error: () => this.backendPlans.set([]),
     });
 
     this.sellerMonetizationService.getSubscriptionStatus().subscribe({
       next: (response) => {
-        this.subscriptionStatus.set(
-          response.status === 'No active plan' ? null : response.status,
-        );
+        this.subscriptionStatus.set(response.status === 'No active plan' ? null : response.status);
       },
       error: () => this.subscriptionStatus.set(null),
     });
@@ -586,8 +586,11 @@ export class AdsPlansPageComponent {
             ? 'enterprise'
             : 'free';
 
+    console.log(this.backendPlans());
     return (
-      this.backendPlans().find((plan) => plan.plan_name.trim().toLowerCase() === desiredName) ?? null
+      this.backendPlans().find((plan) => plan.plan_name.trim().toLowerCase() === desiredName) ??
+      null
+      // this.backendPlans().find((plan) => plan.plan_name.trim().toLowerCase() === desiredName) ?? null
     );
   }
 }
