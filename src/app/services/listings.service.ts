@@ -94,6 +94,18 @@ export interface CreateSellerReportRequest {
   reason: string;
 }
 
+export interface CreateOfferRequest {
+  listing: string;
+  offer_amount: string;
+  message?: string;
+}
+
+export interface CreateCallbackRequest {
+  listing: string;
+  phone_number: string;
+  message?: string;
+}
+
 export interface PromotionPlanApiItem {
   id: number;
   name: string;
@@ -190,6 +202,14 @@ export class ListingsService {
         params: { type: 'vendor' },
       },
     );
+  }
+
+  createOffer(payload: CreateOfferRequest): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/offers/`, payload);
+  }
+
+  createCallbackRequest(payload: CreateCallbackRequest): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/callback-requests/`, payload);
   }
 
   getListingDetails(id: string): Observable<ListingsApiItem> {
