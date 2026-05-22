@@ -55,6 +55,11 @@ interface StorePaymentMethod {
   mobileIcon: string;
 }
 
+export interface ListingPromotionSelection {
+  durationDays: number;
+  paymentMethod: 'wallet' | 'online';
+}
+
 @Component({
   selector: 'app-promote-listing-modal',
   imports: [CommonModule, NgIcon, NgOptimizedImage],
@@ -933,10 +938,11 @@ interface StorePaymentMethod {
 
               <button
                 type="button"
-                (click)="step.set('success')"
+                (click)="submitListingPromotion()"
+                [disabled]="isSubmitting()"
                 class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
               >
-                Confirm and pay
+                {{ isSubmitting() ? 'Processing...' : 'Confirm and pay' }}
               </button>
 
               <p class="mt-3 px-2 text-[9px] leading-4 text-[#6D727C]">
@@ -1232,10 +1238,11 @@ interface StorePaymentMethod {
 
                 <button
                   type="button"
-                  (click)="step.set('success')"
+                  (click)="submitListingPromotion()"
+                  [disabled]="isSubmitting()"
                   class="mt-16 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
                 >
-                  Confirm and pay
+                  {{ isSubmitting() ? 'Processing...' : 'Confirm and pay' }}
                 </button>
 
                 <p class="mt-10 text-[0.875rem] leading-6 text-[#6D727C]">
@@ -1294,8 +1301,10 @@ interface StorePaymentMethod {
 })
 export class PromoteListingModalComponent implements OnDestroy {
   promoteTarget = input<'listing' | 'store'>('listing');
+  isSubmitting = input(false);
   close = output<void>();
   promoted = output<void>();
+  promotionRequested = output<ListingPromotionSelection>();
   private readonly mobileOverlayService = inject(MobileOverlayService);
 
   protected readonly storeAssets = {
@@ -1556,6 +1565,30 @@ export class PromoteListingModalComponent implements OnDestroy {
   finishAndClose() {
     this.promoted.emit();
     this.close.emit();
+  }
+
+  submitListingPromotion() {
+    if (this.isSubmitting()) {
+      return;
+    }
+
+    this.promotionRequested.emit({
+      durationDays: this.durationFromPlanId(this.selectedPlanId()),
+      paymentMethod: this.selectedPaymentId(),
+    });
+  }
+
+  private durationFromPlanId(planId: ListingBoostPlan['id']): number {
+    switch (planId) {
+      case '1-day':
+        return 1;
+      case '14-days':
+        return 14;
+      case '30-days':
+        return 30;
+      default:
+        return 7;
+    }
   }
 
   ngOnDestroy(): void {

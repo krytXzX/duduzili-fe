@@ -3,7 +3,10 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { PromoteListingModalComponent } from '../../components/listings/promote-listing-modal.component';
+import {
+  ListingPromotionSelection,
+  PromoteListingModalComponent,
+} from '../../components/listings/promote-listing-modal.component';
 import {
   ListingsApiItem,
   ListingsService,
@@ -12,6 +15,7 @@ import {
   ManageListingsProductCondition,
   ManageListingsResponse,
   ManageListingsStore,
+  PromotionPlanApiItem,
   UpdateListingRequest,
 } from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
@@ -2765,7 +2769,9 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
     @if (showPromoteListingModal()) {
       <app-promote-listing-modal
+        [isSubmitting]="isPromotingListing()"
         (close)="showPromoteListingModal.set(false)"
+        (promotionRequested)="handleListingPromotion($event)"
         (promoted)="markListingAsPromoted()"
       ></app-promote-listing-modal>
     }
@@ -2809,6 +2815,7 @@ export class ListingDetailsPageComponent {
   protected readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? '1');
   private readonly listingRecord = signal<ListingsApiItem | null>(null);
   private readonly manageListingsMetadata = signal<ManageListingsResponse | null>(null);
+  private readonly promotionPlans = signal<PromotionPlanApiItem[]>([]);
   protected readonly activeTab = signal<ListingTab>('overview');
   protected readonly activeImageIndex = signal(0);
   protected readonly showPromoteListingModal = signal(false);
@@ -2825,6 +2832,7 @@ export class ListingDetailsPageComponent {
   protected readonly isSavingEdit = signal(false);
   protected readonly isUpdatingStatus = signal(false);
   protected readonly isDeletingListing = signal(false);
+  protected readonly isPromotingListing = signal(false);
   protected readonly selectedDeliveryMethods = signal<string[]>(['seller-delivery']);
   protected readonly selectedDeliveryRanges = signal<string[]>(['nation-wide']);
   protected readonly editMediaPlaceholderSlots = [4, 5, 6] as const;
@@ -3293,8 +3301,54 @@ export class ListingDetailsPageComponent {
     this.listing.update((listing) => ({ ...listing, isPromoted: true }));
   }
 
+  protected handleListingPromotion(selection: ListingPromotionSelection): void {
+    const plan = this.resolvePromotionPlan(selection.durationDays);
+    if (!plan) {
+      this.appToastService.show({
+        message: 'No active promotion plan matches that duration right now.',
+      });
+      return;
+    }
+
+    this.isPromotingListing.set(true);
+
+    void firstValueFrom(
+      this.listingsService.promoteListings({
+        listing_ids: [this.listingId()],
+        plan_id: plan.id,
+        payment_method: selection.paymentMethod,
+        confirm_deduction: selection.paymentMethod === 'wallet',
+      }),
+    )
+      .then(async (response) => {
+        const paymentUrl = this.readString(response['payment_url']);
+        if (paymentUrl && typeof window !== 'undefined') {
+          window.location.href = paymentUrl;
+          return;
+        }
+
+        const refreshed = await firstValueFrom(this.listingsService.getListingDetails(this.listingId()));
+        this.applyListingDetails(refreshed);
+        this.markListingAsPromoted();
+        this.appToastService.show({ message: 'Listing promoted successfully.' });
+      })
+      .catch((error: unknown) => {
+        const responseRecord = this.readRecord(this.readRecord(error)?.['error']) ??
+          this.readRecord(this.readRecord(error)?.['response']);
+        const message =
+          this.readString(responseRecord?.['error']) ??
+          this.readString(responseRecord?.['message']) ??
+          'We could not promote this listing right now.';
+        this.appToastService.show({ message });
+      })
+      .finally(() => {
+        this.isPromotingListing.set(false);
+      });
+  }
+
   constructor() {
     void this.loadManageListingsMetadata();
+    void this.loadPromotionPlans();
     void this.loadListingDetails();
     void this.loadListingRequests();
     void this.loadListingActivities();
@@ -3306,6 +3360,15 @@ export class ListingDetailsPageComponent {
       this.manageListingsMetadata.set(response);
     } catch {
       // Keep the fallback edit options if metadata fails to load.
+    }
+  }
+
+  private async loadPromotionPlans(): Promise<void> {
+    try {
+      const plans = await firstValueFrom(this.listingsService.getPromotionPlans());
+      this.promotionPlans.set(Array.isArray(plans) ? plans : []);
+    } catch {
+      this.promotionPlans.set([]);
     }
   }
 
@@ -3675,6 +3738,15 @@ export class ListingDetailsPageComponent {
       methods: methods.length > 0 ? methods : this.selectedDeliveryMethods(),
       ranges: ranges.length > 0 ? ranges : this.selectedDeliveryRanges(),
     };
+  }
+
+  private resolvePromotionPlan(durationDays: number): PromotionPlanApiItem | null {
+    return (
+      this.promotionPlans().find(
+        (plan) =>
+          plan.status?.toLowerCase() === 'active' && plan.duration_days === durationDays,
+      ) ?? null
+    );
   }
 
   private async updateListingStatus(status: ListingStatus): Promise<void> {

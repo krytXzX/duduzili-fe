@@ -94,6 +94,28 @@ export interface CreateSellerReportRequest {
   reason: string;
 }
 
+export interface PromotionPlanApiItem {
+  id: number;
+  name: string;
+  duration_days: number;
+  automobile_price: string;
+  property_price: string;
+  other_listing_price: string;
+  image_banner_price: string;
+  video_banner_price: string;
+  store_promotion_price: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PromoteListingsRequest {
+  listing_ids: string[];
+  plan_id: number;
+  payment_method: 'wallet' | 'online';
+  confirm_deduction?: boolean;
+}
+
 export type ListingOfferResponse = ListingsApiItem[];
 export type ListingCallbackResponse = ListingsApiItem[];
 export type ListingActivitiesResponse =
@@ -184,6 +206,14 @@ export class ListingsService {
 
   getListingActivities(id: string): Observable<ListingActivitiesResponse> {
     return this.http.get<ListingActivitiesResponse>(`${this.apiUrl}/listings/${id}/activities/`);
+  }
+
+  getPromotionPlans(): Observable<PromotionPlanApiItem[]> {
+    return this.http.get<PromotionPlanApiItem[]>(`${this.apiUrl}/promotion-plans/`);
+  }
+
+  promoteListings(payload: PromoteListingsRequest): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/ads/promote-listings/`, payload);
   }
 
   updateListing(id: string, payload: UpdateListingRequest): Observable<ListingsApiItem> {
