@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
@@ -10,6 +10,7 @@ import {
   SellerMonetizationService,
   type SellerAdRecord,
 } from '../../services/seller-monetization.service';
+import { AppToastService } from '../../services/app-toast.service';
 
 type PromotionStatus = 'active' | 'paused' | 'pending approval' | 'declined' | 'expired';
 
@@ -87,7 +88,7 @@ interface BannerPromotion {
           @for (tab of mobileTabs; track tab.value) {
             <button
               type="button"
-              (click)="activeTab.set(tab.value)"
+              (click)="selectTab(tab.value)"
               [attr.aria-pressed]="activeTab() === tab.value"
               [class]="
                 activeTab() === tab.value
@@ -216,6 +217,33 @@ interface BannerPromotion {
           </div>
         </div>
       }
+
+      @if (promotions().length > 0) {
+        <div class="mt-8 flex items-center justify-between text-[14px] text-[#1A1B1D]">
+          <p>{{ totalResults() }} <span class="text-[#8A8F98]">results</span></p>
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              (click)="previousPage()"
+              [disabled]="!hasPreviousPage()"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white disabled:opacity-40"
+              aria-label="Previous page"
+            >
+              <img ngSrc="/assets/icons/running-ads-arrow-left.svg" width="16" height="16" alt="" class="h-4 w-4" />
+            </button>
+            <span>Page {{ currentPage() }}</span>
+            <button
+              type="button"
+              (click)="nextPage()"
+              [disabled]="!hasNextPage()"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white disabled:opacity-40"
+              aria-label="Next page"
+            >
+              <img ngSrc="/assets/icons/running-ads-arrow-right.svg" width="16" height="16" alt="" class="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      }
     </div>
 
     <div class="hidden h-full flex-col md:flex">
@@ -249,7 +277,7 @@ interface BannerPromotion {
               @for (tab of tabs; track tab.value) {
                 <button
                   type="button"
-                  (click)="activeTab.set(tab.value)"
+                  (click)="selectTab(tab.value)"
                   [attr.aria-pressed]="activeTab() === tab.value"
                   [class]="
                     activeTab() === tab.value
@@ -370,6 +398,33 @@ interface BannerPromotion {
             </div>
           </div>
         }
+
+        @if (promotions().length > 0) {
+          <div class="mt-auto flex items-center justify-between px-4 pb-5 pt-8 text-[16px] leading-6 text-[#1A1B1D]">
+            <p>{{ totalResults() }} <span class="text-[rgba(26,27,29,0.5)]">results</span></p>
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                (click)="previousPage()"
+                [disabled]="!hasPreviousPage()"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-[80px] border border-[#EAEAEA] bg-white disabled:opacity-40"
+                aria-label="Previous page"
+              >
+                <img ngSrc="/assets/icons/running-ads-arrow-left.svg" width="16" height="16" alt="" class="h-4 w-4" />
+              </button>
+              <span>Page {{ currentPage() }}</span>
+              <button
+                type="button"
+                (click)="nextPage()"
+                [disabled]="!hasNextPage()"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-[80px] border border-[#EAEAEA] bg-white disabled:opacity-40"
+                aria-label="Next page"
+              >
+                <img ngSrc="/assets/icons/running-ads-arrow-right.svg" width="16" height="16" alt="" class="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        }
       </div>
     </div>
 
@@ -387,6 +442,7 @@ interface BannerPromotion {
 })
 export class BannerPromotionsPageComponent {
   private readonly sellerMonetizationService = inject(SellerMonetizationService);
+  private readonly appToastService = inject(AppToastService);
   readonly pausedBadgeIcon = '/assets/icons/banner-status-paused.svg';
   readonly pendingApprovalBadgeIcon = '/assets/icons/banner-status-pending-approval.svg';
   readonly declinedBadgeIcon = '/assets/icons/banner-status-declined.svg';
@@ -404,17 +460,32 @@ export class BannerPromotionsPageComponent {
   readonly activeTab = signal<PromotionStatus>('active');
   readonly isCreateModalOpen = signal(false);
   readonly mobileTabs = this.tabs.slice(0, 3);
+  readonly currentPage = signal(1);
+  readonly totalResults = signal(0);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
+  readonly statusCounts = signal<Record<PromotionStatus, number>>({
+    active: 0,
+    paused: 0,
+    'pending approval': 0,
+    declined: 0,
+    expired: 0,
+  });
 
   readonly visiblePromotions = computed(() =>
     this.promotions().filter((promotion) => promotion.status === this.activeTab()),
   );
 
   constructor() {
-    this.loadBannerPromotions();
+    effect(() => {
+      this.activeTab();
+      this.currentPage();
+      this.loadBannerPromotions();
+    });
   }
 
   countByStatus(status: PromotionStatus): number {
-    return this.promotions().filter((promotion) => promotion.status === status).length;
+    return this.statusCounts()[status];
   }
 
   statusBadgeLabel(promotion: BannerPromotion): string {
@@ -443,22 +514,89 @@ export class BannerPromotionsPageComponent {
     }
   }
 
-  onCreateBannerAd(_payload: CreateBannerAdPayload): void {
-    this.isCreateModalOpen.set(false);
+  onCreateBannerAd(payload: CreateBannerAdPayload): void {
+    if (!payload.mediaFile) {
+      this.appToastService.show({ message: 'Please choose a banner image or video first.' });
+      return;
+    }
+
+    this.sellerMonetizationService
+      .createBannerAd({
+        title: payload.title,
+        destinationUrl: payload.destinationUrl,
+        bannerType: payload.bannerType,
+        mediaFile: payload.mediaFile,
+      })
+      .subscribe({
+        next: () => {
+          this.isCreateModalOpen.set(false);
+          this.activeTab.set('pending approval');
+          this.currentPage.set(1);
+          this.appToastService.show({ message: 'Banner ad submitted for review.' });
+          this.loadBannerPromotions();
+        },
+        error: () => {
+          this.appToastService.show({ message: 'We could not create that banner ad right now.' });
+        },
+      });
+  }
+
+  selectTab(tab: PromotionStatus): void {
+    this.activeTab.set(tab);
+    this.currentPage.set(1);
   }
 
   private loadBannerPromotions(): void {
-    this.sellerMonetizationService.getMyAds().subscribe({
+    const status = this.mapApiStatus(this.activeTab());
+    this.sellerMonetizationService.getMyAds({ page: this.currentPage(), adType: 'banner', status }).subscribe({
       next: (response) => {
         const promotions = response.results
           .filter((ad) => ad.ad_type === 'banner')
           .map((ad) => this.mapPromotion(ad));
         this.promotions.set(promotions);
+        this.totalResults.set(typeof response.count === 'number' ? response.count : promotions.length);
+        this.hasNextPage.set(Boolean(response.next));
+        this.hasPreviousPage.set(Boolean(response.previous));
+        this.statusCounts.set({
+          active: response.counts?.banner?.active ?? 0,
+          paused: response.counts?.banner?.paused ?? 0,
+          'pending approval': response.counts?.banner?.pending ?? 0,
+          declined: response.counts?.banner?.rejected ?? 0,
+          expired: response.counts?.banner?.expired ?? 0,
+        });
       },
       error: () => {
         this.promotions.set([]);
+        this.totalResults.set(0);
+        this.hasNextPage.set(false);
+        this.hasPreviousPage.set(false);
       },
     });
+  }
+
+  previousPage(): void {
+    if (!this.hasPreviousPage()) {
+      return;
+    }
+    this.currentPage.update((page) => Math.max(1, page - 1));
+  }
+
+  nextPage(): void {
+    if (!this.hasNextPage()) {
+      return;
+    }
+    this.currentPage.update((page) => page + 1);
+  }
+
+  private mapApiStatus(status: PromotionStatus): 'active' | 'paused' | 'pending' | 'rejected' | 'expired' {
+    switch (status) {
+      case 'pending approval':
+        return 'pending';
+      case 'declined':
+        return 'rejected';
+      default:
+        return status;
+    }
   }
 
   private mapPromotion(ad: SellerAdRecord): BannerPromotion {

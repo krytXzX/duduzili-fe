@@ -19,6 +19,7 @@ import { StoreEditSidePanelComponent } from '../../components/stores/store-edit-
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { AppModeService } from '../../services/app-mode.service';
 import { AppToastService } from '../../services/app-toast.service';
+import { SellerMonetizationService } from '../../services/seller-monetization.service';
 import {
   VendorsService,
   type VendorListingRecord,
@@ -871,6 +872,7 @@ interface ReviewTagCount {
           promoteTarget="store"
           (close)="showPromoteStoreModal.set(false)"
           (promoted)="showPromoteStoreModal.set(false)"
+          (promotionRequested)="onPromoteStore()"
         ></app-promote-listing-modal>
       }
 
@@ -889,6 +891,7 @@ export class StoreDetailsDashboardComponent {
   private readonly vendorsService = inject(VendorsService);
   private readonly appMode = inject(AppModeService);
   private readonly appToastService = inject(AppToastService);
+  private readonly sellerMonetizationService = inject(SellerMonetizationService);
   private readonly apiOrigin = this.resolveApiOrigin();
 
   protected readonly assets = {
@@ -1649,6 +1652,25 @@ export class StoreDetailsDashboardComponent {
         message: 'We could not update this store right now.',
       });
     }
+  }
+
+  onPromoteStore(): void {
+    const storeId = this.store().id;
+    if (!storeId) {
+      this.appToastService.show({ message: 'We could not determine which store to promote.' });
+      return;
+    }
+
+    this.sellerMonetizationService.createStorePromotion({ vendorId: storeId }).subscribe({
+      next: () => {
+        this.showPromoteStoreModal.set(false);
+        this.store.update((current) => ({ ...current, promoted: true }));
+        this.appToastService.show({ message: 'Store promotion is now running.' });
+      },
+      error: () => {
+        this.appToastService.show({ message: 'We could not promote this store right now.' });
+      },
+    });
   }
 
   onPublishListing(data: ListingData): void {

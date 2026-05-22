@@ -1703,6 +1703,7 @@ export class CreateAdTypeModalComponent {
   readonly close = output<void>();
   readonly continue = output<CreateAdType>();
   readonly promoteListing = output<string[]>();
+  readonly promoteStore = output<string>();
 
   readonly selectedType = signal<CreateAdType>('listing');
   readonly step = signal<
@@ -2097,6 +2098,7 @@ export class CreateAdTypeModalComponent {
     }
 
     if (this.step() === 'configure-store') {
+      this.promoteStore.emit(this.selectedStoreId());
       this.step.set('store-success');
       return;
     }
@@ -2148,6 +2150,7 @@ export class CreateAdTypeModalComponent {
   }
 
   completeStorePromotion(): void {
+    this.promoteStore.emit(this.selectedStoreId());
     this.step.set('store-success');
   }
 

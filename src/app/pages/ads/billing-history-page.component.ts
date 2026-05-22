@@ -248,13 +248,15 @@ interface BillingRecord {
 
           <div class="mt-auto flex items-center justify-between px-4 pb-4 pt-6">
             <p class="text-[16px] leading-6 text-[#1A1B1D]">
-              {{ visibleRecords().length }} <span class="text-[rgba(26,27,29,0.5)]">results</span>
+              {{ totalResults() }} <span class="text-[rgba(26,27,29,0.5)]">results</span>
             </p>
 
             <div class="flex items-center gap-2 text-[16px] leading-6 text-[#1C1F1D] opacity-50">
               <div class="flex items-end gap-[5px]">
                 <button
                   type="button"
+                  (click)="previousPage()"
+                  [disabled]="!hasPreviousPage()"
                   class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
                   aria-label="Previous page"
                 >
@@ -264,11 +266,13 @@ interface BillingRecord {
                 <span
                   class="inline-flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-[14px] text-[14px] font-medium shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
                 >
-                  1
+                  {{ currentPage() }}
                 </span>
 
                 <button
                   type="button"
+                  (click)="nextPage()"
+                  [disabled]="!hasNextPage()"
                   class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
                   aria-label="Next page"
                 >
@@ -276,7 +280,7 @@ interface BillingRecord {
                 </button>
               </div>
 
-              <span>of 12</span>
+              <span>of {{ totalPages() }}</span>
             </div>
           </div>
         </div>
@@ -308,6 +312,10 @@ export class BillingHistoryPageComponent {
   } as const;
 
   readonly records = signal<BillingRecord[]>([]);
+  readonly currentPage = signal(1);
+  readonly totalResults = signal(0);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
 
   readonly searchQuery = signal('');
   readonly transactionType = signal<TransactionType>('all');
@@ -329,6 +337,8 @@ export class BillingHistoryPageComponent {
   constructor() {
     this.loadBillingHistory();
   }
+
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalResults() / 5)));
 
   readonly visibleRecords = computed(() =>
     this.records().filter(record => {
@@ -401,6 +411,22 @@ export class BillingHistoryPageComponent {
     this.statusFilter.set(order[(currentIndex + 1) % order.length]);
   }
 
+  previousPage(): void {
+    if (!this.hasPreviousPage()) {
+      return;
+    }
+    this.currentPage.update((page) => Math.max(1, page - 1));
+    this.loadBillingHistory();
+  }
+
+  nextPage(): void {
+    if (!this.hasNextPage()) {
+      return;
+    }
+    this.currentPage.update((page) => page + 1);
+    this.loadBillingHistory();
+  }
+
   statusLabel(status: BillingStatus): string {
     switch (status) {
       case 'successful':
@@ -437,13 +463,19 @@ export class BillingHistoryPageComponent {
   }
 
   private loadBillingHistory(): void {
-    this.sellerMonetizationService.getWalletTransactions({ type: 'subscription_payment' }).subscribe({
+    this.sellerMonetizationService.getWalletTransactions({ type: 'subscription_payment', page: this.currentPage() }).subscribe({
       next: (response) => {
         const records = Array.isArray(response.results) ? response.results : [];
         this.records.set(records.map((record) => this.mapBillingRecord(record)));
+        this.totalResults.set(typeof response.count === 'number' ? response.count : records.length);
+        this.hasNextPage.set(Boolean(response.next));
+        this.hasPreviousPage.set(Boolean(response.previous));
       },
       error: () => {
         this.records.set([]);
+        this.totalResults.set(0);
+        this.hasNextPage.set(false);
+        this.hasPreviousPage.set(false);
       },
     });
   }

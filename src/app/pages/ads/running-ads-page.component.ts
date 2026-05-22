@@ -1,5 +1,5 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   CreateBannerAdModalComponent,
@@ -14,6 +14,7 @@ import {
   type SellerAdRecord,
   type SubscriptionStatusData,
 } from '../../services/seller-monetization.service';
+import { AppToastService } from '../../services/app-toast.service';
 
 type AdPlacement = 'promoted listings' | 'store promotions' | 'banner ads';
 type AdStatus = 'active' | 'paused' | 'expired';
@@ -114,7 +115,7 @@ interface ListingSection {
           @for (tab of placementTabs; track tab.value) {
             <button
               type="button"
-              (click)="activePlacement.set(tab.value)"
+              (click)="selectPlacement(tab.value)"
               class="flex shrink-0 flex-col gap-[6px]"
             >
               <span class="inline-flex items-center gap-1 rounded-[8px] px-3 py-1">
@@ -153,7 +154,7 @@ interface ListingSection {
         @for (tab of statusTabs; track tab.value) {
           <button
             type="button"
-            (click)="activeStatus.set(tab.value)"
+            (click)="selectStatus(tab.value)"
             [class]="statusButtonClass(tab.value)"
           >
             {{ tab.label }} ({{ countByStatus(tab.value) }})
@@ -322,7 +323,7 @@ interface ListingSection {
             @for (tab of placementTabs; track tab.value) {
               <button
                 type="button"
-                (click)="activePlacement.set(tab.value)"
+                (click)="selectPlacement(tab.value)"
                 class="flex flex-col gap-[6px]"
               >
                 <span class="inline-flex items-center gap-1 rounded-[8px] px-3 py-1">
@@ -359,7 +360,7 @@ interface ListingSection {
           @for (tab of statusTabs; track tab.value) {
             <button
               type="button"
-              (click)="activeStatus.set(tab.value)"
+              (click)="selectStatus(tab.value)"
               [class]="statusButtonClass(tab.value)"
             >
               {{ tab.label }} ({{ countByStatus(tab.value) }})
@@ -557,6 +558,31 @@ interface ListingSection {
             </div>
           </div>
         }
+
+        <div class="mt-auto flex items-center justify-between px-2 pb-2 pt-8 text-[16px] leading-6 text-[#1A1B1D]">
+          <p>{{ totalResults() }} <span class="text-[rgba(26,27,29,0.5)]">results</span></p>
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              (click)="previousPage()"
+              [disabled]="!hasPreviousPage()"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-[80px] border border-[#EAEAEA] bg-white shadow-[0px_3.2px_6.4px_rgba(202,202,202,0.25)] disabled:opacity-40"
+              aria-label="Previous page"
+            >
+              <img [ngSrc]="arrowLeftIcon" width="16" height="16" alt="" class="h-4 w-4" />
+            </button>
+            <span>Page {{ currentPage() }}</span>
+            <button
+              type="button"
+              (click)="nextPage()"
+              [disabled]="!hasNextPage()"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-[80px] border border-[#EAEAEA] bg-white shadow-[0px_3.2px_6.4px_rgba(202,202,202,0.25)] disabled:opacity-40"
+              aria-label="Next page"
+            >
+              <img [ngSrc]="arrowRightIcon" width="16" height="16" alt="" class="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -564,6 +590,7 @@ interface ListingSection {
       <app-create-ad-type-modal
         (close)="isCreateAdTypeModalOpen.set(false)"
         (continue)="handleCreateAdTypeSelection($event)"
+        (promoteStore)="handleCreateStorePromotion($event)"
       ></app-create-ad-type-modal>
     }
 
@@ -580,6 +607,7 @@ interface ListingSection {
 export class RunningAdsPageComponent {
   private readonly router = inject(Router);
   private readonly sellerMonetizationService = inject(SellerMonetizationService);
+  private readonly appToastService = inject(AppToastService);
 
   readonly arrowLeftIcon = '/assets/icons/running-ads-arrow-left.svg';
   readonly arrowRightIcon = '/assets/icons/running-ads-arrow-right.svg';
@@ -622,6 +650,15 @@ export class RunningAdsPageComponent {
   readonly isCreateBannerModalOpen = signal(false);
   readonly backendAds = signal<SellerAdRecord[]>([]);
   readonly subscription = signal<SubscriptionStatusData | null>(null);
+  readonly backendCounts = signal<Record<'banner' | 'listing' | 'store', Record<'active' | 'paused' | 'expired' | 'pending' | 'rejected', number>>>({
+    banner: { active: 0, paused: 0, expired: 0, pending: 0, rejected: 0 },
+    listing: { active: 0, paused: 0, expired: 0, pending: 0, rejected: 0 },
+    store: { active: 0, paused: 0, expired: 0, pending: 0, rejected: 0 },
+  });
+  readonly currentPage = signal(1);
+  readonly totalResults = signal(0);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
 
   private readonly mobileSectionsByPlacement: Record<
     AdPlacement,
@@ -1260,14 +1297,18 @@ export class RunningAdsPageComponent {
   readonly desktopSections = computed(() => this.buildSections('desktop'));
 
   constructor() {
-    this.loadAdsData();
+    effect(() => {
+      this.activePlacement();
+      this.activeStatus();
+      this.currentPage();
+      this.loadAdsData();
+    });
   }
 
   countByStatus(status: AdStatus): number {
-    return this.sectionsFor(this.activePlacement(), status).reduce(
-      (total, section) => total + section.cards.length,
-      0,
-    );
+    return this.backendCounts()[this.mapPlacementToAdType(this.activePlacement())][
+      this.mapStatusToApiStatus(status)
+    ];
   }
 
   summaryLabel(label: PlanMetric): string {
@@ -1307,6 +1348,7 @@ export class RunningAdsPageComponent {
 
   handleCreateAdTypeSelection(type: CreateAdType): void {
     this.isCreateAdTypeModalOpen.set(false);
+    this.currentPage.set(1);
 
     switch (type) {
       case 'banner':
@@ -1322,9 +1364,58 @@ export class RunningAdsPageComponent {
     }
   }
 
-  handleCreateBannerAd(_payload: CreateBannerAdPayload): void {
-    this.activePlacement.set('banner ads');
-    this.isCreateBannerModalOpen.set(false);
+  selectPlacement(placement: AdPlacement): void {
+    this.activePlacement.set(placement);
+    this.currentPage.set(1);
+  }
+
+  selectStatus(status: AdStatus): void {
+    this.activeStatus.set(status);
+    this.currentPage.set(1);
+  }
+
+  handleCreateBannerAd(payload: CreateBannerAdPayload): void {
+    if (!payload.mediaFile) {
+      this.appToastService.show({ message: 'Please choose a banner image or video first.' });
+      return;
+    }
+
+    this.sellerMonetizationService
+      .createBannerAd({
+        title: payload.title,
+        destinationUrl: payload.destinationUrl,
+        bannerType: payload.bannerType,
+        mediaFile: payload.mediaFile,
+      })
+      .subscribe({
+        next: () => {
+          this.activePlacement.set('banner ads');
+          this.activeStatus.set('active');
+          this.currentPage.set(1);
+          this.isCreateBannerModalOpen.set(false);
+          this.appToastService.show({ message: 'Banner ad submitted for review.' });
+          this.loadAdsData();
+        },
+        error: () => {
+          this.appToastService.show({ message: 'We could not create that banner ad right now.' });
+        },
+      });
+  }
+
+  handleCreateStorePromotion(vendorId: string): void {
+    this.sellerMonetizationService.createStorePromotion({ vendorId }).subscribe({
+      next: () => {
+        this.activePlacement.set('store promotions');
+        this.activeStatus.set('active');
+        this.currentPage.set(1);
+        this.isCreateAdTypeModalOpen.set(false);
+        this.appToastService.show({ message: 'Store promotion is now running.' });
+        this.loadAdsData();
+      },
+      error: () => {
+        this.appToastService.show({ message: 'We could not create that store promotion right now.' });
+      },
+    });
   }
 
   navigateToPlans(): void {
@@ -1332,14 +1423,49 @@ export class RunningAdsPageComponent {
   }
 
   private loadAdsData(): void {
-    this.sellerMonetizationService.getMyAds().subscribe({
+    this.sellerMonetizationService
+      .getMyAds({
+        page: this.currentPage(),
+        adType: this.mapPlacementToAdType(this.activePlacement()),
+        status: this.mapStatusToApiStatus(this.activeStatus()),
+      })
+      .subscribe({
       next: (response) => {
         this.backendAds.set(Array.isArray(response.results) ? response.results : []);
         this.subscription.set(response.subscription ?? null);
+        this.totalResults.set(typeof response.count === 'number' ? response.count : (response.results?.length ?? 0));
+        this.hasNextPage.set(Boolean(response.next));
+        this.hasPreviousPage.set(Boolean(response.previous));
+        this.backendCounts.set({
+          banner: {
+            active: response.counts?.banner?.active ?? 0,
+            paused: response.counts?.banner?.paused ?? 0,
+            expired: response.counts?.banner?.expired ?? 0,
+            pending: response.counts?.banner?.pending ?? 0,
+            rejected: response.counts?.banner?.rejected ?? 0,
+          },
+          listing: {
+            active: response.counts?.listing?.active ?? 0,
+            paused: response.counts?.listing?.paused ?? 0,
+            expired: response.counts?.listing?.expired ?? 0,
+            pending: response.counts?.listing?.pending ?? 0,
+            rejected: response.counts?.listing?.rejected ?? 0,
+          },
+          store: {
+            active: response.counts?.store?.active ?? 0,
+            paused: response.counts?.store?.paused ?? 0,
+            expired: response.counts?.store?.expired ?? 0,
+            pending: response.counts?.store?.pending ?? 0,
+            rejected: response.counts?.store?.rejected ?? 0,
+          },
+        });
       },
       error: () => {
         this.backendAds.set([]);
         this.subscription.set(null);
+        this.totalResults.set(0);
+        this.hasNextPage.set(false);
+        this.hasPreviousPage.set(false);
       },
     });
   }
@@ -1352,12 +1478,8 @@ export class RunningAdsPageComponent {
   }
 
   private sectionsFor(placement: AdPlacement, status: AdStatus): readonly ListingSection[] {
-    if (placement === 'store promotions') {
-      return [];
-    }
-
     const matchingAds = this.backendAds().filter((ad) => {
-      const adPlacement = ad.ad_type === 'banner' ? 'banner ads' : 'promoted listings';
+      const adPlacement = this.mapAdTypeToPlacement(ad.ad_type);
       return adPlacement === placement && this.mapAdStatus(ad.status) === status;
     });
 
@@ -1368,8 +1490,13 @@ export class RunningAdsPageComponent {
     return [
       {
         id: `${placement}-${status}`,
-        title: placement === 'banner ads' ? 'Banner ads' : 'Promoted listings',
-        viewAllCount: String(matchingAds.length),
+        title:
+          placement === 'banner ads'
+            ? 'Banner ads'
+            : placement === 'store promotions'
+              ? 'Store promotions'
+              : 'Promoted listings',
+        viewAllCount: String(this.totalResults()),
         cards: matchingAds.map((ad) => this.mapAdCard(ad)),
       },
     ];
@@ -1382,15 +1509,60 @@ export class RunningAdsPageComponent {
     return {
       id: String(ad.id),
       title: ad.title,
-      imageSrc: ad.image || '/assets/images/empty_state.svg',
+      imageSrc: ad.image || ad.promoted_store_image || '/assets/images/empty_state.svg',
       expiresOn,
       price: ad.ad_type === 'listing' ? amountPaid : undefined,
-      subtitle: ad.ad_type === 'banner' ? this.readBannerSubtitle(ad.link) : 'Promoted listing',
+      subtitle:
+        ad.ad_type === 'banner'
+          ? this.readBannerSubtitle(ad.link)
+          : ad.ad_type === 'store'
+            ? ad.promoted_store_name || 'Promoted store'
+            : 'Promoted listing',
       views: this.formatCompactNumber(ad.total_views),
       clicks: this.formatCompactNumber(ad.total_clicks),
       messages: '0',
       calls: '0',
     };
+  }
+
+  previousPage(): void {
+    if (!this.hasPreviousPage()) {
+      return;
+    }
+    this.currentPage.update((page) => Math.max(1, page - 1));
+  }
+
+  nextPage(): void {
+    if (!this.hasNextPage()) {
+      return;
+    }
+    this.currentPage.update((page) => page + 1);
+  }
+
+  private mapPlacementToAdType(placement: AdPlacement): 'banner' | 'listing' | 'store' {
+    switch (placement) {
+      case 'banner ads':
+        return 'banner';
+      case 'store promotions':
+        return 'store';
+      default:
+        return 'listing';
+    }
+  }
+
+  private mapAdTypeToPlacement(adType: SellerAdRecord['ad_type']): AdPlacement {
+    switch (adType) {
+      case 'banner':
+        return 'banner ads';
+      case 'store':
+        return 'store promotions';
+      default:
+        return 'promoted listings';
+    }
+  }
+
+  private mapStatusToApiStatus(status: AdStatus): 'active' | 'paused' | 'expired' {
+    return status;
   }
 
   private mapAdStatus(status: SellerAdRecord['status']): AdStatus {

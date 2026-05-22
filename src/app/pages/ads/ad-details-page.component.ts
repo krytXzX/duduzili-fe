@@ -1568,6 +1568,24 @@ export class AdDetailsPageComponent implements OnDestroy {
       };
     }
 
+    if (ad.ad_type === 'store') {
+      return {
+        id: String(ad.id),
+        kind: 'banner',
+        title: ad.promoted_store_name || ad.title,
+        status: mappedStatus,
+        image: ad.image ?? ad.promoted_store_image ?? undefined,
+        destinationUrl: ad.link || '',
+        expiresOn: this.formatDate(ad.end_date),
+        noticePrefix: 'Your store promotion will be promoted across Duduzili',
+        metrics: [
+          { label: 'Total views', value: this.formatMetricNumber(analytics?.summary.total_views ?? ad.total_views) },
+          { label: 'Total clicks', value: this.formatMetricNumber(analytics?.summary.total_clicks ?? ad.total_clicks) },
+          { label: 'CTR', value: analytics?.summary.ctr ?? this.computeCtr(ad.total_views, ad.total_clicks), info: true },
+        ],
+      };
+    }
+
     return {
       id: String(ad.id),
       kind: 'listing',

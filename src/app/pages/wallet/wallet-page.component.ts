@@ -237,15 +237,17 @@ interface MobileWalletTransaction {
         </div>
 
         <div class="mt-auto flex items-center justify-between px-4 pb-4 pt-10 text-[16px] leading-[normal]">
-          <p class="text-[#1A1B1D]">{{ visibleTransactions().length }} <span class="text-[rgba(26,27,29,0.5)]">results</span></p>
+          <p class="text-[#1A1B1D]">{{ totalResults() }} <span class="text-[rgba(26,27,29,0.5)]">results</span></p>
 
           <div class="flex items-center gap-2 text-[#1C1F1D] opacity-50">
             <div class="flex items-end gap-[5px]">
-              <button
-                type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
-                aria-label="Previous page"
-              >
+                <button
+                  type="button"
+                  (click)="previousPage()"
+                  [disabled]="!hasPreviousPage()"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                  aria-label="Previous page"
+                >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="none">
                   <path
                     d="M11.5 5L6.5 10L11.5 15"
@@ -259,15 +261,17 @@ interface MobileWalletTransaction {
 
               <span
                 class="inline-flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-[14px] text-[14px] font-medium shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
-              >
-                1
-              </span>
+                >
+                  {{ currentPage() }}
+                </span>
 
-              <button
-                type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
-                aria-label="Next page"
-              >
+                <button
+                  type="button"
+                  (click)="nextPage()"
+                  [disabled]="!hasNextPage()"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                  aria-label="Next page"
+                >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="none">
                   <path
                     d="M8.5 5L13.5 10L8.5 15"
@@ -280,7 +284,7 @@ interface MobileWalletTransaction {
               </button>
             </div>
 
-            <span>of {{ visibleTransactions().length > 0 ? visibleTransactions().length : 1 }}</span>
+            <span>of {{ totalPages() }}</span>
           </div>
         </div>
       </div>
@@ -624,6 +628,10 @@ export class WalletPageComponent {
   readonly isLoadingTransactions = signal(false);
   readonly isLoadingFundWalletDetails = signal(false);
   readonly isFundingOnline = signal(false);
+  readonly currentPage = signal(1);
+  readonly totalResults = signal(0);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
 
   readonly transactionTypeOptions = computed<readonly CustomDropdownOption<WalletTransactionType>[]>(() => [
     { value: 'all', label: 'All transaction types' },
@@ -672,6 +680,7 @@ export class WalletPageComponent {
   );
 
   readonly formattedWalletBalance = computed(() => this.formatCurrency(this.walletBalance()));
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalResults() / 5)));
 
   readonly transactionTypeLabel = computed(() => {
     switch (this.transactionType()) {
@@ -704,6 +713,22 @@ export class WalletPageComponent {
   });
 
   constructor() {
+    this.loadWalletTransactions();
+  }
+
+  previousPage(): void {
+    if (!this.hasPreviousPage()) {
+      return;
+    }
+    this.currentPage.update((page) => Math.max(1, page - 1));
+    this.loadWalletTransactions();
+  }
+
+  nextPage(): void {
+    if (!this.hasNextPage()) {
+      return;
+    }
+    this.currentPage.update((page) => page + 1);
     this.loadWalletTransactions();
   }
 
@@ -773,16 +798,22 @@ export class WalletPageComponent {
 
   private loadWalletTransactions(): void {
     this.isLoadingTransactions.set(true);
-    this.sellerMonetizationService.getWalletTransactions().subscribe({
+    this.sellerMonetizationService.getWalletTransactions({ page: this.currentPage() }).subscribe({
       next: (response) => {
         this.isLoadingTransactions.set(false);
         this.walletBalance.set(response.wallet_balance || '0.00');
         const records = Array.isArray(response.results) ? response.results : [];
         this.transactions.set(records.map((record) => this.mapWalletTransaction(record)));
+        this.totalResults.set(typeof response.count === 'number' ? response.count : records.length);
+        this.hasNextPage.set(Boolean(response.next));
+        this.hasPreviousPage.set(Boolean(response.previous));
       },
       error: () => {
         this.isLoadingTransactions.set(false);
         this.transactions.set([]);
+        this.totalResults.set(0);
+        this.hasNextPage.set(false);
+        this.hasPreviousPage.set(false);
       },
     });
   }

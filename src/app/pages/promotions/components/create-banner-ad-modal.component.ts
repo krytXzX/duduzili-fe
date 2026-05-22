@@ -29,6 +29,8 @@ export interface CreateBannerAdPayload {
   destinationUrl: string;
   bannerType: 'image' | 'video';
   imagePreview: string | null;
+  mediaFile: File | null;
+  paymentMethod: 'wallet' | 'online';
   planId?: string;
 }
 
@@ -1414,6 +1416,7 @@ export class CreateBannerAdModalComponent implements OnDestroy {
   readonly isRecurring = signal(false);
   readonly previewMode = signal<'desktop' | 'mobile'>('desktop');
   readonly imagePreview = signal<string | null>(null);
+  readonly selectedMediaFile = signal<File | null>(null);
   readonly createBannerInfoIcon = 'assets/icons/banner-create-info.svg';
   readonly createBannerGalleryAddIcon = 'assets/icons/banner-create-gallery-add.svg';
   readonly createBannerVideoAddIcon = 'assets/icons/banner-create-video-add.svg';
@@ -1523,6 +1526,7 @@ export class CreateBannerAdModalComponent implements OnDestroy {
       return;
     }
 
+    this.selectedMediaFile.set(file);
     this.imagePreview.set(URL.createObjectURL(file));
   }
 
@@ -1574,6 +1578,8 @@ export class CreateBannerAdModalComponent implements OnDestroy {
       destinationUrl: this.bannerForm.controls.destinationUrl.value.trim(),
       bannerType: this.bannerForm.controls.bannerType.value,
       imagePreview: this.imagePreview(),
+      mediaFile: this.selectedMediaFile(),
+      paymentMethod: this.selectedPaymentId(),
       planId: this.selectedPlanId(),
     });
   }
@@ -1586,6 +1592,7 @@ export class CreateBannerAdModalComponent implements OnDestroy {
     });
     this.selectedBannerType.set('image');
     this.imagePreview.set(null);
+    this.selectedMediaFile.set(null);
     this.previewMode.set('desktop');
     this.selectedPlanId.set(this.defaultPlanIdForViewport());
     this.selectedPaymentId.set('wallet');

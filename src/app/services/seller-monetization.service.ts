@@ -77,8 +77,13 @@ export type SellerAdRecord = {
   id: number;
   title: string;
   image: string | null;
+  video?: string | null;
   link: string;
-  ad_type: 'banner' | 'listing';
+  ad_type: 'banner' | 'listing' | 'store';
+  promoted_listing_id?: number | null;
+  promoted_store_id?: string | null;
+  promoted_store_name?: string | null;
+  promoted_store_image?: string | null;
   status: 'active' | 'paused' | 'pending' | 'rejected' | 'expired';
   is_active: boolean;
   start_date: string;
@@ -91,7 +96,23 @@ export type SellerAdRecord = {
 
 export type SellerAdListResponse = {
   subscription: SubscriptionStatusData | null;
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+  counts?: Partial<Record<'banner' | 'listing' | 'store', Partial<Record<'active' | 'paused' | 'expired' | 'pending' | 'rejected', number>>>>;
   results: SellerAdRecord[];
+};
+
+export type CreateBannerAdRequest = {
+  title: string;
+  destinationUrl: string;
+  bannerType: 'image' | 'video';
+  mediaFile: File;
+  vendorId?: string;
+};
+
+export type CreateStorePromotionRequest = {
+  vendorId: string;
 };
 
 export type AdAnalyticsResponse = {
@@ -143,8 +164,18 @@ export class SellerMonetizationService {
     );
   }
 
-  getMyAds(): Observable<SellerAdListResponse> {
-    return this.http.get<SellerAdListResponse>(`${this.apiUrl}/ads/my-ads/`);
+  getMyAds(params?: { page?: number; adType?: 'banner' | 'listing' | 'store'; status?: 'active' | 'paused' | 'expired' | 'pending' | 'rejected' }): Observable<SellerAdListResponse> {
+    let httpParams = new HttpParams();
+    if (params?.page) {
+      httpParams = httpParams.set('page', String(params.page));
+    }
+    if (params?.adType) {
+      httpParams = httpParams.set('ad_type', params.adType);
+    }
+    if (params?.status) {
+      httpParams = httpParams.set('status', params.status);
+    }
+    return this.http.get<SellerAdListResponse>(`${this.apiUrl}/ads/my-ads/`, { params: httpParams });
   }
 
   getMyAd(adId: number): Observable<SellerAdRecord> {
@@ -157,5 +188,26 @@ export class SellerMonetizationService {
 
   getAdAnalytics(adId: number): Observable<AdAnalyticsResponse> {
     return this.http.get<AdAnalyticsResponse>(`${this.apiUrl}/ads/${adId}/analytics/`);
+  }
+
+  createBannerAd(payload: CreateBannerAdRequest): Observable<SellerAdRecord> {
+    const formData = new FormData();
+    formData.append('title', payload.title);
+    formData.append('link', payload.destinationUrl);
+    if (payload.vendorId) {
+      formData.append('vendor_id', payload.vendorId);
+    }
+    if (payload.bannerType === 'video') {
+      formData.append('video', payload.mediaFile);
+    } else {
+      formData.append('image', payload.mediaFile);
+    }
+    return this.http.post<SellerAdRecord>(`${this.apiUrl}/ads/banner/`, formData);
+  }
+
+  createStorePromotion(payload: CreateStorePromotionRequest): Observable<SellerAdRecord> {
+    return this.http.post<SellerAdRecord>(`${this.apiUrl}/ads/store-promotions/`, {
+      vendor_id: payload.vendorId,
+    });
   }
 }
