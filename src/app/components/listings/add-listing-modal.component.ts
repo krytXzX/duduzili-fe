@@ -2056,12 +2056,12 @@ export class AddListingModalComponent implements OnDestroy {
     }
 
     if (this.mainImageFile) {
-      payload.append('images', this.mainImageFile);
+      payload.append('uploaded_images', this.mainImageFile);
     }
 
     for (const imageFile of this.additionalImageFiles) {
       if (imageFile) {
-        payload.append('images', imageFile);
+        payload.append('uploaded_images', imageFile);
       }
     }
 

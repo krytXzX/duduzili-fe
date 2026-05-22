@@ -94,6 +94,15 @@ export interface CreateSellerReportRequest {
   reason: string;
 }
 
+export type ListingOfferResponse = ListingsApiItem[];
+export type ListingCallbackResponse = ListingsApiItem[];
+export type ListingActivitiesResponse =
+  | ListingsApiItem[]
+  | {
+      results?: ListingsApiItem[];
+      timeline?: ListingsApiItem[];
+    };
+
 export interface UpdateListingRequest {
   title?: string;
   category?: number;
@@ -163,6 +172,18 @@ export class ListingsService {
 
   getListingDetails(id: string): Observable<ListingsApiItem> {
     return this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`);
+  }
+
+  getListingOffers(id: string): Observable<ListingOfferResponse> {
+    return this.http.get<ListingOfferResponse>(`${this.apiUrl}/listings/${id}/offers/`);
+  }
+
+  getListingCallbackRequests(id: string): Observable<ListingCallbackResponse> {
+    return this.http.get<ListingCallbackResponse>(`${this.apiUrl}/listings/${id}/callback-requests/`);
+  }
+
+  getListingActivities(id: string): Observable<ListingActivitiesResponse> {
+    return this.http.get<ListingActivitiesResponse>(`${this.apiUrl}/listings/${id}/activities/`);
   }
 
   updateListing(id: string, payload: UpdateListingRequest): Observable<ListingsApiItem> {

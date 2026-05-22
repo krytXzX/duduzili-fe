@@ -31,8 +31,10 @@ interface ListingRequest {
   avatar: string;
   message: string;
   time: string;
-  offer: string;
-  status: 'New' | 'Responded';
+  sortTime: number;
+  metaLabel: string;
+  metaValue: string;
+  status: 'New' | 'Responded' | 'Called';
 }
 
 interface ListingActivity {
@@ -40,6 +42,7 @@ interface ListingActivity {
   title: string;
   description: string;
   time: string;
+  actorAvatar: string | null;
 }
 
 interface ListingDetailItem {
@@ -149,14 +152,16 @@ type EditSectionId = 'media' | 'details' | 'delivery';
               <div
                 class="relative h-[54px] w-[54px] shrink-0 overflow-hidden rounded-[10.8px] bg-[#EFEFEF]"
               >
-                <img
-                  [ngSrc]="listing().previewImage"
-                  [alt]="listing().name"
-                  fill
-                  priority
-                  sizes="15vw"
-                  class="object-cover"
-                />
+                @if (listing().previewImage) {
+                  <img
+                    [ngSrc]="listing().previewImage"
+                    [alt]="listing().name"
+                    fill
+                    priority
+                    sizes="15vw"
+                    class="object-cover"
+                  />
+                }
               </div>
 
               <div class="min-w-0 flex-1">
@@ -340,13 +345,15 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                     <div
                       class="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#EEF4F0]"
                     >
-                      <img
-                        [ngSrc]="listing().store.logo"
-                        [alt]="listing().store.name"
-                        fill
-                        sizes="12vw"
-                        class="object-cover"
-                      />
+                      @if (listing().store.logo) {
+                        <img
+                          [ngSrc]="listing().store.logo"
+                          [alt]="listing().store.name"
+                          fill
+                          sizes="12vw"
+                          class="object-cover"
+                        />
+                      }
                     </div>
 
                     <div class="min-w-0">
@@ -444,6 +451,8 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                             [class.text-[#2F9E44]]="request.status === 'New'"
                             [class.bg-[#F3F0FF]]="request.status === 'Responded'"
                             [class.text-[#5E44EE]]="request.status === 'Responded'"
+                            [class.bg-[#EEF2FF]]="request.status === 'Called'"
+                            [class.text-[#3751C7]]="request.status === 'Called'"
                           >
                             {{ request.status }}
                           </span>
@@ -454,7 +463,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         </p>
                         <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-[#8A8F9A]">
                           <span>{{ request.time }}</span>
-                          <span>Offer: {{ request.offer }}</span>
+                          <span>{{ request.metaLabel }}: {{ request.metaValue }}</span>
                         </div>
                       </div>
                     </div>
@@ -481,18 +490,32 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                 @for (activity of activities(); track activity.id) {
                   <article class="rounded-[22px] border border-[#E9EBF0] bg-white p-4">
                     <div class="flex items-start gap-3">
-                      <div
-                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]"
-                      >
-                        <img
-                          ngSrc="/assets/icons/listing-details-tab-activities.svg"
-                          alt=""
-                          width="18"
-                          height="18"
-                          class="h-[18px] w-[18px]"
-                          aria-hidden="true"
-                        />
-                      </div>
+                      @if (activity.actorAvatar) {
+                        <div
+                          class="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F3F4F7]"
+                        >
+                          <img
+                            [ngSrc]="activity.actorAvatar"
+                            [alt]="activity.title"
+                            fill
+                            sizes="12vw"
+                            class="object-cover"
+                          />
+                        </div>
+                      } @else {
+                        <div
+                          class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]"
+                        >
+                          <img
+                            ngSrc="/assets/icons/listing-details-tab-activities.svg"
+                            alt=""
+                            width="18"
+                            height="18"
+                            class="h-[18px] w-[18px]"
+                            aria-hidden="true"
+                          />
+                        </div>
+                      }
 
                       <div class="min-w-0 flex-1">
                         <p class="text-[14px] font-semibold text-[#202335]">{{ activity.title }}</p>
@@ -534,14 +557,16 @@ type EditSectionId = 'media' | 'details' | 'delivery';
               <div
                 class="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[24px] bg-[#F3F4F7]"
               >
-                <img
-                  [ngSrc]="listing().previewImage"
-                  [alt]="listing().name"
-                  fill
-                  priority
-                  sizes="8vw"
-                  class="object-cover"
-                />
+                @if (listing().previewImage) {
+                  <img
+                    [ngSrc]="listing().previewImage"
+                    [alt]="listing().name"
+                    fill
+                    priority
+                    sizes="8vw"
+                    class="object-cover"
+                  />
+                }
               </div>
 
               <div class="pt-1">
@@ -866,13 +891,15 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           <div
                             class="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-[#EEF4F0]"
                           >
-                            <img
-                              [ngSrc]="listing().store.logo"
-                              [alt]="listing().store.name"
-                              fill
-                              sizes="5vw"
-                              class="object-cover"
-                            />
+                            @if (listing().store.logo) {
+                              <img
+                                [ngSrc]="listing().store.logo"
+                                [alt]="listing().store.name"
+                                fill
+                                sizes="5vw"
+                                class="object-cover"
+                              />
+                            }
                           </div>
 
                           <div class="min-w-0">
@@ -945,6 +972,8 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               [class.text-[#2F9E44]]="request.status === 'New'"
                               [class.bg-[#F3F0FF]]="request.status === 'Responded'"
                               [class.text-[#5E44EE]]="request.status === 'Responded'"
+                              [class.bg-[#EEF2FF]]="request.status === 'Called'"
+                              [class.text-[#3751C7]]="request.status === 'Called'"
                             >
                               {{ request.status }}
                             </span>
@@ -957,7 +986,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                             class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-[#8A8F9A]"
                           >
                             <span>{{ request.time }}</span>
-                            <span>Offer: {{ request.offer }}</span>
+                            <span>{{ request.metaLabel }}: {{ request.metaValue }}</span>
                           </div>
                         </div>
                       </div>
@@ -984,18 +1013,32 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                   @for (activity of activities(); track activity.id) {
                     <article class="rounded-[24px] border border-[#E9EBF0] bg-white p-5">
                       <div class="flex items-start gap-4">
-                        <div
-                          class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]"
-                        >
-                          <img
-                            ngSrc="/assets/icons/listing-details-tab-activities.svg"
-                            alt=""
-                            width="18"
-                            height="18"
-                            class="h-[18px] w-[18px]"
-                            aria-hidden="true"
-                          />
-                        </div>
+                        @if (activity.actorAvatar) {
+                          <div
+                            class="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-[#F3F4F7]"
+                          >
+                            <img
+                              [ngSrc]="activity.actorAvatar"
+                              [alt]="activity.title"
+                              fill
+                              sizes="5vw"
+                              class="object-cover"
+                            />
+                          </div>
+                        } @else {
+                          <div
+                            class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F4F5F8] text-[#202335]"
+                          >
+                            <img
+                              ngSrc="/assets/icons/listing-details-tab-activities.svg"
+                              alt=""
+                              width="18"
+                              height="18"
+                              class="h-[18px] w-[18px]"
+                              aria-hidden="true"
+                            />
+                          </div>
+                        }
 
                         <div class="min-w-0 flex-1">
                           <p class="text-[15px] font-semibold text-[#202335]">
@@ -1102,52 +1145,23 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
                 <div class="space-y-2.5">
                   <div class="grid grid-cols-3 gap-2">
-                    <div
-                      class="relative h-[230px] overflow-hidden rounded-[18px] bg-[#F4F4F4] col-span-2"
-                    >
-                      <img
-                        ngSrc="/assets/images/edit-listing-main-photo.png"
-                        alt="Main listing photo"
-                        fill
-                        priority
-                        sizes="58vw"
-                        class="object-cover"
-                      />
+                    @if (editPrimaryGalleryImage(); as primaryImage) {
                       <div
-                        class="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[12px] font-medium text-[#1A1B1D]"
-                      >
-                        Main photo
-                      </div>
-                      <button
-                        type="button"
-                        class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
-                        aria-label="Photo actions"
+                        class="relative h-[230px] overflow-hidden rounded-[18px] bg-[#F4F4F4] col-span-2"
                       >
                         <img
-                          ngSrc="/assets/icons/edit-listing-menu-dots.svg"
-                          alt=""
-                          width="16"
-                          height="16"
-                          class="h-4 w-4"
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <span
-                        class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
-                      >
-                        1
-                      </span>
-                    </div>
-
-                    <div class="flex h-[230px] flex-col gap-2 col-span-1">
-                      <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
-                        <img
-                          ngSrc="/assets/images/edit-listing-secondary-photo.png"
-                          alt="Secondary listing photo"
+                          [ngSrc]="primaryImage.src"
+                          [alt]="primaryImage.alt"
                           fill
-                          sizes="30vw"
+                          priority
+                          sizes="58vw"
                           class="object-cover"
                         />
+                        <div
+                          class="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[12px] font-medium text-[#1A1B1D]"
+                        >
+                          Main photo
+                        </div>
                         <button
                           type="button"
                           class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
@@ -1165,9 +1179,42 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         <span
                           class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
                         >
-                          2
+                          1
                         </span>
                       </div>
+                    }
+
+                    <div class="flex h-[230px] flex-col gap-2 col-span-1">
+                      @if (editSecondaryGalleryImage(); as secondaryImage) {
+                        <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
+                          <img
+                            [ngSrc]="secondaryImage.src"
+                            [alt]="secondaryImage.alt"
+                            fill
+                            sizes="30vw"
+                            class="object-cover"
+                          />
+                          <button
+                            type="button"
+                            class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
+                            aria-label="Photo actions"
+                          >
+                            <img
+                              ngSrc="/assets/icons/edit-listing-menu-dots.svg"
+                              alt=""
+                              width="16"
+                              height="16"
+                              class="h-4 w-4"
+                              aria-hidden="true"
+                            />
+                          </button>
+                          <span
+                            class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                          >
+                            2
+                          </span>
+                        </div>
+                      }
 
                       <button
                         type="button"
@@ -1192,7 +1239,23 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                   </div>
 
                   <div class="grid grid-cols-3 gap-2">
-                    @for (slot of editMediaPlaceholderSlots; track slot) {
+                    @for (image of editRemainingGalleryImages(); track image.alt; let index = $index) {
+                      <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
+                        <img
+                          [ngSrc]="image.src"
+                          [alt]="image.alt"
+                          fill
+                          sizes="30vw"
+                          class="object-cover"
+                        />
+                        <span
+                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                        >
+                          {{ index + 3 }}
+                        </span>
+                      </div>
+                    }
+                    @for (slot of editRemainingPlaceholderSlots(); track slot) {
                       <button
                         type="button"
                         class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
@@ -1590,57 +1653,24 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                     <div class="space-y-8">
                       <div class="space-y-3">
                         <div class="grid grid-cols-[minmax(0,1fr)_176px] gap-3">
-                          <div
-                            class="relative h-[363px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
-                          >
-                            <img
-                              ngSrc="/assets/images/edit-listing-main-photo.png"
-                              alt="Main listing photo"
-                              fill
-                              priority
-                              sizes="(min-width: 768px) 23vw, 65vw"
-                              class="object-cover"
-                            />
-
+                          @if (editPrimaryGalleryImage(); as primaryImage) {
                             <div
-                              class="absolute left-3 top-3 rounded-full border border-[#F1F1F1] bg-white px-3 py-[6px] text-[18px] font-medium leading-[30px] text-[#1A1B1D]"
-                            >
-                              Main photo
-                            </div>
-
-                            <button
-                              type="button"
-                              class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
-                              aria-label="Photo actions"
+                              class="relative h-[363px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
                             >
                               <img
-                                ngSrc="/assets/icons/edit-listing-menu-dots.svg"
-                                alt=""
-                                width="25"
-                                height="25"
-                                class="h-[25px] w-[25px]"
-                                aria-hidden="true"
-                              />
-                            </button>
-
-                            <div
-                              class="absolute bottom-4 right-5 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
-                            >
-                              1
-                            </div>
-                          </div>
-
-                          <div class="flex h-[363px] flex-col gap-3">
-                            <div
-                              class="relative flex-1 overflow-hidden rounded-[18px] bg-[#F4F4F4]"
-                            >
-                              <img
-                                ngSrc="/assets/images/edit-listing-secondary-photo.png"
-                                alt="Secondary listing photo"
+                                [ngSrc]="primaryImage.src"
+                                [alt]="primaryImage.alt"
                                 fill
-                                sizes="(min-width: 768px) 12vw, 28vw"
+                                priority
+                                sizes="(min-width: 768px) 23vw, 65vw"
                                 class="object-cover"
                               />
+
+                              <div
+                                class="absolute left-3 top-3 rounded-full border border-[#F1F1F1] bg-white px-3 py-[6px] text-[18px] font-medium leading-[30px] text-[#1A1B1D]"
+                              >
+                                Main photo
+                              </div>
 
                               <button
                                 type="button"
@@ -1658,11 +1688,48 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               </button>
 
                               <div
-                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                                class="absolute bottom-4 right-5 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
                               >
-                                2
+                                1
                               </div>
                             </div>
+                          }
+
+                          <div class="flex h-[363px] flex-col gap-3">
+                            @if (editSecondaryGalleryImage(); as secondaryImage) {
+                              <div
+                                class="relative flex-1 overflow-hidden rounded-[18px] bg-[#F4F4F4]"
+                              >
+                                <img
+                                  [ngSrc]="secondaryImage.src"
+                                  [alt]="secondaryImage.alt"
+                                  fill
+                                  sizes="(min-width: 768px) 12vw, 28vw"
+                                  class="object-cover"
+                                />
+
+                                <button
+                                  type="button"
+                                  class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
+                                  aria-label="Photo actions"
+                                >
+                                  <img
+                                    ngSrc="/assets/icons/edit-listing-menu-dots.svg"
+                                    alt=""
+                                    width="25"
+                                    height="25"
+                                    class="h-[25px] w-[25px]"
+                                    aria-hidden="true"
+                                  />
+                                </button>
+
+                                <div
+                                  class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                                >
+                                  2
+                                </div>
+                              </div>
+                            }
 
                             <button
                               type="button"
@@ -1687,7 +1754,25 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         </div>
 
                         <div class="grid grid-cols-3 gap-3">
-                          @for (slot of editMediaPlaceholderSlots; track slot) {
+                          @for (image of editRemainingGalleryImages(); track image.alt; let index = $index) {
+                            <div
+                              class="relative h-[175px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
+                            >
+                              <img
+                                [ngSrc]="image.src"
+                                [alt]="image.alt"
+                                fill
+                                sizes="(min-width: 768px) 10vw, 25vw"
+                                class="object-cover"
+                              />
+                              <span
+                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                              >
+                                {{ index + 3 }}
+                              </span>
+                            </div>
+                          }
+                          @for (slot of editRemainingPlaceholderSlots(); track slot) {
                             <button
                               type="button"
                               class="relative h-[175px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
@@ -2778,6 +2863,17 @@ export class ListingDetailsPageComponent {
     ...this.deliveryMethodOptions,
     ...this.deliveryRangeOptions,
   ]);
+  protected readonly editPrimaryGalleryImage = computed(
+    () => this.listing().gallery[0] ?? this.listing().gallery[1] ?? null,
+  );
+  protected readonly editSecondaryGalleryImage = computed(
+    () => this.listing().gallery[1] ?? this.listing().gallery[0] ?? null,
+  );
+  protected readonly editRemainingGalleryImages = computed(() => this.listing().gallery.slice(2, 6));
+  protected readonly editRemainingPlaceholderSlots = computed(() => {
+    const count = Math.max(0, 4 - this.editRemainingGalleryImages().length);
+    return Array.from({ length: count }, (_, index) => index + this.editRemainingGalleryImages().length + 3);
+  });
   protected readonly editListingForm = this.formBuilder.nonNullable.group({
     name: 'Iphone 17 pro max',
     category: 'Electronics/Phones & Tablets',
@@ -2796,39 +2892,22 @@ export class ListingDetailsPageComponent {
 
   protected readonly listing = signal<ListingDetails>({
     id: this.listingId(),
-    name: 'Iphone 17 pro max',
-    previewImage: '/assets/images/listings-item-iphone.png',
-    lastUpdated: '24 January, 2026',
-    datePosted: '14 Feb, 2026',
-    location: 'Ikeja, Lagos',
-    price: '2,500,000',
-    description:
-      'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, strong battery health, and no repairs. Minor signs of use only. Everything shown in the gallery is included exactly as pictured.',
+    name: 'Listing details',
+    previewImage: '',
+    lastUpdated: '--',
+    datePosted: '--',
+    location: '--',
+    price: '--',
+    description: 'No description available yet.',
     status: 'Available',
-    messages: 12,
-    views: '3,990',
-    saves: 200,
+    messages: 0,
+    views: '0',
+    saves: 0,
     isPromoted: false,
-    gallery: [
-      { src: '/assets/images/listings-item-iphone.png', alt: 'Front view of iPhone 17 Pro Max' },
-      {
-        src: '/assets/images/listings-item-iphone.png',
-        alt: 'Rear camera view of iPhone 17 Pro Max',
-      },
-      { src: '/assets/images/listings-item-iphone.png', alt: 'Angled view of iPhone 17 Pro Max' },
-      {
-        src: '/assets/images/listings-item-iphone.png',
-        alt: 'Display close up of iPhone 17 Pro Max',
-      },
-      { src: '/assets/images/listings-item-iphone.png', alt: 'Side profile of iPhone 17 Pro Max' },
-      {
-        src: '/assets/images/listings-item-iphone.png',
-        alt: 'Packaging shot of iPhone 17 Pro Max',
-      },
-    ],
+    gallery: [],
     store: {
-      name: 'The Vine Collections',
-      logo: '/assets/images/seller-menu-avatar.png',
+      name: 'Store details',
+      logo: '',
     },
   });
 
@@ -2901,49 +2980,9 @@ export class ListingDetailsPageComponent {
     return detailEntries;
   });
 
-  protected readonly requests = signal<ListingRequest[]>([
-    {
-      id: 'r1',
-      buyer: 'John Okafor',
-      avatar: '/assets/images/seller-menu-avatar.png',
-      message: 'Hi, is this still available? I would like to know if you can do a better price.',
-      time: 'Today, 7:50 pm',
-      offer: '₦2,350,000',
-      status: 'New',
-    },
-    {
-      id: 'r2',
-      buyer: 'Amaka Eze',
-      avatar: '/assets/images/seller-menu-avatar.png',
-      message:
-        'Can you deliver to Lekki tomorrow morning? I am interested and ready to pay immediately.',
-      time: 'Yesterday, 5:12 pm',
-      offer: '₦2,500,000',
-      status: 'Responded',
-    },
-  ]);
+  protected readonly requests = signal<ListingRequest[]>([]);
 
-  protected readonly activities = signal<ListingActivity[]>([
-    {
-      id: 'a1',
-      title: 'Listing promoted successfully',
-      description:
-        'Your listing started running as a promoted ad across search and category pages.',
-      time: '24 January, 2026 at 10:32 AM',
-    },
-    {
-      id: 'a2',
-      title: 'Price updated',
-      description: 'You changed the listing price from ₦2,700,000 to ₦2,500,000.',
-      time: '22 January, 2026 at 4:11 PM',
-    },
-    {
-      id: 'a3',
-      title: 'Listing created',
-      description: 'This listing was published and made visible to buyers on Duduzili.',
-      time: '14 February, 2026 at 9:08 AM',
-    },
-  ]);
+  protected readonly activities = signal<ListingActivity[]>([]);
 
   protected readonly hasRequests = computed(() => this.requests().length > 0);
   protected readonly hasActivities = computed(() => this.activities().length > 0);
@@ -3257,6 +3296,8 @@ export class ListingDetailsPageComponent {
   constructor() {
     void this.loadManageListingsMetadata();
     void this.loadListingDetails();
+    void this.loadListingRequests();
+    void this.loadListingActivities();
   }
 
   private async loadManageListingsMetadata(): Promise<void> {
@@ -3277,10 +3318,52 @@ export class ListingDetailsPageComponent {
     }
   }
 
+  private async loadListingRequests(): Promise<void> {
+    try {
+      const [offers, callbacks] = await Promise.all([
+        firstValueFrom(this.listingsService.getListingOffers(this.listingId())),
+        firstValueFrom(this.listingsService.getListingCallbackRequests(this.listingId())),
+      ]);
+
+      const requestItems = [
+        ...offers.map((record) => this.mapOfferRequest(record)),
+        ...callbacks.map((record) => this.mapCallbackRequest(record)),
+      ]
+        .filter((record): record is ListingRequest => record !== null)
+        .sort((left, right) => right.sortTime - left.sortTime);
+
+      this.requests.set(requestItems);
+    } catch {
+      this.requests.set([]);
+    }
+  }
+
+  private async loadListingActivities(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.listingsService.getListingActivities(this.listingId()));
+      const rawItems = Array.isArray(response)
+        ? response
+        : Array.isArray(response.results)
+          ? response.results
+          : Array.isArray(response.timeline)
+            ? response.timeline
+            : [];
+
+      const mapped = rawItems
+        .map((record) => this.mapListingActivity(record))
+        .filter((item): item is ListingActivity => item !== null);
+
+      this.activities.set(mapped);
+    } catch {
+      this.activities.set([]);
+    }
+  }
+
   private applyListingDetails(record: ListingsApiItem): void {
     this.listingRecord.set(record);
 
-    const gallery = this.extractGalleryImages(record);
+    const listingSummary = this.findManageListingSummary();
+    const gallery = this.extractGalleryImages(record, listingSummary);
     const storeInfo = this.readRecord(record['store_info']);
     const storeName =
       this.readString(storeInfo?.['store_name']) ??
@@ -3365,7 +3448,87 @@ export class ListingDetailsPageComponent {
     });
   }
 
-  private extractGalleryImages(record: ListingsApiItem): GalleryImage[] {
+  private mapOfferRequest(record: ListingsApiItem): ListingRequest | null {
+    const buyerRecord = this.readRecord(record['buyer']);
+    const buyerName =
+      this.readString(buyerRecord?.['full_name']) ??
+      this.readString(buyerRecord?.['username']) ??
+      this.readString(record['buyer_name']);
+    if (!buyerName) {
+      return null;
+    }
+
+    const createdAt = this.readString(record['created_at']);
+    return {
+      id: `offer-${this.readString(record['id']) ?? crypto.randomUUID()}`,
+      buyer: buyerName,
+      avatar:
+        this.resolveMediaUrl(this.readString(buyerRecord?.['avatar'])) ??
+        '/assets/images/seller-menu-avatar.png',
+      message:
+        this.readString(record['message']) ??
+        'A buyer sent you an offer for this listing.',
+      time: this.formatDateTime(createdAt) ?? 'Recently',
+      sortTime: this.toTimestamp(createdAt),
+      metaLabel: 'Offer',
+      metaValue: this.formatCurrency(record['offer_amount']) ?? 'N/A',
+      status: this.mapRequestStatus(record['status']),
+    };
+  }
+
+  private mapCallbackRequest(record: ListingsApiItem): ListingRequest | null {
+    const buyerRecord = this.readRecord(record['buyer']);
+    const buyerName =
+      this.readString(buyerRecord?.['full_name']) ??
+      this.readString(buyerRecord?.['username']) ??
+      this.readString(record['buyer_name']);
+    if (!buyerName) {
+      return null;
+    }
+
+    const createdAt = this.readString(record['date_requested']) ?? this.readString(record['created_at']);
+    const callbackMessage =
+      this.readString(record['message']) ??
+      `Requested a call back on ${this.readString(record['phone_number']) ?? 'their number'}.`;
+
+    return {
+      id: `callback-${this.readString(record['id']) ?? crypto.randomUUID()}`,
+      buyer: buyerName,
+      avatar:
+        this.resolveMediaUrl(this.readString(buyerRecord?.['avatar'])) ??
+        '/assets/images/seller-menu-avatar.png',
+      message: callbackMessage,
+      time: this.formatDateTime(createdAt) ?? 'Recently',
+      sortTime: this.toTimestamp(createdAt),
+      metaLabel: 'Phone',
+      metaValue: this.readString(record['phone_number']) ?? 'N/A',
+      status: this.mapRequestStatus(record['status']),
+    };
+  }
+
+  private mapListingActivity(record: ListingsApiItem): ListingActivity | null {
+    const title = this.readString(record['label']) ?? this.readString(record['title']);
+    const description = this.readString(record['description']);
+    const timestamp = this.readString(record['timestamp']) ?? this.readString(record['created_at']);
+
+    if (!title || !description) {
+      return null;
+    }
+
+    return {
+      id:
+        `${this.readString(record['activity_type']) ?? 'activity'}-${this.readString(record['id']) ?? crypto.randomUUID()}`,
+      title,
+      description,
+      time: this.formatDateTime(timestamp) ?? 'Recently',
+      actorAvatar: this.resolveMediaUrl(this.readString(record['actor_avatar'])),
+    };
+  }
+
+  private extractGalleryImages(
+    record: ListingsApiItem,
+    listingSummary?: ListingsApiItem | null,
+  ): GalleryImage[] {
     const arrayCandidates = [
       record['images'],
       record['gallery'],
@@ -3419,13 +3582,25 @@ export class ListingDetailsPageComponent {
     const fallbackImage =
       this.resolveMediaUrl(this.readString(record['thumbnail'])) ??
       this.resolveMediaUrl(this.readString(record['image'])) ??
-      this.resolveMediaUrl(this.readString(record['cover_image']));
+      this.resolveMediaUrl(this.readString(record['cover_image'])) ??
+      this.resolveMediaUrl(this.readString(listingSummary?.['thumbnail'])) ??
+      this.resolveMediaUrl(this.readString(listingSummary?.['image']));
 
     if (fallbackImage) {
       return [{ src: fallbackImage, alt: this.readString(record['title']) ?? 'Listing image' }];
     }
 
     return this.listing().gallery;
+  }
+
+  private findManageListingSummary(): ListingsApiItem | null {
+    const entries = this.manageListingsMetadata()?.all;
+    if (!Array.isArray(entries)) {
+      return null;
+    }
+
+    const match = entries.find((entry) => this.readString(entry['id']) === this.listingId());
+    return match ?? null;
   }
 
   private extractDeliveryOptions(record: ListingsApiItem | null): string | null {
@@ -3448,6 +3623,19 @@ export class ListingDetailsPageComponent {
     );
 
     return labels.length > 0 ? labels.join(', ') : null;
+  }
+
+  private mapRequestStatus(value: unknown): ListingRequest['status'] {
+    const status = this.readString(value)?.toLowerCase();
+    if (status === 'accepted' || status === 'responded') {
+      return 'Responded';
+    }
+
+    if (status === 'completed' || status === 'called') {
+      return 'Called';
+    }
+
+    return 'New';
   }
 
   private extractDeliverySelectionIds(record: ListingsApiItem): {
@@ -3704,6 +3892,34 @@ export class ListingDetailsPageComponent {
     }).format(date);
   }
 
+  private formatDateTime(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) {
+      return null;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date);
+  }
+
+  private formatCurrency(value: unknown): string | null {
+    const amount = this.readNumber(value);
+    if (amount === null) {
+      return null;
+    }
+
+    return `₦${new Intl.NumberFormat('en-NG').format(amount)}`;
+  }
+
   private formatCount(value: unknown): string | null {
     const parsed = this.readNumber(value);
     return parsed === null ? null : new Intl.NumberFormat('en-NG').format(parsed);
@@ -3766,6 +3982,15 @@ export class ListingDetailsPageComponent {
     }
 
     return null;
+  }
+
+  private toTimestamp(value: string | null): number {
+    if (!value) {
+      return 0;
+    }
+
+    const timestamp = new Date(value).getTime();
+    return Number.isFinite(timestamp) ? timestamp : 0;
   }
 
   private readBoolean(value: unknown): boolean | null {
