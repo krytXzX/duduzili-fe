@@ -34,13 +34,19 @@ type ListingTab = 'overview' | 'requests' | 'activities';
 type ListingStatus = 'Available' | 'Paused' | 'Sold';
 
 interface GalleryImage {
+  id: string | null;
   src: string;
   alt: string;
 }
 
-interface PendingEditImage {
-  file: File;
-  previewUrl: string;
+interface EditableGalleryImage {
+  token: string;
+  kind: 'existing' | 'pending';
+  imageId: string | null;
+  file?: File;
+  previewUrl?: string;
+  src: string;
+  alt: string;
 }
 
 interface ListingRequest {
@@ -1208,6 +1214,16 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         >
                           1
                         </span>
+                        <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1">
+                          <button
+                            type="button"
+                            (click)="removeEditImage(0)"
+                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[14px] text-[#D92D20]"
+                            aria-label="Remove first listing image"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
                     }
 
@@ -1241,6 +1257,16 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           >
                             2
                           </span>
+                          <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1">
+                            <button
+                              type="button"
+                              (click)="removeEditImage(1)"
+                              class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[14px] text-[#D92D20]"
+                              aria-label="Remove second listing image"
+                            >
+                              ×
+                            </button>
+                          </div>
                         </div>
                       }
 
@@ -1282,6 +1308,16 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         >
                           {{ index + 3 }}
                         </span>
+                        <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1">
+                          <button
+                            type="button"
+                            (click)="removeEditImage(index + 2)"
+                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[14px] text-[#D92D20]"
+                            [attr.aria-label]="'Remove listing image ' + (index + 3)"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
                     }
                     @for (slot of editRemainingPlaceholderSlots(); track slot) {
@@ -1731,6 +1767,16 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               >
                                 1
                               </div>
+                              <div class="absolute bottom-4 left-4 flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  (click)="removeEditImage(0)"
+                                  class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[18px] text-[#D92D20]"
+                                  aria-label="Remove first listing image"
+                                >
+                                  ×
+                                </button>
+                              </div>
                             </div>
                           }
 
@@ -1767,6 +1813,16 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                                   class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
                                 >
                                   2
+                                </div>
+                                <div class="absolute bottom-3 left-3 flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    (click)="removeEditImage(1)"
+                                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[18px] text-[#D92D20]"
+                                    aria-label="Remove second listing image"
+                                  >
+                                    ×
+                                  </button>
                                 </div>
                               </div>
                             }
@@ -1811,6 +1867,16 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               >
                                 {{ index + 3 }}
                               </span>
+                              <div class="absolute bottom-3 left-3 flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  (click)="removeEditImage(index + 2)"
+                                  class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[18px] text-[#D92D20]"
+                                  [attr.aria-label]="'Remove listing image ' + (index + 3)"
+                                >
+                                  ×
+                                </button>
+                              </div>
                             </div>
                           }
                           @for (slot of editRemainingPlaceholderSlots(); track slot) {
@@ -2875,7 +2941,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   protected readonly selectedDeliveryRanges = signal<string[]>(['nation-wide']);
   protected readonly editMediaPlaceholderSlots = [4, 5, 6] as const;
   private readonly editImageInput = viewChild<ElementRef<HTMLInputElement>>('editImageInput');
-  private readonly pendingEditImages = signal<PendingEditImage[]>([]);
+  private readonly editableGalleryImages = signal<EditableGalleryImage[]>([]);
   protected readonly editCategories = computed(() => {
     const categories =
       this.manageListingsMetadata()
@@ -2910,13 +2976,6 @@ export class ListingDetailsPageComponent implements OnDestroy {
   protected readonly mobileDeliveryOptions = computed(() => [
     ...this.deliveryMethodOptions,
     ...this.deliveryRangeOptions,
-  ]);
-  protected readonly editableGalleryImages = computed<GalleryImage[]>(() => [
-    ...this.listing().gallery,
-    ...this.pendingEditImages().map((image, index) => ({
-      src: image.previewUrl,
-      alt: `${this.listing().name} new image ${index + 1}`,
-    })),
   ]);
   protected readonly editPrimaryGalleryImage = computed(
     () => this.editableGalleryImages()[0] ?? this.editableGalleryImages()[1] ?? null,
@@ -3235,11 +3294,11 @@ export class ListingDetailsPageComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.clearPendingEditImages();
+    this.clearEditableGalleryImages();
   }
 
   protected closeEditSheet(): void {
-    this.clearPendingEditImages();
+    this.resetEditableGalleryImages();
     this.editSheetOpen.set(false);
   }
 
@@ -3258,16 +3317,44 @@ export class ListingDetailsPageComponent implements OnDestroy {
       return;
     }
 
-    const nextImages = files.map((file) => ({
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
+    const nextImages = files.map((file, index) => {
+      const previewUrl = URL.createObjectURL(file);
+      const token =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? `pending:${crypto.randomUUID()}`
+          : `pending:${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`;
 
-    this.pendingEditImages.update((existing) => [...existing, ...nextImages]);
+      return {
+        token,
+        kind: 'pending' as const,
+        imageId: null,
+        file,
+        previewUrl,
+        src: previewUrl,
+        alt: `${this.listing().name} new image ${this.editableGalleryImages().length + index + 1}`,
+      };
+    });
+
+    this.editableGalleryImages.update((existing) => [...existing, ...nextImages]);
 
     if (input) {
       input.value = '';
     }
+  }
+
+  protected removeEditImage(index: number): void {
+    this.editableGalleryImages.update((images) => {
+      if (index < 0 || index >= images.length) {
+        return images;
+      }
+
+      const target = images[index];
+      if (target.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+
+      return images.filter((_, imageIndex) => imageIndex !== index);
+    });
   }
 
   protected handleStatusSelection(status: ListingStatus): void {
@@ -3307,6 +3394,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
 
   protected handleEditAction(): void {
     this.mobileEditStep.set('media');
+    this.resetEditableGalleryImages();
     this.editSheetOpen.set(true);
   }
 
@@ -3339,7 +3427,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
           this.listingsService.getListingDetails(this.listingId()),
         );
         this.applyListingDetails(refreshed);
-        this.clearPendingEditImages();
+        this.resetEditableGalleryImages();
         this.editSheetOpen.set(false);
         this.appToastService.show({ message: 'Listing updated successfully.' });
       })
@@ -3589,6 +3677,10 @@ export class ListingDetailsPageComponent implements OnDestroy {
       price: this.formatPlainPrice(record['price']) ?? this.editListingForm.controls.price.getRawValue(),
       discountPrice: originalPrice ?? this.editListingForm.controls.discountPrice.getRawValue(),
     });
+
+    if (!this.editSheetOpen()) {
+      this.resetEditableGalleryImages();
+    }
   }
 
   private mapOfferRequest(record: ListingsApiItem): ListingRequest | null {
@@ -3688,8 +3780,8 @@ export class ListingDetailsPageComponent implements OnDestroy {
         .map((entry, index) => {
           if (typeof entry === 'string') {
             const src = this.resolveMediaUrl(entry);
-            return src
-              ? { src, alt: `${this.listing().name} image ${index + 1}` }
+          return src
+              ? { id: null, src, alt: `${this.listing().name} image ${index + 1}` }
               : null;
           }
 
@@ -3709,6 +3801,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
           }
 
           return {
+            id: this.readString(entryRecord['id']),
             src,
             alt:
               this.readString(entryRecord['alt']) ??
@@ -3730,7 +3823,13 @@ export class ListingDetailsPageComponent implements OnDestroy {
       this.resolveMediaUrl(this.readString(listingSummary?.['image']));
 
     if (fallbackImage) {
-      return [{ src: fallbackImage, alt: this.readString(record['title']) ?? 'Listing image' }];
+      return [
+        {
+          id: null,
+          src: fallbackImage,
+          alt: this.readString(record['title']) ?? 'Listing image',
+        },
+      ];
     }
 
     return this.listing().gallery;
@@ -3918,18 +4017,42 @@ export class ListingDetailsPageComponent implements OnDestroy {
       formData.append(key, String(value));
     });
 
-    this.pendingEditImages().forEach((image) => {
-      formData.append('uploaded_images', image.file);
+    this.editableGalleryImages().forEach((image) => {
+      formData.append('image_order', image.token);
+      if (image.kind === 'pending' && image.file) {
+        formData.append('uploaded_image_keys', image.token);
+        formData.append('uploaded_images', image.file);
+      }
     });
 
     return formData;
   }
 
-  private clearPendingEditImages(): void {
-    this.pendingEditImages().forEach((image) => {
-      URL.revokeObjectURL(image.previewUrl);
+  private resetEditableGalleryImages(): void {
+    this.clearEditableGalleryImages();
+    this.editableGalleryImages.set(
+      this.listing().gallery.map((image, index) => ({
+        token: image.id ? `existing:${image.id}` : `existing:fallback-${index}`,
+        kind: 'existing',
+        imageId: image.id,
+        src: image.src,
+        alt: image.alt,
+      })),
+    );
+
+    const input = this.editImageInput()?.nativeElement;
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  private clearEditableGalleryImages(): void {
+    this.editableGalleryImages().forEach((image) => {
+      if (image.previewUrl) {
+        URL.revokeObjectURL(image.previewUrl);
+      }
     });
-    this.pendingEditImages.set([]);
+    this.editableGalleryImages.set([]);
 
     const input = this.editImageInput()?.nativeElement;
     if (input) {
