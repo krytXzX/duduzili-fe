@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -27,6 +36,11 @@ type ListingStatus = 'Available' | 'Paused' | 'Sold';
 interface GalleryImage {
   src: string;
   alt: string;
+}
+
+interface PendingEditImage {
+  file: File;
+  previewUrl: string;
 }
 
 interface ListingRequest {
@@ -1092,6 +1106,14 @@ type EditSectionId = 'media' | 'details' | 'delivery';
           class="flex h-full flex-col"
           (ngSubmit)="saveEditListing()"
         >
+          <input
+            #editImageInput
+            type="file"
+            accept="image/*"
+            multiple
+            class="hidden"
+            (change)="handleEditImageSelection($event)"
+          />
           <div class="relative px-4 pb-4 pt-3">
             <div class="mx-auto h-1 w-[50px] rounded-full bg-[#E7E7E7]"></div>
 
@@ -1168,6 +1190,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         </div>
                         <button
                           type="button"
+                          (click)="openEditImagePicker()"
                           class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
                           aria-label="Photo actions"
                         >
@@ -1200,6 +1223,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           />
                           <button
                             type="button"
+                            (click)="openEditImagePicker()"
                             class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
                             aria-label="Photo actions"
                           >
@@ -1222,6 +1246,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
                       <button
                         type="button"
+                        (click)="openEditImagePicker()"
                         class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
                         aria-label="Add third listing photo"
                       >
@@ -1262,6 +1287,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                     @for (slot of editRemainingPlaceholderSlots(); track slot) {
                       <button
                         type="button"
+                        (click)="openEditImagePicker()"
                         class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
                         [attr.aria-label]="'Add listing photo ' + slot"
                       >
@@ -1632,6 +1658,14 @@ type EditSectionId = 'media' | 'details' | 'delivery';
             class="flex min-h-0 flex-1 flex-col"
             (ngSubmit)="saveEditListing()"
           >
+            <input
+              #editImageInput
+              type="file"
+              accept="image/*"
+              multiple
+              class="hidden"
+              (change)="handleEditImageSelection($event)"
+            />
             <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-8">
               <div class="space-y-6 pb-8">
                 <section class="space-y-5">
@@ -1678,6 +1712,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
                               <button
                                 type="button"
+                                (click)="openEditImagePicker()"
                                 class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
                                 aria-label="Photo actions"
                               >
@@ -1714,6 +1749,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
                                 <button
                                   type="button"
+                                  (click)="openEditImagePicker()"
                                   class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
                                   aria-label="Photo actions"
                                 >
@@ -1737,6 +1773,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
                             <button
                               type="button"
+                              (click)="openEditImagePicker()"
                               class="relative flex-1 overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
                               aria-label="Add third listing photo"
                             >
@@ -1779,6 +1816,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           @for (slot of editRemainingPlaceholderSlots(); track slot) {
                             <button
                               type="button"
+                              (click)="openEditImagePicker()"
                               class="relative h-[175px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
                               [attr.aria-label]="'Add listing photo ' + slot"
                             >
@@ -2785,7 +2823,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListingDetailsPageComponent {
+export class ListingDetailsPageComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
@@ -2836,6 +2874,8 @@ export class ListingDetailsPageComponent {
   protected readonly selectedDeliveryMethods = signal<string[]>(['seller-delivery']);
   protected readonly selectedDeliveryRanges = signal<string[]>(['nation-wide']);
   protected readonly editMediaPlaceholderSlots = [4, 5, 6] as const;
+  private readonly editImageInput = viewChild<ElementRef<HTMLInputElement>>('editImageInput');
+  private readonly pendingEditImages = signal<PendingEditImage[]>([]);
   protected readonly editCategories = computed(() => {
     const categories =
       this.manageListingsMetadata()
@@ -2871,13 +2911,20 @@ export class ListingDetailsPageComponent {
     ...this.deliveryMethodOptions,
     ...this.deliveryRangeOptions,
   ]);
+  protected readonly editableGalleryImages = computed<GalleryImage[]>(() => [
+    ...this.listing().gallery,
+    ...this.pendingEditImages().map((image, index) => ({
+      src: image.previewUrl,
+      alt: `${this.listing().name} new image ${index + 1}`,
+    })),
+  ]);
   protected readonly editPrimaryGalleryImage = computed(
-    () => this.listing().gallery[0] ?? this.listing().gallery[1] ?? null,
+    () => this.editableGalleryImages()[0] ?? this.editableGalleryImages()[1] ?? null,
   );
   protected readonly editSecondaryGalleryImage = computed(
-    () => this.listing().gallery[1] ?? this.listing().gallery[0] ?? null,
+    () => this.editableGalleryImages()[1] ?? this.editableGalleryImages()[0] ?? null,
   );
-  protected readonly editRemainingGalleryImages = computed(() => this.listing().gallery.slice(2, 6));
+  protected readonly editRemainingGalleryImages = computed(() => this.editableGalleryImages().slice(2, 6));
   protected readonly editRemainingPlaceholderSlots = computed(() => {
     const count = Math.max(0, 4 - this.editRemainingGalleryImages().length);
     return Array.from({ length: count }, (_, index) => index + this.editRemainingGalleryImages().length + 3);
@@ -3187,8 +3234,40 @@ export class ListingDetailsPageComponent {
     this.editFreeListingEnabled.update((enabled) => !enabled);
   }
 
+  ngOnDestroy(): void {
+    this.clearPendingEditImages();
+  }
+
   protected closeEditSheet(): void {
+    this.clearPendingEditImages();
     this.editSheetOpen.set(false);
+  }
+
+  protected openEditImagePicker(): void {
+    this.editImageInput()?.nativeElement.click();
+  }
+
+  protected handleEditImageSelection(event: Event): void {
+    const input = event.target instanceof HTMLInputElement ? event.target : null;
+    const files = Array.from(input?.files ?? []).filter((file) => file.type.startsWith('image/'));
+
+    if (files.length === 0) {
+      if (input) {
+        input.value = '';
+      }
+      return;
+    }
+
+    const nextImages = files.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+
+    this.pendingEditImages.update((existing) => [...existing, ...nextImages]);
+
+    if (input) {
+      input.value = '';
+    }
   }
 
   protected handleStatusSelection(status: ListingStatus): void {
@@ -3251,7 +3330,7 @@ export class ListingDetailsPageComponent {
     }
 
     const formValue = this.editListingForm.getRawValue();
-    const payload = this.buildListingUpdatePayload(formValue);
+    const payload = this.buildListingUpdateFormData(formValue);
 
     this.isSavingEdit.set(true);
     void firstValueFrom(this.listingsService.updateListing(this.listingId(), payload))
@@ -3260,6 +3339,7 @@ export class ListingDetailsPageComponent {
           this.listingsService.getListingDetails(this.listingId()),
         );
         this.applyListingDetails(refreshed);
+        this.clearPendingEditImages();
         this.editSheetOpen.set(false);
         this.appToastService.show({ message: 'Listing updated successfully.' });
       })
@@ -3815,6 +3895,46 @@ export class ListingDetailsPageComponent {
     }
 
     return payload;
+  }
+
+  private buildListingUpdateFormData(
+    formValue: ReturnType<typeof this.editListingForm.getRawValue>,
+  ): FormData {
+    const payload = this.buildListingUpdatePayload(formValue);
+    const formData = new FormData();
+
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value === null || typeof value === 'undefined') {
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((item) => {
+          formData.append(key, String(item));
+        });
+        return;
+      }
+
+      formData.append(key, String(value));
+    });
+
+    this.pendingEditImages().forEach((image) => {
+      formData.append('uploaded_images', image.file);
+    });
+
+    return formData;
+  }
+
+  private clearPendingEditImages(): void {
+    this.pendingEditImages().forEach((image) => {
+      URL.revokeObjectURL(image.previewUrl);
+    });
+    this.pendingEditImages.set([]);
+
+    const input = this.editImageInput()?.nativeElement;
+    if (input) {
+      input.value = '';
+    }
   }
 
   private resolveCategoryId(categoryName: string): number | null {

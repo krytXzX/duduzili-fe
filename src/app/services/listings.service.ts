@@ -216,7 +216,7 @@ export class ListingsService {
     return this.http.post<Record<string, unknown>>(`${this.apiUrl}/ads/promote-listings/`, payload);
   }
 
-  updateListing(id: string, payload: UpdateListingRequest): Observable<ListingsApiItem> {
+  updateListing(id: string, payload: UpdateListingRequest | FormData): Observable<ListingsApiItem> {
     return this.http.patch<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`, payload);
   }
 
