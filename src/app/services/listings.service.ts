@@ -15,12 +15,36 @@ export type ManageListingsCategory = {
 };
 
 export type ManageListingsStore = Record<string, unknown>;
+export interface ManageListingsState {
+  id: number;
+  name: string;
+}
+
+export interface ManageListingsCity {
+  id: number;
+  name: string;
+  state?: number;
+}
+
+export interface ManageListingsDeliveryOption {
+  id: number;
+  name: string;
+}
+
+export interface ManageListingsProductCondition {
+  id: string;
+  name: string;
+}
 
 export interface ManageListingsResponse {
   all?: ListingsApiItem[];
   stats?: Record<string, number>;
   stores?: ManageListingsStore[];
   categories?: ManageListingsCategory[];
+  states?: ManageListingsState[];
+  cities?: ManageListingsCity[];
+  delivery_options?: ManageListingsDeliveryOption[];
+  product_conditions?: ManageListingsProductCondition[];
 }
 export interface SearchListingsParams {
   search?: string;
@@ -68,6 +92,22 @@ export interface CreateListingReportRequest {
 
 export interface CreateSellerReportRequest {
   reason: string;
+}
+
+export interface UpdateListingRequest {
+  title?: string;
+  category?: number;
+  condition?: string;
+  store?: string;
+  description?: string;
+  youtube_link?: string | null;
+  location?: string;
+  price?: number;
+  original_price?: number | null;
+  accept_offers?: boolean;
+  is_free?: boolean;
+  delivery_option_ids?: number[];
+  status?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -123,6 +163,14 @@ export class ListingsService {
 
   getListingDetails(id: string): Observable<ListingsApiItem> {
     return this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`);
+  }
+
+  updateListing(id: string, payload: UpdateListingRequest): Observable<ListingsApiItem> {
+    return this.http.patch<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`, payload);
+  }
+
+  deleteListing(id: string): Observable<null> {
+    return this.http.delete<null>(`${this.apiUrl}/listings/${id}/`);
   }
 
   toggleWishlist(id: string): Observable<ToggleWishlistResponse> {

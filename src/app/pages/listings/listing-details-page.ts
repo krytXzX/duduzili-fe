@@ -4,7 +4,17 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { PromoteListingModalComponent } from '../../components/listings/promote-listing-modal.component';
-import { ListingsApiItem, ListingsService } from '../../services/listings.service';
+import {
+  ListingsApiItem,
+  ListingsService,
+  ManageListingsCategory,
+  ManageListingsDeliveryOption,
+  ManageListingsProductCondition,
+  ManageListingsResponse,
+  ManageListingsStore,
+  UpdateListingRequest,
+} from '../../services/listings.service';
+import { AppToastService } from '../../services/app-toast.service';
 import { environment } from '../../../environments/environment';
 
 type ListingTab = 'overview' | 'requests' | 'activities';
@@ -1250,7 +1260,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         formControlName="category"
                         class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
                       >
-                        @for (category of editCategories; track category) {
+                        @for (category of editCategories(); track category) {
                           <option [value]="category">{{ category }}</option>
                         }
                       </select>
@@ -1275,7 +1285,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           formControlName="condition"
                           class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
                         >
-                          @for (condition of editConditions; track condition) {
+                          @for (condition of editConditions(); track condition) {
                             <option [value]="condition">{{ condition }}</option>
                           }
                         </select>
@@ -1297,7 +1307,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           formControlName="store"
                           class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
                         >
-                          @for (store of editStores; track store) {
+                          @for (store of editStores(); track store) {
                             <option [value]="store">{{ store }}</option>
                           }
                         </select>
@@ -1354,7 +1364,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         formControlName="location"
                         class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
                       >
-                        @for (location of editLocations; track location) {
+                        @for (location of editLocations(); track location) {
                           <option [value]="location">{{ location }}</option>
                         }
                       </select>
@@ -1767,7 +1777,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               formControlName="category"
                               class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
                             >
-                              @for (category of editCategories; track category) {
+                              @for (category of editCategories(); track category) {
                                 <option [value]="category">{{ category }}</option>
                               }
                             </select>
@@ -1791,7 +1801,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               formControlName="condition"
                               class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
                             >
-                              @for (condition of editConditions; track condition) {
+                              @for (condition of editConditions(); track condition) {
                                 <option [value]="condition">{{ condition }}</option>
                               }
                             </select>
@@ -1815,7 +1825,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               formControlName="store"
                               class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
                             >
-                              @for (store of editStores; track store) {
+                              @for (store of editStores(); track store) {
                                 <option [value]="store">{{ store }}</option>
                               }
                             </select>
@@ -1896,7 +1906,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               formControlName="location"
                               class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
                             >
-                              @for (location of editLocations; track location) {
+                              @for (location of editLocations(); track location) {
                                 <option [value]="location">{{ location }}</option>
                               }
                             </select>
@@ -2689,10 +2699,31 @@ export class ListingDetailsPageComponent {
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly listingsService = inject(ListingsService);
+  private readonly appToastService = inject(AppToastService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
+  private readonly fallbackEditCategories = [
+    'Electronics/Phones & Tablets',
+    'Electronics/Computers',
+    'Fashion',
+    'Home & Kitchen',
+  ];
+  private readonly fallbackEditConditions = ['Used', 'Brand new', 'Refurbished'];
+  private readonly fallbackEditStores = ['The Vine Collections', 'Duduzili Store'];
+  private readonly fallbackEditLocations = ['Ikeja, Lagos', 'Yaba, Lagos', 'Abuja'];
+  private readonly fallbackDeliveryMethodOptions = [
+    { id: 'buyer-pickup', label: 'Buyer pickup' },
+    { id: 'seller-delivery', label: 'Seller delivery' },
+    { id: 'public-location', label: 'Public location' },
+  ];
+  private readonly fallbackDeliveryRangeOptions = [
+    { id: 'nation-wide', label: 'Nation-wide' },
+    { id: 'state-wide', label: 'State-wide' },
+    { id: 'international', label: 'International' },
+  ];
 
   protected readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? '1');
   private readonly listingRecord = signal<ListingsApiItem | null>(null);
+  private readonly manageListingsMetadata = signal<ManageListingsResponse | null>(null);
   protected readonly activeTab = signal<ListingTab>('overview');
   protected readonly activeImageIndex = signal(0);
   protected readonly showPromoteListingModal = signal(false);
@@ -2706,28 +2737,43 @@ export class ListingDetailsPageComponent {
   protected readonly editDiscountEnabled = signal(false);
   protected readonly editAcceptOffersEnabled = signal(false);
   protected readonly editFreeListingEnabled = signal(false);
+  protected readonly isSavingEdit = signal(false);
+  protected readonly isUpdatingStatus = signal(false);
+  protected readonly isDeletingListing = signal(false);
   protected readonly selectedDeliveryMethods = signal<string[]>(['seller-delivery']);
   protected readonly selectedDeliveryRanges = signal<string[]>(['nation-wide']);
   protected readonly editMediaPlaceholderSlots = [4, 5, 6] as const;
-  protected readonly editCategories = [
-    'Electronics/Phones & Tablets',
-    'Electronics/Computers',
-    'Fashion',
-    'Home & Kitchen',
-  ] as const;
-  protected readonly editConditions = ['Used', 'Brand new', 'Refurbished'] as const;
-  protected readonly editStores = ['The Vine Collections', 'Duduzili Store'] as const;
-  protected readonly editLocations = ['Ikeja, Lagos', 'Yaba, Lagos', 'Abuja'] as const;
-  protected readonly deliveryMethodOptions = [
-    { id: 'buyer-pickup', label: 'Buyer pickup' },
-    { id: 'seller-delivery', label: 'Seller delivery' },
-    { id: 'public-location', label: 'Public location' },
-  ] as const;
-  protected readonly deliveryRangeOptions = [
-    { id: 'nation-wide', label: 'Nation-wide' },
-    { id: 'state-wide', label: 'State-wide' },
-    { id: 'international', label: 'International' },
-  ] as const;
+  protected readonly editCategories = computed(() => {
+    const categories =
+      this.manageListingsMetadata()
+        ?.categories?.map((category) => category.name)
+        .filter((name) => name.length > 0) ?? [];
+    return categories.length > 0 ? categories : this.fallbackEditCategories;
+  });
+  protected readonly editConditions = computed(() => {
+    const conditions =
+      this.manageListingsMetadata()
+        ?.product_conditions?.map((condition) => this.normalizeConditionLabel(condition.name))
+        .filter((name) => name.length > 0) ?? [];
+    return conditions.length > 0 ? conditions : this.fallbackEditConditions;
+  });
+  protected readonly editStores = computed(() => {
+    const stores =
+      this.manageListingsMetadata()
+        ?.stores?.map((store) => this.readStoreName(store))
+        .filter((name): name is string => typeof name === 'string' && name.length > 0) ?? [];
+    return stores.length > 0 ? stores : this.fallbackEditStores;
+  });
+  protected readonly editLocations = computed(() => {
+    const currentLocation = this.editListingForm.controls.location.getRawValue().trim();
+    const metadataLocation = this.listing().location.trim();
+    const options = [currentLocation, metadataLocation, ...this.fallbackEditLocations].filter(
+      (value, index, values) => value.length > 0 && values.indexOf(value) === index,
+    );
+    return options;
+  });
+  protected readonly deliveryMethodOptions = this.fallbackDeliveryMethodOptions;
+  protected readonly deliveryRangeOptions = this.fallbackDeliveryRangeOptions;
   protected readonly mobileDeliveryOptions = computed(() => [
     ...this.deliveryMethodOptions,
     ...this.deliveryRangeOptions,
@@ -2812,6 +2858,7 @@ export class ListingDetailsPageComponent {
 
   protected readonly details = computed<readonly ListingDetailItem[]>(() => {
     const record = this.listingRecord();
+    const storeInfo = this.readRecord(record?.['store_info']);
     const detailEntries: ListingDetailItem[] = [
       {
         label: 'Category',
@@ -2835,15 +2882,14 @@ export class ListingDetailsPageComponent {
       {
         label: 'WhatsApp number',
         value:
-          this.readString(record?.['whatsapp_number']) ??
-          this.readString(record?.['phone_number']) ??
+          this.readString(storeInfo?.['whatsapp_number']) ??
           '08169397454',
       },
       {
         label: 'Call number',
         value:
-          this.readString(record?.['call_number']) ??
-          this.readString(record?.['whatsapp_number']) ??
+          this.readString(storeInfo?.['call_number']) ??
+          this.readString(storeInfo?.['whatsapp_number']) ??
           '08169397454',
       },
       {
@@ -3106,7 +3152,7 @@ export class ListingDetailsPageComponent {
       return;
     }
 
-    this.listing.update((listing) => ({ ...listing, status }));
+    void this.updateListingStatus(status);
   }
 
   protected handleMobileAction(action: MobileActionId): void {
@@ -3118,12 +3164,12 @@ export class ListingDetailsPageComponent {
     }
 
     if (action === 'pause') {
-      this.listing.update((listing) => ({ ...listing, status: 'Paused' }));
+      void this.updateListingStatus('Paused');
       return;
     }
 
     if (action === 'resume') {
-      this.listing.update((listing) => ({ ...listing, status: 'Available' }));
+      void this.updateListingStatus('Available');
       return;
     }
 
@@ -3139,6 +3185,10 @@ export class ListingDetailsPageComponent {
   }
 
   protected saveEditListing(): void {
+    if (this.isSavingEdit()) {
+      return;
+    }
+
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       const step = this.mobileEditStep();
 
@@ -3154,30 +3204,49 @@ export class ListingDetailsPageComponent {
     }
 
     const formValue = this.editListingForm.getRawValue();
+    const payload = this.buildListingUpdatePayload(formValue);
 
-    this.listing.update((listing) => ({
-      ...listing,
-      name: formValue.name,
-      description: formValue.description,
-      location: formValue.location,
-      price: formValue.price,
-      store: {
-        ...listing.store,
-        name: formValue.store,
-      },
-    }));
-
-    this.editSheetOpen.set(false);
+    this.isSavingEdit.set(true);
+    void firstValueFrom(this.listingsService.updateListing(this.listingId(), payload))
+      .then(async () => {
+        const refreshed = await firstValueFrom(
+          this.listingsService.getListingDetails(this.listingId()),
+        );
+        this.applyListingDetails(refreshed);
+        this.editSheetOpen.set(false);
+        this.appToastService.show({ message: 'Listing updated successfully.' });
+      })
+      .catch(() => {
+        this.appToastService.show({ message: 'We could not save your listing changes right now.' });
+      })
+      .finally(() => {
+        this.isSavingEdit.set(false);
+      });
   }
 
   protected confirmDeleteListing(): void {
-    this.deleteSheetOpen.set(false);
-    void this.router.navigateByUrl('/seller/listings');
+    if (this.isDeletingListing()) {
+      return;
+    }
+
+    this.isDeletingListing.set(true);
+    void firstValueFrom(this.listingsService.deleteListing(this.listingId()))
+      .then(async () => {
+        this.deleteSheetOpen.set(false);
+        this.appToastService.show({ message: 'Listing deleted successfully.' });
+        await this.router.navigateByUrl('/seller/listings');
+      })
+      .catch(() => {
+        this.appToastService.show({ message: 'We could not delete this listing right now.' });
+      })
+      .finally(() => {
+        this.isDeletingListing.set(false);
+      });
   }
 
   protected confirmMarkSold(): void {
     this.markSoldSheetOpen.set(false);
-    this.listing.update((listing) => ({ ...listing, status: 'Sold' }));
+    void this.updateListingStatus('Sold');
   }
 
   protected markListingAsPromoted(): void {
@@ -3186,7 +3255,17 @@ export class ListingDetailsPageComponent {
   }
 
   constructor() {
+    void this.loadManageListingsMetadata();
     void this.loadListingDetails();
+  }
+
+  private async loadManageListingsMetadata(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.listingsService.getManageListings());
+      this.manageListingsMetadata.set(response);
+    } catch {
+      // Keep the fallback edit options if metadata fails to load.
+    }
   }
 
   private async loadListingDetails(): Promise<void> {
@@ -3202,13 +3281,20 @@ export class ListingDetailsPageComponent {
     this.listingRecord.set(record);
 
     const gallery = this.extractGalleryImages(record);
+    const storeInfo = this.readRecord(record['store_info']);
     const storeName =
+      this.readString(storeInfo?.['store_name']) ??
       this.readString(record['store_name']) ??
       this.readString(record['vendor_name']) ??
       this.listing().store.name;
     const listingLocation = this.composeLocation(record) ?? this.listing().location;
     const createdAt = record['created_at'];
     const updatedAt = record['updated_at'] ?? createdAt;
+    const originalPrice = this.formatPlainPrice(record['original_price'] ?? record['discount_price']);
+    const acceptsOffers = this.readBoolean(record['accept_offers']);
+    const isFree = this.readBoolean(record['is_free']);
+    const youtubeLink = this.readString(record['youtube_link']);
+    const deliverySelections = this.extractDeliverySelectionIds(record);
 
     this.activeImageIndex.set(0);
     this.listing.set({
@@ -3231,6 +3317,7 @@ export class ListingDetailsPageComponent {
         this.formatCount(record['views']) ??
         this.listing().views,
       saves:
+        this.readNumber(record['save_count']) ??
         this.readNumber(record['likes_count']) ??
         this.readNumber(record['saves_count']) ??
         this.listing().saves,
@@ -3239,12 +3326,19 @@ export class ListingDetailsPageComponent {
       store: {
         name: storeName,
         logo:
+          this.resolveMediaUrl(this.readString(storeInfo?.['profile_photo'])) ??
           this.resolveMediaUrl(this.readString(record['profile_photo'])) ??
           this.resolveMediaUrl(this.readString(record['store_profile_photo'])) ??
           this.resolveMediaUrl(this.readString(this.readRecord(record['user'])?.['avatar'])) ??
           this.listing().store.logo,
       },
     });
+
+    this.editAcceptOffersEnabled.set(acceptsOffers ?? true);
+    this.editFreeListingEnabled.set(isFree ?? false);
+    this.editDiscountEnabled.set(originalPrice !== null);
+    this.selectedDeliveryMethods.set(deliverySelections.methods);
+    this.selectedDeliveryRanges.set(deliverySelections.ranges);
 
     this.editListingForm.patchValue({
       name: this.readString(record['title']) ?? this.editListingForm.controls.name.getRawValue(),
@@ -3257,18 +3351,17 @@ export class ListingDetailsPageComponent {
       description:
         this.readString(record['description']) ??
         this.editListingForm.controls.description.getRawValue(),
+      embeddedVideo: youtubeLink ?? this.editListingForm.controls.embeddedVideo.getRawValue(),
       location: listingLocation,
       whatsAppNumber:
-        this.readString(record['whatsapp_number']) ??
+        this.readString(storeInfo?.['whatsapp_number']) ??
         this.editListingForm.controls.whatsAppNumber.getRawValue(),
       callNumber:
-        this.readString(record['call_number']) ??
-        this.readString(record['whatsapp_number']) ??
+        this.readString(storeInfo?.['call_number']) ??
+        this.readString(storeInfo?.['whatsapp_number']) ??
         this.editListingForm.controls.callNumber.getRawValue(),
       price: this.formatPlainPrice(record['price']) ?? this.editListingForm.controls.price.getRawValue(),
-      discountPrice:
-        this.formatPlainPrice(record['original_price'] ?? record['discount_price']) ??
-        this.editListingForm.controls.discountPrice.getRawValue(),
+      discountPrice: originalPrice ?? this.editListingForm.controls.discountPrice.getRawValue(),
     });
   }
 
@@ -3355,6 +3448,218 @@ export class ListingDetailsPageComponent {
     );
 
     return labels.length > 0 ? labels.join(', ') : null;
+  }
+
+  private extractDeliverySelectionIds(record: ListingsApiItem): {
+    methods: string[];
+    ranges: string[];
+  } {
+    const selectedIds = new Set<string>();
+    const candidates = record['delivery_options'];
+
+    if (Array.isArray(candidates)) {
+      for (const option of candidates) {
+        if (typeof option === 'string' && option.trim().length > 0) {
+          selectedIds.add(this.slugify(option));
+          continue;
+        }
+
+        const entryRecord = this.readRecord(option);
+        const optionName =
+          this.readString(entryRecord?.['name']) ??
+          this.readString(entryRecord?.['label']) ??
+          this.readString(entryRecord?.['option']);
+
+        if (optionName) {
+          selectedIds.add(this.slugify(optionName));
+        }
+      }
+    }
+
+    const methods = this.deliveryMethodOptions
+      .map((option) => option.id)
+      .filter((id) => selectedIds.has(id));
+    const ranges = this.deliveryRangeOptions
+      .map((option) => option.id)
+      .filter((id) => selectedIds.has(id));
+
+    return {
+      methods: methods.length > 0 ? methods : this.selectedDeliveryMethods(),
+      ranges: ranges.length > 0 ? ranges : this.selectedDeliveryRanges(),
+    };
+  }
+
+  private async updateListingStatus(status: ListingStatus): Promise<void> {
+    const backendStatus = this.toBackendStatus(status);
+    if (!backendStatus || this.isUpdatingStatus()) {
+      return;
+    }
+
+    this.isUpdatingStatus.set(true);
+
+    try {
+      await firstValueFrom(
+        this.listingsService.updateListing(this.listingId(), { status: backendStatus }),
+      );
+      const refreshed = await firstValueFrom(this.listingsService.getListingDetails(this.listingId()));
+      this.applyListingDetails(refreshed);
+      this.appToastService.show({ message: `Listing status updated to ${status}.` });
+    } catch {
+      this.appToastService.show({ message: 'We could not update the listing status right now.' });
+    } finally {
+      this.isUpdatingStatus.set(false);
+    }
+  }
+
+  private buildListingUpdatePayload(
+    formValue: ReturnType<typeof this.editListingForm.getRawValue>,
+  ): UpdateListingRequest {
+    const payload: UpdateListingRequest = {
+      title: formValue.name.trim(),
+      description: formValue.description.trim(),
+      location: formValue.location.trim(),
+      accept_offers: this.editAcceptOffersEnabled(),
+      is_free: this.editFreeListingEnabled(),
+      youtube_link: formValue.embeddedVideo.trim() || null,
+    };
+
+    const price = this.parsePlainPrice(formValue.price);
+    if (price !== null) {
+      payload.price = this.editFreeListingEnabled() ? 0 : price;
+    }
+
+    if (this.editDiscountEnabled() && !this.editFreeListingEnabled()) {
+      payload.original_price = this.parsePlainPrice(formValue.discountPrice);
+    } else {
+      payload.original_price = null;
+    }
+
+    const categoryId = this.resolveCategoryId(formValue.category);
+    if (categoryId !== null) {
+      payload.category = categoryId;
+    }
+
+    const conditionValue = this.resolveConditionValue(formValue.condition);
+    if (conditionValue) {
+      payload.condition = conditionValue;
+    }
+
+    const storeId = this.resolveStoreId(formValue.store);
+    if (storeId) {
+      payload.store = storeId;
+    }
+
+    const deliveryOptionIds = this.resolveSelectedDeliveryOptionIds();
+    if (deliveryOptionIds.length > 0) {
+      payload.delivery_option_ids = deliveryOptionIds;
+    }
+
+    return payload;
+  }
+
+  private resolveCategoryId(categoryName: string): number | null {
+    const categories = this.manageListingsMetadata()?.categories ?? [];
+    const match = categories.find(
+      (category) => category.name.trim().toLowerCase() === categoryName.trim().toLowerCase(),
+    );
+    return typeof match?.id === 'number' ? match.id : null;
+  }
+
+  private resolveConditionValue(conditionLabel: string): string | null {
+    const metadataConditions = this.manageListingsMetadata()?.product_conditions ?? [];
+    const normalizedLabel = conditionLabel.trim().toLowerCase();
+    const metadataMatch = metadataConditions.find((condition) =>
+      this.normalizeConditionLabel(condition.name).trim().toLowerCase() === normalizedLabel,
+    );
+
+    if (metadataMatch) {
+      return metadataMatch.id;
+    }
+
+    if (normalizedLabel === 'brand new' || normalizedLabel === 'new') {
+      return 'new';
+    }
+
+    if (normalizedLabel === 'used' || normalizedLabel === 'fairly used') {
+      return 'used';
+    }
+
+    return this.readString(this.listingRecord()?.['condition']);
+  }
+
+  private resolveStoreId(storeName: string): string | null {
+    const stores = this.manageListingsMetadata()?.stores ?? [];
+    const match = stores.find(
+      (store) =>
+        this.readStoreName(store)?.trim().toLowerCase() === storeName.trim().toLowerCase(),
+    );
+
+    const rawId = match?.['id'];
+    if (typeof rawId === 'string' && rawId.trim().length > 0) {
+      return rawId.trim();
+    }
+
+    return typeof rawId === 'number' ? String(rawId) : null;
+  }
+
+  private resolveSelectedDeliveryOptionIds(): number[] {
+    const deliveryOptions = this.manageListingsMetadata()?.delivery_options ?? [];
+    const selectedLabels = new Set([
+      ...this.selectedDeliveryMethods(),
+      ...this.selectedDeliveryRanges(),
+    ]);
+
+    return deliveryOptions
+      .filter((option) => selectedLabels.has(this.slugify(option.name)))
+      .map((option) => option.id);
+  }
+
+  private readStoreName(store: ManageListingsStore): string | null {
+    return (
+      this.readString(store['store_name']) ??
+      this.readString(store['name']) ??
+      this.readString(store['title'])
+    );
+  }
+
+  private normalizeConditionLabel(value: string): string {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'new') {
+      return 'Brand new';
+    }
+
+    if (normalized === 'used') {
+      return 'Used';
+    }
+
+    return this.formatCondition(value) ?? value;
+  }
+
+  private parsePlainPrice(value: string): number | null {
+    const sanitized = value.replace(/[^\d.]/g, '').trim();
+    if (!sanitized) {
+      return null;
+    }
+
+    const parsed = Number(sanitized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private slugify(value: string): string {
+    return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  }
+
+  private toBackendStatus(status: ListingStatus): string | null {
+    switch (status) {
+      case 'Available':
+        return 'published';
+      case 'Paused':
+        return 'paused';
+      case 'Sold':
+        return 'sold';
+      default:
+        return null;
+    }
   }
 
   private mapListingStatus(value: unknown): ListingStatus {
