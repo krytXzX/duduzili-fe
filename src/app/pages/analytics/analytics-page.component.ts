@@ -32,6 +32,11 @@ interface StoreAvatar {
   alt: string;
 }
 
+interface SoldItemsChartPoint {
+  date: string;
+  count: number;
+}
+
 interface AggregateAnalyticsTotals {
   totalListings: number;
   totalViews: number;
@@ -105,17 +110,20 @@ type AnalyticsStoreFilter = string;
             <p class="text-[14px] font-semibold leading-6 text-[rgba(13,13,13,0.4)]">
               Total sold items
             </p>
-            <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">100,500</p>
+            <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">
+              {{ formatInteger(soldItemsMetrics().total) }}
+            </p>
             <span
-              class="mt-[9px] inline-flex h-6 items-center gap-1 rounded-[100px] bg-[rgba(39,165,81,0.06)] px-2 py-[6px] text-[12px] font-normal leading-4 text-[#27A551]"
+              class="mt-[9px] inline-flex h-6 items-center gap-1 rounded-[100px] px-2 py-[6px] text-[12px] font-normal leading-4"
+              [class]="soldItemsChangeToneClass()"
             >
-              <img [ngSrc]="assets.arrowUpIcon" width="12" height="12" alt="" class="h-3 w-3">
-              28% vs last month
+              <img [ngSrc]="soldItemsChangeIcon()" width="12" height="12" alt="" class="h-3 w-3">
+              {{ soldItemsChangeText() }}
             </span>
           </div>
 
           <div class="mt-6">
-            <app-chart [config]="mobileSoldItemsChartOptions" containerClass="min-h-[220px]"></app-chart>
+            <app-chart [config]="mobileSoldItemsChartOptions()" containerClass="min-h-[220px]"></app-chart>
           </div>
         </section>
 
@@ -255,12 +263,15 @@ type AnalyticsStoreFilter = string;
                 <p class="text-[14px] font-semibold leading-6 text-[rgba(13,13,13,0.4)]">
                   Total sold items
                 </p>
-                <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">100,500</p>
+                <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">
+                  {{ formatInteger(soldItemsMetrics().total) }}
+                </p>
                 <span
-                  class="mt-[9px] inline-flex h-6 items-center gap-1 rounded-[100px] bg-[rgba(39,165,81,0.06)] px-2 py-[6px] text-[12px] text-[#27A551]"
+                  class="mt-[9px] inline-flex h-6 items-center gap-1 rounded-[100px] px-2 py-[6px] text-[12px]"
+                  [class]="soldItemsChangeToneClass()"
                 >
-                  <img [ngSrc]="assets.arrowUpIcon" width="12" height="12" alt="" class="h-3 w-3">
-                  28% vs last month
+                  <img [ngSrc]="soldItemsChangeIcon()" width="12" height="12" alt="" class="h-3 w-3">
+                  {{ soldItemsChangeText() }}
                 </span>
               </div>
 
@@ -279,7 +290,7 @@ type AnalyticsStoreFilter = string;
             </div>
 
             <div class="mt-8">
-              <app-chart [config]="desktopSoldItemsChartOptions" containerClass="min-h-[288px]"></app-chart>
+              <app-chart [config]="desktopSoldItemsChartOptions()" containerClass="min-h-[288px]"></app-chart>
             </div>
           </section>
 
@@ -385,28 +396,10 @@ export class AnalyticsPageComponent {
   private readonly vendorsService = inject(VendorsService);
   private readonly appMode = inject(AppModeService);
   private readonly apiOrigin = this.resolveApiOrigin();
-  readonly mobileSoldItemsChartOptions: AppChartOptions = this.withHoverDarken(
-    createSparkBarChartOptions(
-      220,
-      ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
-      [26, 109, 45, 76, 96, 45, 168, 67, 45, 141, 52, 30],
-      ['#6453D9', '#6453D9', '#6453D9', '#6453D9', '#6453D9', '#CFC8FD', '#CFC8FD', '#CFC8FD', '#CFC8FD', '#6453D9', '#6453D9', '#6453D9'],
-      true,
-    ),
-  );
-  readonly desktopSoldItemsChartOptions: AppChartOptions = this.withHoverDarken(
-    createSparkBarChartOptions(
-      288,
-      ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      [104, 77, 48, 72, 144, 76, 104, 104, 76, 81, 67, 104],
-      ['#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#6B5CF0', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7', '#DAD7F7'],
-      false,
-    ),
-  );
   readonly assets = {
     arrowUpIcon: '/assets/icons/analytics-arrow-up.svg',
-    calendarIcon: '/assets/icons/analytics-calendar.svg',
     arrowDownIcon: '/assets/icons/analytics-arrow-down.svg',
+    calendarIcon: '/assets/icons/analytics-calendar.svg',
     storeBadgeIcon: '/assets/icons/analytics-store-badge.svg',
     mostViewedImage: '/assets/images/analytics-most-viewed-phone.png',
   } as const;
@@ -458,6 +451,7 @@ export class AnalyticsPageComponent {
     active: 0,
     sold: 0,
   });
+  readonly soldItemsSeries = signal<readonly SoldItemsChartPoint[]>([]);
   readonly mostViewedTitle = signal<string>('Iphone 17 pro max');
   readonly mostViewedImage = signal<string>(this.assets.mostViewedImage);
   readonly mostViewedViewsText = signal<string>('This store has been viewed 750,000 times');
@@ -465,6 +459,55 @@ export class AnalyticsPageComponent {
 
   readonly range = signal<AnalyticsRange>('7d');
   readonly selectedStoreFilter = signal<AnalyticsStoreFilter>('all');
+  readonly visibleSoldItemsSeries = computed(() => this.sliceSoldItemsSeries(this.soldItemsSeries(), this.range()));
+  readonly soldItemsMetrics = computed(() => {
+    const range = this.range();
+    const rangeDays = this.getRangeDays(range);
+    const series = this.soldItemsSeries();
+    const currentPeriod = series.slice(-rangeDays);
+    const previousPeriod = series.slice(-(rangeDays * 2), -rangeDays);
+    const currentTotal = this.sumSoldItems(currentPeriod);
+    const previousTotal = this.sumSoldItems(previousPeriod);
+    const changePercent =
+      previousTotal > 0 ? Math.round(((currentTotal - previousTotal) / previousTotal) * 100) : 0;
+
+    return {
+      total: currentTotal,
+      changePercent,
+      comparisonLabel: this.getPreviousRangeLabel(range),
+    };
+  });
+  readonly soldItemsChangeIcon = computed(() =>
+    this.soldItemsMetrics().changePercent < 0 ? this.assets.arrowDownIcon : this.assets.arrowUpIcon,
+  );
+  readonly soldItemsChangeToneClass = computed(() => {
+    const changePercent = this.soldItemsMetrics().changePercent;
+    if (changePercent < 0) {
+      return 'bg-[rgba(238,156,46,0.08)] text-[#EE9C2E]';
+    }
+
+    if (changePercent === 0) {
+      return 'bg-[rgba(13,13,13,0.06)] text-[rgba(13,13,13,0.7)]';
+    }
+
+    return 'bg-[rgba(39,165,81,0.06)] text-[#27A551]';
+  });
+  readonly soldItemsChangeText = computed(() => {
+    const { changePercent, comparisonLabel } = this.soldItemsMetrics();
+    const formattedPercent = `${Math.abs(changePercent)}%`;
+
+    if (changePercent === 0) {
+      return `${formattedPercent} vs ${comparisonLabel}`;
+    }
+
+    return `${formattedPercent} vs ${comparisonLabel}`;
+  });
+  readonly mobileSoldItemsChartOptions = computed<AppChartOptions>(() =>
+    this.withHoverDarken(this.createSoldItemsChartOptions(220, true)),
+  );
+  readonly desktopSoldItemsChartOptions = computed<AppChartOptions>(() =>
+    this.withHoverDarken(this.createSoldItemsChartOptions(288, false)),
+  );
 
   readonly visibleStores = computed(() =>
     this.selectedStoreFilter() === 'all'
@@ -609,6 +652,7 @@ export class AnalyticsPageComponent {
       active: this.readNumber(distribution?.['active']) ?? 0,
       sold: this.readNumber(distribution?.['sold']) ?? 0,
     });
+    this.soldItemsSeries.set(this.readSoldItemsSeries(record['sold_items_chart']));
     this.mostViewedTitle.set(this.readString(mostViewed?.['title']) ?? 'No listings yet');
     this.mostViewedImage.set(
       this.resolveMediaUrl(this.readString(mostViewed?.['url'])) ?? this.assets.mostViewedImage,
@@ -663,6 +707,7 @@ export class AnalyticsPageComponent {
       active: totals.active,
       sold: totals.sold,
     });
+    this.soldItemsSeries.set(this.aggregateSoldItemsSeries(records));
     this.mostViewedTitle.set(this.readString(mostViewed?.['title']) ?? 'No listings yet');
     this.mostViewedImage.set(
       this.resolveMediaUrl(this.readString(mostViewed?.['url'])) ?? this.assets.mostViewedImage,
@@ -747,8 +792,137 @@ export class AnalyticsPageComponent {
     return `${this.apiOrigin}/${value}`;
   }
 
-  private formatInteger(value: number): string {
+  protected formatInteger(value: number): string {
     return new Intl.NumberFormat('en-NG').format(value);
+  }
+
+  private createSoldItemsChartOptions(height: number, compact: boolean): AppChartOptions {
+    const series = this.visibleSoldItemsSeries();
+    const categories = this.buildSoldItemsCategories(series, compact);
+    const values = series.map((point) => point.count);
+    const colors = values.map((_, index) => this.resolveSoldItemsBarColor(index, values.length, compact));
+
+    return createSparkBarChartOptions(height, categories, values, colors, compact);
+  }
+
+  private buildSoldItemsCategories(
+    series: readonly SoldItemsChartPoint[],
+    compact: boolean,
+  ): readonly string[] {
+    const length = series.length;
+    const step = length <= 7 ? 1 : length <= 30 ? 5 : 15;
+
+    return series.map((point, index) => {
+      const isLast = index === length - 1;
+      if (!isLast && index % step !== 0) {
+        return '';
+      }
+
+      return this.formatChartLabel(point.date, compact, length);
+    });
+  }
+
+  private formatChartLabel(dateValue: string, compact: boolean, length: number): string {
+    const parsedDate = new Date(dateValue);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return '';
+    }
+
+    if (length <= 7) {
+      return new Intl.DateTimeFormat('en-NG', {
+        weekday: compact ? 'narrow' : 'short',
+      }).format(parsedDate);
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      month: 'short',
+      day: 'numeric',
+    }).format(parsedDate);
+  }
+
+  private resolveSoldItemsBarColor(index: number, length: number, compact: boolean): string {
+    if (index === length - 1) {
+      return compact ? '#6453D9' : '#6B5CF0';
+    }
+
+    return compact ? '#CFC8FD' : '#DAD7F7';
+  }
+
+  private getRangeDays(range: AnalyticsRange): number {
+    switch (range) {
+      case '7d':
+        return 7;
+      case '30d':
+        return 30;
+      case '90d':
+        return 90;
+    }
+  }
+
+  private getPreviousRangeLabel(range: AnalyticsRange): string {
+    switch (range) {
+      case '7d':
+        return 'previous 7 days';
+      case '30d':
+        return 'previous 30 days';
+      case '90d':
+        return 'previous 90 days';
+    }
+  }
+
+  private sliceSoldItemsSeries(
+    series: readonly SoldItemsChartPoint[],
+    range: AnalyticsRange,
+  ): readonly SoldItemsChartPoint[] {
+    const rangeDays = this.getRangeDays(range);
+    return series.slice(-rangeDays);
+  }
+
+  private sumSoldItems(series: readonly SoldItemsChartPoint[]): number {
+    return series.reduce((total, point) => total + point.count, 0);
+  }
+
+  private readSoldItemsSeries(value: unknown): readonly SoldItemsChartPoint[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map((item) => this.toSoldItemsChartPoint(item))
+      .filter((point): point is SoldItemsChartPoint => point !== null);
+  }
+
+  private toSoldItemsChartPoint(value: unknown): SoldItemsChartPoint | null {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+
+    const record = value as Record<string, unknown>;
+    const date = this.readString(record['date']);
+    const count = this.readNumber(record['count']);
+
+    if (!date || count === null) {
+      return null;
+    }
+
+    return {
+      date,
+      count,
+    };
+  }
+
+  private aggregateSoldItemsSeries(records: readonly VendorAnalyticsRecord[]): readonly SoldItemsChartPoint[] {
+    const totalsByDate = new Map<string, number>();
+
+    for (const record of records) {
+      for (const point of this.readSoldItemsSeries(record['sold_items_chart'])) {
+        totalsByDate.set(point.date, (totalsByDate.get(point.date) ?? 0) + point.count);
+      }
+    }
+
+    return [...totalsByDate.entries()]
+      .sort(([leftDate], [rightDate]) => leftDate.localeCompare(rightDate))
+      .map(([date, count]) => ({ date, count }));
   }
 
   private readString(value: unknown): string | null {
