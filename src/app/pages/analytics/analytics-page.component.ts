@@ -532,10 +532,9 @@ export class AnalyticsPageComponent {
         ...mappedStores,
       ]);
 
-      const firstStoreId = mappedStores[0]?.id;
-      if (firstStoreId) {
-        this.selectedStoreFilter.set(firstStoreId);
-        await this.loadVendorAnalytics(firstStoreId);
+      this.selectedStoreFilter.set('all');
+      if (mappedStores.length > 0) {
+        await this.loadAllStoresAnalytics();
       }
     } catch {
       // Keep the existing presentation fallback values on load failure.
