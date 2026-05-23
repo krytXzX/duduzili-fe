@@ -469,7 +469,9 @@ export class AnalyticsPageComponent {
     const currentTotal = this.sumSoldItems(currentPeriod);
     const previousTotal = this.sumSoldItems(previousPeriod);
     const changePercent =
-      previousTotal > 0 ? Math.round(((currentTotal - previousTotal) / previousTotal) * 100) : 0;
+      previousTotal > 0
+        ? Math.round(((currentTotal - previousTotal) / previousTotal) * 100)
+        : 0;
 
     return {
       total: currentTotal,
