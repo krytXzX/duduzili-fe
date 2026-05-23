@@ -2,13 +2,14 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   OnDestroy,
   computed,
   effect,
   inject,
   signal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { map } from 'rxjs';
@@ -64,6 +65,8 @@ interface RunningAdsQueryState {
   status?: 'active' | 'paused' | 'expired';
   page?: number;
 }
+
+const EMPTY_RUNNING_ADS_QUERY_STATE: RunningAdsQueryState = {};
 
 @Component({
   selector: 'app-ad-details-page',
@@ -1121,6 +1124,7 @@ interface RunningAdsQueryState {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdDetailsPageComponent implements OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly sellerMonetizationService = inject(SellerMonetizationService);
@@ -1164,25 +1168,7 @@ export class AdDetailsPageComponent implements OnDestroy {
     this.route.paramMap.pipe(map((params) => params.get('id') ?? 'other-1')),
     { initialValue: this.route.snapshot.paramMap.get('id') ?? 'other-1' },
   );
-  readonly runningAdsQueryState = toSignal(
-    this.route.queryParamMap.pipe(
-      map((params): RunningAdsQueryState => {
-        const placement = params.get('placement');
-        const status = params.get('status');
-        const pageValue = Number(params.get('page') ?? '1');
-
-        return {
-          placement:
-            placement === 'promoted listings' || placement === 'store promotions' || placement === 'banner ads'
-              ? placement
-              : undefined,
-          status: status === 'active' || status === 'paused' || status === 'expired' ? status : undefined,
-          page: Number.isFinite(pageValue) && pageValue > 0 ? Math.floor(pageValue) : undefined,
-        };
-      }),
-    ),
-    { initialValue: {} },
-  );
+  readonly runningAdsQueryState = signal<RunningAdsQueryState>(EMPTY_RUNNING_ADS_QUERY_STATE);
   readonly backendAd = signal<SellerAdRecord | null>(null);
   readonly adAnalytics = signal<AdAnalyticsResponse | null>(null);
   readonly isMenuOpen = signal(false);
@@ -1418,7 +1404,7 @@ export class AdDetailsPageComponent implements OnDestroy {
     () => this.destinationUrlOverrides()[this.adId()] ?? this.ad().destinationUrl ?? '',
   );
   readonly runningAdsQueryParams = computed(() => {
-    const state = this.runningAdsQueryState();
+    const state = this.runningAdsQueryState() ?? EMPTY_RUNNING_ADS_QUERY_STATE;
     return {
       placement: state.placement,
       status: state.status,
@@ -1437,6 +1423,28 @@ export class AdDetailsPageComponent implements OnDestroy {
   );
 
   constructor() {
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const placement = params.get('placement');
+        const status = params.get('status');
+        const pageValue = Number(params.get('page') ?? '1');
+
+        this.runningAdsQueryState.set({
+          placement:
+            placement === 'promoted listings' ||
+            placement === 'store promotions' ||
+            placement === 'banner ads'
+              ? placement
+              : undefined,
+          status:
+            status === 'active' || status === 'paused' || status === 'expired'
+              ? status
+              : undefined,
+          page: Number.isFinite(pageValue) && pageValue > 0 ? Math.floor(pageValue) : undefined,
+        });
+      });
+
     effect(() => {
       const adId = this.adId();
       this.backendAd.set(null);
