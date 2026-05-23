@@ -13,7 +13,12 @@ import { ListingsApiItem, ListingsService } from '../../services/listings.servic
 import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { MessagesService } from '../../services/messages.service';
-import { VendorsService, VendorFollowResponse } from '../../services/vendors.service';
+import {
+  VendorsService,
+  VendorFollowResponse,
+  VendorListingRecord,
+  VendorListingsResponse,
+} from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
 
 interface ProductGalleryImage {
@@ -748,13 +753,13 @@ export class ProductPageComponent {
   private async loadProductDetails(): Promise<void> {
     try {
       const record = await firstValueFrom(this.listingsService.getListingDetails(this.productId));
-      this.applyProductDetails(record);
+      await this.applyProductDetails(record);
     } catch {
       // Keep the existing fallback content when the detail request fails.
     }
   }
 
-  private applyProductDetails(record: ListingsApiItem): void {
+  private async applyProductDetails(record: ListingsApiItem): Promise<void> {
     const storeInfo = this.readRecord(record['store_info']);
     const galleryImages = this.extractGalleryImages(record);
     const productName = this.readString(record['title']) ?? this.product().name;
@@ -860,9 +865,55 @@ export class ProductPageComponent {
       this.moreFromSeller.set(sellerListings);
     }
 
+    const storeId =
+      this.readString(storeInfo?.['id']) ??
+      this.readString(record['vendor_id']) ??
+      this.readString(record['store_id']);
+
+    if (storeId) {
+      await this.loadMoreFromSeller(storeId, this.readString(record['id']) ?? this.productId);
+    }
+
     if (relatedListings.length > 0) {
       this.relatedItems.set(relatedListings);
     }
+  }
+
+  private async loadMoreFromSeller(storeId: string, currentListingId: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.vendorsService.getVendorListings(storeId));
+      const listings = this.extractVendorListingItems(response)
+        .map((record, index) => this.toListingCard(record, index))
+        .filter((listing): listing is Listing => listing !== null)
+        .filter((listing) => listing.id !== currentListingId)
+        .slice(0, 5);
+
+      if (listings.length > 0) {
+        this.moreFromSeller.set(listings);
+      }
+    } catch {
+      // Keep the current section state when seller listings cannot be loaded.
+    }
+  }
+
+  private extractVendorListingItems(response: VendorListingsResponse): readonly VendorListingRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.listings)) {
+      return response.listings;
+    }
+
+    return [];
   }
 
   private extractGalleryImages(record: ListingsApiItem): readonly ProductGalleryImage[] {
