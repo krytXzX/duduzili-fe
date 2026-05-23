@@ -312,6 +312,7 @@ interface ReviewTagCount {
                       <app-store-item-card
                         [item]="item"
                         mode="mobile"
+                        [routeCommands]="listingRouteCommands(item.id)"
                         [badgeIcon]="assets.badgeMobile"
                         [heartIcon]="assets.heartMobile"
                         [locationIcon]="assets.itemLocationMobile"
@@ -733,6 +734,7 @@ interface ReviewTagCount {
                         <app-store-item-card
                           [item]="item"
                           mode="desktop"
+                          [routeCommands]="listingRouteCommands(item.id)"
                           [badgeIcon]="assets.badgeDesktop"
                           [heartIcon]="assets.heartDesktop"
                           [locationIcon]="assets.itemLocationDesktop"
@@ -1710,5 +1712,9 @@ export class StoreDetailsDashboardComponent {
       call_number_2:
         updatedStore.alternateCallNumber?.trim() ?? this.store().alternateCallNumber ?? '',
     };
+  }
+
+  protected listingRouteCommands(listingId: string): readonly string[] {
+    return ['/seller', 'listings', listingId];
   }
 }
