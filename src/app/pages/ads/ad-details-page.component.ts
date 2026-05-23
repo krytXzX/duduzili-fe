@@ -4,11 +4,14 @@ import {
   Component,
   OnDestroy,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { map } from 'rxjs';
 import {
   heroCalendarDays,
   heroChevronLeft,
@@ -123,7 +126,7 @@ interface AdDetail {
               <h2 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">{{ ad().title }}</h2>
               <span class="inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1">
                 <img [ngSrc]="bannerDetailsStatusIcon" width="14" height="14" alt="" />
-                <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">Active</span>
+                <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">{{ currentStatus() }}</span>
               </span>
             </div>
 
@@ -177,14 +180,18 @@ interface AdDetail {
                 <h3 class="text-[18px] font-semibold text-[rgba(13,13,13,0.6)]">
                   Performance Overview
                 </h3>
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 py-2 text-[12px] font-medium text-black"
-                >
-                  <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
-                  Last 7 days
-                  <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
-                </button>
+                <app-custom-dropdown
+                  [options]="performanceRangeOptions"
+                  [value]="performanceRange()"
+                  [ariaLabel]="'Filter ad performance range'"
+                  [buttonClass]="'inline-flex items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 py-2 text-[12px] font-medium text-black'"
+                  [labelClass]="'truncate'"
+                  [iconClass]="'text-[#777777]'"
+                  [menuClass]="'min-w-[156px]'"
+                  [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                  [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                  (valueChange)="performanceRange.set($event)"
+                ></app-custom-dropdown>
               </div>
 
               <div class="flex items-center gap-5 text-[12px] text-[#181818]">
@@ -200,7 +207,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <app-chart [config]="desktopPerformanceChartOptions" containerClass="min-h-[420px]"></app-chart>
+              <app-chart [config]="desktopPerformanceChartOptions()" containerClass="min-h-[420px]"></app-chart>
             </div>
           </section>
         </div>
@@ -317,7 +324,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <app-chart [config]="mobilePerformanceChartOptions" containerClass="min-h-[250px]"></app-chart>
+              <app-chart [config]="mobilePerformanceChartOptions()" containerClass="min-h-[250px]"></app-chart>
             </div>
           </section>
         </div>
@@ -427,7 +434,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <app-chart [config]="mobilePerformanceChartOptions" containerClass="min-h-[250px]"></app-chart>
+              <app-chart [config]="mobilePerformanceChartOptions()" containerClass="min-h-[250px]"></app-chart>
             </div>
           </section>
         </div>
@@ -491,10 +498,10 @@ interface AdDetail {
                   <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">
                     {{ ad().title }}
                   </h1>
-                  <span class="inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1">
-                    <img [ngSrc]="bannerDetailsStatusIcon" width="14" height="14" alt="" />
-                    <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">Active</span>
-                  </span>
+              <span class="inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1">
+                <img [ngSrc]="bannerDetailsStatusIcon" width="14" height="14" alt="" />
+                <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">{{ currentStatus() }}</span>
+              </span>
                 </div>
               </div>
 
@@ -580,7 +587,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-6">
-              <app-chart [config]="desktopPerformanceChartOptions" containerClass="min-h-[420px]"></app-chart>
+              <app-chart [config]="desktopPerformanceChartOptions()" containerClass="min-h-[420px]"></app-chart>
             </div>
           </section>
         </div>
@@ -715,7 +722,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <app-chart [config]="desktopWidePerformanceChartOptions" containerClass="min-h-[430px]"></app-chart>
+              <app-chart [config]="desktopWidePerformanceChartOptions()" containerClass="min-h-[430px]"></app-chart>
             </div>
           </section>
         </div>
@@ -885,7 +892,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <app-chart [config]="desktopWidePerformanceChartOptions" containerClass="min-h-[430px]"></app-chart>
+              <app-chart [config]="desktopWidePerformanceChartOptions()" containerClass="min-h-[430px]"></app-chart>
             </div>
           </section>
         </div>
@@ -1130,32 +1137,27 @@ export class AdDetailsPageComponent implements OnDestroy {
   readonly bannerDetailsInfoCircleIcon = 'assets/icons/banner-details-info-circle.svg';
   readonly bannerDetailsCalendarIcon = 'assets/icons/banner-details-calendar.svg';
   readonly bannerDetailsArrowDownIcon = 'assets/icons/banner-details-arrow-down.svg';
-  readonly mobilePerformanceChartOptions: AppChartOptions = createPerformanceLineChartOptions(
-    250,
-    true,
-    '#6453D9',
-    '#F4C12B',
-  );
-  readonly desktopPerformanceChartOptions: AppChartOptions = createPerformanceLineChartOptions(
-    420,
-    false,
-    '#7A6AF1',
-    '#F5C23A',
-  );
-  readonly desktopWidePerformanceChartOptions: AppChartOptions = createPerformanceLineChartOptions(
-    430,
-    false,
-    '#6453D9',
-    '#FACD38',
-  );
   readonly performanceRange = signal<AdPerformanceRange>('7d');
   readonly performanceRangeOptions: readonly CustomDropdownOption<AdPerformanceRange>[] = [
     { value: '7d', label: 'Last 7 days' },
     { value: '30d', label: 'Last 30 days' },
     { value: '90d', label: 'Last 90 days' },
   ];
+  readonly performanceRangeLabel = computed(() => {
+    switch (this.performanceRange()) {
+      case '30d':
+        return 'Last 30 days';
+      case '90d':
+        return 'Last 90 days';
+      default:
+        return 'Last 7 days';
+    }
+  });
 
-  readonly adId = signal(this.route.snapshot.paramMap.get('id') ?? 'other-1');
+  readonly adId = toSignal(
+    this.route.paramMap.pipe(map((params) => params.get('id') ?? 'other-1')),
+    { initialValue: this.route.snapshot.paramMap.get('id') ?? 'other-1' },
+  );
   readonly backendAd = signal<SellerAdRecord | null>(null);
   readonly adAnalytics = signal<AdAnalyticsResponse | null>(null);
   readonly isMenuOpen = signal(false);
@@ -1383,17 +1385,32 @@ export class AdDetailsPageComponent implements OnDestroy {
     if (backendAd) {
       return this.mapBackendAd(backendAd);
     }
-    return this.adMap[this.adId()] ?? this.adMap['other-1'];
+
+    return this.resolveFallbackAd(this.adId());
   });
   readonly currentStatus = signal<AdDetail['status']>('Active');
   readonly currentDestinationUrl = computed(
     () => this.destinationUrlOverrides()[this.adId()] ?? this.ad().destinationUrl ?? '',
   );
   readonly bannerImageSrc = computed(() => this.ad().image || this.bannerHeroImage);
+  readonly mobilePerformanceChartOptions = computed(() =>
+    this.buildPerformanceChartOptions(250, true, '#6453D9', '#F4C12B'),
+  );
+  readonly desktopPerformanceChartOptions = computed(() =>
+    this.buildPerformanceChartOptions(420, false, '#7A6AF1', '#F5C23A'),
+  );
+  readonly desktopWidePerformanceChartOptions = computed(() =>
+    this.buildPerformanceChartOptions(430, false, '#6453D9', '#FACD38'),
+  );
 
   constructor() {
-    this.currentStatus.set(this.ad().status);
-    this.loadAdData();
+    effect(() => {
+      const adId = this.adId();
+      this.backendAd.set(null);
+      this.adAnalytics.set(null);
+      this.currentStatus.set(this.resolveFallbackAd(adId).status);
+      this.loadAdData(adId);
+    });
   }
 
   ngOnDestroy(): void {
@@ -1510,8 +1527,8 @@ export class AdDetailsPageComponent implements OnDestroy {
     });
   }
 
-  private loadAdData(): void {
-    const numericId = Number(this.adId());
+  private loadAdData(adId: string): void {
+    const numericId = Number(adId);
     if (!Number.isFinite(numericId)) {
       return;
     }
@@ -1547,6 +1564,28 @@ export class AdDetailsPageComponent implements OnDestroy {
     }
   }
 
+  private resolveFallbackAd(adId: string): AdDetail {
+    if (/^\d+$/.test(adId)) {
+      return {
+        id: adId,
+        kind: 'banner',
+        title: 'Loading ad details',
+        status: 'Active',
+        expiresOn: '',
+        noticePrefix: 'Your ad details are loading',
+        image: this.bannerHeroImage,
+        destinationUrl: '',
+        metrics: [
+          { label: 'Total views', value: '0' },
+          { label: 'Total clicks', value: '0' },
+          { label: 'CTR', value: '0%', info: true },
+        ],
+      };
+    }
+
+    return this.adMap[adId] ?? this.adMap['other-1'];
+  }
+
   private mapBackendAd(ad: SellerAdRecord): AdDetail {
     const mappedStatus = this.mapStatusLabel(ad.status);
     const analytics = this.adAnalytics();
@@ -1571,17 +1610,17 @@ export class AdDetailsPageComponent implements OnDestroy {
     if (ad.ad_type === 'store') {
       return {
         id: String(ad.id),
-        kind: 'banner',
+        kind: 'store',
         title: ad.promoted_store_name || ad.title,
         status: mappedStatus,
         image: ad.image ?? ad.promoted_store_image ?? undefined,
-        destinationUrl: ad.link || '',
         expiresOn: this.formatDate(ad.end_date),
         noticePrefix: 'Your store promotion will be promoted across Duduzili',
+        activeListings: 'Promoted store',
         metrics: [
           { label: 'Total views', value: this.formatMetricNumber(analytics?.summary.total_views ?? ad.total_views) },
           { label: 'Total clicks', value: this.formatMetricNumber(analytics?.summary.total_clicks ?? ad.total_clicks) },
-          { label: 'CTR', value: analytics?.summary.ctr ?? this.computeCtr(ad.total_views, ad.total_clicks), info: true },
+          { label: 'Listings viewed', value: this.formatMetricNumber(analytics?.summary.total_clicks ?? ad.total_clicks) },
         ],
       };
     }
@@ -1641,5 +1680,57 @@ export class AdDetailsPageComponent implements OnDestroy {
       return '0%';
     }
     return `${((clicks / views) * 100).toFixed(1)}%`;
+  }
+
+  private buildPerformanceChartOptions(
+    height: number,
+    compact: boolean,
+    primary: string,
+    secondary: string,
+  ): AppChartOptions {
+    const fallback = createPerformanceLineChartOptions(height, compact, primary, secondary);
+    const dailyStats = this.adAnalytics()?.daily_stats ?? {};
+    const entries = Object.entries(dailyStats)
+      .map(([date, values]) => ({
+        date,
+        views: values.views ?? 0,
+        clicks: values.clicks ?? 0,
+      }))
+      .sort((left, right) => left.date.localeCompare(right.date));
+
+    if (entries.length === 0) {
+      return fallback;
+    }
+
+    const pointLimit =
+      this.performanceRange() === '90d' ? 90 : this.performanceRange() === '30d' ? 30 : 7;
+    const filteredEntries = entries.slice(-pointLimit);
+    const categories = filteredEntries.map((entry) =>
+      new Intl.DateTimeFormat('en-NG', {
+        day: 'numeric',
+        month: filteredEntries.length > 31 ? 'short' : 'numeric',
+      }).format(new Date(entry.date)),
+    );
+    const viewSeries = filteredEntries.map((entry) => entry.views);
+    const clickSeries = filteredEntries.map((entry) => entry.clicks);
+    const maxValue = Math.max(...viewSeries, ...clickSeries, 1);
+
+    return {
+      ...fallback,
+      series: [
+        { name: 'Views', data: viewSeries },
+        { name: 'Clicks', data: clickSeries },
+      ],
+      xaxis: {
+        ...(fallback.xaxis ?? {}),
+        categories,
+      },
+      yaxis: {
+        ...(Array.isArray(fallback.yaxis) ? fallback.yaxis[0] : fallback.yaxis ?? {}),
+        min: 0,
+        max: Math.max(5, Math.ceil(maxValue * 1.15)),
+        tickAmount: 4,
+      },
+    };
   }
 }
