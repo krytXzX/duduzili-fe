@@ -40,7 +40,7 @@ interface ProductDetails {
   readonly lastUpdated: string;
   readonly description: string;
   readonly condition: string;
-  readonly likes: string;
+  readonly saves: string;
   readonly deliveryOptions: readonly string[];
   readonly images: readonly ProductGalleryImage[];
 }
@@ -169,7 +169,7 @@ export class ProductPageComponent {
     description:
       'UK used iPhone 16 Pro, neatly used and fully working. Good battery health.',
     condition: 'Used',
-    likes: '1.2k',
+    saves: '0',
     deliveryOptions: ['Seller delivery', 'Nation-wide', 'Public location'],
     images: [
       {
@@ -779,8 +779,10 @@ export class ProductPageComponent {
       this.formatCondition(record['condition']) ?? this.product().condition;
     const lastUpdated =
       this.formatDate(record['updated_at'] ?? record['created_at']) ?? this.product().lastUpdated;
-    const likes =
-      this.formatCount(record['likes_count']) ?? this.product().likes;
+    const saves =
+      this.formatCount(record['save_count']) ??
+      this.formatCount(record['saved']) ??
+      this.product().saves;
     const deliveryOptions =
       this.extractDeliveryOptions(record) ?? this.product().deliveryOptions;
     const storeName =
@@ -826,7 +828,7 @@ export class ProductPageComponent {
       lastUpdated,
       description,
       condition,
-      likes,
+      saves,
       deliveryOptions,
       images: galleryImages,
     });

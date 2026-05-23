@@ -172,20 +172,6 @@ export class ListingCardComponent {
       return nestedState;
     }
 
-    const fallbackFavoriteState = response['is_favorited'];
-    if (typeof fallbackFavoriteState === 'boolean') {
-      return fallbackFavoriteState;
-    }
-
-    const nestedFavoriteState =
-      typeof response['data'] === 'object' && response['data'] !== null
-        ? (response['data'] as Record<string, unknown>)['is_favorited']
-        : null;
-
-    if (typeof nestedFavoriteState === 'boolean') {
-      return nestedFavoriteState;
-    }
-
     return !previousState;
   }
 }

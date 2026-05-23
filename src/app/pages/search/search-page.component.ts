@@ -478,7 +478,7 @@ export class SearchPageComponent {
       location: this.buildLocationLabel(item),
       timeAgo: this.relativeTimeFromDate(this.readString(item, ['created_at', 'published_at', 'date_created'])),
       isVerified: this.readBoolean(item, ['is_verified', 'verified']) || false,
-      favoriteFilled: this.readBoolean(item, ['is_saved', 'is_favorited']) || false,
+      favoriteFilled: this.readBoolean(item, ['is_saved']) || false,
       images,
     };
   }
