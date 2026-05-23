@@ -59,6 +59,12 @@ interface AdDetail {
   destinationUrl?: string;
 }
 
+interface RunningAdsQueryState {
+  placement?: 'promoted listings' | 'store promotions' | 'banner ads';
+  status?: 'active' | 'paused' | 'expired';
+  page?: number;
+}
+
 @Component({
   selector: 'app-ad-details-page',
   imports: [CommonModule, RouterLink, NgIcon, NgOptimizedImage, AppChartComponent, CustomDropdownComponent],
@@ -82,7 +88,7 @@ interface AdDetail {
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
               <a
-          routerLink="/seller/ads/running"
+          routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()"
                 aria-label="Back to running ads"
                 class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
               >
@@ -216,7 +222,7 @@ interface AdDetail {
           <div class="flex items-center justify-between gap-3 py-3">
             <div class="flex items-center gap-3">
               <a
-          routerLink="/seller/ads/running"
+          routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()"
                 aria-label="Back to running ads"
                 class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
               >
@@ -333,7 +339,7 @@ interface AdDetail {
           <div class="flex items-center justify-between gap-3 py-3">
             <div class="flex items-center gap-3">
               <a
-          routerLink="/seller/ads/running"
+          routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()"
                 aria-label="Back to running ads"
                 class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
               >
@@ -442,7 +448,7 @@ interface AdDetail {
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-3">
             <a
-          routerLink="/seller/ads/running"
+          routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()"
               aria-label="Back to running ads"
               class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
             >
@@ -466,7 +472,7 @@ interface AdDetail {
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#9E9E9E]">
         <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -598,7 +604,7 @@ interface AdDetail {
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#959595]">
         <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -733,7 +739,7 @@ interface AdDetail {
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#959595]">
         <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -903,7 +909,7 @@ interface AdDetail {
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#9E9E9E]">
         <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -1158,6 +1164,25 @@ export class AdDetailsPageComponent implements OnDestroy {
     this.route.paramMap.pipe(map((params) => params.get('id') ?? 'other-1')),
     { initialValue: this.route.snapshot.paramMap.get('id') ?? 'other-1' },
   );
+  readonly runningAdsQueryState = toSignal(
+    this.route.queryParamMap.pipe(
+      map((params): RunningAdsQueryState => {
+        const placement = params.get('placement');
+        const status = params.get('status');
+        const pageValue = Number(params.get('page') ?? '1');
+
+        return {
+          placement:
+            placement === 'promoted listings' || placement === 'store promotions' || placement === 'banner ads'
+              ? placement
+              : undefined,
+          status: status === 'active' || status === 'paused' || status === 'expired' ? status : undefined,
+          page: Number.isFinite(pageValue) && pageValue > 0 ? Math.floor(pageValue) : undefined,
+        };
+      }),
+    ),
+    { initialValue: {} },
+  );
   readonly backendAd = signal<SellerAdRecord | null>(null);
   readonly adAnalytics = signal<AdAnalyticsResponse | null>(null);
   readonly isMenuOpen = signal(false);
@@ -1392,6 +1417,14 @@ export class AdDetailsPageComponent implements OnDestroy {
   readonly currentDestinationUrl = computed(
     () => this.destinationUrlOverrides()[this.adId()] ?? this.ad().destinationUrl ?? '',
   );
+  readonly runningAdsQueryParams = computed(() => {
+    const state = this.runningAdsQueryState();
+    return {
+      placement: state.placement,
+      status: state.status,
+      page: state.page,
+    };
+  });
   readonly bannerImageSrc = computed(() => this.ad().image || this.bannerHeroImage);
   readonly mobilePerformanceChartOptions = computed(() =>
     this.buildPerformanceChartOptions(250, true, '#6453D9', '#F4C12B'),
