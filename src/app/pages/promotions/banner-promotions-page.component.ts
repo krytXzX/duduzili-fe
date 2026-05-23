@@ -20,10 +20,11 @@ import {
 import { AppToastService } from '../../services/app-toast.service';
 
 type PromotionStatus = 'active' | 'paused' | 'pending approval' | 'declined' | 'expired';
+type PromotionTabValue = 'all' | PromotionStatus;
 
 interface PromotionTab {
   label: string;
-  value: PromotionStatus;
+  value: PromotionTabValue;
 }
 
 interface BannerPromotion {
@@ -479,6 +480,7 @@ export class BannerPromotionsPageComponent {
   readonly declinedBadgeIcon = '/assets/icons/banner-status-declined.svg';
 
   readonly tabs: PromotionTab[] = [
+    { label: 'All', value: 'all' },
     { label: 'Active', value: 'active' },
     { label: 'Paused', value: 'paused' },
     { label: 'Pending approval', value: 'pending approval' },
@@ -488,7 +490,7 @@ export class BannerPromotionsPageComponent {
 
   readonly promotions = signal<BannerPromotion[]>([]);
 
-  readonly activeTab = signal<PromotionStatus>('active');
+  readonly activeTab = signal<PromotionTabValue>('all');
   readonly isCreateModalOpen = signal(false);
   // readonly mobileTabs = this.tabs.slice(0, 3);
   readonly currentPage = signal(1);
@@ -503,9 +505,14 @@ export class BannerPromotionsPageComponent {
     expired: 0,
   });
 
-  readonly visiblePromotions = computed(() =>
-    this.promotions().filter((promotion) => promotion.status === this.activeTab()),
-  );
+  readonly visiblePromotions = computed(() => {
+    const activeTab = this.activeTab();
+    if (activeTab === 'all') {
+      return this.promotions();
+    }
+
+    return this.promotions().filter((promotion) => promotion.status === activeTab);
+  });
 
   constructor() {
     effect(() => {
@@ -515,7 +522,18 @@ export class BannerPromotionsPageComponent {
     });
   }
 
-  countByStatus(status: PromotionStatus): number {
+  countByStatus(status: PromotionTabValue): number {
+    if (status === 'all') {
+      const counts = this.statusCounts();
+      return (
+        counts.active +
+        counts.paused +
+        counts['pending approval'] +
+        counts.declined +
+        counts.expired
+      );
+    }
+
     return this.statusCounts()[status];
   }
 
@@ -572,7 +590,7 @@ export class BannerPromotionsPageComponent {
       });
   }
 
-  selectTab(tab: PromotionStatus): void {
+  selectTab(tab: PromotionTabValue): void {
     this.activeTab.set(tab);
     this.currentPage.set(1);
   }
@@ -580,7 +598,7 @@ export class BannerPromotionsPageComponent {
   private loadBannerPromotions(): void {
     const status = this.mapApiStatus(this.activeTab());
     this.sellerMonetizationService
-      .getMyAds({ page: this.currentPage(), adType: 'banner', status })
+      .getMyAds({ page: this.currentPage(), adType: 'banner', status: status ?? undefined })
       .subscribe({
         next: (response) => {
           const promotions = response.results
@@ -624,8 +642,12 @@ export class BannerPromotionsPageComponent {
   }
 
   private mapApiStatus(
-    status: PromotionStatus,
-  ): 'active' | 'paused' | 'pending' | 'rejected' | 'expired' {
+    status: PromotionTabValue,
+  ): 'active' | 'paused' | 'pending' | 'rejected' | 'expired' | null {
+    if (status === 'all') {
+      return null;
+    }
+
     switch (status) {
       case 'pending approval':
         return 'pending';
