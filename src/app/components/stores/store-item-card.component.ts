@@ -1,5 +1,6 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { Router } from '@angular/router';
 
 export interface StoreItemCardData {
   id: string;
@@ -20,7 +21,15 @@ type StoreItemCardMode = 'desktop' | 'mobile';
   selector: 'app-store-item-card',
   imports: [CommonModule, NgOptimizedImage],
   template: `
-    <article [class]="articleClass()">
+    <article
+      [class]="articleClass()"
+      [class.cursor-pointer]="isClickable()"
+      [attr.role]="isClickable() ? 'link' : null"
+      [attr.tabindex]="isClickable() ? '0' : null"
+      (click)="onCardClick()"
+      (keydown.enter)="onCardClick()"
+      (keydown.space)="onCardActivateWithKeyboard($event)"
+    >
       <div [class]="mediaClass()">
         <img
           [ngSrc]="item().image"
@@ -35,7 +44,12 @@ type StoreItemCardMode = 'desktop' | 'mobile';
 
         @if (item().showCarousel) {
           <div [class]="carouselNavClass()">
-            <button type="button" [class]="arrowButtonClass()" aria-label="Previous image">
+            <button
+              type="button"
+              [class]="arrowButtonClass()"
+              aria-label="Previous image"
+              (click)="$event.stopPropagation()"
+            >
               <img
                 [ngSrc]="leftArrowIcon()"
                 [width]="arrowIconSize()"
@@ -44,7 +58,12 @@ type StoreItemCardMode = 'desktop' | 'mobile';
                 [class]="arrowIconClass()"
               />
             </button>
-            <button type="button" [class]="arrowButtonClass()" aria-label="Next image">
+            <button
+              type="button"
+              [class]="arrowButtonClass()"
+              aria-label="Next image"
+              (click)="$event.stopPropagation()"
+            >
               <img
                 [ngSrc]="rightArrowIcon()"
                 [width]="arrowIconSize()"
@@ -83,7 +102,12 @@ type StoreItemCardMode = 'desktop' | 'mobile';
           </div>
         }
 
-        <button type="button" [class]="heartButtonClass()" aria-label="Save product">
+        <button
+          type="button"
+          [class]="heartButtonClass()"
+          aria-label="Save product"
+          (click)="$event.stopPropagation()"
+        >
           <img [ngSrc]="heartIcon()" width="24" height="24" alt="" class="h-6 w-6" />
         </button>
       </div>
@@ -126,6 +150,8 @@ type StoreItemCardMode = 'desktop' | 'mobile';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StoreItemCardComponent {
+  private readonly router = inject(Router);
+
   readonly item = input.required<StoreItemCardData>();
   readonly mode = input<StoreItemCardMode>('desktop');
   readonly badgeIcon = input.required<string>();
@@ -133,6 +159,7 @@ export class StoreItemCardComponent {
   readonly locationIcon = input.required<string>();
   readonly leftArrowIcon = input.required<string>();
   readonly rightArrowIcon = input.required<string>();
+  readonly routeCommands = input<readonly string[] | null>(null);
 
   protected articleClass(): string {
     return this.mode() === 'desktop'
@@ -260,5 +287,24 @@ export class StoreItemCardComponent {
 
   protected locationIconClass(): string {
     return this.mode() === 'desktop' ? 'h-3 w-3' : 'h-[10px] w-[10px]';
+  }
+
+  protected isClickable(): boolean {
+    const routeCommands = this.routeCommands();
+    return Array.isArray(routeCommands) && routeCommands.length > 0;
+  }
+
+  protected onCardClick(): void {
+    const routeCommands = this.routeCommands();
+    if (!routeCommands?.length) {
+      return;
+    }
+
+    void this.router.navigate([...routeCommands]);
+  }
+
+  protected onCardActivateWithKeyboard(event: Event): void {
+    event.preventDefault();
+    this.onCardClick();
   }
 }

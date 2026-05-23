@@ -1,6 +1,6 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   CreateBannerAdModalComponent,
   CreateBannerAdPayload,
@@ -186,6 +186,7 @@ interface ListingSection {
                 @for (card of section.cards; track card.id) {
                   <a
                     [routerLink]="['/seller/ads/running', card.id]"
+                    [queryParams]="runningAdsQueryParams()"
                     class="overflow-hidden rounded-[13.451px] border border-[#EAEAEA] bg-white p-[2.242px]"
                   >
                     <div class="relative overflow-hidden rounded-[11.21px]">
@@ -432,6 +433,7 @@ interface ListingSection {
                   @for (card of section.cards; track card.id) {
                     <a
                       [routerLink]="['/seller/ads/running', card.id]"
+                      [queryParams]="runningAdsQueryParams()"
                       class="overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white p-1"
                     >
                       <div class="relative overflow-hidden rounded-[20px]">
@@ -606,6 +608,7 @@ interface ListingSection {
 })
 export class RunningAdsPageComponent {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly sellerMonetizationService = inject(SellerMonetizationService);
   private readonly appToastService = inject(AppToastService);
 
@@ -644,8 +647,8 @@ export class RunningAdsPageComponent {
     { label: 'Expired', value: 'expired' },
   ];
 
-  readonly activePlacement = signal<AdPlacement>('promoted listings');
-  readonly activeStatus = signal<AdStatus>('active');
+  readonly activePlacement = signal<AdPlacement>(this.readPlacementFromQuery());
+  readonly activeStatus = signal<AdStatus>(this.readStatusFromQuery());
   readonly isCreateAdTypeModalOpen = signal(false);
   readonly isCreateBannerModalOpen = signal(false);
   readonly backendAds = signal<SellerAdRecord[]>([]);
@@ -655,10 +658,15 @@ export class RunningAdsPageComponent {
     listing: { active: 0, paused: 0, expired: 0, pending: 0, rejected: 0 },
     store: { active: 0, paused: 0, expired: 0, pending: 0, rejected: 0 },
   });
-  readonly currentPage = signal(1);
+  readonly currentPage = signal(this.readPageFromQuery());
   readonly totalResults = signal(0);
   readonly hasNextPage = signal(false);
   readonly hasPreviousPage = signal(false);
+  readonly runningAdsQueryParams = computed(() => ({
+    placement: this.activePlacement(),
+    status: this.activeStatus(),
+    page: this.currentPage(),
+  }));
 
   private readonly mobileSectionsByPlacement: Record<
     AdPlacement,
@@ -1298,6 +1306,15 @@ export class RunningAdsPageComponent {
 
   constructor() {
     effect(() => {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: this.runningAdsQueryParams(),
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+
+    effect(() => {
       this.activePlacement();
       this.activeStatus();
       this.currentPage();
@@ -1613,5 +1630,22 @@ export class RunningAdsPageComponent {
     } catch {
       return 'Banner ad';
     }
+  }
+
+  private readPlacementFromQuery(): AdPlacement {
+    const value = this.route.snapshot.queryParamMap.get('placement');
+    return value === 'store promotions' || value === 'banner ads' || value === 'promoted listings'
+      ? value
+      : 'promoted listings';
+  }
+
+  private readStatusFromQuery(): AdStatus {
+    const value = this.route.snapshot.queryParamMap.get('status');
+    return value === 'active' || value === 'paused' || value === 'expired' ? value : 'active';
+  }
+
+  private readPageFromQuery(): number {
+    const value = Number(this.route.snapshot.queryParamMap.get('page') ?? '1');
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 1;
   }
 }

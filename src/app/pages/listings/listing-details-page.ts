@@ -3632,7 +3632,6 @@ export class ListingDetailsPageComponent implements OnDestroy {
         this.listing().views,
       saves:
         this.readNumber(record['save_count']) ??
-        this.readNumber(record['likes_count']) ??
         this.readNumber(record['saves_count']) ??
         this.listing().saves,
       isPromoted: this.readBoolean(record['is_promoted']) ?? this.listing().isPromoted,

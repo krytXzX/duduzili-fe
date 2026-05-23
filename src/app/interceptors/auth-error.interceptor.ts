@@ -9,6 +9,8 @@ import { AppModeService } from '../services/app-mode.service';
 
 const apiUrl = environment.apiUrl.replace(/\/+$/, '');
 const HAS_REFRESH_RETRIED = new HttpContextToken<boolean>(() => false);
+const isMutationMethod = (method: string): boolean =>
+  method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE';
 
 export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
   const appMode = inject(AppModeService);
@@ -36,9 +38,22 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
               return throwError(() => error);
             }
 
+            let headers = request.headers.delete('Authorization');
+            const refreshedAccessToken = authSession.accessToken();
+            const csrfToken = authSession.csrfToken();
+
+            if (refreshedAccessToken) {
+              headers = headers.set('Authorization', `Bearer ${refreshedAccessToken}`);
+            }
+
+            if (isMutationMethod(request.method) && csrfToken) {
+              headers = headers.set('X-CSRFToken', csrfToken);
+            }
+
             return next(
               request.clone({
                 withCredentials: true,
+                headers,
                 context: request.context.set(HAS_REFRESH_RETRIED, true),
               }),
             );

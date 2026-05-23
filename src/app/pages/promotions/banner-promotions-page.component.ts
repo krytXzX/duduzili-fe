@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
@@ -13,10 +20,11 @@ import {
 import { AppToastService } from '../../services/app-toast.service';
 
 type PromotionStatus = 'active' | 'paused' | 'pending approval' | 'declined' | 'expired';
+type PromotionTabValue = 'all' | PromotionStatus;
 
 interface PromotionTab {
   label: string;
-  value: PromotionStatus;
+  value: PromotionTabValue;
 }
 
 interface BannerPromotion {
@@ -80,27 +88,26 @@ interface BannerPromotion {
           </button>
         }
       </div>
+      <div
+        class="mt-6 flex gap-[10px] overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        @for (tab of tabs; track tab.value) {
+          <button
+            type="button"
+            (click)="selectTab(tab.value)"
+            [attr.aria-pressed]="activeTab() === tab.value"
+            [class]="
+              activeTab() === tab.value
+                ? 'shrink-0 rounded-[16px] bg-[#1A1A1A] px-4 py-[10px] text-[14px] font-medium leading-5 text-white'
+                : 'shrink-0 rounded-[16px] bg-[#F4F4F4] px-4 py-[10px] text-[14px] font-medium leading-5 text-black'
+            "
+          >
+            {{ tab.label }} ({{ countByStatus(tab.value) }})
+          </button>
+        }
+      </div>
 
       @if (promotions().length > 0) {
-        <div
-          class="mt-6 flex gap-[10px] overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          @for (tab of mobileTabs; track tab.value) {
-            <button
-              type="button"
-              (click)="selectTab(tab.value)"
-              [attr.aria-pressed]="activeTab() === tab.value"
-              [class]="
-                activeTab() === tab.value
-                  ? 'shrink-0 rounded-[16px] bg-[#1A1A1A] px-4 py-[10px] text-[14px] font-medium leading-5 text-white'
-                  : 'shrink-0 rounded-[16px] bg-[#F4F4F4] px-4 py-[10px] text-[14px] font-medium leading-5 text-black'
-              "
-            >
-              {{ tab.label }} ({{ countByStatus(tab.value) }})
-            </button>
-          }
-        </div>
-
         @if (visiblePromotions().length > 0) {
           <div class="mt-6 space-y-[17px]">
             @for (promotion of visiblePromotions(); track promotion.id) {
@@ -177,10 +184,10 @@ interface BannerPromotion {
                 />
               </div>
               <h2 class="text-[18px] font-semibold leading-tight tracking-[-0.03em] text-[#202335]">
-                No {{ activeTab() }} banners yet
+                {{ filteredEmptyTitle() }}
               </h2>
               <p class="mt-2 text-[13px] text-[#A1A5B0]">
-                Switch tabs or promote a new banner to populate this section.
+                {{ filteredEmptyDescription() }}
               </p>
             </div>
           </div>
@@ -229,7 +236,13 @@ interface BannerPromotion {
               class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white disabled:opacity-40"
               aria-label="Previous page"
             >
-              <img ngSrc="/assets/icons/running-ads-arrow-left.svg" width="16" height="16" alt="" class="h-4 w-4" />
+              <img
+                ngSrc="/assets/icons/running-ads-arrow-left.svg"
+                width="16"
+                height="16"
+                alt=""
+                class="h-4 w-4"
+              />
             </button>
             <span>Page {{ currentPage() }}</span>
             <button
@@ -239,7 +252,13 @@ interface BannerPromotion {
               class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white disabled:opacity-40"
               aria-label="Next page"
             >
-              <img ngSrc="/assets/icons/running-ads-arrow-right.svg" width="16" height="16" alt="" class="h-4 w-4" />
+              <img
+                ngSrc="/assets/icons/running-ads-arrow-right.svg"
+                width="16"
+                height="16"
+                alt=""
+                class="h-4 w-4"
+              />
             </button>
           </div>
         </div>
@@ -271,25 +290,24 @@ interface BannerPromotion {
       <div
         class="flex h-full flex-1 flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]"
       >
+        <div class="mb-8 flex flex-wrap gap-[10px]">
+          @for (tab of tabs; track tab.value) {
+            <button
+              type="button"
+              (click)="selectTab(tab.value)"
+              [attr.aria-pressed]="activeTab() === tab.value"
+              [class]="
+                activeTab() === tab.value
+                  ? 'rounded-[16px] bg-[#1A1A1A] px-4 py-[10px] text-[14px] font-medium leading-5 text-white'
+                  : 'rounded-[16px] bg-[#F4F4F4] px-4 py-[10px] text-[14px] font-medium leading-5 text-black'
+              "
+            >
+              {{ tab.label }} ({{ countByStatus(tab.value) }})
+            </button>
+          }
+        </div>
         @if (promotions().length > 0) {
           <div class="flex-1 px-4 py-5 sm:px-8 sm:py-6">
-            <div class="mb-8 flex flex-wrap gap-[10px]">
-              @for (tab of tabs; track tab.value) {
-                <button
-                  type="button"
-                  (click)="selectTab(tab.value)"
-                  [attr.aria-pressed]="activeTab() === tab.value"
-                  [class]="
-                    activeTab() === tab.value
-                      ? 'rounded-[16px] bg-[#1A1A1A] px-4 py-[10px] text-[14px] font-medium leading-5 text-white'
-                      : 'rounded-[16px] bg-[#F4F4F4] px-4 py-[10px] text-[14px] font-medium leading-5 text-black'
-                  "
-                >
-                  {{ tab.label }} ({{ countByStatus(tab.value) }})
-                </button>
-              }
-            </div>
-
             @if (visiblePromotions().length > 0) {
               <div class="flex flex-wrap gap-5">
                 @for (promotion of visiblePromotions(); track promotion.id) {
@@ -357,10 +375,10 @@ interface BannerPromotion {
               >
                 <div>
                   <h2 class="text-[19px] font-bold text-[#1A1C21]">
-                    No {{ activeTab() }} banners yet
+                    {{ filteredEmptyTitle() }}
                   </h2>
                   <p class="mt-2 text-[13px] font-medium text-[#8A8F98]">
-                    Switch tabs or promote a new banner to populate this section.
+                    {{ filteredEmptyDescription() }}
                   </p>
                 </div>
               </div>
@@ -400,7 +418,9 @@ interface BannerPromotion {
         }
 
         @if (promotions().length > 0) {
-          <div class="mt-auto flex items-center justify-between px-4 pb-5 pt-8 text-[16px] leading-6 text-[#1A1B1D]">
+          <div
+            class="mt-auto flex items-center justify-between px-4 pb-5 pt-8 text-[16px] leading-6 text-[#1A1B1D]"
+          >
             <p>{{ totalResults() }} <span class="text-[rgba(26,27,29,0.5)]">results</span></p>
             <div class="flex items-center gap-3">
               <button
@@ -410,7 +430,13 @@ interface BannerPromotion {
                 class="inline-flex h-8 w-8 items-center justify-center rounded-[80px] border border-[#EAEAEA] bg-white disabled:opacity-40"
                 aria-label="Previous page"
               >
-                <img ngSrc="/assets/icons/running-ads-arrow-left.svg" width="16" height="16" alt="" class="h-4 w-4" />
+                <img
+                  ngSrc="/assets/icons/running-ads-arrow-left.svg"
+                  width="16"
+                  height="16"
+                  alt=""
+                  class="h-4 w-4"
+                />
               </button>
               <span>Page {{ currentPage() }}</span>
               <button
@@ -420,7 +446,13 @@ interface BannerPromotion {
                 class="inline-flex h-8 w-8 items-center justify-center rounded-[80px] border border-[#EAEAEA] bg-white disabled:opacity-40"
                 aria-label="Next page"
               >
-                <img ngSrc="/assets/icons/running-ads-arrow-right.svg" width="16" height="16" alt="" class="h-4 w-4" />
+                <img
+                  ngSrc="/assets/icons/running-ads-arrow-right.svg"
+                  width="16"
+                  height="16"
+                  alt=""
+                  class="h-4 w-4"
+                />
               </button>
             </div>
           </div>
@@ -448,6 +480,7 @@ export class BannerPromotionsPageComponent {
   readonly declinedBadgeIcon = '/assets/icons/banner-status-declined.svg';
 
   readonly tabs: PromotionTab[] = [
+    { label: 'All', value: 'all' },
     { label: 'Active', value: 'active' },
     { label: 'Paused', value: 'paused' },
     { label: 'Pending approval', value: 'pending approval' },
@@ -457,9 +490,9 @@ export class BannerPromotionsPageComponent {
 
   readonly promotions = signal<BannerPromotion[]>([]);
 
-  readonly activeTab = signal<PromotionStatus>('active');
+  readonly activeTab = signal<PromotionTabValue>('all');
   readonly isCreateModalOpen = signal(false);
-  readonly mobileTabs = this.tabs.slice(0, 3);
+  // readonly mobileTabs = this.tabs.slice(0, 3);
   readonly currentPage = signal(1);
   readonly totalResults = signal(0);
   readonly hasNextPage = signal(false);
@@ -472,9 +505,14 @@ export class BannerPromotionsPageComponent {
     expired: 0,
   });
 
-  readonly visiblePromotions = computed(() =>
-    this.promotions().filter((promotion) => promotion.status === this.activeTab()),
-  );
+  readonly visiblePromotions = computed(() => {
+    const activeTab = this.activeTab();
+    if (activeTab === 'all') {
+      return this.promotions();
+    }
+
+    return this.promotions().filter((promotion) => promotion.status === activeTab);
+  });
 
   constructor() {
     effect(() => {
@@ -484,7 +522,18 @@ export class BannerPromotionsPageComponent {
     });
   }
 
-  countByStatus(status: PromotionStatus): number {
+  countByStatus(status: PromotionTabValue): number {
+    if (status === 'all') {
+      const counts = this.statusCounts();
+      return (
+        counts.active +
+        counts.paused +
+        counts['pending approval'] +
+        counts.declined +
+        counts.expired
+      );
+    }
+
     return this.statusCounts()[status];
   }
 
@@ -541,37 +590,41 @@ export class BannerPromotionsPageComponent {
       });
   }
 
-  selectTab(tab: PromotionStatus): void {
+  selectTab(tab: PromotionTabValue): void {
     this.activeTab.set(tab);
     this.currentPage.set(1);
   }
 
   private loadBannerPromotions(): void {
     const status = this.mapApiStatus(this.activeTab());
-    this.sellerMonetizationService.getMyAds({ page: this.currentPage(), adType: 'banner', status }).subscribe({
-      next: (response) => {
-        const promotions = response.results
-          .filter((ad) => ad.ad_type === 'banner')
-          .map((ad) => this.mapPromotion(ad));
-        this.promotions.set(promotions);
-        this.totalResults.set(typeof response.count === 'number' ? response.count : promotions.length);
-        this.hasNextPage.set(Boolean(response.next));
-        this.hasPreviousPage.set(Boolean(response.previous));
-        this.statusCounts.set({
-          active: response.counts?.banner?.active ?? 0,
-          paused: response.counts?.banner?.paused ?? 0,
-          'pending approval': response.counts?.banner?.pending ?? 0,
-          declined: response.counts?.banner?.rejected ?? 0,
-          expired: response.counts?.banner?.expired ?? 0,
-        });
-      },
-      error: () => {
-        this.promotions.set([]);
-        this.totalResults.set(0);
-        this.hasNextPage.set(false);
-        this.hasPreviousPage.set(false);
-      },
-    });
+    this.sellerMonetizationService
+      .getMyAds({ page: this.currentPage(), adType: 'banner', status: status ?? undefined })
+      .subscribe({
+        next: (response) => {
+          const promotions = response.results
+            .filter((ad) => ad.ad_type === 'banner')
+            .map((ad) => this.mapPromotion(ad));
+          this.promotions.set(promotions);
+          this.totalResults.set(
+            typeof response.count === 'number' ? response.count : promotions.length,
+          );
+          this.hasNextPage.set(Boolean(response.next));
+          this.hasPreviousPage.set(Boolean(response.previous));
+          this.statusCounts.set({
+            active: response.counts?.banner?.active ?? 0,
+            paused: response.counts?.banner?.paused ?? 0,
+            'pending approval': response.counts?.banner?.pending ?? 0,
+            declined: response.counts?.banner?.rejected ?? 0,
+            expired: response.counts?.banner?.expired ?? 0,
+          });
+        },
+        error: () => {
+          this.promotions.set([]);
+          this.totalResults.set(0);
+          this.hasNextPage.set(false);
+          this.hasPreviousPage.set(false);
+        },
+      });
   }
 
   previousPage(): void {
@@ -588,7 +641,29 @@ export class BannerPromotionsPageComponent {
     this.currentPage.update((page) => page + 1);
   }
 
-  private mapApiStatus(status: PromotionStatus): 'active' | 'paused' | 'pending' | 'rejected' | 'expired' {
+  filteredEmptyTitle(): string {
+    if (this.activeTab() === 'all') {
+      return 'You don’t have any running banner promotions';
+    }
+
+    return `No ${this.activeTab()} banners yet`;
+  }
+
+  filteredEmptyDescription(): string {
+    if (this.activeTab() === 'all') {
+      return 'Create a new banner promotion to get started.';
+    }
+
+    return 'Try clearing filters or switch tabs to view other banner promotions.';
+  }
+
+  private mapApiStatus(
+    status: PromotionTabValue,
+  ): 'active' | 'paused' | 'pending' | 'rejected' | 'expired' | null {
+    if (status === 'all') {
+      return null;
+    }
+
     switch (status) {
       case 'pending approval':
         return 'pending';
@@ -644,7 +719,9 @@ export class BannerPromotionsPageComponent {
   }
 
   private formatCompactNumber(value: number): string {
-    return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+    return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(
+      value,
+    );
   }
 
   mobileStatusBadgeClass(promotion: BannerPromotion): string {
@@ -672,5 +749,4 @@ export class BannerPromotionsPageComponent {
         return 'absolute bottom-5 left-5 rounded-[1000px] bg-black/50 px-2 py-1 text-[14px] font-medium leading-4 text-white backdrop-blur-[2px]';
     }
   }
-
 }

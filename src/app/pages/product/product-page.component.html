@@ -140,7 +140,7 @@
             type="button"
             class="absolute right-5 top-5 z-10 inline-flex items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 py-2 text-sm text-[#2D2D2D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
           >
-            <span>{{ product().likes }}</span>
+            <span>{{ product().saves }}</span>
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <path
                 stroke-linecap="round"
@@ -513,6 +513,7 @@
 
         <button
           type="button"
+          (click)="viewStoreProfile()"
           class="rounded-full bg-[#F3F3F3] px-4 py-2 text-[12px] font-medium text-[#777777] transition hover:bg-[#ECECEC]"
         >
           See all

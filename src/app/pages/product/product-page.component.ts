@@ -9,11 +9,20 @@ import { HomeFooterComponent } from '../../components/layout/home-footer.compone
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { Review } from '../../components/product/review-card.component';
 import { SellerReportModalComponent } from '../../components/product/seller-report-modal.component';
-import { ListingsApiItem, ListingsService } from '../../services/listings.service';
+import {
+  ListingsApiItem,
+  ListingsSearchResponse,
+  ListingsService,
+} from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { MessagesService } from '../../services/messages.service';
-import { VendorsService, VendorFollowResponse } from '../../services/vendors.service';
+import {
+  VendorsService,
+  VendorFollowResponse,
+  VendorListingRecord,
+  VendorListingsResponse,
+} from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
 
 interface ProductGalleryImage {
@@ -31,7 +40,7 @@ interface ProductDetails {
   readonly lastUpdated: string;
   readonly description: string;
   readonly condition: string;
-  readonly likes: string;
+  readonly saves: string;
   readonly deliveryOptions: readonly string[];
   readonly images: readonly ProductGalleryImage[];
 }
@@ -160,7 +169,7 @@ export class ProductPageComponent {
     description:
       'UK used iPhone 16 Pro, neatly used and fully working. Good battery health.',
     condition: 'Used',
-    likes: '1.2k',
+    saves: '0',
     deliveryOptions: ['Seller delivery', 'Nation-wide', 'Public location'],
     images: [
       {
@@ -748,13 +757,13 @@ export class ProductPageComponent {
   private async loadProductDetails(): Promise<void> {
     try {
       const record = await firstValueFrom(this.listingsService.getListingDetails(this.productId));
-      this.applyProductDetails(record);
+      await this.applyProductDetails(record);
     } catch {
       // Keep the existing fallback content when the detail request fails.
     }
   }
 
-  private applyProductDetails(record: ListingsApiItem): void {
+  private async applyProductDetails(record: ListingsApiItem): Promise<void> {
     const storeInfo = this.readRecord(record['store_info']);
     const galleryImages = this.extractGalleryImages(record);
     const productName = this.readString(record['title']) ?? this.product().name;
@@ -770,8 +779,10 @@ export class ProductPageComponent {
       this.formatCondition(record['condition']) ?? this.product().condition;
     const lastUpdated =
       this.formatDate(record['updated_at'] ?? record['created_at']) ?? this.product().lastUpdated;
-    const likes =
-      this.formatCount(record['likes_count']) ?? this.product().likes;
+    const saves =
+      this.formatCount(record['save_count']) ??
+      this.formatCount(record['saved']) ??
+      this.product().saves;
     const deliveryOptions =
       this.extractDeliveryOptions(record) ?? this.product().deliveryOptions;
     const storeName =
@@ -817,7 +828,7 @@ export class ProductPageComponent {
       lastUpdated,
       description,
       condition,
-      likes,
+      saves,
       deliveryOptions,
       images: galleryImages,
     });
@@ -860,9 +871,97 @@ export class ProductPageComponent {
       this.moreFromSeller.set(sellerListings);
     }
 
+    const storeId =
+      this.readString(storeInfo?.['id']) ??
+      this.readString(record['vendor_id']) ??
+      this.readString(record['store_id']);
+
+    if (storeId) {
+      await this.loadMoreFromSeller(storeId, this.readString(record['id']) ?? this.productId);
+    }
+
     if (relatedListings.length > 0) {
       this.relatedItems.set(relatedListings);
     }
+
+    const category = this.readString(record['category']);
+    if (category) {
+      await this.loadRelatedItems(category, this.readString(record['id']) ?? this.productId);
+    }
+  }
+
+  private async loadMoreFromSeller(storeId: string, currentListingId: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.vendorsService.getVendorListings(storeId));
+      const listings = this.extractVendorListingItems(response)
+        .map((record, index) => this.toListingCard(record, index))
+        .filter((listing): listing is Listing => listing !== null)
+        .filter((listing) => listing.id !== currentListingId)
+        .slice(0, 5);
+
+      if (listings.length > 0) {
+        this.moreFromSeller.set(listings);
+      }
+    } catch {
+      // Keep the current section state when seller listings cannot be loaded.
+    }
+  }
+
+  private async loadRelatedItems(category: string, currentListingId: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.listingsService.getCategoryListings(category));
+      const listings = this.extractSearchListingItems(response)
+        .map((record, index) => this.toListingCard(record, index))
+        .filter((listing): listing is Listing => listing !== null)
+        .filter((listing) => listing.id !== currentListingId)
+        .slice(0, 5);
+
+      if (listings.length > 0) {
+        this.relatedItems.set(listings);
+      }
+    } catch {
+      // Keep the current section state when related items cannot be loaded.
+    }
+  }
+
+  private extractVendorListingItems(response: VendorListingsResponse): readonly VendorListingRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.listings)) {
+      return response.listings;
+    }
+
+    return [];
+  }
+
+  private extractSearchListingItems(response: ListingsSearchResponse): readonly ListingsApiItem[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.listings)) {
+      return response.listings;
+    }
+
+    return [];
   }
 
   private extractGalleryImages(record: ListingsApiItem): readonly ProductGalleryImage[] {

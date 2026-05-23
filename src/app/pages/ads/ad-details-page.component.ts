@@ -2,13 +2,17 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   OnDestroy,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { map } from 'rxjs';
 import {
   heroCalendarDays,
   heroChevronLeft,
@@ -56,6 +60,14 @@ interface AdDetail {
   destinationUrl?: string;
 }
 
+interface RunningAdsQueryState {
+  placement?: 'promoted listings' | 'store promotions' | 'banner ads';
+  status?: 'active' | 'paused' | 'expired';
+  page?: number;
+}
+
+const EMPTY_RUNNING_ADS_QUERY_STATE: RunningAdsQueryState = {};
+
 @Component({
   selector: 'app-ad-details-page',
   imports: [CommonModule, RouterLink, NgIcon, NgOptimizedImage, AppChartComponent, CustomDropdownComponent],
@@ -79,7 +91,7 @@ interface AdDetail {
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
               <a
-          routerLink="/seller/ads/running"
+          routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()"
                 aria-label="Back to running ads"
                 class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
               >
@@ -123,7 +135,7 @@ interface AdDetail {
               <h2 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">{{ ad().title }}</h2>
               <span class="inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1">
                 <img [ngSrc]="bannerDetailsStatusIcon" width="14" height="14" alt="" />
-                <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">Active</span>
+                <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">{{ currentStatus() }}</span>
               </span>
             </div>
 
@@ -177,14 +189,18 @@ interface AdDetail {
                 <h3 class="text-[18px] font-semibold text-[rgba(13,13,13,0.6)]">
                   Performance Overview
                 </h3>
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 py-2 text-[12px] font-medium text-black"
-                >
-                  <img [ngSrc]="bannerDetailsCalendarIcon" width="14" height="14" alt="" />
-                  Last 7 days
-                  <img [ngSrc]="bannerDetailsArrowDownIcon" width="14" height="14" alt="" />
-                </button>
+                <app-custom-dropdown
+                  [options]="performanceRangeOptions"
+                  [value]="performanceRange()"
+                  [ariaLabel]="'Filter ad performance range'"
+                  [buttonClass]="'inline-flex items-center gap-2 rounded-[64px] border border-[#EAEAEA] bg-white px-4 py-2 text-[12px] font-medium text-black'"
+                  [labelClass]="'truncate'"
+                  [iconClass]="'text-[#777777]'"
+                  [menuClass]="'min-w-[156px]'"
+                  [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                  [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                  (valueChange)="performanceRange.set($event)"
+                ></app-custom-dropdown>
               </div>
 
               <div class="flex items-center gap-5 text-[12px] text-[#181818]">
@@ -200,7 +216,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <app-chart [config]="desktopPerformanceChartOptions" containerClass="min-h-[420px]"></app-chart>
+              <app-chart [config]="desktopPerformanceChartOptions()" containerClass="min-h-[420px]"></app-chart>
             </div>
           </section>
         </div>
@@ -209,7 +225,7 @@ interface AdDetail {
           <div class="flex items-center justify-between gap-3 py-3">
             <div class="flex items-center gap-3">
               <a
-          routerLink="/seller/ads/running"
+          routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()"
                 aria-label="Back to running ads"
                 class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
               >
@@ -317,7 +333,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <app-chart [config]="mobilePerformanceChartOptions" containerClass="min-h-[250px]"></app-chart>
+              <app-chart [config]="mobilePerformanceChartOptions()" containerClass="min-h-[250px]"></app-chart>
             </div>
           </section>
         </div>
@@ -326,7 +342,7 @@ interface AdDetail {
           <div class="flex items-center justify-between gap-3 py-3">
             <div class="flex items-center gap-3">
               <a
-          routerLink="/seller/ads/running"
+          routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()"
                 aria-label="Back to running ads"
                 class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F3F3]"
               >
@@ -427,7 +443,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <app-chart [config]="mobilePerformanceChartOptions" containerClass="min-h-[250px]"></app-chart>
+              <app-chart [config]="mobilePerformanceChartOptions()" containerClass="min-h-[250px]"></app-chart>
             </div>
           </section>
         </div>
@@ -435,7 +451,7 @@ interface AdDetail {
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-3">
             <a
-          routerLink="/seller/ads/running"
+          routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()"
               aria-label="Back to running ads"
               class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
             >
@@ -459,7 +475,7 @@ interface AdDetail {
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#9E9E9E]">
         <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -491,10 +507,10 @@ interface AdDetail {
                   <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">
                     {{ ad().title }}
                   </h1>
-                  <span class="inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1">
-                    <img [ngSrc]="bannerDetailsStatusIcon" width="14" height="14" alt="" />
-                    <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">Active</span>
-                  </span>
+              <span class="inline-flex items-center gap-1 rounded-[8px] bg-[#F3FBF9] px-2 py-1">
+                <img [ngSrc]="bannerDetailsStatusIcon" width="14" height="14" alt="" />
+                <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">{{ currentStatus() }}</span>
+              </span>
                 </div>
               </div>
 
@@ -580,7 +596,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-6">
-              <app-chart [config]="desktopPerformanceChartOptions" containerClass="min-h-[420px]"></app-chart>
+              <app-chart [config]="desktopPerformanceChartOptions()" containerClass="min-h-[420px]"></app-chart>
             </div>
           </section>
         </div>
@@ -591,7 +607,7 @@ interface AdDetail {
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#959595]">
         <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -715,7 +731,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <app-chart [config]="desktopWidePerformanceChartOptions" containerClass="min-h-[430px]"></app-chart>
+              <app-chart [config]="desktopWidePerformanceChartOptions()" containerClass="min-h-[430px]"></app-chart>
             </div>
           </section>
         </div>
@@ -726,7 +742,7 @@ interface AdDetail {
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#959595]">
         <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -885,7 +901,7 @@ interface AdDetail {
             </div>
 
             <div class="mt-4">
-              <app-chart [config]="desktopWidePerformanceChartOptions" containerClass="min-h-[430px]"></app-chart>
+              <app-chart [config]="desktopWidePerformanceChartOptions()" containerClass="min-h-[430px]"></app-chart>
             </div>
           </section>
         </div>
@@ -896,7 +912,7 @@ interface AdDetail {
           <nav class="flex items-center gap-2 text-[14px] font-medium leading-5 text-[#9E9E9E]">
         <a routerLink="/seller/ads" class="transition-colors hover:text-[#6B5CF0]">Ads</a>
             <span>/</span>
-        <a routerLink="/seller/ads/running" class="transition-colors hover:text-[#6B5CF0]"
+        <a routerLink="/seller/ads/running" [queryParams]="runningAdsQueryParams()" class="transition-colors hover:text-[#6B5CF0]"
               >Running Ads</a
             >
             <span>/</span>
@@ -1108,6 +1124,7 @@ interface AdDetail {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdDetailsPageComponent implements OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly sellerMonetizationService = inject(SellerMonetizationService);
@@ -1130,32 +1147,28 @@ export class AdDetailsPageComponent implements OnDestroy {
   readonly bannerDetailsInfoCircleIcon = 'assets/icons/banner-details-info-circle.svg';
   readonly bannerDetailsCalendarIcon = 'assets/icons/banner-details-calendar.svg';
   readonly bannerDetailsArrowDownIcon = 'assets/icons/banner-details-arrow-down.svg';
-  readonly mobilePerformanceChartOptions: AppChartOptions = createPerformanceLineChartOptions(
-    250,
-    true,
-    '#6453D9',
-    '#F4C12B',
-  );
-  readonly desktopPerformanceChartOptions: AppChartOptions = createPerformanceLineChartOptions(
-    420,
-    false,
-    '#7A6AF1',
-    '#F5C23A',
-  );
-  readonly desktopWidePerformanceChartOptions: AppChartOptions = createPerformanceLineChartOptions(
-    430,
-    false,
-    '#6453D9',
-    '#FACD38',
-  );
   readonly performanceRange = signal<AdPerformanceRange>('7d');
   readonly performanceRangeOptions: readonly CustomDropdownOption<AdPerformanceRange>[] = [
     { value: '7d', label: 'Last 7 days' },
     { value: '30d', label: 'Last 30 days' },
     { value: '90d', label: 'Last 90 days' },
   ];
+  readonly performanceRangeLabel = computed(() => {
+    switch (this.performanceRange()) {
+      case '30d':
+        return 'Last 30 days';
+      case '90d':
+        return 'Last 90 days';
+      default:
+        return 'Last 7 days';
+    }
+  });
 
-  readonly adId = signal(this.route.snapshot.paramMap.get('id') ?? 'other-1');
+  readonly adId = toSignal(
+    this.route.paramMap.pipe(map((params) => params.get('id') ?? 'other-1')),
+    { initialValue: this.route.snapshot.paramMap.get('id') ?? 'other-1' },
+  );
+  readonly runningAdsQueryState = signal<RunningAdsQueryState>(EMPTY_RUNNING_ADS_QUERY_STATE);
   readonly backendAd = signal<SellerAdRecord | null>(null);
   readonly adAnalytics = signal<AdAnalyticsResponse | null>(null);
   readonly isMenuOpen = signal(false);
@@ -1383,17 +1396,62 @@ export class AdDetailsPageComponent implements OnDestroy {
     if (backendAd) {
       return this.mapBackendAd(backendAd);
     }
-    return this.adMap[this.adId()] ?? this.adMap['other-1'];
+
+    return this.resolveFallbackAd(this.adId());
   });
   readonly currentStatus = signal<AdDetail['status']>('Active');
   readonly currentDestinationUrl = computed(
     () => this.destinationUrlOverrides()[this.adId()] ?? this.ad().destinationUrl ?? '',
   );
+  readonly runningAdsQueryParams = computed(() => {
+    const state = this.runningAdsQueryState() ?? EMPTY_RUNNING_ADS_QUERY_STATE;
+    return {
+      placement: state.placement,
+      status: state.status,
+      page: state.page,
+    };
+  });
   readonly bannerImageSrc = computed(() => this.ad().image || this.bannerHeroImage);
+  readonly mobilePerformanceChartOptions = computed(() =>
+    this.buildPerformanceChartOptions(250, true, '#6453D9', '#F4C12B'),
+  );
+  readonly desktopPerformanceChartOptions = computed(() =>
+    this.buildPerformanceChartOptions(420, false, '#7A6AF1', '#F5C23A'),
+  );
+  readonly desktopWidePerformanceChartOptions = computed(() =>
+    this.buildPerformanceChartOptions(430, false, '#6453D9', '#FACD38'),
+  );
 
   constructor() {
-    this.currentStatus.set(this.ad().status);
-    this.loadAdData();
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const placement = params.get('placement');
+        const status = params.get('status');
+        const pageValue = Number(params.get('page') ?? '1');
+
+        this.runningAdsQueryState.set({
+          placement:
+            placement === 'promoted listings' ||
+            placement === 'store promotions' ||
+            placement === 'banner ads'
+              ? placement
+              : undefined,
+          status:
+            status === 'active' || status === 'paused' || status === 'expired'
+              ? status
+              : undefined,
+          page: Number.isFinite(pageValue) && pageValue > 0 ? Math.floor(pageValue) : undefined,
+        });
+      });
+
+    effect(() => {
+      const adId = this.adId();
+      this.backendAd.set(null);
+      this.adAnalytics.set(null);
+      this.currentStatus.set(this.resolveFallbackAd(adId).status);
+      this.loadAdData(adId);
+    });
   }
 
   ngOnDestroy(): void {
@@ -1510,8 +1568,8 @@ export class AdDetailsPageComponent implements OnDestroy {
     });
   }
 
-  private loadAdData(): void {
-    const numericId = Number(this.adId());
+  private loadAdData(adId: string): void {
+    const numericId = Number(adId);
     if (!Number.isFinite(numericId)) {
       return;
     }
@@ -1547,6 +1605,28 @@ export class AdDetailsPageComponent implements OnDestroy {
     }
   }
 
+  private resolveFallbackAd(adId: string): AdDetail {
+    if (/^\d+$/.test(adId)) {
+      return {
+        id: adId,
+        kind: 'banner',
+        title: 'Loading ad details',
+        status: 'Active',
+        expiresOn: '',
+        noticePrefix: 'Your ad details are loading',
+        image: this.bannerHeroImage,
+        destinationUrl: '',
+        metrics: [
+          { label: 'Total views', value: '0' },
+          { label: 'Total clicks', value: '0' },
+          { label: 'CTR', value: '0%', info: true },
+        ],
+      };
+    }
+
+    return this.adMap[adId] ?? this.adMap['other-1'];
+  }
+
   private mapBackendAd(ad: SellerAdRecord): AdDetail {
     const mappedStatus = this.mapStatusLabel(ad.status);
     const analytics = this.adAnalytics();
@@ -1571,17 +1651,17 @@ export class AdDetailsPageComponent implements OnDestroy {
     if (ad.ad_type === 'store') {
       return {
         id: String(ad.id),
-        kind: 'banner',
+        kind: 'store',
         title: ad.promoted_store_name || ad.title,
         status: mappedStatus,
         image: ad.image ?? ad.promoted_store_image ?? undefined,
-        destinationUrl: ad.link || '',
         expiresOn: this.formatDate(ad.end_date),
         noticePrefix: 'Your store promotion will be promoted across Duduzili',
+        activeListings: 'Promoted store',
         metrics: [
           { label: 'Total views', value: this.formatMetricNumber(analytics?.summary.total_views ?? ad.total_views) },
           { label: 'Total clicks', value: this.formatMetricNumber(analytics?.summary.total_clicks ?? ad.total_clicks) },
-          { label: 'CTR', value: analytics?.summary.ctr ?? this.computeCtr(ad.total_views, ad.total_clicks), info: true },
+          { label: 'Listings viewed', value: this.formatMetricNumber(analytics?.summary.total_clicks ?? ad.total_clicks) },
         ],
       };
     }
@@ -1641,5 +1721,57 @@ export class AdDetailsPageComponent implements OnDestroy {
       return '0%';
     }
     return `${((clicks / views) * 100).toFixed(1)}%`;
+  }
+
+  private buildPerformanceChartOptions(
+    height: number,
+    compact: boolean,
+    primary: string,
+    secondary: string,
+  ): AppChartOptions {
+    const fallback = createPerformanceLineChartOptions(height, compact, primary, secondary);
+    const dailyStats = this.adAnalytics()?.daily_stats ?? {};
+    const entries = Object.entries(dailyStats)
+      .map(([date, values]) => ({
+        date,
+        views: values.views ?? 0,
+        clicks: values.clicks ?? 0,
+      }))
+      .sort((left, right) => left.date.localeCompare(right.date));
+
+    if (entries.length === 0) {
+      return fallback;
+    }
+
+    const pointLimit =
+      this.performanceRange() === '90d' ? 90 : this.performanceRange() === '30d' ? 30 : 7;
+    const filteredEntries = entries.slice(-pointLimit);
+    const categories = filteredEntries.map((entry) =>
+      new Intl.DateTimeFormat('en-NG', {
+        day: 'numeric',
+        month: filteredEntries.length > 31 ? 'short' : 'numeric',
+      }).format(new Date(entry.date)),
+    );
+    const viewSeries = filteredEntries.map((entry) => entry.views);
+    const clickSeries = filteredEntries.map((entry) => entry.clicks);
+    const maxValue = Math.max(...viewSeries, ...clickSeries, 1);
+
+    return {
+      ...fallback,
+      series: [
+        { name: 'Views', data: viewSeries },
+        { name: 'Clicks', data: clickSeries },
+      ],
+      xaxis: {
+        ...(fallback.xaxis ?? {}),
+        categories,
+      },
+      yaxis: {
+        ...(Array.isArray(fallback.yaxis) ? fallback.yaxis[0] : fallback.yaxis ?? {}),
+        min: 0,
+        max: Math.max(5, Math.ceil(maxValue * 1.15)),
+        tickAmount: 4,
+      },
+    };
   }
 }
