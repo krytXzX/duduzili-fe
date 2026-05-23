@@ -9,7 +9,11 @@ import { HomeFooterComponent } from '../../components/layout/home-footer.compone
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { Review } from '../../components/product/review-card.component';
 import { SellerReportModalComponent } from '../../components/product/seller-report-modal.component';
-import { ListingsApiItem, ListingsService } from '../../services/listings.service';
+import {
+  ListingsApiItem,
+  ListingsSearchResponse,
+  ListingsService,
+} from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { MessagesService } from '../../services/messages.service';
@@ -877,6 +881,11 @@ export class ProductPageComponent {
     if (relatedListings.length > 0) {
       this.relatedItems.set(relatedListings);
     }
+
+    const category = this.readString(record['category']);
+    if (category) {
+      await this.loadRelatedItems(category, this.readString(record['id']) ?? this.productId);
+    }
   }
 
   private async loadMoreFromSeller(storeId: string, currentListingId: string): Promise<void> {
@@ -896,7 +905,44 @@ export class ProductPageComponent {
     }
   }
 
+  private async loadRelatedItems(category: string, currentListingId: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.listingsService.getCategoryListings(category));
+      const listings = this.extractSearchListingItems(response)
+        .map((record, index) => this.toListingCard(record, index))
+        .filter((listing): listing is Listing => listing !== null)
+        .filter((listing) => listing.id !== currentListingId)
+        .slice(0, 5);
+
+      if (listings.length > 0) {
+        this.relatedItems.set(listings);
+      }
+    } catch {
+      // Keep the current section state when related items cannot be loaded.
+    }
+  }
+
   private extractVendorListingItems(response: VendorListingsResponse): readonly VendorListingRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.listings)) {
+      return response.listings;
+    }
+
+    return [];
+  }
+
+  private extractSearchListingItems(response: ListingsSearchResponse): readonly ListingsApiItem[] {
     if (Array.isArray(response)) {
       return response;
     }
