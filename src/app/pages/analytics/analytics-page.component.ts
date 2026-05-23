@@ -32,6 +32,14 @@ interface StoreAvatar {
   alt: string;
 }
 
+interface AggregateAnalyticsTotals {
+  totalListings: number;
+  totalViews: number;
+  totalSaves: number;
+  active: number;
+  sold: number;
+}
+
 type AnalyticsRange = '7d' | '30d' | '90d';
 type AnalyticsStoreFilter = string;
 
@@ -440,6 +448,7 @@ export class AnalyticsPageComponent {
   readonly stores = signal<readonly StoreAvatar[]>([
     { id: 'all', src: '/assets/images/analytics-store-avatar-1.png', alt: 'All stores' },
   ]);
+  readonly backendStoreIds = signal<readonly string[]>([]);
   readonly analyticsTotals = signal({
     totalListings: 108,
     totalViews: 750000,
@@ -517,6 +526,7 @@ export class AnalyticsPageComponent {
       const response = await firstValueFrom(this.vendorsService.getMyStores());
       const stores = this.extractStores(response);
       const mappedStores = stores.map((store, index) => this.toStoreAvatar(store, index));
+      this.backendStoreIds.set(mappedStores.map((store) => store.id));
       this.stores.set([
         { id: 'all', src: '/assets/images/analytics-store-avatar-1.png', alt: 'All stores' },
         ...mappedStores,
@@ -552,11 +562,36 @@ export class AnalyticsPageComponent {
   protected async onStoreFilterChange(storeId: AnalyticsStoreFilter): Promise<void> {
     this.selectedStoreFilter.set(storeId);
 
-    if (!this.appMode.isBackendEnabled() || storeId === 'all') {
+    if (!this.appMode.isBackendEnabled()) {
+      return;
+    }
+
+    if (storeId === 'all') {
+      await this.loadAllStoresAnalytics();
       return;
     }
 
     await this.loadVendorAnalytics(storeId);
+  }
+
+  private async loadAllStoresAnalytics(): Promise<void> {
+    const storeIds = this.backendStoreIds();
+    if (!storeIds.length) {
+      return;
+    }
+
+    this.isLoading.set(true);
+
+    try {
+      const responses = await Promise.all(
+        storeIds.map((storeId) => firstValueFrom(this.vendorsService.getVendorAnalytics(storeId))),
+      );
+      this.applyAggregateAnalytics(responses);
+    } catch {
+      // Keep the existing presentation fallback values on load failure.
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   private applyAnalytics(record: VendorAnalyticsRecord): void {
@@ -583,6 +618,60 @@ export class AnalyticsPageComponent {
       totalViews > 0
         ? `This store has been viewed ${this.formatInteger(totalViews)} times`
         : 'This store has no recorded views yet',
+    );
+  }
+
+  private applyAggregateAnalytics(records: readonly VendorAnalyticsRecord[]): void {
+    const totals = records.reduce<AggregateAnalyticsTotals>(
+      (summary, record) => {
+        const totalListings = this.readNumber(record['total_listings']) ?? 0;
+        const totalViews = this.readNumber(record['total_views']) ?? 0;
+        const totalSaves = this.readNumber(record['total_saves']) ?? 0;
+        const distribution = this.readRecord(record['distribution']);
+        const active = this.readNumber(distribution?.['active']) ?? 0;
+        const sold = this.readNumber(distribution?.['sold']) ?? 0;
+
+        return {
+          totalListings: summary.totalListings + totalListings,
+          totalViews: summary.totalViews + totalViews,
+          totalSaves: summary.totalSaves + totalSaves,
+          active: summary.active + active,
+          sold: summary.sold + sold,
+        };
+      },
+      {
+        totalListings: 0,
+        totalViews: 0,
+        totalSaves: 0,
+        active: 0,
+        sold: 0,
+      },
+    );
+
+    const richestRecord = records.reduce<VendorAnalyticsRecord | null>((selected, record) => {
+      const selectedViews = selected ? (this.readNumber(selected['total_views']) ?? -1) : -1;
+      const currentViews = this.readNumber(record['total_views']) ?? -1;
+      return currentViews > selectedViews ? record : selected;
+    }, null);
+    const mostViewed = this.readRecord(richestRecord?.['most_viewed']);
+
+    this.analyticsTotals.set({
+      totalListings: totals.totalListings,
+      totalViews: totals.totalViews,
+      totalSaves: totals.totalSaves,
+    });
+    this.analyticsDistribution.set({
+      active: totals.active,
+      sold: totals.sold,
+    });
+    this.mostViewedTitle.set(this.readString(mostViewed?.['title']) ?? 'No listings yet');
+    this.mostViewedImage.set(
+      this.resolveMediaUrl(this.readString(mostViewed?.['url'])) ?? this.assets.mostViewedImage,
+    );
+    this.mostViewedViewsText.set(
+      totals.totalViews > 0
+        ? `Your stores have been viewed ${this.formatInteger(totals.totalViews)} times`
+        : 'Your stores have no recorded views yet',
     );
   }
 
