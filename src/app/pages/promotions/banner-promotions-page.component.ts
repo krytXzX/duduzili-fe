@@ -184,10 +184,10 @@ interface BannerPromotion {
                 />
               </div>
               <h2 class="text-[18px] font-semibold leading-tight tracking-[-0.03em] text-[#202335]">
-                No {{ activeTab() }} banners yet
+                {{ filteredEmptyTitle() }}
               </h2>
               <p class="mt-2 text-[13px] text-[#A1A5B0]">
-                Switch tabs or promote a new banner to populate this section.
+                {{ filteredEmptyDescription() }}
               </p>
             </div>
           </div>
@@ -375,10 +375,10 @@ interface BannerPromotion {
               >
                 <div>
                   <h2 class="text-[19px] font-bold text-[#1A1C21]">
-                    No {{ activeTab() }} banners yet
+                    {{ filteredEmptyTitle() }}
                   </h2>
                   <p class="mt-2 text-[13px] font-medium text-[#8A8F98]">
-                    Switch tabs or promote a new banner to populate this section.
+                    {{ filteredEmptyDescription() }}
                   </p>
                 </div>
               </div>
@@ -639,6 +639,22 @@ export class BannerPromotionsPageComponent {
       return;
     }
     this.currentPage.update((page) => page + 1);
+  }
+
+  filteredEmptyTitle(): string {
+    if (this.activeTab() === 'all') {
+      return 'You don’t have any running banner promotions';
+    }
+
+    return `No ${this.activeTab()} banners yet`;
+  }
+
+  filteredEmptyDescription(): string {
+    if (this.activeTab() === 'all') {
+      return 'Create a new banner promotion to get started.';
+    }
+
+    return 'Try clearing filters or switch tabs to view other banner promotions.';
   }
 
   private mapApiStatus(
