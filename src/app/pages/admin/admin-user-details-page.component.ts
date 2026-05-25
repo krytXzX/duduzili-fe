@@ -353,7 +353,7 @@ interface AdminUserActivityYearGroup {
                 type="button"
                 class="flex h-8 items-center gap-1.5 rounded-[8px] bg-white px-2 text-left text-[14px] font-medium leading-5 text-[#FF2524]"
                 role="menuitem"
-                (click)="deactivateUser()"
+                (click)="handlePrimaryUserAction()"
               >
                 <img
                   ngSrc="/assets/icons/admin-user-details/menu-slash.svg"
@@ -363,7 +363,7 @@ interface AdminUserActivityYearGroup {
                   class="h-[14px] w-[14px] shrink-0"
                   aria-hidden="true"
                 />
-                Deactivate user
+                {{ primaryUserActionLabel() }}
               </button>
 
               <button
@@ -1532,7 +1532,7 @@ interface AdminUserActivityYearGroup {
               >
                 <button
                   type="button"
-                  (click)="deactivateUser()"
+                  (click)="handlePrimaryUserAction()"
                   class="flex h-8 w-full items-center gap-1.5 rounded-[8px] bg-white px-2 text-left text-[14px] font-medium leading-5 text-[#FF2524]"
                 >
                   <img
@@ -1543,7 +1543,7 @@ interface AdminUserActivityYearGroup {
                     class="h-[14px] w-[14px] shrink-0"
                     aria-hidden="true"
                   />
-                  Deactivate user
+                  {{ primaryUserActionLabel() }}
                 </button>
                 <button
                   type="button"
@@ -5856,6 +5856,49 @@ export class AdminUserDetailsPageComponent {
         this.toast.show({ message: 'We could not suspend that user right now.' });
       },
     });
+  }
+
+  activateUser(): void {
+    this.isMobileUserActionsOpen.set(false);
+    this.isUserActionsOpen.set(false);
+    const userId = this.userId();
+    if (!userId) {
+      return;
+    }
+
+    this.adminUserDetailsService.activateUser(userId).subscribe({
+      next: () => {
+        this.userStatusOverride.set('active');
+        this.userDetailResponse.update((current) =>
+          current ? { ...current, is_active: true, is_banned: false } : current,
+        );
+        this.toast.show({ message: 'User activated successfully.' });
+      },
+      error: () => {
+        this.toast.show({ message: 'We could not activate that user right now.' });
+      },
+    });
+  }
+
+  protected primaryUserActionLabel(): string {
+    switch (this.user().status) {
+      case 'active':
+        return 'Deactivate user';
+      case 'banned':
+        return 'Unban user';
+      case 'suspended':
+      default:
+        return 'Activate user';
+    }
+  }
+
+  handlePrimaryUserAction(): void {
+    if (this.user().status === 'active') {
+      this.deactivateUser();
+      return;
+    }
+
+    this.activateUser();
   }
 
   banUser(): void {
