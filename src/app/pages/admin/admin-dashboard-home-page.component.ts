@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
 import {
   AdminDashboardService,
@@ -51,7 +52,11 @@ interface PaymentItem extends AdminHomePayment {
                 </div>
 
                 @for (item of todayTodoItems(); track item.id) {
-                  <div class="flex items-start gap-4 py-4">
+                  <button
+                    type="button"
+                    (click)="goToTodoItem(item)"
+                    class="flex w-full items-start gap-4 rounded-[18px] py-4 text-left transition hover:bg-[#F7F8FA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]"
+                  >
                     <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#E8EAF0] bg-white text-[#666B75]">
                       @if (item.icon === 'banner') {
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -72,7 +77,7 @@ interface PaymentItem extends AdminHomePayment {
                         <span class="text-[13px] font-medium text-[#8E9199]">From {{ item.sender }}</span>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 }
 
                 @if (yesterdayTodoItems().length > 0) {
@@ -82,7 +87,11 @@ interface PaymentItem extends AdminHomePayment {
                   </div>
 
                   @for (item of yesterdayTodoItems(); track item.id) {
-                    <div class="flex items-start gap-4 py-4 last:pb-0">
+                    <button
+                      type="button"
+                      (click)="goToTodoItem(item)"
+                      class="flex w-full items-start gap-4 rounded-[18px] py-4 text-left transition hover:bg-[#F7F8FA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9] last:pb-0"
+                    >
                       <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#E8EAF0] bg-white text-[#666B75]">
                         @if (item.icon === 'banner') {
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -103,7 +112,7 @@ interface PaymentItem extends AdminHomePayment {
                           <span class="text-[13px] font-medium text-[#8E9199]">From {{ item.sender }}</span>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   }
                 }
               }
@@ -124,7 +133,11 @@ interface PaymentItem extends AdminHomePayment {
                   {{ earningsChangeLabel() }}
                 </span>
               </div>
-              <button type="button" class="text-[15px] font-medium text-[#1A1C21] underline underline-offset-4">
+              <button
+                type="button"
+                (click)="goToSubscriptionTransactions()"
+                class="text-[15px] font-medium text-[#1A1C21] underline underline-offset-4"
+              >
                 See details
               </button>
             </div>
@@ -143,7 +156,11 @@ interface PaymentItem extends AdminHomePayment {
           <section class="rounded-[26px] bg-[#FAFAFB] p-5">
             <div class="flex items-center justify-between gap-4">
               <h3 class="text-[16px] font-semibold tracking-[-0.03em] text-[#1A1C21]">Subscription payments</h3>
-              <button type="button" class="text-[15px] font-medium text-[#1A1C21] underline underline-offset-4">
+              <button
+                type="button"
+                (click)="goToSubscriptionTransactions()"
+                class="text-[15px] font-medium text-[#1A1C21] underline underline-offset-4"
+              >
                 View all
               </button>
             </div>
@@ -153,7 +170,11 @@ interface PaymentItem extends AdminHomePayment {
                 <p class="py-8 text-[14px] font-medium text-[#8E9199]">No subscription payments yet.</p>
               } @else {
                 @for (payment of payments(); track payment.id) {
-                  <div class="flex items-center justify-between gap-4 py-4">
+                  <button
+                    type="button"
+                    (click)="goToSubscriptionTransactions()"
+                    class="flex w-full items-center justify-between gap-4 rounded-[18px] py-4 text-left transition hover:bg-[#F7F8FA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]"
+                  >
                     <div class="flex min-w-0 items-center gap-3">
                       <span
                         class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold text-[#1A1C21]"
@@ -174,7 +195,7 @@ interface PaymentItem extends AdminHomePayment {
                       </div>
                     </div>
                     <p class="text-[16px] font-semibold text-[#1A1C21]">{{ payment.formattedAmount }}</p>
-                  </div>
+                  </button>
                 }
               }
             </div>
@@ -195,7 +216,11 @@ interface PaymentItem extends AdminHomePayment {
                 </div>
 
                 @for (activity of todayActivities(); track activity.id) {
-                  <div class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-4">
+                  <button
+                    type="button"
+                    (click)="goToActivity(activity)"
+                    class="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-[18px] py-4 text-left transition hover:bg-[#F7F8FA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]"
+                  >
                     <span class="flex h-7 w-7 items-center justify-center rounded-full border border-[#E8EAF0] bg-white text-[#B6BAC2]">
                       @switch (activity.icon) {
                         @case ('kyc') {
@@ -214,7 +239,7 @@ interface PaymentItem extends AdminHomePayment {
                       <span class="font-semibold text-[#1A1C21]">{{ activity.actor }}</span>
                     </p>
                     <span class="text-[14px] font-medium text-[#8E9199]">{{ activity.time_ago }}</span>
-                  </div>
+                  </button>
                 }
 
                 @if (previousActivities().length > 0) {
@@ -224,7 +249,11 @@ interface PaymentItem extends AdminHomePayment {
                   </div>
 
                   @for (activity of previousActivities(); track activity.id) {
-                    <div class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-4">
+                    <button
+                      type="button"
+                      (click)="goToActivity(activity)"
+                      class="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-[18px] py-4 text-left transition hover:bg-[#F7F8FA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]"
+                    >
                       <span class="flex h-7 w-7 items-center justify-center rounded-full border border-[#E8EAF0] bg-white text-[#B6BAC2]">
                         @if (activity.icon === 'listing') {
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4.75A1.75 1.75 0 015.75 3h8.5A1.75 1.75 0 0116 4.75v10.5A1.75 1.75 0 0114.25 17h-8.5A1.75 1.75 0 014 15.25V4.75zM5.75 4.5a.25.25 0 00-.25.25v10.5c0 .138.112.25.25.25h8.5a.25.25 0 00.25-.25V4.75a.25.25 0 00-.25-.25h-8.5z"/><path d="M6.5 7.25a.75.75 0 010-1.5h7a.75.75 0 010 1.5h-7zm0 3a.75.75 0 010-1.5h7a.75.75 0 010 1.5h-7zm0 3a.75.75 0 010-1.5h4a.75.75 0 010 1.5h-4z"/></svg>
@@ -237,7 +266,7 @@ interface PaymentItem extends AdminHomePayment {
                         <span class="font-semibold text-[#1A1C21]">{{ activity.actor }}</span>
                       </p>
                       <span class="text-[14px] font-medium text-[#8E9199]">{{ activity.time_ago }}</span>
-                    </div>
+                    </button>
                   }
                 }
               }
@@ -252,6 +281,7 @@ interface PaymentItem extends AdminHomePayment {
 export class AdminDashboardHomePageComponent {
   private readonly adminDashboardService = inject(AdminDashboardService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
   private readonly dashboard = signal<AdminHomeDashboardResponse | null>(null);
 
   readonly displayName = computed(() => this.dashboard()?.admin_user.display_name ?? 'Admin');
@@ -432,5 +462,31 @@ export class AdminDashboardHomePageComponent {
     ];
     const seed = Array.from(initials).reduce((sum, character) => sum + character.charCodeAt(0), 0);
     return palette[seed % palette.length];
+  }
+
+  protected goToTodoItem(item: AdminHomeTodoItem): void {
+    const target = item.icon === 'banner' ? '/admin/ads/approvals' : '/admin/kyc-requests';
+    void this.router.navigateByUrl(target);
+  }
+
+  protected goToSubscriptionTransactions(): void {
+    void this.router.navigateByUrl('/admin/ads/transactions');
+  }
+
+  protected goToActivity(activity: AdminHomeActivity): void {
+    void this.router.navigateByUrl(this.resolveActivityRoute(activity));
+  }
+
+  private resolveActivityRoute(activity: AdminHomeActivity): string {
+    switch (activity.icon) {
+      case 'kyc':
+        return '/admin/kyc-requests';
+      case 'signup':
+        return '/admin/users';
+      case 'listing':
+        return '/admin/listings';
+      default:
+        return '/admin/audit-log';
+    }
   }
 }
