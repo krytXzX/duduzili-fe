@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { StoreCardComponent, type Store } from '../../components/stores/store-card.component';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
@@ -18,22 +19,28 @@ import {
   heroEllipsisHorizontal,
   heroMagnifyingGlass,
 } from '@ng-icons/heroicons/outline';
+import { AppToastService } from '../../services/app-toast.service';
+import {
+  AdminUserActivitiesResponse,
+  AdminUserAdRecord,
+  AdminUserAdsResponse,
+  AdminUserDetailChartPoint,
+  AdminUserDetailResponse,
+  AdminUserDetailsService,
+  AdminUserListingRecord,
+  AdminUserListingsResponse,
+  AdminUserReportRecord,
+  AdminUserReviewRecord,
+  AdminUserReviewsResponse,
+  AdminUserStoreRecord,
+  AdminUserTransactionRecord,
+  AdminUserTransactionsResponse,
+} from '../../services/admin-user-details.service';
 
 type AdminUserDetailStatus = 'active' | 'suspended';
 type AdminManagedListingStatus = 'available' | 'sold' | 'draft' | 'paused';
-type AdminManagedListingCategory =
-  | 'all'
-  | 'phones-laptops'
-  | 'electronics'
-  | 'mens-fashion'
-  | 'womens-fashion'
-  | 'automobiles';
-type AdminManagedListingStore =
-  | 'all'
-  | 'vine'
-  | 'eden'
-  | 'amazing'
-  | 'personal';
+type AdminManagedListingCategory = 'all' | string;
+type AdminManagedListingStore = 'all' | string;
 type AdminManagedAdStatus = 'active' | 'paused' | 'expired';
 type AdminManagedBannerStatus =
   | 'active'
@@ -56,12 +63,12 @@ type AdminManagedPromotedListingPriceDisplay = 'naira-icon' | 'strikethrough-n' 
 type MobilePromotedStore = Store & { status: AdminManagedAdStatus };
 type AdminUserTransactionStatus = 'successful' | 'failed';
 type AdminUserTransactionType = 'all' | 'wallet funding' | 'subscription payment';
-type AdminUserTransactionDate = 'all' | 'feb-2025' | 'mar-2025';
+type AdminUserTransactionDate = 'all' | string;
 type AdminUserReportTab = 'profile' | 'listing';
 type AdminUserOverviewRange = 'last-7-days' | 'last-30-days' | 'last-90-days';
-type AdminUserListingReportCategory = 'all' | 'phones-laptops' | 'accessories' | 'beauty';
-type AdminUserListingReportStore = 'all' | 'vine' | 'eden' | 'personal';
-type AdminUserListingReportStatus = 'all' | 'pending' | 'under-review' | 'resolved';
+type AdminUserListingReportCategory = 'all' | string;
+type AdminUserListingReportStore = 'all' | string;
+type AdminUserListingReportStatus = 'all' | string;
 type AdminUserDetailsTab =
   | 'overview'
   | 'listings'
@@ -94,17 +101,17 @@ interface AdminManagedListing {
   id: string;
   name: string;
   thumbnail: string;
-  categoryKey: Exclude<AdminManagedListingCategory, 'all'>;
+  categoryKey: string;
   categoryLabel: string;
   price: string;
-  storeKey: Exclude<AdminManagedListingStore, 'all'>;
+  storeKey: string;
   storeName: string;
   storeBackground: string;
   status: AdminManagedListingStatus;
   boosted: boolean;
 }
 
-type MobileAdminListingStatus = 'available' | 'sold' | 'draft' | 'suspended';
+type MobileAdminListingStatus = 'available' | 'sold' | 'draft' | 'paused' | 'suspended';
 
 interface MobileAdminListing {
   id: string;
@@ -129,6 +136,12 @@ interface AdminManagedPromotionListing {
   placement: AdminManagedAdPlacement;
   category: AdminManagedAdCategory;
   image: string;
+  imageFit?: 'cover' | 'contain';
+  imageBackground?: string;
+  showImageGradient?: boolean;
+  showImageDots?: boolean;
+  imageControlMode?: 'both' | 'right';
+  priceDisplay?: AdminManagedPromotedListingPriceDisplay;
 }
 
 interface AdminManagedPromotedListingCard {
@@ -219,14 +232,14 @@ interface AdminListingReport {
   id: string;
   listingName: string;
   listingImage: string;
-  categoryKey: Exclude<AdminUserListingReportCategory, 'all'>;
+  categoryKey: string;
   storeName: string;
-  storeKey: Exclude<AdminUserListingReportStore, 'all'>;
+  storeKey: string;
   storeIcon: string;
   reporterName: string;
   reporterEmail: string;
   reporterAvatar: string;
-  status: Exclude<AdminUserListingReportStatus, 'all'>;
+  status: string;
   description: string;
 }
 
@@ -465,17 +478,17 @@ interface AdminUserActivityYearGroup {
                   class="h-3 w-3"
                   aria-hidden="true"
                 />
-                28% vs last month
+                {{ overviewGrowthLabel() }}
               </span>
             </div>
 
             <div class="mt-8 overflow-hidden">
               <div class="relative h-[172px] min-w-[520px]">
-                <div class="absolute left-0 top-0 text-[10px] text-[#0D0D0D]/40">500</div>
-                <div class="absolute left-0 top-[76px] text-[10px] text-[#0D0D0D]/40">250</div>
+                <div class="absolute left-0 top-0 text-[10px] text-[#0D0D0D]/40">{{ overviewChartScaleMax() }}</div>
+                <div class="absolute left-0 top-[76px] text-[10px] text-[#0D0D0D]/40">{{ overviewChartScaleMid() }}</div>
                 <div class="absolute bottom-[25px] left-0 text-[10px] text-[#0D0D0D]/40">0</div>
                 <div class="absolute bottom-[42px] left-[34px] flex h-[139px] items-end gap-[22px]">
-                  @for (month of mobileMonths; track month.label) {
+                  @for (month of mobileMonths(); track month.date) {
                     <div
                       class="w-4 rounded-t bg-gradient-to-b"
                       [class.from-[#6453D9]]="month.highlight"
@@ -489,15 +502,17 @@ interface AdminUserActivityYearGroup {
                   }
                 </div>
                 <div class="absolute bottom-0 left-[34px] flex gap-[19px] text-[10px] text-[#0D0D0D]/40">
-                  @for (month of mobileMonths; track month.label) {
+                  @for (month of mobileMonths(); track month.date) {
                     <span class="w-5 text-center">{{ month.label }}</span>
                   }
                 </div>
-                <div class="absolute left-[151px] top-[49px] flex h-8 items-center gap-2 rounded-[10px] bg-black px-2 text-[12px] text-white">
-                  <span class="h-1.5 w-1.5 rounded-full bg-[#6453D9]"></span>
-                  <span>Aug 2025</span>
-                  <span>128</span>
-                </div>
+                @if (overviewChartHighlight(); as chartHighlight) {
+                  <div class="absolute left-[151px] top-[49px] flex h-8 items-center gap-2 rounded-[10px] bg-black px-2 text-[12px] text-white">
+                    <span class="h-1.5 w-1.5 rounded-full bg-[#6453D9]"></span>
+                    <span>{{ chartHighlight.label }}</span>
+                    <span>{{ chartHighlight.value }}</span>
+                  </div>
+                }
               </div>
             </div>
           </section>
@@ -506,24 +521,24 @@ interface AdminUserActivityYearGroup {
             <p class="text-left text-[14px] font-medium text-[#0D0D0D]/50">Most viewed listing</p>
             <div class="mx-auto mt-[18px] w-[100px] rounded-[10px] border border-[#EAEAEA] bg-white p-0.5 shadow-[0_4.7px_4.7px_rgba(192,192,192,0.25)]">
               <div class="rounded-[8px] border border-[#EAEAEA] bg-[#EFEFEF] p-2">
-                <img
-                  ngSrc="/assets/images/admin-user-details/most-viewed-listing.png"
-                  width="82"
-                  height="82"
-                  alt="Most viewed listing"
-                  class="h-[82px] w-[82px] object-cover"
-                />
+                @if (user().mostViewedListingImage) {
+                  <img
+                    [src]="user().mostViewedListingImage"
+                    alt="Most viewed listing"
+                    width="82"
+                    height="82"
+                    class="h-[82px] w-[82px] object-cover"
+                  />
+                }
               </div>
               <div class="px-0.5 py-1 text-left">
                 <div class="flex items-center justify-between gap-1">
-                  <p class="truncate text-[6px] leading-[8.7px] text-[#1F1F1F]">Iphone 17 pro max</p>
-                  <span class="rounded-full bg-[#F0F0F0] px-1 text-[5px] font-medium leading-[7px] text-[#1F1F1F]">New</span>
+                  <p class="truncate text-[6px] leading-[8.7px] text-[#1F1F1F]">{{ user().mostViewedListingTitle }}</p>
                 </div>
-                <p class="text-[7px] font-medium leading-[10px] text-[#1F1F1F]">₦2,500,000</p>
               </div>
             </div>
             <p class="mx-auto mt-5 max-w-[246px] text-[17px] font-medium leading-[1.3] text-[#0D0D0D]/50">
-              This item has been viewed <span class="text-[#0D0D0D]">34,002</span> times
+              This item has been viewed <span class="text-[#0D0D0D]">{{ user().mostViewedListingCount }}</span> times
             </p>
           </section>
 
@@ -629,13 +644,15 @@ interface AdminUserActivityYearGroup {
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex min-w-0 items-center gap-3">
                     <div class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[6.6px] border border-[#F0F0F0] bg-[#EFEFEF]">
-                      <img
-                        [ngSrc]="listing.thumbnail"
-                        [alt]="listing.name"
-                        width="44"
-                        height="44"
-                        class="h-11 w-11 object-cover"
-                      />
+                      @if (listing.thumbnail) {
+                        <img
+                          [src]="listing.thumbnail"
+                          [alt]="listing.name"
+                          width="44"
+                          height="44"
+                          class="h-11 w-11 object-cover"
+                        />
+                      }
                     </div>
 
                     <div class="min-w-0">
@@ -711,13 +728,15 @@ interface AdminUserActivityYearGroup {
           @for (store of visibleMobileStores(); track store.id) {
             <article class="overflow-hidden rounded-[13.746px] border border-[#EAEAEA] bg-white">
               <div class="relative h-[90.5px] overflow-hidden rounded-t-[11.455px]">
-                <img
-                  [ngSrc]="store.mobileCoverImage ?? store.coverImage ?? ''"
-                  [alt]="store.name"
-                  width="173"
-                  height="90"
-                  class="h-full w-full object-cover"
-                />
+                @if (store.mobileCoverImage ?? store.coverImage; as mobileCoverImage) {
+                  <img
+                    [src]="mobileCoverImage"
+                    [alt]="store.name"
+                    width="173"
+                    height="90"
+                    class="h-full w-full object-cover"
+                  />
+                }
                 <div
                   class="absolute inset-x-0 bottom-0 h-[56px] bg-[linear-gradient(179.79deg,rgba(255,255,255,0)_0.54%,#FFFFFF_93.47%)]"
                   aria-hidden="true"
@@ -729,13 +748,17 @@ interface AdminUserActivityYearGroup {
                   class="-mt-[49px] flex h-[42.385px] w-[42.385px] items-center justify-center overflow-hidden rounded-full border-[2.291px] border-white bg-white"
                   [class.bg-[#3D785F]]="store.id === 'vine-collections'"
                 >
-                  <img
-                    [ngSrc]="store.mobileLogoImage ?? store.logoImage ?? store.logo ?? ''"
-                    [alt]="store.name + ' logo'"
-                    width="42"
-                    height="42"
-                    class="h-full w-full object-cover"
-                  />
+                  @if (store.mobileLogoImage ?? store.logoImage ?? store.logo; as mobileLogoImage) {
+                    <img
+                      [src]="mobileLogoImage"
+                      [alt]="store.name + ' logo'"
+                      width="42"
+                      height="42"
+                      class="h-full w-full object-cover"
+                    />
+                  } @else {
+                    <span class="text-[11px] font-semibold text-[#1F1F1F]">{{ storeInitials(store.name) }}</span>
+                  }
                 </div>
 
                 <div class="mt-2">
@@ -774,13 +797,12 @@ interface AdminUserActivityYearGroup {
           <section class="relative overflow-hidden rounded-[24px] bg-[#F3F1FF] px-4 pb-4 pt-4">
             <div class="relative z-10 flex items-start justify-between gap-4">
               <div>
-                <p class="text-[14px] leading-5 text-[#1F1F1F]">Pro</p>
-                <p class="mt-3 text-[0px] leading-none text-[#1F1F1F]">
-                  <span class="text-[32px] font-medium leading-8 tracking-[-0.04em]">₦1,000</span>
-                  <span class="text-[20px] font-normal leading-8 text-[#959595]">/week</span>
-                </p>
-                <p class="mt-2 text-[12px] leading-4 text-[#0D0D0D]/70">Expires on: 23 December, 2027</p>
-              </div>
+                  <p class="text-[14px] leading-5 text-[#1F1F1F]">{{ subscriptionSummary()?.planName ?? 'No active plan' }}</p>
+                  <p class="mt-3 text-[0px] leading-none text-[#1F1F1F]">
+                    <span class="text-[32px] font-medium leading-8 tracking-[-0.04em]">{{ subscriptionSummary()?.price ?? '₦0' }}</span>
+                  </p>
+                  <p class="mt-2 text-[12px] leading-4 text-[#0D0D0D]/70">Expires on: {{ subscriptionSummary()?.activeUntil ?? '—' }}</p>
+                </div>
 
               <span
                 class="inline-flex h-7 shrink-0 items-center rounded-full bg-white px-2 text-[12px] font-medium leading-5 text-[#6453D9] shadow-[0_4px_8px_rgba(188,188,188,0.25)]"
@@ -866,15 +888,17 @@ interface AdminUserActivityYearGroup {
                           [class.bg-[#BEBEBE]]="!ad.imageBackground"
                           [style.background]="ad.imageBackground ?? null"
                         >
-                          <img
-                            [ngSrc]="ad.image"
-                            [alt]="ad.title"
-                            width="167"
-                            height="159"
-                            class="h-full w-full"
-                            [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
-                            [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
-                          />
+                          @if (ad.image) {
+                            <img
+                              [src]="ad.image"
+                              [alt]="ad.title"
+                              width="167"
+                              height="159"
+                              class="h-full w-full"
+                              [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
+                              [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
+                            />
+                          }
 
                           @if (ad.showImageGradient) {
                             <div
@@ -1045,7 +1069,7 @@ interface AdminUserActivityYearGroup {
             <div class="flex items-start justify-center gap-8">
               <div class="flex flex-col items-center gap-0.5">
                 <p class="text-center text-[0px] leading-none text-[#2D2D2D]">
-                  <span class="text-[40px] font-semibold leading-[48px] tracking-[-0.04em]">4.57</span>
+                  <span class="text-[40px] font-semibold leading-[48px] tracking-[-0.04em]">{{ reviewAverage() }}</span>
                   <span class="text-[20px] font-medium leading-6 text-[#BFBFBF]">/5</span>
                 </p>
 
@@ -1060,7 +1084,7 @@ interface AdminUserActivityYearGroup {
                 <h3 class="text-[16px] font-semibold leading-6 text-[#2D2D2D]">Overall rating</h3>
 
                 <div class="mt-1 flex flex-col gap-2">
-                  @for (bar of ratingBreakdown; track bar.stars) {
+                  @for (bar of ratingBreakdown(); track bar.stars) {
                     <div class="flex items-center gap-3">
                       <span class="inline-flex min-w-[23px] items-center gap-0.5 text-[14px] leading-5 text-[#2D2D2D]">
                         {{ bar.stars }} <span class="text-[12px] text-[#D3DC35]">★</span>
@@ -1078,7 +1102,7 @@ interface AdminUserActivityYearGroup {
 
           <section class="flex flex-col gap-7">
             <div class="flex items-center justify-between gap-4">
-              <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h2>
+              <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">{{ reviewTotal() }} reviews</h2>
 
               <app-custom-dropdown
                 [options]="reviewSortOptions"
@@ -1112,7 +1136,16 @@ interface AdminUserActivityYearGroup {
                   <div class="flex flex-col gap-2">
                     <div class="flex items-center gap-2">
                       <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
-                        <img [ngSrc]="review.avatar" [alt]="review.author" width="44" height="44" class="h-11 w-11 object-cover" />
+                        @if (review.avatar) {
+                          <img [src]="review.avatar" [alt]="review.author" width="44" height="44" class="h-11 w-11 object-cover" />
+                        } @else {
+                          <span
+                            class="flex h-11 w-11 items-center justify-center rounded-full text-[12px] font-semibold text-[#1A1C21]"
+                            [style.background]="avatarGradientForLabel(review.author)"
+                          >
+                            {{ initialsFromLabel(review.author) }}
+                          </span>
+                        }
                       </div>
                       <h4 class="text-[16px] font-medium leading-6 text-[#0D0D0D]">{{ review.author }}</h4>
                     </div>
@@ -1134,7 +1167,7 @@ interface AdminUserActivityYearGroup {
                     <div class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       @for (image of review.images!; track $index) {
                         <div class="relative h-[77.898px] w-[77.898px] shrink-0 overflow-hidden rounded-[10.653px] bg-[#E9E9E9]">
-                          <img [ngSrc]="image" alt="" width="78" height="78" class="h-full w-full object-cover" />
+                          <img [src]="image" alt="" width="78" height="78" class="h-full w-full object-cover" />
 
                           @if ($last && review.moreImagesLabel) {
                             <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[11.984px] font-medium leading-4 text-white">
@@ -1198,13 +1231,17 @@ interface AdminUserActivityYearGroup {
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-2">
                       <div class="flex h-[42px] w-[42px] items-center justify-center overflow-hidden rounded-full bg-white">
-                        <img
-                          [ngSrc]="report.storeLogo"
-                          [alt]="report.storeName"
-                          width="42"
-                          height="42"
-                          class="h-[42px] w-[42px] object-cover"
-                        />
+                        @if (report.storeLogo) {
+                          <img
+                            [src]="report.storeLogo"
+                            [alt]="report.storeName"
+                            width="42"
+                            height="42"
+                            class="h-[42px] w-[42px] object-cover"
+                          />
+                        } @else {
+                          <span class="text-[12px] font-semibold text-[#1A1C21]">{{ storeInitials(report.storeName) }}</span>
+                        }
                       </div>
                       <h2 class="text-[16px] font-medium leading-5 text-[#1A1B1D]">{{ report.storeName }}</h2>
                     </div>
@@ -1214,13 +1251,22 @@ interface AdminUserActivityYearGroup {
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Reported by</dt>
                       <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
-                        <img
-                          [ngSrc]="report.reporterAvatar"
-                          [alt]="report.reporterName"
-                          width="24"
-                          height="24"
-                          class="h-6 w-6 rounded-full object-cover"
-                        />
+                        @if (report.reporterAvatar) {
+                          <img
+                            [src]="report.reporterAvatar"
+                            [alt]="report.reporterName"
+                            width="24"
+                            height="24"
+                            class="h-6 w-6 rounded-full object-cover"
+                          />
+                        } @else {
+                          <span
+                            class="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold text-[#1A1C21]"
+                            [style.background]="avatarGradientForLabel(report.reporterName)"
+                          >
+                            {{ initialsFromLabel(report.reporterName) }}
+                          </span>
+                        }
                         {{ report.reporterName }}
                       </dd>
                     </div>
@@ -1242,13 +1288,15 @@ interface AdminUserActivityYearGroup {
                 <article class="border-b border-[#EBEBEB] py-3 first:pt-0">
                   <div class="flex items-start gap-2">
                     <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[8px] border border-[#EAEAEA] bg-white">
-                        <img
-                          [ngSrc]="report.listingImage"
-                          [alt]="report.listingName"
-                          width="40"
-                          height="40"
-                          class="h-10 w-10 object-cover"
-                        />
+                        @if (report.listingImage) {
+                          <img
+                            [src]="report.listingImage"
+                            [alt]="report.listingName"
+                            width="40"
+                            height="40"
+                            class="h-10 w-10 object-cover"
+                          />
+                        }
                     </div>
                     <div class="min-w-0 flex-1 pt-0.5">
                       <h2 class="truncate text-[16px] font-medium leading-5 text-[#1A1B1D]">{{ report.listingName }}</h2>
@@ -1259,13 +1307,22 @@ interface AdminUserActivityYearGroup {
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Reported by</dt>
                       <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
-                        <img
-                          [ngSrc]="report.reporterAvatar"
-                          [alt]="report.reporterName"
-                          width="24"
-                          height="24"
-                          class="h-6 w-6 rounded-full object-cover"
-                        />
+                        @if (report.reporterAvatar) {
+                          <img
+                            [src]="report.reporterAvatar"
+                            [alt]="report.reporterName"
+                            width="24"
+                            height="24"
+                            class="h-6 w-6 rounded-full object-cover"
+                          />
+                        } @else {
+                          <span
+                            class="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold text-[#1A1C21]"
+                            [style.background]="avatarGradientForLabel(report.reporterName)"
+                          >
+                            {{ initialsFromLabel(report.reporterName) }}
+                          </span>
+                        }
                         {{ report.reporterName }}
                       </dd>
                     </div>
@@ -1273,13 +1330,17 @@ interface AdminUserActivityYearGroup {
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Store</dt>
                       <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
-                        <img
-                          [ngSrc]="report.storeIcon"
-                          [alt]="report.storeName"
-                          width="24"
-                          height="24"
-                          class="h-6 w-6 rounded-full object-cover"
-                        />
+                        @if (report.storeIcon) {
+                          <img
+                            [src]="report.storeIcon"
+                            [alt]="report.storeName"
+                            width="24"
+                            height="24"
+                            class="h-6 w-6 rounded-full object-cover"
+                          />
+                        } @else {
+                          <span class="text-[12px] font-semibold text-[#1A1C21]">{{ storeInitials(report.storeName) }}</span>
+                        }
                         {{ report.storeName }}
                       </dd>
                     </div>
@@ -1352,13 +1413,22 @@ interface AdminUserActivityYearGroup {
                             <div class="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[14px] leading-5 text-[#0D0D0D]/40">
                               <span>by</span>
                               <span class="inline-flex items-center gap-1">
-                                <img
-                                  [ngSrc]="activity.mobileActorAvatar ?? activity.actorAvatar"
-                                  [alt]="activity.actorName"
-                                  width="22"
-                                  height="22"
-                                  class="h-[22px] w-[22px] rounded-full object-cover"
-                                />
+                                @if (activity.mobileActorAvatar ?? activity.actorAvatar; as mobileActorAvatar) {
+                                  <img
+                                    [src]="mobileActorAvatar"
+                                    [alt]="activity.actorName"
+                                    width="22"
+                                    height="22"
+                                    class="h-[22px] w-[22px] rounded-full object-cover"
+                                  />
+                                } @else {
+                                  <span
+                                    class="flex h-[22px] w-[22px] items-center justify-center rounded-full text-[10px] font-semibold text-[#1A1C21]"
+                                    [style.background]="activity.actorBackground"
+                                  >
+                                    {{ activity.actorInitials }}
+                                  </span>
+                                }
                                 <span class="text-[#1A1B1D]">{{ activity.actorName }}</span>
                               </span>
                               <span>{{ activity.timestamp }}</span>
@@ -1551,11 +1621,11 @@ interface AdminUserActivityYearGroup {
                   <svg viewBox="0 0 900 320" class="h-auto w-full overflow-visible">
                     <g fill="#A8AEB8" font-size="12" font-weight="500">
                       <text x="8" y="258">0</text>
-                      <text x="0" y="178">250</text>
-                      <text x="0" y="98">500</text>
+                      <text x="0" y="178">{{ overviewChartScaleMid() }}</text>
+                      <text x="0" y="98">{{ overviewChartScaleMax() }}</text>
                     </g>
 
-                    @for (month of months; track month.label) {
+                    @for (month of months(); track month.date) {
                       <g>
                         <rect
                           [attr.x]="month.x"
@@ -1578,12 +1648,14 @@ interface AdminUserActivityYearGroup {
                       </g>
                     }
 
-                    <g transform="translate(286,78)">
-                      <rect width="136" height="32" rx="10" fill="#090909"></rect>
-                      <circle cx="14" cy="16" r="3" fill="#7A6AE6"></circle>
-                      <text x="22" y="20" fill="#FFFFFF" font-size="12">Aug 2025</text>
-                      <text x="102" y="20" fill="#FFFFFF" font-size="12">128</text>
-                    </g>
+                    @if (overviewChartHighlight(); as chartHighlight) {
+                      <g transform="translate(286,78)">
+                        <rect width="180" height="32" rx="10" fill="#090909"></rect>
+                        <circle cx="14" cy="16" r="3" fill="#7A6AE6"></circle>
+                        <text x="22" y="20" fill="#FFFFFF" font-size="12">{{ chartHighlight.label }}</text>
+                        <text x="148" y="20" fill="#FFFFFF" font-size="12">{{ chartHighlight.value }}</text>
+                      </g>
+                    }
                   </svg>
                 </div>
               </section>
@@ -1669,7 +1741,7 @@ interface AdminUserActivityYearGroup {
             <div class="flex flex-col gap-4 border-b border-[#F1F2F4] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
               <div class="flex flex-wrap gap-3">
                 <app-custom-dropdown
-                  [options]="listingsCategoryOptions"
+                  [options]="listingsCategoryOptions()"
                   [value]="listingsCategoryFilter()"
                   ariaLabel="Select listing category"
                   buttonClass="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
@@ -1679,7 +1751,7 @@ interface AdminUserActivityYearGroup {
                 ></app-custom-dropdown>
 
                 <app-custom-dropdown
-                  [options]="listingsStoreOptions"
+                  [options]="listingsStoreOptions()"
                   [value]="listingsStoreFilter()"
                   ariaLabel="Select listing store"
                   buttonClass="inline-flex items-center gap-2 rounded-full border border-[#E8EAF0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#80858F]"
@@ -1824,13 +1896,15 @@ interface AdminUserActivityYearGroup {
               <article class="overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white">
                 <div class="relative h-[158px] overflow-hidden rounded-t-[20px] p-[3px]">
                   <div class="relative h-full overflow-hidden rounded-t-[20px]">
-                    <img
-                      [ngSrc]="store.coverImage ?? store.banner ?? ''"
-                      [alt]="store.name"
-                      width="263"
-                      height="158"
-                      class="h-full w-full object-cover"
-                    />
+                    @if (store.coverImage ?? store.banner; as desktopCoverImage) {
+                      <img
+                        [src]="desktopCoverImage"
+                        [alt]="store.name"
+                        width="263"
+                        height="158"
+                        class="h-full w-full object-cover"
+                      />
+                    }
                     <div
                       class="absolute inset-x-0 bottom-0 h-[99px] bg-[linear-gradient(179.75deg,rgba(255,255,255,0)_0.54%,#FFFFFF_93.47%)]"
                       aria-hidden="true"
@@ -1852,13 +1926,17 @@ interface AdminUserActivityYearGroup {
                     class="-mt-[89px] flex h-[74px] w-[74px] items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white"
                     [class.bg-[#3D785F]]="store.id === 'vine-collections'"
                   >
-                    <img
-                      [ngSrc]="store.logoImage ?? store.logo ?? ''"
-                      [alt]="store.name + ' logo'"
-                      width="74"
-                      height="74"
-                      class="h-full w-full object-cover"
-                    />
+                    @if (store.logoImage ?? store.logo; as desktopLogoImage) {
+                      <img
+                        [src]="desktopLogoImage"
+                        [alt]="store.name + ' logo'"
+                        width="74"
+                        height="74"
+                        class="h-full w-full object-cover"
+                      />
+                    } @else {
+                      <span class="text-[18px] font-semibold text-[#1F1F1F]">{{ storeInitials(store.name) }}</span>
+                    }
                   </div>
 
                   <div class="mt-[7px]">
@@ -1897,12 +1975,11 @@ interface AdminUserActivityYearGroup {
             <section class="relative overflow-hidden rounded-[24px] bg-[#F3F1FF] px-[27px] pb-[25px] pt-[25px]">
               <div class="relative z-10 flex items-start justify-between gap-6">
                 <div>
-                  <p class="text-[15px] leading-[19px] text-[#1F1F1F]">Pro</p>
+                  <p class="text-[15px] leading-[19px] text-[#1F1F1F]">{{ subscriptionSummary()?.planName ?? 'No active plan' }}</p>
                   <p class="mt-[16px] text-[0px] leading-none text-[#1F1F1F]">
-                    <span class="text-[34px] font-medium leading-[34px] tracking-[-0.04em]">₦1,000</span>
-                    <span class="text-[24px] font-normal leading-[34px] text-[#959595]">/week</span>
+                    <span class="text-[34px] font-medium leading-[34px] tracking-[-0.04em]">{{ subscriptionSummary()?.price ?? '₦0' }}</span>
                   </p>
-                  <p class="mt-1 text-[14px] leading-[17px] text-[#0D0D0D]/70">Expires on: 23 December, 2027</p>
+                  <p class="mt-1 text-[14px] leading-[17px] text-[#0D0D0D]/70">Expires on: {{ subscriptionSummary()?.activeUntil ?? '—' }}</p>
                 </div>
 
                 <span
@@ -2069,15 +2146,17 @@ interface AdminUserActivityYearGroup {
                             [class.bg-[#BEBEBE]]="!ad.imageBackground"
                             [style.background]="ad.imageBackground ?? null"
                           >
-                            <img
-                              [ngSrc]="ad.image"
-                              [alt]="ad.title"
-                              width="188"
-                              height="224"
-                              class="h-full w-full"
-                              [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
-                              [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
-                            />
+                            @if (ad.image) {
+                              <img
+                                [src]="ad.image"
+                                [alt]="ad.title"
+                                width="188"
+                                height="224"
+                                class="h-full w-full"
+                                [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
+                                [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
+                              />
+                            }
 
                             @if (ad.showImageGradient) {
                               <div
@@ -2228,15 +2307,17 @@ interface AdminUserActivityYearGroup {
                           [class.bg-[#BEBEBE]]="!ad.imageBackground"
                           [style.background]="ad.imageBackground ?? null"
                         >
-                          <img
-                            [ngSrc]="ad.image"
-                            [alt]="ad.title"
-                            width="188"
-                            height="224"
-                            class="h-full w-full"
-                            [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
-                            [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
-                          />
+                          @if (ad.image) {
+                            <img
+                              [src]="ad.image"
+                              [alt]="ad.title"
+                              width="188"
+                              height="224"
+                              class="h-full w-full"
+                              [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
+                              [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
+                            />
+                          }
 
                           @if (ad.showImageGradient) {
                             <div
@@ -2392,7 +2473,7 @@ interface AdminUserActivityYearGroup {
                     ></app-custom-dropdown>
 
                     <app-custom-dropdown
-                      [options]="transactionDateOptions"
+                      [options]="transactionDateOptions()"
                       [value]="transactionDateFilter()"
                       ariaLabel="Select transaction date"
                       buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
@@ -2500,7 +2581,7 @@ interface AdminUserActivityYearGroup {
                 <div class="rounded-[16px] bg-[#FAFAFA] px-6 py-[23px]">
                   <div class="mb-8 flex flex-col items-center gap-0.5">
                     <p class="text-center text-[0px] leading-none text-[#2D2D2D]">
-                      <span class="text-[56px] font-semibold leading-[64px] tracking-[-0.04em]">4.57</span>
+                      <span class="text-[56px] font-semibold leading-[64px] tracking-[-0.04em]">{{ reviewAverage() }}</span>
                       <span class="text-[28px] font-medium leading-10 text-[#BFBFBF]">/5</span>
                     </p>
 
@@ -2514,7 +2595,7 @@ interface AdminUserActivityYearGroup {
                   <p class="mb-1 text-[16px] font-semibold leading-6 text-[#2D2D2D]">Overall rating</p>
 
                   <div class="space-y-3">
-                    @for (bar of ratingBreakdown; track bar.stars) {
+                    @for (bar of ratingBreakdown(); track bar.stars) {
                       <div class="flex items-center gap-3">
                         <span class="inline-flex w-[21px] items-center gap-0.5 text-[14px] leading-5 text-[#2D2D2D]">
                           {{ bar.stars }} <span class="text-[12px] text-[#2D2D2D]">★</span>
@@ -2535,7 +2616,7 @@ interface AdminUserActivityYearGroup {
               <div>
                 <div class="mb-8 flex flex-col gap-7 md:flex-row md:items-start md:justify-between">
                   <div>
-                    <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h2>
+                    <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">{{ reviewTotal() }} reviews</h2>
                     <p class="mt-7 text-[16px] font-medium leading-6 text-[#1F1F1F]">This seller is great at..</p>
 
                     <div class="mt-3 flex flex-wrap gap-3">
@@ -2566,7 +2647,16 @@ interface AdminUserActivityYearGroup {
                     <article class="rounded-[24px] bg-white">
                       <div class="flex gap-4">
                         <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
-                          <img [ngSrc]="review.avatar" [alt]="review.author" width="40" height="40" class="h-10 w-10 object-cover" />
+                          @if (review.avatar) {
+                            <img [src]="review.avatar" [alt]="review.author" width="40" height="40" class="h-10 w-10 object-cover" />
+                          } @else {
+                            <span
+                              class="flex h-10 w-10 items-center justify-center rounded-full text-[11px] font-semibold text-[#1A1C21]"
+                              [style.background]="avatarGradientForLabel(review.author)"
+                            >
+                              {{ initialsFromLabel(review.author) }}
+                            </span>
+                          }
                         </div>
 
                         <div class="min-w-0 flex-1">
@@ -2588,7 +2678,7 @@ interface AdminUserActivityYearGroup {
                             <div class="mt-4 flex flex-wrap gap-3">
                               @for (image of review.images!; track $index) {
                                 <div class="relative h-[117px] w-[117px] overflow-hidden rounded-[16px] bg-[#E9E9E9]">
-                                  <img [ngSrc]="image" alt="" width="117" height="117" class="h-full w-full object-cover" />
+                                  <img [src]="image" alt="" width="117" height="117" class="h-full w-full object-cover" />
 
                                   @if ($last && review.moreImagesLabel) {
                                     <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[18px] font-medium leading-6 text-white">
@@ -2636,7 +2726,7 @@ interface AdminUserActivityYearGroup {
                   @if (activeReportTab() === 'listing') {
                     <div class="mr-auto flex flex-wrap items-center gap-2">
                       <app-custom-dropdown
-                        [options]="listingReportCategoryOptions"
+                        [options]="listingReportCategoryOptions()"
                         [value]="listingReportCategoryFilter()"
                         [ariaLabel]="'Filter listing reports by category'"
                         [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] leading-5 text-[#1A1B1D]'"
@@ -2649,7 +2739,7 @@ interface AdminUserActivityYearGroup {
                       ></app-custom-dropdown>
 
                       <app-custom-dropdown
-                        [options]="listingReportStoreOptions"
+                        [options]="listingReportStoreOptions()"
                         [value]="listingReportStoreFilter()"
                         [ariaLabel]="'Filter listing reports by store'"
                         [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] leading-5 text-[#1A1B1D]'"
@@ -2662,7 +2752,7 @@ interface AdminUserActivityYearGroup {
                       ></app-custom-dropdown>
 
                       <app-custom-dropdown
-                        [options]="listingReportStatusOptions"
+                        [options]="listingReportStatusOptions()"
                         [value]="listingReportStatusFilter()"
                         [ariaLabel]="'Filter listing reports by status'"
                         [buttonClass]="'inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] leading-5 text-[#1A1B1D]'"
@@ -2713,7 +2803,11 @@ interface AdminUserActivityYearGroup {
                           <td class="px-4 py-5">
                             <div class="flex items-center gap-3">
                               <div class="h-8 w-8 overflow-hidden rounded-full bg-[#F3F4F6]">
-                                <img [ngSrc]="report.storeLogo" [alt]="report.storeName" width="32" height="32" class="h-8 w-8 object-cover" />
+                                @if (report.storeLogo) {
+                                  <img [src]="report.storeLogo" [alt]="report.storeName" width="32" height="32" class="h-8 w-8 object-cover" />
+                                } @else {
+                                  <span class="text-[12px] font-semibold text-[#1A1C21]">{{ storeInitials(report.storeName) }}</span>
+                                }
                               </div>
                               <span class="text-[14px] font-normal text-[#1A1B1D]">{{ report.storeName }}</span>
                             </div>
@@ -2721,7 +2815,16 @@ interface AdminUserActivityYearGroup {
                           <td class="px-4 py-5">
                             <div class="flex items-center gap-3">
                               <div class="h-9 w-9 overflow-hidden rounded-full bg-[#F3F4F6]">
-                                <img [ngSrc]="report.reporterAvatar" [alt]="report.reporterName" width="36" height="36" class="h-9 w-9 object-cover" />
+                                @if (report.reporterAvatar) {
+                                  <img [src]="report.reporterAvatar" [alt]="report.reporterName" width="36" height="36" class="h-9 w-9 object-cover" />
+                                } @else {
+                                  <span
+                                    class="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold text-[#1A1C21]"
+                                    [style.background]="avatarGradientForLabel(report.reporterName)"
+                                  >
+                                    {{ initialsFromLabel(report.reporterName) }}
+                                  </span>
+                                }
                               </div>
                               <div>
                                 <p class="text-[14px] font-medium leading-5 text-[#0D0D0D]">{{ report.reporterName }}</p>
@@ -2752,14 +2855,20 @@ interface AdminUserActivityYearGroup {
                         <tr class="h-[90px] border-b border-[#F0F0F0] last:border-b-0">
                           <td class="px-4 py-[18px]">
                             <div class="flex items-center gap-3">
-                              <img [ngSrc]="report.listingImage" [alt]="report.listingName" width="40" height="40" class="h-10 w-10 rounded-[8px] border border-[#EAEAEA] object-cover" />
+                              @if (report.listingImage) {
+                                <img [src]="report.listingImage" [alt]="report.listingName" width="40" height="40" class="h-10 w-10 rounded-[8px] border border-[#EAEAEA] object-cover" />
+                              }
                               <span class="text-[14px] font-normal leading-5 text-[#1A1B1D]">{{ report.listingName }}</span>
                             </div>
                           </td>
                           <td class="px-4 py-[18px]">
                             <div class="flex items-center gap-3">
                               <div class="h-8 w-8 overflow-hidden rounded-full bg-[#F3F4F6]">
-                                <img [ngSrc]="report.storeIcon" [alt]="report.storeName" width="32" height="32" class="h-8 w-8 object-cover" />
+                                @if (report.storeIcon) {
+                                  <img [src]="report.storeIcon" [alt]="report.storeName" width="32" height="32" class="h-8 w-8 object-cover" />
+                                } @else {
+                                  <span class="text-[12px] font-semibold text-[#1A1C21]">{{ storeInitials(report.storeName) }}</span>
+                                }
                               </div>
                               <span class="text-[14px] font-normal leading-5 text-[#1A1B1D]">{{ report.storeName }}</span>
                             </div>
@@ -2767,7 +2876,16 @@ interface AdminUserActivityYearGroup {
                           <td class="px-4 py-[18px]">
                             <div class="flex items-center gap-3">
                               <div class="h-9 w-9 overflow-hidden rounded-full bg-[#F3F4F6]">
-                                <img [ngSrc]="report.reporterAvatar" [alt]="report.reporterName" width="36" height="36" class="h-9 w-9 object-cover" />
+                                @if (report.reporterAvatar) {
+                                  <img [src]="report.reporterAvatar" [alt]="report.reporterName" width="36" height="36" class="h-9 w-9 object-cover" />
+                                } @else {
+                                  <span
+                                    class="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold text-[#1A1C21]"
+                                    [style.background]="avatarGradientForLabel(report.reporterName)"
+                                  >
+                                    {{ initialsFromLabel(report.reporterName) }}
+                                  </span>
+                                }
                               </div>
                               <div>
                                 <p class="text-[14px] font-medium leading-5 text-[#0D0D0D]">{{ report.reporterName }}</p>
@@ -2878,13 +2996,22 @@ interface AdminUserActivityYearGroup {
                                 <div class="mt-[10px] flex flex-wrap items-center gap-x-[5px] gap-y-1 text-[12px] leading-5 text-[#0D0D0D]/40">
                                   <span>by</span>
                                   <span class="inline-flex items-center gap-1">
-                                    <img
-                                      [ngSrc]="activity.actorAvatar"
-                                      [alt]="activity.actorName"
-                                      width="20"
-                                      height="20"
-                                      class="h-5 w-5 rounded-full object-cover"
-                                    />
+                                    @if (activity.actorAvatar) {
+                                      <img
+                                        [src]="activity.actorAvatar"
+                                        [alt]="activity.actorName"
+                                        width="20"
+                                        height="20"
+                                        class="h-5 w-5 rounded-full object-cover"
+                                      />
+                                    } @else {
+                                      <span
+                                        class="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-semibold text-[#1A1C21]"
+                                        [style.background]="activity.actorBackground"
+                                      >
+                                        {{ activity.actorInitials }}
+                                      </span>
+                                    }
                                     <span class="text-[#1A1B1D]">{{ activity.actorName }}</span>
                                   </span>
                                   <span>{{ activity.timestamp }}</span>
@@ -2918,10 +3045,12 @@ interface AdminUserActivityYearGroup {
 })
 export class AdminUserDetailsPageComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly adminUserDetailsService = inject(AdminUserDetailsService);
+  private readonly toast = inject(AppToastService);
 
   readonly userId = toSignal(
-    this.route.paramMap.pipe(map((params) => params.get('id') ?? 'francis-uche')),
-    { initialValue: 'francis-uche' },
+    this.route.paramMap.pipe(map((params) => params.get('id') ?? '')),
+    { initialValue: '' },
   );
 
   readonly activeTab = signal<AdminUserDetailsTab>('overview');
@@ -2944,20 +3073,56 @@ export class AdminUserDetailsPageComponent {
   readonly listingReportCategoryFilter = signal<AdminUserListingReportCategory>('all');
   readonly listingReportStoreFilter = signal<AdminUserListingReportStore>('all');
   readonly listingReportStatusFilter = signal<AdminUserListingReportStatus>('all');
+  readonly isLoading = signal(false);
+  readonly userDetailResponse = signal<AdminUserDetailResponse | null>(null);
+  readonly listingRecords = signal<AdminManagedListing[]>([]);
+  readonly allListingRecords = signal<AdminManagedListing[]>([]);
+  readonly storeRecords = signal<Store[]>([]);
+  readonly mobileStoreRecords = signal<Store[]>([]);
+  readonly promotedListingRecords = signal<AdminManagedPromotionListing[]>([]);
+  readonly promotedStoreRecords = signal<AdminManagedStorePromotion[]>([]);
+  readonly bannerAdRecords = signal<AdminManagedBannerAd[]>([]);
+  readonly adStatusCounts = signal<Record<AdminManagedAdPlacement, Record<string, number>>>({
+    'promoted listings': {},
+    'store promotions': {},
+    'banner ads': {},
+  });
+  readonly subscriptionSummary = signal<{ planName: string; activeUntil: string; price: string } | null>(null);
+  readonly walletBalance = signal('₦0');
+  readonly transactionRecords = signal<AdminUserTransaction[]>([]);
+  readonly mobileTransactionRecords = signal<AdminUserMobileTransaction[]>([]);
+  readonly reviewTagRecords = signal<AdminUserReviewTag[]>([]);
+  readonly mobileReviewTagRecords = signal<AdminUserReviewTag[]>([]);
+  readonly reviewRecords = signal<AdminUserReview[]>([]);
+  readonly mobileReviewRecords = signal<AdminUserReview[]>([]);
+  readonly reviewAverage = signal('0.00');
+  readonly reviewTotal = signal(0);
+  readonly ratingBreakdown = signal<Array<{ stars: number; percentage: number }>>([
+    { stars: 5, percentage: 0 },
+    { stars: 4, percentage: 0 },
+    { stars: 3, percentage: 0 },
+    { stars: 2, percentage: 0 },
+    { stars: 1, percentage: 0 },
+  ]);
+  readonly profileReportRecords = signal<AdminProfileReport[]>([]);
+  readonly mobileProfileReportRecords = signal<AdminProfileReport[]>([]);
+  readonly listingReportRecords = signal<AdminListingReport[]>([]);
+  readonly activityTimelineRecords = signal<AdminUserActivityYearGroup[]>([]);
+  readonly overviewChartPoints = signal<AdminUserDetailChartPoint[]>([]);
 
   readonly user = computed(() => {
-    const id = this.userId();
-    const baseUser = this.users[id] ?? this.users['francis-uche'];
+    const response = this.userDetailResponse();
+    const baseUser = response ? this.mapUserDetail(response) : this.emptyUserDetail();
     const overriddenStatus = this.userStatusOverride();
 
     return overriddenStatus === null ? baseUser : { ...baseUser, status: overriddenStatus };
   });
 
-  readonly userListings = computed(() => this.listingsByUser[this.userId()] ?? this.listingsByUser['francis-uche']);
-  readonly visibleStores = computed(() => this.storesByUser[this.userId()] ?? this.storesByUser['francis-uche']);
-  readonly visibleMobileStores = computed(() => this.mobileStoresByUser[this.userId()] ?? this.mobileStoresByUser['francis-uche']);
-  readonly userTransactions = computed(() => this.transactionsByUser[this.userId()] ?? this.transactionsByUser['francis-uche']);
-  readonly mobileTransactions = computed(() => this.mobileTransactionsByUser[this.userId()] ?? this.mobileTransactionsByUser['francis-uche']);
+  readonly userListings = computed(() => this.listingRecords());
+  readonly visibleStores = computed(() => this.storeRecords());
+  readonly visibleMobileStores = computed(() => this.mobileStoreRecords());
+  readonly userTransactions = computed(() => this.transactionRecords());
+  readonly mobileTransactions = computed(() => this.mobileTransactionRecords());
 
   readonly visibleListings = computed(() => {
     const query = this.listingsSearchQuery().trim().toLowerCase();
@@ -2981,7 +3146,7 @@ export class AdminUserDetailsPageComponent {
 
   readonly visibleMobileListings = computed(() => {
     const query = this.listingsSearchQuery().trim().toLowerCase();
-    const listings = this.mobileListingsByUser[this.userId()] ?? this.mobileListingsByUser['francis-uche'];
+    const listings = this.listingRecords().map((listing) => this.mapMobileListing(listing));
 
     return listings.filter((listing) =>
       query === ''
@@ -2991,7 +3156,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly visiblePromotedListingSections = computed(() => {
-    const listings = this.desktopPromotedListingsByUser[this.userId()] ?? this.desktopPromotedListingsByUser['francis-uche'];
+    const listings = this.promotedListingRecords();
     const filtered = listings.filter((listing) => listing.status === this.activeAdsStatus());
 
     return [
@@ -3002,7 +3167,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly visibleMobilePromotedListingSections = computed(() => {
-    const listings = this.mobilePromotedListingsByUser[this.userId()] ?? this.mobilePromotedListingsByUser['francis-uche'];
+    const listings = this.promotedListingRecords().map((listing) => this.mapMobilePromotedListing(listing));
     const filtered = listings.filter((listing) => listing.status === this.activeAdsStatus());
 
     return [
@@ -3013,7 +3178,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly visibleMobilePromotedStores = computed(() => {
-    const stores = this.mobilePromotedStoresByUser[this.userId()] ?? this.mobilePromotedStoresByUser['francis-uche'];
+    const stores = this.promotedStoreRecords().map((store) => this.mapMobilePromotedStore(store));
     return stores.filter((store) => store.status === this.activeAdsStatus());
   });
 
@@ -3045,11 +3210,11 @@ export class AdminUserDetailsPageComponent {
   );
 
   readonly recentMobileTransactions = computed(() => this.mobileTransactions().slice(0, 3));
-  readonly visibleReviewTags = computed(() => this.reviewTagsByUser[this.userId()] ?? this.reviewTagsByUser['francis-uche']);
-  readonly mobileReviewTags = computed(() => this.mobileReviewTagsByUser[this.userId()] ?? this.mobileReviewTagsByUser['francis-uche']);
+  readonly visibleReviewTags = computed(() => this.reviewTagRecords());
+  readonly mobileReviewTags = computed(() => this.mobileReviewTagRecords());
 
   readonly visibleReviews = computed(() => {
-    const reviews = [...(this.reviewsByUser[this.userId()] ?? this.reviewsByUser['francis-uche'])];
+    const reviews = [...this.reviewRecords()];
 
     if (this.reviewSort() === 'highest-rated') {
       return reviews.sort((a, b) => b.rating - a.rating);
@@ -3059,7 +3224,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly visibleMobileReviews = computed(() => {
-    const reviews = [...(this.mobileReviewsByUser[this.userId()] ?? this.mobileReviewsByUser['francis-uche'])];
+    const reviews = [...this.mobileReviewRecords()];
 
     if (this.reviewSort() === 'highest-rated') {
       return reviews.sort((a, b) => b.rating - a.rating);
@@ -3070,7 +3235,7 @@ export class AdminUserDetailsPageComponent {
 
   readonly visibleMobileProfileReports = computed(() => {
     const query = this.reportSearchQuery().trim().toLowerCase();
-    const reports = this.mobileProfileReportsByUser[this.userId()] ?? this.mobileProfileReportsByUser['francis-uche'];
+    const reports = this.mobileProfileReportRecords();
 
     return reports.filter((report) =>
       query === ''
@@ -3083,7 +3248,7 @@ export class AdminUserDetailsPageComponent {
 
   readonly visibleProfileReports = computed(() => {
     const query = this.reportSearchQuery().trim().toLowerCase();
-    const reports = this.profileReportsByUser[this.userId()] ?? this.profileReportsByUser['francis-uche'];
+    const reports = this.profileReportRecords();
 
     return reports.filter((report) =>
       query === ''
@@ -3096,7 +3261,7 @@ export class AdminUserDetailsPageComponent {
 
   readonly visibleListingReports = computed(() => {
     const query = this.reportSearchQuery().trim().toLowerCase();
-    const reports = this.listingReportsByUser[this.userId()] ?? this.listingReportsByUser['francis-uche'];
+    const reports = this.listingReportRecords();
 
     return reports.filter((report) =>
       (this.listingReportCategoryFilter() === 'all' || report.categoryKey === this.listingReportCategoryFilter())
@@ -3113,7 +3278,7 @@ export class AdminUserDetailsPageComponent {
   });
 
   readonly visibleActivityTimeline = computed(() =>
-    this.activitiesByUser[this.userId()] ?? this.activitiesByUser['francis-uche'],
+    this.activityTimelineRecords(),
   );
 
   readonly tabs = [
@@ -3179,21 +3344,24 @@ export class AdminUserDetailsPageComponent {
   ];
 
   readonly transactionDateLabel = computed(() => {
-    switch (this.transactionDateFilter()) {
-      case 'feb-2025':
-        return 'Feb 2025';
-      case 'mar-2025':
-        return 'Mar 2025';
-      default:
-        return 'Date';
-    }
+    return this.transactionDateFilter() === 'all'
+      ? 'Date'
+      : this.formatDateLabel(this.transactionDateFilter());
   });
 
-  readonly transactionDateOptions: readonly CustomDropdownOption<AdminUserTransactionDate>[] = [
-    { value: 'all', label: 'All dates' },
-    { value: 'feb-2025', label: 'Feb 2025' },
-    { value: 'mar-2025', label: 'Mar 2025' },
-  ];
+  readonly transactionDateOptions = computed<readonly CustomDropdownOption<AdminUserTransactionDate>[]>(() => {
+    const uniqueDates = Array.from(
+      new Set(this.transactionRecords().map((transaction) => transaction.date)),
+    ).slice(0, 12);
+
+    return [
+      { value: 'all', label: 'All dates' },
+      ...uniqueDates.map((date) => ({
+        value: date,
+        label: this.formatDateLabel(date),
+      })),
+    ];
+  });
 
   readonly transactionStatusLabel = computed(() => {
     switch (this.transactionStatusFilter()) {
@@ -3223,56 +3391,134 @@ export class AdminUserDetailsPageComponent {
     { value: 'highest-rated', label: 'Highest rated' },
   ];
 
-  readonly listingReportCategoryOptions: readonly CustomDropdownOption<AdminUserListingReportCategory>[] = [
+  readonly listingReportCategoryOptions = computed<readonly CustomDropdownOption<AdminUserListingReportCategory>[]>(() => [
     { value: 'all', label: 'All categories' },
-    { value: 'phones-laptops', label: 'Phones & Laptops' },
-    { value: 'accessories', label: 'Accessories' },
-    { value: 'beauty', label: 'Beauty' },
-  ];
+    ...Array.from(
+      new Map(
+        this.listingReportRecords()
+          .filter((report) => report.categoryKey.trim().length > 0)
+          .map((report) => [report.categoryKey, { value: report.categoryKey, label: this.categorySlugToLabel(report.categoryKey) }]),
+      ).values(),
+    ),
+  ]);
 
-  readonly listingReportStoreOptions: readonly CustomDropdownOption<AdminUserListingReportStore>[] = [
+  readonly listingReportStoreOptions = computed<readonly CustomDropdownOption<AdminUserListingReportStore>[]>(() => [
     { value: 'all', label: 'All stores' },
-    { value: 'vine', label: 'The Vine Collections' },
-    { value: 'eden', label: 'Eden Organics' },
-    { value: 'personal', label: 'Personal account' },
-  ];
+    ...Array.from(
+      new Map(
+        this.listingReportRecords()
+          .filter((report) => report.storeKey.trim().length > 0)
+          .map((report) => [report.storeKey, { value: report.storeKey, label: report.storeName }]),
+      ).values(),
+    ),
+  ]);
 
-  readonly listingReportStatusOptions: readonly CustomDropdownOption<AdminUserListingReportStatus>[] = [
+  readonly listingReportStatusOptions = computed<readonly CustomDropdownOption<AdminUserListingReportStatus>[]>(() => [
     { value: 'all', label: 'All statuses' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'under-review', label: 'Under review' },
-    { value: 'resolved', label: 'Resolved' },
-  ];
+    ...Array.from(
+      new Map(
+        this.listingReportRecords()
+          .filter((report) => report.status.trim().length > 0)
+          .map((report) => [report.status, { value: report.status, label: this.formatReportStatus(report.status) }]),
+      ).values(),
+    ),
+  ]);
 
   readonly reviewSortLabel = computed(() =>
     this.reviewSort() === 'most-recent' ? 'Most recent' : 'Highest rated',
   );
 
-  readonly months = [
-    { label: 'Jan', x: 34, height: 90, highlight: false },
-    { label: 'Feb', x: 108, height: 64, highlight: false },
-    { label: 'Mar', x: 182, height: 38, highlight: false },
-    { label: 'Apr', x: 256, height: 58, highlight: false },
-    { label: 'May', x: 330, height: 128, highlight: true },
-    { label: 'Jun', x: 404, height: 62, highlight: false },
-    { label: 'Jul', x: 478, height: 90, highlight: false },
-    { label: 'Aug', x: 552, height: 92, highlight: false },
-    { label: 'Sep', x: 626, height: 62, highlight: false },
-    { label: 'Oct', x: 700, height: 68, highlight: false },
-    { label: 'Nov', x: 774, height: 54, highlight: false },
-    { label: 'Dec', x: 848, height: 92, highlight: false },
-  ];
-  readonly mobileMonths = [
-    { label: 'JAN', height: 26, highlight: false },
-    { label: 'FEB', height: 72, highlight: false },
-    { label: 'MAR', height: 42, highlight: false },
-    { label: 'APR', height: 65, highlight: false },
-    { label: 'MAY', height: 64, highlight: true },
-    { label: 'JUN', height: 42, highlight: false },
-    { label: 'JUL', height: 112, highlight: false },
-    { label: 'AUG', height: 61, highlight: false },
-    { label: 'SEP', height: 38, highlight: false },
-  ];
+  readonly filteredOverviewChartPoints = computed(() => {
+    const allPoints = this.overviewChartPoints();
+    if (allPoints.length === 0) {
+      return [];
+    }
+
+    const sliceSize = this.overviewRange() === 'last-7-days'
+      ? 7
+      : this.overviewRange() === 'last-30-days'
+        ? 30
+        : 90;
+
+    return allPoints.slice(-sliceSize);
+  });
+
+  readonly months = computed(() => {
+    const chartPoints = this.filteredOverviewChartPoints();
+    const desktopPoints = chartPoints.length <= 12
+      ? chartPoints
+      : chartPoints.filter((_, index) => index % Math.ceil(chartPoints.length / 12) === 0).slice(-12);
+    const maxCount = Math.max(...desktopPoints.map((point) => point.count), 1);
+
+    return desktopPoints.map((point, index) => ({
+      label: this.shortDateLabel(point.date),
+      x: 34 + (index * 74),
+      height: Math.max(16, Math.round((point.count / maxCount) * 142)),
+      highlight: index === desktopPoints.length - 1,
+      value: point.count,
+      date: point.date,
+    }));
+  });
+
+  readonly mobileMonths = computed(() => {
+    const chartPoints = this.filteredOverviewChartPoints();
+    const mobilePoints = chartPoints.length <= 9
+      ? chartPoints
+      : chartPoints.filter((_, index) => index % Math.ceil(chartPoints.length / 9) === 0).slice(-9);
+    const maxCount = Math.max(...mobilePoints.map((point) => point.count), 1);
+
+    return mobilePoints.map((point, index) => ({
+      label: this.shortDateLabel(point.date).toUpperCase(),
+      height: Math.max(18, Math.round((point.count / maxCount) * 112)),
+      highlight: index === mobilePoints.length - 1,
+      value: point.count,
+      date: point.date,
+    }));
+  });
+
+  readonly overviewSoldItemsCount = computed(() =>
+    this.filteredOverviewChartPoints().reduce((sum, point) => sum + point.count, 0),
+  );
+
+  readonly overviewGrowthLabel = computed(() => {
+    const currentPoints = this.filteredOverviewChartPoints();
+    if (currentPoints.length === 0) {
+      return '0% vs previous period';
+    }
+
+    const allPoints = this.overviewChartPoints();
+    const currentWindow = currentPoints.length;
+    const previousPoints = allPoints.slice(-(currentWindow * 2), -currentWindow);
+    const currentTotal = currentPoints.reduce((sum, point) => sum + point.count, 0);
+    const previousTotal = previousPoints.reduce((sum, point) => sum + point.count, 0);
+
+    if (previousTotal === 0) {
+      return currentTotal === 0 ? '0% vs previous period' : '100% vs previous period';
+    }
+
+    const delta = ((currentTotal - previousTotal) / previousTotal) * 100;
+    return `${delta >= 0 ? '↑' : '↓'} ${Math.abs(delta).toFixed(0)}% vs previous period`;
+  });
+
+  readonly overviewChartHighlight = computed(() => {
+    const points = this.filteredOverviewChartPoints();
+    const point = points[points.length - 1] ?? null;
+    if (!point) {
+      return null;
+    }
+
+    return {
+      label: this.formatDateLabel(point.date),
+      value: point.count,
+    };
+  });
+
+  readonly overviewChartScaleMax = computed(() => {
+    const maxValue = Math.max(...this.filteredOverviewChartPoints().map((point) => point.count), 0);
+    return maxValue === 0 ? 1 : maxValue;
+  });
+
+  readonly overviewChartScaleMid = computed(() => Math.round(this.overviewChartScaleMax() / 2));
 
   readonly users: Record<string, UserDetail> = {
     'francis-uche': {
@@ -4741,53 +4987,39 @@ export class AdminUserDetailsPageComponent {
   };
 
   readonly listingsCategoryLabel = computed(() => {
-    switch (this.listingsCategoryFilter()) {
-      case 'phones-laptops':
-        return 'Phones & Laptops';
-      case 'electronics':
-        return 'Electronics';
-      case 'mens-fashion':
-        return 'Men’s fashion';
-      case 'womens-fashion':
-        return 'Women’s fashion';
-      case 'automobiles':
-        return 'Automobiles';
-      default:
-        return 'Category';
+    if (this.listingsCategoryFilter() === 'all') {
+      return 'Category';
     }
+
+    return this.listingsCategoryOptions().find((option) => option.value === this.listingsCategoryFilter())?.label ?? 'Category';
   });
 
-  readonly listingsCategoryOptions: readonly CustomDropdownOption<AdminManagedListingCategory>[] = [
+  readonly listingsCategoryOptions = computed<readonly CustomDropdownOption<AdminManagedListingCategory>[]>(() => [
     { value: 'all', label: 'All categories' },
-    { value: 'phones-laptops', label: 'Phones & laptops' },
-    { value: 'electronics', label: 'Electronics' },
-    { value: 'mens-fashion', label: "Men's fashion" },
-    { value: 'womens-fashion', label: "Women's fashion" },
-    { value: 'automobiles', label: 'Automobiles' },
-  ];
+    ...Array.from(
+      new Map(
+        this.allListingRecords()
+          .filter((listing) => listing.categoryKey.trim().length > 0)
+          .map((listing) => [listing.categoryKey, { value: listing.categoryKey, label: listing.categoryLabel }]),
+      ).values(),
+    ),
+  ]);
 
   readonly listingsStoreLabel = computed(() => {
-    switch (this.listingsStoreFilter()) {
-      case 'vine':
-        return 'The Vine Collections';
-      case 'eden':
-        return 'Eden Organics';
-      case 'amazing':
-        return 'Amazing Fragrances';
-      case 'personal':
-        return 'Personal account';
-      default:
-        return 'Store';
+    if (this.listingsStoreFilter() === 'all') {
+      return 'Store';
     }
+
+    return this.listingsStoreOptions().find((option) => option.value === this.listingsStoreFilter())?.label ?? 'Store';
   });
 
-  readonly listingsStoreOptions: readonly CustomDropdownOption<AdminManagedListingStore>[] = [
+  readonly listingsStoreOptions = computed<readonly CustomDropdownOption<AdminManagedListingStore>[]>(() => [
     { value: 'all', label: 'All stores' },
-    { value: 'vine', label: 'The Vine Collections' },
-    { value: 'eden', label: 'Eden Organics' },
-    { value: 'amazing', label: 'Amazing Fragrances' },
-    { value: 'personal', label: 'Personal account' },
-  ];
+    ...this.storeRecords().map((store) => ({
+      value: store.id,
+      label: store.name,
+    })),
+  ]);
 
   readonly listingsStatusLabel = computed(() => {
     switch (this.listingsStatusFilter()) {
@@ -4812,58 +5044,704 @@ export class AdminUserDetailsPageComponent {
     { value: 'paused', label: 'Paused' },
   ];
 
+  constructor() {
+    effect((onCleanup) => {
+      const userId = this.userId();
+      if (!userId) {
+        return;
+      }
+
+      this.isLoading.set(true);
+      const sub = forkJoin({
+        user: this.adminUserDetailsService.getUser(userId),
+        stores: this.adminUserDetailsService.getUserStores(userId),
+        ads: this.adminUserDetailsService.getUserAds(userId),
+        allListings: this.adminUserDetailsService.getUserListings(userId),
+        activities: this.adminUserDetailsService.getUserActivities(userId, 'all'),
+      }).subscribe({
+        next: ({ user, stores, ads, allListings, activities }) => {
+          this.userDetailResponse.set(user);
+          this.userStatusOverride.set(null);
+          this.overviewChartPoints.set(user.sold_items_chart ?? []);
+          this.storeRecords.set(stores.results.map((store) => this.mapStoreRecord(store)));
+          this.mobileStoreRecords.set(stores.results.map((store) => this.mapStoreRecord(store, true)));
+          this.subscriptionSummary.set(this.mapSubscriptionSummary(ads));
+          this.promotedListingRecords.set(this.mapPromotedListingAds(ads.promoted_listings.items));
+          this.promotedStoreRecords.set(this.mapStorePromotionAds(ads.store_promotions.items));
+          this.bannerAdRecords.set(this.mapBannerAds(ads.banner_ads.items));
+          this.adStatusCounts.set({
+            'promoted listings': ads.promoted_listings.counts,
+            'store promotions': ads.store_promotions.counts,
+            'banner ads': ads.banner_ads.counts,
+          });
+          const mappedAllListings = (allListings.results ?? []).map((listing) => this.mapListingRecord(listing));
+          this.allListingRecords.set(mappedAllListings);
+          this.activityTimelineRecords.set(this.mapActivitiesTimeline(activities));
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.isLoading.set(false);
+          this.resetBackendState();
+          this.toast.show({ message: 'We could not load that user right now.' });
+        },
+      });
+
+      onCleanup(() => sub.unsubscribe());
+    }, { allowSignalWrites: true });
+
+    effect((onCleanup) => {
+      const userId = this.userId();
+      if (!userId) {
+        return;
+      }
+
+      const sub = this.adminUserDetailsService.getUserListings(userId, {
+        category: this.listingsCategoryFilter(),
+        store: this.listingsStoreFilter(),
+        status: this.listingsStatusFilter(),
+        search: this.listingsSearchQuery(),
+      }).subscribe({
+        next: (response) => {
+          this.listingRecords.set((response.results ?? []).map((listing) => this.mapListingRecord(listing)));
+        },
+        error: () => {
+          this.listingRecords.set([]);
+        },
+      });
+
+      onCleanup(() => sub.unsubscribe());
+    }, { allowSignalWrites: true });
+
+    effect((onCleanup) => {
+      const userId = this.userId();
+      if (!userId) {
+        return;
+      }
+
+      const sub = this.adminUserDetailsService.getUserTransactions(userId, {
+        transactionType: this.transactionTypeFilter(),
+        status: this.transactionStatusFilter(),
+        date: this.transactionDateFilter(),
+      }).subscribe({
+        next: (response) => {
+          this.walletBalance.set(this.formatCurrency(response.wallet_balance));
+          const transactions = (response.results ?? []).map((transaction) => this.mapTransactionRecord(transaction));
+          this.transactionRecords.set(transactions);
+          this.mobileTransactionRecords.set(
+            (response.results ?? []).map((transaction) => this.mapMobileTransactionRecord(transaction)),
+          );
+        },
+        error: () => {
+          this.transactionRecords.set([]);
+          this.mobileTransactionRecords.set([]);
+        },
+      });
+
+      onCleanup(() => sub.unsubscribe());
+    }, { allowSignalWrites: true });
+
+    effect((onCleanup) => {
+      const userId = this.userId();
+      if (!userId) {
+        return;
+      }
+
+      const ordering = this.reviewSort() === 'highest-rated' ? 'highest' : 'most_recent';
+      const sub = this.adminUserDetailsService.getUserReviews(userId, ordering).subscribe({
+        next: (response) => {
+          this.reviewTagRecords.set(
+            response.tags_summary.map((tag) => ({ label: tag.name, count: tag.usage_count })),
+          );
+          this.mobileReviewTagRecords.set(
+            response.tags_summary.map((tag) => ({ label: tag.name, count: tag.usage_count })),
+          );
+          this.reviewAverage.set(response.average_rating.toFixed(2));
+          this.reviewTotal.set(response.total);
+          const reviews = (response.results ?? []).map((review) => this.mapReviewRecord(review));
+          this.reviewRecords.set(reviews);
+          this.mobileReviewRecords.set(reviews);
+          this.ratingBreakdown.set(this.mapRatingBreakdown(response));
+        },
+        error: () => {
+          this.reviewTagRecords.set([]);
+          this.mobileReviewTagRecords.set([]);
+          this.reviewRecords.set([]);
+          this.mobileReviewRecords.set([]);
+          this.reviewAverage.set('0.00');
+          this.reviewTotal.set(0);
+          this.ratingBreakdown.set([
+            { stars: 5, percentage: 0 },
+            { stars: 4, percentage: 0 },
+            { stars: 3, percentage: 0 },
+            { stars: 2, percentage: 0 },
+            { stars: 1, percentage: 0 },
+          ]);
+        },
+      });
+
+      onCleanup(() => sub.unsubscribe());
+    }, { allowSignalWrites: true });
+
+    effect((onCleanup) => {
+      const userId = this.userId();
+      if (!userId) {
+        return;
+      }
+
+      const sub = forkJoin({
+        profile: this.adminUserDetailsService.getUserReports(userId, 'profile', this.reportSearchQuery()),
+        listing: this.adminUserDetailsService.getUserReports(userId, 'listing', this.reportSearchQuery()),
+      }).subscribe({
+        next: ({ profile, listing }) => {
+          const profileReports = (profile.results ?? []).map((report) => this.mapProfileReport(report));
+          this.profileReportRecords.set(profileReports);
+          this.mobileProfileReportRecords.set(profileReports);
+          this.listingReportRecords.set((listing.results ?? []).map((report) => this.mapListingReport(report)));
+        },
+        error: () => {
+          this.profileReportRecords.set([]);
+          this.mobileProfileReportRecords.set([]);
+          this.listingReportRecords.set([]);
+        },
+      });
+
+      onCleanup(() => sub.unsubscribe());
+    }, { allowSignalWrites: true });
+  }
+
   activeTabLabel(): string {
     return this.tabs.find((tab) => tab.id === this.activeTab())?.label ?? 'Overview';
   }
 
   userPromotedListings(): AdminManagedPromotionListing[] {
-    return this.promotedListingsByUser[this.userId()] ?? this.promotedListingsByUser['francis-uche'];
+    return this.promotedListingRecords();
   }
 
   userPromotedStores(): AdminManagedStorePromotion[] {
-    return this.promotedStoresByUser[this.userId()] ?? this.promotedStoresByUser['francis-uche'];
+    return this.promotedStoreRecords();
   }
 
   userBannerAds(): AdminManagedBannerAd[] {
-    return this.bannerAdsByUser[this.userId()] ?? this.bannerAdsByUser['francis-uche'];
+    return this.bannerAdRecords();
   }
 
   countUserAdsByStatus(status: AdminManagedAdsFilterStatus): number {
-    if (this.activeAdsPlacement() === 'banner ads') {
-      if (this.userId() === 'francis-uche') {
-        switch (status) {
-          case 'active':
-            return 2;
-          case 'paused':
-            return 1;
-          case 'pending approval':
-            return 13;
-          case 'declined':
-            return 2;
-          case 'expired':
-            return 8;
-        }
-      }
+    const counts = this.adStatusCounts()[this.activeAdsPlacement()];
+    return Number(counts?.[status] ?? 0);
+  }
 
-      return this.userBannerAds().filter((banner) => banner.status === status).length;
+  private resetBackendState(): void {
+    this.userDetailResponse.set(null);
+    this.overviewChartPoints.set([]);
+    this.listingRecords.set([]);
+    this.allListingRecords.set([]);
+    this.storeRecords.set([]);
+    this.mobileStoreRecords.set([]);
+    this.promotedListingRecords.set([]);
+    this.promotedStoreRecords.set([]);
+    this.bannerAdRecords.set([]);
+    this.adStatusCounts.set({
+      'promoted listings': {},
+      'store promotions': {},
+      'banner ads': {},
+    });
+    this.subscriptionSummary.set(null);
+    this.walletBalance.set('₦0');
+    this.transactionRecords.set([]);
+    this.mobileTransactionRecords.set([]);
+    this.reviewTagRecords.set([]);
+    this.mobileReviewTagRecords.set([]);
+    this.reviewRecords.set([]);
+    this.mobileReviewRecords.set([]);
+    this.reviewAverage.set('0.00');
+    this.reviewTotal.set(0);
+    this.profileReportRecords.set([]);
+    this.mobileProfileReportRecords.set([]);
+    this.listingReportRecords.set([]);
+    this.activityTimelineRecords.set([]);
+    this.ratingBreakdown.set([
+      { stars: 5, percentage: 0 },
+      { stars: 4, percentage: 0 },
+      { stars: 3, percentage: 0 },
+      { stars: 2, percentage: 0 },
+      { stars: 1, percentage: 0 },
+    ]);
+  }
+
+  private emptyUserDetail(): UserDetail {
+    return {
+      id: '',
+      name: 'User',
+      email: '',
+      avatarInitials: 'U',
+      avatarBackground: 'linear-gradient(135deg, #E6E8ED 0%, #C6CCD6 100%)',
+      status: 'active',
+      dateJoined: '—',
+      lastSignedIn: '—',
+      phoneNumber: '—',
+      totalSoldItems: '0',
+      growthLabel: '0% vs previous period',
+      mostViewedListingTitle: 'No listing yet',
+      mostViewedListingImage: '',
+      mostViewedListingCount: '0',
+      distribution: [
+        { label: 'Sold', value: '0', color: '#34B54A' },
+        { label: 'Available', value: '0', color: '#4C86F5' },
+        { label: 'Paused', value: '0', color: '#F3A233' },
+      ],
+    };
+  }
+
+  private mapUserDetail(response: AdminUserDetailResponse): UserDetail {
+    const name = response.full_name?.trim() || response.email || 'User';
+    const mostViewed = response.most_viewed_listing;
+    const totalSoldItems = this.overviewSoldItemsCount();
+
+    return {
+      id: String(response.id),
+      name,
+      email: response.email,
+      avatarInitials: this.initialsFromLabel(name),
+      avatarBackground: this.avatarGradientForLabel(name),
+      status: response.is_active ? 'active' : 'suspended',
+      dateJoined: this.formatDateLabel(response.created_at),
+      lastSignedIn: response.last_login ? this.formatDateLabel(response.last_login) : 'Never',
+      phoneNumber: response.phone_number?.trim() || '—',
+      totalSoldItems: this.formatInteger(totalSoldItems),
+      growthLabel: this.overviewGrowthLabel(),
+      mostViewedListingTitle: mostViewed?.title ?? 'No listing yet',
+      mostViewedListingImage: mostViewed?.thumbnail ?? '',
+      mostViewedListingCount: this.formatInteger(mostViewed?.views_count ?? 0),
+      distribution: [
+        {
+          label: 'Sold',
+          value: this.formatInteger(response.listing_distribution.sold),
+          color: '#34B54A',
+        },
+        {
+          label: 'Available',
+          value: this.formatInteger(response.listing_distribution.available),
+          color: '#4C86F5',
+        },
+        {
+          label: 'Paused',
+          value: this.formatInteger(response.listing_distribution.paused),
+          color: '#F3A233',
+        },
+      ],
+    };
+  }
+
+  private mapListingRecord(record: AdminUserListingRecord): AdminManagedListing {
+    return {
+      id: record.id,
+      name: record.title,
+      thumbnail: record.thumbnail ?? '',
+      categoryKey: this.slugifyLabel(record.category),
+      categoryLabel: record.category,
+      price: this.formatCurrency(record.price),
+      storeKey: record.store_id,
+      storeName: record.store_name || record.vendor_name,
+      storeBackground: this.avatarGradientForLabel(record.store_name || record.vendor_name),
+      status: this.mapListingStatus(record.status),
+      boosted: record.is_promoted,
+    };
+  }
+
+  private mapMobileListing(listing: AdminManagedListing): MobileAdminListing {
+    return {
+      id: listing.id,
+      name: listing.name,
+      thumbnail: listing.thumbnail,
+      storeName: listing.storeName,
+      price: listing.price,
+      status: listing.status,
+      promoted: listing.boosted,
+    };
+  }
+
+  private mapStoreRecord(record: AdminUserStoreRecord, mobile = false): Store {
+    const base: Store = {
+      id: record.id,
+      name: record.store_name,
+      description: record.store_bio,
+      route: ['/admin/stores', record.id],
+      location: record.location,
+      coverImage: record.cover_image ?? undefined,
+      mobileCoverImage: mobile ? record.cover_image ?? undefined : undefined,
+      logoImage: record.profile_photo ?? undefined,
+      mobileLogoImage: mobile ? record.profile_photo ?? undefined : undefined,
+      followers: this.formatInteger(record.followers_count),
+      isVerified: record.user?.is_verified ?? false,
+      callNumber: record.call_number ?? undefined,
+      alternateCallNumber: record.call_number_2 ?? undefined,
+    };
+
+    return base;
+  }
+
+  private mapSubscriptionSummary(response: AdminUserAdsResponse): { planName: string; activeUntil: string; price: string } | null {
+    const subscription = response.subscription;
+    if (!subscription) {
+      return null;
     }
 
-    if (this.userId() === 'francis-uche') {
-      switch (status) {
-        case 'active':
-          return 32;
-        case 'paused':
-          return 1;
-        case 'expired':
-          return 8;
-        default:
-          return 0;
+    return {
+      planName: subscription.plan_name,
+      activeUntil: this.formatDateLabel(subscription.active_until),
+      price: this.formatCurrency(subscription.price),
+    };
+  }
+
+  private mapPromotedListingAds(records: AdminUserAdRecord[]): AdminManagedPromotionListing[] {
+    return records.map((record) => ({
+      id: String(record.id),
+      title: record.title,
+      price: this.formatCurrency(record.amount_paid),
+      views: this.formatInteger(record.total_views),
+      clicks: this.formatInteger(record.total_clicks),
+      messages: '0',
+      calls: '0',
+      expiresOn: this.formatDateLabel(record.end_date),
+      status: this.mapAdStatus(record.status),
+      placement: 'promoted listings',
+      category: 'other listings',
+      image: record.image ?? '',
+    }));
+  }
+
+  private mapMobilePromotedListing(listing: AdminManagedPromotionListing): AdminManagedPromotedListingCard {
+    return {
+      id: listing.id,
+      title: listing.title,
+      price: listing.price,
+      views: listing.views,
+      clicks: listing.clicks,
+      messages: listing.messages,
+      calls: listing.calls,
+      expiresOn: listing.expiresOn,
+      status: listing.status,
+      category: 'phones & laptops',
+      image: listing.image,
+    };
+  }
+
+  private mapStorePromotionAds(records: AdminUserAdRecord[]): AdminManagedStorePromotion[] {
+    return records.map((record) => ({
+      id: String(record.id),
+      name: record.promoted_store_name ?? record.title,
+      logo: record.promoted_store_image ?? '',
+      banner: record.image ?? '',
+      location: 'Store promotion',
+      impressions: this.formatInteger(record.total_views),
+      clicks: this.formatInteger(record.total_clicks),
+      messages: '0',
+      expiresOn: this.formatDateLabel(record.end_date),
+      status: this.mapAdStatus(record.status),
+    }));
+  }
+
+  private mapMobilePromotedStore(store: AdminManagedStorePromotion): MobilePromotedStore {
+    return {
+      id: store.id,
+      name: store.name,
+      route: ['/admin/stores', store.id],
+      location: store.location,
+      mobileCoverImage: store.banner,
+      mobileLogoImage: store.logo,
+      status: store.status,
+      isVerified: true,
+    };
+  }
+
+  private mapBannerAds(records: AdminUserAdRecord[]): AdminManagedBannerAd[] {
+    return records.map((record) => ({
+      id: String(record.id),
+      title: record.title,
+      subtitle: 'Banner campaign',
+      primaryFigure: this.formatInteger(record.total_views),
+      secondaryFigure: this.formatInteger(record.total_clicks),
+      expiresOn: this.formatDateLabel(record.end_date),
+      sponsorLabel: 'Sponsored',
+      views: this.formatInteger(record.total_views),
+      clicks: this.formatInteger(record.total_clicks),
+      cardTone: '#E7E3FF',
+      textTone: '#1A1C21',
+      accentTone: '#6453D9',
+      badgeTone: '#F1FFAC',
+      imagePreview: record.image,
+      route: ['/admin/ads/running'],
+      showSponsorBadge: true,
+      placement: 'banner ads',
+      status: this.mapBannerStatus(record.status),
+    }));
+  }
+
+  private mapTransactionRecord(record: AdminUserTransactionRecord): AdminUserTransaction {
+    return {
+      id: String(record.id),
+      amount: this.formatCurrency(record.amount),
+      type: this.mapTransactionType(record),
+      date: this.formatDateTimeLabel(record.date),
+      dateKey: record.date,
+      status: record.status === 'failed' ? 'failed' : 'successful',
+    };
+  }
+
+  private mapMobileTransactionRecord(record: AdminUserTransactionRecord): AdminUserMobileTransaction {
+    const transactionType = this.mapTransactionType(record);
+    return {
+      id: String(record.id),
+      amount: this.formatCurrency(record.amount),
+      type: transactionType === 'wallet funding' ? 'Wallet funding' : 'Subscription payment',
+      dateLabel: this.formatDateTimeLabel(record.date),
+      status: record.status === 'failed' ? 'failed' : 'successful',
+      icon: transactionType === 'wallet funding'
+        ? '/assets/images/admin-user-details/transactions/wallet-funding-icon.png'
+        : '/assets/images/admin-user-details/transactions/subscription-payment-icon.png',
+    };
+  }
+
+  private mapReviewRecord(record: AdminUserReviewRecord): AdminUserReview {
+    return {
+      author: record.reviewer.full_name?.trim() || record.reviewer.username,
+      avatar: record.reviewer.avatar ?? '',
+      rating: record.rating,
+      date: this.formatDateLabel(record.created_at),
+      text: record.comment,
+      images: record.photos.map((photo) => photo.image),
+    };
+  }
+
+  private mapRatingBreakdown(response: AdminUserReviewsResponse): Array<{ stars: number; percentage: number }> {
+    return [5, 4, 3, 2, 1].map((stars) => ({
+      stars,
+      percentage: Number(response.star_breakdown[String(stars)]?.percent ?? 0),
+    }));
+  }
+
+  private mapProfileReport(record: AdminUserReportRecord): AdminProfileReport {
+    return {
+      id: String(record.id),
+      storeName: record.store?.name ?? 'Personal account',
+      storeLogo: record.store?.logo ?? '',
+      reporterName: record.reported_by.name,
+      reporterEmail: record.reported_by.email,
+      reporterAvatar: record.reported_by.avatar ?? '',
+      reason: record.reason,
+      description: record.description,
+    };
+  }
+
+  private mapListingReport(record: AdminUserReportRecord): AdminListingReport {
+    return {
+      id: String(record.id),
+      listingName: record.listing?.title ?? 'Listing',
+      listingImage: record.listing?.image ?? '',
+      categoryKey: record.listing?.category_slug ?? '',
+      storeName: record.store?.name ?? 'Store',
+      storeKey: record.store?.id ?? '',
+      storeIcon: record.store?.logo ?? '',
+      reporterName: record.reported_by.name,
+      reporterEmail: record.reported_by.email,
+      reporterAvatar: record.reported_by.avatar ?? '',
+      status: record.status,
+      description: record.description,
+    };
+  }
+
+  private mapActivitiesTimeline(response: AdminUserActivitiesResponse): AdminUserActivityYearGroup[] {
+    const groupedByYear = new Map<string, Map<string, AdminUserActivity[]>>();
+
+    for (const dayGroup of response.timeline ?? []) {
+      for (const event of dayGroup.events) {
+        const eventDate = new Date(event.timestamp);
+        const year = String(eventDate.getFullYear());
+        const monthLabel = eventDate.toLocaleDateString('en-US', { month: 'long' });
+        const yearGroups = groupedByYear.get(year) ?? new Map<string, AdminUserActivity[]>();
+        const monthEvents = yearGroups.get(monthLabel) ?? [];
+        monthEvents.push({
+          id: String(event.id ?? `${event.activity_type}-${event.timestamp}`),
+          kind: this.activityKind(event.activity_type),
+          title: event.label,
+          detail: event.description,
+          actorName: event.actor_name ?? 'System',
+          actorAvatar: event.actor_avatar ?? '',
+          mobileActorAvatar: event.actor_avatar ?? '',
+          actorInitials: this.initialsFromLabel(event.actor_name ?? 'System'),
+          actorBackground: this.avatarGradientForLabel(event.actor_name ?? 'System'),
+          timestamp: this.formatDateTimeLabel(event.timestamp),
+        });
+        yearGroups.set(monthLabel, monthEvents);
+        groupedByYear.set(year, yearGroups);
       }
     }
 
-    return status === 'active' || status === 'paused' || status === 'expired'
-      ? this.userPromotedListings().filter((listing) => listing.status === status).length
-      : 0;
+    return Array.from(groupedByYear.entries())
+      .sort((left, right) => Number(right[0]) - Number(left[0]))
+      .map(([year, monthGroups]) => ({
+        year,
+        groups: Array.from(monthGroups.entries()).map(([label, items]) => ({
+          label,
+          items,
+        })),
+      }));
+  }
+
+  private mapTransactionType(record: AdminUserTransactionRecord): Exclude<AdminUserTransactionType, 'all'> {
+    const description = record.description.toLowerCase();
+    return description.includes('subscription') ? 'subscription payment' : 'wallet funding';
+  }
+
+  private mapListingStatus(status: string): AdminManagedListingStatus {
+    switch (status) {
+      case 'published':
+      case 'available':
+        return 'available';
+      case 'sold':
+        return 'sold';
+      case 'draft':
+        return 'draft';
+      default:
+        return 'paused';
+    }
+  }
+
+  private mapAdStatus(status: string): AdminManagedAdStatus {
+    if (status === 'paused') {
+      return 'paused';
+    }
+    if (status === 'expired') {
+      return 'expired';
+    }
+    return 'active';
+  }
+
+  private mapBannerStatus(status: string): AdminManagedBannerStatus {
+    switch (status) {
+      case 'paused':
+      case 'expired':
+      case 'declined':
+        return status;
+      case 'pending':
+        return 'pending approval';
+      default:
+        return 'active';
+    }
+  }
+
+  private activityKind(type: string): AdminUserActivity['kind'] {
+    switch (type) {
+      case 'offer_received':
+        return 'offer';
+      case 'callback_request':
+        return 'callback';
+      case 'listing_published':
+      case 'published':
+        return 'published';
+      case 'listing_view':
+      case 'view':
+        return 'view';
+      case 'wishlist':
+        return 'wishlist';
+      default:
+        return 'message';
+    }
+  }
+
+  protected categorySlugToLabel(value: string): string {
+    return value
+      .split('-')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  protected slugifyLabel(value: string): string {
+    return value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  protected formatReportStatus(value: string): string {
+    return value
+      .split(/[_-]/g)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  protected formatDateLabel(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }
+
+  protected formatDateTimeLabel(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  }
+
+  protected shortDateLabel(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
+  protected formatInteger(value: number): string {
+    return new Intl.NumberFormat('en-US').format(value);
+  }
+
+  protected formatCurrency(value: string | number): string {
+    const numericValue = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numericValue)) {
+      return `₦${value}`;
+    }
+
+    return `₦${new Intl.NumberFormat('en-US').format(numericValue)}`;
+  }
+
+  protected initialsFromLabel(value: string): string {
+    const parts = value.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return 'U';
+    }
+
+    return parts.slice(0, 2).map((part) => part.charAt(0)).join('').toUpperCase();
+  }
+
+  protected avatarGradientForLabel(value: string): string {
+    const gradients = [
+      'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
+      'linear-gradient(135deg, #D6D9E0 0%, #AEB6C7 100%)',
+      'linear-gradient(135deg, #E7D9CC 0%, #C3A38E 100%)',
+      'linear-gradient(135deg, #6AA7D8 0%, #2E4F78 100%)',
+      'linear-gradient(135deg, #D9E7CC 0%, #8FA36C 100%)',
+    ];
+    const hash = Array.from(value).reduce((sum, character) => sum + character.charCodeAt(0), 0);
+    return gradients[hash % gradients.length];
   }
 
   scrollPromotedListings(container: HTMLElement, distance: number): void {
@@ -4871,39 +5749,17 @@ export class AdminUserDetailsPageComponent {
   }
 
   cycleListingsCategoryFilter(): void {
-    this.listingsCategoryFilter.update((value) => {
-      switch (value) {
-        case 'all':
-          return 'phones-laptops';
-        case 'phones-laptops':
-          return 'electronics';
-        case 'electronics':
-          return 'mens-fashion';
-        case 'mens-fashion':
-          return 'womens-fashion';
-        case 'womens-fashion':
-          return 'automobiles';
-        default:
-          return 'all';
-      }
-    });
+    const options = this.listingsCategoryOptions();
+    const currentIndex = options.findIndex((option) => option.value === this.listingsCategoryFilter());
+    const nextOption = options[(currentIndex + 1 + options.length) % options.length];
+    this.listingsCategoryFilter.set(nextOption?.value ?? 'all');
   }
 
   cycleListingsStoreFilter(): void {
-    this.listingsStoreFilter.update((value) => {
-      switch (value) {
-        case 'all':
-          return 'vine';
-        case 'vine':
-          return 'eden';
-        case 'eden':
-          return 'amazing';
-        case 'amazing':
-          return 'personal';
-        default:
-          return 'all';
-      }
-    });
+    const options = this.listingsStoreOptions();
+    const currentIndex = options.findIndex((option) => option.value === this.listingsStoreFilter());
+    const nextOption = options[(currentIndex + 1 + options.length) % options.length];
+    this.listingsStoreFilter.set(nextOption?.value ?? 'all');
   }
 
   cycleListingsStatusFilter(): void {
@@ -4937,16 +5793,10 @@ export class AdminUserDetailsPageComponent {
   }
 
   cycleTransactionDateFilter(): void {
-    this.transactionDateFilter.update((value) => {
-      switch (value) {
-        case 'all':
-          return 'feb-2025';
-        case 'feb-2025':
-          return 'mar-2025';
-        default:
-          return 'all';
-      }
-    });
+    const options = this.transactionDateOptions();
+    const currentIndex = options.findIndex((option) => option.value === this.transactionDateFilter());
+    const nextOption = options[(currentIndex + 1 + options.length) % options.length];
+    this.transactionDateFilter.set(nextOption?.value ?? 'all');
   }
 
   cycleTransactionStatusFilter(): void {
@@ -4977,18 +5827,36 @@ export class AdminUserDetailsPageComponent {
   downloadUserData(): void {
     this.isMobileUserActionsOpen.set(false);
     this.isUserActionsOpen.set(false);
+    const userId = this.userId();
+    if (!userId) {
+      return;
+    }
+
+    window.open(this.adminUserDetailsService.downloadUserDataUrl(userId), '_blank', 'noopener');
   }
 
   deactivateUser(): void {
-    this.userStatusOverride.set('suspended');
     this.isMobileUserActionsOpen.set(false);
     this.isUserActionsOpen.set(false);
+    const userId = this.userId();
+    if (!userId) {
+      return;
+    }
+
+    this.adminUserDetailsService.suspendUser(userId).subscribe({
+      next: () => {
+        this.userStatusOverride.set('suspended');
+        this.userDetailResponse.update((current) => current ? { ...current, is_active: false } : current);
+        this.toast.show({ message: 'User suspended successfully.' });
+      },
+      error: () => {
+        this.toast.show({ message: 'We could not suspend that user right now.' });
+      },
+    });
   }
 
   banUser(): void {
-    this.userStatusOverride.set('suspended');
-    this.isMobileUserActionsOpen.set(false);
-    this.isUserActionsOpen.set(false);
+    this.deactivateUser();
   }
 
   activityIcon(kind: AdminUserActivity['kind']): string {
@@ -5019,14 +5887,6 @@ export class AdminUserDetailsPageComponent {
 
     return total === 0 ? 0 : (numericValue / total) * 100;
   }
-
-  readonly ratingBreakdown = [
-    { stars: 5, percentage: 65 },
-    { stars: 4, percentage: 11 },
-    { stars: 3, percentage: 9 },
-    { stars: 2, percentage: 3 },
-    { stars: 1, percentage: 2 },
-  ];
 
   reviewStars(rating: number): boolean[] {
     return Array.from({ length: 5 }, (_, index) => index < rating);
@@ -5066,6 +5926,8 @@ export class AdminUserDetailsPageComponent {
         return 'Sold';
       case 'draft':
         return 'Draft';
+      case 'paused':
+        return 'Paused';
       case 'suspended':
         return 'Suspended';
     }
