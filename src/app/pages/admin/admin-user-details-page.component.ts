@@ -37,7 +37,7 @@ import {
   AdminUserTransactionsResponse,
 } from '../../services/admin-user-details.service';
 
-type AdminUserDetailStatus = 'active' | 'suspended';
+type AdminUserDetailStatus = 'active' | 'suspended' | 'banned';
 type AdminManagedListingStatus = 'available' | 'sold' | 'draft' | 'paused';
 type AdminManagedListingCategory = 'all' | string;
 type AdminManagedListingStore = 'all' | string;
@@ -1477,15 +1477,18 @@ interface AdminUserActivityYearGroup {
                   [class.text-[#2FB04A]]="user().status === 'active'"
                   [class.bg-[#FFF0F0]]="user().status === 'suspended'"
                   [class.text-[#FF4B4B]]="user().status === 'suspended'"
+                  [class.bg-[#FFF7ED]]="user().status === 'banned'"
+                  [class.text-[#C2410C]]="user().status === 'banned'"
                 >
                   <span
                     class="flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-bold text-white"
                     [class.bg-[#2FB04A]]="user().status === 'active'"
                     [class.bg-[#FF4B4B]]="user().status === 'suspended'"
+                    [class.bg-[#C2410C]]="user().status === 'banned'"
                   >
                     {{ user().status === 'active' ? '✓' : '!' }}
                   </span>
-                  {{ user().status === 'active' ? 'Active' : 'Suspended' }}
+                  {{ user().status === 'active' ? 'Active' : user().status === 'banned' ? 'Banned' : 'Suspended' }}
                 </span>
               </div>
               <p class="mt-1 text-[16px] font-medium text-[#8E9199]">{{ user().email }}</p>
@@ -5303,7 +5306,7 @@ export class AdminUserDetailsPageComponent {
       email: response.email,
       avatarInitials: this.initialsFromLabel(name),
       avatarBackground: this.avatarGradientForLabel(name),
-      status: response.is_active ? 'active' : 'suspended',
+      status: response.is_banned ? 'banned' : response.is_active ? 'active' : 'suspended',
       dateJoined: this.formatDateLabel(response.created_at),
       lastSignedIn: response.last_login ? this.formatDateLabel(response.last_login) : 'Never',
       phoneNumber: response.phone_number?.trim() || '—',
@@ -5865,7 +5868,7 @@ export class AdminUserDetailsPageComponent {
 
     this.adminUserDetailsService.banUser(userId).subscribe({
       next: () => {
-        this.userStatusOverride.set('suspended');
+        this.userStatusOverride.set('banned');
         this.userDetailResponse.update((current) =>
           current ? { ...current, is_active: false, is_banned: true } : current,
         );

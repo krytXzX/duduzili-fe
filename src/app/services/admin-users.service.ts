@@ -23,6 +23,7 @@ export type AdminUsersRecord = {
   last_login: string | null;
   created_at: string;
   is_active: boolean;
+  is_banned?: boolean;
   is_active_user: boolean;
   is_verified: boolean;
   is_vendor: boolean;

@@ -19,7 +19,8 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
-type UserStatus = 'active' | 'suspended';
+type UserStatus = 'active' | 'suspended' | 'banned';
+type UserStatusFilter = 'active' | 'suspended';
 type VerificationStatus = 'verified' | 'request-sent' | 'not-verified';
 
 interface AdminUser {
@@ -167,6 +168,8 @@ interface AdminUser {
                   [class.text-[#25AD32]]="user.status === 'active'"
                   [class.bg-[#FDF6FA]]="user.status === 'suspended'"
                   [class.text-[#FF2524]]="user.status === 'suspended'"
+                  [class.bg-[#FFF7ED]]="user.status === 'banned'"
+                  [class.text-[#C2410C]]="user.status === 'banned'"
                 >
                   <img
                     [ngSrc]="user.status === 'active' ? '/assets/icons/admin-users/tick-circle.svg' : '/assets/icons/admin-users/slash.svg'"
@@ -176,7 +179,7 @@ interface AdminUser {
                     class="h-3.5 w-3.5"
                     aria-hidden="true"
                   />
-                  {{ user.status === 'active' ? 'Active' : 'Suspended' }}
+                  {{ user.status === 'active' ? 'Active' : user.status === 'banned' ? 'Banned' : 'Suspended' }}
                 </span>
               </div>
 
@@ -346,15 +349,18 @@ interface AdminUser {
                           [class.text-[#2FB04A]]="user.status === 'active'"
                           [class.bg-[#FFF0F0]]="user.status === 'suspended'"
                           [class.text-[#FF4B4B]]="user.status === 'suspended'"
+                          [class.bg-[#FFF7ED]]="user.status === 'banned'"
+                          [class.text-[#C2410C]]="user.status === 'banned'"
                         >
                           <span
                             class="flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-bold text-white"
                             [class.bg-[#2FB04A]]="user.status === 'active'"
                             [class.bg-[#FF4B4B]]="user.status === 'suspended'"
+                            [class.bg-[#C2410C]]="user.status === 'banned'"
                           >
                             {{ user.status === 'active' ? '✓' : '!' }}
                           </span>
-                          {{ user.status === 'active' ? 'Active' : 'Suspended' }}
+                          {{ user.status === 'active' ? 'Active' : user.status === 'banned' ? 'Banned' : 'Suspended' }}
                         </span>
                       </td>
                     </tr>
@@ -408,7 +414,7 @@ export class AdminUsersPageComponent {
     { value: 'with-store', label: 'With store' },
     { value: 'without-store', label: 'Without store' },
   ];
-  readonly statusOptions: readonly CustomDropdownOption<'all' | UserStatus>[] = [
+  readonly statusOptions: readonly CustomDropdownOption<'all' | UserStatusFilter>[] = [
     { value: 'all', label: 'All statuses' },
     { value: 'active', label: 'Active' },
     { value: 'suspended', label: 'Suspended' },
@@ -423,10 +429,10 @@ export class AdminUsersPageComponent {
   readonly totalResults = signal(0);
   readonly currentPage = signal(1);
   readonly counts = signal({ all: 0, active: 0, suspended: 0 });
-  readonly activeSummary = signal<'all' | UserStatus>('all');
+  readonly activeSummary = signal<'all' | UserStatusFilter>('all');
   readonly categoryFilter = signal<AdminUsersCategoryFilter>('all');
   readonly storeFilter = signal<AdminUsersStoreFilter>('all');
-  readonly statusFilter = signal<'all' | UserStatus>('all');
+  readonly statusFilter = signal<'all' | UserStatusFilter>('all');
   readonly searchQuery = signal('');
 
   readonly summaryCards = computed(() => [
@@ -441,7 +447,13 @@ export class AdminUsersPageComponent {
   readonly mobileSummaryCards = this.summaryCards;
   readonly visibleUsers = computed(() => this.users());
   readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalResults() / this.pageSize)));
-  private readonly requestQuery = computed(() => ({
+  private readonly requestQuery = computed((): {
+    page: number;
+    search: string;
+    status: 'all' | UserStatusFilter;
+    category: AdminUsersCategoryFilter;
+    store: AdminUsersStoreFilter;
+  } => ({
     page: this.currentPage(),
     search: this.searchQuery(),
     status: this.statusFilter(),
@@ -468,7 +480,7 @@ export class AdminUsersPageComponent {
       });
   }
 
-  selectSummary(value: 'all' | UserStatus): void {
+  selectSummary(value: 'all' | UserStatusFilter): void {
     this.activeSummary.set(value);
     this.statusFilter.set(value);
     this.currentPage.set(1);
@@ -484,7 +496,7 @@ export class AdminUsersPageComponent {
     this.currentPage.set(1);
   }
 
-  selectStatus(value: 'all' | UserStatus): void {
+  selectStatus(value: 'all' | UserStatusFilter): void {
     this.statusFilter.set(value);
     this.activeSummary.set(value);
     this.currentPage.set(1);
@@ -548,7 +560,7 @@ export class AdminUsersPageComponent {
       verification: this.mapVerification(user.identity_verification.status),
       lastSignedIn: this.formatLastSignedIn(user.last_login),
       dateJoined: this.formatDate(user.created_at),
-      status: user.is_active_user ? 'active' : 'suspended',
+      status: user.is_banned ? 'banned' : user.is_active ? 'active' : 'suspended',
       category: user.is_vendor ? 'sellers' : 'buyers',
       hasStore: user.has_store,
     };
