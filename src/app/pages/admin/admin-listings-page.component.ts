@@ -1,38 +1,30 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
+import {
+  AdminListingsService,
+  type AdminListingRecordResponse,
+  type AdminListingsStatus,
+  type AdminListingsSummaryFilter,
+} from '../../services/admin-listings.service';
 
-type AdminListingsStatus = 'available' | 'sold' | 'paused' | 'suspended';
-type AdminListingsCategory =
-  | 'all'
-  | 'phones-laptops'
-  | 'electronics'
-  | 'mens-fashion'
-  | 'womens-fashion'
-  | 'automobiles';
-type AdminListingsStore =
-  | 'all'
-  | 'vine'
-  | 'eden'
-  | 'amazing'
-  | 'personal'
-  | 'ifeanyi'
-  | 'abogu';
-
-type AdminListingsSummaryFilter = 'all' | 'available' | 'sold' | 'paused' | 'suspended';
+type AdminListingsCategory = 'all' | string;
+type AdminListingsStore = 'all' | string;
 
 interface AdminListingRecord {
   id: string;
   name: string;
-  thumbnail: string;
-  categoryKey: Exclude<AdminListingsCategory, 'all'>;
+  thumbnail: string | null;
+  categoryKey: string;
   categoryLabel: string;
   priceWhole: string;
   priceDecimal: string;
-  storeKey: Exclude<AdminListingsStore, 'all'>;
+  storeKey: string;
   storeName: string;
-  storeAvatar?: string;
+  storeAvatar: string | null;
   status: AdminListingsStatus;
   boosted: boolean;
 }
@@ -47,7 +39,7 @@ interface AdminListingRecord {
         <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">Listings</h1>
 
         <div class="mt-6 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          @for (card of mobileSummaryCards; track card.label) {
+          @for (card of mobileSummaryCards(); track card.value) {
             <button
               type="button"
               (click)="setSummaryFilter(card.value)"
@@ -60,7 +52,7 @@ interface AdminListingRecord {
             >
               <p class="text-[12px] leading-none text-[#1A1B1D]/50">{{ card.label }}</p>
               <p class="mt-4 text-[20px] font-semibold leading-none text-[#1A1B1D]" [class.text-[#1A1B1D]/50]="summaryStatusFilter() !== card.value">
-                {{ card.amount }}
+                {{ formatCount(card.amount) }}
               </p>
             </button>
           }
@@ -85,65 +77,75 @@ interface AdminListingRecord {
             >
           </label>
 
-          <button
-            type="button"
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-white"
-            aria-label="Filter listings"
-          >
-            <img ngSrc="/assets/icons/admin-listings/filter.svg" width="24" height="24" alt="" class="h-6 w-6" aria-hidden="true" />
-          </button>
+          <app-custom-dropdown
+            [options]="statusOptions"
+            [value]="statusFilter()"
+            ariaLabel="Filter listings by status"
+            align="right"
+            buttonClass="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white p-0"
+            labelClass="sr-only"
+            iconClass="text-[#1A1B1D]"
+            menuClass="min-w-[170px]"
+            (valueChange)="selectStatus($event)"
+          ></app-custom-dropdown>
         </div>
 
         <div class="mt-4 flex flex-col gap-0">
-          @for (listing of visibleMobileListings(); track listing.id) {
-            <article class="border-b border-[#EBEBEB] py-3" (click)="openListing(listing.id)">
-              <div class="flex items-start justify-between gap-3">
-                <div class="flex min-w-0 items-center gap-3">
-                  <div class="h-11 w-11 shrink-0 overflow-hidden rounded-[6.6px] border border-[#F0F0F0] bg-[#EFEFEF]">
-                    <img [ngSrc]="listing.thumbnail" [alt]="listing.name" width="44" height="44" class="h-11 w-11 object-cover" />
+          @if (mobileListings().length === 0) {
+            <p class="py-8 text-[14px] font-medium text-[#8E9199]">No listings match the current filters.</p>
+          } @else {
+            @for (listing of mobileListings(); track listing.id) {
+              <article class="border-b border-[#EBEBEB] py-3" (click)="openListing(listing.id)">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex min-w-0 items-center gap-3">
+                    <div class="h-11 w-11 shrink-0 overflow-hidden rounded-[6.6px] border border-[#F0F0F0] bg-[#EFEFEF]">
+                      @if (listing.thumbnail) {
+                        <img [src]="listing.thumbnail" [alt]="listing.name" class="h-11 w-11 object-cover" />
+                      }
+                    </div>
+
+                    <div class="min-w-0">
+                      <h2 class="truncate text-[16px] font-medium leading-6 text-[#0D0D0D]/80">{{ listing.name }}</h2>
+                      @if (listing.boosted) {
+                        <div class="mt-1 inline-flex items-center gap-1 text-[12px] leading-4 text-[#7F8081]">
+                          <span class="text-[#1A1B1D]">🚀</span>
+                          <span>Promoted</span>
+                        </div>
+                      }
+                    </div>
                   </div>
 
-                  <div class="min-w-0">
-                    <h2 class="truncate text-[16px] font-medium leading-6 text-[#0D0D0D]/80">{{ listing.name }}</h2>
-                    @if (listing.boosted) {
-                      <div class="mt-1 inline-flex items-center gap-1 text-[12px] leading-4 text-[#7F8081]">
-                        <span class="text-[#1A1B1D]">🚀</span>
-                        <span>Promoted</span>
-                      </div>
-                    }
+                  <span
+                    class="inline-flex h-6 shrink-0 items-center gap-1 rounded-lg px-2 text-[12px] font-semibold leading-4"
+                    [class.bg-[#F9F9F9]]="listing.status === 'available'"
+                    [class.text-[#EE9C2E]]="listing.status === 'available'"
+                    [class.bg-[#F3FBF9]]="listing.status === 'sold'"
+                    [class.text-[#25AD32]]="listing.status === 'sold'"
+                    [class.bg-[#EEF4FF]]="listing.status === 'paused'"
+                    [class.text-[#4787FE]]="listing.status === 'paused'"
+                    [class.bg-[#FDF6FA]]="listing.status === 'suspended'"
+                    [class.text-[#FF2524]]="listing.status === 'suspended'"
+                  >
+                    <img [ngSrc]="statusIcon(listing.status)" width="14" height="14" alt="" class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    {{ statusText(listing.status) }}
+                  </span>
+                </div>
+
+                <dl class="mt-4 flex flex-col gap-3">
+                  <div class="flex items-center justify-between gap-4">
+                    <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Store</dt>
+                    <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ listing.storeName }}</dd>
                   </div>
-                </div>
 
-                <span
-                  class="inline-flex h-6 shrink-0 items-center gap-1 rounded-lg px-2 text-[12px] font-semibold leading-4"
-                  [class.bg-[#F9F9F9]]="listing.status === 'available'"
-                  [class.text-[#EE9C2E]]="listing.status === 'available'"
-                  [class.bg-[#F3FBF9]]="listing.status === 'sold'"
-                  [class.text-[#25AD32]]="listing.status === 'sold'"
-                  [class.bg-[#EEF4FF]]="listing.status === 'paused'"
-                  [class.text-[#4787FE]]="listing.status === 'paused'"
-                  [class.bg-[#FDF6FA]]="listing.status === 'suspended'"
-                  [class.text-[#FF2524]]="listing.status === 'suspended'"
-                >
-                  <img [ngSrc]="statusIcon(listing.status)" width="14" height="14" alt="" class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  {{ statusText(listing.status) }}
-                </span>
-              </div>
-
-              <dl class="mt-4 flex flex-col gap-3">
-                <div class="flex items-center justify-between gap-4">
-                  <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Store</dt>
-                  <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ listing.storeName }}</dd>
-                </div>
-
-                <div class="flex items-center justify-between gap-4">
-                  <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Amount</dt>
-                  <dd class="text-right text-[14px] font-medium leading-5 text-[#1F1F1F]">
-                    ₦{{ listing.priceWhole }}<span class="text-[#1F1F1F]/50">.{{ listing.priceDecimal }}</span>
-                  </dd>
-                </div>
-              </dl>
-            </article>
+                  <div class="flex items-center justify-between gap-4">
+                    <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Amount</dt>
+                    <dd class="text-right text-[14px] font-medium leading-5 text-[#1F1F1F]">
+                      ₦{{ listing.priceWhole }}<span class="text-[#1F1F1F]/50">.{{ listing.priceDecimal }}</span>
+                    </dd>
+                  </div>
+                </dl>
+              </article>
+            }
           }
         </div>
       </div>
@@ -154,7 +156,7 @@ interface AdminListingRecord {
         <h1 class="text-[24px] font-medium leading-none text-[#0D0D0D]">Listings</h1>
 
         <div class="mt-6 flex items-center gap-3">
-          @for (card of desktopSummaryCards; track card.label) {
+          @for (card of desktopSummaryCards(); track card.value) {
             <button
               type="button"
               (click)="setSummaryFilter(card.value)"
@@ -166,7 +168,7 @@ interface AdminListingRecord {
             >
               <p class="text-[12px] leading-none text-[#1A1B1D]/50">{{ card.label }}</p>
               <p class="mt-4 text-[24px] font-semibold leading-none text-[#1A1B1D]" [class.text-[#1A1B1D]/50]="summaryStatusFilter() !== card.value">
-                {{ card.amount }}
+                {{ formatCount(card.amount) }}
               </p>
             </button>
           }
@@ -176,23 +178,23 @@ interface AdminListingRecord {
           <div class="flex items-center justify-between px-4 py-4">
             <div class="flex flex-wrap items-center gap-2">
               <app-custom-dropdown
-                [options]="categoryOptions"
+                [options]="categoryOptions()"
                 [value]="categoryFilter()"
                 ariaLabel="Select listing category"
                 buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
                 iconClass="text-[#1A1B1D]/50"
                 menuClass="min-w-[190px]"
-                (valueChange)="categoryFilter.set($event)"
+                (valueChange)="selectCategory($event)"
               ></app-custom-dropdown>
 
               <app-custom-dropdown
-                [options]="storeOptions"
+                [options]="storeOptions()"
                 [value]="storeFilter()"
                 ariaLabel="Select listing store"
                 buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
                 iconClass="text-[#1A1B1D]/50"
                 menuClass="min-w-[210px]"
-                (valueChange)="storeFilter.set($event)"
+                (valueChange)="selectStore($event)"
               ></app-custom-dropdown>
 
               <app-custom-dropdown
@@ -202,7 +204,7 @@ interface AdminListingRecord {
                 buttonClass="inline-flex h-8 items-center gap-2 rounded-full border border-[#EBEBEB] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50 shadow-[0_0_0_1px_rgba(18,55,105,0.08)]"
                 iconClass="text-[#1A1B1D]/50"
                 menuClass="min-w-[170px]"
-                (valueChange)="statusFilter.set($event)"
+                (valueChange)="selectStatus($event)"
               ></app-custom-dropdown>
             </div>
 
@@ -238,52 +240,64 @@ interface AdminListingRecord {
                 </tr>
               </thead>
               <tbody>
-                @for (listing of visibleDesktopListings(); track listing.id) {
-                  <tr class="cursor-pointer border-b border-[#F0F0F0] hover:bg-[#FCFCFD]" (click)="openListing(listing.id)">
-                    <td class="px-4 py-3">
-                      <div class="flex items-center gap-2">
-                        <div class="h-10 w-10 overflow-hidden rounded-[6px] border border-[#F0F0F0] bg-[#EFEFEF]">
-                          <img [ngSrc]="listing.thumbnail" [alt]="listing.name" width="40" height="40" class="h-10 w-10 object-cover" />
-                        </div>
-                        <p class="text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ listing.name }}</p>
-                      </div>
-                    </td>
-                    <td class="px-4 py-3 text-[14px] leading-5 text-[#1A1B1D]">{{ listing.categoryLabel }}</td>
-                    <td class="px-4 py-3 text-[14px] font-medium leading-5 text-[#1F1F1F]">
-                      ₦{{ listing.priceWhole }}<span class="text-[#1F1F1F]/50">.{{ listing.priceDecimal }}</span>
-                    </td>
-                    <td class="px-4 py-3">
-                      <div class="flex items-center gap-2">
-                        <div class="h-8 w-8 overflow-hidden rounded-full border-[1.73px] border-white bg-white">
-                          <img [ngSrc]="listing.storeAvatar!" [alt]="listing.storeName" width="32" height="32" class="h-8 w-8 object-cover" />
-                        </div>
-                        <span class="text-[14px] leading-5 text-[#1A1B1D]">{{ listing.storeName }}</span>
-                      </div>
-                    </td>
-                    <td class="px-4 py-3">
-                      <span
-                        class="inline-flex h-6 items-center gap-1 rounded-lg px-2 text-[12px] font-semibold leading-4"
-                        [class.bg-[#F9F9F9]]="listing.status === 'available'"
-                        [class.text-[#EE9C2E]]="listing.status === 'available'"
-                        [class.bg-[#F3FBF9]]="listing.status === 'sold'"
-                        [class.text-[#25AD32]]="listing.status === 'sold'"
-                        [class.bg-[#EEF4FF]]="listing.status === 'paused'"
-                        [class.text-[#4787FE]]="listing.status === 'paused'"
-                        [class.bg-[#FDF6FA]]="listing.status === 'suspended'"
-                        [class.text-[#FF2524]]="listing.status === 'suspended'"
-                      >
-                        <img [ngSrc]="statusIcon(listing.status)" width="14" height="14" alt="" class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        {{ statusText(listing.status) }}
-                      </span>
-                    </td>
-                    <td class="px-4 py-3 text-right">
-                      @if (listing.boosted) {
-                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[14px] shadow-[0_4px_8px_rgba(202,202,202,0.25)]">
-                          🚀
-                        </span>
-                      }
+                @if (desktopListings().length === 0) {
+                  <tr>
+                    <td colspan="6" class="px-4 py-10 text-center text-[14px] font-medium text-[#8E9199]">
+                      No listings match the current filters.
                     </td>
                   </tr>
+                } @else {
+                  @for (listing of desktopListings(); track listing.id) {
+                    <tr class="cursor-pointer border-b border-[#F0F0F0] hover:bg-[#FCFCFD]" (click)="openListing(listing.id)">
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                          <div class="h-10 w-10 overflow-hidden rounded-[6px] border border-[#F0F0F0] bg-[#EFEFEF]">
+                            @if (listing.thumbnail) {
+                              <img [src]="listing.thumbnail" [alt]="listing.name" class="h-10 w-10 object-cover" />
+                            }
+                          </div>
+                          <p class="text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ listing.name }}</p>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 text-[14px] leading-5 text-[#1A1B1D]">{{ listing.categoryLabel }}</td>
+                      <td class="px-4 py-3 text-[14px] font-medium leading-5 text-[#1F1F1F]">
+                        ₦{{ listing.priceWhole }}<span class="text-[#1F1F1F]/50">.{{ listing.priceDecimal }}</span>
+                      </td>
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                          <div class="h-8 w-8 overflow-hidden rounded-full border-[1.73px] border-white bg-white">
+                            @if (listing.storeAvatar) {
+                              <img [src]="listing.storeAvatar" [alt]="listing.storeName" class="h-8 w-8 object-cover" />
+                            }
+                          </div>
+                          <span class="text-[14px] leading-5 text-[#1A1B1D]">{{ listing.storeName }}</span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3">
+                        <span
+                          class="inline-flex h-6 items-center gap-1 rounded-lg px-2 text-[12px] font-semibold leading-4"
+                          [class.bg-[#F9F9F9]]="listing.status === 'available'"
+                          [class.text-[#EE9C2E]]="listing.status === 'available'"
+                          [class.bg-[#F3FBF9]]="listing.status === 'sold'"
+                          [class.text-[#25AD32]]="listing.status === 'sold'"
+                          [class.bg-[#EEF4FF]]="listing.status === 'paused'"
+                          [class.text-[#4787FE]]="listing.status === 'paused'"
+                          [class.bg-[#FDF6FA]]="listing.status === 'suspended'"
+                          [class.text-[#FF2524]]="listing.status === 'suspended'"
+                        >
+                          <img [ngSrc]="statusIcon(listing.status)" width="14" height="14" alt="" class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          {{ statusText(listing.status) }}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3 text-right">
+                        @if (listing.boosted) {
+                          <span class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[14px] shadow-[0_4px_8px_rgba(202,202,202,0.25)]">
+                            🚀
+                          </span>
+                        }
+                      </td>
+                    </tr>
+                  }
                 }
               </tbody>
             </table>
@@ -291,21 +305,31 @@ interface AdminListingRecord {
 
           <div class="flex items-center justify-between px-4 py-6">
             <p class="text-[16px] font-medium text-[#1A1B1D]">
-              {{ visibleDesktopListings().length }}
+              {{ totalResults() }}
               <span class="text-[#1A1B1D]/50"> results</span>
             </p>
 
             <div class="flex items-center gap-2 text-[16px] text-[#1C1F1D]/50">
-              <button type="button" class="flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">
-                <img ngSrc="/assets/icons/admin-user-details/chevron-left.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
+              <button
+                type="button"
+                class="flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] disabled:opacity-40"
+                (click)="goToPreviousPage()"
+                [disabled]="!hasPreviousPage()"
+              >
+                <img ngSrc="/assets/icons/admin-user-details/arrow-left.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
               </button>
               <span class="flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-3 text-[14px] font-medium text-[#1A1B1D] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">
-                1
+                {{ currentPage() }}
               </span>
-              <button type="button" class="flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">
-                <img ngSrc="/assets/icons/admin-user-details/chevron-right.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
+              <button
+                type="button"
+                class="flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] disabled:opacity-40"
+                (click)="goToNextPage()"
+                [disabled]="!hasNextPage()"
+              >
+                <img ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
               </button>
-              <span class="ml-2">of 1</span>
+              <span class="ml-2">of {{ totalPages() }}</span>
             </div>
           </div>
         </div>
@@ -315,23 +339,47 @@ interface AdminListingRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminListingsPageComponent {
-  readonly categoryOptions: readonly CustomDropdownOption<AdminListingsCategory>[] = [
+  private readonly router = inject(Router);
+  private readonly adminListingsService = inject(AdminListingsService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly summaryStatusFilter = signal<AdminListingsSummaryFilter>('all');
+  readonly categoryFilter = signal<AdminListingsCategory>('all');
+  readonly storeFilter = signal<AdminListingsStore>('all');
+  readonly statusFilter = signal<'all' | AdminListingsStatus>('all');
+  readonly searchQuery = signal('');
+  readonly listings = signal<AdminListingRecord[]>([]);
+  readonly totalResults = signal(0);
+  readonly currentPage = signal(1);
+  readonly totalPages = signal(1);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
+  readonly counts = signal<Record<AdminListingsSummaryFilter, number>>({
+    all: 0,
+    available: 0,
+    sold: 0,
+    paused: 0,
+    suspended: 0,
+  });
+  readonly availableCategories = signal<Array<{ slug: string; name: string }>>([]);
+  readonly availableStores = signal<Array<{ id: string; store_name: string }>>([]);
+
+  readonly categoryOptions = computed<readonly CustomDropdownOption<AdminListingsCategory>[]>(() => [
     { value: 'all', label: 'All categories' },
-    { value: 'phones-laptops', label: 'Phones & laptops' },
-    { value: 'electronics', label: 'Electronics' },
-    { value: 'mens-fashion', label: "Men's fashion" },
-    { value: 'womens-fashion', label: "Women's fashion" },
-    { value: 'automobiles', label: 'Automobiles' },
-  ];
-  readonly storeOptions: readonly CustomDropdownOption<AdminListingsStore>[] = [
+    ...this.availableCategories().map((category) => ({
+      value: category.slug,
+      label: category.name,
+    })),
+  ]);
+
+  readonly storeOptions = computed<readonly CustomDropdownOption<AdminListingsStore>[]>(() => [
     { value: 'all', label: 'All stores' },
-    { value: 'vine', label: 'The Vine Collections' },
-    { value: 'eden', label: 'Eden Organics' },
-    { value: 'amazing', label: 'Amazing Fragrances' },
-    { value: 'personal', label: 'Personal account' },
-    { value: 'ifeanyi', label: 'Ifeanyi Austin' },
-    { value: 'abogu', label: 'Abogu Ruth' },
-  ];
+    ...this.availableStores().map((store) => ({
+      value: store.id,
+      label: store.store_name,
+    })),
+  ]);
+
   readonly statusOptions: readonly CustomDropdownOption<'all' | AdminListingsStatus>[] = [
     { value: 'all', label: 'All statuses' },
     { value: 'available', label: 'Available' },
@@ -339,344 +387,94 @@ export class AdminListingsPageComponent {
     { value: 'paused', label: 'Paused' },
     { value: 'suspended', label: 'Suspended' },
   ];
-  private readonly router = inject(Router);
 
-  readonly summaryStatusFilter = signal<AdminListingsSummaryFilter>('all');
-  readonly categoryFilter = signal<AdminListingsCategory>('all');
-  readonly storeFilter = signal<AdminListingsStore>('all');
-  readonly statusFilter = signal<'all' | AdminListingsStatus>('all');
-  readonly searchQuery = signal('');
+  readonly desktopSummaryCards = computed(() => [
+    { label: 'All', value: 'all' as const, amount: this.counts().all },
+    { label: 'Available', value: 'available' as const, amount: this.counts().available },
+    { label: 'Sold', value: 'sold' as const, amount: this.counts().sold },
+    { label: 'Paused', value: 'paused' as const, amount: this.counts().paused },
+  ]);
 
-  readonly desktopSummaryCards = [
-    { label: 'All', value: 'all' as const, amount: '6,500,000' },
-    { label: 'Available', value: 'available' as const, amount: '4,000,000' },
-    { label: 'Sold', value: 'sold' as const, amount: '2,000,000' },
-    { label: 'Paused', value: 'paused' as const, amount: '500,000' },
-  ];
+  readonly mobileSummaryCards = computed(() => [
+    ...this.desktopSummaryCards(),
+    { label: 'Suspended', value: 'suspended' as const, amount: this.counts().suspended },
+  ]);
 
-  readonly mobileSummaryCards = [
-    { label: 'All', value: 'all' as const, amount: '6,500,000' },
-    { label: 'Available', value: 'available' as const, amount: '4,000,000' },
-    { label: 'Sold', value: 'sold' as const, amount: '4,000,000' },
-    { label: 'Paused', value: 'paused' as const, amount: '06' },
-    { label: 'Suspended', value: 'suspended' as const, amount: '59' },
-  ];
+  readonly desktopListings = computed(() => this.listings());
+  readonly mobileListings = computed(() => this.listings());
 
-  readonly desktopListings: AdminListingRecord[] = [
-    {
-      id: 'iphone-17-pro-max',
-      name: 'Iphone 17 pro max',
-      thumbnail: '/assets/images/admin-listings/desktop/iphone-17-pro-max.png',
-      categoryKey: 'phones-laptops',
-      categoryLabel: 'Phones & Laptops',
-      priceWhole: '2,500,000',
-      priceDecimal: '00',
-      storeKey: 'vine',
-      storeName: 'The Vine Collections',
-      storeAvatar: '/assets/images/admin-listings/desktop/the-vine-collections.png',
-      status: 'available',
-      boosted: true,
-    },
-    {
-      id: 'logitech-ergonomic-mouse',
-      name: 'Logitech ergonomic mouse',
-      thumbnail: '/assets/images/admin-listings/desktop/logitech-ergonomic-mouse.png',
-      categoryKey: 'electronics',
-      categoryLabel: 'Electronics',
-      priceWhole: '2,500,000',
-      priceDecimal: '00',
-      storeKey: 'eden',
-      storeName: 'Eden Organics',
-      storeAvatar: '/assets/images/admin-listings/desktop/eden-organics.png',
-      status: 'sold',
-      boosted: false,
-    },
-    {
-      id: 'nike-sneaker',
-      name: 'Nike sneaker',
-      thumbnail: '/assets/images/admin-listings/desktop/nike-sneaker.png',
-      categoryKey: 'mens-fashion',
-      categoryLabel: 'Men’s fashion',
-      priceWhole: '2,500,000',
-      priceDecimal: '00',
-      storeKey: 'amazing',
-      storeName: 'Amazing Fragrances',
-      storeAvatar: '/assets/images/admin-listings/desktop/amazing-fragrances.png',
-      status: 'suspended',
-      boosted: false,
-    },
-    {
-      id: 'bone-straight-wig',
-      name: 'Bone straight wig',
-      thumbnail: '/assets/images/admin-listings/desktop/bone-straight-wig.png',
-      categoryKey: 'womens-fashion',
-      categoryLabel: 'Women’s fashion',
-      priceWhole: '2,500,000',
-      priceDecimal: '00',
-      storeKey: 'ifeanyi',
-      storeName: 'Ifeanyi Austin',
-      storeAvatar: '/assets/images/admin-listings/desktop/ifeanyi-austin.png',
-      status: 'paused',
-      boosted: true,
-    },
-    {
-      id: 'maserati',
-      name: 'Maserati',
-      thumbnail: '/assets/images/admin-listings/desktop/maserati.png',
-      categoryKey: 'automobiles',
-      categoryLabel: 'Automobiles',
-      priceWhole: '2,500,000',
-      priceDecimal: '00',
-      storeKey: 'eden',
-      storeName: 'Eden Organics',
-      storeAvatar: '/assets/images/admin-listings/desktop/eden-organics.png',
-      status: 'sold',
-      boosted: true,
-    },
-    {
-      id: 'rgb-keyboard',
-      name: 'RGB keyboard',
-      thumbnail: '/assets/images/admin-listings/desktop/rgb-keyboard.png',
-      categoryKey: 'electronics',
-      categoryLabel: 'Electronics',
-      priceWhole: '2,500,000',
-      priceDecimal: '00',
-      storeKey: 'abogu',
-      storeName: 'Abogu Ruth',
-      storeAvatar: '/assets/images/admin-listings/desktop/abogu-ruth.png',
-      status: 'paused',
-      boosted: false,
-    },
-    {
-      id: 'sweatshirt',
-      name: 'Sweatshirt',
-      thumbnail: '/assets/images/admin-listings/desktop/sweatshirt.png',
-      categoryKey: 'mens-fashion',
-      categoryLabel: 'Men’s fashion',
-      priceWhole: '2,500,000',
-      priceDecimal: '00',
-      storeKey: 'vine',
-      storeName: 'The Vine Collections',
-      storeAvatar: '/assets/images/admin-listings/desktop/the-vine-collections.png',
-      status: 'sold',
-      boosted: false,
-    },
-  ];
+  private readonly requestQuery = computed(() => ({
+    page: this.currentPage(),
+    search: this.searchQuery(),
+    category: this.categoryFilter(),
+    store: this.storeFilter(),
+    status: this.statusFilter() === 'all' ? this.summaryStatusFilter() : this.statusFilter(),
+  }));
 
-  readonly mobileListings: AdminListingRecord[] = [
-    {
-      id: 'iphone-17-pro-max-mobile',
-      name: 'Iphone 17 pro max',
-      thumbnail: '/assets/images/admin-listings/mobile/iphone-17-pro-max.png',
-      categoryKey: 'phones-laptops',
-      categoryLabel: 'Phones & Laptops',
-      priceWhole: '2,500,000',
-      priceDecimal: '00',
-      storeKey: 'vine',
-      storeName: 'The Vine Collections',
-      status: 'available',
-      boosted: true,
-    },
-    {
-      id: 'logitech-ergonomic-mouse-mobile',
-      name: 'Logitech ergonomic m...',
-      thumbnail: '/assets/images/admin-listings/mobile/logitech-ergonomic-mouse.png',
-      categoryKey: 'electronics',
-      categoryLabel: 'Electronics',
-      priceWhole: '150,000',
-      priceDecimal: '00',
-      storeKey: 'eden',
-      storeName: 'Eden Organics',
-      status: 'sold',
-      boosted: true,
-    },
-    {
-      id: 'nike-sneaker-mobile',
-      name: 'Nike sneaker',
-      thumbnail: '/assets/images/admin-listings/mobile/nike-sneaker.png',
-      categoryKey: 'mens-fashion',
-      categoryLabel: 'Men’s fashion',
-      priceWhole: '150,000',
-      priceDecimal: '00',
-      storeKey: 'amazing',
-      storeName: 'Amazing Fragrances',
-      status: 'suspended',
-      boosted: false,
-    },
-    {
-      id: 'bone-straight-wig-mobile',
-      name: 'Bone straight wig',
-      thumbnail: '/assets/images/admin-listings/mobile/bone-straight-wig.png',
-      categoryKey: 'womens-fashion',
-      categoryLabel: 'Women’s fashion',
-      priceWhole: '150,000',
-      priceDecimal: '00',
-      storeKey: 'personal',
-      storeName: 'Personal account',
-      status: 'paused',
-      boosted: true,
-    },
-    {
-      id: 'maserati-mobile',
-      name: 'Maserati',
-      thumbnail: '/assets/images/admin-listings/mobile/maserati.png',
-      categoryKey: 'automobiles',
-      categoryLabel: 'Automobiles',
-      priceWhole: '150,000',
-      priceDecimal: '00',
-      storeKey: 'vine',
-      storeName: 'The Vine Collections',
-      status: 'suspended',
-      boosted: false,
-    },
-  ];
-
-  readonly visibleDesktopListings = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-
-    return this.desktopListings.filter((listing) => {
-      const summaryMatches = this.summaryStatusFilter() === 'all' || listing.status === this.summaryStatusFilter();
-      const categoryMatches = this.categoryFilter() === 'all' || listing.categoryKey === this.categoryFilter();
-      const storeMatches = this.storeFilter() === 'all' || listing.storeKey === this.storeFilter();
-      const statusMatches = this.statusFilter() === 'all' || listing.status === this.statusFilter();
-      const searchMatches =
-        query === ''
-        || listing.name.toLowerCase().includes(query)
-        || listing.categoryLabel.toLowerCase().includes(query)
-        || listing.storeName.toLowerCase().includes(query);
-
-      return summaryMatches && categoryMatches && storeMatches && statusMatches && searchMatches;
-    });
-  });
-
-  readonly visibleMobileListings = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-
-    return this.mobileListings.filter((listing) => {
-      const summaryMatches = this.summaryStatusFilter() === 'all' || listing.status === this.summaryStatusFilter();
-      const searchMatches =
-        query === ''
-        || listing.name.toLowerCase().includes(query)
-        || listing.storeName.toLowerCase().includes(query);
-
-      return summaryMatches && searchMatches;
-    });
-  });
-
-  readonly categoryLabel = computed(() => {
-    switch (this.categoryFilter()) {
-      case 'phones-laptops':
-        return 'Phones & Laptops';
-      case 'electronics':
-        return 'Electronics';
-      case 'mens-fashion':
-        return 'Men’s fashion';
-      case 'womens-fashion':
-        return 'Women’s fashion';
-      case 'automobiles':
-        return 'Automobiles';
-      default:
-        return 'Category';
-    }
-  });
-
-  readonly storeLabel = computed(() => {
-    switch (this.storeFilter()) {
-      case 'vine':
-        return 'The Vine Collections';
-      case 'eden':
-        return 'Eden Organics';
-      case 'amazing':
-        return 'Amazing Fragrances';
-      case 'personal':
-        return 'Personal account';
-      case 'ifeanyi':
-        return 'Ifeanyi Austin';
-      case 'abogu':
-        return 'Abogu Ruth';
-      default:
-        return 'Store';
-    }
-  });
-
-  readonly statusLabel = computed(() => {
-    switch (this.statusFilter()) {
-      case 'available':
-        return 'Available';
-      case 'sold':
-        return 'Sold';
-      case 'paused':
-        return 'Paused';
-      case 'suspended':
-        return 'Suspended';
-      default:
-        return 'Status';
-    }
-  });
+  constructor() {
+    toObservable(this.requestQuery)
+      .pipe(
+        debounceTime(150),
+        distinctUntilChanged((previous, current) => JSON.stringify(previous) === JSON.stringify(current)),
+        switchMap((query) => this.adminListingsService.getListings(query)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.listings.set(response.results.map((record) => this.mapRecord(record)));
+        this.totalResults.set(response.count ?? response.results.length);
+        this.hasNextPage.set(Boolean(response.next));
+        this.hasPreviousPage.set(Boolean(response.previous));
+        this.totalPages.set(Math.max(1, Math.ceil((response.count ?? response.results.length) / 5)));
+        this.counts.set({
+          all: response.counts?.all ?? 0,
+          available: response.counts?.available ?? 0,
+          sold: response.counts?.sold ?? 0,
+          paused: response.counts?.paused ?? 0,
+          suspended: response.counts?.suspended ?? 0,
+        });
+        this.availableCategories.set(response.categories ?? []);
+        this.availableStores.set(response.stores ?? []);
+      });
+  }
 
   setSummaryFilter(value: AdminListingsSummaryFilter): void {
     this.summaryStatusFilter.set(value);
+    if (value !== 'all') {
+      this.statusFilter.set('all');
+    }
+    this.currentPage.set(1);
   }
 
-  cycleCategoryFilter(): void {
-    this.categoryFilter.update((value) => {
-      switch (value) {
-        case 'all':
-          return 'phones-laptops';
-        case 'phones-laptops':
-          return 'electronics';
-        case 'electronics':
-          return 'mens-fashion';
-        case 'mens-fashion':
-          return 'womens-fashion';
-        case 'womens-fashion':
-          return 'automobiles';
-        default:
-          return 'all';
-      }
-    });
+  selectCategory(value: AdminListingsCategory): void {
+    this.categoryFilter.set(value);
+    this.currentPage.set(1);
   }
 
-  cycleStoreFilter(): void {
-    this.storeFilter.update((value) => {
-      switch (value) {
-        case 'all':
-          return 'vine';
-        case 'vine':
-          return 'eden';
-        case 'eden':
-          return 'amazing';
-        case 'amazing':
-          return 'ifeanyi';
-        case 'ifeanyi':
-          return 'abogu';
-        case 'abogu':
-          return 'personal';
-        default:
-          return 'all';
-      }
-    });
+  selectStore(value: AdminListingsStore): void {
+    this.storeFilter.set(value);
+    this.currentPage.set(1);
   }
 
-  cycleStatusFilter(): void {
-    this.statusFilter.update((value) => {
-      switch (value) {
-        case 'all':
-          return 'available';
-        case 'available':
-          return 'sold';
-        case 'sold':
-          return 'paused';
-        case 'paused':
-          return 'suspended';
-        default:
-          return 'all';
-      }
-    });
+  selectStatus(value: 'all' | AdminListingsStatus): void {
+    this.statusFilter.set(value);
+    this.currentPage.set(1);
   }
 
   updateSearchQuery(value: string): void {
     this.searchQuery.set(value);
+    this.currentPage.set(1);
+  }
+
+  goToPreviousPage(): void {
+    if (this.hasPreviousPage()) {
+      this.currentPage.update((page) => Math.max(1, page - 1));
+    }
+  }
+
+  goToNextPage(): void {
+    if (this.hasNextPage()) {
+      this.currentPage.update((page) => page + 1);
+    }
   }
 
   openListing(id: string): void {
@@ -706,6 +504,42 @@ export class AdminListingsPageComponent {
         return '/assets/icons/admin-listings/status-paused.svg';
       case 'suspended':
         return '/assets/icons/admin-listings/status-suspended.svg';
+    }
+  }
+
+  protected formatCount(value: number): string {
+    return new Intl.NumberFormat('en-US').format(value);
+  }
+
+  private mapRecord(record: AdminListingRecordResponse): AdminListingRecord {
+    const amount = record.price ?? '0';
+    const [priceWhole, priceDecimal = '00'] = amount.split('.');
+    return {
+      id: record.id,
+      name: record.title,
+      thumbnail: record.thumbnail,
+      categoryKey: record.category_slug ?? 'uncategorized',
+      categoryLabel: record.category_label ?? 'Uncategorized',
+      priceWhole: this.formatCount(Number(priceWhole.replace(/,/g, '')) || 0),
+      priceDecimal,
+      storeKey: record.id,
+      storeName: record.store_name || 'Personal account',
+      storeAvatar: record.store_avatar,
+      status: this.mapStatus(record.status),
+      boosted: record.is_promoted,
+    };
+  }
+
+  private mapStatus(status: string): AdminListingsStatus {
+    switch (status) {
+      case 'published':
+        return 'available';
+      case 'sold':
+        return 'sold';
+      case 'paused':
+        return 'paused';
+      default:
+        return 'suspended';
     }
   }
 }
