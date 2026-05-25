@@ -5856,7 +5856,25 @@ export class AdminUserDetailsPageComponent {
   }
 
   banUser(): void {
-    this.deactivateUser();
+    this.isMobileUserActionsOpen.set(false);
+    this.isUserActionsOpen.set(false);
+    const userId = this.userId();
+    if (!userId) {
+      return;
+    }
+
+    this.adminUserDetailsService.banUser(userId).subscribe({
+      next: () => {
+        this.userStatusOverride.set('suspended');
+        this.userDetailResponse.update((current) =>
+          current ? { ...current, is_active: false, is_banned: true } : current,
+        );
+        this.toast.show({ message: 'User banned successfully. Active sessions were revoked.' });
+      },
+      error: () => {
+        this.toast.show({ message: 'We could not ban that user right now.' });
+      },
+    });
   }
 
   activityIcon(kind: AdminUserActivity['kind']): string {

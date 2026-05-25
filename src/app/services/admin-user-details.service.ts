@@ -44,6 +44,7 @@ export type AdminUserDetailResponse = {
   is_vendor: boolean;
   is_verified: boolean;
   is_active: boolean;
+  is_banned?: boolean;
   created_at: string;
   last_login: string | null;
   identity_verification: AdminUserDetailIdentityVerification;
@@ -353,6 +354,10 @@ export class AdminUserDetailsService {
 
   suspendUser(userId: string): Observable<{ detail: string; is_active: boolean }> {
     return this.http.post<{ detail: string; is_active: boolean }>(`${this.apiUrl}/admin/users/${userId}/suspend/`, {});
+  }
+
+  banUser(userId: string): Observable<{ detail: string; is_active: boolean; is_banned: boolean }> {
+    return this.http.post<{ detail: string; is_active: boolean; is_banned: boolean }>(`${this.apiUrl}/admin/users/${userId}/ban/`, {});
   }
 
   activateUser(userId: string): Observable<{ detail: string; is_active: boolean }> {
