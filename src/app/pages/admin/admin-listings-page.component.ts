@@ -316,7 +316,7 @@ interface AdminListingRecord {
                 (click)="goToPreviousPage()"
                 [disabled]="!hasPreviousPage()"
               >
-                <img ngSrc="/assets/icons/admin-user-details/chevron-left.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
+                <img ngSrc="/assets/icons/admin-user-details/arrow-left.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
               </button>
               <span class="flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-3 text-[14px] font-medium text-[#1A1B1D] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">
                 {{ currentPage() }}
@@ -327,7 +327,7 @@ interface AdminListingRecord {
                 (click)="goToNextPage()"
                 [disabled]="!hasNextPage()"
               >
-                <img ngSrc="/assets/icons/admin-user-details/chevron-right.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
+                <img ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
               </button>
               <span class="ml-2">of {{ totalPages() }}</span>
             </div>

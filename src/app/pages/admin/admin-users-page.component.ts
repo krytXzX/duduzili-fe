@@ -12,9 +12,12 @@ import {
   AdminUsersStoreFilter,
 } from '../../services/admin-users.service';
 import {
+  heroCheckBadge,
+  heroCheckCircle,
   heroChevronDown,
   heroChevronLeft,
   heroChevronRight,
+  heroExclamationCircle,
   heroMagnifyingGlass,
 } from '@ng-icons/heroicons/outline';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
@@ -44,9 +47,12 @@ interface AdminUser {
   imports: [NgIcon, NgOptimizedImage, CustomDropdownComponent],
   providers: [
     provideIcons({
+      heroCheckBadge,
+      heroCheckCircle,
       heroChevronDown,
       heroChevronLeft,
       heroChevronRight,
+      heroExclamationCircle,
       heroMagnifyingGlass,
     }),
   ],
@@ -83,14 +89,11 @@ interface AdminUser {
 
       <div class="mt-6 flex items-center gap-3">
         <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAFAFA] px-3">
-          <img
-            ngSrc="/assets/icons/admin-users/search.svg"
-            width="16"
-            height="16"
-            alt=""
-            class="h-4 w-4"
+          <ng-icon
+            name="heroMagnifyingGlass"
+            class="h-4 w-4 shrink-0 text-[#777777]"
             aria-hidden="true"
-          />
+          ></ng-icon>
           <input
             type="text"
             [value]="searchQuery()"
@@ -146,14 +149,11 @@ interface AdminUser {
                         {{ user.name }}
                       </span>
                       @if (user.verification === 'verified') {
-                        <img
-                          ngSrc="/assets/icons/admin-users/verify.svg"
-                          width="16"
-                          height="16"
-                          alt=""
-                          class="h-4 w-4 shrink-0"
+                        <ng-icon
+                          name="heroCheckBadge"
+                          class="h-4 w-4 shrink-0 text-[#5932EA]"
                           aria-hidden="true"
-                        />
+                        ></ng-icon>
                       }
                     </span>
                     <span class="block truncate text-[12px] font-normal leading-4 text-[#8C8C8C]">
@@ -171,14 +171,11 @@ interface AdminUser {
                   [class.bg-[#FFF7ED]]="user.status === 'banned'"
                   [class.text-[#C2410C]]="user.status === 'banned'"
                 >
-                  <img
-                    [ngSrc]="user.status === 'active' ? '/assets/icons/admin-users/tick-circle.svg' : '/assets/icons/admin-users/slash.svg'"
-                    width="14"
-                    height="14"
-                    alt=""
-                    class="h-3.5 w-3.5"
+                  <ng-icon
+                    [name]="user.status === 'active' ? 'heroCheckCircle' : 'heroExclamationCircle'"
+                    class="h-3.5 w-3.5 shrink-0"
                     aria-hidden="true"
-                  />
+                  ></ng-icon>
                   {{ user.status === 'active' ? 'Active' : user.status === 'banned' ? 'Banned' : 'Suspended' }}
                 </span>
               </div>
