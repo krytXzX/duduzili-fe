@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
@@ -17,19 +18,17 @@ import {
   heroStar,
 } from '@ng-icons/heroicons/outline';
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
+import { AppToastService } from '../../services/app-toast.service';
+import {
+  AdminStoreDetailResponse,
+  AdminStoreDetailsService,
+  AdminStoreListingResponse,
+  AdminStoreReviewResponse,
+  AdminStoreReviewTagResponse,
+} from '../../services/admin-store-details.service';
 
 type AdminStoreDetailsTab = 'listings' | 'reviews';
-type AdminStoreCategoryChip =
-  | 'All'
-  | 'Phones & Laptops'
-  | 'Women'
-  | 'Men'
-  | 'Beauty'
-  | 'Food & Drinks'
-  | 'Baby & Toddler'
-  | 'Home'
-  | 'Properties'
-  | 'Fitness & Nutrition';
+type AdminStoreCategoryChip = string;
 
 interface AdminStoreDetailsRecord {
   id: string;
@@ -107,7 +106,9 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
 
       <div class="flex-1 w-full max-w-full overflow-y-auto px-5 py-4 md:px-6 md:py-6 md:sm:px-8">
         <div class="relative h-[184px] overflow-hidden rounded-[32px] bg-[#F4F6FB] md:h-[220px]">
-          <img [src]="store().banner" [alt]="store().name" class="h-full w-full object-cover" />
+          @if (store().banner) {
+            <img [src]="store().banner" [alt]="store().name" class="h-full w-full object-cover" />
+          }
           <div class="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-white via-white/85 to-transparent"></div>
         </div>
 
@@ -117,7 +118,13 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
               <div
                 class="h-24 w-24 overflow-hidden rounded-full border-[6px] border-white bg-white shadow-md md:h-28 md:w-28"
               >
-                <img [src]="store().logo" [alt]="store().name" class="h-full w-full rounded-full object-cover" />
+                @if (store().logo) {
+                  <img [src]="store().logo" [alt]="store().name" class="h-full w-full rounded-full object-cover" />
+                } @else {
+                  <div class="flex h-full w-full items-center justify-center rounded-full bg-[#EEF0F4] text-[24px] font-semibold text-[#1A1C21]">
+                    {{ store().name.charAt(0) }}
+                  </div>
+                }
               </div>
 
               <div class="pb-2">
@@ -179,11 +186,11 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
           <div class="flex items-center gap-3">
             <button
               type="button"
-              (click)="openSuspendStoreConfirm()"
+              (click)="handlePrimaryStoreAction()"
               class="inline-flex items-center gap-2 rounded-full border border-[#E7E9EE] bg-white px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#F8F8FB]"
             >
               <ng-icon name="heroNoSymbol" class="text-[16px]"></ng-icon>
-              Suspend store
+              {{ primaryStoreActionLabel() }}
             </button>
 
             <button
@@ -237,7 +244,7 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
             <div class="pt-8">
               <div class="mb-8 overflow-x-auto pb-2">
                 <div class="flex min-w-max items-center gap-3 pr-14">
-                  @for (chip of categoryChips; track chip) {
+                  @for (chip of categoryChips(); track chip) {
                     <button
                       type="button"
                       (click)="activeCategory.set(chip)"
@@ -324,7 +331,7 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
                     <div class="flex flex-col gap-6">
                       <div class="min-w-[110px] md:min-w-0">
                         <div class="flex items-end gap-1">
-                          <span class="text-[40px] font-semibold leading-[48px] text-[#2D2D2D] md:text-[56px] md:leading-[64px]">4.57</span>
+                          <span class="text-[40px] font-semibold leading-[48px] text-[#2D2D2D] md:text-[56px] md:leading-[64px]">{{ overallRatingDisplay() }}</span>
                           <span class="pb-1 text-[20px] font-medium leading-6 text-[#BFBFBF] md:text-[28px] md:leading-10">/5</span>
                         </div>
                         <div class="mt-1 flex items-center gap-1 text-[#D3DC35] md:mt-2">
@@ -337,7 +344,7 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
                       <div class="flex-1 md:w-full">
                         <p class="mb-3 text-[16px] font-semibold text-[#2D2D2D]">Overall rating</p>
                         <div class="space-y-2.5">
-                          @for (bar of ratingBreakdown; track bar.stars) {
+                          @for (bar of ratingBreakdown(); track bar.stars) {
                             <div class="flex items-center gap-2 md:gap-3">
                               <span class="w-6 text-[14px] text-[#2D2D2D] md:w-7">{{ bar.stars }} ★</span>
                               <div class="h-[7px] flex-1 overflow-hidden rounded-[16px] bg-[#EAEAEA]">
@@ -354,7 +361,7 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
 
                 <div>
                   <div class="mb-7 flex items-center justify-between">
-                    <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">215 reviews</h2>
+                    <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">{{ totalReviewsLabel() }}</h2>
                     <app-custom-dropdown
                       [options]="reviewSortOptions"
                       [value]="reviewSort()"
@@ -372,14 +379,14 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
                   <p class="text-[16px] font-medium leading-6 text-[#1F1F1F] md:hidden">This listing is great at..</p>
                   <p class="hidden text-[16px] font-medium leading-6 text-[#1F1F1F] md:block">This vendor is great at..</p>
                   <div class="mt-3 flex flex-wrap gap-x-2 gap-y-3 md:hidden">
-                    @for (tag of reviewTagsMobile; track tag.label) {
+                    @for (tag of reviewTagsMobile(); track tag.label) {
                       <div class="rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-3 py-2 text-[16px] leading-6 text-[#5A5A5A]">
                         {{ tag.label }} ({{ tag.count }})
                       </div>
                     }
                   </div>
                   <div class="mt-3 hidden flex-wrap gap-3 md:flex">
-                    @for (tag of reviewTags; track tag.label) {
+                    @for (tag of reviewTags(); track tag.label) {
                       <div class="rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-4 py-2 text-[16px] leading-6 text-[#5A5A5A]">
                         {{ tag.label }} ({{ tag.count }})
                       </div>
@@ -391,7 +398,16 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
                       <article class="w-full max-w-full overflow-hidden">
                         <div class="flex items-center gap-2">
                           <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full">
-                            <img [src]="review.avatar || '/assets/images/image-3-1.jpg'" [alt]="review.author" class="h-full w-full rounded-full object-cover" />
+                            @if (review.avatar) {
+                              <img [src]="review.avatar" [alt]="review.author" class="h-full w-full rounded-full object-cover" />
+                            } @else {
+                              <div
+                                class="flex h-full w-full items-center justify-center rounded-full text-[12px] font-semibold text-white"
+                                [style.background]="avatarGradientForLabel(review.author)"
+                              >
+                                {{ initialsFromLabel(review.author) }}
+                              </div>
+                            }
                           </div>
                           <div>
                             <h3 class="text-[16px] font-medium leading-6 text-[#0D0D0D]">{{ review.author }}</h3>
@@ -586,7 +602,10 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminStoreDetailsPageComponent {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
+  private readonly adminStoreDetailsService = inject(AdminStoreDetailsService);
+  private readonly toast = inject(AppToastService);
   readonly adminListingRoute = ['/admin/listings'];
 
   readonly activeTab = signal<AdminStoreDetailsTab>('listings');
@@ -594,339 +613,116 @@ export class AdminStoreDetailsPageComponent {
   readonly reviewSort = signal<AdminStoreReviewSort>('most-recent');
   readonly isSuspendStoreConfirmOpen = signal(false);
   readonly suspensionReason = signal('');
+  readonly isActionPending = signal(false);
   readonly canConfirmSuspendStore = computed(() => this.suspensionReason().trim().length > 0);
-  readonly storeId = computed(() => this.route.snapshot.paramMap.get('id') ?? 'vine-collections');
-  readonly categoryChips: AdminStoreCategoryChip[] = [
-    'All',
-    'Phones & Laptops',
-    'Women',
-    'Men',
-    'Beauty',
-    'Food & Drinks',
-    'Baby & Toddler',
-    'Home',
-    'Properties',
-    'Fitness & Nutrition',
-  ];
+  private readonly storeId = signal('');
+  private readonly storeState = signal<AdminStoreDetailsRecord>({
+    id: '',
+    name: 'Store',
+    banner: '',
+    logo: '',
+    description: '',
+    location: '---',
+    followers: '0',
+    listings: '0',
+    rating: '0.0',
+    dateCreated: '---',
+    linkedUser: 'Unknown user',
+    linkedUserInitials: 'U',
+    linkedUserBackground: this.avatarGradientForLabel('Unknown user'),
+    promoted: false,
+    hasListings: false,
+    hasReviews: false,
+  });
+  private readonly sections = signal<AdminStoreProductSection[]>([]);
+  private readonly reviews = signal<Review[]>([]);
+  readonly ratingBreakdown = signal<ReviewBreakdownItem[]>([
+    { stars: 5, percentage: 0 },
+    { stars: 4, percentage: 0 },
+    { stars: 3, percentage: 0 },
+    { stars: 2, percentage: 0 },
+    { stars: 1, percentage: 0 },
+  ]);
+  readonly reviewTags = signal<ReviewTag[]>([]);
+  private readonly totalReviews = signal(0);
+  private readonly overallRating = signal(0);
 
-  private readonly stores: Record<string, AdminStoreDetailsRecord> = {
-    'vine-collections': {
-      id: 'vine-collections',
-      name: 'The Vine Collections',
-      banner: '/assets/images/store-1-banner.png',
-      logo: '/assets/images/store-1-banner.png',
-      description:
-        'Premium gadgets, fashion finds, and curated essentials delivered with care across Lagos and beyond.',
-      location: 'Ikeja, Lagos',
-      followers: '2.5k',
-      listings: '1,456',
-      rating: '4.8',
-      dateCreated: '16 Feb, 2024',
-      linkedUser: 'Ifeanyi Austin',
-      linkedUserInitials: 'IA',
-      linkedUserBackground: 'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
-      promoted: true,
-      hasListings: true,
-      hasReviews: true,
-    },
-    'vine-collections-2': {
-      id: 'vine-collections-2',
-      name: 'The Vine Collections',
-      banner: '/assets/images/store-1-banner.png',
-      logo: '/assets/images/store-1-banner.png',
-      description:
-        'Curated accessories and fast-moving everyday pieces with a focus on quality presentation and reliable fulfilment.',
-      location: 'Ikeja, Lagos',
-      followers: '2.5k',
-      listings: '1,456',
-      rating: '4.4',
-      dateCreated: '16 Feb, 2024',
-      linkedUser: 'Abogu Ruth',
-      linkedUserInitials: 'AR',
-      linkedUserBackground: 'linear-gradient(135deg, #4FC3C8 0%, #2FB8A8 100%)',
-      promoted: false,
-      hasListings: true,
-      hasReviews: true,
-    },
-    'vine-collections-3': {
-      id: 'vine-collections-3',
-      name: 'The Vine Collections',
-      banner: '/assets/images/store-1-banner.png',
-      logo: '/assets/images/store-1-banner.png',
-      description:
-        'Fashion-led collections for shoppers who want standout wardrobe staples and smooth customer support.',
-      location: 'Ikeja, Lagos',
-      followers: '2.5k',
-      listings: '1,456',
-      rating: '1.3',
-      dateCreated: '16 Feb, 2024',
-      linkedUser: 'Ifeanyi Austin',
-      linkedUserInitials: 'IA',
-      linkedUserBackground: 'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
-      promoted: false,
-      hasListings: true,
-      hasReviews: true,
-    },
-    'eden-organics': {
-      id: 'eden-organics',
-      name: 'Eden Organics',
-      banner: '/assets/images/store-2-banner.png',
-      logo: '/assets/images/store-2-banner.png',
-      description:
-        'A wellness-focused store offering organic staples, household picks, and carefully sourced lifestyle products.',
-      location: 'Ikeja, Lagos',
-      followers: '1.8k',
-      listings: '300',
-      rating: '3.5',
-      dateCreated: '09 Mar, 2024',
-      linkedUser: 'Abogu Ruth',
-      linkedUserInitials: 'AR',
-      linkedUserBackground: 'linear-gradient(135deg, #4FC3C8 0%, #2FB8A8 100%)',
-      promoted: true,
-      hasListings: true,
-      hasReviews: true,
-    },
-    'eden-organics-2': {
-      id: 'eden-organics-2',
-      name: 'Eden Organics',
-      banner: '/assets/images/store-2-banner.png',
-      logo: '/assets/images/store-2-banner.png',
-      description:
-        'Clean, practical essentials for health-conscious buyers, with a smaller catalogue and a growing local audience.',
-      location: 'Ikeja, Lagos',
-      followers: '1.8k',
-      listings: '28',
-      rating: '2.5',
-      dateCreated: '09 Mar, 2024',
-      linkedUser: 'Abogu Ruth',
-      linkedUserInitials: 'AR',
-      linkedUserBackground: 'linear-gradient(135deg, #4FC3C8 0%, #2FB8A8 100%)',
-      promoted: false,
-      hasListings: true,
-      hasReviews: false,
-    },
-    'amazing-fragrances': {
-      id: 'amazing-fragrances',
-      name: 'Amazing Fragrances',
-      banner: '/assets/images/store-3-banner.png',
-      logo: '/assets/images/store-3-banner.png',
-      description:
-        'Signature scents and premium fragrance selections designed for gifting, collecting, and daily wear.',
-      location: 'Ikeja, Lagos',
-      followers: '960',
-      listings: '123',
-      rating: '5.0',
-      dateCreated: '12 Apr, 2024',
-      linkedUser: 'Ifeanyi Austin',
-      linkedUserInitials: 'IA',
-      linkedUserBackground: 'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
-      promoted: false,
-      hasListings: true,
-      hasReviews: true,
-    },
-    'amazing-fragrances-2': {
-      id: 'amazing-fragrances-2',
-      name: 'Amazing Fragrances',
-      banner: '/assets/images/store-3-banner.png',
-      logo: '/assets/images/store-3-banner.png',
-      description:
-        'A boutique fragrance storefront with a refined brand voice and a compact but distinctive inventory.',
-      location: 'Ikeja, Lagos',
-      followers: '960',
-      listings: '0',
-      rating: '4.7',
-      dateCreated: '12 Apr, 2024',
-      linkedUser: 'Ifeanyi Austin',
-      linkedUserInitials: 'IA',
-      linkedUserBackground: 'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
-      promoted: false,
-      hasListings: false,
-      hasReviews: false,
-    },
-  };
-
-  readonly store = computed(() => this.stores[this.storeId()] ?? this.stores['vine-collections']);
-
-  private readonly listingSectionsByStore: Record<string, AdminStoreProductSection[]> = {
-    'vine-collections': [
-      {
-        id: 'phones-and-laptops',
-        title: 'Phones & Laptops',
-        countLabel: '3,341',
-        items: [
-          this.createListing('iphone-17-pro-max', 'Iphone 17 pro max', '₦2,500,000', '/assets/images/image-1-1.jpg', 'Phones & Laptops', true),
-          this.createListing('logitech-mouse', 'Logitech ergonomic mouse', '₦35,000', '/assets/images/image-2-1.jpg', 'Phones & Laptops'),
-          this.createListing('rgb-keyboard', 'RGB keyboard', '₦35,000', '/assets/images/product_keyboard_rgb.png', 'Phones & Laptops'),
-          this.createListing('iphone-x', 'Iphone X (64 gig)', '₦35,000', '/assets/images/image-4-1.jpg', 'Phones & Laptops'),
-          this.createListing('ergonomic-chair', 'Ergonomic chair', '₦35,000', '/assets/images/hero_img_4.png', 'Phones & Laptops'),
-        ],
-      },
-      {
-        id: 'men',
-        title: 'Men',
-        countLabel: '3,341',
-        items: [
-          this.createListing('tie', 'Tie', '₦35,000', '/assets/images/fashion_menswear.png', 'Men'),
-          this.createListing('maserati', 'Maserati', '₦35,000', '/assets/images/product_watch_luxury.png', 'Men'),
-          this.createListing('nike-sneaker', 'Nike sneaker', '₦35,000', '/assets/images/product_sneakers_lifestyle.png', 'Men'),
-          this.createListing('dior-sauvage', 'Dior sauvage', '₦35,000', '/assets/images/hero_img_3.png', 'Men'),
-          this.createListing('g-shock', 'G-shock wrist watch', '₦35,000', '/assets/images/product_watch_luxury.png', 'Men'),
-        ],
-      },
-    ],
-    'vine-collections-2': [
-      {
-        id: 'home',
-        title: 'Home',
-        countLabel: '1,142',
-        items: [
-          this.createListing('ergonomic-chair-2', 'Ergonomic chair', '₦35,000', '/assets/images/hero_img_4.png', 'Home'),
-          this.createListing('kitchen-utensils', 'Kitchen utensils', '₦35,000', '/assets/images/hero-bg.png', 'Home'),
-        ],
-      },
-    ],
-    'vine-collections-3': [
-      {
-        id: 'beauty',
-        title: 'Beauty',
-        countLabel: '418',
-        items: [
-          this.createListing('bone-straight-wig', 'Bone straight wig', '₦35,000', '/assets/images/image-3-1.jpg', 'Beauty'),
-        ],
-      },
-    ],
-    'eden-organics': [
-      {
-        id: 'food-and-drinks',
-        title: 'Food & Drinks',
-        countLabel: '892',
-        items: [
-          this.createListing('organic-oil', 'Organic body oil', '₦35,000', '/assets/images/store-2-banner.png', 'Food & Drinks'),
-          this.createListing('fresh-produce', 'Fresh produce pack', '₦35,000', '/assets/images/store-2-banner.png', 'Food & Drinks'),
-        ],
-      },
-    ],
-    'eden-organics-2': [
-      {
-        id: 'beauty-2',
-        title: 'Beauty',
-        countLabel: '126',
-        items: [
-          this.createListing('organic-serum', 'Organic serum', '₦35,000', '/assets/images/store-2-banner.png', 'Beauty'),
-        ],
-      },
-    ],
-    'amazing-fragrances': [
-      {
-        id: 'beauty-3',
-        title: 'Beauty',
-        countLabel: '543',
-        items: [
-          this.createListing('signature-scent', 'Signature scent', '₦35,000', '/assets/images/store-3-banner.png', 'Beauty'),
-          this.createListing('fragrance-set', 'Fragrance set', '₦35,000', '/assets/images/store-3-banner.png', 'Beauty'),
-        ],
-      },
-    ],
-    'amazing-fragrances-2': [],
-  };
-
+  readonly store = computed(() => this.storeState());
+  readonly categoryChips = computed<AdminStoreCategoryChip[]>(() => {
+    const categories = this.sections().map((section) => section.title).filter((category) => category.length > 0);
+    return ['All', ...categories];
+  });
   readonly filteredSections = computed(() => {
-    const sections = this.listingSectionsByStore[this.store().id] ?? [];
     const activeCategory = this.activeCategory();
-
+    const sections = this.sections();
     if (activeCategory === 'All') {
       return sections;
     }
-
     return sections.filter((section) => section.title === activeCategory);
   });
-
-  readonly ratingBreakdown: ReviewBreakdownItem[] = [
-    { stars: 5, percentage: 65 },
-    { stars: 4, percentage: 11 },
-    { stars: 3, percentage: 9 },
-    { stars: 2, percentage: 3 },
-    { stars: 1, percentage: 2 },
-  ];
-
-  readonly reviewTags: ReviewTag[] = [
-    { label: 'Timely response', count: 16 },
-    { label: 'Safety', count: 7 },
-    { label: 'Credibility', count: 7 },
-    { label: 'Manners', count: 7 },
-    { label: 'Hospitality', count: 7 },
-  ];
-  readonly reviewTagsMobile: ReviewTag[] = [
-    { label: 'Fast response', count: 16 },
-    { label: 'Friendly', count: 7 },
-    { label: 'Smooth transaction', count: 7 },
-    { label: 'On-time delivery', count: 7 },
-    { label: 'Honest pricing', count: 7 },
-  ];
-
-  readonly reviews = computed<Review[]>(() => [
-    {
-      author: 'Mary Jane',
-      date: 'August 14, 2025',
-      rating: 4,
-      text: 'Contacted the seller. Went to their office to purchase the item and their hospitality was okay. Truly reliable. And he’s a funny man 😂',
-      avatar: '/assets/images/admin-store-details/reviews/avatar-mary.png',
-    },
-    {
-      author: 'Apeli Obubra',
-      date: 'August 14, 2025',
-      rating: 4,
-      text: 'Straightforward guy! easy transaction great goods',
-      avatar: '/assets/images/admin-store-details/reviews/avatar-apeli.png',
-    },
-    {
-      author: 'Ibiso Amiesimaka',
-      date: 'August 14, 2025',
-      rating: 4,
-      text: 'infact it was amazing if everyone is like this Nigeria will be better than this i advice everybody that wants to buy laptop should call this man',
-      avatar: '/assets/images/admin-store-details/reviews/avatar-ibiso.png',
-      images: [
-        '/assets/images/admin-store-details/reviews/review-image-1.png',
-        '/assets/images/admin-store-details/reviews/review-image-2.png',
-        '/assets/images/admin-store-details/reviews/review-image-3.png',
-        '/assets/images/admin-store-details/reviews/review-image-4.png',
-        '/assets/images/admin-store-details/reviews/review-image-5.png',
-        '/assets/images/admin-store-details/reviews/review-image-6.png',
-      ],
-    },
-  ]);
-
   readonly visibleReviews = computed(() => {
     const reviews = [...this.reviews()];
-    return this.reviewSort() === 'highest-rated' ? reviews.sort((a, b) => b.rating - a.rating) : reviews;
+    return this.reviewSort() === 'highest-rated'
+      ? reviews.sort((left, right) => right.rating - left.rating)
+      : reviews;
   });
+  readonly reviewTagsMobile = computed(() => this.reviewTags().slice(0, 5));
+  readonly overallRatingDisplay = computed(() => this.overallRating().toFixed(2));
+  readonly totalReviewsLabel = computed(() => {
+    const totalReviews = this.totalReviews();
+    return `${this.formatInteger(totalReviews)} review${totalReviews === 1 ? '' : 's'}`;
+  });
+  readonly primaryStoreActionLabel = computed(() =>
+    this.isStoreSuspended() ? 'Lift suspension' : 'Suspend store',
+  );
+  readonly isStoreSuspended = computed(() => this.rawStoreSuspended());
+
+  private readonly rawStoreSuspended = signal(false);
 
   readonly reviewSortOptions: readonly CustomDropdownOption<AdminStoreReviewSort>[] = [
     { value: 'most-recent', label: 'Most recent' },
     { value: 'highest-rated', label: 'Highest rated' },
   ];
 
-  private createListing(
-    id: string,
-    title: string,
-    price: string,
-    image: string,
-    _category: string,
-    isVerified = true,
-  ): Listing {
-    return {
-      id,
-      title,
-      price,
-      images: [image],
-      location: 'Ikeja, Lagos',
-      timeAgo: 'Now',
-      isVerified,
-    };
+  constructor() {
+    this.route.paramMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const storeId = params.get('id')?.trim() ?? '';
+        this.storeId.set(storeId);
+        if (!storeId) {
+          return;
+        }
+
+        this.loadStorePage(storeId);
+      });
   }
 
   reviewStars(rating: number): boolean[] {
     return Array.from({ length: 5 }, (_, index) => index < rating);
+  }
+
+  initialsFromLabel(label: string): string {
+    const parts = label.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return 'NA';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  avatarGradientForLabel(label: string): string {
+    const palette = [
+      'linear-gradient(135deg, #4FC3C8 0%, #2FB8A8 100%)',
+      'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
+      'linear-gradient(135deg, #7C83FD 0%, #5932EA 100%)',
+      'linear-gradient(135deg, #F87171 0%, #DC2626 100%)',
+    ];
+    const source = label.trim() || 'user';
+    const sum = Array.from(source).reduce((total, character) => total + character.charCodeAt(0), 0);
+    return palette[sum % palette.length];
   }
 
   mobileReviewDate(date: string): string {
@@ -945,6 +741,9 @@ export class AdminStoreDetailsPageComponent {
   }
 
   openSuspendStoreConfirm(): void {
+    if (this.isActionPending()) {
+      return;
+    }
     this.isSuspendStoreConfirmOpen.set(true);
   }
 
@@ -957,11 +756,277 @@ export class AdminStoreDetailsPageComponent {
     this.suspensionReason.set(value);
   }
 
+  handlePrimaryStoreAction(): void {
+    if (this.isStoreSuspended()) {
+      this.liftStoreSuspension();
+      return;
+    }
+
+    this.openSuspendStoreConfirm();
+  }
+
   confirmSuspendStore(): void {
     if (!this.canConfirmSuspendStore()) {
       return;
     }
 
-    this.closeSuspendStoreConfirm();
+    const storeId = this.storeId();
+    if (!storeId || this.isActionPending()) {
+      return;
+    }
+
+    this.isActionPending.set(true);
+    this.adminStoreDetailsService.suspendStore(storeId, this.suspensionReason().trim()).subscribe({
+      next: (response) => {
+        this.rawStoreSuspended.set(response.is_suspended);
+        this.storeState.update((store) => ({
+          ...store,
+          hasListings: store.hasListings,
+          hasReviews: store.hasReviews,
+        }));
+        this.closeSuspendStoreConfirm();
+        this.toast.show({ message: response.detail || 'Store suspended successfully.' });
+      },
+      error: () => {
+        this.toast.show({ message: 'We could not suspend this store right now.' });
+      },
+      complete: () => {
+        this.isActionPending.set(false);
+      },
+    });
+  }
+
+  private liftStoreSuspension(): void {
+    const storeId = this.storeId();
+    if (!storeId || this.isActionPending()) {
+      return;
+    }
+
+    this.isActionPending.set(true);
+    this.adminStoreDetailsService.liftSuspension(storeId).subscribe({
+      next: (response) => {
+        this.rawStoreSuspended.set(response.is_suspended);
+        this.toast.show({ message: response.detail || 'Store restored successfully.' });
+      },
+      error: () => {
+        this.toast.show({ message: 'We could not restore this store right now.' });
+      },
+      complete: () => {
+        this.isActionPending.set(false);
+      },
+    });
+  }
+
+  private loadStorePage(storeId: string): void {
+    this.adminStoreDetailsService.getStore(storeId).subscribe({
+      next: (response) => {
+        this.hydrateFromResponse(response);
+      },
+      error: () => {
+        this.toast.show({ message: 'We could not load this store right now.' });
+      },
+    });
+  }
+
+  private hydrateFromResponse(response: AdminStoreDetailResponse): void {
+    const store = response.store;
+    const listingSections = this.mapProductSections(response.listings);
+    const reviews = response.reviews.map((review) => this.mapReview(review));
+
+    this.storeState.set({
+      id: store.id,
+      name: store.store_name,
+      banner: store.cover_image ?? '',
+      logo: store.profile_photo ?? '',
+      description: store.store_bio ?? '',
+      location: store.location || '---',
+      followers: this.formatCompactCount(store.followers_count),
+      listings: this.formatInteger(store.listings_count),
+      rating: this.formatDecimal(store.average_rating, 1),
+      dateCreated: this.formatDate(store.date_joined) ?? '---',
+      linkedUser: store.linked_user.name,
+      linkedUserInitials: store.linked_user.initials || this.initialsFromLabel(store.linked_user.name),
+      linkedUserBackground: this.avatarGradientForLabel(store.linked_user.name),
+      promoted: store.is_promoted,
+      hasListings: response.listings.length > 0,
+      hasReviews: response.reviews.length > 0,
+    });
+    this.rawStoreSuspended.set(store.is_suspended);
+    this.sections.set(listingSections);
+    this.reviews.set(reviews);
+    this.overallRating.set(response.rating_breakdown.overall_rating);
+    this.totalReviews.set(response.rating_breakdown.total_reviews);
+    this.ratingBreakdown.set([
+      { stars: 5, percentage: response.rating_breakdown.five_star_pct },
+      { stars: 4, percentage: response.rating_breakdown.four_star_pct },
+      { stars: 3, percentage: response.rating_breakdown.three_star_pct },
+      { stars: 2, percentage: response.rating_breakdown.two_star_pct },
+      { stars: 1, percentage: response.rating_breakdown.one_star_pct },
+    ]);
+    this.reviewTags.set(this.mapReviewTags(response.rating_breakdown.tags));
+    this.activeCategory.set('All');
+  }
+
+  private mapProductSections(records: AdminStoreListingResponse[]): AdminStoreProductSection[] {
+    const sections = new Map<string, Listing[]>();
+
+    for (const record of records) {
+      const category = record.category?.trim() || 'Other';
+      const items = sections.get(category) ?? [];
+      items.push(this.mapListing(record));
+      sections.set(category, items);
+    }
+
+    return Array.from(sections.entries()).map(([title, items]) => ({
+      id: this.toSlug(title),
+      title,
+      countLabel: this.formatInteger(items.length),
+      items,
+    }));
+  }
+
+  private mapListing(record: AdminStoreListingResponse): Listing {
+    const image = record.thumbnail ?? '';
+    return {
+      id: record.id,
+      title: record.title,
+      price: this.formatPrice(record.price),
+      images: image ? [image] : [],
+      location: this.composeListingLocation(record),
+      timeAgo: this.timeAgo(record.created_at),
+      isVerified: record.is_verified ?? false,
+      favoriteFilled: record.is_saved ?? false,
+    };
+  }
+
+  private mapReview(record: AdminStoreReviewResponse): Review {
+    const author =
+      record.reviewer?.full_name?.trim()
+      || record.reviewer?.username?.trim()
+      || 'Anonymous user';
+
+    return {
+      author,
+      date: this.formatLongDate(record.created_at),
+      rating: record.rating,
+      text: record.comment,
+      avatar: record.reviewer?.avatar ?? undefined,
+      images: record.photos
+        .map((photo) => photo.image)
+        .filter((image): image is string => typeof image === 'string' && image.length > 0),
+    };
+  }
+
+  private mapReviewTags(records: AdminStoreReviewTagResponse[]): ReviewTag[] {
+    return records
+      .map((tag) => ({
+        label: tag.name,
+        count: tag.count,
+      }))
+      .sort((left, right) => right.count - left.count);
+  }
+
+  private composeListingLocation(record: AdminStoreListingResponse): string {
+    if (record.location?.trim()) {
+      return record.location.trim();
+    }
+    const parts = [record.city?.trim(), record.state?.trim()].filter((part): part is string => Boolean(part));
+    return parts.join(', ') || '---';
+  }
+
+  private timeAgo(value?: string): string {
+    if (!value) {
+      return 'Recently';
+    }
+
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return 'Recently';
+    }
+
+    const differenceMs = Date.now() - parsedDate.getTime();
+    const minutes = Math.max(1, Math.floor(differenceMs / 60000));
+    if (minutes < 60) {
+      return `${minutes}m ago`;
+    }
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) {
+      return `${hours}h ago`;
+    }
+    const days = Math.floor(hours / 24);
+    if (days < 30) {
+      return `${days}d ago`;
+    }
+    const months = Math.floor(days / 30);
+    if (months < 12) {
+      return `${months}mo ago`;
+    }
+    const years = Math.floor(months / 12);
+    return `${years}y ago`;
+  }
+
+  private formatCompactCount(value: number): string {
+    return new Intl.NumberFormat('en', {
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(value);
+  }
+
+  private formatInteger(value: number): string {
+    return new Intl.NumberFormat('en-US').format(value);
+  }
+
+  private formatDecimal(value: number, maximumFractionDigits: number): string {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits,
+    }).format(value);
+  }
+
+  private formatPrice(value: string): string {
+    const amount = Number.parseFloat(value);
+    if (!Number.isFinite(amount)) {
+      return value;
+    }
+
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      maximumFractionDigits: 0,
+    }).format(amount);
+  }
+
+  private formatDate(value: string): string | null {
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsedDate);
+  }
+
+  private formatLongDate(value: string): string {
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return '---';
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(parsedDate);
+  }
+
+  private toSlug(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
 }
