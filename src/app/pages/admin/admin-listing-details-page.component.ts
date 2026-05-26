@@ -1,6 +1,14 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { distinctUntilChanged, map, switchMap } from 'rxjs/operators';
+import { AppToastService } from '../../services/app-toast.service';
+import {
+  AdminListingDetailActivityResponse,
+  AdminListingDetailResponse,
+  AdminListingDetailsService,
+} from '../../services/admin-listing-details.service';
 
 type AdminListingDetailTab = 'overview' | 'reports' | 'requests' | 'activities';
 type AdminListingDetailStatus = 'Available' | 'Sold' | 'Paused' | 'Suspended';
@@ -521,7 +529,7 @@ interface AdminListingDetailRecord {
             </div>
 
             <div class="mt-6 flex items-center justify-between">
-              <p class="text-[16px] font-medium text-[#1A1B1D]">5 <span class="text-[#1A1B1D]/50">results</span></p>
+              <p class="text-[16px] font-medium text-[#1A1B1D]">{{ reports.length }} <span class="text-[#1A1B1D]/50">results</span></p>
               <div class="flex items-center gap-2 opacity-50">
                 <div class="inline-flex h-8 w-11 items-center justify-center rounded-[8px] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">
                   <span class="text-[#1A1B1D]">‹</span>
@@ -530,13 +538,13 @@ interface AdminListingDetailRecord {
                 <div class="inline-flex h-8 w-11 items-center justify-center rounded-[8px] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">
                   <span class="text-[#1A1B1D]">›</span>
                 </div>
-                <span class="text-[16px] text-[#1C1F1D]">of 20</span>
+                <span class="text-[16px] text-[#1C1F1D]">of 1</span>
               </div>
             </div>
           </div>
         } @else {
           <div class="space-y-[15px] pt-6">
-            <p class="text-[16px] font-medium leading-[1.2] tracking-[-0.32px] text-[#0D0D0D]/40">2025</p>
+            <p class="text-[16px] font-medium leading-[1.2] tracking-[-0.32px] text-[#0D0D0D]/40">{{ activityYearLabel }}</p>
             @for (group of activityGroups; track group.id) {
               <section class="space-y-8">
                 <div class="flex items-center gap-2">
@@ -899,7 +907,7 @@ interface AdminListingDetailRecord {
         } @else {
           <div class="px-[172px] pb-8 pt-[27px]">
             <div class="space-y-[15px] max-w-[764px]">
-              <p class="text-[16px] font-medium leading-[1.2] tracking-[-0.32px] text-[#0D0D0D]/40">2025</p>
+              <p class="text-[16px] font-medium leading-[1.2] tracking-[-0.32px] text-[#0D0D0D]/40">{{ activityYearLabel }}</p>
               @for (group of activityGroups; track group.id) {
                 <section class="space-y-8">
                   <div class="flex items-center gap-2">
@@ -1213,25 +1221,62 @@ interface AdminListingDetailRecord {
 })
 export class AdminListingDetailsPageComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly adminListingDetailsService = inject(AdminListingDetailsService);
+  private readonly toast = inject(AppToastService);
 
-  readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? 'iphone-17-pro-max');
+  private readonly fallbackPreviewImage = '/assets/images/admin-listing-details/available/desktop/iphone-1.png';
+  private readonly fallbackGalleryImage = '/assets/images/admin-listing-details/available/mobile/iphone-1.png';
+  private readonly fallbackStoreLogo = '/assets/images/admin-listing-details/available/store/the-vine-collections.png';
+  private readonly fallbackRequestAvatar = '/assets/images/admin-listing-details/reports/mobile/joseph-olamide.png';
+  private readonly fallbackReportAvatar = '/assets/images/admin-listing-details/reports/desktop/mark-anthony.png';
+  private readonly fallbackActivityAvatar = '/assets/images/admin-listing-details/activities/you.png';
+
+  readonly listingId = signal('');
   readonly activeTab = signal<AdminListingDetailTab>('overview');
   readonly isSuspendModalOpen = signal(false);
   readonly isLiftSuspensionOpen = signal(false);
   readonly mobileActionsOpen = signal(false);
   readonly suspendReasonInput = signal('');
+  readonly isLoading = signal(true);
+  readonly isActionInFlight = signal(false);
   readonly canConfirmSuspendListing = computed(() => this.suspendReasonInput().trim().length > 0);
-  readonly statusOverrides = signal<Record<string, AdminListingDetailStatus>>({});
-  readonly reasonOverrides = signal<Record<string, string>>({});
+
+  readonly listing = signal<AdminListingDetailRecord>({
+    id: '',
+    name: 'Loading listing...',
+    previewImage: this.fallbackPreviewImage,
+    lastUpdated: '—',
+    isPromoted: false,
+    status: 'Available',
+    suspensionReason: undefined,
+    location: '—',
+    datePosted: '—',
+    messages: 0,
+    views: '0',
+    saves: 0,
+    price: '0',
+    description: '—',
+    gallery: [{ id: 'gallery-fallback', src: this.fallbackPreviewImage, alt: 'Listing image' }],
+    mobileGallery: [{ id: 'gallery-fallback-mobile', src: this.fallbackGalleryImage, alt: 'Listing image' }],
+    store: {
+      name: 'Store',
+      logo: this.fallbackStoreLogo,
+      verified: false,
+    },
+  });
+
+  private readonly detailsState = signal<ListingDetailRow[]>([]);
+  private readonly desktopMetricsState = signal<ListingMetric[]>([]);
+  private readonly mobileMetricsState = signal<ListingMetric[]>([]);
+  private readonly requestsState = signal<ListingRequest[]>([]);
+  private readonly reportsState = signal<ListingReport[]>([]);
+  private readonly activityGroupsState = signal<ListingActivityGroup[]>([]);
+  private readonly activityYearState = signal(String(new Date().getFullYear()));
 
   readonly mobileActions = computed<MobileListingAction[]>(() => {
     if (this.effectiveStatus() === 'Suspended') {
-      return [
-        {
-          id: 'lift',
-          label: 'Lift suspension',
-        },
-      ];
+      return [{ id: 'lift', label: 'Lift suspension' }];
     }
 
     if (this.effectiveStatus() === 'Paused') {
@@ -1298,521 +1343,268 @@ export class AdminListingDetailsPageComponent {
     },
   ];
 
-  readonly listing = computed(() => {
-    const listingKey = this.listingId();
-    return this.listings[listingKey] ?? this.listings['iphone-17-pro-max'];
-  });
+  constructor() {
+    this.route.paramMap
+      .pipe(
+        map((paramMap) => paramMap.get('id') ?? ''),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((listingId) => {
+        if (!listingId) {
+          return;
+        }
 
-  readonly effectiveStatus = computed<AdminListingDetailStatus>(() => {
-    const listingKey = this.listing().id;
-    return this.statusOverrides()[listingKey] ?? this.listing().status;
-  });
+        this.listingId.set(listingId);
+        this.loadListing(listingId);
+      });
+  }
 
-  readonly effectiveSuspensionReason = computed<string | null>(() => {
-    const listingKey = this.listing().id;
-    const overrideReason = this.reasonOverrides()[listingKey];
-    if (overrideReason !== undefined) {
-      return overrideReason || null;
+  get desktopMetrics(): ListingMetric[] {
+    return this.desktopMetricsState();
+  }
+
+  get mobileMetrics(): ListingMetric[] {
+    return this.mobileMetricsState();
+  }
+
+  get details(): ListingDetailRow[] {
+    return this.detailsState();
+  }
+
+  get requests(): ListingRequest[] {
+    return this.requestsState();
+  }
+
+  get reports(): ListingReport[] {
+    return this.reportsState();
+  }
+
+  get activityGroups(): ListingActivityGroup[] {
+    return this.activityGroupsState();
+  }
+
+  get activityYearLabel(): string {
+    return this.activityYearState();
+  }
+
+  readonly effectiveStatus = computed<AdminListingDetailStatus>(() => this.listing().status);
+
+  readonly effectiveSuspensionReason = computed<string | null>(() => this.listing().suspensionReason ?? null);
+
+  private loadListing(id: string): void {
+    this.isLoading.set(true);
+
+    this.adminListingDetailsService.getListing(id).subscribe({
+      next: (response) => {
+        this.applyListingResponse(response);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.toast.show({ message: 'We could not load that listing right now.' });
+      },
+    });
+  }
+
+  private applyListingResponse(response: AdminListingDetailResponse): void {
+    const previewImage = this.safeImage(response.preview_image, this.fallbackPreviewImage);
+    const gallery = this.mapGallery(response.gallery, previewImage);
+    const mobileGallery = gallery.length > 0 ? gallery : [{ id: 'mobile-fallback', src: this.fallbackGalleryImage, alt: response.title }];
+    const createdDateLabel = this.formatDate(response.created_at);
+    const updatedDateLabel = this.formatDate(response.updated_at);
+    const savesCount = this.toInteger(response.saves_count);
+    const messagesCount = this.toInteger(response.messages_count);
+    const viewsCount = this.toInteger(response.views_count);
+    const priceValue = this.formatInteger(this.toInteger(response.price));
+
+    this.listing.set({
+      id: response.id,
+      name: response.title,
+      previewImage,
+      lastUpdated: updatedDateLabel,
+      isPromoted: response.is_promoted,
+      status: response.status,
+      suspensionReason: response.suspension_reason ?? undefined,
+      location: response.location || '—',
+      datePosted: createdDateLabel,
+      messages: messagesCount,
+      views: this.formatInteger(viewsCount),
+      saves: savesCount,
+      price: priceValue,
+      description: response.description?.trim() || '—',
+      gallery,
+      mobileGallery,
+      store: {
+        name: response.store.name,
+        logo: this.safeImage(response.store.logo, this.fallbackStoreLogo),
+        verified: response.store.verified,
+      },
+    });
+
+    this.desktopMetricsState.set([
+      { id: 'date', label: 'Date posted', value: createdDateLabel, iconSrc: '/assets/icons/admin-listing-details/available/calendar.svg' },
+      { id: 'messages', label: 'Messages', value: this.formatInteger(messagesCount), iconSrc: '/assets/icons/listing-details-messages.svg' },
+      { id: 'views', label: 'Views', value: this.formatInteger(viewsCount), iconSrc: '/assets/icons/listing-details-eye.svg' },
+      { id: 'saves', label: 'Saves', value: this.formatInteger(savesCount), iconSrc: '/assets/icons/listing-details-heart.svg' },
+    ]);
+
+    this.mobileMetricsState.set([
+      { id: 'date', label: 'Date posted', value: createdDateLabel },
+      { id: 'messages', label: 'Messages', value: this.formatInteger(messagesCount), iconSrc: '/assets/icons/listing-details-messages.svg' },
+      { id: 'views', label: 'Views', value: this.formatInteger(viewsCount), iconSrc: '/assets/icons/listing-details-eye.svg' },
+      { id: 'saves', label: 'Saves', value: this.formatInteger(savesCount), iconSrc: '/assets/icons/listing-details-heart.svg' },
+    ]);
+
+    this.detailsState.set(response.details.map((detail) => ({
+      label: detail.label,
+      value: detail.value || '—',
+    })));
+
+    this.requestsState.set(
+      response.requests.map((request) => ({
+        id: request.id,
+        buyer: request.buyer,
+        avatarSrc: this.safeImage(request.avatar_src, this.fallbackRequestAvatar),
+        requestType: request.request_type,
+        dateRequested: request.date_requested,
+        time: request.time,
+        actionIconSrc:
+          request.action_type === 'call'
+            ? '/assets/icons/admin-listing-details/reports/mobile/call-calling.svg'
+            : '/assets/icons/admin-listing-details/reports/mobile/messages.svg',
+        actionLabel:
+          request.action_type === 'call' ? `Call ${request.buyer}` : `Message ${request.buyer}`,
+      })),
+    );
+
+    this.reportsState.set(
+      response.reports.map((report) => ({
+        id: report.id,
+        reporterName: report.reporter_name,
+        reporterEmail: report.reporter_email,
+        reporterAvatarSrc: this.safeImage(report.reporter_avatar_src, this.fallbackReportAvatar),
+        description: report.description,
+        dateReported: report.date_reported,
+      })),
+    );
+
+    this.activityGroupsState.set(this.groupActivities(response.activities));
+    this.activityYearState.set(this.resolveActivityYear(response.activities));
+  }
+
+  private mapGallery(
+    gallery: AdminListingDetailResponse['gallery'],
+    previewImage: string,
+  ): ListingGalleryItem[] {
+    const items = gallery
+      .map((item, index) => ({
+        id: item.id,
+        src: this.safeImage(item.src, previewImage),
+        alt: item.alt || `Listing image ${index + 1}`,
+      }))
+      .filter((item, index, collection) => collection.findIndex((entry) => entry.id === item.id) === index);
+
+    return items.length > 0
+      ? items
+      : [{ id: 'gallery-fallback', src: previewImage, alt: 'Listing image' }];
+  }
+
+  private groupActivities(activities: AdminListingDetailActivityResponse[]): ListingActivityGroup[] {
+    const grouped = new Map<string, ListingActivity[]>();
+
+    for (const activity of activities) {
+      const timestamp = new Date(activity.timestamp);
+      const label = this.activityGroupLabel(timestamp);
+      const current = grouped.get(label) ?? [];
+      current.push({
+        id: activity.id,
+        iconSrc: this.activityIcon(activity.activity_type),
+        title: activity.title,
+        description: activity.description ?? undefined,
+        actorName: activity.actor_name,
+        actorAvatarSrc: this.safeImage(activity.actor_avatar_src, this.fallbackActivityAvatar),
+        time: activity.time,
+      });
+      grouped.set(label, current);
     }
-    return this.listing().suspensionReason ?? null;
-  });
 
-  readonly desktopMetrics: ListingMetric[] = [
-    { id: 'date', label: 'Date posted', value: '14  Feb, 2026', iconSrc: '/assets/icons/admin-listing-details/available/calendar.svg' },
-    { id: 'messages', label: 'Messages', value: '12', iconSrc: '/assets/icons/listing-details-messages.svg' },
-    { id: 'views', label: 'Views', value: '3,990', iconSrc: '/assets/icons/listing-details-eye.svg' },
-    { id: 'saves', label: 'Saves', value: '200', iconSrc: '/assets/icons/listing-details-heart.svg' },
-  ];
+    return Array.from(grouped.entries()).map(([label, groupActivities], index) => ({
+      id: `${label}-${index}`,
+      label,
+      activities: groupActivities,
+    }));
+  }
 
-  readonly mobileMetrics: ListingMetric[] = [
-    { id: 'date', label: 'Date posted', value: '14 Feb, 2026' },
-    { id: 'messages', label: 'Messages', value: '12', iconSrc: '/assets/icons/listing-details-messages.svg' },
-    { id: 'views', label: 'Views', value: '3,990', iconSrc: '/assets/icons/listing-details-eye.svg' },
-    { id: 'saves', label: 'Saves', value: '200', iconSrc: '/assets/icons/listing-details-heart.svg' },
-  ];
+  private activityGroupLabel(timestamp: Date): string {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const target = new Date(timestamp.getFullYear(), timestamp.getMonth(), timestamp.getDate());
+    const diffDays = Math.floor((today.getTime() - target.getTime()) / 86400000);
 
-  readonly details: ListingDetailRow[] = [
-    { label: 'Category', value: 'Electronics/Phones & Tablets' },
-    { label: 'Condition', value: 'Used' },
-    { label: 'Location', value: 'Ikeja, Lagos' },
-    { label: 'Delivery options', value: 'Nationwide' },
-    { label: 'WhatsApp number', value: '08169397454' },
-    { label: 'Call number', value: '08169397454' },
-    { label: 'Accept offers', value: 'Yes' },
-  ];
+    if (diffDays <= 6) {
+      return 'This week';
+    }
 
-  readonly requests: ListingRequest[] = [
-    {
-      id: 'request-1',
-      buyer: 'Halima Bala',
-      avatarSrc: '/assets/images/admin-listing-details/reports/mobile/halima-bala.png',
-      requestType: 'Offer (N2,000,000)',
-      dateRequested: '14  Feb, 2025',
-      time: '24 February 2025, 02:45 pm',
-      actionIconSrc: '/assets/icons/admin-listing-details/reports/mobile/messages.svg',
-      actionLabel: 'Message Halima Bala',
-    },
-    {
-      id: 'request-2',
-      buyer: 'Joseph Olamide',
-      avatarSrc: '/assets/images/admin-listing-details/reports/mobile/joseph-olamide.png',
-      requestType: 'Call back (08169397454)',
-      dateRequested: '14  Feb, 2025',
-      time: '24 February 2025, 02:45 pm',
-      actionIconSrc: '/assets/icons/admin-listing-details/reports/mobile/call-calling.svg',
-      actionLabel: 'Call Joseph Olamide',
-    },
-    {
-      id: 'request-3',
-      buyer: 'Kelechi Oduah',
-      avatarSrc: '/assets/images/admin-listing-details/reports/mobile/kelechi-oduah.png',
-      requestType: 'Offer (N2,000,000)',
-      dateRequested: '14  Feb, 2025',
-      time: '24 February 2025, 02:45 pm',
-      actionIconSrc: '/assets/icons/admin-listing-details/reports/mobile/messages.svg',
-      actionLabel: 'Message Kelechi Oduah',
-    },
-  ];
+    return timestamp.toLocaleString('en-US', {
+      month: 'long',
+    });
+  }
 
-  readonly reports: ListingReport[] = [
-    {
-      id: 'report-1',
-      reporterName: 'Francis Uche',
-      reporterEmail: 'uche@email.com',
-      reporterAvatarSrc: '/assets/images/admin-listing-details/reports/desktop/francis-uche.png',
-      description: 'This item is no longer available, but the seller left it up for sale thereby misleading other buyers.',
-      dateReported: '06 May, 2024',
-    },
-    {
-      id: 'report-2',
-      reporterName: 'Mark Anthony',
-      reporterEmail: 'mark@email.com',
-      reporterAvatarSrc: '/assets/images/admin-listing-details/reports/desktop/mark-anthony.png',
-      description: 'This item is no longer available, but the seller left it up for sale thereby misleading other buyers.',
-      dateReported: '06 May, 2024',
-    },
-    {
-      id: 'report-3',
-      reporterName: 'Elle Adebisi',
-      reporterEmail: 'elle@email.com',
-      reporterAvatarSrc: '/assets/images/admin-listing-details/reports/desktop/elle-adebisi.png',
-      description: 'This item is no longer available, but the seller left it up for sale thereby misleading other buyers.',
-      dateReported: '06 May, 2024',
-    },
-  ];
+  private resolveActivityYear(activities: AdminListingDetailActivityResponse[]): string {
+    const firstTimestamp = activities[0]?.timestamp;
+    if (!firstTimestamp) {
+      return String(new Date().getFullYear());
+    }
 
-  readonly activityGroups: ListingActivityGroup[] = [
-    {
-      id: 'this-week',
-      label: 'This week',
-      activities: [
-        {
-          id: 'activity-1',
-          iconSrc: '/assets/icons/admin-listing-details/activities/message-received.svg',
-          title: 'Message received',
-          description: '“Hello is this item still available”',
-          actorName: 'Joseph Olamide',
-          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
-          time: '24 February 2025, 02:45 pm',
-        },
-        {
-          id: 'activity-2',
-          iconSrc: '/assets/icons/admin-listing-details/activities/offer-received.svg',
-          title: 'Offer received',
-          description: 'They sent an offer of N2,000,000',
-          actorName: 'Joseph Olamide',
-          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
-          time: '24 February 2025, 02:45 pm',
-        },
-        {
-          id: 'activity-3',
-          iconSrc: '/assets/icons/admin-listing-details/activities/call-back-request.svg',
-          title: 'Call back request',
-          description: 'They requested you call them back on 0816 939 7454',
-          actorName: 'Joseph Olamide',
-          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
-          time: '24 February 2025, 02:45 pm',
-        },
-        {
-          id: 'activity-4',
-          iconSrc: '/assets/icons/admin-listing-details/activities/called-you.svg',
-          title: 'Called you',
-          actorName: 'Joseph Olamide',
-          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
-          time: '24 February 2025, 02:45 pm',
-        },
-      ],
-    },
-    {
-      id: 'january',
-      label: 'January',
-      activities: [
-        {
-          id: 'activity-5',
-          iconSrc: '/assets/icons/admin-listing-details/activities/added-to-wishlist.svg',
-          title: 'Added to wishlist',
-          actorName: 'Joseph Olamide',
-          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
-          time: '24 February 2025, 02:45 pm',
-        },
-        {
-          id: 'activity-6',
-          iconSrc: '/assets/icons/admin-listing-details/activities/viewed-your-listing.svg',
-          title: 'Viewed your listing',
-          actorName: 'Joseph Olamide',
-          actorAvatarSrc: '/assets/images/admin-listing-details/activities/joseph-olamide.png',
-          time: '24 February 2025, 02:45 pm',
-        },
-        {
-          id: 'activity-7',
-          iconSrc: '/assets/icons/admin-listing-details/activities/product-published.svg',
-          title: 'Product published',
-          actorName: 'You',
-          actorAvatarSrc: '/assets/images/admin-listing-details/activities/you.png',
-          time: '24 January 2025, 02:45 pm',
-        },
-      ],
-    },
-  ];
+    return String(new Date(firstTimestamp).getFullYear());
+  }
 
-  readonly listings: Record<string, AdminListingDetailRecord> = {
-    'iphone-17-pro-max': {
-      id: 'iphone-17-pro-max',
-      name: 'Iphone 17 pro max',
-      previewImage: '/assets/images/admin-listing-details/available/desktop/iphone-1.png',
-      lastUpdated: '24 January, 2026',
-      isPromoted: true,
-      status: 'Available',
-      location: 'Ikeja, Lagos',
-      datePosted: '14 Feb, 2026',
-      messages: 12,
-      views: '3,990',
-      saves: 200,
-      price: '2,500,000',
-      description:
-        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
-      gallery: [
-        { id: 'desktop-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'desktop-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'desktop-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'desktop-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'desktop-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'desktop-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      mobileGallery: [
-        { id: 'mobile-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'mobile-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'mobile-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'mobile-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'mobile-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'mobile-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      store: {
-        name: 'The Vine Collections',
-        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
-        verified: true,
-      },
-    },
-    'nike-sneaker': {
-      id: 'nike-sneaker',
-      name: 'Iphone 17 pro max',
-      previewImage: '/assets/images/admin-listing-details/available/desktop/iphone-1.png',
-      lastUpdated: '24 January, 2026',
-      isPromoted: false,
-      status: 'Suspended',
-      suspensionReason: 'The title, description, or price appears misleading or incorrect.',
-      location: 'Ikeja, Lagos',
-      datePosted: '14 Feb, 2026',
-      messages: 12,
-      views: '3,990',
-      saves: 200,
-      price: '2,500,000',
-      description:
-        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
-      gallery: [
-        { id: 'desktop-suspended-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'desktop-suspended-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'desktop-suspended-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'desktop-suspended-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'desktop-suspended-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'desktop-suspended-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      mobileGallery: [
-        { id: 'mobile-suspended-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'mobile-suspended-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'mobile-suspended-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'mobile-suspended-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'mobile-suspended-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'mobile-suspended-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      store: {
-        name: 'The Vine Collections',
-        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
-        verified: true,
-      },
-    },
-    'nike-sneaker-mobile': {
-      id: 'nike-sneaker-mobile',
-      name: 'Iphone 17 pro max',
-      previewImage: '/assets/images/admin-listing-details/available/mobile/iphone-1.png',
-      lastUpdated: '24 January, 2026',
-      isPromoted: false,
-      status: 'Suspended',
-      suspensionReason: 'The title, description, or price appears misleading or incorrect.',
-      location: 'Ikeja, Lagos',
-      datePosted: '14 Feb, 2026',
-      messages: 12,
-      views: '3,990',
-      saves: 200,
-      price: '2,500,000',
-      description:
-        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
-      gallery: [
-        { id: 'desktop-suspended-mobile-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'desktop-suspended-mobile-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'desktop-suspended-mobile-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'desktop-suspended-mobile-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'desktop-suspended-mobile-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'desktop-suspended-mobile-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      mobileGallery: [
-        { id: 'mobile-suspended-mobile-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'mobile-suspended-mobile-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'mobile-suspended-mobile-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'mobile-suspended-mobile-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'mobile-suspended-mobile-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'mobile-suspended-mobile-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      store: {
-        name: 'The Vine Collections',
-        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
-        verified: true,
-      },
-    },
-    'maserati-mobile': {
-      id: 'maserati-mobile',
-      name: 'Iphone 17 pro max',
-      previewImage: '/assets/images/admin-listing-details/available/mobile/iphone-1.png',
-      lastUpdated: '24 January, 2026',
-      isPromoted: false,
-      status: 'Suspended',
-      suspensionReason: 'The title, description, or price appears misleading or incorrect.',
-      location: 'Ikeja, Lagos',
-      datePosted: '14 Feb, 2026',
-      messages: 12,
-      views: '3,990',
-      saves: 200,
-      price: '2,500,000',
-      description:
-        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
-      gallery: [
-        { id: 'desktop-suspended-maserati-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'desktop-suspended-maserati-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'desktop-suspended-maserati-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'desktop-suspended-maserati-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'desktop-suspended-maserati-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'desktop-suspended-maserati-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      mobileGallery: [
-        { id: 'mobile-suspended-maserati-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'mobile-suspended-maserati-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'mobile-suspended-maserati-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'mobile-suspended-maserati-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'mobile-suspended-maserati-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'mobile-suspended-maserati-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      store: {
-        name: 'The Vine Collections',
-        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
-        verified: true,
-      },
-    },
-    'logitech-ergonomic-mouse': {
-      id: 'logitech-ergonomic-mouse',
-      name: 'Iphone 17 pro max',
-      previewImage: '/assets/images/admin-listing-details/available/desktop/iphone-1.png',
-      lastUpdated: '24 January, 2026',
-      isPromoted: false,
-      status: 'Sold',
-      location: 'Ikeja, Lagos',
-      datePosted: '14 Feb, 2026',
-      messages: 12,
-      views: '3,990',
-      saves: 200,
-      price: '2,500,000',
-      description:
-        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
-      gallery: [
-        { id: 'desktop-sold-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'desktop-sold-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'desktop-sold-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'desktop-sold-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'desktop-sold-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'desktop-sold-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      mobileGallery: [
-        { id: 'mobile-sold-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'mobile-sold-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'mobile-sold-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'mobile-sold-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'mobile-sold-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'mobile-sold-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      store: {
-        name: 'The Vine Collections',
-        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
-        verified: true,
-      },
-    },
-    'logitech-ergonomic-mouse-mobile': {
-      id: 'logitech-ergonomic-mouse-mobile',
-      name: 'Iphone 17 pro max',
-      previewImage: '/assets/images/admin-listing-details/available/mobile/iphone-1.png',
-      lastUpdated: '24 January, 2026',
-      isPromoted: false,
-      status: 'Sold',
-      location: 'Ikeja, Lagos',
-      datePosted: '14 Feb, 2026',
-      messages: 12,
-      views: '3,990',
-      saves: 200,
-      price: '2,500,000',
-      description:
-        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
-      gallery: [
-        { id: 'desktop-sold-mobile-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'desktop-sold-mobile-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'desktop-sold-mobile-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'desktop-sold-mobile-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'desktop-sold-mobile-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'desktop-sold-mobile-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      mobileGallery: [
-        { id: 'mobile-sold-mobile-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'mobile-sold-mobile-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'mobile-sold-mobile-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'mobile-sold-mobile-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'mobile-sold-mobile-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'mobile-sold-mobile-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      store: {
-        name: 'The Vine Collections',
-        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
-        verified: true,
-      },
-    },
-    'bone-straight-wig': {
-      id: 'bone-straight-wig',
-      name: 'Iphone 17 pro max',
-      previewImage: '/assets/images/admin-listing-details/available/desktop/iphone-1.png',
-      lastUpdated: '24 January, 2026',
-      isPromoted: true,
-      status: 'Paused',
-      location: 'Ikeja, Lagos',
-      datePosted: '14 Feb, 2026',
-      messages: 12,
-      views: '3,990',
-      saves: 200,
-      price: '2,500,000',
-      description:
-        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
-      gallery: [
-        { id: 'desktop-paused-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'desktop-paused-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'desktop-paused-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'desktop-paused-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'desktop-paused-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'desktop-paused-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      mobileGallery: [
-        { id: 'mobile-paused-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'mobile-paused-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'mobile-paused-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'mobile-paused-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'mobile-paused-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'mobile-paused-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      store: {
-        name: 'The Vine Collections',
-        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
-        verified: true,
-      },
-    },
-    'bone-straight-wig-mobile': {
-      id: 'bone-straight-wig-mobile',
-      name: 'Iphone 17 pro max',
-      previewImage: '/assets/images/admin-listing-details/available/mobile/iphone-1.png',
-      lastUpdated: '24 January, 2026',
-      isPromoted: true,
-      status: 'Paused',
-      location: 'Ikeja, Lagos',
-      datePosted: '14 Feb, 2026',
-      messages: 12,
-      views: '3,990',
-      saves: 200,
-      price: '2,500,000',
-      description:
-        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
-      gallery: [
-        { id: 'desktop-paused-mobile-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'desktop-paused-mobile-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'desktop-paused-mobile-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'desktop-paused-mobile-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'desktop-paused-mobile-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'desktop-paused-mobile-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      mobileGallery: [
-        { id: 'mobile-paused-mobile-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'mobile-paused-mobile-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'mobile-paused-mobile-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'mobile-paused-mobile-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'mobile-paused-mobile-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'mobile-paused-mobile-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      store: {
-        name: 'The Vine Collections',
-        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
-        verified: true,
-      },
-    },
-    'rgb-keyboard': {
-      id: 'rgb-keyboard',
-      name: 'Iphone 17 pro max',
-      previewImage: '/assets/images/admin-listing-details/available/desktop/iphone-1.png',
-      lastUpdated: '24 January, 2026',
-      isPromoted: false,
-      status: 'Paused',
-      location: 'Ikeja, Lagos',
-      datePosted: '14 Feb, 2026',
-      messages: 12,
-      views: '3,990',
-      saves: 200,
-      price: '2,500,000',
-      description:
-        'UK used iPhone 17, neatly used and fully working. Clean screen, smooth performance, and good battery health. No repairs, no issues. Minor signs of use. Bat..',
-      gallery: [
-        { id: 'desktop-paused-rgb-1', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'desktop-paused-rgb-2', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'desktop-paused-rgb-3', src: '/assets/images/admin-listing-details/available/desktop/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'desktop-paused-rgb-4', src: '/assets/images/admin-listing-details/available/desktop/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'desktop-paused-rgb-5', src: '/assets/images/admin-listing-details/available/desktop/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'desktop-paused-rgb-6', src: '/assets/images/admin-listing-details/available/desktop/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      mobileGallery: [
-        { id: 'mobile-paused-rgb-1', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view' },
-        { id: 'mobile-paused-rgb-2', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view' },
-        { id: 'mobile-paused-rgb-3', src: '/assets/images/admin-listing-details/available/mobile/iphone-3.png', alt: 'Iphone package contents' },
-        { id: 'mobile-paused-rgb-4', src: '/assets/images/admin-listing-details/available/mobile/iphone-4.png', alt: 'Iphone angled view' },
-        { id: 'mobile-paused-rgb-5', src: '/assets/images/admin-listing-details/available/mobile/iphone-1.png', alt: 'Iphone front view duplicate' },
-        { id: 'mobile-paused-rgb-6', src: '/assets/images/admin-listing-details/available/mobile/iphone-2.png', alt: 'Iphone rear view duplicate' },
-      ],
-      store: {
-        name: 'The Vine Collections',
-        logo: '/assets/images/admin-listing-details/available/store/the-vine-collections.png',
-        verified: true,
-      },
-    },
-  };
+  private activityIcon(activityType: string): string {
+    switch (activityType) {
+      case 'message':
+        return '/assets/icons/admin-listing-details/activities/message-received.svg';
+      case 'offer':
+        return '/assets/icons/admin-listing-details/activities/offer-received.svg';
+      case 'callback':
+        return '/assets/icons/admin-listing-details/activities/call-back-request.svg';
+      case 'wishlist':
+        return '/assets/icons/admin-listing-details/activities/added-to-wishlist.svg';
+      case 'view':
+        return '/assets/icons/admin-listing-details/activities/viewed-your-listing.svg';
+      case 'published':
+        return '/assets/icons/admin-listing-details/activities/product-published.svg';
+      default:
+        return '/assets/icons/admin-listing-details/activities/viewed-your-listing.svg';
+    }
+  }
+
+  private safeImage(src: string | null | undefined, fallback: string): string {
+    const value = src?.trim();
+    return value ? value : fallback;
+  }
+
+  private formatDate(value: string): string {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return '—';
+    }
+
+    return parsed.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  private toInteger(value: number | string): number {
+    const numeric = typeof value === 'number' ? value : Number(value.replace(/,/g, ''));
+    return Number.isFinite(numeric) ? numeric : 0;
+  }
+
+  private formatInteger(value: number): string {
+    return new Intl.NumberFormat('en-NG').format(value);
+  }
 
   handleMobileAction(actionId: MobileListingAction['id']): void {
     this.mobileActionsOpen.set(false);
@@ -1859,11 +1651,19 @@ export class AdminListingDetailsPageComponent {
   }
 
   closeSuspendModal(): void {
+    if (this.isActionInFlight()) {
+      return;
+    }
+
     this.isSuspendModalOpen.set(false);
     this.suspendReasonInput.set('');
   }
 
   closeLiftSuspension(): void {
+    if (this.isActionInFlight()) {
+      return;
+    }
+
     this.isLiftSuspensionOpen.set(false);
   }
 
@@ -1872,24 +1672,60 @@ export class AdminListingDetailsPageComponent {
   }
 
   confirmSuspendListing(): void {
-    if (!this.canConfirmSuspendListing()) {
+    if (!this.canConfirmSuspendListing() || this.isActionInFlight()) {
       return;
     }
 
-    const listingKey = this.listing().id;
+    const listingId = this.listing().id;
     const reason = this.suspendReasonInput().trim();
+    if (!listingId) {
+      return;
+    }
 
-    this.statusOverrides.update((current) => ({ ...current, [listingKey]: 'Suspended' }));
-    this.reasonOverrides.update((current) => ({ ...current, [listingKey]: reason }));
+    this.isActionInFlight.set(true);
 
-    this.isSuspendModalOpen.set(false);
-    this.suspendReasonInput.set('');
+    this.adminListingDetailsService.suspendListing(listingId, reason).subscribe({
+      next: (response) => {
+        this.listing.update((current) => ({
+          ...current,
+          status: response.status,
+          suspensionReason: response.suspension_reason ?? undefined,
+        }));
+        this.isActionInFlight.set(false);
+        this.isSuspendModalOpen.set(false);
+        this.suspendReasonInput.set('');
+        this.toast.show({ message: 'Listing suspended successfully.' });
+      },
+      error: () => {
+        this.isActionInFlight.set(false);
+        this.toast.show({ message: 'We could not suspend that listing right now.' });
+      },
+    });
   }
 
   confirmLiftSuspension(): void {
-    const listingKey = this.listing().id;
-    this.statusOverrides.update((current) => ({ ...current, [listingKey]: 'Available' }));
-    this.reasonOverrides.update((current) => ({ ...current, [listingKey]: '' }));
-    this.isLiftSuspensionOpen.set(false);
+    const listingId = this.listing().id;
+    if (!listingId || this.isActionInFlight()) {
+      return;
+    }
+
+    this.isActionInFlight.set(true);
+
+    this.adminListingDetailsService.liftSuspension(listingId).subscribe({
+      next: (response) => {
+        this.listing.update((current) => ({
+          ...current,
+          status: response.status,
+          suspensionReason: undefined,
+        }));
+        this.isActionInFlight.set(false);
+        this.isLiftSuspensionOpen.set(false);
+        this.toast.show({ message: 'Listing suspension lifted successfully.' });
+      },
+      error: () => {
+        this.isActionInFlight.set(false);
+        this.toast.show({ message: 'We could not restore that listing right now.' });
+      },
+    });
   }
 }

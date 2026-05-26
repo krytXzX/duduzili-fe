@@ -3,6 +3,12 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { Router } from '@angular/router';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  heroChevronLeft,
+  heroChevronRight,
+  heroMagnifyingGlass,
+} from '@ng-icons/heroicons/outline';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   AdminListingsService,
@@ -31,7 +37,14 @@ interface AdminListingRecord {
 
 @Component({
   selector: 'app-admin-listings-page',
-  imports: [NgOptimizedImage, CustomDropdownComponent],
+  imports: [NgOptimizedImage, NgIcon, CustomDropdownComponent],
+  providers: [
+    provideIcons({
+      heroChevronLeft,
+      heroChevronRight,
+      heroMagnifyingGlass,
+    }),
+  ],
   host: { class: 'block h-full' },
   template: `
     <section class="flex h-full flex-col bg-white lg:hidden">
@@ -60,14 +73,11 @@ interface AdminListingRecord {
 
         <div class="mt-6 flex items-center gap-3">
           <label class="relative block min-w-0 flex-1">
-            <img
-              ngSrc="/assets/icons/admin-listings/search.svg"
-              width="16"
-              height="16"
-              alt=""
-              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+            <ng-icon
+              name="heroMagnifyingGlass"
+              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#777777]"
               aria-hidden="true"
-            />
+            ></ng-icon>
             <input
               type="text"
               [value]="searchQuery()"
@@ -316,7 +326,7 @@ interface AdminListingRecord {
                 (click)="goToPreviousPage()"
                 [disabled]="!hasPreviousPage()"
               >
-                <img ngSrc="/assets/icons/admin-user-details/arrow-left.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
+                <ng-icon name="heroChevronLeft" class="h-4 w-4 text-[#1A1B1D]" aria-hidden="true"></ng-icon>
               </button>
               <span class="flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-3 text-[14px] font-medium text-[#1A1B1D] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">
                 {{ currentPage() }}
@@ -327,7 +337,7 @@ interface AdminListingRecord {
                 (click)="goToNextPage()"
                 [disabled]="!hasNextPage()"
               >
-                <img ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg" width="16" height="16" alt="" class="h-4 w-4" aria-hidden="true" />
+                <ng-icon name="heroChevronRight" class="h-4 w-4 text-[#1A1B1D]" aria-hidden="true"></ng-icon>
               </button>
               <span class="ml-2">of {{ totalPages() }}</span>
             </div>

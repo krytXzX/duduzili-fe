@@ -391,7 +391,9 @@ export class AdsPlansPageComponent {
     const currentPlanName = this.subscriptionStatus()?.plan_name?.toLowerCase() ?? null;
     return this.planDefinitions.map((plan) => {
       const backendPlan = this.matchBackendPlanByDisplayPlanId(plan.id);
-      const backendPrice = backendPlan ? Number(backendPlan.computed_price) : null;
+      const weeklyPrice = backendPlan ? Number(backendPlan.weekly_price || backendPlan.price || backendPlan.computed_price) : null;
+      const monthlyPrice = backendPlan ? Number(backendPlan.monthly_price || backendPlan.price || backendPlan.computed_price) : null;
+      const yearlyPrice = backendPlan ? Number(backendPlan.yearly_price || backendPlan.price || backendPlan.computed_price) : null;
       const isCurrent =
         currentPlanName === (backendPlan?.plan_name?.toLowerCase() ?? null) ||
         plan.current === true;
@@ -400,9 +402,9 @@ export class AdsPlansPageComponent {
         ...plan,
         current: isCurrent,
         cta: isCurrent ? 'Current plan' : plan.cta,
-        weeklyPrice: backendPrice ?? plan.weeklyPrice,
-        monthlyPrice: backendPrice ?? plan.monthlyPrice,
-        yearlyPrice: backendPrice ?? plan.yearlyPrice,
+        weeklyPrice: weeklyPrice ?? plan.weeklyPrice,
+        monthlyPrice: monthlyPrice ?? plan.monthlyPrice,
+        yearlyPrice: yearlyPrice ?? plan.yearlyPrice,
       };
     });
   });
@@ -537,7 +539,7 @@ export class AdsPlansPageComponent {
     }
 
     this.isSubmittingSubscription.set(true);
-    this.sellerMonetizationService.subscribeToPlan(backendPlan.id, true).subscribe({
+    this.sellerMonetizationService.subscribeToPlan(backendPlan.id, this.activeBillingTab(), true).subscribe({
       next: () => {
         this.isSubmittingSubscription.set(false);
         this.isSubscriptionModalOpen.set(false);

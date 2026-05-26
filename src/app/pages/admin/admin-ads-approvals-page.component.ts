@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { switchMap } from 'rxjs';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   heroCheckCircle,
@@ -20,6 +22,13 @@ import {
   DeclinePromotionPayload,
 } from './components/admin-decline-promotion-modal.component';
 import { AdminApprovePromotionModalComponent } from './components/admin-approve-promotion-modal.component';
+import { AppToastService } from '../../services/app-toast.service';
+import {
+  AdminAdApprovalQuery,
+  AdminAdApprovalRecordResponse,
+  AdminAdApprovalStatus,
+  AdminAdsApprovalsService,
+} from '../../services/admin-ads-approvals.service';
 
 type ApprovalStatus = 'pending' | 'declined' | 'approved';
 type ApprovalFilterId = 'all' | ApprovalStatus;
@@ -70,7 +79,7 @@ interface ApprovalRecord {
         <div class="grid grid-cols-3 gap-3">
           <button
             type="button"
-            (click)="activeFilter.set('all'); currentPage.set(1)"
+            (click)="selectFilter('all')"
             class="rounded-[10px] border px-3 py-2 text-left"
             [class.border-[#6254f3]]="activeFilter() === 'all'"
             [class.bg-[#f9f9ff]]="activeFilter() === 'all'"
@@ -85,7 +94,7 @@ interface ApprovalRecord {
 
           <button
             type="button"
-            (click)="activeFilter.set('pending'); currentPage.set(1)"
+            (click)="selectFilter('pending')"
             class="rounded-[10px] border px-3 py-2 text-left"
             [class.border-[#6254f3]]="activeFilter() === 'pending'"
             [class.bg-[#f9f9ff]]="activeFilter() === 'pending'"
@@ -100,7 +109,7 @@ interface ApprovalRecord {
 
           <button
             type="button"
-            (click)="activeFilter.set('approved'); currentPage.set(1)"
+            (click)="selectFilter('approved')"
             class="rounded-[10px] border px-3 py-2 text-left"
             [class.border-[#6254f3]]="activeFilter() === 'approved'"
             [class.bg-[#f9f9ff]]="activeFilter() === 'approved'"
@@ -130,7 +139,7 @@ interface ApprovalRecord {
             class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#ececec] bg-white"
             aria-label="Filter approvals"
           >
-            <img [ngSrc]="mobileFilterIcon" alt="" width="18" height="18" class="h-[18px] w-[18px]">
+            <ng-icon name="heroChevronDown" class="text-[18px] text-[#8b8b8b]"></ng-icon>
           </button>
         </div>
 
@@ -192,7 +201,7 @@ interface ApprovalRecord {
           @for (card of filterCards; track card.id) {
             <button
               type="button"
-              (click)="activeFilter.set(card.id); currentPage.set(1)"
+              (click)="selectFilter(card.id)"
               class="rounded-[16px] border px-4 py-3 text-left transition-colors"
               [class.border-[#6254f3]]="activeFilter() === card.id"
               [class.bg-[#f9f9ff]]="activeFilter() === card.id"
@@ -340,7 +349,7 @@ interface ApprovalRecord {
             <button
               type="button"
               (click)="goToPreviousPage()"
-              [disabled]="currentPage() === 1"
+              [disabled]="!hasPreviousPage()"
               class="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#ececec] text-[#b3b3b3] transition hover:bg-[#fafafa] disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Previous page"
             >
@@ -354,7 +363,7 @@ interface ApprovalRecord {
             <button
               type="button"
               (click)="goToNextPage()"
-              [disabled]="currentPage() === totalPages()"
+              [disabled]="!hasNextPage()"
               class="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#ececec] text-[#9a9a9a] transition hover:bg-[#fafafa] disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Next page"
             >
@@ -398,7 +407,9 @@ interface ApprovalRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminAdsApprovalsPageComponent {
-  readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly approvalsService = inject(AdminAdsApprovalsService);
+  private readonly toast = inject(AppToastService);
 
   readonly filterCards: ReadonlyArray<ApprovalFilterCard> = [
     { id: 'all', label: 'All' },
@@ -416,105 +427,13 @@ export class AdminAdsApprovalsPageComponent {
   readonly selectedRequest = signal<PromotionRequestModalData | null>(null);
   readonly approveRequestId = signal<string | null>(null);
   readonly declineRequestId = signal<string | null>(null);
-
-  readonly approvals = signal<ApprovalRecord[]>([
-    {
-      id: 'approval-1',
-      adTitle: 'Christmas Sale Banner',
-      thumbnail: '/assets/images/product_watch_luxury.png',
-      userName: 'David Akins',
-      userAvatar: '/assets/images/fashion_menswear_hero.png',
-      destinationUrl: 'https://www.youtube.com/watch?v=promo-banner-1',
-      bannerType: 'Image',
-      plan: 'Pro',
-      activeUntil: '12 May, 2026',
-      dateRequested: '04 January, 2026',
-      status: 'pending',
-    },
-    {
-      id: 'approval-2',
-      adTitle: 'Black Friday Deal',
-      thumbnail: '/assets/images/product_keyboard_rgb.png',
-      userName: 'Amaechi Justina',
-      userAvatar: '/assets/images/fashion_menswear_hero.png',
-      destinationUrl: 'https://www.youtube.com/watch?v=promo-banner-2',
-      bannerType: 'Video',
-      plan: 'Premium',
-      activeUntil: '12 May, 2026',
-      dateRequested: '06 January, 2026',
-      status: 'declined',
-    },
-    {
-      id: 'approval-3',
-      adTitle: 'Ramadan Sales',
-      thumbnail: '/assets/images/product_sneakers_lifestyle.png',
-      userName: 'David Akins',
-      userAvatar: '/assets/images/fashion_menswear_hero.png',
-      destinationUrl: 'https://www.youtube.com/watch?v=promo-banner-3',
-      bannerType: 'Image',
-      plan: 'Pro',
-      activeUntil: '12 May, 2026',
-      dateRequested: '08 January, 2026',
-      status: 'pending',
-    },
-    {
-      id: 'approval-4',
-      adTitle: 'Holiday Home Deals',
-      thumbnail: '/assets/images/product_watch_luxury.png',
-      userName: 'Amaechi Justina',
-      userAvatar: '/assets/images/fashion_menswear_hero.png',
-      destinationUrl: 'https://www.youtube.com/watch?v=promo-banner-4',
-      bannerType: 'Image',
-      plan: 'Premium',
-      activeUntil: '17 May, 2026',
-      dateRequested: '10 January, 2026',
-      status: 'pending',
-    },
-    {
-      id: 'approval-5',
-      adTitle: 'Back to School Promo',
-      thumbnail: '/assets/images/product_keyboard_rgb.png',
-      userName: 'David Akins',
-      userAvatar: '/assets/images/fashion_menswear_hero.png',
-      destinationUrl: 'https://www.youtube.com/watch?v=promo-banner-5',
-      bannerType: 'Video',
-      plan: 'Pro',
-      activeUntil: '18 May, 2026',
-      dateRequested: '11 January, 2026',
-      status: 'pending',
-    },
-    {
-      id: 'approval-6',
-      adTitle: 'Weekend Gadget Flash',
-      thumbnail: '/assets/images/product_keyboard_rgb.png',
-      userName: 'Amaechi Justina',
-      userAvatar: '/assets/images/fashion_menswear_hero.png',
-      destinationUrl: 'https://www.youtube.com/watch?v=promo-banner-6',
-      bannerType: 'Image',
-      plan: 'Premium',
-      activeUntil: '21 May, 2026',
-      dateRequested: '15 January, 2026',
-      status: 'declined',
-    },
-  ]);
-
-  readonly filteredApprovals = computed(() => {
-    const filter = this.activeFilter();
-    const query = this.searchQuery().trim().toLowerCase();
-
-    return this.approvals().filter((record) => {
-      const filterMatch = filter === 'all' || record.status === filter;
-      const storeMatch = this.storeFilter() === 'all' || record.userName === this.storeFilter();
-      const statusMatch = this.statusFilter() === 'all' || record.status === this.statusFilter();
-      const activeUntilMatch = this.activeUntilFilter() === 'all' || record.activeUntil === this.activeUntilFilter();
-      const queryMatch =
-        query === ''
-        || record.adTitle.toLowerCase().includes(query)
-        || record.userName.toLowerCase().includes(query);
-
-      return filterMatch && storeMatch && statusMatch && activeUntilMatch && queryMatch;
-    });
-  });
+  readonly approvals = signal<ApprovalRecord[]>([]);
+  readonly totalResults = signal(0);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
+  readonly counts = signal({ all: 0, pending: 0, approved: 0, declined: 0 });
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalResults() / this.pageSize)));
+  readonly paginatedApprovals = computed(() => this.approvals());
 
   readonly storeFilterOptions = computed<readonly CustomDropdownOption<string>[]>(() => [
     { value: 'all', label: 'All stores' },
@@ -539,19 +458,61 @@ export class AdminAdsApprovalsPageComponent {
     })),
   ]);
 
-  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredApprovals().length / this.pageSize)));
+  private readonly query = computed<AdminAdApprovalQuery>(() => ({
+    page: this.currentPage(),
+    search: this.searchQuery().trim() || undefined,
+    status: this.resolveBackendStatus(),
+    vendor_name: this.storeFilter() === 'all' ? undefined : this.storeFilter(),
+    end_date: this.activeUntilFilter() === 'all' ? undefined : this.activeUntilFilter(),
+  }));
 
-  readonly paginatedApprovals = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredApprovals().slice(start, start + this.pageSize);
-  });
+  constructor() {
+    toObservable(this.query)
+      .pipe(
+        switchMap((query) => this.approvalsService.getApprovals(query)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.approvals.set(response.results.map((record) => this.mapRecord(record)));
+          this.totalResults.set(response.count);
+          this.hasNextPage.set(Boolean(response.next));
+          this.hasPreviousPage.set(Boolean(response.previous));
+          this.counts.set(response.counts);
+        },
+        error: () => {
+          this.approvals.set([]);
+          this.totalResults.set(0);
+          this.hasNextPage.set(false);
+          this.hasPreviousPage.set(false);
+          this.counts.set({ all: 0, pending: 0, approved: 0, declined: 0 });
+          this.showToast('We could not load ad approvals right now.');
+        },
+      });
+  }
 
   countByFilter(filter: ApprovalFilterId): number {
-    return this.approvals().filter((record) => filter === 'all' || record.status === filter).length;
+    switch (filter) {
+      case 'pending':
+        return this.counts().pending;
+      case 'approved':
+        return this.counts().approved;
+      case 'declined':
+        return this.counts().declined;
+      default:
+        return this.counts().all;
+    }
   }
 
   countByStatus(status: ApprovalStatus): number {
-    return this.approvals().filter((record) => record.status === status).length;
+    switch (status) {
+      case 'pending':
+        return this.counts().pending;
+      case 'approved':
+        return this.counts().approved;
+      case 'declined':
+        return this.counts().declined;
+    }
   }
 
   openRequestDetails(record: ApprovalRecord): void {
@@ -564,8 +525,16 @@ export class AdminAdsApprovalsPageComponent {
   }
 
   confirmApprove(requestId: string): void {
-    this.updateRequestStatus(requestId, 'approved');
-    this.approveRequestId.set(null);
+    this.approvalsService.approveAd(requestId).subscribe({
+      next: (response) => {
+        this.mergeUpdatedRequest(this.mapRecord(response));
+        this.approveRequestId.set(null);
+        this.showToast('Banner ad approved successfully.');
+      },
+      error: () => {
+        this.showToast('We could not approve that banner ad right now.');
+      },
+    });
   }
 
   openDeclineModal(requestId: string): void {
@@ -574,8 +543,16 @@ export class AdminAdsApprovalsPageComponent {
   }
 
   confirmDecline(payload: DeclinePromotionPayload): void {
-    this.updateRequestStatus(payload.requestId, 'declined', payload.reason);
-    this.declineRequestId.set(null);
+    this.approvalsService.rejectAd(payload.requestId, payload.reason).subscribe({
+      next: (response) => {
+        this.mergeUpdatedRequest(this.mapRecord(response));
+        this.declineRequestId.set(null);
+        this.showToast('Banner ad declined successfully.');
+      },
+      error: () => {
+        this.showToast('We could not decline that banner ad right now.');
+      },
+    });
   }
 
   statusLabel(status: ApprovalStatus): string {
@@ -610,6 +587,7 @@ export class AdminAdsApprovalsPageComponent {
 
   setStatusFilter(value: 'all' | ApprovalStatus): void {
     this.statusFilter.set(value);
+    this.activeFilter.set(value === 'all' ? 'all' : value);
     this.currentPage.set(1);
   }
 
@@ -618,26 +596,103 @@ export class AdminAdsApprovalsPageComponent {
     this.currentPage.set(1);
   }
 
+  selectFilter(filter: ApprovalFilterId): void {
+    this.activeFilter.set(filter);
+    this.statusFilter.set(filter === 'all' ? 'all' : filter);
+    this.currentPage.set(1);
+  }
+
   goToPreviousPage(): void {
+    if (!this.hasPreviousPage()) {
+      return;
+    }
     this.currentPage.update((page) => Math.max(1, page - 1));
   }
 
   goToNextPage(): void {
+    if (!this.hasNextPage()) {
+      return;
+    }
     this.currentPage.update((page) => Math.min(this.totalPages(), page + 1));
   }
 
-  private updateRequestStatus(requestId: string, status: ApprovalStatus, declineReason?: string): void {
-    this.approvals.update((records) =>
-      records.map((record) =>
-        record.id === requestId
-          ? { ...record, status, declineReason: declineReason ?? record.declineReason }
-          : record
-      )
-    );
+  private showToast(message: string): void {
+    this.toast.show({ message, durationMs: 3000 });
+  }
 
-    const selected = this.selectedRequest();
-    if (selected?.id === requestId) {
-      this.selectedRequest.set({ ...selected, status });
+  private resolveBackendStatus(): AdminAdApprovalStatus | undefined {
+    const effectiveStatus = this.statusFilter() !== 'all'
+      ? this.statusFilter()
+      : this.activeFilter() !== 'all'
+        ? this.activeFilter()
+        : 'all';
+
+    switch (effectiveStatus) {
+      case 'approved':
+        return 'active';
+      case 'declined':
+        return 'rejected';
+      case 'pending':
+        return 'pending';
+      default:
+        return undefined;
     }
+  }
+
+  private mapRecord(record: AdminAdApprovalRecordResponse): ApprovalRecord {
+    return {
+      id: String(record.id),
+      adTitle: record.title,
+      thumbnail: record.image || '/assets/images/product_watch_luxury.png',
+      userName: record.user_name,
+      userAvatar: record.user_avatar || '/assets/images/fashion_menswear_hero.png',
+      destinationUrl: record.link,
+      bannerType: record.banner_type === 'Video' ? 'Video' : 'Image',
+      plan: record.plan,
+      activeUntil: this.formatDate(record.end_date),
+      dateRequested: this.formatDate(record.created_at),
+      status: this.mapStatus(record.status),
+      declineReason: record.rejection_reason || undefined,
+    };
+  }
+
+  private mapStatus(status: AdminAdApprovalStatus): ApprovalStatus {
+    switch (status) {
+      case 'active':
+        return 'approved';
+      case 'rejected':
+        return 'declined';
+      default:
+        return 'pending';
+    }
+  }
+
+  private mergeUpdatedRequest(updated: ApprovalRecord): void {
+    this.approvals.update((records) => records.map((record) => record.id === updated.id ? updated : record));
+    const selected = this.selectedRequest();
+    if (selected?.id === updated.id) {
+      this.selectedRequest.set({ ...updated });
+    }
+    this.counts.update((counts) => ({
+      all: counts.all,
+      pending: Math.max(0, counts.pending - (updated.status === 'pending' ? 0 : 1)),
+      approved: counts.approved + (updated.status === 'approved' ? 1 : 0),
+      declined: counts.declined + (updated.status === 'declined' ? 1 : 0),
+    }));
+  }
+
+  private formatDate(value: string | null): string {
+    if (!value) {
+      return '---';
+    }
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return '---';
+    }
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsedDate);
   }
 }
