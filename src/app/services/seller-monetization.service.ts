@@ -65,9 +65,17 @@ export type SubscriptionPlan = {
   id: number;
   plan_name: string;
   price: string;
+  weekly_price: string;
+  monthly_price: string;
+  yearly_price: string;
   automobile_limit: number;
   property_limit: number;
   other_limit: number;
+  unlimited_ads_views: boolean;
+  image_banner_limit: number;
+  video_banner_limit: number;
+  store_promotion_limit: number;
+  is_active: boolean;
   discount_percentage: string;
   vat_percentage: string;
   computed_price: string;
@@ -182,11 +190,12 @@ export class SellerMonetizationService {
 
   subscribeToPlan(
     planId: number,
+    billingCycle: 'weekly' | 'monthly' | 'yearly' = 'monthly',
     confirmDeduction = true,
   ): Observable<{ message?: string; error?: string; confirm_required?: boolean }> {
     return this.http.post<{ message?: string; error?: string; confirm_required?: boolean }>(
       `${this.apiUrl}/subscription/buy/`,
-      { plan_id: planId, confirm_deduction: confirmDeduction },
+      { plan_id: planId, billing_cycle: billingCycle, confirm_deduction: confirmDeduction },
     );
   }
 

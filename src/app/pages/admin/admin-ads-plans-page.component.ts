@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroBolt,
@@ -16,6 +16,12 @@ import {
   EditableSingleBoostingPlan,
   SingleBoostingRate,
 } from './components/admin-edit-single-boosting-modal.component';
+import { AppToastService } from '../../services/app-toast.service';
+import {
+  AdminAdsPlansService,
+  AdminSingleBoostingPlanRecord,
+  AdminSubscriptionPlanRecord,
+} from '../../services/admin-ads-plans.service';
 
 type AdsPlanTabId = 'subscriptions' | 'single-boosting';
 type BillingCycleId = 'weekly' | 'monthly' | 'yearly';
@@ -385,10 +391,15 @@ const PLAN_FEATURE_CATALOG = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminAdsPlansPageComponent {
+  private readonly adsPlansService = inject(AdminAdsPlansService);
+  private readonly toast = inject(AppToastService);
+
   readonly activeTab = signal<AdsPlanTabId>('subscriptions');
   readonly activeBillingCycle = signal<BillingCycleId>('weekly');
   readonly editingPlan = signal<AdminEditablePlan | null>(null);
   readonly editingSingleBoostingPlan = signal<EditableSingleBoostingPlan | null>(null);
+  readonly subscriptionPlanRecords = signal<AdminSubscriptionPlanRecord[]>([]);
+  readonly singleBoostingPlanRecords = signal<AdminSingleBoostingPlanRecord[]>([]);
 
   readonly planTabs: ReadonlyArray<AdsPlanTab> = [
     { id: 'subscriptions', label: 'Subscriptions', icon: 'heroSquares2x2' },
@@ -412,98 +423,17 @@ export class AdminAdsPlansPageComponent {
     }
   });
 
-  readonly plans = signal<AdminEditablePlan[]>([
-    {
-      name: 'Free',
-      status: 'active',
-      prices: {
-        weekly: '₦0',
-        monthly: '₦0',
-        yearly: '₦0',
-      },
-      features: this.createPlanFeatures([
-        'Limited ads views',
-        '1 listings in Automobile',
-        '1 listings in Property',
-        '5 listings in Other categories',
-      ]),
-    },
-    {
-      name: 'Pro',
-      status: 'active',
-      prices: {
-        weekly: '₦1,000',
-        monthly: '₦4,000',
-        yearly: '₦48,000',
-      },
-      features: this.createPlanFeatures([
-        'Unlimited ads views',
-        '5 listings in Automobile',
-        '5 listings in Property',
-        '15 listings in Other categories',
-        '1 image banner listing',
-      ]),
-    },
-    {
-      name: 'Premium',
-      status: 'active',
-      prices: {
-        weekly: '₦1,500',
-        monthly: '₦6,000',
-        yearly: '₦72,000',
-      },
-      features: this.createPlanFeatures([
-        'Unlimited ads views',
-        'Unlimited listings in Automobile',
-        'Unlimited listings in Property',
-        'Unlimited listings in Others',
-        '1 image banner listing',
-        '1 video banner listing',
-        '1 store promotion',
-      ]),
-    },
-    {
-      name: 'Enterprise',
-      status: 'inactive',
-      prices: {
-        weekly: '₦2,000',
-        monthly: '₦8,000',
-        yearly: '₦96,000',
-      },
-      features: this.createPlanFeatures([
-        'Unlimited ads views',
-        'Unlimited listings in Automobile',
-        'Unlimited listings in Property',
-        'Unlimited listings in Others',
-        '1 image banner listing',
-        '1 video banner listing',
-        'Unlimited store promotion',
-      ]),
-    },
-  ]);
+  readonly plans = computed<AdminEditablePlan[]>(() =>
+    this.subscriptionPlanRecords().map((plan) => this.mapSubscriptionPlan(plan))
+  );
 
-  readonly singleBoostingPlans = signal<EditableSingleBoostingPlan[]>([
-    {
-      name: 'Promote for 1 day',
-      status: 'active',
-      rates: this.createBoostingRates(),
-    },
-    {
-      name: 'Promote for 7 days',
-      status: 'active',
-      rates: this.createBoostingRates(),
-    },
-    {
-      name: 'Promote for 14 days',
-      status: 'inactive',
-      rates: this.createBoostingRates(),
-    },
-    {
-      name: 'Promote for 30 days',
-      status: 'active',
-      rates: this.createBoostingRates(),
-    },
-  ]);
+  readonly singleBoostingPlans = computed<EditableSingleBoostingPlan[]>(() =>
+    this.singleBoostingPlanRecords().map((plan) => this.mapSingleBoostingPlan(plan))
+  );
+
+  constructor() {
+    this.loadPlans();
+  }
 
   enabledFeatures(plan: AdminEditablePlan): string[] {
     return plan.features.filter((feature) => feature.enabled).map((feature) => feature.label);
@@ -518,10 +448,28 @@ export class AdminAdsPlansPageComponent {
   }
 
   savePlanChanges(updatedPlan: AdminEditablePlan): void {
-    this.plans.update((plans) =>
-      plans.map((plan) => (plan.name === updatedPlan.name ? updatedPlan : plan))
+    const backendPlan = this.subscriptionPlanRecords().find(
+      (plan) => plan.plan_name.trim().toLowerCase() === updatedPlan.name.trim().toLowerCase(),
     );
-    this.editingPlan.set(null);
+
+    if (!backendPlan) {
+      this.toast.show({ message: 'We could not match that subscription plan right now.' });
+      return;
+    }
+
+    const payload = this.toSubscriptionPlanPayload(updatedPlan, backendPlan);
+    this.adsPlansService.updateSubscriptionPlan(backendPlan.id, payload).subscribe({
+      next: (response) => {
+        this.subscriptionPlanRecords.update((plans) =>
+          plans.map((plan) => (plan.id === response.id ? response : plan)),
+        );
+        this.editingPlan.set(null);
+        this.toast.show({ message: 'Subscription plan updated successfully.' });
+      },
+      error: () => {
+        this.toast.show({ message: 'We could not update that subscription plan right now.' });
+      },
+    });
   }
 
   openEditSingleBoostingPlanModal(plan: EditableSingleBoostingPlan): void {
@@ -532,10 +480,175 @@ export class AdminAdsPlansPageComponent {
   }
 
   saveSingleBoostingPlanChanges(updatedPlan: EditableSingleBoostingPlan): void {
-    this.singleBoostingPlans.update((plans) =>
-      plans.map((plan) => (plan.name === updatedPlan.name ? updatedPlan : plan))
+    const backendPlan = this.singleBoostingPlanRecords().find((plan) => plan.name === updatedPlan.name);
+
+    if (!backendPlan) {
+      this.toast.show({ message: 'We could not match that single boosting plan right now.' });
+      return;
+    }
+
+    const payload = this.toSingleBoostingPayload(updatedPlan);
+    this.adsPlansService.updateSingleBoostingPlan(backendPlan.id, payload).subscribe({
+      next: (response) => {
+        this.singleBoostingPlanRecords.update((plans) =>
+          plans.map((plan) => (plan.id === response.id ? response : plan)),
+        );
+        this.editingSingleBoostingPlan.set(null);
+        this.toast.show({ message: 'Single boosting plan updated successfully.' });
+      },
+      error: () => {
+        this.toast.show({ message: 'We could not update that single boosting plan right now.' });
+      },
+    });
+  }
+
+  private loadPlans(): void {
+    this.adsPlansService.getPlans().subscribe({
+      next: (response) => {
+        this.subscriptionPlanRecords.set(response.subscription_plans);
+        this.singleBoostingPlanRecords.set(response.single_boosting_plans);
+      },
+      error: () => {
+        this.subscriptionPlanRecords.set([]);
+        this.singleBoostingPlanRecords.set([]);
+        this.toast.show({ message: 'We could not load ads plans right now.' });
+      },
+    });
+  }
+
+  private mapSubscriptionPlan(plan: AdminSubscriptionPlanRecord): AdminEditablePlan {
+    const enabledLabels: string[] = [];
+
+    if (plan.unlimited_ads_views) {
+      enabledLabels.push('Unlimited ads views');
+    } else {
+      enabledLabels.push('Limited ads views');
+    }
+
+    enabledLabels.push(this.automobileFeatureLabel(plan.automobile_limit));
+    enabledLabels.push(this.propertyFeatureLabel(plan.property_limit));
+    enabledLabels.push(this.otherFeatureLabel(plan.other_limit));
+
+    if (plan.image_banner_limit > 0) {
+      enabledLabels.push('1 image banner listing');
+    }
+    if (plan.video_banner_limit > 0) {
+      enabledLabels.push('1 video banner listing');
+    }
+    if (plan.store_promotion_limit > 1) {
+      enabledLabels.push('Unlimited store promotion');
+    } else if (plan.store_promotion_limit > 0) {
+      enabledLabels.push('1 store promotion');
+    }
+
+    return {
+      name: plan.plan_name,
+      status: plan.is_active ? 'active' : 'inactive',
+      prices: {
+        weekly: this.toCurrency(plan.weekly_price || plan.price),
+        monthly: this.toCurrency(plan.monthly_price || plan.price),
+        yearly: this.toCurrency(plan.yearly_price || plan.price),
+      },
+      features: this.createPlanFeatures(enabledLabels),
+    };
+  }
+
+  private mapSingleBoostingPlan(plan: AdminSingleBoostingPlanRecord): EditableSingleBoostingPlan {
+    return {
+      name: plan.name,
+      status: plan.status,
+      rates: [
+        { label: 'Automobile listing', price: this.toCurrency(plan.automobile_price), enabled: Number(plan.automobile_price) > 0 },
+        { label: 'Property listing', price: this.toCurrency(plan.property_price), enabled: Number(plan.property_price) > 0 },
+        { label: 'Other listing', price: this.toCurrency(plan.other_listing_price), enabled: Number(plan.other_listing_price) > 0 },
+        { label: 'Image banner', price: this.toCurrency(plan.image_banner_price), enabled: Number(plan.image_banner_price) > 0 },
+        { label: 'Video banner', price: this.toCurrency(plan.video_banner_price), enabled: Number(plan.video_banner_price) > 0 },
+        { label: 'Stores', price: this.toCurrency(plan.store_promotion_price), enabled: Number(plan.store_promotion_price) > 0 },
+      ],
+    };
+  }
+
+  private toSubscriptionPlanPayload(updatedPlan: AdminEditablePlan, backendPlan: AdminSubscriptionPlanRecord): Partial<AdminSubscriptionPlanRecord> {
+    const enabledLabels = new Set(
+      updatedPlan.features.filter((feature) => feature.enabled).map((feature) => feature.label),
     );
-    this.editingSingleBoostingPlan.set(null);
+
+    return {
+      plan_name: updatedPlan.name,
+      weekly_price: this.toBackendDecimal(updatedPlan.prices.weekly),
+      monthly_price: this.toBackendDecimal(updatedPlan.prices.monthly),
+      yearly_price: this.toBackendDecimal(updatedPlan.prices.yearly),
+      price: this.toBackendDecimal(updatedPlan.prices.monthly),
+      is_active: updatedPlan.status === 'active',
+      unlimited_ads_views: enabledLabels.has('Unlimited ads views'),
+      automobile_limit: enabledLabels.has('Unlimited listings in Automobile')
+        ? 999999
+        : enabledLabels.has('5 listings in Automobile')
+          ? 5
+          : 1,
+      property_limit: enabledLabels.has('Unlimited listings in Property')
+        ? 999999
+        : enabledLabels.has('5 listings in Property')
+          ? 5
+          : 1,
+      other_limit: enabledLabels.has('Unlimited listings in Others')
+        ? 999999
+        : enabledLabels.has('15 listings in Other categories')
+          ? 15
+          : 5,
+      image_banner_limit: enabledLabels.has('1 image banner listing') ? 1 : 0,
+      video_banner_limit: enabledLabels.has('1 video banner listing') ? 1 : 0,
+      store_promotion_limit: enabledLabels.has('Unlimited store promotion')
+        ? 999999
+        : enabledLabels.has('1 store promotion')
+          ? 1
+          : 0,
+      discount_percentage: backendPlan.discount_percentage,
+      vat_percentage: backendPlan.vat_percentage,
+    };
+  }
+
+  private toSingleBoostingPayload(updatedPlan: EditableSingleBoostingPlan): Partial<AdminSingleBoostingPlanRecord> {
+    const rateMap = new Map(updatedPlan.rates.map((rate) => [rate.label, rate]));
+    const amountFor = (label: string): string => {
+      const rate = rateMap.get(label);
+      if (!rate || !rate.enabled) {
+        return '0.00';
+      }
+      return this.toBackendDecimal(rate.price);
+    };
+
+    return {
+      name: updatedPlan.name,
+      status: updatedPlan.status,
+      automobile_price: amountFor('Automobile listing'),
+      property_price: amountFor('Property listing'),
+      other_listing_price: amountFor('Other listing'),
+      image_banner_price: amountFor('Image banner'),
+      video_banner_price: amountFor('Video banner'),
+      store_promotion_price: amountFor('Stores'),
+    };
+  }
+
+  private automobileFeatureLabel(limit: number): string {
+    if (limit >= 999999) {
+      return 'Unlimited listings in Automobile';
+    }
+    return limit >= 5 ? '5 listings in Automobile' : '1 listings in Automobile';
+  }
+
+  private propertyFeatureLabel(limit: number): string {
+    if (limit >= 999999) {
+      return 'Unlimited listings in Property';
+    }
+    return limit >= 5 ? '5 listings in Property' : '1 listings in Property';
+  }
+
+  private otherFeatureLabel(limit: number): string {
+    if (limit >= 999999) {
+      return 'Unlimited listings in Others';
+    }
+    return limit >= 15 ? '15 listings in Other categories' : '5 listings in Other categories';
   }
 
   private createPlanFeatures(enabledLabels: readonly string[]) {
@@ -547,14 +660,14 @@ export class AdminAdsPlansPageComponent {
     }));
   }
 
-  private createBoostingRates(): SingleBoostingRate[] {
-    return [
-      { label: 'Automobile listing', price: '₦200', enabled: true },
-      { label: 'Property listing', price: '₦150', enabled: true },
-      { label: 'Other listing', price: '₦100', enabled: true },
-      { label: 'Image banner', price: '₦500', enabled: true },
-      { label: 'Video banner', price: '₦600', enabled: true },
-      { label: 'Stores', price: '₦200', enabled: true },
-    ];
+  private toCurrency(value: string | number): string {
+    const numericValue = Number(value) || 0;
+    return `₦${numericValue.toLocaleString('en-NG')}`;
+  }
+
+  private toBackendDecimal(value: string): string {
+    const digits = value.replace(/[^0-9.]/g, '');
+    const parsedNumber = Number(digits || '0');
+    return parsedNumber.toFixed(2);
   }
 }
