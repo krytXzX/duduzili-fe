@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { switchMap } from 'rxjs';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   heroCheckCircle,
@@ -22,10 +24,18 @@ import {
   DeclineKycPayload,
 } from './components/admin-decline-kyc-modal.component';
 import { AppToastService } from '../../services/app-toast.service';
+import {
+  AdminKycIdType,
+  AdminKycQuery,
+  AdminKycRecordResponse,
+  AdminKycService,
+  AdminKycStatus,
+} from '../../services/admin-kyc.service';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 type KycStatus = 'pending approval' | 'approved' | 'declined';
 type KycFilterId = 'all' | KycStatus;
-type KycCategoryFilter = 'all' | 'drivers-license' | 'passport' | 'identity-card';
+type KycCategoryFilter = 'all' | 'drivers_licence' | 'passport' | 'identity_card';
 type KycRegionFilter = 'all' | 'nigeria';
 
 interface KycFilterCard {
@@ -85,7 +95,7 @@ interface KycRequestRecord {
           @for (card of filterCards; track card.id) {
             <button
               type="button"
-              (click)="activeFilter.set(card.id); currentPage.set(1)"
+              (click)="selectFilter(card.id)"
               class="h-[75px] min-w-[104px] rounded-[10px] border px-2.5 py-2 text-left transition-colors"
               [class.border-[#6254f3]]="activeFilter() === card.id"
               [class.bg-[#f9f9ff]]="activeFilter() === card.id"
@@ -182,7 +192,7 @@ interface KycRequestRecord {
           @for (card of filterCards; track card.id) {
             <button
               type="button"
-              (click)="activeFilter.set(card.id); currentPage.set(1)"
+              (click)="selectFilter(card.id)"
               class="rounded-[16px] border px-4 py-3 text-left transition-colors"
               [class.border-[#6254f3]]="activeFilter() === card.id"
               [class.bg-[#f9f9ff]]="activeFilter() === card.id"
@@ -227,7 +237,7 @@ interface KycRequestRecord {
                 buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
                 iconClass="text-[#8a8a8a]"
                 menuClass="min-w-[180px]"
-                (valueChange)="statusFilter.set($event); currentPage.set(1)"
+                (valueChange)="selectStatus($event)"
               ></app-custom-dropdown>
             </div>
 
@@ -366,13 +376,16 @@ interface KycRequestRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminKycRequestsPageComponent {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly appToastService = inject(AppToastService);
+  private readonly adminKycService = inject(AdminKycService);
+  private readonly authSession = inject(AuthSessionService);
   readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
   readonly categoryOptions: readonly CustomDropdownOption<KycCategoryFilter>[] = [
     { value: 'all', label: 'All categories' },
-    { value: 'drivers-license', label: "Driver's license" },
+    { value: 'drivers_licence', label: "Driver's license" },
     { value: 'passport', label: 'Passport' },
-    { value: 'identity-card', label: 'Identity card' },
+    { value: 'identity_card', label: 'Identity card' },
   ];
   readonly regionOptions: readonly CustomDropdownOption<KycRegionFilter>[] = [
     { value: 'all', label: 'All regions' },
@@ -385,10 +398,10 @@ export class AdminKycRequestsPageComponent {
     { value: 'declined', label: 'Declined' },
   ];
 
-  private readonly currentAdmin = {
-    name: 'Bryan Odjede',
-    avatar: '/assets/images/fashion_menswear_hero.png',
-  };
+  private readonly currentAdmin = computed(() => ({
+    name: this.authSession.user()?.full_name?.trim() || this.authSession.user()?.username || 'Admin reviewer',
+    avatar: this.authSession.user()?.avatar || '/assets/images/fashion_menswear_hero.png',
+  }));
 
   readonly filterCards: ReadonlyArray<KycFilterCard> = [
     { id: 'all', label: 'All' },
@@ -407,143 +420,61 @@ export class AdminKycRequestsPageComponent {
   readonly selectedRequest = signal<AdminKycRequestDetails | null>(null);
   readonly approveRequestId = signal<string | null>(null);
   readonly declineRequestId = signal<string | null>(null);
+  readonly requests = signal<KycRequestRecord[]>([]);
+  readonly totalResults = signal(0);
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalResults() / this.pageSize)));
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
+  readonly counts = signal({ all: 0, pending: 0, approved: 0, rejected: 0 });
+  readonly paginatedRequests = computed(() => this.requests());
 
-  readonly requests = signal<KycRequestRecord[]>([
-    {
-      id: 'kyc-1',
-      userName: 'Francis Uche',
-      email: 'uche@email.com',
-      avatar: '/assets/images/fashion_menswear_hero.png',
-      idType: `Driver's license`,
-      issuingCountry: 'Nigeria',
-      modeOfCapture: 'Photo upload',
-      dateUploaded: '06 May, 2024',
-      status: 'pending approval',
-      frontImage: '/assets/images/product_watch_luxury.png',
-      backImage: '/assets/images/product_keyboard_rgb.png',
-      selfieImage: '/assets/images/fashion_menswear_hero.png',
-    },
-    {
-      id: 'kyc-2',
-      userName: 'Mark Anthony',
-      email: 'mark@email.com',
-      avatar: '/assets/images/product_watch_luxury.png',
-      idType: 'Passport',
-      issuingCountry: 'Nigeria',
-      modeOfCapture: 'Photo upload',
-      dateUploaded: '06 May, 2024',
-      status: 'declined',
-      declineReason: 'Document image is blurry',
-      frontImage: '/assets/images/product_watch_luxury.png',
-      backImage: '/assets/images/product_keyboard_rgb.png',
-      selfieImage: '/assets/images/product_watch_luxury.png',
-      reviewedByName: 'Bryan Odjede',
-      reviewedByAvatar: '/assets/images/fashion_menswear_hero.png',
-      reviewedAt: '24 February 2025, 02:45 pm',
-    },
-    {
-      id: 'kyc-3',
-      userName: 'Elle Adebisi',
-      email: 'elle@email.com',
-      avatar: '/assets/images/product_sneakers_lifestyle.png',
-      idType: 'Identity card',
-      issuingCountry: 'Nigeria',
-      modeOfCapture: 'Photo upload',
-      dateUploaded: '06 May, 2024',
-      status: 'approved',
-      frontImage: '/assets/images/product_watch_luxury.png',
-      backImage: '/assets/images/product_keyboard_rgb.png',
-      selfieImage: '/assets/images/product_sneakers_lifestyle.png',
-      reviewedByName: 'Bryan Odjede',
-      reviewedByAvatar: '/assets/images/fashion_menswear_hero.png',
-      reviewedAt: '24 February 2025, 02:45 pm',
-    },
-    {
-      id: 'kyc-4',
-      userName: 'Francis Uche',
-      email: 'uche@email.com',
-      avatar: '/assets/images/fashion_menswear_hero.png',
-      idType: `Driver's license`,
-      issuingCountry: 'Nigeria',
-      modeOfCapture: 'Photo upload',
-      dateUploaded: '06 May, 2024',
-      status: 'pending approval',
-      frontImage: '/assets/images/product_watch_luxury.png',
-      backImage: '/assets/images/product_keyboard_rgb.png',
-      selfieImage: '/assets/images/fashion_menswear_hero.png',
-    },
-    {
-      id: 'kyc-5',
-      userName: 'Elle Adebisi',
-      email: 'elle@email.com',
-      avatar: '/assets/images/product_sneakers_lifestyle.png',
-      idType: `Driver's license`,
-      issuingCountry: 'Nigeria',
-      modeOfCapture: 'Photo upload',
-      dateUploaded: 'Aug 4, 2025',
-      status: 'declined',
-      declineReason: 'Your documents are invalid, Kindly provide a valid documentation',
-      frontImage: '/assets/images/product_watch_luxury.png',
-      backImage: '/assets/images/product_keyboard_rgb.png',
-      selfieImage: '/assets/images/product_sneakers_lifestyle.png',
-      reviewedByName: 'Sharon Idemudia',
-      reviewedByAvatar: '/assets/images/product_sneakers_lifestyle.png',
-      reviewedAt: '24 February 2025, 02:45 pm',
-    },
-    {
-      id: 'kyc-6',
-      userName: 'Elle Adebisi',
-      email: 'elle@email.com',
-      avatar: '/assets/images/product_sneakers_lifestyle.png',
-      idType: 'Identity card',
-      issuingCountry: 'Nigeria',
-      modeOfCapture: 'Photo upload',
-      dateUploaded: '06 May, 2024',
-      status: 'approved',
-      frontImage: '/assets/images/product_watch_luxury.png',
-      backImage: '/assets/images/product_keyboard_rgb.png',
-      selfieImage: '/assets/images/product_sneakers_lifestyle.png',
-      reviewedByName: 'Bryan Odjede',
-      reviewedByAvatar: '/assets/images/fashion_menswear_hero.png',
-      reviewedAt: '24 February 2025, 02:45 pm',
-    },
-  ]);
-
-  readonly filteredRequests = computed(() => {
-    const filter = this.activeFilter();
-    const category = this.categoryFilter();
-    const region = this.regionFilter();
-    const status = this.statusFilter();
-    const query = this.searchQuery().trim().toLowerCase();
-
-    return this.requests().filter((record) => {
-      const filterMatch = filter === 'all' || record.status === filter;
-      const categoryMatch =
-        category === 'all'
-        || this.categoryKey(record.idType) === category;
-      const regionMatch =
-        region === 'all'
-        || record.issuingCountry.toLowerCase() === region;
-      const statusMatch = status === 'all' || record.status === status;
-      const queryMatch =
-        query === ''
-        || record.userName.toLowerCase().includes(query)
-        || record.email.toLowerCase().includes(query)
-        || record.idType.toLowerCase().includes(query);
-
-      return filterMatch && categoryMatch && regionMatch && statusMatch && queryMatch;
-    });
-  });
-
-  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredRequests().length / this.pageSize)));
-
-  readonly paginatedRequests = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredRequests().slice(start, start + this.pageSize);
-  });
+  private readonly query = computed<AdminKycQuery>(() => ({
+    page: this.currentPage(),
+    search: this.searchQuery().trim() || undefined,
+    status: this.resolveBackendStatus(),
+    id_type: (() => {
+      const category = this.categoryFilter();
+      return category === 'all' ? undefined : category;
+    })(),
+    country: this.regionFilter() === 'all' ? undefined : 'Nigeria',
+  }));
 
   countByFilter(filter: KycFilterId): number {
-    return this.requests().filter((record) => filter === 'all' || record.status === filter).length;
+    switch (filter) {
+      case 'pending approval':
+        return this.counts().pending;
+      case 'approved':
+        return this.counts().approved;
+      case 'declined':
+        return this.counts().rejected;
+      default:
+        return this.counts().all;
+    }
+  }
+
+  constructor() {
+    toObservable(this.query)
+      .pipe(
+        switchMap((query) => this.adminKycService.getRequests(query)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.requests.set(response.results.map((record) => this.mapRecord(record)));
+          this.totalResults.set(response.count);
+          this.hasNextPage.set(Boolean(response.next));
+          this.hasPreviousPage.set(Boolean(response.previous));
+          this.counts.set(response.counts);
+        },
+        error: () => {
+          this.requests.set([]);
+          this.totalResults.set(0);
+          this.hasNextPage.set(false);
+          this.hasPreviousPage.set(false);
+          this.counts.set({ all: 0, pending: 0, approved: 0, rejected: 0 });
+          this.showToast('We could not load KYC requests right now.');
+        },
+      });
   }
 
   openRequestDetails(record: KycRequestRecord): void {
@@ -578,11 +509,29 @@ export class AdminKycRequestsPageComponent {
     this.currentPage.set(1);
   }
 
+  selectFilter(filter: KycFilterId): void {
+    this.activeFilter.set(filter);
+    this.statusFilter.set(filter === 'all' ? 'all' : filter);
+    this.currentPage.set(1);
+  }
+
+  selectStatus(status: 'all' | KycStatus): void {
+    this.statusFilter.set(status);
+    this.activeFilter.set(status === 'all' ? 'all' : status);
+    this.currentPage.set(1);
+  }
+
   goToPreviousPage(): void {
+    if (!this.hasPreviousPage()) {
+      return;
+    }
     this.currentPage.update((page) => Math.max(1, page - 1));
   }
 
   goToNextPage(): void {
+    if (!this.hasNextPage()) {
+      return;
+    }
     this.currentPage.update((page) => Math.min(this.totalPages(), page + 1));
   }
 
@@ -592,9 +541,17 @@ export class AdminKycRequestsPageComponent {
   }
 
   confirmApprove(requestId: string): void {
-    this.updateRequestStatus(requestId, 'approved');
-    this.approveRequestId.set(null);
-    this.showToast('KYC request successfully approved');
+    this.adminKycService.approveRequest(requestId).subscribe({
+      next: (response) => {
+        const mapped = this.mapRecord(response);
+        this.mergeUpdatedRequest(mapped);
+        this.approveRequestId.set(null);
+        this.showToast('KYC request successfully approved');
+      },
+      error: () => {
+        this.showToast('We could not approve that KYC request right now.');
+      },
+    });
   }
 
   openDeclineModal(requestId: string): void {
@@ -603,38 +560,17 @@ export class AdminKycRequestsPageComponent {
   }
 
   confirmDecline(payload: DeclineKycPayload): void {
-    this.updateRequestStatus(payload.requestId, 'declined', payload.reason);
-    this.declineRequestId.set(null);
-    this.showToast('KYC request successfully declined');
-  }
-
-  private updateRequestStatus(requestId: string, status: KycStatus, declineReason?: string): void {
-    this.requests.update((records) =>
-      records.map((record) =>
-        record.id === requestId
-          ? {
-              ...record,
-              status,
-              declineReason: status === 'declined' ? declineReason ?? record.declineReason : undefined,
-              reviewedByName: this.currentAdmin.name,
-              reviewedByAvatar: this.currentAdmin.avatar,
-              reviewedAt: '24 February 2025, 02:45 pm',
-            }
-          : record
-      )
-    );
-
-    const selected = this.selectedRequest();
-    if (selected?.id === requestId) {
-      this.selectedRequest.set({
-        ...selected,
-        status,
-        declineReason: status === 'declined' ? declineReason ?? selected.declineReason : undefined,
-        reviewedByName: this.currentAdmin.name,
-        reviewedByAvatar: this.currentAdmin.avatar,
-        reviewedAt: '24 February 2025, 02:45 pm',
-      });
-    }
+    this.adminKycService.rejectRequest(payload.requestId, payload.reason).subscribe({
+      next: (response) => {
+        const mapped = this.mapRecord(response);
+        this.mergeUpdatedRequest(mapped);
+        this.declineRequestId.set(null);
+        this.showToast('KYC request successfully declined');
+      },
+      error: () => {
+        this.showToast('We could not decline that KYC request right now.');
+      },
+    });
   }
 
   private showToast(message: string): void {
@@ -645,13 +581,109 @@ export class AdminKycRequestsPageComponent {
     const normalized = idType.toLowerCase();
 
     if (normalized.includes('driver')) {
-      return 'drivers-license';
+      return 'drivers_licence';
     }
 
     if (normalized.includes('passport')) {
       return 'passport';
     }
 
-    return 'identity-card';
+    return 'identity_card';
+  }
+
+  private resolveBackendStatus(): AdminKycStatus | undefined {
+    const effectiveStatus = this.statusFilter() !== 'all'
+      ? this.statusFilter()
+      : this.activeFilter() !== 'all'
+        ? this.activeFilter()
+        : 'all';
+
+    switch (effectiveStatus) {
+      case 'pending approval':
+        return 'pending';
+      case 'approved':
+        return 'approved';
+      case 'declined':
+        return 'rejected';
+      default:
+        return undefined;
+    }
+  }
+
+  private mapRecord(record: AdminKycRecordResponse): KycRequestRecord {
+    const currentAdmin = this.currentAdmin();
+    return {
+      id: String(record.id),
+      userName: record.user_name,
+      email: record.user_email,
+      avatar: record.user_avatar || '/assets/images/fashion_menswear_hero.png',
+      idType: record.id_type_label,
+      issuingCountry: record.country,
+      modeOfCapture: record.upload_method_label,
+      dateUploaded: this.formatDate(record.submitted_at),
+      status: this.mapStatus(record.status),
+      declineReason: record.rejection_reason || undefined,
+      frontImage: record.id_front,
+      backImage: record.id_back || record.id_front,
+      selfieImage: record.selfie,
+      reviewedByName: record.status === 'pending' ? undefined : currentAdmin.name,
+      reviewedByAvatar: record.status === 'pending' ? undefined : currentAdmin.avatar,
+      reviewedAt: record.reviewed_at ? this.formatDateTime(record.reviewed_at) : undefined,
+    };
+  }
+
+  private mergeUpdatedRequest(updated: KycRequestRecord): void {
+    this.requests.update((records) => records.map((record) => record.id === updated.id ? updated : record));
+    const selected = this.selectedRequest();
+    if (selected?.id === updated.id) {
+      this.selectedRequest.set({ ...updated });
+    }
+    this.counts.update((counts) => ({
+      all: counts.all,
+      pending: Math.max(0, counts.pending - (updated.status === 'pending approval' ? 0 : 1)),
+      approved: counts.approved + (updated.status === 'approved' ? 1 : 0),
+      rejected: counts.rejected + (updated.status === 'declined' ? 1 : 0),
+    }));
+  }
+
+  private mapStatus(status: AdminKycStatus): KycStatus {
+    switch (status) {
+      case 'approved':
+        return 'approved';
+      case 'rejected':
+        return 'declined';
+      default:
+        return 'pending approval';
+    }
+  }
+
+  private formatDate(value: string): string {
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return '---';
+    }
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsedDate);
+  }
+
+  private formatDateTime(value: string): string {
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return '---';
+    }
+    const date = new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(parsedDate);
+    const time = new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    }).format(parsedDate).toLowerCase();
+    return `${date}, ${time}`;
   }
 }
