@@ -1,7 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { switchMap } from 'rxjs';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
+import {
+  AdminRunningAdsCounts,
+  AdminRunningAdsRecord,
+  AdminRunningAdsService,
+  AdminRunningAdsType,
+} from '../../services/admin-running-ads.service';
 import {
   heroBuildingStorefront,
   heroCalendarDays,
@@ -50,6 +58,12 @@ interface RunningAdsRecord {
   status: AdStatus;
   category: AdsCategory;
 }
+
+const EMPTY_COUNTS: AdminRunningAdsCounts = {
+  listing: { all: 0, active: 0, paused: 0 },
+  store: { all: 0, active: 0, paused: 0 },
+  banner: { all: 0, active: 0, paused: 0 },
+};
 
 @Component({
   selector: 'app-admin-running-ads-page',
@@ -141,7 +155,7 @@ interface RunningAdsRecord {
                 <div class="flex items-start gap-3">
                   <div class="h-11 w-11 shrink-0 overflow-hidden rounded-[10px] bg-[#f3f3f3]">
                     <img
-                      [ngSrc]="record.thumbnail"
+                      [src]="record.thumbnail"
                       [alt]="record.title"
                       width="44"
                       height="44"
@@ -227,13 +241,13 @@ interface RunningAdsRecord {
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex min-w-0 items-center gap-3">
                     <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#3d785f]">
-                      <img
-                        [ngSrc]="record.thumbnail"
-                        [alt]="record.storeOrUser"
-                        width="44"
-                        height="44"
-                        class="h-11 w-11 object-cover"
-                      >
+                        <img
+                          [src]="record.thumbnail"
+                          [alt]="record.storeOrUser"
+                          width="44"
+                          height="44"
+                          class="h-11 w-11 object-cover"
+                        >
                     </div>
 
                     <div class="min-w-0">
@@ -281,7 +295,7 @@ interface RunningAdsRecord {
                     <div class="flex min-w-0 items-center gap-2">
                       <div class="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-[#ececec]">
                         <img
-                          [ngSrc]="record.ownerAvatarImage || ownerAvatarFallback"
+                          [src]="record.ownerAvatarImage || ownerAvatarFallback"
                           [alt]="record.ownerName || 'Owner avatar'"
                           width="24"
                           height="24"
@@ -308,7 +322,7 @@ interface RunningAdsRecord {
               <article class="overflow-hidden rounded-[21px] border border-[#eaeaea] bg-white p-[3px]">
                 <div class="relative h-[193px] overflow-hidden rounded-[20px]">
                   <img
-                    [ngSrc]="mobileBannerPreviewImage"
+                    [src]="record.thumbnail || mobileBannerPreviewImage"
                     [alt]="record.title"
                     width="343"
                     height="193"
@@ -387,7 +401,7 @@ interface RunningAdsRecord {
                   <div class="p-1.5">
                     <div class="relative h-[228px] overflow-hidden rounded-[22px]">
                       <img
-                        [ngSrc]="record.thumbnail"
+                        [src]="record.thumbnail"
                         [alt]="record.title"
                         width="840"
                         height="456"
@@ -502,7 +516,7 @@ interface RunningAdsRecord {
                         <div class="flex items-center gap-3">
                           <div class="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                             <img
-                              [ngSrc]="record.ownerAvatarImage || record.thumbnail"
+                              [src]="record.ownerAvatarImage || record.thumbnail"
                               [alt]="record.ownerName || record.storeOrUser"
                               width="32"
                               height="32"
@@ -556,7 +570,7 @@ interface RunningAdsRecord {
                       <div class="flex items-center gap-3">
                         <div class="h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-[#f3f3f3]">
                           <img
-                            [ngSrc]="record.thumbnail"
+                            [src]="record.thumbnail"
                             [alt]="record.title"
                             width="40"
                             height="40"
@@ -646,6 +660,9 @@ interface RunningAdsRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminRunningAdsPageComponent {
+  private readonly adminRunningAdsService = inject(AdminRunningAdsService);
+  private readonly destroyRef = inject(DestroyRef);
+
   readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
   readonly statusActiveIcon = '/assets/icons/admin-users/tick-circle.svg';
   readonly statusPausedIcon = '/assets/icons/banner-status-paused.svg';
@@ -676,316 +693,23 @@ export class AdminRunningAdsPageComponent {
   readonly activeUntilFilter = signal<RunningAdsActiveUntilFilter>('all');
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
+  readonly isLoading = signal(true);
+  readonly loadFailed = signal(false);
+  readonly totalResults = signal(0);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
   readonly pageSize = 5;
+  readonly counts = signal<AdminRunningAdsCounts>(EMPTY_COUNTS);
+  readonly runningAds = signal<RunningAdsRecord[]>([]);
   readonly statusDropdownOptions: readonly CustomDropdownOption<'all' | AdStatus>[] = [
     { value: 'all', label: 'All statuses' },
     { value: 'active', label: 'Active' },
     { value: 'paused', label: 'Paused' },
   ];
 
-  readonly runningAds = signal<RunningAdsRecord[]>([
-    {
-      id: 'ad-1',
-      title: 'Iphone 17 pro max',
-      thumbnail: '/assets/images/product_watch_luxury.png',
-      storeOrUser: 'The Vine Collections',
-      storeAvatarText: 'VC',
-      storeAvatarTone: 'linear-gradient(135deg, #48836a 0%, #5f9c83 100%)',
-      views: '1,458',
-      clicks: '700',
-      messages: '45',
-      calls: '45',
-      activeUntil: '12 May, 2026',
-      status: 'active',
-      category: 'promoted listings',
-    },
-    {
-      id: 'ad-2',
-      title: 'Logitech ergonomic mouse',
-      thumbnail: '/assets/images/product_keyboard_rgb.png',
-      storeOrUser: 'Eden Organics',
-      storeAvatarText: 'EO',
-      storeAvatarTone: 'linear-gradient(135deg, #072a17 0%, #0d4024 100%)',
-      views: '1,458',
-      clicks: '700',
-      messages: '45',
-      calls: '45',
-      activeUntil: '12 May, 2026',
-      status: 'active',
-      category: 'promoted listings',
-    },
-    {
-      id: 'ad-3',
-      title: 'Nike sneaker',
-      thumbnail: '/assets/images/product_sneakers_lifestyle.png',
-      storeOrUser: 'Amazing Fragrances',
-      storeAvatarText: 'AF',
-      storeAvatarTone: 'linear-gradient(135deg, #f8b400 0%, #ffcf3f 100%)',
-      views: '1,458',
-      clicks: '700',
-      messages: '45',
-      calls: '45',
-      activeUntil: '12 May, 2026',
-      status: 'active',
-      category: 'promoted listings',
-    },
-    {
-      id: 'ad-4',
-      title: 'Bone straight wig',
-      thumbnail: '/assets/images/fashion_menswear_hero.png',
-      storeOrUser: 'Bryan Ojede',
-      storeAvatarText: 'BO',
-      storeAvatarTone: 'linear-gradient(135deg, #d5614a 0%, #8b4336 100%)',
-      views: '1,458',
-      clicks: '700',
-      messages: '45',
-      calls: '45',
-      activeUntil: '12 May, 2026',
-      status: 'paused',
-      category: 'promoted listings',
-    },
-    {
-      id: 'ad-5',
-      title: 'Maserati',
-      thumbnail: '/assets/images/product_sneakers.png',
-      storeOrUser: 'Eden Organics',
-      storeAvatarText: 'EO',
-      storeAvatarTone: 'linear-gradient(135deg, #072a17 0%, #0d4024 100%)',
-      views: '1,458',
-      clicks: '500',
-      messages: '45',
-      calls: '45',
-      activeUntil: '12 May, 2026',
-      status: 'active',
-      category: 'promoted listings',
-    },
-    {
-      id: 'ad-6',
-      title: 'RGB keyboard',
-      thumbnail: '/assets/images/product_keyboard_rgb.png',
-      storeOrUser: 'Bryan Ojede',
-      storeAvatarText: 'BO',
-      storeAvatarTone: 'linear-gradient(135deg, #d5614a 0%, #8b4336 100%)',
-      views: '1,458',
-      clicks: '500',
-      messages: '45',
-      calls: '45',
-      activeUntil: '12 May, 2026',
-      status: 'paused',
-      category: 'promoted listings',
-    },
-    {
-      id: 'ad-7',
-      title: 'Sweatshirt',
-      thumbnail: '/assets/images/fashion_menswear_hero.png',
-      storeOrUser: 'The Vine Collections',
-      storeAvatarText: 'VC',
-      storeAvatarTone: 'linear-gradient(135deg, #48836a 0%, #5f9c83 100%)',
-      views: '1,458',
-      clicks: '500',
-      messages: '45',
-      calls: '45',
-      activeUntil: '12 May, 2026',
-      status: 'active',
-      category: 'promoted listings',
-    },
-    {
-      id: 'ad-8',
-      title: 'Vine flagship store',
-      thumbnail: '/assets/images/product_sneakers_lifestyle.png',
-      storeOrUser: 'The Vine Collections',
-      storeAvatarText: 'VC',
-      storeAvatarTone: 'linear-gradient(135deg, #48836a 0%, #5f9c83 100%)',
-      subtitle: 'Ikeja, Lagos',
-      ownerName: 'Amdechi Justina',
-      ownerAvatarImage: '/assets/images/fashion_menswear_hero.png',
-      products: '41',
-      views: '1,210',
-      clicks: '310',
-      messages: '18',
-      calls: '9',
-      activeUntil: '19 May, 2026',
-      status: 'active',
-      category: 'store promotions',
-    },
-    {
-      id: 'ad-9',
-      title: 'Eden Organics store push',
-      thumbnail: '/assets/images/product_keyboard_rgb.png',
-      storeOrUser: 'Eden Organics',
-      storeAvatarText: 'EO',
-      storeAvatarTone: 'linear-gradient(135deg, #072a17 0%, #0d4024 100%)',
-      subtitle: 'Warri, Delta',
-      ownerName: 'David Akins',
-      ownerAvatarImage: '/assets/images/fashion_menswear_hero.png',
-      products: '41',
-      views: '1,458',
-      clicks: '500',
-      messages: '14',
-      calls: '8',
-      activeUntil: '20 May, 2026',
-      status: 'active',
-      category: 'store promotions',
-    },
-    {
-      id: 'ad-10',
-      title: 'Amazing Fragrances store feature',
-      thumbnail: '/assets/images/product_sneakers_lifestyle.png',
-      storeOrUser: 'Amazing Fragrances',
-      storeAvatarText: 'AF',
-      storeAvatarTone: 'linear-gradient(135deg, #f8b400 0%, #ffcf3f 100%)',
-      subtitle: 'Wue 2, Abuja',
-      ownerName: 'Amdechi Justina',
-      ownerAvatarImage: '/assets/images/fashion_menswear_hero.png',
-      products: '41',
-      views: '1,458',
-      clicks: '500',
-      messages: '16',
-      calls: '10',
-      activeUntil: '12 May, 2026',
-      status: 'active',
-      category: 'store promotions',
-    },
-    {
-      id: 'ad-11',
-      title: 'Vine spotlight store',
-      thumbnail: '/assets/images/product_sneakers_lifestyle.png',
-      storeOrUser: 'The Vine Collections',
-      storeAvatarText: 'VC',
-      storeAvatarTone: 'linear-gradient(135deg, #48836a 0%, #5f9c83 100%)',
-      subtitle: 'Ikeja, Lagos',
-      ownerName: 'David Akins',
-      ownerAvatarImage: '/assets/images/fashion_menswear_hero.png',
-      products: '41',
-      views: '1,458',
-      clicks: '500',
-      messages: '20',
-      calls: '11',
-      activeUntil: '12 May, 2026',
-      status: 'paused',
-      category: 'store promotions',
-    },
-    {
-      id: 'ad-12',
-      title: 'Eden homepage store boost',
-      thumbnail: '/assets/images/product_keyboard_rgb.png',
-      storeOrUser: 'Eden Organics',
-      storeAvatarText: 'EO',
-      storeAvatarTone: 'linear-gradient(135deg, #072a17 0%, #0d4024 100%)',
-      subtitle: 'Warri, Delta',
-      ownerName: 'Amdechi Justina',
-      ownerAvatarImage: '/assets/images/fashion_menswear_hero.png',
-      products: '41',
-      views: '1,458',
-      clicks: '500',
-      messages: '12',
-      calls: '8',
-      activeUntil: '12 May, 2026',
-      status: 'active',
-      category: 'store promotions',
-    },
-    {
-      id: 'ad-13',
-      title: 'Mega gadget banner',
-      thumbnail: '/assets/images/product_watch_luxury.png',
-      bannerBadgeLabel: 'Sponsored',
-      storeOrUser: 'Tech Avenue',
-      storeAvatarText: 'TA',
-      storeAvatarTone: 'linear-gradient(135deg, #3558d8 0%, #5d7bff 100%)',
-      views: '1K',
-      clicks: '500',
-      messages: '65',
-      calls: '20',
-      activeUntil: '24 May, 2025',
-      status: 'active',
-      category: 'banner ads',
-    },
-    {
-      id: 'ad-14',
-      title: 'Weekend sneaker banner',
-      thumbnail: '/assets/images/product_sneakers_lifestyle.png',
-      bannerBadgeLabel: 'Sponsored',
-      storeOrUser: 'Sneaker Plug',
-      storeAvatarText: 'SP',
-      storeAvatarTone: 'linear-gradient(135deg, #ff7a00 0%, #ffb347 100%)',
-      views: '1K',
-      clicks: '500',
-      messages: '40',
-      calls: '15',
-      activeUntil: '24 May, 2025',
-      status: 'paused',
-      category: 'banner ads',
-    },
-    {
-      id: 'ad-15',
-      title: 'Bryan beauty banner',
-      thumbnail: '/assets/images/fashion_menswear_hero.png',
-      bannerBadgeLabel: 'Sponsored',
-      storeOrUser: 'Bryan Ojede',
-      storeAvatarText: 'BO',
-      storeAvatarTone: 'linear-gradient(135deg, #d5614a 0%, #8b4336 100%)',
-      views: '1K',
-      clicks: '500',
-      messages: '32',
-      calls: '12',
-      activeUntil: '24 May, 2025',
-      status: 'active',
-      category: 'banner ads',
-    },
-    {
-      id: 'ad-16',
-      title: 'Summer tech deals banner',
-      thumbnail: '/assets/images/product_watch_luxury.png',
-      bannerBadgeLabel: 'Sponsored',
-      storeOrUser: 'Device Hub',
-      storeAvatarText: 'DH',
-      storeAvatarTone: 'linear-gradient(135deg, #2c79ff 0%, #54a0ff 100%)',
-      views: '1K',
-      clicks: '500',
-      messages: '28',
-      calls: '11',
-      activeUntil: '24 May, 2025',
-      status: 'active',
-      category: 'banner ads',
-    },
-    {
-      id: 'ad-17',
-      title: 'Beauty essentials banner',
-      thumbnail: '/assets/images/fashion_menswear_hero.png',
-      bannerBadgeLabel: 'Sponsored',
-      storeOrUser: 'Glow Market',
-      storeAvatarText: 'GM',
-      storeAvatarTone: 'linear-gradient(135deg, #ff7b72 0%, #ffb199 100%)',
-      views: '1K',
-      clicks: '500',
-      messages: '26',
-      calls: '9',
-      activeUntil: '24 May, 2025',
-      status: 'active',
-      category: 'banner ads',
-    },
-    {
-      id: 'ad-18',
-      title: 'Home lifestyle banner',
-      thumbnail: '/assets/images/product_sneakers_lifestyle.png',
-      bannerBadgeLabel: 'Sponsored',
-      storeOrUser: 'Casa Living',
-      storeAvatarText: 'CL',
-      storeAvatarTone: 'linear-gradient(135deg, #7d6bff 0%, #9f8bff 100%)',
-      views: '1K',
-      clicks: '500',
-      messages: '31',
-      calls: '14',
-      activeUntil: '24 May, 2025',
-      status: 'active',
-      category: 'banner ads',
-    },
-  ]);
-
   readonly storeFilterOptions = computed<readonly CustomDropdownOption<RunningAdsStoreFilter>[]>(() => {
     const uniqueStores = [...new Set(
       this.runningAds()
-        .filter((record) => record.category === this.activeCategory())
         .map((record) => record.storeOrUser),
     )];
 
@@ -997,53 +721,37 @@ export class AdminRunningAdsPageComponent {
 
   readonly activeUntilFilterOptions = computed<readonly CustomDropdownOption<RunningAdsActiveUntilFilter>[]>(() => {
     const uniqueDates = [...new Set(
-      this.runningAds()
-        .filter((record) => record.category === this.activeCategory())
-        .map((record) => record.activeUntil),
+      this.runningAds().map((record) => record.activeUntil),
     )];
 
     return [
       { value: 'all', label: 'All dates' },
-      ...uniqueDates.map((date) => ({ value: date, label: date })),
+      ...uniqueDates
+        .map((date) => {
+          const dateKey = this.toIsoDateKey(date);
+          return dateKey ? { value: dateKey, label: date } : null;
+        })
+        .filter((option): option is CustomDropdownOption<RunningAdsActiveUntilFilter> => option !== null),
     ];
   });
 
-  readonly filteredAds = computed(() => {
-    const category = this.activeCategory();
-    const chip = this.activeFilterChip();
-    const query = this.searchQuery().trim().toLowerCase();
-    const store = this.storeFilter();
-    const dropdownStatus = this.statusDropdownFilter();
-    const activeUntil = this.activeUntilFilter();
-
-    return this.runningAds().filter((record) => {
-      const categoryMatch = record.category === category;
-      const statusMatch = chip === 'all' || record.status === chip;
-      const dropdownStatusMatch = dropdownStatus === 'all' || record.status === dropdownStatus;
-      const storeMatch = store === 'all' || record.storeOrUser === store;
-      const activeUntilMatch = activeUntil === 'all' || record.activeUntil === activeUntil;
-      const queryMatch =
-        query === ''
-        || record.title.toLowerCase().includes(query)
-        || record.storeOrUser.toLowerCase().includes(query);
-
-      return categoryMatch && statusMatch && dropdownStatusMatch && storeMatch && activeUntilMatch && queryMatch;
-    });
-  });
-
-  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredAds().length / this.pageSize)));
-
-  readonly paginatedAds = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredAds().slice(start, start + this.pageSize);
-  });
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalResults() / this.pageSize)));
+  readonly paginatedAds = computed(() => this.runningAds());
+  private readonly query = computed(() => ({
+    page: this.currentPage(),
+    ad_type: this.categoryToApiType(this.activeCategory()),
+    status: this.effectiveStatusFilter(),
+    search: this.searchQuery().trim(),
+    vendor_name: this.storeFilter() === 'all' ? undefined : this.storeFilter(),
+    end_date: this.activeUntilFilter() === 'all' ? undefined : this.activeUntilFilter(),
+  }));
 
   countByFilterChip(chip: FilterChip): number {
-    return this.runningAds().filter((record) => {
-      const categoryMatch = record.category === this.activeCategory();
-      const statusMatch = chip === 'all' || record.status === chip;
-      return categoryMatch && statusMatch;
-    }).length;
+    const categoryCounts = this.counts()[this.categoryToApiType(this.activeCategory())];
+    if (chip === 'all') {
+      return categoryCounts.all;
+    }
+    return categoryCounts[chip];
   }
 
   readonly visibleFilterChips = computed(() =>
@@ -1051,6 +759,36 @@ export class AdminRunningAdsPageComponent {
       ? this.filterChips.filter((chip) => chip.id !== 'all')
       : this.filterChips
   );
+
+  constructor() {
+    toObservable(this.query)
+      .pipe(
+        switchMap((query) => {
+          this.isLoading.set(true);
+          this.loadFailed.set(false);
+          return this.adminRunningAdsService.getRunningAds(query);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.runningAds.set(response.results.map((record) => this.mapRecord(record)));
+          this.counts.set(response.counts);
+          this.totalResults.set(response.count);
+          this.hasNextPage.set(Boolean(response.next));
+          this.hasPreviousPage.set(Boolean(response.previous));
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.runningAds.set([]);
+          this.totalResults.set(0);
+          this.hasNextPage.set(false);
+          this.hasPreviousPage.set(false);
+          this.isLoading.set(false);
+          this.loadFailed.set(true);
+        },
+      });
+  }
 
   setActiveCategory(category: AdsCategory): void {
     this.activeCategory.set(category);
@@ -1073,5 +811,127 @@ export class AdminRunningAdsPageComponent {
 
   goToNextPage(): void {
     this.currentPage.update((page) => Math.min(this.totalPages(), page + 1));
+  }
+
+  private effectiveStatusFilter(): AdStatus | undefined {
+    const chip = this.activeFilterChip();
+    const dropdownStatus = this.statusDropdownFilter();
+    if (this.activeCategory() === 'banner ads') {
+      return chip === 'active' || chip === 'paused' ? chip : undefined;
+    }
+    if (dropdownStatus === 'active' || dropdownStatus === 'paused') {
+      return dropdownStatus;
+    }
+    return chip === 'active' || chip === 'paused' ? chip : undefined;
+  }
+
+  private categoryToApiType(category: AdsCategory): AdminRunningAdsType {
+    switch (category) {
+      case 'promoted listings':
+        return 'listing';
+      case 'store promotions':
+        return 'store';
+      case 'banner ads':
+        return 'banner';
+    }
+  }
+
+  private mapRecord(record: AdminRunningAdsRecord): RunningAdsRecord {
+    const category = this.apiTypeToCategory(record.ad_type);
+    const storeOrUser = this.resolvePrimaryLabel(record, category);
+    const ownerName = category === 'store promotions'
+      ? record.promoted_store_owner_name || record.vendor_name
+      : undefined;
+
+    return {
+      id: String(record.id),
+      title: record.promoted_listing_title || record.title,
+      thumbnail: record.image || this.mobileBannerPreviewImage,
+      bannerBadgeLabel: category === 'banner ads' ? 'Sponsored' : undefined,
+      storeOrUser,
+      storeAvatarText: this.initialsForLabel(storeOrUser),
+      storeAvatarTone: this.avatarToneForLabel(storeOrUser),
+      subtitle: category === 'store promotions' ? (record.promoted_store_location || record.vendor_location || '') : undefined,
+      ownerName,
+      ownerAvatarImage: category === 'store promotions'
+        ? (record.promoted_store_owner_avatar || record.vendor_avatar || undefined)
+        : undefined,
+      products: category === 'store promotions'
+        ? String(record.promoted_store_product_count || record.vendor_product_count || 0)
+        : undefined,
+      views: this.formatMetric(record.total_views),
+      clicks: this.formatMetric(record.total_clicks),
+      messages: '0',
+      calls: '0',
+      activeUntil: this.formatDateLabel(record.end_date),
+      status: record.status,
+      category,
+    };
+  }
+
+  private apiTypeToCategory(type: AdminRunningAdsType): AdsCategory {
+    switch (type) {
+      case 'listing':
+        return 'promoted listings';
+      case 'store':
+        return 'store promotions';
+      case 'banner':
+        return 'banner ads';
+    }
+  }
+
+  private resolvePrimaryLabel(record: AdminRunningAdsRecord, category: AdsCategory): string {
+    if (category === 'store promotions') {
+      return record.promoted_store_name || record.vendor_name;
+    }
+    return record.vendor_name;
+  }
+
+  private formatMetric(value: number): string {
+    return new Intl.NumberFormat('en-US').format(value);
+  }
+
+  private formatDateLabel(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  private toIsoDateKey(value: string): string | null {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+    return date.toISOString().slice(0, 10);
+  }
+
+  private initialsForLabel(label: string): string {
+    const parts = label.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return 'AD';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
+  }
+
+  private avatarToneForLabel(label: string): string {
+    const tones = [
+      'linear-gradient(135deg, #48836a 0%, #5f9c83 100%)',
+      'linear-gradient(135deg, #072a17 0%, #0d4024 100%)',
+      'linear-gradient(135deg, #f8b400 0%, #ffcf3f 100%)',
+      'linear-gradient(135deg, #d5614a 0%, #8b4336 100%)',
+      'linear-gradient(135deg, #3558d8 0%, #5d7bff 100%)',
+      'linear-gradient(135deg, #7d6bff 0%, #9f8bff 100%)',
+    ];
+    const hash = [...label].reduce((total, char) => total + char.charCodeAt(0), 0);
+    return tones[hash % tones.length] ?? tones[0];
   }
 }
