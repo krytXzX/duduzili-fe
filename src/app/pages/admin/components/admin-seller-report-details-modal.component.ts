@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -13,11 +12,11 @@ export interface AdminSellerReportDetails {
   sellerId: string;
   sellerName: string;
   sellerEmail: string;
-  sellerAvatar: string;
+  sellerAvatar: string | null;
   reportedById: string;
   reportedByName: string;
   reportedByEmail: string;
-  reportedByAvatar: string;
+  reportedByAvatar: string | null;
   dateReported: string;
   reason: string;
   description: string;
@@ -26,7 +25,7 @@ export interface AdminSellerReportDetails {
 
 @Component({
   selector: 'app-admin-seller-report-details-modal',
-  imports: [NgIcon, NgOptimizedImage, RouterLink],
+  imports: [NgIcon, RouterLink],
   providers: [
     provideIcons({
       heroArrowTopRightOnSquare,
@@ -66,13 +65,19 @@ export interface AdminSellerReportDetails {
 
           <div class="mt-4 flex items-center gap-4">
             <div class="h-18 w-18 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
-              <img
-                [ngSrc]="report().sellerAvatar"
-                [alt]="report().sellerName"
-                width="72"
-                height="72"
-                class="h-18 w-18 object-cover"
-              >
+              @if (report().sellerAvatar) {
+                <img
+                  [src]="report().sellerAvatar"
+                  [alt]="report().sellerName"
+                  width="72"
+                  height="72"
+                  class="h-18 w-18 object-cover"
+                >
+              } @else {
+                <div class="flex h-18 w-18 items-center justify-center bg-[#E8EAED] text-[18px] font-semibold text-[#4B5563]">
+                  {{ initialsFromLabel(report().sellerName) }}
+                </div>
+              }
             </div>
 
             <div class="min-w-0">
@@ -98,13 +103,19 @@ export interface AdminSellerReportDetails {
             <p class="text-[15px] text-[#8f8f8f]">Reported by</p>
             <div class="flex min-w-0 items-center gap-3">
               <div class="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
-                <img
-                  [ngSrc]="report().reportedByAvatar"
-                  [alt]="report().reportedByName"
-                  width="32"
-                  height="32"
-                  class="h-8 w-8 object-cover"
-                >
+                @if (report().reportedByAvatar) {
+                  <img
+                    [src]="report().reportedByAvatar"
+                    [alt]="report().reportedByName"
+                    width="32"
+                    height="32"
+                    class="h-8 w-8 object-cover"
+                  >
+                } @else {
+                  <div class="flex h-8 w-8 items-center justify-center bg-[#E8EAED] text-[11px] font-semibold text-[#4B5563]">
+                    {{ initialsFromLabel(report().reportedByName) }}
+                  </div>
+                }
               </div>
               <div class="flex min-w-0 items-center gap-2">
                 <p class="truncate text-[15px] font-medium text-[#222222]">{{ report().reportedByName }}</p>
@@ -146,4 +157,18 @@ export class AdminSellerReportDetailsModalComponent {
   readonly report = input.required<AdminSellerReportDetails>();
 
   readonly close = output<void>();
+
+  protected initialsFromLabel(label: string): string {
+    const parts = label
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2);
+
+    if (parts.length === 0) {
+      return 'NA';
+    }
+
+    return parts.map((part) => part[0]?.toUpperCase() ?? '').join('');
+  }
 }

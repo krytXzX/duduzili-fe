@@ -1,4 +1,3 @@
-import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -34,11 +33,11 @@ interface SellerReportRecord {
   sellerId: string;
   sellerName: string;
   sellerEmail: string;
-  sellerAvatar: string;
+  sellerAvatar: string | null;
   reportedById: string;
   reportedByName: string;
   reportedByEmail: string;
-  reportedByAvatar: string;
+  reportedByAvatar: string | null;
   dateReported: string;
   reason: string;
   description: string;
@@ -49,15 +48,15 @@ interface ListingReportRecord {
   id: string;
   listingId: string;
   listingTitle: string;
-  listingImage: string;
+  listingImage: string | null;
   sellerId: string;
   sellerName: string;
   sellerEmail: string;
-  sellerAvatar: string;
+  sellerAvatar: string | null;
   reportedById: string;
   reportedByName: string;
   reportedByEmail: string;
-  reportedByAvatar: string;
+  reportedByAvatar: string | null;
   dateReported: string;
   description: string;
   totalReports: number;
@@ -65,7 +64,7 @@ interface ListingReportRecord {
 
 @Component({
   selector: 'app-admin-reports-page',
-  imports: [RouterLink, NgIcon, NgOptimizedImage, AdminSellerReportDetailsModalComponent, AdminListingReportDetailsModalComponent],
+  imports: [RouterLink, NgIcon, AdminSellerReportDetailsModalComponent, AdminListingReportDetailsModalComponent],
   providers: [
     provideIcons({
       heroArrowLeft,
@@ -158,13 +157,19 @@ interface ListingReportRecord {
                       <td class="px-4 py-5 align-top">
                         <div class="flex items-center gap-3">
                           <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
-                            <img
-                              [ngSrc]="record.sellerAvatar"
-                              [alt]="record.sellerName"
-                              width="40"
-                              height="40"
-                              class="h-10 w-10 object-cover"
-                            >
+                            @if (record.sellerAvatar) {
+                              <img
+                                [src]="record.sellerAvatar"
+                                [alt]="record.sellerName"
+                                width="40"
+                                height="40"
+                                class="h-10 w-10 object-cover"
+                              >
+                            } @else {
+                              <div class="flex h-10 w-10 items-center justify-center bg-[#E8EAED] text-[13px] font-semibold text-[#4B5563]">
+                                {{ initialsFromLabel(record.sellerName) }}
+                              </div>
+                            }
                           </div>
                           <div class="min-w-0">
                             <p class="truncate text-[15px] font-medium text-[#222222]">{{ record.sellerName }}</p>
@@ -176,13 +181,19 @@ interface ListingReportRecord {
                       <td class="px-4 py-5 align-top">
                         <div class="flex items-center gap-3">
                           <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
-                            <img
-                              [ngSrc]="record.reportedByAvatar"
-                              [alt]="record.reportedByName"
-                              width="40"
-                              height="40"
-                              class="h-10 w-10 object-cover"
-                            >
+                            @if (record.reportedByAvatar) {
+                              <img
+                                [src]="record.reportedByAvatar"
+                                [alt]="record.reportedByName"
+                                width="40"
+                                height="40"
+                                class="h-10 w-10 object-cover"
+                              >
+                            } @else {
+                              <div class="flex h-10 w-10 items-center justify-center bg-[#E8EAED] text-[13px] font-semibold text-[#4B5563]">
+                                {{ initialsFromLabel(record.reportedByName) }}
+                              </div>
+                            }
                           </div>
                           <div class="min-w-0">
                             <p class="truncate text-[15px] font-medium text-[#222222]">{{ record.reportedByName }}</p>
@@ -211,13 +222,19 @@ interface ListingReportRecord {
                   >
                     <div class="flex items-center gap-2">
                       <div class="flex h-[42px] w-[42px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
-                        <img
-                          [ngSrc]="record.sellerAvatar"
-                          [alt]="record.sellerName"
-                          width="42"
-                          height="42"
-                          class="h-[42px] w-[42px] rounded-full object-cover"
-                        >
+                        @if (record.sellerAvatar) {
+                          <img
+                            [src]="record.sellerAvatar"
+                            [alt]="record.sellerName"
+                            width="42"
+                            height="42"
+                            class="h-[42px] w-[42px] rounded-full object-cover"
+                          >
+                        } @else {
+                          <div class="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-[#E8EAED] text-[13px] font-semibold text-[#4B5563]">
+                            {{ initialsFromLabel(record.sellerName) }}
+                          </div>
+                        }
                       </div>
                       <h2 class="text-[16px] font-medium leading-5 text-[#1A1B1D]">{{ record.sellerName }}</h2>
                     </div>
@@ -226,13 +243,19 @@ interface ListingReportRecord {
                       <div class="flex items-center justify-between gap-4">
                         <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Reported by</dt>
                         <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#0D0D0D]">
-                          <img
-                            [ngSrc]="record.reportedByAvatar"
-                            [alt]="record.reportedByName"
-                            width="24"
-                            height="24"
-                            class="h-6 w-6 rounded-full object-cover"
-                          >
+                          @if (record.reportedByAvatar) {
+                            <img
+                              [src]="record.reportedByAvatar"
+                              [alt]="record.reportedByName"
+                              width="24"
+                              height="24"
+                              class="h-6 w-6 rounded-full object-cover"
+                            >
+                          } @else {
+                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-[#E8EAED] text-[10px] font-semibold text-[#4B5563]">
+                              {{ initialsFromLabel(record.reportedByName) }}
+                            </div>
+                          }
                           <span>{{ record.reportedByName }}</span>
                         </dd>
                       </div>
@@ -271,13 +294,19 @@ interface ListingReportRecord {
                       <td class="px-4 py-5 align-top">
                         <div class="flex items-center gap-3">
                           <div class="h-12 w-12 shrink-0 overflow-hidden rounded-[12px] bg-[#f3f3f3]">
-                            <img
-                              [ngSrc]="record.listingImage"
-                              [alt]="record.listingTitle"
-                              width="48"
-                              height="48"
-                              class="h-12 w-12 object-cover"
-                            >
+                            @if (record.listingImage) {
+                              <img
+                                [src]="record.listingImage"
+                                [alt]="record.listingTitle"
+                                width="48"
+                                height="48"
+                                class="h-12 w-12 object-cover"
+                              >
+                            } @else {
+                              <div class="flex h-12 w-12 items-center justify-center bg-[#E8EAED] text-[14px] font-semibold text-[#4B5563]">
+                                {{ initialsFromLabel(record.listingTitle) }}
+                              </div>
+                            }
                           </div>
                           <p class="truncate text-[15px] font-medium text-[#222222]">{{ record.listingTitle }}</p>
                         </div>
@@ -286,13 +315,19 @@ interface ListingReportRecord {
                       <td class="px-4 py-5 align-top">
                         <div class="flex items-center gap-3">
                           <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
-                            <img
-                              [ngSrc]="record.sellerAvatar"
-                              [alt]="record.sellerName"
-                              width="40"
-                              height="40"
-                              class="h-10 w-10 object-cover"
-                            >
+                            @if (record.sellerAvatar) {
+                              <img
+                                [src]="record.sellerAvatar"
+                                [alt]="record.sellerName"
+                                width="40"
+                                height="40"
+                                class="h-10 w-10 object-cover"
+                              >
+                            } @else {
+                              <div class="flex h-10 w-10 items-center justify-center bg-[#E8EAED] text-[13px] font-semibold text-[#4B5563]">
+                                {{ initialsFromLabel(record.sellerName) }}
+                              </div>
+                            }
                           </div>
                           <div class="min-w-0">
                             <p class="truncate text-[15px] font-medium text-[#222222]">{{ record.sellerName }}</p>
@@ -304,13 +339,19 @@ interface ListingReportRecord {
                       <td class="px-4 py-5 align-top">
                         <div class="flex items-center gap-3">
                           <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
-                            <img
-                              [ngSrc]="record.reportedByAvatar"
-                              [alt]="record.reportedByName"
-                              width="40"
-                              height="40"
-                              class="h-10 w-10 object-cover"
-                            >
+                            @if (record.reportedByAvatar) {
+                              <img
+                                [src]="record.reportedByAvatar"
+                                [alt]="record.reportedByName"
+                                width="40"
+                                height="40"
+                                class="h-10 w-10 object-cover"
+                              >
+                            } @else {
+                              <div class="flex h-10 w-10 items-center justify-center bg-[#E8EAED] text-[13px] font-semibold text-[#4B5563]">
+                                {{ initialsFromLabel(record.reportedByName) }}
+                              </div>
+                            }
                           </div>
                           <div class="min-w-0">
                             <p class="truncate text-[15px] font-medium text-[#222222]">{{ record.reportedByName }}</p>
@@ -337,13 +378,19 @@ interface ListingReportRecord {
                   >
                     <div class="flex items-center gap-2">
                       <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[6px] bg-[#efefef]">
-                        <img
-                          [ngSrc]="record.listingImage"
-                          [alt]="record.listingTitle"
-                          width="40"
-                          height="40"
-                          class="h-10 w-10 object-cover"
-                        >
+                        @if (record.listingImage) {
+                          <img
+                            [src]="record.listingImage"
+                            [alt]="record.listingTitle"
+                            width="40"
+                            height="40"
+                            class="h-10 w-10 object-cover"
+                          >
+                        } @else {
+                          <div class="flex h-10 w-10 items-center justify-center bg-[#E8EAED] text-[12px] font-semibold text-[#4B5563]">
+                            {{ initialsFromLabel(record.listingTitle) }}
+                          </div>
+                        }
                       </div>
                       <h2 class="text-[16px] font-medium leading-5 text-[#1A1B1D]">{{ record.listingTitle }}</h2>
                     </div>
@@ -352,13 +399,19 @@ interface ListingReportRecord {
                       <div class="flex items-center justify-between gap-4">
                         <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Reported by</dt>
                         <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#0D0D0D]">
-                          <img
-                            [ngSrc]="record.reportedByAvatar"
-                            [alt]="record.reportedByName"
-                            width="24"
-                            height="24"
-                            class="h-6 w-6 rounded-full object-cover"
-                          >
+                          @if (record.reportedByAvatar) {
+                            <img
+                              [src]="record.reportedByAvatar"
+                              [alt]="record.reportedByName"
+                              width="24"
+                              height="24"
+                              class="h-6 w-6 rounded-full object-cover"
+                            >
+                          } @else {
+                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-[#E8EAED] text-[10px] font-semibold text-[#4B5563]">
+                              {{ initialsFromLabel(record.reportedByName) }}
+                            </div>
+                          }
                           <span>{{ record.reportedByName }}</span>
                         </dd>
                       </div>
@@ -366,13 +419,19 @@ interface ListingReportRecord {
                       <div class="flex items-center justify-between gap-4">
                         <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Store</dt>
                         <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#0D0D0D]">
-                          <img
-                            [ngSrc]="record.sellerAvatar"
-                            [alt]="record.sellerName"
-                            width="24"
-                            height="24"
-                            class="h-6 w-6 rounded-full object-cover"
-                          >
+                          @if (record.sellerAvatar) {
+                            <img
+                              [src]="record.sellerAvatar"
+                              [alt]="record.sellerName"
+                              width="24"
+                              height="24"
+                              class="h-6 w-6 rounded-full object-cover"
+                            >
+                          } @else {
+                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-[#E8EAED] text-[10px] font-semibold text-[#4B5563]">
+                              {{ initialsFromLabel(record.sellerName) }}
+                            </div>
+                          }
                           <span>{{ record.sellerName }}</span>
                         </dd>
                       </div>
@@ -558,11 +617,11 @@ export class AdminReportsPageComponent {
       sellerId: String(record.seller_id),
       sellerName: record.seller_name,
       sellerEmail: record.seller_email,
-      sellerAvatar: record.seller_avatar ?? '/assets/icons/home-hero-rotator/electronics.svg',
+      sellerAvatar: record.seller_avatar,
       reportedById: String(record.reported_by_id),
       reportedByName: record.reported_by_name,
       reportedByEmail: record.reported_by_email,
-      reportedByAvatar: record.reported_by_avatar ?? '/assets/icons/home-hero-rotator/electronics.svg',
+      reportedByAvatar: record.reported_by_avatar,
       dateReported: this.formatDate(record.date_reported),
       reason: record.reason,
       description: record.description,
@@ -575,15 +634,15 @@ export class AdminReportsPageComponent {
       id: record.id,
       listingId: String(record.listing_id),
       listingTitle: record.listing_title,
-      listingImage: record.listing_image ?? '/assets/icons/home-hero-rotator/phone.svg',
+      listingImage: record.listing_image,
       sellerId: String(record.seller_id),
       sellerName: record.seller_name,
       sellerEmail: record.seller_email,
-      sellerAvatar: record.seller_avatar ?? '/assets/icons/home-hero-rotator/electronics.svg',
+      sellerAvatar: record.seller_avatar,
       reportedById: String(record.reported_by_id),
       reportedByName: record.reported_by_name,
       reportedByEmail: record.reported_by_email,
-      reportedByAvatar: record.reported_by_avatar ?? '/assets/icons/home-hero-rotator/electronics.svg',
+      reportedByAvatar: record.reported_by_avatar,
       dateReported: this.formatDate(record.date_reported),
       description: record.description,
       totalReports: record.total_reports,
@@ -601,5 +660,19 @@ export class AdminReportsPageComponent {
       month: 'short',
       year: 'numeric',
     }).format(date);
+  }
+
+  protected initialsFromLabel(label: string): string {
+    const parts = label
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2);
+
+    if (parts.length === 0) {
+      return 'NA';
+    }
+
+    return parts.map((part) => part[0]?.toUpperCase() ?? '').join('');
   }
 }
