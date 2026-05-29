@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import {
   heroArrowLeft,
   heroChevronLeft,
@@ -18,6 +20,12 @@ import {
   AdminListingReportDetails,
   AdminListingReportDetailsModalComponent,
 } from './components/admin-listing-report-details-modal.component';
+import {
+  AdminListingReportRecordResponse,
+  AdminReportsService,
+  AdminSellerReportRecordResponse,
+  type AdminReportsTab,
+} from '../../services/admin-reports.service';
 
 type ReportsTab = 'reported sellers' | 'reported listings';
 
@@ -435,201 +443,22 @@ interface ListingReportRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminReportsPageComponent {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly adminReportsService = inject(AdminReportsService);
+
   readonly activeTab = signal<ReportsTab>('reported sellers');
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
   readonly pageSize = 5;
   readonly selectedSellerReport = signal<AdminSellerReportDetails | null>(null);
   readonly selectedListingReport = signal<AdminListingReportDetails | null>(null);
-
-  readonly sellerReports = signal<SellerReportRecord[]>([
-    {
-      id: 'seller-report-1',
-      sellerId: 'francis-uche',
-      sellerName: 'Francis Uche',
-      sellerEmail: 'uche@email.com',
-      sellerAvatar: '/assets/images/fashion_menswear_hero.png',
-      reportedById: 'mark-anthony',
-      reportedByName: 'Mark Anthony',
-      reportedByEmail: 'mark@email.com',
-      reportedByAvatar: '/assets/images/product_watch_luxury.png',
-      dateReported: '10 May, 2026',
-      reason: 'Suspected scam or fraud',
-      description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description.',
-      totalReports: 18,
-    },
-    {
-      id: 'seller-report-2',
-      sellerId: 'mark-anthony',
-      sellerName: 'Mark Anthony',
-      sellerEmail: 'mark@email.com',
-      sellerAvatar: '/assets/images/product_watch_luxury.png',
-      reportedById: 'mark-anthony',
-      reportedByName: 'Mark Anthony',
-      reportedByEmail: 'mark@email.com',
-      reportedByAvatar: '/assets/images/product_watch_luxury.png',
-      dateReported: '12 May, 2026',
-      reason: 'Seller is unresponsive after payment',
-      description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description.',
-      totalReports: 11,
-    },
-    {
-      id: 'seller-report-3',
-      sellerId: 'elle-adebisi',
-      sellerName: 'Elle Adebisi',
-      sellerEmail: 'elle@email.com',
-      sellerAvatar: '/assets/images/product_sneakers_lifestyle.png',
-      reportedById: 'david-akins',
-      reportedByName: 'David Akins',
-      reportedByEmail: 'david@email.com',
-      reportedByAvatar: '/assets/images/fashion_menswear_hero.png',
-      dateReported: '10 May, 2026',
-      reason: 'Suspected scam or fraud',
-      description: 'This item is no longer available, but the seller left it up for sale thereby misleading other buyers.',
-      totalReports: 24,
-    },
-    {
-      id: 'seller-report-4',
-      sellerId: 'david-akins',
-      sellerName: 'David Akins',
-      sellerEmail: 'david@email.com',
-      sellerAvatar: '/assets/images/product_keyboard_rgb.png',
-      reportedById: 'elle-adebisi',
-      reportedByName: 'Elle Adebisi',
-      reportedByEmail: 'elle@email.com',
-      reportedByAvatar: '/assets/images/product_sneakers_lifestyle.png',
-      dateReported: '18 May, 2026',
-      reason: 'Harassment or abusive behavior',
-      description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description.',
-      totalReports: 9,
-    },
-    {
-      id: 'seller-report-5',
-      sellerId: 'bryan-odjede',
-      sellerName: 'Bryan Odjede',
-      sellerEmail: 'bryan@email.com',
-      sellerAvatar: '/assets/images/fashion_menswear_hero.png',
-      reportedById: 'francis-uche',
-      reportedByName: 'Francis Uche',
-      reportedByEmail: 'uche@email.com',
-      reportedByAvatar: '/assets/images/fashion_menswear_hero.png',
-      dateReported: '20 May, 2026',
-      reason: 'Misleading product information',
-      description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description.',
-      totalReports: 6,
-    },
-  ]);
-
-  readonly listingReports = signal<ListingReportRecord[]>([
-    {
-      id: 'listing-report-1',
-      listingId: 'iphone-17-pro-max',
-      listingTitle: 'Iphone 17 pro max',
-      listingImage: '/assets/images/product_watch_luxury.png',
-      sellerId: 'david-akins',
-      sellerName: 'Francis Uche',
-      sellerEmail: 'uche@email.com',
-      sellerAvatar: '/assets/images/fashion_menswear_hero.png',
-      reportedById: 'titi-ogunlesi',
-      reportedByName: 'Titi Ogunlesi',
-      reportedByEmail: 'titi@email.com',
-      reportedByAvatar: '/assets/images/product_sneakers_lifestyle.png',
-      dateReported: '10 May, 2026',
-      description: 'This item is no longer available, but the seller left it up for sale thereby misleading other buyers.',
-      totalReports: 6,
-    },
-    {
-      id: 'listing-report-2',
-      listingId: 'logitech-ergonomic-mouse',
-      listingTitle: 'Logitech ergonomic mouse',
-      listingImage: '/assets/images/product_sneakers.png',
-      sellerId: 'mark-anthony',
-      sellerName: 'Mark Anthony',
-      sellerEmail: 'mark@email.com',
-      sellerAvatar: '/assets/images/product_watch_luxury.png',
-      reportedById: 'mark-anthony',
-      reportedByName: 'Mark Anthony',
-      reportedByEmail: 'mark@email.com',
-      reportedByAvatar: '/assets/images/product_watch_luxury.png',
-      dateReported: '10 May, 2026',
-      description: 'This item is no longer available, but the seller left it up for sale thereby misleading other buyers.',
-      totalReports: 4,
-    },
-    {
-      id: 'listing-report-3',
-      listingId: 'luxury-wristwatch',
-      listingTitle: 'Luxury wristwatch',
-      listingImage: '/assets/images/product_sneakers_lifestyle.png',
-      sellerId: 'elle-adebisi',
-      sellerName: 'Elle Adebisi',
-      sellerEmail: 'elle@email.com',
-      sellerAvatar: '/assets/images/product_sneakers_lifestyle.png',
-      reportedById: 'elle-adebisi',
-      reportedByName: 'Elle Adebisi',
-      reportedByEmail: 'elle@email.com',
-      reportedByAvatar: '/assets/images/product_sneakers_lifestyle.png',
-      dateReported: '10 May, 2026',
-      description: 'This item is no longer available, but the seller left it up for sale thereby misleading other buyers.',
-      totalReports: 3,
-    },
-    {
-      id: 'listing-report-4',
-      listingId: 'luxury-wristwatch-2',
-      listingTitle: 'Luxury Wristwatch',
-      listingImage: '/assets/images/product_watch_luxury.png',
-      sellerId: 'bryan-odjede',
-      sellerName: 'Bryan Odjede',
-      sellerEmail: 'bryan@email.com',
-      sellerAvatar: '/assets/images/fashion_menswear_hero.png',
-      reportedById: 'bryan-odjede',
-      reportedByName: 'Bryan Odjede',
-      reportedByEmail: 'bryan@email.com',
-      reportedByAvatar: '/assets/images/fashion_menswear_hero.png',
-      dateReported: '14 May, 2026',
-      description: 'This item is no longer available, but the seller left it up for sale thereby misleading other buyers.',
-      totalReports: 5,
-    },
-    {
-      id: 'listing-report-5',
-      listingId: 'sneakers',
-      listingTitle: 'Sneakers',
-      listingImage: '/assets/images/product_sneakers.png',
-      sellerId: 'david-akins',
-      sellerName: 'David Akins',
-      sellerEmail: 'david@email.com',
-      sellerAvatar: '/assets/images/product_keyboard_rgb.png',
-      reportedById: 'david-akins',
-      reportedByName: 'David Akins',
-      reportedByEmail: 'david@email.com',
-      reportedByAvatar: '/assets/images/product_keyboard_rgb.png',
-      dateReported: '18 May, 2026',
-      description: 'This item is no longer available, but the seller left it up for sale thereby misleading other buyers.',
-      totalReports: 2,
-    },
-  ]);
-
-  readonly filteredSellerReports = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-
-    return this.sellerReports().filter((record) =>
-      query === ''
-      || record.sellerName.toLowerCase().includes(query)
-      || record.reportedByName.toLowerCase().includes(query)
-      || record.reason.toLowerCase().includes(query)
-    );
-  });
-
-  readonly filteredListingReports = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-
-    return this.listingReports().filter((record) =>
-      query === ''
-      || record.listingTitle.toLowerCase().includes(query)
-      || record.sellerName.toLowerCase().includes(query)
-      || record.reportedByName.toLowerCase().includes(query)
-      || record.description.toLowerCase().includes(query)
-    );
-  });
+  readonly sellerReports = signal<SellerReportRecord[]>([]);
+  readonly listingReports = signal<ListingReportRecord[]>([]);
+  readonly totalResults = signal(0);
+  readonly hasNextPage = signal(false);
+  readonly hasPreviousPage = signal(false);
+  readonly sellerReportsCount = signal(0);
+  readonly listingReportsCount = signal(0);
 
   readonly visibleResultsCount = computed(() =>
     this.activeTab() === 'reported sellers'
@@ -638,23 +467,62 @@ export class AdminReportsPageComponent {
   );
 
   readonly totalPages = computed(() => {
-    const totalItems =
-      this.activeTab() === 'reported sellers'
-        ? this.filteredSellerReports().length
-        : this.filteredListingReports().length;
-
-    return Math.max(1, Math.ceil(totalItems / this.pageSize));
+    return Math.max(1, Math.ceil(this.totalResults() / this.pageSize));
   });
 
-  readonly paginatedSellerReports = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredSellerReports().slice(start, start + this.pageSize);
-  });
+  readonly filteredSellerReports = computed(() => this.sellerReports());
+  readonly filteredListingReports = computed(() => this.listingReports());
 
-  readonly paginatedListingReports = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredListingReports().slice(start, start + this.pageSize);
-  });
+  readonly paginatedSellerReports = computed(() => this.filteredSellerReports());
+
+  readonly paginatedListingReports = computed(() => this.filteredListingReports());
+
+  private readonly activeReportType = computed<AdminReportsTab>(() =>
+    this.activeTab() === 'reported listings' ? 'listing' : 'seller'
+  );
+
+  private readonly reportsQuery = computed(() => ({
+    type: this.activeReportType(),
+    page: this.currentPage(),
+    search: this.searchQuery().trim(),
+  }));
+
+  constructor() {
+    toObservable(this.reportsQuery)
+      .pipe(
+        debounceTime(150),
+        distinctUntilChanged((previous, current) =>
+          previous.type === current.type
+          && previous.page === current.page
+          && previous.search === current.search
+        ),
+        switchMap((query) => this.adminReportsService.getReports(query)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.totalResults.set(response.count ?? 0);
+        this.hasNextPage.set(response.next !== null);
+        this.hasPreviousPage.set(response.previous !== null);
+        this.sellerReportsCount.set(response.counts?.reported_sellers ?? 0);
+        this.listingReportsCount.set(response.counts?.reported_listings ?? 0);
+
+        if (response.type === 'listing') {
+          this.listingReports.set(
+            (response.results as AdminListingReportRecordResponse[]).map((record) =>
+              this.mapListingReport(record)
+            )
+          );
+          this.sellerReports.set([]);
+        } else {
+          this.sellerReports.set(
+            (response.results as AdminSellerReportRecordResponse[]).map((record) =>
+              this.mapSellerReport(record)
+            )
+          );
+          this.listingReports.set([]);
+        }
+      });
+  }
 
   openSellerReportDetails(record: SellerReportRecord): void {
     this.selectedSellerReport.set({ ...record });
@@ -671,10 +539,67 @@ export class AdminReportsPageComponent {
   }
 
   goToPreviousPage(): void {
+    if (!this.hasPreviousPage()) {
+      return;
+    }
     this.currentPage.update((page) => Math.max(1, page - 1));
   }
 
   goToNextPage(): void {
+    if (!this.hasNextPage()) {
+      return;
+    }
     this.currentPage.update((page) => Math.min(this.totalPages(), page + 1));
+  }
+
+  private mapSellerReport(record: AdminSellerReportRecordResponse): SellerReportRecord {
+    return {
+      id: record.id,
+      sellerId: String(record.seller_id),
+      sellerName: record.seller_name,
+      sellerEmail: record.seller_email,
+      sellerAvatar: record.seller_avatar ?? '/assets/icons/home-hero-rotator/electronics.svg',
+      reportedById: String(record.reported_by_id),
+      reportedByName: record.reported_by_name,
+      reportedByEmail: record.reported_by_email,
+      reportedByAvatar: record.reported_by_avatar ?? '/assets/icons/home-hero-rotator/electronics.svg',
+      dateReported: this.formatDate(record.date_reported),
+      reason: record.reason,
+      description: record.description,
+      totalReports: record.total_reports,
+    };
+  }
+
+  private mapListingReport(record: AdminListingReportRecordResponse): ListingReportRecord {
+    return {
+      id: record.id,
+      listingId: String(record.listing_id),
+      listingTitle: record.listing_title,
+      listingImage: record.listing_image ?? '/assets/icons/home-hero-rotator/phone.svg',
+      sellerId: String(record.seller_id),
+      sellerName: record.seller_name,
+      sellerEmail: record.seller_email,
+      sellerAvatar: record.seller_avatar ?? '/assets/icons/home-hero-rotator/electronics.svg',
+      reportedById: String(record.reported_by_id),
+      reportedByName: record.reported_by_name,
+      reportedByEmail: record.reported_by_email,
+      reportedByAvatar: record.reported_by_avatar ?? '/assets/icons/home-hero-rotator/electronics.svg',
+      dateReported: this.formatDate(record.date_reported),
+      description: record.description,
+      totalReports: record.total_reports,
+    };
+  }
+
+  private formatDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(date);
   }
 }
