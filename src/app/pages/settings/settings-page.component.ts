@@ -472,9 +472,9 @@ type NotificationPreferenceSettings = Record<
             </div>
 
             <div class="mt-4">
-              <h1 class="text-[25px] font-semibold leading-[1.2] text-[#1A1B1D]">Security</h1>
+              <h1 class="text-[25px] font-semibold leading-[1.2] text-[#1A1B1D]">Notifications</h1>
               <p class="mt-2 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
-                Update password and/or enable 2FA for enhanced account security
+                Choose how and when you want to receive notifications
               </p>
             </div>
           </header>
