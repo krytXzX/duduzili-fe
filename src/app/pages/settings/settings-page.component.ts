@@ -1,5 +1,7 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { heroChevronRight as heroChevronRightOutline } from '@ng-icons/heroicons/outline';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SettingsNavComponent, SettingsTab } from './components/settings-nav.component';
@@ -59,6 +61,7 @@ type NotificationPreferenceSettings = Record<
   selector: 'app-settings-page',
   imports: [
     CommonModule,
+    NgIcon,
     NgOptimizedImage,
     RouterLink,
     SettingsNavComponent,
@@ -67,6 +70,7 @@ type NotificationPreferenceSettings = Record<
     SettingsTwoFactorModalComponent,
     SettingsVerificationModalComponent,
   ],
+  providers: [provideIcons({ heroChevronRightOutline })],
   template: `
     <div class="min-h-full bg-white md:hidden">
       @if (mobileSettingsStep() === 'menu') {
@@ -95,7 +99,7 @@ type NotificationPreferenceSettings = Record<
                   </span>
                   <span class="text-[16px] font-medium leading-5">{{ item.label }}</span>
                 </span>
-                <img ngSrc="/assets/icons/settings/mobile-chevron-right.svg" width="16" height="16" alt="" aria-hidden="true">
+                <ng-icon name="heroChevronRightOutline" class="text-[16px] text-[rgba(13,13,13,0.8)]"></ng-icon>
               </button>
             }
           </div>
@@ -113,7 +117,7 @@ type NotificationPreferenceSettings = Record<
               </span>
               <span class="text-[16px] font-medium leading-5">Logout</span>
             </span>
-            <img ngSrc="/assets/icons/settings/mobile-chevron-right.svg" width="16" height="16" alt="" aria-hidden="true">
+            <ng-icon name="heroChevronRightOutline" class="text-[16px] text-[rgba(13,13,13,0.8)]"></ng-icon>
           </button>
 
           <div class="my-8 flex items-center gap-2">
@@ -136,7 +140,7 @@ type NotificationPreferenceSettings = Record<
               </span>
               <span class="text-[16px] font-medium leading-5">Delete account</span>
             </span>
-            <img ngSrc="/assets/icons/settings/mobile-chevron-right.svg" width="16" height="16" alt="" aria-hidden="true">
+            <ng-icon name="heroChevronRightOutline" class="text-[16px] text-[rgba(13,13,13,0.8)]"></ng-icon>
           </button>
         </div>
       } @else if (mobileSettingsStep() === 'profile') {
@@ -472,9 +476,9 @@ type NotificationPreferenceSettings = Record<
             </div>
 
             <div class="mt-4">
-              <h1 class="text-[25px] font-semibold leading-[1.2] text-[#1A1B1D]">Security</h1>
+              <h1 class="text-[25px] font-semibold leading-[1.2] text-[#1A1B1D]">Notifications</h1>
               <p class="mt-2 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
-                Update password and/or enable 2FA for enhanced account security
+                Choose how and when you want to receive notifications
               </p>
             </div>
           </header>
@@ -569,14 +573,10 @@ type NotificationPreferenceSettings = Record<
                         <span class="mt-1 block text-[14px] leading-[1.35] text-[rgba(26,27,29,0.6)]">{{ item.description }}</span>
                       </span>
 
-                      <img
-                        ngSrc="/assets/icons/settings/mobile-chevron-right.svg"
-                        width="16"
-                        height="16"
-                        alt=""
-                        aria-hidden="true"
-                        class="mt-2 shrink-0"
-                      >
+                      <ng-icon
+                        name="heroChevronRightOutline"
+                        class="mt-2 shrink-0 text-[16px] text-[rgba(13,13,13,0.8)]"
+                      ></ng-icon>
                     </button>
                   }
                 </div>

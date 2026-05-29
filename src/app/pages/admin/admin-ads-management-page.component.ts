@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroChevronLeft } from '@ng-icons/heroicons/outline';
+import { heroChevronLeft, heroChevronRight } from '@ng-icons/heroicons/outline';
 
 type AdminAdsMenuItem = {
   label: string;
@@ -13,7 +13,7 @@ type AdminAdsMenuItem = {
 @Component({
   selector: 'app-admin-ads-management-page',
   imports: [RouterLink, NgOptimizedImage, NgIcon],
-  providers: [provideIcons({ heroChevronLeft })],
+  providers: [provideIcons({ heroChevronLeft, heroChevronRight })],
   template: `
     <section class="min-h-full w-full bg-white">
       <div class="flex h-[54px] items-center px-5 lg:hidden">
@@ -38,14 +38,7 @@ type AdminAdsMenuItem = {
                 </span>
               </span>
 
-              <img
-                ngSrc="/assets/icons/admin-ads-management/arrow-right.svg"
-                alt=""
-                width="16"
-                height="16"
-                class="h-4 w-4"
-                aria-hidden="true"
-              />
+              <ng-icon name="heroChevronRight" class="text-[16px] text-[rgba(13,13,13,0.8)]"></ng-icon>
             </a>
           }
         </div>
@@ -67,14 +60,7 @@ type AdminAdsMenuItem = {
                 </span>
                 <span class="text-[16px] font-medium text-[#1F1F1F]">{{ item.label }}</span>
               </span>
-              <img
-                ngSrc="/assets/icons/admin-ads-management/arrow-right.svg"
-                alt=""
-                width="16"
-                height="16"
-                class="h-4 w-4"
-                aria-hidden="true"
-              />
+              <ng-icon name="heroChevronRight" class="text-[16px] text-[rgba(13,13,13,0.8)]"></ng-icon>
             </a>
           }
         </div>

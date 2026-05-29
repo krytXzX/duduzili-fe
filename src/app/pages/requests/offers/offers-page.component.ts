@@ -7,6 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { heroChevronLeft, heroChevronRight } from '@ng-icons/heroicons/outline';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
@@ -47,7 +49,8 @@ interface OfferRecord {
 
 @Component({
   selector: 'app-offers-page',
-  imports: [NgOptimizedImage, RouterLink, CustomDropdownComponent],
+  imports: [NgIcon, NgOptimizedImage, RouterLink, CustomDropdownComponent],
+  providers: [provideIcons({ heroChevronLeft, heroChevronRight })],
   template: `
     <div class="flex h-full min-h-0 flex-col bg-white md:bg-[#FFFEFD]">
       <div class="hidden h-full min-h-0 md:flex md:flex-col">
@@ -252,13 +255,7 @@ interface OfferRecord {
                     aria-label="Previous page"
                     class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <img
-                      ngSrc="/assets/icons/offers-chevron-left.svg"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="h-4 w-4"
-                    />
+                    <ng-icon name="heroChevronLeft" class="text-[16px] text-[#1A1B1D]"></ng-icon>
                   </button>
                   <button
                     type="button"
@@ -274,13 +271,7 @@ interface OfferRecord {
                     aria-label="Next page"
                     class="flex h-8 w-[38px] items-center justify-center rounded-[8px] bg-white shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)] disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <img
-                      ngSrc="/assets/icons/offers-chevron-right.svg"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="h-4 w-4"
-                    />
+                    <ng-icon name="heroChevronRight" class="text-[16px] text-[#1A1B1D]"></ng-icon>
                   </button>
                 </div>
 
