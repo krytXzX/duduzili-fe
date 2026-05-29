@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { switchMap } from 'rxjs';
 import {
   heroChevronDown,
   heroChevronLeft,
@@ -10,14 +12,19 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
+import {
+  AdminAdsTransactionRecordResponse,
+  AdminAdsTransactionsService,
+  AdminAdsTransactionYearFilter,
+} from '../../services/admin-ads-transactions.service';
 
-type TransactionYearFilter = 'this-year' | 'last-year';
-type TransactionPlanFilter = 'all' | 'pro' | 'business' | 'enterprise';
-type TransactionDateFilter = 'all' | 'may-2024';
+type TransactionYearFilter = AdminAdsTransactionYearFilter;
+type TransactionPlanFilter = 'all' | string;
+type TransactionDateFilter = 'all' | string;
 
 interface TransactionSummaryBar {
   label: string;
-  height: number;
+  value: number;
   active?: boolean;
 }
 
@@ -58,9 +65,11 @@ interface AdsTransactionRecord {
             <div class="min-w-0">
               <p class="text-[14px] font-medium text-[rgba(13,13,13,0.4)]">Total transactions</p>
               <p class="mt-2 text-[28px] font-semibold leading-10 text-[#1a1b1d]">
-                ₦1,760,000<span class="text-[20px] text-[rgba(13,13,13,0.4)]">.00</span>
+                {{ formatCurrency(totalAmount()) }}
               </p>
-              <p class="mt-3 text-[14px] font-medium text-[rgba(26,27,29,0.5)]">16 transactions</p>
+              <p class="mt-3 text-[14px] font-medium text-[rgba(26,27,29,0.5)]">
+                {{ totalTransactions() }} transactions
+              </p>
             </div>
 
             <app-custom-dropdown
@@ -71,7 +80,7 @@ interface AdsTransactionRecord {
               buttonClass="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[#eaeaea] bg-white px-4 text-[14px] font-medium text-[#0d0d0d]"
               iconClass="text-[#0d0d0d]"
               menuClass="min-w-[150px]"
-              (valueChange)="yearFilter.set($event)"
+              (valueChange)="yearFilter.set($event); currentPage.set(1)"
             ></app-custom-dropdown>
           </div>
 
@@ -113,7 +122,7 @@ interface AdsTransactionRecord {
                   <div class="flex min-w-0 items-center gap-2">
                     <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                       <img
-                        [ngSrc]="record.avatar"
+                        [src]="record.avatar"
                         [alt]="record.userName"
                         width="40"
                         height="40"
@@ -165,9 +174,9 @@ interface AdsTransactionRecord {
               </div>
 
               <p class="mt-3 text-[18px] font-semibold tracking-[-0.04em] text-[#2a2a2a] sm:text-[20px]">
-                ₦ 7,500,00,000<span class="text-[16px] text-[#8b8b8b]">.00</span>
+                {{ formatCurrency(totalAmount()) }}
               </p>
-              <p class="mt-1 text-[14px] text-[#8b8b8b]">1,567 transactions</p>
+              <p class="mt-1 text-[14px] text-[#8b8b8b]">{{ totalTransactions() }} transactions</p>
             </div>
 
             <app-custom-dropdown
@@ -178,7 +187,7 @@ interface AdsTransactionRecord {
               buttonClass="inline-flex h-11 items-center gap-2 self-start rounded-full border border-[#e8e8e8] bg-white px-5 text-[15px] text-[#1f1f1f]"
               iconClass="text-[#1f1f1f]"
               menuClass="min-w-[160px]"
-              (valueChange)="yearFilter.set($event)"
+              (valueChange)="yearFilter.set($event); currentPage.set(1)"
             ></app-custom-dropdown>
           </div>
 
@@ -195,7 +204,7 @@ interface AdsTransactionRecord {
           <div class="flex flex-col gap-4 border-b border-[#efefef] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex flex-wrap items-center gap-3">
               <app-custom-dropdown
-                [options]="planFilterOptions"
+                [options]="planFilterOptions()"
                 [value]="planFilter()"
                 ariaLabel="Select plan"
                 buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
@@ -205,7 +214,7 @@ interface AdsTransactionRecord {
               ></app-custom-dropdown>
 
               <app-custom-dropdown
-                [options]="dateFilterOptions"
+                [options]="dateFilterOptions()"
                 [value]="dateFilter()"
                 ariaLabel="Select date"
                 buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-4 text-[14px] text-[#8a8a8a]"
@@ -248,7 +257,7 @@ interface AdsTransactionRecord {
                       <div class="flex items-center gap-3">
                         <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                           <img
-                            [ngSrc]="record.avatar"
+                            [src]="record.avatar"
                             [alt]="record.userName"
                             width="36"
                             height="36"
@@ -273,7 +282,7 @@ interface AdsTransactionRecord {
         </section>
 
         <div class="mt-6 flex flex-col gap-4 text-[15px] text-[#4d4d4d] sm:flex-row sm:items-center sm:justify-between">
-          <p>{{ paginatedTransactions().length }} results</p>
+          <p>{{ totalResults() }} results</p>
 
           <div class="flex items-center gap-2 self-end">
             <button
@@ -312,20 +321,13 @@ interface AdsTransactionRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminAdsTransactionsPageComponent {
+  private readonly adminAdsTransactionsService = inject(AdminAdsTransactionsService);
+  private readonly destroyRef = inject(DestroyRef);
+
   readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
   readonly yearFilterOptions: readonly CustomDropdownOption<TransactionYearFilter>[] = [
     { value: 'this-year', label: 'This year' },
     { value: 'last-year', label: 'Last year' },
-  ];
-  readonly planFilterOptions: readonly CustomDropdownOption<TransactionPlanFilter>[] = [
-    { value: 'all', label: 'All plans' },
-    { value: 'pro', label: 'Pro' },
-    { value: 'business', label: 'Business' },
-    { value: 'enterprise', label: 'Enterprise' },
-  ];
-  readonly dateFilterOptions: readonly CustomDropdownOption<TransactionDateFilter>[] = [
-    { value: 'all', label: 'All dates' },
-    { value: 'may-2024', label: 'May 2024' },
   ];
   readonly yearFilter = signal<TransactionYearFilter>('this-year');
   readonly planFilter = signal<TransactionPlanFilter>('all');
@@ -333,116 +335,68 @@ export class AdminAdsTransactionsPageComponent {
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
   readonly pageSize = 5;
+  readonly isLoading = signal(true);
+  readonly totalResults = signal(0);
+  readonly totalTransactions = signal(0);
+  readonly totalAmount = signal(0);
+  readonly transactionRecords = signal<AdsTransactionRecord[]>([]);
+  readonly summaryBars = signal<ReadonlyArray<TransactionSummaryBar>>([]);
 
-  readonly transactions = signal<AdsTransactionRecord[]>([
-    {
-      id: 'txn-1',
-      transactionId: 'KAJ632U87WS',
-      userName: 'Francis Uche',
-      email: 'uche@email.com',
-      avatar: '/assets/images/fashion_menswear_hero.png',
-      plan: 'Pro',
-      amount: '₦1,000.00',
-      date: '06 May, 2024',
-    },
-    {
-      id: 'txn-2',
-      transactionId: 'KAJ632U87WS',
-      userName: 'Mark Anthony',
-      email: 'mark@email.com',
-      avatar: '/assets/images/product_watch_luxury.png',
-      plan: 'Business',
-      amount: '₦1,500.00',
-      date: '06 May, 2024',
-    },
-    {
-      id: 'txn-3',
-      transactionId: 'KAJ632U87WS',
-      userName: 'Elle Adebisi',
-      email: 'elle@email.com',
-      avatar: '/assets/images/product_sneakers_lifestyle.png',
-      plan: 'Enterprise',
-      amount: '₦2,000.00',
-      date: '06 May, 2024',
-    },
-    {
-      id: 'txn-4',
-      transactionId: 'KAJ632U87WS',
-      userName: 'Francis Uche',
-      email: 'uche@email.com',
-      avatar: '/assets/images/fashion_menswear_hero.png',
-      plan: 'Pro',
-      amount: '₦1,000.00',
-      date: '06 May, 2024',
-    },
-    {
-      id: 'txn-5',
-      transactionId: 'KAJ632U87WS',
-      userName: 'Mark Anthony',
-      email: 'mark@email.com',
-      avatar: '/assets/images/product_watch_luxury.png',
-      plan: 'Business',
-      amount: '₦1,500.00',
-      date: '06 May, 2024',
-    },
-    {
-      id: 'txn-6',
-      transactionId: 'KAJ632U87WS',
-      userName: 'Elle Adebisi',
-      email: 'elle@email.com',
-      avatar: '/assets/images/product_sneakers_lifestyle.png',
-      plan: 'Enterprise',
-      amount: '₦2,000.00',
-      date: '06 May, 2024',
-    },
+  readonly planNames = signal<readonly string[]>([]);
+  readonly monthOptions = signal<ReadonlyArray<{ value: string; label: string }>>([]);
+
+  readonly planFilterOptions = computed<readonly CustomDropdownOption<TransactionPlanFilter>[]>(() => [
+    { value: 'all', label: 'All plans' },
+    ...this.planNames().map((plan) => ({ value: plan, label: plan })),
+  ]);
+  readonly dateFilterOptions = computed<readonly CustomDropdownOption<TransactionDateFilter>[]>(() => [
+    { value: 'all', label: 'All dates' },
+    ...this.monthOptions().map((month) => ({ value: month.value, label: month.label })),
   ]);
 
-  readonly summaryBars = computed<ReadonlyArray<TransactionSummaryBar>>(() =>
-    this.yearFilter() === 'this-year'
-      ? [
-          { label: 'Jan', height: 48 },
-          { label: 'Feb', height: 96 },
-          { label: 'Mar', height: 104 },
-          { label: 'Apr', height: 132 },
-          { label: 'May', height: 184, active: true },
-          { label: 'Jun', height: 132 },
-        ]
-      : [
-          { label: 'Jul', height: 58 },
-          { label: 'Aug', height: 88 },
-          { label: 'Sep', height: 118 },
-          { label: 'Oct', height: 144, active: true },
-          { label: 'Nov', height: 128 },
-          { label: 'Dec', height: 96 },
-        ]
-  );
+  private readonly query = computed(() => ({
+    page: this.currentPage(),
+    year: this.yearFilter(),
+    search: this.searchQuery().trim(),
+    plan: this.planFilter() === 'all' ? undefined : this.planFilter(),
+    month: this.dateFilter() === 'all' ? undefined : this.dateFilter(),
+  }));
 
   readonly mobileSummaryChartOptions = computed(() => this.createSummaryChartOptions(true));
   readonly desktopSummaryChartOptions = computed(() => this.createSummaryChartOptions(false));
-
-  readonly filteredTransactions = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-
-    return this.transactions().filter((record) =>
-      (query === ''
-      || record.transactionId.toLowerCase().includes(query)
-      || record.userName.toLowerCase().includes(query)
-      || record.plan.toLowerCase().includes(query))
-      && (this.planFilter() === 'all' || record.plan.toLowerCase() === this.planFilter())
-      && (this.dateFilter() === 'all' || record.date.toLowerCase().includes('may'))
-    );
-  });
-
-  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredTransactions().length / this.pageSize)));
-
-  readonly paginatedTransactions = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredTransactions().slice(start, start + this.pageSize);
-  });
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalResults() / this.pageSize)));
+  readonly paginatedTransactions = computed(() => this.transactionRecords());
 
   readonly yearFilterLabel = computed(() =>
     this.yearFilter() === 'this-year' ? 'This year' : 'Last year'
   );
+
+  constructor() {
+    toObservable(this.query)
+      .pipe(
+        switchMap((query) => {
+          this.isLoading.set(true);
+          return this.adminAdsTransactionsService.getTransactions(query);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.totalTransactions.set(response.total_transactions);
+        this.totalAmount.set(response.total_amount);
+        this.summaryBars.set(
+          response.chart.map((point) => ({
+            label: point.label,
+            value: point.amount,
+            active: point.amount === Math.max(...response.chart.map((item) => item.amount), 0) && point.amount > 0,
+          })),
+        );
+        this.planNames.set(response.filters.plans);
+        this.monthOptions.set(response.filters.months);
+        this.totalResults.set(response.count);
+        this.transactionRecords.set(response.results.map((record) => this.mapTransaction(record)));
+        this.isLoading.set(false);
+      });
+  }
 
   updateSearchQuery(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -460,7 +414,17 @@ export class AdminAdsTransactionsPageComponent {
 
   private createSummaryChartOptions(compact: boolean): AppChartOptions {
     const bars = this.summaryBars();
-    const values = bars.map((bar) => (compact ? (bar.active ? 51 : Math.max(3, Math.round(bar.height * 0.36))) : bar.height));
+    const maxValue = Math.max(...bars.map((bar) => bar.value), 0);
+    const values = bars.map((bar) => {
+      if (compact) {
+        if (maxValue <= 0) {
+          return 0;
+        }
+        const scaledValue = Math.round((bar.value / maxValue) * 51);
+        return bar.active ? Math.max(scaledValue, 8) : Math.max(scaledValue, 3);
+      }
+      return bar.value;
+    });
     const colors = bars.map((bar) => (bar.active ? '#6B5ADF' : compact ? '#CFC8FD' : '#DCD8FB'));
 
     return {
@@ -521,5 +485,39 @@ export class AdminAdsTransactionsPageComponent {
         },
       },
     };
+  }
+
+  private mapTransaction(record: AdminAdsTransactionRecordResponse): AdsTransactionRecord {
+    return {
+      id: record.id,
+      transactionId: record.transaction_id,
+      userName: record.user_name,
+      email: record.email,
+      avatar: record.avatar || '/assets/images/fashion_menswear_hero.png',
+      plan: record.plan,
+      amount: this.formatCurrency(record.amount),
+      date: this.formatDate(record.date),
+    };
+  }
+
+  protected formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  }
+
+  private formatDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(date);
   }
 }
