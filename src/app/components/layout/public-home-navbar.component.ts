@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, output, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
-type PublicHomeLocationValue =
+export type PublicHomeLocationValue =
   | 'all-nigeria'
   | 'lagos'
   | 'abuja'
@@ -19,6 +19,12 @@ type PublicHomeLocationGroup = {
   label: string;
   desktopLabel?: string;
   cities: readonly string[];
+};
+
+export type PublicHomeLocationSelection = {
+  location: PublicHomeLocationValue;
+  city: string | null;
+  query: string;
 };
 
 @Component({
@@ -534,6 +540,7 @@ type PublicHomeLocationGroup = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicHomeNavbarComponent {
+  readonly locationChange = output<PublicHomeLocationSelection>();
   readonly showAppDownloadBanner = signal(true);
   readonly showMobileMenu = signal(false);
   readonly isLocationPickerOpen = signal(false);
@@ -625,11 +632,30 @@ export class PublicHomeNavbarComponent {
     this.selectedLocation.set(location);
     this.selectedCity.set(null);
     this.closeLocationPicker();
+    this.emitLocationChange();
   }
 
   selectLocationCity(location: PublicHomeLocationValue, city: string): void {
     this.selectedLocation.set(location);
     this.selectedCity.set(city);
     this.closeLocationPicker();
+    this.emitLocationChange();
+  }
+
+  private emitLocationChange(): void {
+    const location = this.selectedLocationOption();
+    const city = this.selectedCity();
+    const query =
+      location.value === 'all-nigeria'
+        ? 'All Nigeria'
+        : city
+          ? `${city}, ${location.label}`
+          : location.label;
+
+    this.locationChange.emit({
+      location: this.selectedLocation(),
+      city,
+      query,
+    });
   }
 }
