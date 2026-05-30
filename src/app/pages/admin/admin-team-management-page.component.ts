@@ -783,6 +783,9 @@ export class AdminTeamManagementPageComponent {
     this.teamService
       .addTeamMember({
         email: payload.email.trim(),
+        first_name: payload.firstName.trim(),
+        last_name: payload.lastName.trim(),
+        phone_number: payload.phoneNumber.trim(),
         role: payload.role,
         status: 'pending_activation',
       })
@@ -951,7 +954,17 @@ export class AdminTeamManagementPageComponent {
   }
 
   resendInvite(memberId: string): void {
-    this.toast.show({ message: 'Invite resend is not available yet for team members.' });
+    this.teamService
+      .resendInvite(memberId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toast.show({ message: 'Invite email sent successfully.' });
+        },
+        error: () => {
+          this.toast.show({ message: 'We could not resend that invite right now.' });
+        },
+      });
   }
 
   openDeleteUserModal(memberId: string): void {

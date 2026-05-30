@@ -55,6 +55,9 @@ export type AdminTeamQuery = {
 
 export type CreateAdminTeamMemberPayload = {
   email: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
   role: string;
   status: AdminTeamMemberStatus;
 };
@@ -102,6 +105,13 @@ export class AdminTeamManagementService {
 
   addTeamMember(payload: CreateAdminTeamMemberPayload): Observable<AdminTeamMemberRecord> {
     return this.http.post<AdminTeamMemberRecord>(`${this.apiUrl}/admin/team/`, payload);
+  }
+
+  resendInvite(memberId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}/admin/team/${memberId}/resend-invite/`,
+      {},
+    );
   }
 
   updateTeamMember(
