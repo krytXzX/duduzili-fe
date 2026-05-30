@@ -1,6 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroArrowUpTray,
@@ -37,6 +44,15 @@ import {
   AdminTeamRoleDetailsModalComponent,
   TeamRoleDetails,
 } from './components/admin-team-role-details-modal.component';
+import {
+  AdminTeamManagementService,
+  AdminTeamMemberRecord,
+  AdminTeamMemberStatus,
+  AdminTeamRoleRecord,
+  CreateAdminRolePayload,
+} from '../../services/admin-team-management.service';
+import { AppToastService } from '../../services/app-toast.service';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 type TeamManagementTab = 'users' | 'roles';
 type TeamMemberStatus = 'active' | 'inactive' | 'pending activation';
@@ -48,7 +64,7 @@ interface TeamMemberRecord {
   userName: string;
   email: string;
   phoneNumber: string;
-  avatar: string;
+  avatar: string | null;
   role: string;
   lastSignedIn: string;
   status: TeamMemberStatus;
@@ -70,7 +86,6 @@ interface TeamRoleRecord {
   imports: [
     RouterLink,
     NgIcon,
-    NgOptimizedImage,
     AdminAddTeamUserModalComponent,
     AdminAddTeamUserSuccessModalComponent,
     AdminTeamMemberDetailsModalComponent,
@@ -184,15 +199,20 @@ interface TeamRoleRecord {
                 >
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex min-w-0 items-center gap-2">
-                      <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#F3F3F3]">
+                      @if (record.avatar) {
                         <img
-                          [ngSrc]="record.avatar"
+                          [src]="record.avatar"
                           [alt]="record.userName"
-                          width="36"
-                          height="36"
-                          class="h-9 w-9 rounded-full object-cover"
+                          class="h-9 w-9 shrink-0 rounded-full object-cover"
                         />
-                      </div>
+                      } @else {
+                        <span
+                          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold text-[#1A1C21]"
+                          [style.background]="avatarBackground(record.userName)"
+                        >
+                          {{ initials(record.userName) }}
+                        </span>
+                      }
 
                       <div class="min-w-0">
                         <div class="flex items-center gap-2">
@@ -400,15 +420,20 @@ interface TeamRoleRecord {
                     >
                       <td class="px-4 py-4">
                         <div class="flex items-center gap-3">
-                          <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
+                          @if (record.avatar) {
                             <img
-                              [ngSrc]="record.avatar"
+                              [src]="record.avatar"
                               [alt]="record.userName"
-                              width="40"
-                              height="40"
-                              class="h-10 w-10 object-cover"
+                              class="h-10 w-10 shrink-0 rounded-full object-cover"
                             />
-                          </div>
+                          } @else {
+                            <span
+                              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold text-[#1A1C21]"
+                              [style.background]="avatarBackground(record.userName)"
+                            >
+                              {{ initials(record.userName) }}
+                            </span>
+                          }
                           <div class="min-w-0">
                             <div class="flex items-center gap-2">
                               <p class="truncate text-[15px] font-medium text-[#222222]">
@@ -601,7 +626,7 @@ interface TeamRoleRecord {
 
     @if (isAddUserModalOpen()) {
       <app-admin-add-team-user-modal
-        [roles]="addUserRoles"
+        [roles]="addUserRoles()"
         (close)="isAddUserModalOpen.set(false)"
         (submitUser)="addUser($event)"
       ></app-admin-add-team-user-modal>
@@ -631,7 +656,7 @@ interface TeamRoleRecord {
     @if (selectedMember()) {
       <app-admin-team-member-details-modal
         [member]="selectedMember()!"
-        [roles]="availableRoles"
+        [roles]="availableRoles()"
         (close)="selectedMember.set(null)"
         (save)="saveMemberChanges($event)"
         (activate)="openActivateUserModal($event)"
@@ -675,6 +700,10 @@ interface TeamRoleRecord {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminTeamManagementPageComponent {
+  private readonly teamService = inject(AdminTeamManagementService);
+  private readonly toast = inject(AppToastService);
+  private readonly destroyRef = inject(DestroyRef);
+
   readonly activeTab = signal<TeamManagementTab>('users');
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
@@ -688,205 +717,66 @@ export class AdminTeamManagementPageComponent {
   readonly activateMemberId = signal<string | null>(null);
   readonly deactivateMemberId = signal<string | null>(null);
   readonly deleteMemberId = signal<string | null>(null);
-  readonly availableRoles: ReadonlyArray<TeamRoleOption> = [
-    {
-      id: 'super-administrator',
-      label: 'Super Admin',
-      description:
-        'A Super Administrator is a special type of Administrator that can perform all actions, including closing the account. Only a Super Administrator can assign the Super Administrator role to other team members.',
-    },
-    {
-      id: 'administrator',
-      label: 'Admin',
-      description:
-        'This role is for people who need similar access as the account owner. This role can see and manage almost everything.',
-    },
-    {
-      id: 'account-manager',
-      label: 'Account manager',
-      description:
-        'This role manages customer relationships, user issues, and account-related support tasks across the platform.',
-    },
-    {
-      id: 'customer-service',
-      label: 'Customer service',
-      description:
-        'This role supports buyers and sellers by resolving tickets, responding to inquiries, and escalating urgent issues.',
-    },
-    {
-      id: 'operations-lead',
-      label: 'Operations lead',
-      description:
-        'This role oversees daily platform operations, coordinates moderation processes, and helps maintain service quality.',
-    },
-    {
-      id: 'support-supervisor',
-      label: 'Support supervisor',
-      description:
-        'This role guides the support team, monitors service delivery, and helps enforce response standards.',
-    },
-  ];
-  readonly addUserRoles: ReadonlyArray<TeamRoleOption> = this.availableRoles.filter(
-    (role) => role.id === 'super-administrator' || role.id === 'administrator',
+  readonly teamRoles = signal<TeamRoleRecord[]>([]);
+  readonly teamMembers = signal<TeamMemberRecord[]>([]);
+  readonly totalResults = signal({ users: 0, roles: 0 });
+  readonly availableRoles = computed<ReadonlyArray<TeamRoleOption>>(() =>
+    this.teamRoles().map((role) => ({
+      id: role.id,
+      label: role.name,
+      description: role.description || 'No description provided.',
+    })),
   );
-  readonly teamRoles = signal<TeamRoleRecord[]>([
-    {
-      id: 'role-1',
-      name: 'Super administrator',
-      title: 'Super administrator',
-      description:
-        'A Super Administrator is a special type of Administrator that can perform all actions, including closing the account. The creator of a business account is automatically assigned as a Super Administrator. Only a Super Administrator can assign the Super Administrator role to other team members.',
-      users: 1,
-      permissions: 32,
-      permissionsList: ['Permission 1', 'Permission 2', 'Permission 3'],
-    },
-    {
-      id: 'role-2',
-      name: 'Account manager',
-      title: 'Account manager',
-      description:
-        'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
-      users: 3,
-      permissions: 21,
-      permissionsList: ['Permission 1', 'Permission 2', 'Permission 3'],
-    },
-    {
-      id: 'role-3',
-      name: 'Customer service',
-      title: 'Customer service',
-      description:
-        'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
-      users: 7,
-      permissions: 12,
-      permissionsList: ['Permission 1', 'Permission 2', 'Permission 3'],
-    },
-    {
-      id: 'role-4',
-      name: 'Admin',
-      title: 'Admin',
-      description:
-        'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
-      users: 2,
-      permissions: 28,
-      permissionsList: ['Permission 1', 'Permission 2', 'Permission 3'],
-    },
-    {
-      id: 'role-5',
-      name: 'Operations lead',
-      title: 'Operations lead',
-      description:
-        'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Descri.',
-      users: 4,
-      permissions: 18,
-      permissionsList: ['Permission 1', 'Permission 2', 'Permission 3'],
-    },
-  ]);
-
-  readonly teamMembers = signal<TeamMemberRecord[]>([
-    {
-      id: 'team-1',
-      firstName: 'Bryan',
-      lastName: 'Odjede',
-      userName: 'Bryan Odjede',
-      email: 'bryan@email.com',
-      phoneNumber: '+234 816 939 7454',
-      avatar: '/assets/images/fashion_menswear_hero.png',
-      role: 'Super administrator',
-      lastSignedIn: '02 Jan, 2026',
-      status: 'active',
-      isCurrentUser: true,
-    },
-    {
-      id: 'team-2',
-      firstName: 'Mark',
-      lastName: 'Anthony',
-      userName: 'Mark Anthony',
-      email: 'mark@email.com',
-      phoneNumber: '+234 816 939 7454',
-      avatar: '/assets/images/product_watch_luxury.png',
-      role: 'Account manager',
-      lastSignedIn: '02 Jan, 2026',
-      status: 'inactive',
-    },
-    {
-      id: 'team-3',
-      firstName: 'Elle',
-      lastName: 'Adebisi',
-      userName: 'Elle Adebisi',
-      email: 'elle@email.com',
-      phoneNumber: '+234 816 939 7454',
-      avatar: '/assets/images/product_sneakers_lifestyle.png',
-      role: 'Customer service',
-      lastSignedIn: '02 Jan, 2026',
-      status: 'pending activation',
-    },
-    {
-      id: 'team-4',
-      firstName: 'David',
-      lastName: 'Akins',
-      userName: 'David Akins',
-      email: 'david@email.com',
-      phoneNumber: '+234 816 939 7454',
-      avatar: '/assets/images/product_keyboard_rgb.png',
-      role: 'Operations lead',
-      lastSignedIn: '01 Jan, 2026',
-      status: 'active',
-    },
-    {
-      id: 'team-5',
-      firstName: 'Titi',
-      lastName: 'Ogunlesi',
-      userName: 'Titi Ogunlesi',
-      email: 'titi@email.com',
-      phoneNumber: '+234 816 939 7454',
-      avatar: '/assets/images/product_sneakers_lifestyle.png',
-      role: 'Support supervisor',
-      lastSignedIn: '29 Dec, 2025',
-      status: 'active',
-    },
-  ]);
-
-  readonly filteredUsers = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-
-    return this.teamMembers().filter(
-      (record) =>
-        query === '' ||
-        record.userName.toLowerCase().includes(query) ||
-        record.email.toLowerCase().includes(query) ||
-        record.role.toLowerCase().includes(query) ||
-        record.status.toLowerCase().includes(query),
-    );
-  });
-
-  readonly filteredRoles = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-
-    return this.teamRoles().filter(
-      (role) =>
-        query === '' ||
-        role.name.toLowerCase().includes(query) ||
-        role.description.toLowerCase().includes(query) ||
-        role.users.toString().includes(query) ||
-        role.permissions.toString().includes(query),
-    );
-  });
-
+  readonly addUserRoles = this.availableRoles;
+  readonly paginatedUsers = computed(() => this.teamMembers());
+  readonly paginatedRoles = computed(() => this.teamRoles());
   readonly totalPages = computed(() => {
-    const totalItems =
-      this.activeTab() === 'users' ? this.filteredUsers().length : this.filteredRoles().length;
-    return Math.max(1, Math.ceil(totalItems / this.pageSize));
+    const count =
+      this.activeTab() === 'users' ? this.totalResults().users : this.totalResults().roles;
+    return Math.max(1, Math.ceil(count / this.pageSize));
   });
 
-  readonly paginatedUsers = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredUsers().slice(start, start + this.pageSize);
-  });
+  private readonly requestQuery = computed(() => ({
+    tab: this.activeTab(),
+    page: this.currentPage(),
+    search: this.searchQuery().trim(),
+  }));
 
-  readonly paginatedRoles = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredRoles().slice(start, start + this.pageSize);
-  });
+  constructor() {
+    toObservable(this.requestQuery)
+      .pipe(
+        debounceTime(150),
+        distinctUntilChanged(
+          (previous, current) => JSON.stringify(previous) === JSON.stringify(current),
+        ),
+        switchMap((query) =>
+          query.tab === 'users'
+            ? this.teamService.getTeamMembers({ page: query.page, search: query.search })
+            : this.teamService.getRoles({ page: query.page, search: query.search }),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        if (this.activeTab() === 'users') {
+          this.teamMembers.set(
+            response.results.map((member) => this.mapTeamMember(member as AdminTeamMemberRecord)),
+          );
+          this.totalResults.update((current) => ({
+            ...current,
+            users: response.count ?? response.results.length,
+          }));
+          return;
+        }
+
+        this.teamRoles.set(
+          response.results.map((role) => this.mapRole(role as AdminTeamRoleRecord)),
+        );
+        this.totalResults.update((current) => ({
+          ...current,
+          roles: response.count ?? response.results.length,
+        }));
+      });
+  }
 
   setActiveTab(tab: TeamManagementTab): void {
     this.activeTab.set(tab);
@@ -909,46 +799,60 @@ export class AdminTeamManagementPageComponent {
   }
 
   addUser(payload: NewTeamUserPayload): void {
-    const userName = `${payload.firstName} ${payload.lastName}`.trim();
-
-    this.teamMembers.update((current) => [
-      {
-        id: `team-${current.length + 1}`,
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        userName,
-        email: payload.email,
-        phoneNumber: payload.phoneNumber,
-        avatar: '/assets/images/product_sneakers_lifestyle.png',
-        role: this.availableRoles.find((role) => role.id === payload.role)?.label ?? payload.role,
-        lastSignedIn: 'Pending',
-        status: 'pending activation',
-      },
-      ...current,
-    ]);
-
-    this.isAddUserModalOpen.set(false);
-    this.isAddUserSuccessModalOpen.set(true);
-    this.currentPage.set(1);
+    this.teamService
+      .addTeamMember({
+        email: payload.email.trim(),
+        first_name: payload.firstName.trim(),
+        last_name: payload.lastName.trim(),
+        phone_number: payload.phoneNumber.trim(),
+        role: payload.role,
+        status: 'pending_activation',
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isAddUserModalOpen.set(false);
+          this.isAddUserSuccessModalOpen.set(true);
+          this.currentPage.set(1);
+          this.refreshUsers();
+        },
+        error: () => {
+          this.toast.show({ message: 'We could not add that team member right now.' });
+        },
+      });
   }
 
   createRole(payload: CreateTeamRolePayload): void {
-    this.teamRoles.update((current) => [
-      {
-        id: `role-${current.length + 1}`,
-        name: payload.title,
-        title: payload.title,
-        description: payload.description,
-        users: 0,
-        permissions: payload.permissionsList.length,
-        permissionsList: payload.permissionsList,
-      },
-      ...current,
-    ]);
+    const createPayload: CreateAdminRolePayload = {
+      name: payload.title.trim(),
+      role_type: 'analyst',
+      description: payload.description.trim(),
+      can_manage_users: this.hasAnyPermission(payload.permissionsList, 'Users'),
+      can_manage_listings: this.hasAnyPermission(payload.permissionsList, 'Listings'),
+      can_manage_transactions: this.hasTransactionPermission(payload.permissionsList),
+      can_manage_kyc: this.hasAnyPermission(payload.permissionsList, 'KYC requests'),
+      can_manage_reports: this.hasAnyPermission(payload.permissionsList, 'Reports'),
+      can_view_analytics: this.hasAnyPermission(payload.permissionsList, 'Analytics'),
+      can_manage_ads: this.hasAnyPermission(payload.permissionsList, 'Ads management'),
+      can_manage_team:
+        this.hasAnyPermission(payload.permissionsList, 'Home') ||
+        payload.permissionsList.includes('Invite users'),
+    };
 
-    this.isCreateRoleModalOpen.set(false);
-    this.isCreateRoleSuccessModalOpen.set(true);
-    this.currentPage.set(1);
+    this.teamService
+      .createRole(createPayload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isCreateRoleModalOpen.set(false);
+          this.isCreateRoleSuccessModalOpen.set(true);
+          this.currentPage.set(1);
+          this.refreshRoles();
+        },
+        error: () => {
+          this.toast.show({ message: 'We could not create that role right now.' });
+        },
+      });
   }
 
   openCreateAnotherRole(): void {
@@ -989,50 +893,37 @@ export class AdminTeamManagementPageComponent {
   }
 
   saveMemberChanges(payload: TeamMemberUpdatePayload): void {
-    const nextRole =
-      this.availableRoles.find((role) => role.id === payload.role)?.label ?? payload.role;
-
-    this.teamMembers.update((current) =>
-      current.map((member) =>
-        member.id === payload.id
-          ? {
-              ...member,
-              role: nextRole,
-            }
-          : member,
-      ),
-    );
-
-    this.selectedMember.update((member) =>
-      member?.id === payload.id
-        ? {
-            ...member,
-            role: nextRole,
-          }
-        : member,
-    );
+    this.teamService
+      .updateTeamMember(payload.id, { role: payload.role })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (member) => {
+          const mapped = this.mapTeamMember(member);
+          this.replaceMember(mapped);
+          this.selectedMember.set({ ...mapped });
+          this.toast.show({ message: 'Team member role updated successfully.' });
+        },
+        error: () => {
+          this.toast.show({ message: 'We could not update that team member right now.' });
+        },
+      });
   }
 
   deactivateMember(memberId: string): void {
-    this.teamMembers.update((current) =>
-      current.map((member) =>
-        member.id === memberId
-          ? {
-              ...member,
-              status: 'inactive',
-            }
-          : member,
-      ),
-    );
-
-    this.selectedMember.update((member) =>
-      member?.id === memberId
-        ? {
-            ...member,
-            status: 'inactive',
-          }
-        : member,
-    );
+    this.teamService
+      .updateTeamMember(memberId, { status: 'inactive' })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (member) => {
+          const mapped = this.mapTeamMember(member);
+          this.replaceMember(mapped);
+          this.selectedMember.set({ ...mapped });
+          this.toast.show({ message: 'Team member deactivated successfully.' });
+        },
+        error: () => {
+          this.toast.show({ message: 'We could not deactivate that team member right now.' });
+        },
+      });
   }
 
   openDeactivateUserModal(memberId: string): void {
@@ -1051,25 +942,20 @@ export class AdminTeamManagementPageComponent {
   }
 
   activateMember(memberId: string): void {
-    this.teamMembers.update((current) =>
-      current.map((member) =>
-        member.id === memberId
-          ? {
-              ...member,
-              status: 'active',
-            }
-          : member,
-      ),
-    );
-
-    this.selectedMember.update((member) =>
-      member?.id === memberId
-        ? {
-            ...member,
-            status: 'active',
-          }
-        : member,
-    );
+    this.teamService
+      .updateTeamMember(memberId, { status: 'active' })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (member) => {
+          const mapped = this.mapTeamMember(member);
+          this.replaceMember(mapped);
+          this.selectedMember.set({ ...mapped });
+          this.toast.show({ message: 'Team member activated successfully.' });
+        },
+        error: () => {
+          this.toast.show({ message: 'We could not activate that team member right now.' });
+        },
+      });
   }
 
   openActivateUserModal(memberId: string): void {
@@ -1088,13 +974,17 @@ export class AdminTeamManagementPageComponent {
   }
 
   resendInvite(memberId: string): void {
-    this.selectedMember.update((member) =>
-      member?.id === memberId
-        ? {
-            ...member,
-          }
-        : member,
-    );
+    this.teamService
+      .resendInvite(memberId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toast.show({ message: 'Invite email sent successfully.' });
+        },
+        error: () => {
+          this.toast.show({ message: 'We could not resend that invite right now.' });
+        },
+      });
   }
 
   openDeleteUserModal(memberId: string): void {
@@ -1112,13 +1002,28 @@ export class AdminTeamManagementPageComponent {
   }
 
   deleteMember(memberId: string): void {
-    this.teamMembers.update((current) => current.filter((member) => member.id !== memberId));
-    this.selectedMember.set(null);
-    this.currentPage.set(1);
+    this.teamService
+      .deleteTeamMember(memberId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.teamMembers.update((current) => current.filter((member) => member.id !== memberId));
+          this.totalResults.update((current) => ({
+            ...current,
+            users: Math.max(0, current.users - 1),
+          }));
+          this.selectedMember.set(null);
+          this.currentPage.set(1);
+          this.toast.show({ message: 'Team member removed successfully.' });
+        },
+        error: () => {
+          this.toast.show({ message: 'We could not remove that team member right now.' });
+        },
+      });
   }
 
   mobileDateLabel(date: string): string {
-    return date.replace(/^(\d{2})\s+([A-Za-z]+),\s+(\d{4})$/, '$2 $1,$3');
+    return this.formatDate(date);
   }
 
   statusLabel(status: TeamMemberStatus): string {
@@ -1141,5 +1046,257 @@ export class AdminTeamManagementPageComponent {
       default:
         return 'heroUserCircle';
     }
+  }
+
+  initials(name: string): string {
+    const parts = name
+      .split(/\s+/)
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0);
+
+    if (parts.length === 0) {
+      return 'NA';
+    }
+
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  avatarBackground(seedValue: string): string {
+    const palette = [
+      'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
+      'linear-gradient(135deg, #D6D9E0 0%, #AEB6C7 100%)',
+      'linear-gradient(135deg, #E7D9CC 0%, #C3A38E 100%)',
+      'linear-gradient(135deg, #BFE2FF 0%, #79B8FF 100%)',
+      'linear-gradient(135deg, #D2F5D9 0%, #86D493 100%)',
+    ];
+
+    let hash = 0;
+    for (const character of seedValue) {
+      hash = (hash << 5) - hash + character.charCodeAt(0);
+      hash |= 0;
+    }
+
+    return palette[Math.abs(hash) % palette.length];
+  }
+
+  private refreshUsers(): void {
+    this.teamService
+      .getTeamMembers({ page: this.currentPage(), search: this.searchQuery().trim() })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((response) => {
+        this.teamMembers.set(response.results.map((member) => this.mapTeamMember(member)));
+        this.totalResults.update((current) => ({
+          ...current,
+          users: response.count ?? response.results.length,
+        }));
+      });
+  }
+
+  private refreshRoles(): void {
+    this.teamService
+      .getRoles({ page: this.currentPage(), search: this.searchQuery().trim() })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((response) => {
+        this.teamRoles.set(response.results.map((role) => this.mapRole(role)));
+        this.totalResults.update((current) => ({
+          ...current,
+          roles: response.count ?? response.results.length,
+        }));
+      });
+  }
+
+  private replaceMember(nextMember: TeamMemberRecord): void {
+    this.teamMembers.update((current) =>
+      current.map((member) => (member.id === nextMember.id ? nextMember : member)),
+    );
+  }
+
+  private mapTeamMember(member: AdminTeamMemberRecord): TeamMemberRecord {
+    const userName = member.user_name?.trim() || member.user_email;
+    const firstName = member.user_first_name?.trim() || this.nameParts(userName).firstName;
+    const lastName = member.user_last_name?.trim() || this.nameParts(userName).lastName;
+
+    return {
+      id: member.id,
+      firstName,
+      lastName,
+      userName,
+      email: member.user_email,
+      phoneNumber: member.user_phone_number?.trim() || '—',
+      avatar: member.user_avatar,
+      role: member.role_name,
+      lastSignedIn: member.last_signed_in ? this.formatDate(member.last_signed_in) : 'Never',
+      status: this.mapMemberStatus(member.status),
+    };
+  }
+
+  private mapRole(role: AdminTeamRoleRecord): TeamRoleRecord {
+    const permissionsList = this.permissionLabels(role);
+    return {
+      id: role.id,
+      name: role.name,
+      title: role.name,
+      description: role.description || 'No description provided.',
+      users: role.members_count,
+      permissions: permissionsList.length,
+      permissionsList,
+    };
+  }
+
+  private mapMemberStatus(status: AdminTeamMemberStatus): TeamMemberStatus {
+    switch (status) {
+      case 'inactive':
+        return 'inactive';
+      case 'pending_activation':
+        return 'pending activation';
+      default:
+        return 'active';
+    }
+  }
+
+  private formatDate(value: string): string {
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(parsedDate);
+  }
+
+  private nameParts(name: string): { firstName: string; lastName: string } {
+    const parts = name
+      .split(/\s+/)
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0);
+
+    return {
+      firstName: parts[0] ?? '—',
+      lastName: parts.slice(1).join(' ') || '—',
+    };
+  }
+
+  private permissionLabels(role: AdminTeamRoleRecord): string[] {
+    const permissions: string[] = [];
+
+    if (role.can_manage_users) {
+      permissions.push('Manage users');
+    }
+    if (role.can_manage_listings) {
+      permissions.push('Manage listings');
+    }
+    if (role.can_manage_transactions) {
+      permissions.push('Manage transactions');
+    }
+    if (role.can_manage_kyc) {
+      permissions.push('Manage KYC requests');
+    }
+    if (role.can_manage_reports) {
+      permissions.push('Manage reports');
+    }
+    if (role.can_view_analytics) {
+      permissions.push('View analytics');
+    }
+    if (role.can_manage_ads) {
+      permissions.push('Manage ads');
+    }
+    if (role.can_manage_team) {
+      permissions.push('Manage team');
+    }
+
+    return permissions;
+  }
+
+  private hasAnyPermission(permissions: readonly string[], sectionLabel: string): boolean {
+    return permissions.some(
+      (permission) => this.permissionSectionLabel(permission) === sectionLabel,
+    );
+  }
+
+  private hasTransactionPermission(permissions: readonly string[]): boolean {
+    return permissions.some(
+      (permission) =>
+        permission.toLowerCase().includes('transaction') ||
+        permission.toLowerCase().includes('export transactions'),
+    );
+  }
+
+  private permissionSectionLabel(permission: string): string {
+    const sectionMap: Record<string, string> = {
+      'See quick links': 'Home',
+      'Manage dashboard widgets': 'Home',
+      'View overview stats': 'Home',
+      'View users': 'Users',
+      'Suspend users': 'Users',
+      'Edit users': 'Users',
+      'View KYC status': 'Users',
+      'Approve users': 'Users',
+      'Export users': 'Users',
+      'Delete users': 'Users',
+      'Reset passwords': 'Users',
+      'Invite users': 'Users',
+      'View listings': 'Listings',
+      'Edit listings': 'Listings',
+      'Delete listings': 'Listings',
+      'Feature listings': 'Listings',
+      'Moderate listings': 'Listings',
+      'Approve listings': 'Listings',
+      'Reject listings': 'Listings',
+      'Export listings': 'Listings',
+      'View stores': 'Stores',
+      'Edit stores': 'Stores',
+      'Approve stores': 'Stores',
+      'Suspend stores': 'Stores',
+      'Delete stores': 'Stores',
+      'Export stores': 'Stores',
+      'Manage categories': 'Stores',
+      'Manage store banners': 'Stores',
+      'View store reports': 'Stores',
+      'View ad plans': 'Ads management',
+      'Edit ad plans': 'Ads management',
+      'Approve banners': 'Ads management',
+      'Reject banners': 'Ads management',
+      'View transactions': 'Ads management',
+      'Manage running ads': 'Ads management',
+      'Pause ads': 'Ads management',
+      'Resume ads': 'Ads management',
+      'Export transactions': 'Ads management',
+      'View KYC requests': 'KYC requests',
+      'Approve KYC': 'KYC requests',
+      'Decline KYC': 'KYC requests',
+      'View uploaded documents': 'KYC requests',
+      'Export KYC data': 'KYC requests',
+      'Filter requests': 'KYC requests',
+      'Search requests': 'KYC requests',
+      'Audit KYC actions': 'KYC requests',
+      'Reopen KYC cases': 'KYC requests',
+      'View seller reports': 'Reports',
+      'View listing reports': 'Reports',
+      'Resolve reports': 'Reports',
+      'Escalate reports': 'Reports',
+      'Archive reports': 'Reports',
+      'Export reports': 'Reports',
+      'Filter reports': 'Reports',
+      'Search reports': 'Reports',
+      'Delete reports': 'Reports',
+      'View overview analytics': 'Analytics',
+      'View user analytics': 'Analytics',
+      'View listing analytics': 'Analytics',
+      'View revenue charts': 'Analytics',
+      'Export analytics': 'Analytics',
+      'Filter by date': 'Analytics',
+      'Compare trends': 'Analytics',
+      'View top regions': 'Analytics',
+      'View conversion metrics': 'Analytics',
+    };
+
+    return sectionMap[permission] ?? '';
   }
 }

@@ -16,6 +16,10 @@ import { firstValueFrom } from 'rxjs';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
+import {
+  PublicHomeLocationSelection,
+  PublicHomeNavbarComponent,
+} from '../../components/layout/public-home-navbar.component';
 import { HOME_HERO_CARD_SETS, HOME_HERO_HEADLINE_ITEMS } from './home-hero.config';
 import {
   HomeAdvertisementResponse,
@@ -81,51 +85,6 @@ const CATEGORY_ICON_BY_SLUG: Record<string, string> = {
   'books-movies-music': '/assets/images/category-books-movies-music.png',
 };
 
-type HomeLocationValue =
-  | 'all-nigeria'
-  | 'abia'
-  | 'adamawa'
-  | 'akwa-ibom'
-  | 'anambra'
-  | 'bauchi'
-  | 'bayelsa'
-  | 'benue'
-  | 'borno'
-  | 'cross-river'
-  | 'delta'
-  | 'ebonyi'
-  | 'lagos'
-  | 'abuja'
-  | 'gombe'
-  | 'imo'
-  | 'jigawa'
-  | 'kebbi'
-  | 'kogi'
-  | 'kwara'
-  | 'nasarawa'
-  | 'niger'
-  | 'ondo'
-  | 'osun'
-  | 'plateau'
-  | 'rivers'
-  | 'sokoto'
-  | 'taraba'
-  | 'yobe'
-  | 'zamfara'
-  | 'oyo'
-  | 'enugu'
-  | 'kaduna'
-  | 'edo'
-  | 'kano'
-  | 'ogun';
-
-type HomeLocationGroup = {
-  value: HomeLocationValue;
-  label: string;
-  desktopLabel?: string;
-  cities: readonly string[];
-};
-
 @Component({
   selector: 'app-home-page',
   imports: [
@@ -134,6 +93,7 @@ type HomeLocationGroup = {
     MobileBottomNavComponent,
     StoreCardComponent,
     ListingCardComponent,
+    PublicHomeNavbarComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.css',
@@ -154,14 +114,9 @@ export class HomePageComponent {
 
   readonly showPublicChrome = input(true);
   readonly showBottomNav = input(true);
-  readonly showAppDownloadBanner = signal(true);
-  readonly showMobileMenu = signal(false);
   readonly isCategoriesSheetOpen = signal(false);
-  readonly isLocationPickerOpen = signal(false);
-  readonly activeLocationPanel = signal<HomeLocationValue | null>(null);
   readonly isMobileSearchOverlayOpen = signal(false);
-  readonly selectedLocation = signal<HomeLocationValue>('all-nigeria');
-  readonly selectedCity = signal<string | null>(null);
+  readonly selectedLocationQueryValue = signal<string>('All Nigeria');
   readonly activeHeroCardSetIndex = signal(0);
   readonly enteringHeroCardSetIndex = signal(1);
   readonly isHeroCarouselAnimating = signal(false);
@@ -190,216 +145,6 @@ export class HomePageComponent {
     'Miniflat in Lagos',
     'shirt for men',
   ] as const;
-
-  readonly locationGroups: readonly HomeLocationGroup[] = [
-    {
-      value: 'all-nigeria',
-      label: 'All Nigeria',
-      desktopLabel: 'All of Nigeria',
-      cities: ['Nationwide'],
-    },
-    {
-      value: 'lagos',
-      label: 'Lagos',
-      cities: ['Ikeja', 'Lekki', 'Yaba', 'Surulere'],
-    },
-    {
-      value: 'abuja',
-      label: 'Abuja',
-      cities: ['Maitama', 'Wuse', 'Gwarinpa', 'Asokoro'],
-    },
-    {
-      value: 'rivers',
-      label: 'Port Harcourt',
-      cities: ['GRA', 'Rumuola', 'Ada George', 'Eliozu'],
-    },
-    {
-      value: 'abia',
-      label: 'Abia',
-      cities: ['Umuahia', 'Aba', 'Ohafia', 'Arochukwu'],
-    },
-    {
-      value: 'adamawa',
-      label: 'Adamawa',
-      cities: ['Yola', 'Mubi', 'Jimeta', 'Numan'],
-    },
-    {
-      value: 'akwa-ibom',
-      label: 'Akwa Ibom',
-      cities: ['Uyo', 'Eket', 'Ikot Ekpene', 'Oron'],
-    },
-    {
-      value: 'anambra',
-      label: 'Anambra',
-      cities: ['Awka', 'Onitsha', 'Nnewi', 'Ekwulobia'],
-    },
-    {
-      value: 'bauchi',
-      label: 'Bauchi',
-      cities: ['Bauchi', 'Azare', 'Misau', 'Jama’are'],
-    },
-    {
-      value: 'bayelsa',
-      label: 'Bayelsa',
-      cities: ['Yenagoa', 'Brass', 'Ogbia', 'Sagbama'],
-    },
-    {
-      value: 'benue',
-      label: 'Benue',
-      cities: ['Makurdi', 'Gboko', 'Otukpo', 'Katsina-Ala'],
-    },
-    {
-      value: 'borno',
-      label: 'Borno',
-      cities: ['Maiduguri', 'Biu', 'Dikwa', 'Konduga'],
-    },
-    {
-      value: 'cross-river',
-      label: 'Cross River',
-      cities: ['Calabar', 'Ikom', 'Ogoja', 'Ugep'],
-    },
-    {
-      value: 'delta',
-      label: 'Delta',
-      cities: ['Asaba', 'Warri', 'Sapele', 'Ughelli'],
-    },
-    {
-      value: 'ebonyi',
-      label: 'Ebonyi',
-      cities: ['Abakaliki', 'Afikpo', 'Onueke', 'Ikwo'],
-    },
-    {
-      value: 'oyo',
-      label: 'Oyo',
-      cities: ['Ibadan', 'Ogbomoso', 'Oyo Town', 'Iseyin'],
-    },
-    {
-      value: 'enugu',
-      label: 'Enugu',
-      cities: ['Independence Layout', 'New Haven', 'Uwani', 'Abakpa'],
-    },
-    {
-      value: 'kaduna',
-      label: 'Kaduna',
-      cities: ['Barnawa', 'Kawo', 'Sabon Tasha', 'Zaria'],
-    },
-    {
-      value: 'gombe',
-      label: 'Gombe',
-      cities: ['Gombe', 'Kumo', 'Billiri', 'Dukku'],
-    },
-    {
-      value: 'edo',
-      label: 'Edo',
-      cities: ['Benin City', 'Ekpoma', 'Uromi', 'Auchi'],
-    },
-    {
-      value: 'imo',
-      label: 'Imo',
-      cities: ['Owerri', 'Orlu', 'Okigwe', 'Mbaise'],
-    },
-    {
-      value: 'jigawa',
-      label: 'Jigawa',
-      cities: ['Dutse', 'Hadejia', 'Gumel', 'Kazaure'],
-    },
-    {
-      value: 'kano',
-      label: 'Kano',
-      cities: ['Nasarawa', 'Fagge', 'Tarauni', 'Bompai'],
-    },
-    {
-      value: 'kebbi',
-      label: 'Kebbi',
-      cities: ['Birnin Kebbi', 'Argungu', 'Yauri', 'Zuru'],
-    },
-    {
-      value: 'kogi',
-      label: 'Kogi',
-      cities: ['Lokoja', 'Okene', 'Anyigba', 'Idah'],
-    },
-    {
-      value: 'kwara',
-      label: 'Kwara',
-      cities: ['Ilorin', 'Offa', 'Omu-Aran', 'Jebba'],
-    },
-    {
-      value: 'ogun',
-      label: 'Ogun',
-      cities: ['Abeokuta', 'Ijebu Ode', 'Sagamu', 'Ota'],
-    },
-    {
-      value: 'nasarawa',
-      label: 'Nasarawa',
-      cities: ['Lafia', 'Keffi', 'Akwanga', 'Karu'],
-    },
-    {
-      value: 'niger',
-      label: 'Niger',
-      cities: ['Minna', 'Bida', 'Suleja', 'Kontagora'],
-    },
-    {
-      value: 'ondo',
-      label: 'Ondo',
-      cities: ['Akure', 'Ondo Town', 'Owo', 'Ikare'],
-    },
-    {
-      value: 'osun',
-      label: 'Osun',
-      cities: ['Osogbo', 'Ile-Ife', 'Ilesa', 'Ede'],
-    },
-    {
-      value: 'plateau',
-      label: 'Plateau',
-      cities: ['Jos', 'Bukuru', 'Pankshin', 'Shendam'],
-    },
-    {
-      value: 'sokoto',
-      label: 'Sokoto',
-      cities: ['Sokoto', 'Tambuwal', 'Wurno', 'Gwadabawa'],
-    },
-    {
-      value: 'taraba',
-      label: 'Taraba',
-      cities: ['Jalingo', 'Wukari', 'Bali', 'Takum'],
-    },
-    {
-      value: 'yobe',
-      label: 'Yobe',
-      cities: ['Damaturu', 'Potiskum', 'Gashua', 'Nguru'],
-    },
-    {
-      value: 'zamfara',
-      label: 'Zamfara',
-      cities: ['Gusau', 'Kaura Namoda', 'Talata Mafara', 'Anka'],
-    },
-  ];
-
-  readonly selectedLocationOption = computed(
-    () =>
-      this.locationGroups.find((option) => option.value === this.selectedLocation()) ??
-      this.locationGroups[0],
-  );
-
-  readonly activeLocationPanelOption = computed(
-    () =>
-      this.locationGroups.find((option) => option.value === this.activeLocationPanel()) ?? null,
-  );
-
-  readonly selectedLocationDisplay = computed(() => {
-    const location = this.selectedLocationOption();
-    if (location.value === 'all-nigeria' || this.selectedCity() === null) {
-      return {
-        mobile: location.label,
-        desktop: location.desktopLabel ?? location.label,
-      };
-    }
-
-    return {
-      mobile: `${this.selectedCity()}, ${location.label}`,
-      desktop: `${this.selectedCity()}, ${location.desktopLabel ?? location.label}`,
-    };
-  });
 
   readonly fallbackCategories: readonly HomeCategory[] = [
     { id: 'automotives', label: 'Automotives', icon: '/assets/images/category-automotives.png' },
@@ -780,50 +525,8 @@ export class HomePageComponent {
     void this.loadHome();
   }
 
-  dismissAppDownloadBanner(): void {
-    this.showAppDownloadBanner.set(false);
-  }
-
-  toggleMobileMenu(): void {
-    this.showMobileMenu.update((isOpen) => !isOpen);
-  }
-
-  closeMobileMenu(): void {
-    this.showMobileMenu.set(false);
-  }
-
-  openLocationPicker(): void {
-    this.isLocationPickerOpen.set(true);
-  }
-
-  closeLocationPicker(): void {
-    this.isLocationPickerOpen.set(false);
-    this.activeLocationPanel.set(null);
-  }
-
-  openLocationCities(location: HomeLocationValue): void {
-    this.activeLocationPanel.set(location);
-  }
-
-  closeLocationCities(): void {
-    this.activeLocationPanel.set(null);
-  }
-
-  isLocationSelected(location: HomeLocationValue): boolean {
-    return this.selectedLocation() === location && this.selectedCity() === null;
-  }
-
-  selectLocationCity(location: HomeLocationValue, city: string): void {
-    this.selectedLocation.set(location);
-    this.selectedCity.set(city);
-    this.closeLocationPicker();
-    void this.loadHome();
-  }
-
-  selectLocationGroup(location: HomeLocationValue): void {
-    this.selectedLocation.set(location);
-    this.selectedCity.set(null);
-    this.closeLocationPicker();
+  onLocationChange(selection: PublicHomeLocationSelection): void {
+    this.selectedLocationQueryValue.set(selection.query);
     void this.loadHome();
   }
 
@@ -976,16 +679,7 @@ export class HomePageComponent {
   }
 
   private selectedLocationQuery(): string | undefined {
-    const location = this.selectedLocationOption();
-    if (location.value === 'all-nigeria') {
-      return 'All Nigeria';
-    }
-
-    if (this.selectedCity()) {
-      return `${this.selectedCity()}, ${location.label}`;
-    }
-
-    return location.label;
+    return this.selectedLocationQueryValue();
   }
 
   private toHomeCategory(category: HomeCategoryResponse): HomeCategory {

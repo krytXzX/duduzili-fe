@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -24,7 +23,7 @@ export interface TeamMemberDetails {
   userName: string;
   email: string;
   phoneNumber: string;
-  avatar: string;
+  avatar: string | null;
   role: string;
   status: TeamMemberModalStatus;
 }
@@ -36,7 +35,7 @@ export interface TeamMemberUpdatePayload {
 
 @Component({
   selector: 'app-admin-team-member-details-modal',
-  imports: [NgIcon, NgOptimizedImage, ReactiveFormsModule],
+  imports: [NgIcon, ReactiveFormsModule],
   providers: [
     provideIcons({
       heroArrowPath,
@@ -86,15 +85,20 @@ export interface TeamMemberUpdatePayload {
         <form [formGroup]="form" (ngSubmit)="saveChanges()" class="mt-8 flex min-h-0 flex-1 flex-col">
           <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-6 sm:px-8">
           <div class="flex flex-wrap items-center gap-4">
-            <div class="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
+            @if (member().avatar) {
               <img
-                [ngSrc]="member().avatar"
+                [src]="member().avatar"
                 [alt]="member().userName"
-                width="80"
-                height="80"
-                class="h-20 w-20 object-cover"
+                class="h-20 w-20 shrink-0 rounded-full object-cover"
               >
-            </div>
+            } @else {
+              <span
+                class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-[24px] font-semibold text-[#1A1C21]"
+                [style.background]="avatarBackground()"
+              >
+                {{ initials() }}
+              </span>
+            }
 
             <div class="min-w-0">
               <h3 class="truncate text-[16px] font-semibold text-[#202020]">{{ member().userName }}</h3>
@@ -262,6 +266,39 @@ export class AdminTeamMemberDetailsModalComponent {
   readonly selectedRoleLabel = computed(
     () => this.roles().find((role) => role.id === this.form.controls.role.value)?.label ?? this.member().role,
   );
+  readonly initials = computed(() => {
+    const parts = this.member().userName
+      .split(/\s+/)
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0);
+
+    if (parts.length === 0) {
+      return 'NA';
+    }
+
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  });
+  readonly avatarBackground = computed(() => {
+    const palette = [
+      'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
+      'linear-gradient(135deg, #D6D9E0 0%, #AEB6C7 100%)',
+      'linear-gradient(135deg, #E7D9CC 0%, #C3A38E 100%)',
+      'linear-gradient(135deg, #BFE2FF 0%, #79B8FF 100%)',
+      'linear-gradient(135deg, #D2F5D9 0%, #86D493 100%)',
+    ];
+
+    let hash = 0;
+    for (const character of this.member().userName) {
+      hash = (hash << 5) - hash + character.charCodeAt(0);
+      hash |= 0;
+    }
+
+    return palette[Math.abs(hash) % palette.length];
+  });
 
   constructor() {
     effect(() => {
