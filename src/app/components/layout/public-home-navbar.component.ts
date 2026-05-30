@@ -288,9 +288,7 @@ export type PublicHomeLocationSelection = {
               <a routerLink="/" class="leading-[1.2]" (click)="closeMobileMenu()">Sell item</a>
             </nav>
 
-            <div
-              class="w-full rounded-[20px] border border-[#ededed] bg-white px-4 pb-6 pt-5"
-            >
+            <div class="w-full rounded-[20px] border border-[#ededed] bg-white px-4 pb-6 pt-5">
               <div
                 class="mx-auto w-fit rounded-[10px] border border-[#f0f0f0] bg-white p-[6px] shadow-[0_4.7px_12.6px_rgba(199,199,199,0.25)]"
               >
@@ -300,26 +298,6 @@ export type PublicHomeLocationSelection = {
                   width="110"
                   height="110"
                   class="h-[110px] w-[110px]"
-                />
-              </div>
-
-              <div class="mt-3 flex items-center justify-center gap-4">
-                <img
-                  ngSrc="/assets/icons/home-google-play.svg"
-                  alt=""
-                  width="24"
-                  height="24"
-                  class="h-6 w-6"
-                  aria-hidden="true"
-                />
-                <span class="h-4 w-px bg-[#d8d8d8]" aria-hidden="true"></span>
-                <img
-                  ngSrc="/assets/icons/home-apple.svg"
-                  alt=""
-                  width="20"
-                  height="20"
-                  class="h-5 w-5"
-                  aria-hidden="true"
                 />
               </div>
 
