@@ -275,9 +275,12 @@ export type PublicHomeLocationSelection = {
             </div>
           </div>
 
-          <div id="public-home-mobile-menu" class="relative mx-auto w-full max-w-[390px]">
+          <div
+            id="public-home-mobile-menu"
+            class="mx-auto flex w-full max-w-[390px] flex-col gap-6 px-[19px] pb-[18px] pt-[5px]"
+          >
             <nav
-              class="absolute left-[19px] top-[5px] flex flex-col items-start gap-3 text-[16px] font-medium leading-[1.2] tracking-[0.01em] text-[#373737]"
+              class="flex flex-col items-start gap-3 text-[16px] font-medium leading-[1.2] tracking-[0.01em] text-[#373737]"
               aria-label="Mobile menu"
             >
               <a routerLink="/sign-in" class="leading-[1.2]" (click)="closeMobileMenu()">Sign in</a>
@@ -286,7 +289,7 @@ export type PublicHomeLocationSelection = {
             </nav>
 
             <div
-              class="absolute bottom-[18px] left-[19px] h-[339px] w-[350px] rounded-[20px] border border-[#ededed] bg-white px-4 pb-6 pt-5"
+              class="w-full rounded-[20px] border border-[#ededed] bg-white px-4 pb-6 pt-5"
             >
               <div
                 class="mx-auto w-fit rounded-[10px] border border-[#f0f0f0] bg-white p-[6px] shadow-[0_4.7px_12.6px_rgba(199,199,199,0.25)]"
