@@ -112,7 +112,7 @@
         </div>
       </div>
 
-      <div id="mobile-home-menu" class="relative mx-auto h-[550px] w-full max-w-[390px]">
+      <div id="mobile-home-menu" class="relative mx-auto h-[500px] w-full max-w-[390px]">
         <nav class="absolute left-[19px] top-[5px] flex flex-col items-start gap-3 text-[16px] font-medium leading-[1.2] tracking-[0.01em] text-[#373737]" aria-label="Mobile menu">
           <a routerLink="/sign-in" class="leading-[1.2]" (click)="closeMobileMenu()">Sign in</a>
           <a routerLink="/sign-up" class="leading-[1.2]" (click)="closeMobileMenu()">Sign up</a>
@@ -185,23 +185,23 @@
         <div class="relative mt-6 min-h-0 flex-1 overflow-hidden lg:mt-8">
           <div class="no-scrollbar h-full overflow-y-auto pr-1 transition-transform duration-300 ease-out lg:pr-2" [class.-translate-x-[8%]]="activeLocationPanel() !== null" [class.opacity-0]="activeLocationPanel() !== null" [class.pointer-events-none]="activeLocationPanel() !== null">
             <div class="space-y-4 pb-2 lg:grid lg:grid-cols-3 lg:gap-4 lg:space-y-0">
-            @for (group of locationGroups; track group.value) {
-            <section class="rounded-[24px] border border-[#EFEFEF] bg-white">
-              <div class="flex items-center gap-3 p-2 lg:p-3">
-                <button type="button" (click)="selectLocationGroup(group.value)" class="flex min-w-0 flex-1 items-center rounded-[18px] px-4 py-4 text-left transition lg:px-5" [class.bg-[#F3F1FF]]="isLocationSelected(group.value)" [class.text-[#6453D9]]="isLocationSelected(group.value)" [class.bg-transparent]="!isLocationSelected(group.value)" [class.text-[#1A1B1D]]="!isLocationSelected(group.value)">
-                  <span class="text-[16px] font-semibold leading-5 lg:text-[18px] lg:leading-5">
-                    {{ group.desktopLabel ?? group.label }}
-                  </span>
-                </button>
+              @for (group of locationGroups; track group.value) {
+              <section class="rounded-[24px] border border-[#EFEFEF] bg-white">
+                <div class="flex items-center gap-3 p-2 lg:p-3">
+                  <button type="button" (click)="selectLocationGroup(group.value)" class="flex min-w-0 flex-1 items-center rounded-[18px] px-4 py-4 text-left transition lg:px-5" [class.bg-[#F3F1FF]]="isLocationSelected(group.value)" [class.text-[#6453D9]]="isLocationSelected(group.value)" [class.bg-transparent]="!isLocationSelected(group.value)" [class.text-[#1A1B1D]]="!isLocationSelected(group.value)">
+                    <span class="text-[16px] font-semibold leading-5 lg:text-[18px] lg:leading-5">
+                      {{ group.desktopLabel ?? group.label }}
+                    </span>
+                  </button>
 
-                <button type="button" (click)="openLocationCities(group.value)" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F7] text-[#5B5B66] transition lg:h-12 lg:w-12" [attr.aria-label]="'View cities under ' + (group.desktopLabel ?? group.label)">
-                  <svg aria-hidden="true" viewBox="0 0 20 20" class="h-5 w-5">
-                    <path d="M7.5 5 12.5 10l-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" />
-                  </svg>
-                </button>
-              </div>
-            </section>
-            }
+                  <button type="button" (click)="openLocationCities(group.value)" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F7] text-[#5B5B66] transition lg:h-12 lg:w-12" [attr.aria-label]="'View cities under ' + (group.desktopLabel ?? group.label)">
+                    <svg aria-hidden="true" viewBox="0 0 20 20" class="h-5 w-5">
+                      <path d="M7.5 5 12.5 10l-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" />
+                    </svg>
+                  </button>
+                </div>
+              </section>
+              }
             </div>
           </div>
 
@@ -323,19 +323,9 @@
               </span>
             </h1>
 
-            <form
-              class="mt-10 flex w-full max-w-[631px] items-center justify-between rounded-[222px] border border-[#dddddd] bg-white py-2 pl-6 pr-2 shadow-[0_12px_30px_rgba(151,150,196,0.25)]"
-              (submit)="submitHomeSearch($event)"
-            >
+            <form class="mt-10 flex w-full max-w-[631px] items-center justify-between rounded-[222px] border border-[#dddddd] bg-white py-2 pl-6 pr-2 shadow-[0_12px_30px_rgba(151,150,196,0.25)]" (submit)="submitHomeSearch($event)">
               <label class="sr-only" for="desktop-home-search">Search for products</label>
-              <input
-                id="desktop-home-search"
-                type="search"
-                [value]="homeSearchQuery()"
-                (input)="updateHomeSearchQuery($event)"
-                placeholder="What are you looking for?"
-                class="min-w-0 flex-1 border-none bg-transparent text-2xl text-[#2c2c2c] outline-none placeholder:text-[#adadad]"
-              />
+              <input id="desktop-home-search" type="search" [value]="homeSearchQuery()" (input)="updateHomeSearchQuery($event)" placeholder="What are you looking for?" class="min-w-0 flex-1 border-none bg-transparent text-2xl text-[#2c2c2c] outline-none placeholder:text-[#adadad]" />
               <button type="submit" class="flex h-[54px] items-center gap-2 rounded-full border border-white bg-[#6453d9] px-5 text-xl font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]">
                 <img ngSrc="/assets/icons/home-search.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
                 Search
@@ -356,15 +346,7 @@
       <div class="rounded-[34px] border border-[#dddddd] bg-white px-6 py-2 shadow-[0_12px_30px_rgba(151,150,196,0.18)]">
         <form class="flex items-center justify-between gap-3" (submit)="submitHomeSearch($event)">
           <label class="sr-only" for="mobile-home-search">Search for products</label>
-          <input
-            id="mobile-home-search"
-            type="search"
-            [value]="homeSearchQuery()"
-            placeholder="What are you looking for?"
-            class="min-w-0 flex-1 border-none bg-transparent text-base text-[#2c2c2c] outline-none placeholder:text-[#adadad]"
-            (input)="updateHomeSearchQuery($event)"
-            (focus)="openMobileSearchOverlay()"
-          />
+          <input id="mobile-home-search" type="search" [value]="homeSearchQuery()" placeholder="What are you looking for?" class="min-w-0 flex-1 border-none bg-transparent text-base text-[#2c2c2c] outline-none placeholder:text-[#adadad]" (input)="updateHomeSearchQuery($event)" (focus)="openMobileSearchOverlay()" />
           <button type="submit" class="flex h-[52px] w-[60px] items-center justify-center rounded-full border border-white bg-[#6453d9] shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]" aria-label="Search">
             <img ngSrc="/assets/icons/home-search.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
           </button>
@@ -451,10 +433,7 @@
 
       <div class="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-5">
         @for (listing of sponsoredListingCards(); track listing.id) {
-        <app-listing-card
-          [listing]="listing"
-          [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)"
-        />
+        <app-listing-card [listing]="listing" [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)" />
         }
       </div>
     </section>
@@ -466,10 +445,7 @@
 
       <div class="grid grid-cols-2 gap-2.5 lg:grid-cols-5 lg:gap-4">
         @for (listing of nearbyListingCards(); track listing.id) {
-        <app-listing-card
-          [listing]="listing"
-          [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)"
-        />
+        <app-listing-card [listing]="listing" [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)" />
         }
       </div>
 

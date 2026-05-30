@@ -120,7 +120,10 @@ type PublicHomeLocationGroup = {
               </button>
             </div>
 
-            <nav class="flex items-center gap-0.5 text-sm text-white" aria-label="Desktop navigation">
+            <nav
+              class="flex items-center gap-0.5 text-sm text-white"
+              aria-label="Desktop navigation"
+            >
               <a routerLink="/" class="rounded-full px-3.5 py-2.5 font-medium">Sell item</a>
               <a routerLink="/sign-in" class="rounded-full px-3.5 py-2.5 font-medium">Sign in</a>
               <a
@@ -146,7 +149,9 @@ type PublicHomeLocationGroup = {
 
     <header
       class="sticky top-0 z-30 bg-white lg:hidden"
-      [class]="showMobileMenu() ? 'rounded-b-[24px] border-x border-b border-[#ededed] bg-white' : ''"
+      [class]="
+        showMobileMenu() ? 'rounded-b-[24px] border-x border-b border-[#ededed] bg-white' : ''
+      "
     >
       <div class="flex items-center justify-between px-5 py-[18px]">
         <a routerLink="/" class="block" aria-label="Duduzili home">
@@ -203,7 +208,11 @@ type PublicHomeLocationGroup = {
             (click)="toggleMobileMenu()"
           >
             <img
-              [ngSrc]="showMobileMenu() ? '/assets/icons/home-mobile-menu/close.svg' : '/assets/icons/home-header-menu-mobile.svg'"
+              [ngSrc]="
+                showMobileMenu()
+                  ? '/assets/icons/home-mobile-menu/close.svg'
+                  : '/assets/icons/home-header-menu-mobile.svg'
+              "
               alt=""
               width="20"
               height="20"
@@ -245,7 +254,11 @@ type PublicHomeLocationGroup = {
                 (click)="toggleMobileMenu()"
               >
                 <img
-                  [ngSrc]="showMobileMenu() ? '/assets/icons/home-mobile-menu/close.svg' : '/assets/icons/home-header-menu-mobile.svg'"
+                  [ngSrc]="
+                    showMobileMenu()
+                      ? '/assets/icons/home-mobile-menu/close.svg'
+                      : '/assets/icons/home-header-menu-mobile.svg'
+                  "
                   alt=""
                   width="20"
                   height="20"
@@ -256,7 +269,7 @@ type PublicHomeLocationGroup = {
             </div>
           </div>
 
-          <div id="public-home-mobile-menu" class="relative mx-auto h-[550px] w-full max-w-[390px]">
+          <div id="public-home-mobile-menu" class="relative mx-auto w-full max-w-[390px]">
             <nav
               class="absolute left-[19px] top-[5px] flex flex-col items-start gap-3 text-[16px] font-medium leading-[1.2] tracking-[0.01em] text-[#373737]"
               aria-label="Mobile menu"
@@ -384,7 +397,9 @@ type PublicHomeLocationGroup = {
             </svg>
           </button>
 
-          <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden px-5 pt-8 lg:px-8 lg:pt-10">
+          <div
+            class="relative flex min-h-0 flex-1 flex-col overflow-hidden px-5 pt-8 lg:px-8 lg:pt-10"
+          >
             <h2
               class="text-[24px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D] lg:text-[32px] lg:leading-9"
             >
@@ -411,7 +426,9 @@ type PublicHomeLocationGroup = {
                           [class.bg-transparent]="!isLocationSelected(group.value)"
                           [class.text-[#1A1B1D]]="!isLocationSelected(group.value)"
                         >
-                          <span class="text-[16px] font-semibold leading-5 lg:text-[18px] lg:leading-5">
+                          <span
+                            class="text-[16px] font-semibold leading-5 lg:text-[18px] lg:leading-5"
+                          >
                             {{ group.desktopLabel ?? group.label }}
                           </span>
                         </button>
@@ -420,7 +437,9 @@ type PublicHomeLocationGroup = {
                           type="button"
                           (click)="openLocationCities(group.value)"
                           class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F7] text-[#5B5B66] transition lg:h-12 lg:w-12"
-                          [attr.aria-label]="'View cities under ' + (group.desktopLabel ?? group.label)"
+                          [attr.aria-label]="
+                            'View cities under ' + (group.desktopLabel ?? group.label)
+                          "
                         >
                           <svg aria-hidden="true" viewBox="0 0 20 20" class="h-5 w-5">
                             <path
@@ -466,7 +485,9 @@ type PublicHomeLocationGroup = {
                       </button>
 
                       <div class="min-w-0">
-                        <p class="text-[16px] font-semibold leading-5 text-[#1A1B1D] lg:text-[18px] lg:leading-5">
+                        <p
+                          class="text-[16px] font-semibold leading-5 text-[#1A1B1D] lg:text-[18px] lg:leading-5"
+                        >
                           {{ panel.desktopLabel ?? panel.label }}
                         </p>
                         <p class="mt-1 text-[13px] leading-4 text-[#777777]">Select a city</p>
@@ -480,10 +501,18 @@ type PublicHomeLocationGroup = {
                             type="button"
                             (click)="selectLocationCity(panel.value, city)"
                             class="rounded-full px-4 py-2 text-[13px] font-medium leading-4 transition lg:px-5 lg:py-3 lg:text-[14px] lg:leading-4"
-                            [class.bg-[#F3F1FF]]="panel.value === selectedLocation() && city === selectedCity()"
-                            [class.text-[#6453D9]]="panel.value === selectedLocation() && city === selectedCity()"
-                            [class.bg-[#F5F5F5]]="!(panel.value === selectedLocation() && city === selectedCity())"
-                            [class.text-[#1A1B1D]]="!(panel.value === selectedLocation() && city === selectedCity())"
+                            [class.bg-[#F3F1FF]]="
+                              panel.value === selectedLocation() && city === selectedCity()
+                            "
+                            [class.text-[#6453D9]]="
+                              panel.value === selectedLocation() && city === selectedCity()
+                            "
+                            [class.bg-[#F5F5F5]]="
+                              !(panel.value === selectedLocation() && city === selectedCity())
+                            "
+                            [class.text-[#1A1B1D]]="
+                              !(panel.value === selectedLocation() && city === selectedCity())
+                            "
                           >
                             {{ city }}
                           </button>
@@ -513,12 +542,21 @@ export class PublicHomeNavbarComponent {
   readonly selectedCity = signal<string | null>(null);
 
   readonly locationGroups: readonly PublicHomeLocationGroup[] = [
-    { value: 'all-nigeria', label: 'All Nigeria', desktopLabel: 'All of Nigeria', cities: ['Nationwide'] },
+    {
+      value: 'all-nigeria',
+      label: 'All Nigeria',
+      desktopLabel: 'All of Nigeria',
+      cities: ['Nationwide'],
+    },
     { value: 'lagos', label: 'Lagos', cities: ['Ikeja', 'Lekki', 'Yaba', 'Surulere'] },
     { value: 'abuja', label: 'Abuja', cities: ['Maitama', 'Wuse', 'Gwarinpa', 'Asokoro'] },
     { value: 'rivers', label: 'Port Harcourt', cities: ['GRA', 'Rumuola', 'Ada George', 'Eliozu'] },
     { value: 'oyo', label: 'Oyo', cities: ['Ibadan', 'Ogbomoso', 'Oyo Town', 'Iseyin'] },
-    { value: 'enugu', label: 'Enugu', cities: ['Independence Layout', 'New Haven', 'Uwani', 'Abakpa'] },
+    {
+      value: 'enugu',
+      label: 'Enugu',
+      cities: ['Independence Layout', 'New Haven', 'Uwani', 'Abakpa'],
+    },
     { value: 'kaduna', label: 'Kaduna', cities: ['Barnawa', 'Kawo', 'Sabon Tasha', 'Zaria'] },
     { value: 'edo', label: 'Edo', cities: ['Benin City', 'Ekpoma', 'Uromi', 'Auchi'] },
     { value: 'kano', label: 'Kano', cities: ['Nasarawa', 'Fagge', 'Tarauni', 'Bompai'] },
@@ -526,7 +564,9 @@ export class PublicHomeNavbarComponent {
   ];
 
   readonly selectedLocationOption = computed(
-    () => this.locationGroups.find((option) => option.value === this.selectedLocation()) ?? this.locationGroups[0],
+    () =>
+      this.locationGroups.find((option) => option.value === this.selectedLocation()) ??
+      this.locationGroups[0],
   );
 
   readonly activeLocationPanelOption = computed(

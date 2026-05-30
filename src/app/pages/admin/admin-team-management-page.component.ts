@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -197,7 +204,7 @@ interface TeamRoleRecord {
                           [src]="record.avatar"
                           [alt]="record.userName"
                           class="h-9 w-9 shrink-0 rounded-full object-cover"
-                        >
+                        />
                       } @else {
                         <span
                           class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold text-[#1A1C21]"
@@ -418,7 +425,7 @@ interface TeamRoleRecord {
                               [src]="record.avatar"
                               [alt]="record.userName"
                               class="h-10 w-10 shrink-0 rounded-full object-cover"
-                            >
+                            />
                           } @else {
                             <span
                               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold text-[#1A1C21]"
@@ -739,7 +746,9 @@ export class AdminTeamManagementPageComponent {
     toObservable(this.requestQuery)
       .pipe(
         debounceTime(150),
-        distinctUntilChanged((previous, current) => JSON.stringify(previous) === JSON.stringify(current)),
+        distinctUntilChanged(
+          (previous, current) => JSON.stringify(previous) === JSON.stringify(current),
+        ),
         switchMap((query) =>
           query.tab === 'users'
             ? this.teamService.getTeamMembers({ page: query.page, search: query.search })
@@ -749,13 +758,23 @@ export class AdminTeamManagementPageComponent {
       )
       .subscribe((response) => {
         if (this.activeTab() === 'users') {
-          this.teamMembers.set(response.results.map((member) => this.mapTeamMember(member as AdminTeamMemberRecord)));
-          this.totalResults.update((current) => ({ ...current, users: response.count ?? response.results.length }));
+          this.teamMembers.set(
+            response.results.map((member) => this.mapTeamMember(member as AdminTeamMemberRecord)),
+          );
+          this.totalResults.update((current) => ({
+            ...current,
+            users: response.count ?? response.results.length,
+          }));
           return;
         }
 
-        this.teamRoles.set(response.results.map((role) => this.mapRole(role as AdminTeamRoleRecord)));
-        this.totalResults.update((current) => ({ ...current, roles: response.count ?? response.results.length }));
+        this.teamRoles.set(
+          response.results.map((role) => this.mapRole(role as AdminTeamRoleRecord)),
+        );
+        this.totalResults.update((current) => ({
+          ...current,
+          roles: response.count ?? response.results.length,
+        }));
       });
   }
 
@@ -815,8 +834,9 @@ export class AdminTeamManagementPageComponent {
       can_manage_reports: this.hasAnyPermission(payload.permissionsList, 'Reports'),
       can_view_analytics: this.hasAnyPermission(payload.permissionsList, 'Analytics'),
       can_manage_ads: this.hasAnyPermission(payload.permissionsList, 'Ads management'),
-      can_manage_team: this.hasAnyPermission(payload.permissionsList, 'Home')
-        || payload.permissionsList.includes('Invite users'),
+      can_manage_team:
+        this.hasAnyPermission(payload.permissionsList, 'Home') ||
+        payload.permissionsList.includes('Invite users'),
     };
 
     this.teamService
@@ -1069,7 +1089,10 @@ export class AdminTeamManagementPageComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((response) => {
         this.teamMembers.set(response.results.map((member) => this.mapTeamMember(member)));
-        this.totalResults.update((current) => ({ ...current, users: response.count ?? response.results.length }));
+        this.totalResults.update((current) => ({
+          ...current,
+          users: response.count ?? response.results.length,
+        }));
       });
   }
 
@@ -1079,7 +1102,10 @@ export class AdminTeamManagementPageComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((response) => {
         this.teamRoles.set(response.results.map((role) => this.mapRole(role)));
-        this.totalResults.update((current) => ({ ...current, roles: response.count ?? response.results.length }));
+        this.totalResults.update((current) => ({
+          ...current,
+          roles: response.count ?? response.results.length,
+        }));
       });
   }
 
@@ -1189,14 +1215,16 @@ export class AdminTeamManagementPageComponent {
   }
 
   private hasAnyPermission(permissions: readonly string[], sectionLabel: string): boolean {
-    return permissions.some((permission) =>
-      this.permissionSectionLabel(permission) === sectionLabel,
+    return permissions.some(
+      (permission) => this.permissionSectionLabel(permission) === sectionLabel,
     );
   }
 
   private hasTransactionPermission(permissions: readonly string[]): boolean {
-    return permissions.some((permission) =>
-      permission.toLowerCase().includes('transaction') || permission.toLowerCase().includes('export transactions'),
+    return permissions.some(
+      (permission) =>
+        permission.toLowerCase().includes('transaction') ||
+        permission.toLowerCase().includes('export transactions'),
     );
   }
 
@@ -1222,7 +1250,6 @@ export class AdminTeamManagementPageComponent {
       'Approve listings': 'Listings',
       'Reject listings': 'Listings',
       'Export listings': 'Listings',
-      'View listing reports': 'Listings',
       'View stores': 'Stores',
       'Edit stores': 'Stores',
       'Approve stores': 'Stores',
