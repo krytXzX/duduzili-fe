@@ -11,6 +11,7 @@ export type AdminSiteConfigurationResponse = {
 
 export type AdminSiteConfigurationUpdateRequest = {
   kyc_required?: boolean;
+  subscription_free?: boolean;
 };
 
 @Injectable({ providedIn: 'root' })
