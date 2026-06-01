@@ -15,20 +15,9 @@ Admin should be able to tunr on/off premium subscription features
 
 Pending fixes
 Category nav on mobile
-And the carousel on desktop
 Mobile bottom sheet for Location, desktop modal
 Remove premium and sponsored badges and replace with percantage discount on homepage
 Different bottom nav for buyer and seller on mobile
 Remove arrow on search bar in top nav
 Search bar is sticky on mobile
 Replace the heart icon on listing card
-
-
-
-
-
-
-
-**Switch to seller navigates to Listing of item page, no homepage for seller
-**Switch to seller should navigate to listings page
-**Signing and signup pages spacing should be adjusted to fit screen size`

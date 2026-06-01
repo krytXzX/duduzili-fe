@@ -2,7 +2,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroChevronLeft, heroChevronRight } from '@ng-icons/heroicons/outline';
+import {
+  heroChevronLeft as heroChevronLeftOutline,
+  heroChevronRight as heroChevronRightOutline,
+} from '@ng-icons/heroicons/outline';
 
 type AdminAdsMenuItem = {
   label: string;
@@ -13,13 +16,13 @@ type AdminAdsMenuItem = {
 @Component({
   selector: 'app-admin-ads-management-page',
   imports: [RouterLink, NgOptimizedImage, NgIcon],
-  providers: [provideIcons({ heroChevronLeft, heroChevronRight })],
+  providers: [provideIcons({ heroChevronLeftOutline, heroChevronRightOutline })],
   template: `
     <section class="min-h-full w-full bg-white">
       <div class="flex h-[54px] items-center px-5 lg:hidden">
         <a routerLink="/admin/more" class="flex items-center gap-2">
           <span class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3]">
-            <ng-icon name="heroChevronLeft" class="text-[20px] text-black"></ng-icon>
+            <ng-icon name="heroChevronLeftOutline" class="text-[20px] text-black"></ng-icon>
           </span>
           <span class="text-[20px] font-semibold leading-[1.2] text-black">Ads management</span>
         </a>
@@ -38,7 +41,10 @@ type AdminAdsMenuItem = {
                 </span>
               </span>
 
-              <ng-icon name="heroChevronRight" class="text-[16px] text-[rgba(13,13,13,0.8)]"></ng-icon>
+              <ng-icon
+                name="heroChevronRightOutline"
+                class="text-[16px] text-[rgba(13,13,13,0.8)]"
+              ></ng-icon>
             </a>
           }
         </div>
@@ -60,7 +66,10 @@ type AdminAdsMenuItem = {
                 </span>
                 <span class="text-[16px] font-medium text-[#1F1F1F]">{{ item.label }}</span>
               </span>
-              <ng-icon name="heroChevronRight" class="text-[16px] text-[rgba(13,13,13,0.8)]"></ng-icon>
+              <ng-icon
+                name="heroChevronRightOutline"
+                class="text-[16px] text-[rgba(13,13,13,0.8)]"
+              ></ng-icon>
             </a>
           }
         </div>
