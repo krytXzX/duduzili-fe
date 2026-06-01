@@ -27,6 +27,7 @@ import {
 } from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AppModeService } from '../../services/app-mode.service';
+import { AdminSettingsService } from '../../services/admin-settings.service';
 
 type ModalMode =
   | 'name'
@@ -87,7 +88,7 @@ type NotificationPreferenceSettings = Record<
           </div>
 
           <div class="mt-5 flex flex-col gap-5">
-            @for (item of mobileMenuItems; track item.id) {
+            @for (item of mobileMenuItems(); track item.id) {
               <button
                 type="button"
                 (click)="openMobileMenuItem(item.id)"
@@ -598,6 +599,100 @@ type NotificationPreferenceSettings = Record<
             }
           </div>
         </div>
+      } @else if (mobileSettingsStep() === 'platform') {
+        <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pb-32 pt-0">
+          <header>
+            <div class="flex h-[45px] items-center">
+              <button
+                type="button"
+                (click)="mobileSettingsStep.set('menu')"
+                class="inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                aria-label="Back to account settings"
+              >
+                <img ngSrc="/assets/icons/settings/security-back.svg" width="20" height="20" alt="" aria-hidden="true">
+              </button>
+            </div>
+
+            <div class="mt-4">
+              <h1 class="text-[25px] font-semibold leading-[1.2] text-[#1A1B1D]">Platform</h1>
+              <p class="mt-2 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
+                Manage marketplace-wide KYC and subscription availability settings.
+              </p>
+            </div>
+          </header>
+
+          <div class="mt-8 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-5">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0 flex-1">
+                <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">Require KYC for posting</h2>
+                <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                  When enabled, users must complete identity verification before they can post listings.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                (click)="toggleKycRequirement()"
+                [disabled]="isPlatformSettingSubmitting()"
+                class="relative mt-1 h-5 w-8 shrink-0 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                [class.bg-[#6453D9]]="isKycRequired()"
+                [class.bg-[#ECECEC]]="!isKycRequired()"
+                [class.opacity-70]="isPlatformSettingSubmitting()"
+                [attr.aria-pressed]="isKycRequired()"
+                aria-label="Toggle KYC requirement"
+              >
+                <span
+                  class="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12)] transition"
+                  [class.left-[14px]]="isKycRequired()"
+                  [class.left-0.5]="!isKycRequired()"
+                ></span>
+              </button>
+            </div>
+
+            <p class="mt-4 text-[12px] leading-[1.5] text-[rgba(26,27,29,0.55)]">
+              Current status:
+              <span class="font-medium text-[#1A1B1D]">
+                {{ isKycRequired() ? 'KYC is required before posting' : 'KYC is optional for posting' }}
+              </span>
+            </p>
+          </div>
+
+          <div class="mt-4 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-5">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0 flex-1">
+                <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">Enable subscriptions across the app</h2>
+                <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                  When enabled, users can subscribe to paid plans. When disabled, all subscription purchases are blocked.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                (click)="toggleSubscriptionsEnabled()"
+                [disabled]="isPlatformSettingSubmitting()"
+                class="relative mt-1 h-5 w-8 shrink-0 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                [class.bg-[#6453D9]]="isSubscriptionsEnabled()"
+                [class.bg-[#ECECEC]]="!isSubscriptionsEnabled()"
+                [class.opacity-70]="isPlatformSettingSubmitting()"
+                [attr.aria-pressed]="isSubscriptionsEnabled()"
+                aria-label="Toggle subscriptions availability"
+              >
+                <span
+                  class="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12)] transition"
+                  [class.left-[14px]]="isSubscriptionsEnabled()"
+                  [class.left-0.5]="!isSubscriptionsEnabled()"
+                ></span>
+              </button>
+            </div>
+
+            <p class="mt-4 text-[12px] leading-[1.5] text-[rgba(26,27,29,0.55)]">
+              Current status:
+              <span class="font-medium text-[#1A1B1D]">
+                {{ isSubscriptionsEnabled() ? 'Users can subscribe to plans' : 'Subscriptions are disabled across the app' }}
+              </span>
+            </p>
+          </div>
+        </div>
       }
     </div>
 
@@ -610,6 +705,7 @@ type NotificationPreferenceSettings = Record<
         <div class="grid items-start gap-12 xl:grid-cols-[261px_579px] xl:gap-[115px]">
           <app-settings-nav
             [activeTab]="activeTab()"
+            [showPlatformTab]="isAdminSettingsView()"
             (tabChange)="activeTab.set($event)"
           ></app-settings-nav>
 
@@ -888,7 +984,7 @@ type NotificationPreferenceSettings = Record<
                   }
                 </div>
               </section>
-            } @else {
+            } @else if (activeTab() === 'notifications') {
               <section class="w-full max-w-[679px]">
                 <h2 class="text-[28px] font-semibold leading-10 text-[#1A1B1D]">Notifications</h2>
                 <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
@@ -1034,6 +1130,89 @@ type NotificationPreferenceSettings = Record<
                       </div>
                     </div>
                   }
+                </div>
+              </section>
+            } @else if (activeTab() === 'platform' && isAdminSettingsView()) {
+              <section class="w-full max-w-[545px]">
+                <h2 class="text-[28px] font-semibold leading-10 text-[#1A1B1D]">Platform</h2>
+                <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                  Manage marketplace-wide KYC and subscription availability settings.
+                </p>
+
+                <div class="mt-8 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-6">
+                  <div class="flex items-start justify-between gap-6">
+                    <div class="min-w-0 flex-1">
+                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Require KYC for posting</h3>
+                      <p class="mt-2 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                        When enabled, users must complete identity verification before they can publish listings.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      (click)="toggleKycRequirement()"
+                      [disabled]="isPlatformSettingSubmitting()"
+                      class="relative mt-1 h-5 w-8 shrink-0 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                      [class.bg-[#6453D9]]="isKycRequired()"
+                      [class.bg-[#ECECEC]]="!isKycRequired()"
+                      [class.opacity-70]="isPlatformSettingSubmitting()"
+                      [attr.aria-pressed]="isKycRequired()"
+                      aria-label="Toggle KYC requirement"
+                    >
+                      <span
+                        class="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12)] transition"
+                        [class.left-[14px]]="isKycRequired()"
+                        [class.left-0.5]="!isKycRequired()"
+                      ></span>
+                    </button>
+                  </div>
+
+                  <div class="mt-5 rounded-[12px] bg-[#FAFAFA] px-4 py-3">
+                    <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                      Current status:
+                      <span class="font-medium text-[#1A1B1D]">
+                        {{ isKycRequired() ? 'KYC is required before posting' : 'KYC is optional for posting' }}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                <div class="mt-4 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-6">
+                  <div class="flex items-start justify-between gap-6">
+                    <div class="min-w-0 flex-1">
+                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Enable subscriptions across the app</h3>
+                      <p class="mt-2 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                        When enabled, users can subscribe to paid plans. When disabled, all subscription purchases are blocked.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      (click)="toggleSubscriptionsEnabled()"
+                      [disabled]="isPlatformSettingSubmitting()"
+                      class="relative mt-1 h-5 w-8 shrink-0 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                      [class.bg-[#6453D9]]="isSubscriptionsEnabled()"
+                      [class.bg-[#ECECEC]]="!isSubscriptionsEnabled()"
+                      [class.opacity-70]="isPlatformSettingSubmitting()"
+                      [attr.aria-pressed]="isSubscriptionsEnabled()"
+                      aria-label="Toggle subscriptions availability"
+                    >
+                      <span
+                        class="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12)] transition"
+                        [class.left-[14px]]="isSubscriptionsEnabled()"
+                        [class.left-0.5]="!isSubscriptionsEnabled()"
+                      ></span>
+                    </button>
+                  </div>
+
+                  <div class="mt-5 rounded-[12px] bg-[#FAFAFA] px-4 py-3">
+                    <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                      Current status:
+                      <span class="font-medium text-[#1A1B1D]">
+                        {{ isSubscriptionsEnabled() ? 'Users can subscribe to plans' : 'Subscriptions are disabled across the app' }}
+                      </span>
+                    </p>
+                  </div>
                 </div>
               </section>
             }
@@ -1400,6 +1579,7 @@ export class SettingsPageComponent {
   private readonly authService = inject(AuthService);
   private readonly authSession = inject(AuthSessionService);
   private readonly appMode = inject(AppModeService);
+  private readonly adminSettingsService = inject(AdminSettingsService);
   protected readonly mobileBackRoute = computed(() => {
     const currentUrl = this.router.url.split('?')[0] ?? this.router.url;
 
@@ -1414,7 +1594,7 @@ export class SettingsPageComponent {
     return '/more';
   });
   readonly activeTab = signal<SettingsTab>('profile');
-  readonly mobileSettingsStep = signal<'menu' | 'profile' | 'security' | 'notifications'>('menu');
+  readonly mobileSettingsStep = signal<'menu' | 'profile' | 'security' | 'notifications' | 'platform'>('menu');
   readonly securityTab = signal<'password' | '2fa'>('password');
   readonly notificationsTab = signal<'method' | 'preferences'>('method');
   readonly currentPassword = signal('');
@@ -1428,12 +1608,15 @@ export class SettingsPageComponent {
   readonly isPasswordSubmitting = signal(false);
   readonly isTwoFactorSubmitting = signal(false);
   readonly isNotificationSubmitting = signal(false);
+  readonly isPlatformSettingSubmitting = signal(false);
   readonly isLogoutConfirmOpen = signal(false);
   readonly isDeleteAccountConfirmOpen = signal(false);
   readonly mobilePreferenceCategory = signal<NotificationPreferenceCategoryId | null>(null);
   readonly twoFactorEnabledDate = signal('');
   readonly twoFactorQrCode = signal<string | null>(null);
   readonly twoFactorManualSecret = signal<string | null>(null);
+  readonly isKycRequired = signal(true);
+  readonly isSubscriptionsEnabled = signal(true);
   readonly notificationSettings = signal<NotificationChannelSettings>({
     email: true,
     sms: false,
@@ -1554,15 +1737,31 @@ export class SettingsPageComponent {
       description: 'Receive summaries and insights on how your listings and ads are performing',
     },
   ];
-  readonly mobileMenuItems = [
-    { id: 'profile' as const, label: 'Profile settings', iconSrc: '/assets/icons/settings/mobile-profile.svg' },
-    { id: 'security' as const, label: 'Security', iconSrc: '/assets/icons/settings/mobile-security.svg' },
-    { id: 'notifications' as const, label: 'Notifications', iconSrc: '/assets/icons/settings/mobile-notifications.svg' },
-  ];
+  readonly isAdminSettingsView = computed(() => this.router.url.split('?')[0]?.startsWith('/admin/') ?? false);
+  readonly mobileMenuItems = computed(() => {
+    const items: Array<{ id: SettingsTab; label: string; iconSrc: string }> = [
+      { id: 'profile', label: 'Profile settings', iconSrc: '/assets/icons/settings/mobile-profile.svg' },
+      { id: 'security', label: 'Security', iconSrc: '/assets/icons/settings/mobile-security.svg' },
+      { id: 'notifications', label: 'Notifications', iconSrc: '/assets/icons/settings/mobile-notifications.svg' },
+    ];
+
+    if (this.isAdminSettingsView()) {
+      items.push({
+        id: 'platform',
+        label: 'Platform',
+        iconSrc: '/assets/icons/settings/mobile-security.svg',
+      });
+    }
+
+    return items;
+  });
 
   constructor() {
     void this.loadProfile();
     void this.loadTwoFactorStatus();
+    if (this.isAdminSettingsView()) {
+      void this.loadAdminSiteConfiguration();
+    }
   }
 
   openMobileMenuItem(tab: SettingsTab): void {
@@ -1576,6 +1775,11 @@ export class SettingsPageComponent {
     if (tab === 'security') {
       this.securityTab.set('password');
       this.mobileSettingsStep.set('security');
+      return;
+    }
+
+    if (tab === 'platform') {
+      this.mobileSettingsStep.set('platform');
       return;
     }
 
@@ -2026,6 +2230,66 @@ export class SettingsPageComponent {
     void this.router.navigate(['/sign-in']);
   }
 
+  async toggleKycRequirement(): Promise<void> {
+    if (!this.isAdminSettingsView() || this.isPlatformSettingSubmitting()) {
+      return;
+    }
+
+    const previousValue = this.isKycRequired();
+    const nextValue = !previousValue;
+
+    this.isKycRequired.set(nextValue);
+
+    if (!this.appMode.isBackendEnabled()) {
+      this.showToast(`KYC requirement ${nextValue ? 'enabled' : 'disabled'} successfully`);
+      return;
+    }
+
+    this.isPlatformSettingSubmitting.set(true);
+    try {
+      const response = await firstValueFrom(
+        this.adminSettingsService.updateSiteConfiguration({ kyc_required: nextValue }),
+      );
+      this.isKycRequired.set(response.kyc_required);
+      this.showToast(`KYC requirement ${response.kyc_required ? 'enabled' : 'disabled'} successfully`);
+    } catch {
+      this.isKycRequired.set(previousValue);
+      this.showToast('We could not update the KYC requirement right now.');
+    } finally {
+      this.isPlatformSettingSubmitting.set(false);
+    }
+  }
+
+  async toggleSubscriptionsEnabled(): Promise<void> {
+    if (!this.isAdminSettingsView() || this.isPlatformSettingSubmitting()) {
+      return;
+    }
+
+    const previousValue = this.isSubscriptionsEnabled();
+    const nextValue = !previousValue;
+
+    this.isSubscriptionsEnabled.set(nextValue);
+
+    if (!this.appMode.isBackendEnabled()) {
+      this.showToast(`Subscriptions ${nextValue ? 'enabled' : 'disabled'} successfully`);
+      return;
+    }
+
+    this.isPlatformSettingSubmitting.set(true);
+    try {
+      const response = await firstValueFrom(
+        this.adminSettingsService.updateSiteConfiguration({ subscriptions_enabled: nextValue }),
+      );
+      this.isSubscriptionsEnabled.set(response.subscriptions_enabled);
+      this.showToast(`Subscriptions ${response.subscriptions_enabled ? 'enabled' : 'disabled'} successfully`);
+    } catch {
+      this.isSubscriptionsEnabled.set(previousValue);
+      this.showToast('We could not update the subscription setting right now.');
+    } finally {
+      this.isPlatformSettingSubmitting.set(false);
+    }
+  }
+
   isNotificationPreferenceEnabled(
     category: NotificationPreferenceCategoryId,
     channel: NotificationChannelId,
@@ -2035,6 +2299,26 @@ export class SettingsPageComponent {
 
   private showToast(message: string): void {
     this.appToastService.show({ message, durationMs: 2600 });
+  }
+
+  private async loadAdminSiteConfiguration(): Promise<void> {
+    if (!this.isAdminSettingsView()) {
+      return;
+    }
+
+    if (!this.appMode.isBackendEnabled()) {
+      this.isKycRequired.set(true);
+      return;
+    }
+
+    try {
+      const response = await firstValueFrom(this.adminSettingsService.getSiteConfiguration());
+      this.isKycRequired.set(response.kyc_required);
+      this.isSubscriptionsEnabled.set(response.subscriptions_enabled);
+    } catch {
+      this.isKycRequired.set(true);
+      this.isSubscriptionsEnabled.set(true);
+    }
   }
 
   private async loadProfile(): Promise<void> {

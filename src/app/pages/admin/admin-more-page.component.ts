@@ -97,6 +97,12 @@ export class AdminMorePageComponent {
         iconBackground: '#48A465',
       },
       {
+        label: 'Categories',
+        route: '/admin/categories',
+        icon: '/assets/icons/admin-more/shop.svg',
+        iconBackground: '#8E6CFF',
+      },
+      {
         label: 'Stores',
         route: '/admin/stores',
         icon: '/assets/icons/admin-more/shop.svg',

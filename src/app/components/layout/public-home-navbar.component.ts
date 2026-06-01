@@ -293,7 +293,7 @@ export type PublicHomeLocationSelection = {
                 class="mx-auto w-fit rounded-[10px] border border-[#f0f0f0] bg-white p-[6px] shadow-[0_4.7px_12.6px_rgba(199,199,199,0.25)]"
               >
                 <img
-                  ngSrc="/assets/images/home-qr-code.png"
+                  ngSrc="/assets/images/home-qr-code.svg"
                   alt="QR code to download the Duduzili app"
                   width="110"
                   height="110"
@@ -311,35 +311,49 @@ export type PublicHomeLocationSelection = {
                 <span class="h-px w-[70px] bg-[#dedee1]" aria-hidden="true"></span>
               </div>
 
-              <div class="mt-4 flex flex-col gap-3">
+              <div class="mt-[38px] flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
-                  class="flex h-[48px] items-center justify-center gap-3 rounded-[18px] border border-[#e7e7ec] bg-white text-[15px] font-medium text-[#1a1b1d]"
+                  class="flex h-10 w-[132px] items-center gap-2 rounded-[8px] border border-[#a6a6a6] bg-black px-[10px] text-white"
+                  aria-label="Download on the App Store"
                 >
-                  <img
-                    ngSrc="/assets/icons/home-apple.svg"
-                    alt=""
-                    width="20"
-                    height="20"
-                    class="h-5 w-5 shrink-0"
+                  <svg
                     aria-hidden="true"
-                  />
-                  Download on App Store
+                    viewBox="0 0 20 24"
+                    class="h-6 w-5 shrink-0 fill-white"
+                  >
+                    <path
+                      d="M16.7045 12.7631C16.7166 11.8432 16.9669 10.9413 17.4321 10.1412C17.8972 9.34108 18.5621 8.66885 19.3648 8.18702C18.8548 7.47597 18.1821 6.89081 17.4 6.478C16.6178 6.0652 15.7479 5.83613 14.8592 5.80898C12.9635 5.61471 11.1258 6.91644 10.1598 6.91644C9.17506 6.91644 7.68776 5.82827 6.08616 5.86044C5.05021 5.89311 4.04059 6.18722 3.15568 6.7141C2.27077 7.24099 1.54075 7.98268 1.03674 8.86691C-1.14648 12.5573 0.482005 17.9809 2.57338 20.964C3.61975 22.4247 4.84264 24.0564 6.44279 23.9985C8.00863 23.9351 8.59344 23.0237 10.4835 23.0237C12.3561 23.0237 12.9048 23.9985 14.5374 23.9617C16.2176 23.9351 17.2762 22.4945 18.2859 21.02C19.0377 19.9792 19.6162 18.8288 20 17.6116C19.0238 17.2085 18.1908 16.5338 17.6048 15.6716C17.0187 14.8094 16.7056 13.7979 16.7045 12.7631Z"
+                    />
+                    <path
+                      d="M13.6208 3.84713C14.5369 2.77343 14.9883 1.39335 14.879 0C13.4794 0.143519 12.1865 0.796596 11.258 1.82911C10.804 2.33351 10.4563 2.92033 10.2348 3.55601C10.0132 4.19168 9.92221 4.86375 9.96687 5.5338C10.6669 5.54084 11.3595 5.3927 11.9924 5.10054C12.6254 4.80838 13.1821 4.37982 13.6208 3.84713Z"
+                    />
+                  </svg>
+                  <span class="flex min-w-0 flex-col items-start text-left">
+                    <span class="text-[9px] font-medium leading-[1.05] text-white">Download on the</span>
+                    <span class="text-[17px] font-medium leading-none tracking-[-0.47px] text-white">App Store</span>
+                  </span>
                 </button>
 
                 <button
                   type="button"
-                  class="flex h-[48px] items-center justify-center gap-3 rounded-[18px] border border-[#e7e7ec] bg-white text-[15px] font-medium text-[#1a1b1d]"
+                  class="flex h-10 w-[132px] items-center gap-2 rounded-[8px] border border-[#a6a6a6] bg-black px-[10px] text-white"
+                  aria-label="Get it on Google Play"
                 >
-                  <img
-                    ngSrc="/assets/icons/home-google-play.svg"
-                    alt=""
-                    width="20"
-                    height="20"
-                    class="h-5 w-5 shrink-0"
+                  <svg
                     aria-hidden="true"
-                  />
-                  Download on Google Play
+                    viewBox="0 0 21 24"
+                    class="h-6 w-[21px] shrink-0"
+                  >
+                    <path d="M9.80482 11.4617L0.0896003 22.0059C0.0905128 22.0078 0.0905127 22.0106 0.0914252 22.0125C0.389807 23.1574 1.41179 24 2.62539 24C3.11083 24 3.56616 23.8656 3.95671 23.6305L3.98773 23.6118L14.9229 17.1593L9.80482 11.4617Z" fill="#EA4335"/>
+                    <path d="M19.6331 9.66619L19.624 9.65966L14.9028 6.86123L9.58391 11.7013L14.9219 17.1582L19.6176 14.3878C20.4406 13.9324 21 13.045 21 12.0223C21 11.0052 20.4489 10.1225 19.6331 9.66619Z" fill="#FBBC04"/>
+                    <path d="M0.0894234 1.99332C0.0310244 2.21353 0 2.44495 0 2.68382V21.3164C0 21.5552 0.0310245 21.7866 0.0903359 22.0059L10.1386 11.7313L0.0894234 1.99332Z" fill="#4285F4"/>
+                    <path d="M9.87657 11.9999L14.9044 6.85936L3.98192 0.383511C3.58499 0.139967 3.12145 1.42739e-07 2.62597 1.42739e-07C1.41237 1.42739e-07 0.38856 0.844472 0.0901781 1.99034C0.0901781 1.99128 0.0892662 1.99221 0.0892662 1.99314L9.87657 11.9999Z" fill="#34A853"/>
+                  </svg>
+                  <span class="flex min-w-0 flex-col items-start text-left">
+                    <span class="text-[10px] font-medium uppercase leading-[1.05] tracking-[0.02em] text-white">Get it on</span>
+                    <span class="text-[15px] font-medium leading-none tracking-[-0.02em] text-white">Google Play</span>
+                  </span>
                 </button>
               </div>
             </div>

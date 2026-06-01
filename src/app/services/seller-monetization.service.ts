@@ -57,7 +57,7 @@ export type SubscriptionStatusData = {
 };
 
 export type SubscriptionStatusResponse = {
-  subscription_free: boolean;
+  subscriptions_enabled: boolean;
   status: SubscriptionStatusData | 'No active plan';
 };
 
