@@ -384,6 +384,7 @@ export class AdsPlansPageComponent {
   readonly selectedPlanType = signal<'pro' | 'premium' | 'enterprise'>('pro');
   readonly backendPlans = signal<SubscriptionPlan[]>([]);
   readonly subscriptionStatus = signal<SubscriptionStatusData | null>(null);
+  readonly subscriptionsEnabled = signal(true);
   readonly selectedBackendPlan = signal<SubscriptionPlan | null>(null);
   readonly isSubmittingSubscription = signal(false);
 
@@ -507,6 +508,13 @@ export class AdsPlansPageComponent {
       return;
     }
 
+    if (!this.subscriptionsEnabled()) {
+      this.appToastService.show({
+        message: 'Subscriptions are currently disabled across the app.',
+      });
+      return;
+    }
+
     const backendPlan = this.matchBackendPlanByDisplayPlanId(plan.id);
     if (!backendPlan) {
       this.appToastService.show({
@@ -521,6 +529,13 @@ export class AdsPlansPageComponent {
   }
 
   handleSubscribe(selection: AdsSubscriptionSelection): void {
+    if (!this.subscriptionsEnabled()) {
+      this.appToastService.show({
+        message: 'Subscriptions are currently disabled across the app.',
+      });
+      return;
+    }
+
     const backendPlan = this.selectedBackendPlan();
     if (!backendPlan) {
       this.appToastService.show({ message: 'We could not determine the selected plan.' });
@@ -572,9 +587,13 @@ export class AdsPlansPageComponent {
 
     this.sellerMonetizationService.getSubscriptionStatus().subscribe({
       next: (response) => {
+        this.subscriptionsEnabled.set(response.subscriptions_enabled);
         this.subscriptionStatus.set(response.status === 'No active plan' ? null : response.status);
       },
-      error: () => this.subscriptionStatus.set(null),
+      error: () => {
+        this.subscriptionsEnabled.set(true);
+        this.subscriptionStatus.set(null);
+      },
     });
   }
 

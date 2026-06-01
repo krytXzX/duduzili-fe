@@ -5,13 +5,14 @@ import { environment } from '../../environments/environment';
 
 export type AdminSiteConfigurationResponse = {
   subscription_free: boolean;
+  subscriptions_enabled: boolean;
   kyc_free: boolean;
   kyc_required: boolean;
 };
 
 export type AdminSiteConfigurationUpdateRequest = {
   kyc_required?: boolean;
-  subscription_free?: boolean;
+  subscriptions_enabled?: boolean;
 };
 
 @Injectable({ providedIn: 'root' })

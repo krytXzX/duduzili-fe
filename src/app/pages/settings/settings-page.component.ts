@@ -660,27 +660,27 @@ type NotificationPreferenceSettings = Record<
           <div class="mt-4 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-5">
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0 flex-1">
-                <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">Enable free posting site-wide</h2>
+                <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">Enable subscriptions across the app</h2>
                 <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                  When enabled, subscription plan posting limits are ignored across the marketplace.
+                  When enabled, users can subscribe to paid plans. When disabled, all subscription purchases are blocked.
                 </p>
               </div>
 
               <button
                 type="button"
-                (click)="toggleSubscriptionFree()"
+                (click)="toggleSubscriptionsEnabled()"
                 [disabled]="isPlatformSettingSubmitting()"
                 class="relative mt-1 h-5 w-8 shrink-0 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
-                [class.bg-[#6453D9]]="isSubscriptionFree()"
-                [class.bg-[#ECECEC]]="!isSubscriptionFree()"
+                [class.bg-[#6453D9]]="isSubscriptionsEnabled()"
+                [class.bg-[#ECECEC]]="!isSubscriptionsEnabled()"
                 [class.opacity-70]="isPlatformSettingSubmitting()"
-                [attr.aria-pressed]="isSubscriptionFree()"
-                aria-label="Toggle free posting"
+                [attr.aria-pressed]="isSubscriptionsEnabled()"
+                aria-label="Toggle subscriptions availability"
               >
                 <span
                   class="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12)] transition"
-                  [class.left-[14px]]="isSubscriptionFree()"
-                  [class.left-0.5]="!isSubscriptionFree()"
+                  [class.left-[14px]]="isSubscriptionsEnabled()"
+                  [class.left-0.5]="!isSubscriptionsEnabled()"
                 ></span>
               </button>
             </div>
@@ -688,7 +688,7 @@ type NotificationPreferenceSettings = Record<
             <p class="mt-4 text-[12px] leading-[1.5] text-[rgba(26,27,29,0.55)]">
               Current status:
               <span class="font-medium text-[#1A1B1D]">
-                {{ isSubscriptionFree() ? 'Free posting is enabled for all sellers' : 'Subscription posting limits are enforced' }}
+                {{ isSubscriptionsEnabled() ? 'Users can subscribe to plans' : 'Subscriptions are disabled across the app' }}
               </span>
             </p>
           </div>
@@ -1180,27 +1180,27 @@ type NotificationPreferenceSettings = Record<
                 <div class="mt-4 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-6">
                   <div class="flex items-start justify-between gap-6">
                     <div class="min-w-0 flex-1">
-                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Enable free posting site-wide</h3>
+                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Enable subscriptions across the app</h3>
                       <p class="mt-2 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                        When enabled, subscription plan posting limits are ignored across the marketplace.
+                        When enabled, users can subscribe to paid plans. When disabled, all subscription purchases are blocked.
                       </p>
                     </div>
 
                     <button
                       type="button"
-                      (click)="toggleSubscriptionFree()"
+                      (click)="toggleSubscriptionsEnabled()"
                       [disabled]="isPlatformSettingSubmitting()"
                       class="relative mt-1 h-5 w-8 shrink-0 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
-                      [class.bg-[#6453D9]]="isSubscriptionFree()"
-                      [class.bg-[#ECECEC]]="!isSubscriptionFree()"
+                      [class.bg-[#6453D9]]="isSubscriptionsEnabled()"
+                      [class.bg-[#ECECEC]]="!isSubscriptionsEnabled()"
                       [class.opacity-70]="isPlatformSettingSubmitting()"
-                      [attr.aria-pressed]="isSubscriptionFree()"
-                      aria-label="Toggle free posting"
+                      [attr.aria-pressed]="isSubscriptionsEnabled()"
+                      aria-label="Toggle subscriptions availability"
                     >
                       <span
                         class="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12)] transition"
-                        [class.left-[14px]]="isSubscriptionFree()"
-                        [class.left-0.5]="!isSubscriptionFree()"
+                        [class.left-[14px]]="isSubscriptionsEnabled()"
+                        [class.left-0.5]="!isSubscriptionsEnabled()"
                       ></span>
                     </button>
                   </div>
@@ -1209,7 +1209,7 @@ type NotificationPreferenceSettings = Record<
                     <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
                       Current status:
                       <span class="font-medium text-[#1A1B1D]">
-                        {{ isSubscriptionFree() ? 'Free posting is enabled for all sellers' : 'Subscription posting limits are enforced' }}
+                        {{ isSubscriptionsEnabled() ? 'Users can subscribe to plans' : 'Subscriptions are disabled across the app' }}
                       </span>
                     </p>
                   </div>
@@ -1616,7 +1616,7 @@ export class SettingsPageComponent {
   readonly twoFactorQrCode = signal<string | null>(null);
   readonly twoFactorManualSecret = signal<string | null>(null);
   readonly isKycRequired = signal(true);
-  readonly isSubscriptionFree = signal(false);
+  readonly isSubscriptionsEnabled = signal(true);
   readonly notificationSettings = signal<NotificationChannelSettings>({
     email: true,
     sms: false,
@@ -2260,31 +2260,31 @@ export class SettingsPageComponent {
     }
   }
 
-  async toggleSubscriptionFree(): Promise<void> {
+  async toggleSubscriptionsEnabled(): Promise<void> {
     if (!this.isAdminSettingsView() || this.isPlatformSettingSubmitting()) {
       return;
     }
 
-    const previousValue = this.isSubscriptionFree();
+    const previousValue = this.isSubscriptionsEnabled();
     const nextValue = !previousValue;
 
-    this.isSubscriptionFree.set(nextValue);
+    this.isSubscriptionsEnabled.set(nextValue);
 
     if (!this.appMode.isBackendEnabled()) {
-      this.showToast(`Free posting ${nextValue ? 'enabled' : 'disabled'} successfully`);
+      this.showToast(`Subscriptions ${nextValue ? 'enabled' : 'disabled'} successfully`);
       return;
     }
 
     this.isPlatformSettingSubmitting.set(true);
     try {
       const response = await firstValueFrom(
-        this.adminSettingsService.updateSiteConfiguration({ subscription_free: nextValue }),
+        this.adminSettingsService.updateSiteConfiguration({ subscriptions_enabled: nextValue }),
       );
-      this.isSubscriptionFree.set(response.subscription_free);
-      this.showToast(`Free posting ${response.subscription_free ? 'enabled' : 'disabled'} successfully`);
+      this.isSubscriptionsEnabled.set(response.subscriptions_enabled);
+      this.showToast(`Subscriptions ${response.subscriptions_enabled ? 'enabled' : 'disabled'} successfully`);
     } catch {
-      this.isSubscriptionFree.set(previousValue);
-      this.showToast('We could not update the free posting setting right now.');
+      this.isSubscriptionsEnabled.set(previousValue);
+      this.showToast('We could not update the subscription setting right now.');
     } finally {
       this.isPlatformSettingSubmitting.set(false);
     }
@@ -2314,10 +2314,10 @@ export class SettingsPageComponent {
     try {
       const response = await firstValueFrom(this.adminSettingsService.getSiteConfiguration());
       this.isKycRequired.set(response.kyc_required);
-      this.isSubscriptionFree.set(response.subscription_free);
+      this.isSubscriptionsEnabled.set(response.subscriptions_enabled);
     } catch {
       this.isKycRequired.set(true);
-      this.isSubscriptionFree.set(false);
+      this.isSubscriptionsEnabled.set(true);
     }
   }
 
