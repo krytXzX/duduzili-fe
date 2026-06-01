@@ -616,7 +616,7 @@ type NotificationPreferenceSettings = Record<
             <div class="mt-4">
               <h1 class="text-[25px] font-semibold leading-[1.2] text-[#1A1B1D]">Platform</h1>
               <p class="mt-2 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
-                Control site-wide verification requirements for the marketplace.
+                Manage marketplace-wide KYC and subscription availability settings.
               </p>
             </div>
           </header>
@@ -1136,7 +1136,7 @@ type NotificationPreferenceSettings = Record<
               <section class="w-full max-w-[545px]">
                 <h2 class="text-[28px] font-semibold leading-10 text-[#1A1B1D]">Platform</h2>
                 <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                  Control site-wide verification requirements for the marketplace.
+                  Manage marketplace-wide KYC and subscription availability settings.
                 </p>
 
                 <div class="mt-8 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-6">
