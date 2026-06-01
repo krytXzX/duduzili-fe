@@ -1,7 +1,7 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
-export type SettingsTab = 'profile' | 'security' | 'notifications';
+export type SettingsTab = 'profile' | 'security' | 'notifications' | 'platform';
 
 @Component({
   selector: 'app-settings-nav',
@@ -11,7 +11,7 @@ export type SettingsTab = 'profile' | 'security' | 'notifications';
       <p class="px-2.5 text-[12px] uppercase leading-4 text-[rgba(143,143,143,0.7)]">Select menu</p>
 
       <div class="mt-3 flex flex-col gap-3">
-        @for (item of items; track item.id) {
+        @for (item of items(); track item.id) {
           <button
             type="button"
             (click)="tabChange.emit(item.id)"
@@ -34,9 +34,10 @@ export type SettingsTab = 'profile' | 'security' | 'notifications';
 })
 export class SettingsNavComponent {
   readonly activeTab = input.required<SettingsTab>();
+  readonly showPlatformTab = input(false);
   readonly tabChange = output<SettingsTab>();
 
-  protected readonly items = [
+  private readonly baseItems = [
     {
       id: 'profile' as const,
       label: 'Profile settings',
@@ -55,5 +56,21 @@ export class SettingsNavComponent {
       iconSrc: '/assets/icons/settings/settings-nav-notifications.svg',
       activeIconSrc: '/assets/icons/settings/notifications-nav-active.svg',
     },
-  ];
+  ] as const;
+
+  protected readonly items = computed(() => {
+    if (!this.showPlatformTab()) {
+      return this.baseItems;
+    }
+
+    return [
+      ...this.baseItems,
+      {
+        id: 'platform' as const,
+        label: 'Platform',
+        iconSrc: '/assets/icons/settings/mobile-security.svg',
+        activeIconSrc: '/assets/icons/settings/settings-nav-security-active.svg',
+      },
+    ] as const;
+  });
 }
