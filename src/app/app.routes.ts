@@ -141,6 +141,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'categories',
+        title: 'Categories',
+        loadComponent: () =>
+          import('./pages/admin/admin-categories-page.component').then(
+            (m) => m.AdminCategoriesPageComponent,
+          ),
+      },
+      {
         path: 'stores/:id',
         title: 'Store Details',
         loadComponent: () =>
