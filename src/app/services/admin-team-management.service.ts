@@ -35,6 +35,7 @@ export type AdminTeamRoleRecord = {
   can_manage_reports: boolean;
   can_view_analytics: boolean;
   can_manage_ads: boolean;
+  can_manage_categories: boolean;
   can_manage_team: boolean;
   members_count: number;
   created_at: string;
@@ -78,6 +79,7 @@ export type CreateAdminRolePayload = {
   can_manage_reports: boolean;
   can_view_analytics: boolean;
   can_manage_ads: boolean;
+  can_manage_categories: boolean;
   can_manage_team: boolean;
 };
 

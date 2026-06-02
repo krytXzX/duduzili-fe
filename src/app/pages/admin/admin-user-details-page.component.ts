@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { forkJoin } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { StoreCardComponent, type Store } from '../../components/stores/store-card.component';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
@@ -3048,13 +3050,20 @@ interface AdminUserActivityYearGroup {
 })
 export class AdminUserDetailsPageComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly adminUserDetailsService = inject(AdminUserDetailsService);
   private readonly toast = inject(AppToastService);
 
-  readonly userId = toSignal(
+  private readonly routeUserId = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('id') ?? '')),
     { initialValue: '' },
   );
+  private readonly hasRedirectedInvalidUserId = signal(false);
+
+  readonly userId = computed(() => {
+    const routeUserId = this.routeUserId().trim();
+    return /^\d+$/.test(routeUserId) ? routeUserId : '';
+  });
 
   readonly activeTab = signal<AdminUserDetailsTab>('overview');
   readonly isMobileUserActionsOpen = signal(false);
@@ -3093,6 +3102,7 @@ export class AdminUserDetailsPageComponent {
   readonly subscriptionSummary = signal<{ planName: string; activeUntil: string; price: string } | null>(null);
   readonly walletBalance = signal('₦0');
   readonly transactionRecords = signal<AdminUserTransaction[]>([]);
+
   readonly mobileTransactionRecords = signal<AdminUserMobileTransaction[]>([]);
   readonly reviewTagRecords = signal<AdminUserReviewTag[]>([]);
   readonly mobileReviewTagRecords = signal<AdminUserReviewTag[]>([]);
@@ -3796,7 +3806,7 @@ export class AdminUserDetailsPageComponent {
         isVerified: true,
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         coverImage: '/assets/images/admin-user-details/stores/desktop/vine-cover.png',
         logoImage: '/assets/images/admin-user-details/stores/desktop/vine-logo.png',
       },
@@ -3806,7 +3816,7 @@ export class AdminUserDetailsPageComponent {
         followers: '1.8k',
         isVerified: true,
         location: 'Ikeja, Lagos',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         coverImage: '/assets/images/admin-user-details/stores/desktop/new-age-cover.png',
         logoImage: '/assets/images/admin-user-details/stores/desktop/new-age-logo.png',
       },
@@ -3817,7 +3827,7 @@ export class AdminUserDetailsPageComponent {
         isVerified: true,
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         coverImage: '/assets/images/admin-user-details/stores/desktop/snap-cover.png',
         logoImage: '/assets/images/admin-user-details/stores/desktop/snap-logo.png',
       },
@@ -3827,7 +3837,7 @@ export class AdminUserDetailsPageComponent {
         followers: '1.1k',
         isVerified: true,
         location: 'Ikeja, Lagos',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         coverImage: '/assets/images/admin-user-details/stores/desktop/gomelon-cover.png',
         logoImage: '/assets/images/admin-user-details/stores/desktop/gomelon-logo.png',
       },
@@ -3839,7 +3849,7 @@ export class AdminUserDetailsPageComponent {
         followers: '760',
         isVerified: true,
         location: 'Ikeja, Lagos',
-        route: ['/admin/users', 'mark-anthony'],
+        route: ['/admin/users'],
         coverImage: '/assets/images/admin-user-details/stores/mobile/eden-cover.png',
         logoImage: '/assets/images/admin-user-details/stores/mobile/eden-logo.png',
       },
@@ -3851,7 +3861,7 @@ export class AdminUserDetailsPageComponent {
         followers: '620',
         isVerified: true,
         location: 'Ikeja, Lagos',
-        route: ['/admin/users', 'elle-adebisi'],
+        route: ['/admin/users'],
         coverImage: '/assets/images/admin-user-details/stores/mobile/eden-cover.png',
         logoImage: '/assets/images/admin-user-details/stores/mobile/eden-logo.png',
       },
@@ -3865,7 +3875,7 @@ export class AdminUserDetailsPageComponent {
         name: 'The Vine Collections',
         isVerified: true,
         location: 'Ikeja, Lagos',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/vine-cover.png',
         mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/vine-logo.png',
       },
@@ -3874,7 +3884,7 @@ export class AdminUserDetailsPageComponent {
         name: 'Eden Organics',
         isVerified: true,
         location: 'Ikeja, Lagos',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/eden-cover.png',
         mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/eden-logo.png',
       },
@@ -3883,7 +3893,7 @@ export class AdminUserDetailsPageComponent {
         name: 'Snap Thrifts',
         isVerified: true,
         location: 'Ikeja, Lagos',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/snap-cover.png',
         mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/snap-logo.png',
       },
@@ -3892,7 +3902,7 @@ export class AdminUserDetailsPageComponent {
         name: 'goMelon',
         isVerified: true,
         location: 'Ikeja, Lagos',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/gomelon-cover.png',
         mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/gomelon-logo.png',
       },
@@ -3903,7 +3913,7 @@ export class AdminUserDetailsPageComponent {
         name: 'Eden Organics',
         isVerified: true,
         location: 'Ikeja, Lagos',
-        route: ['/admin/users', 'mark-anthony'],
+        route: ['/admin/users'],
         mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/eden-cover.png',
         mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/eden-logo.png',
       },
@@ -3914,7 +3924,7 @@ export class AdminUserDetailsPageComponent {
         name: 'goMelon',
         isVerified: true,
         location: 'Ikeja, Lagos',
-        route: ['/admin/users', 'elle-adebisi'],
+        route: ['/admin/users'],
         mobileCoverImage: '/assets/images/admin-user-details/stores/mobile/gomelon-cover.png',
         mobileLogoImage: '/assets/images/admin-user-details/stores/mobile/gomelon-logo.png',
       },
@@ -4199,7 +4209,7 @@ export class AdminUserDetailsPageComponent {
         mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/vine-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         status: 'active',
       },
       {
@@ -4209,7 +4219,7 @@ export class AdminUserDetailsPageComponent {
         mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         status: 'active',
       },
       {
@@ -4219,7 +4229,7 @@ export class AdminUserDetailsPageComponent {
         mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/snap-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         status: 'active',
       },
       {
@@ -4229,7 +4239,7 @@ export class AdminUserDetailsPageComponent {
         mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         status: 'active',
       },
       {
@@ -4239,7 +4249,7 @@ export class AdminUserDetailsPageComponent {
         mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         status: 'paused',
       },
       {
@@ -4249,7 +4259,7 @@ export class AdminUserDetailsPageComponent {
         mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
-        route: ['/admin/users', 'francis-uche'],
+        route: ['/admin/users'],
         status: 'expired',
       },
     ],
@@ -5048,6 +5058,20 @@ export class AdminUserDetailsPageComponent {
   ];
 
   constructor() {
+    effect(
+      () => {
+        const routeUserId = this.routeUserId().trim();
+        if (!routeUserId || this.hasRedirectedInvalidUserId() || this.userId()) {
+          return;
+        }
+
+        this.hasRedirectedInvalidUserId.set(true);
+        this.toast.show({ message: 'That user could not be found.' });
+        void this.router.navigate(['/admin/users']);
+      },
+      { allowSignalWrites: true },
+    );
+
     effect((onCleanup) => {
       const userId = this.userId();
       if (!userId) {
@@ -5055,36 +5079,23 @@ export class AdminUserDetailsPageComponent {
       }
 
       this.isLoading.set(true);
-      const sub = forkJoin({
-        user: this.adminUserDetailsService.getUser(userId),
-        stores: this.adminUserDetailsService.getUserStores(userId),
-        ads: this.adminUserDetailsService.getUserAds(userId),
-        allListings: this.adminUserDetailsService.getUserListings(userId),
-        activities: this.adminUserDetailsService.getUserActivities(userId, 'all'),
-      }).subscribe({
-        next: ({ user, stores, ads, allListings, activities }) => {
+      const sub = this.adminUserDetailsService.getUser(userId).subscribe({
+        next: (user) => {
           this.userDetailResponse.set(user);
           this.userStatusOverride.set(null);
           this.overviewChartPoints.set(user.sold_items_chart ?? []);
-          this.storeRecords.set(stores.results.map((store) => this.mapStoreRecord(store)));
-          this.mobileStoreRecords.set(stores.results.map((store) => this.mapStoreRecord(store, true)));
-          this.subscriptionSummary.set(this.mapSubscriptionSummary(ads));
-          this.promotedListingRecords.set(this.mapPromotedListingAds(ads.promoted_listings.items));
-          this.promotedStoreRecords.set(this.mapStorePromotionAds(ads.store_promotions.items));
-          this.bannerAdRecords.set(this.mapBannerAds(ads.banner_ads.items));
-          this.adStatusCounts.set({
-            'promoted listings': ads.promoted_listings.counts,
-            'store promotions': ads.store_promotions.counts,
-            'banner ads': ads.banner_ads.counts,
-          });
-          const mappedAllListings = (allListings.results ?? []).map((listing) => this.mapListingRecord(listing));
-          this.allListingRecords.set(mappedAllListings);
-          this.activityTimelineRecords.set(this.mapActivitiesTimeline(activities));
           this.isLoading.set(false);
         },
-        error: () => {
+        error: (error: unknown) => {
           this.isLoading.set(false);
           this.resetBackendState();
+
+          if (error instanceof HttpErrorResponse && error.status === 404) {
+            this.toast.show({ message: 'That user could not be found.' });
+            void this.router.navigate(['/admin/users']);
+            return;
+          }
+
           this.toast.show({ message: 'We could not load that user right now.' });
         },
       });
@@ -5094,7 +5105,7 @@ export class AdminUserDetailsPageComponent {
 
     effect((onCleanup) => {
       const userId = this.userId();
-      if (!userId) {
+      if (!userId || this.activeTab() !== 'listings') {
         return;
       }
 
@@ -5117,7 +5128,7 @@ export class AdminUserDetailsPageComponent {
 
     effect((onCleanup) => {
       const userId = this.userId();
-      if (!userId) {
+      if (!userId || this.activeTab() !== 'transactions') {
         return;
       }
 
@@ -5145,7 +5156,7 @@ export class AdminUserDetailsPageComponent {
 
     effect((onCleanup) => {
       const userId = this.userId();
-      if (!userId) {
+      if (!userId || this.activeTab() !== 'reviews') {
         return;
       }
 
@@ -5187,7 +5198,7 @@ export class AdminUserDetailsPageComponent {
 
     effect((onCleanup) => {
       const userId = this.userId();
-      if (!userId) {
+      if (!userId || this.activeTab() !== 'reports') {
         return;
       }
 
@@ -5205,6 +5216,80 @@ export class AdminUserDetailsPageComponent {
           this.profileReportRecords.set([]);
           this.mobileProfileReportRecords.set([]);
           this.listingReportRecords.set([]);
+        },
+      });
+
+      onCleanup(() => sub.unsubscribe());
+    }, { allowSignalWrites: true });
+
+    effect((onCleanup) => {
+      const userId = this.userId();
+      if (!userId || this.activeTab() !== 'stores') {
+        return;
+      }
+
+      const sub = this.adminUserDetailsService.getUserStores(userId).subscribe({
+        next: (response) => {
+          this.storeRecords.set((response.results ?? []).map((store) => this.mapStoreRecord(store)));
+          this.mobileStoreRecords.set(
+            (response.results ?? []).map((store) => this.mapStoreRecord(store, true)),
+          );
+        },
+        error: () => {
+          this.storeRecords.set([]);
+          this.mobileStoreRecords.set([]);
+        },
+      });
+
+      onCleanup(() => sub.unsubscribe());
+    }, { allowSignalWrites: true });
+
+    effect((onCleanup) => {
+      const userId = this.userId();
+      if (!userId || this.activeTab() !== 'ads') {
+        return;
+      }
+
+      const sub = this.adminUserDetailsService.getUserAds(userId).subscribe({
+        next: (response) => {
+          this.subscriptionSummary.set(this.mapSubscriptionSummary(response));
+          this.promotedListingRecords.set(this.mapPromotedListingAds(response.promoted_listings.items));
+          this.promotedStoreRecords.set(this.mapStorePromotionAds(response.store_promotions.items));
+          this.bannerAdRecords.set(this.mapBannerAds(response.banner_ads.items));
+          this.adStatusCounts.set({
+            'promoted listings': response.promoted_listings.counts,
+            'store promotions': response.store_promotions.counts,
+            'banner ads': response.banner_ads.counts,
+          });
+        },
+        error: () => {
+          this.subscriptionSummary.set(null);
+          this.promotedListingRecords.set([]);
+          this.promotedStoreRecords.set([]);
+          this.bannerAdRecords.set([]);
+          this.adStatusCounts.set({
+            'promoted listings': {},
+            'store promotions': {},
+            'banner ads': {},
+          });
+        },
+      });
+
+      onCleanup(() => sub.unsubscribe());
+    }, { allowSignalWrites: true });
+
+    effect((onCleanup) => {
+      const userId = this.userId();
+      if (!userId || this.activeTab() !== 'activities') {
+        return;
+      }
+
+      const sub = this.adminUserDetailsService.getUserActivities(userId, 'all').subscribe({
+        next: (response) => {
+          this.activityTimelineRecords.set(this.mapActivitiesTimeline(response));
+        },
+        error: () => {
+          this.activityTimelineRecords.set([]);
         },
       });
 

@@ -1,4 +1,5 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -9,6 +10,7 @@ import {
   heroPencilSquare,
   heroPlus,
   heroSquares2x2,
+  heroTrash,
 } from '@ng-icons/heroicons/outline';
 import { AppToastService } from '../../services/app-toast.service';
 import {
@@ -30,6 +32,7 @@ type EditorMode = 'create-parent' | 'create-subcategory' | 'edit' | null;
       heroPencilSquare,
       heroPlus,
       heroSquares2x2,
+      heroTrash,
     }),
   ],
   host: { class: 'block h-full' },
@@ -102,6 +105,14 @@ type EditorMode = 'create-parent' | 'create-subcategory' | 'edit' | null;
                     >
                       <ng-icon name="heroPlus" class="text-[18px]"></ng-icon>
                     </button>
+                    <button
+                      type="button"
+                      (click)="confirmDelete(category)"
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#FDE2E2] bg-white text-[#D14343]"
+                      aria-label="Delete category"
+                    >
+                      <ng-icon name="heroTrash" class="text-[18px]"></ng-icon>
+                    </button>
                   </div>
                 </div>
 
@@ -120,6 +131,14 @@ type EditorMode = 'create-parent' | 'create-subcategory' | 'edit' | null;
                           aria-label="Edit subcategory"
                         >
                           <ng-icon name="heroPencilSquare" class="text-[16px]"></ng-icon>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="confirmDelete(subCategory)"
+                          class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#FDE2E2] bg-white text-[#D14343]"
+                          aria-label="Delete subcategory"
+                        >
+                          <ng-icon name="heroTrash" class="text-[16px]"></ng-icon>
                         </button>
                       </div>
                     }
@@ -206,6 +225,14 @@ type EditorMode = 'create-parent' | 'create-subcategory' | 'edit' | null;
                       <ng-icon name="heroPencilSquare" class="mr-2 text-[16px]"></ng-icon>
                       Edit
                     </button>
+                    <button
+                      type="button"
+                      (click)="confirmDelete(category)"
+                      class="inline-flex h-10 items-center rounded-full border border-[#FDE2E2] bg-white px-4 text-[14px] font-medium text-[#D14343]"
+                    >
+                      <ng-icon name="heroTrash" class="mr-2 text-[16px]"></ng-icon>
+                      Delete
+                    </button>
                   </div>
                 </div>
 
@@ -225,6 +252,14 @@ type EditorMode = 'create-parent' | 'create-subcategory' | 'edit' | null;
                             aria-label="Edit subcategory"
                           >
                             <ng-icon name="heroPencilSquare" class="text-[16px]"></ng-icon>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="confirmDelete(subCategory)"
+                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#FDE2E2] bg-white text-[#D14343]"
+                            aria-label="Delete subcategory"
+                          >
+                            <ng-icon name="heroTrash" class="text-[16px]"></ng-icon>
                           </button>
                         </div>
                       }
@@ -492,12 +527,10 @@ export class AdminCategoriesPageComponent {
           message: mode === 'edit' ? 'Category updated successfully.' : 'Category created successfully.',
         });
       },
-      error: () => {
+      error: (error: unknown) => {
         this.isSubmitting.set(false);
         this.appToastService.show({
-          message: mode === 'edit'
-            ? 'We could not update this category right now.'
-            : 'We could not create this category right now.',
+          message: this.categoryErrorMessage(error, mode === 'edit' ? 'update' : 'create'),
         });
       },
     });
@@ -512,6 +545,27 @@ export class AdminCategoriesPageComponent {
       default:
         return 'Other';
     }
+  }
+
+  confirmDelete(category: AdminManagedCategoryRecord): void {
+    const label = category.parent ? 'subcategory' : 'category';
+    const confirmed = globalThis.confirm(
+      `Delete ${label} "${category.name}"? We will stop this if it still has linked listings or subcategories.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.adminCategoriesService.deleteCategory(category.id).subscribe({
+      next: (response) => {
+        this.loadCategories();
+        this.appToastService.show({ message: response.detail || 'Category deleted successfully.' });
+      },
+      error: (error: unknown) => {
+        this.appToastService.show({ message: this.categoryErrorMessage(error, 'delete') });
+      },
+    });
   }
 
   private loadCategories(): void {
@@ -529,15 +583,41 @@ export class AdminCategoriesPageComponent {
           },
         });
       },
-      error: () => {
+      error: (error: unknown) => {
         this.isLoading.set(false);
         this.categoriesResponse.set({
           results: [],
           parentOptions: [],
           counts: { total: 0, topLevel: 0, subcategories: 0 },
         });
-        this.appToastService.show({ message: 'We could not load categories right now.' });
+        this.appToastService.show({ message: this.categoryErrorMessage(error, 'load') });
       },
     });
+  }
+
+  private categoryErrorMessage(error: unknown, action: 'load' | 'create' | 'update' | 'delete'): string {
+    const fallbackMap = {
+      load: 'We could not load categories right now.',
+      create: 'We could not create this category right now.',
+      update: 'We could not update this category right now.',
+      delete: 'We could not delete this category right now.',
+    } as const;
+
+    if (!(error instanceof HttpErrorResponse)) {
+      return fallbackMap[action];
+    }
+
+    if (error.status === 403) {
+      return 'You do not have permission to manage categories.';
+    }
+
+    const detail =
+      typeof error.error?.detail === 'string'
+        ? error.error.detail
+        : typeof error.error?.message === 'string'
+          ? error.error.message
+          : null;
+
+    return detail ?? fallbackMap[action];
   }
 }

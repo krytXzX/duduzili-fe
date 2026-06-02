@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 type AdminMoreItem = {
   label: string;
@@ -34,7 +35,7 @@ type AdminMoreItem = {
       </div>
 
       <div class="mt-3 flex flex-col gap-6 lg:hidden">
-        @for (group of menuGroups; track $index) {
+        @for (group of menuGroups(); track $index) {
           <div class="rounded-[24px] bg-white p-3">
             <div class="flex flex-col">
               @for (item of group; track item.label) {
@@ -88,7 +89,12 @@ type AdminMoreItem = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminMorePageComponent {
-  protected readonly menuGroups: ReadonlyArray<ReadonlyArray<AdminMoreItem>> = [
+  private readonly authSession = inject(AuthSessionService);
+
+  protected readonly menuGroups = computed<ReadonlyArray<ReadonlyArray<AdminMoreItem>>>(() => {
+    const canManageCategories = this.authSession.canManageCategories();
+
+    return [
     [
       {
         label: 'Ads management',
@@ -96,12 +102,14 @@ export class AdminMorePageComponent {
         icon: '/assets/icons/admin-more/award.svg',
         iconBackground: '#48A465',
       },
-      {
-        label: 'Categories',
-        route: '/admin/categories',
-        icon: '/assets/icons/admin-more/shop.svg',
-        iconBackground: '#8E6CFF',
-      },
+      ...(canManageCategories
+        ? [{
+            label: 'Categories',
+            route: '/admin/categories',
+            icon: '/assets/icons/admin-more/shop.svg',
+            iconBackground: '#8E6CFF',
+          }]
+        : []),
       {
         label: 'Stores',
         route: '/admin/stores',
@@ -145,5 +153,6 @@ export class AdminMorePageComponent {
         iconBackground: '#FF641E',
       },
     ],
-  ];
+    ];
+  });
 }
