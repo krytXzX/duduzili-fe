@@ -834,6 +834,7 @@ export class AdminTeamManagementPageComponent {
       can_manage_reports: this.hasAnyPermission(payload.permissionsList, 'Reports'),
       can_view_analytics: this.hasAnyPermission(payload.permissionsList, 'Analytics'),
       can_manage_ads: this.hasAnyPermission(payload.permissionsList, 'Ads management'),
+      can_manage_categories: payload.permissionsList.includes('Manage categories'),
       can_manage_team:
         this.hasAnyPermission(payload.permissionsList, 'Home') ||
         payload.permissionsList.includes('Invite users'),
@@ -1206,6 +1207,9 @@ export class AdminTeamManagementPageComponent {
     }
     if (role.can_manage_ads) {
       permissions.push('Manage ads');
+    }
+    if (role.can_manage_categories) {
+      permissions.push('Manage categories');
     }
     if (role.can_manage_team) {
       permissions.push('Manage team');

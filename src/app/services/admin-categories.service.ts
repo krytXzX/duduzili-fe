@@ -40,6 +40,12 @@ export type AdminCategoryPayload = {
   icon?: File | null;
 };
 
+export type AdminCategoryDeleteResponse = {
+  detail: string;
+  listing_count?: number;
+  subcategory_count?: number;
+};
+
 @Injectable({ providedIn: 'root' })
 export class AdminCategoriesService {
   private readonly http = inject(HttpClient);
@@ -72,6 +78,10 @@ export class AdminCategoriesService {
       `${this.apiUrl}/admin/categories/${id}/`,
       this.toFormData(payload),
     );
+  }
+
+  deleteCategory(id: number): Observable<AdminCategoryDeleteResponse> {
+    return this.http.delete<AdminCategoryDeleteResponse>(`${this.apiUrl}/admin/categories/${id}/`);
   }
 
   private toFormData(payload: Partial<AdminCategoryPayload>): FormData {
