@@ -37,9 +37,22 @@ export class AuthSessionService {
   readonly isBootstrapComplete = computed(() => this.bootstrapCompleteState());
   readonly isAuthenticated = computed(() => this.session() !== null);
   readonly role = computed(() => this.user()?.role?.toLowerCase() ?? null);
+  readonly adminPermissions = computed(() => this.user()?.admin_permissions ?? null);
   readonly isSuperuser = computed(() => {
     const role = this.role();
     return role === 'admin' || role === 'superuser';
+  });
+  readonly canManageCategories = computed(() => {
+    if (!this.isSuperuser()) {
+      return false;
+    }
+
+    const permissions = this.adminPermissions();
+    if (!permissions) {
+      return true;
+    }
+
+    return permissions.can_manage_categories === true;
   });
   readonly isSeller = computed(() => {
     const role = this.role();

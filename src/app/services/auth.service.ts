@@ -30,6 +30,9 @@ export type AuthUser = {
   notification_preferences?: Record<string, Record<string, boolean>> | null;
   vendor_profile_ids?: readonly (string | number)[];
   vendor_profile_id?: string | number | null;
+  admin_permissions?: {
+    can_manage_categories?: boolean;
+  } | null;
   created_at: string;
   role?: string;
 };

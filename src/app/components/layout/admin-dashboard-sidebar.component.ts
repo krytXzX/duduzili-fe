@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -16,6 +16,7 @@ import {
   heroSquares2x2,
   heroUserCircle,
 } from '@ng-icons/heroicons/outline';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
   selector: 'app-admin-dashboard-sidebar',
@@ -75,14 +76,16 @@ import {
             <ng-icon name="heroSquares2x2" class="text-lg text-gray-400"></ng-icon>
             Stores
           </a>
-          <a
-            routerLink="/admin/categories"
-            routerLinkActive="bg-white text-[#1A1C21] shadow-sm"
-            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
-          >
-            <ng-icon name="heroSquares2x2" class="text-lg text-gray-400"></ng-icon>
-            Categories
-          </a>
+          @if (canManageCategories()) {
+            <a
+              routerLink="/admin/categories"
+              routerLinkActive="bg-white text-[#1A1C21] shadow-sm"
+              class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
+            >
+              <ng-icon name="heroSquares2x2" class="text-lg text-gray-400"></ng-icon>
+              Categories
+            </a>
+          }
           <div class="flex flex-col">
             <button
               type="button"
@@ -245,8 +248,10 @@ import {
 })
 export class AdminDashboardSidebarComponent {
   private readonly router = inject(Router);
+  private readonly authSession = inject(AuthSessionService);
 
   readonly isAdsExpanded = signal(true);
+  readonly canManageCategories = computed(() => this.authSession.canManageCategories());
   readonly activeAdsItem = signal<AdminAdsManagementItemId>('plans');
   readonly adsManagementItems: ReadonlyArray<{ id: AdminAdsManagementItemId; label: string }> = [
     { id: 'plans', label: 'Plans' },
