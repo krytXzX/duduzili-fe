@@ -8,7 +8,7 @@
         @for (image of product().images; track image.src; let index = $index) {
           <button
             type="button"
-            (click)="setGalleryIndex(index)"
+            (click)="openGalleryPreview(index)"
             class="relative aspect-square overflow-hidden rounded-[20px] border bg-[#EFEFEF] p-1 transition-all"
             [class.border-black]="currentGalleryIndex() === index"
             [class.border-[#EAEAEA]]="currentGalleryIndex() !== index"
@@ -89,7 +89,7 @@
             @for (image of product().images; track image.src; let index = $index) {
               <button
                 type="button"
-                (click)="setGalleryIndex(index)"
+                (click)="openGalleryPreview(index)"
                 class="relative h-[350px] w-[86%] shrink-0 snap-start overflow-hidden rounded-[20px] bg-[#EFEFEF] transition"
                 [class.ring-2]="currentGalleryIndex() === index"
                 [class.ring-[#1F1F1F]]="currentGalleryIndex() === index"
@@ -170,14 +170,21 @@
             </span>
           </div>
 
-          <img
-            [ngSrc]="currentGalleryImage().src"
-            [alt]="currentGalleryImage().alt"
-            width="552"
-            height="668"
-            priority
-            class="h-[668px] w-full object-cover"
-          />
+          <button
+            type="button"
+            (click)="openGalleryPreview()"
+            class="block h-full w-full cursor-zoom-in"
+            aria-label="Open image preview"
+          >
+            <img
+              [ngSrc]="currentGalleryImage().src"
+              [alt]="currentGalleryImage().alt"
+              width="552"
+              height="668"
+              priority
+              class="h-[668px] w-full object-cover"
+            />
+          </button>
         </div>
 
         <div class="lg:hidden">
@@ -504,6 +511,165 @@
         </section>
       </aside>
     </section>
+
+    @if (isGalleryPreviewOpen()) {
+      <div
+        class="fixed inset-0 z-[120] bg-white/98 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Product image preview"
+      >
+        <div class="hidden h-full w-full lg:flex lg:flex-col">
+          <div class="flex items-start justify-between px-8 pt-7">
+            <button
+              type="button"
+              (click)="closeGalleryPreview()"
+              class="flex h-12 w-12 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F7F7F7]"
+              aria-label="Close image preview"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 5l10 10M15 5 5 15" />
+              </svg>
+            </button>
+
+            <div class="w-12"></div>
+          </div>
+
+          <div class="flex flex-1 items-center justify-center gap-8 px-8 pb-8 pt-4">
+            <button
+              type="button"
+              (click)="prevImage()"
+              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F7F7F7]"
+              aria-label="Previous image"
+            >
+              <svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12.5 15 7.5 10l5-5" />
+              </svg>
+            </button>
+
+            <div class="flex min-w-0 flex-1 flex-col items-center gap-8">
+              <div class="flex h-[min(68vh,760px)] w-full max-w-[660px] items-center justify-center rounded-[34px] bg-[#F3F3F3] p-6">
+                <img
+                  [ngSrc]="currentGalleryImage().src"
+                  [alt]="currentGalleryImage().alt"
+                  width="660"
+                  height="760"
+                  class="max-h-full max-w-full rounded-[28px] object-contain"
+                />
+              </div>
+
+              <div class="flex flex-wrap items-center justify-center gap-4">
+                @for (image of product().images; track image.src; let index = $index) {
+                  <button
+                    type="button"
+                    (click)="setGalleryIndex(index)"
+                    class="relative flex h-[92px] w-[104px] items-center justify-center overflow-hidden rounded-[20px] border bg-[#EFEFEF] p-1 transition"
+                    [class.border-black]="currentGalleryIndex() === index"
+                    [class.border-[#EAEAEA]]="currentGalleryIndex() !== index"
+                    [attr.aria-label]="'Preview image ' + (index + 1)"
+                  >
+                    <img
+                      [ngSrc]="image.src"
+                      [alt]="image.alt"
+                      width="96"
+                      height="84"
+                      class="h-full w-full rounded-[16px] object-cover"
+                    />
+                  </button>
+                }
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="nextImage()"
+              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F7F7F7]"
+              aria-label="Next image"
+            >
+              <svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7.5 5 12.5 10l-5 5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex h-full w-full flex-col lg:hidden">
+          <div class="flex items-center justify-end px-5 pt-5">
+            <button
+              type="button"
+              (click)="closeGalleryPreview()"
+              class="flex h-12 w-12 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+              aria-label="Close image preview"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 5l10 10M15 5 5 15" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="flex flex-1 flex-col justify-between gap-6 px-5 pb-8 pt-6">
+            <div class="flex flex-1 flex-col gap-4">
+              <div class="flex min-h-0 flex-1 items-center justify-center rounded-[28px] bg-[#F3F3F3] p-4">
+                <img
+                  [ngSrc]="currentGalleryImage().src"
+                  [alt]="currentGalleryImage().alt"
+                  width="350"
+                  height="420"
+                  class="max-h-full max-w-full rounded-[22px] object-contain"
+                />
+              </div>
+
+              <div class="flex items-center justify-between px-1 text-[18px] font-medium text-[#9E9E9E]">
+                <button
+                  type="button"
+                  (click)="prevImage()"
+                  class="flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                  aria-label="Previous image"
+                >
+                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12.5 15 7.5 10l5-5" />
+                  </svg>
+                </button>
+
+                <span aria-live="polite">{{ galleryImageCountLabel() }}</span>
+
+                <button
+                  type="button"
+                  (click)="nextImage()"
+                  class="flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                  aria-label="Next image"
+                >
+                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7.5 5 12.5 10l-5 5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+              @for (image of product().images; track image.src; let index = $index) {
+                <button
+                  type="button"
+                  (click)="setGalleryIndex(index)"
+                  class="relative h-[102px] w-[102px] shrink-0 overflow-hidden rounded-[22px] border bg-[#EFEFEF] p-1 transition"
+                  [class.border-black]="currentGalleryIndex() === index"
+                  [class.border-[#EAEAEA]]="currentGalleryIndex() !== index"
+                  [attr.aria-label]="'Preview image ' + (index + 1)"
+                >
+                  <img
+                    [ngSrc]="image.src"
+                    [alt]="image.alt"
+                    width="94"
+                    height="94"
+                    class="h-full w-full rounded-[18px] object-cover"
+                  />
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
 
     <section>
       <div class="mb-4 flex items-center justify-between gap-4 lg:mb-5">

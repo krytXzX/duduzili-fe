@@ -1,5 +1,12 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -81,10 +88,13 @@ type SellerReportStep = 1 | 2;
   templateUrl: './product-page.component.html',
   host: {
     class: 'block h-full overflow-y-auto overflow-x-hidden bg-white text-[#1F1F1F]',
+    '(document:keydown.escape)': 'handleGalleryPreviewEscape()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductPageComponent {
+  private readonly document = inject(DOCUMENT);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
@@ -109,6 +119,7 @@ export class ProductPageComponent {
   readonly sellerReportStep = signal<SellerReportStep>(1);
   readonly selectedSellerReportReason = signal<string | null>(null);
   readonly currentGalleryIndex = signal(0);
+  readonly isGalleryPreviewOpen = signal(false);
   readonly isFollowPending = signal(false);
   readonly isSubmittingListingReport = signal(false);
   readonly isSubmittingSellerReport = signal(false);
@@ -343,11 +354,26 @@ export class ProductPageComponent {
   readonly ratingStars = [1, 2, 3, 4, 5] as const;
 
   constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.document.body.style.overflow = '';
+    });
+
     void this.loadProductDetails();
 
     if (this.route.snapshot.queryParamMap.get('report') === 'seller') {
       this.openReportModal('seller');
     }
+  }
+
+  openGalleryPreview(index = this.currentGalleryIndex()): void {
+    this.setGalleryIndex(index);
+    this.isGalleryPreviewOpen.set(true);
+    this.document.body.style.overflow = 'hidden';
+  }
+
+  closeGalleryPreview(): void {
+    this.isGalleryPreviewOpen.set(false);
+    this.document.body.style.overflow = '';
   }
 
   setGalleryIndex(index: number): void {
@@ -365,6 +391,18 @@ export class ProductPageComponent {
       (currentIndex) =>
         (currentIndex - 1 + this.product().images.length) % this.product().images.length,
     );
+  }
+
+  galleryImageCountLabel(): string {
+    return `${this.currentGalleryIndex() + 1}/${this.product().images.length}`;
+  }
+
+  handleGalleryPreviewEscape(): void {
+    if (!this.isGalleryPreviewOpen()) {
+      return;
+    }
+
+    this.closeGalleryPreview();
   }
 
   whatsappLink(): string {
