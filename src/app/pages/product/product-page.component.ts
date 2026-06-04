@@ -20,9 +20,11 @@ import {
   ListingsApiItem,
   ListingsSearchResponse,
   ListingsService,
+  ToggleWishlistResponse,
 } from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { FavoritesStateService } from '../../services/favorites-state.service';
 import { MessagesService } from '../../services/messages.service';
 import {
   VendorsService,
@@ -48,6 +50,7 @@ interface ProductDetails {
   readonly description: string;
   readonly condition: string;
   readonly saves: string;
+  readonly isSaved: boolean;
   readonly deliveryOptions: readonly string[];
   readonly images: readonly ProductGalleryImage[];
 }
@@ -102,6 +105,7 @@ export class ProductPageComponent {
   private readonly vendorsService = inject(VendorsService);
   private readonly appToastService = inject(AppToastService);
   private readonly authSession = inject(AuthSessionService);
+  private readonly favoritesStateService = inject(FavoritesStateService);
   private readonly messagesService = inject(MessagesService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
@@ -121,12 +125,16 @@ export class ProductPageComponent {
   readonly currentGalleryIndex = signal(0);
   readonly isGalleryPreviewOpen = signal(false);
   readonly isFollowPending = signal(false);
+  readonly isWishlistPending = signal(false);
   readonly isSubmittingListingReport = signal(false);
   readonly isSubmittingSellerReport = signal(false);
   readonly isStartingConversation = signal(false);
   readonly isSubmittingOffer = signal(false);
   readonly isSubmittingCallbackRequest = signal(false);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
+  readonly isProductSaved = computed(() =>
+    this.product().isSaved || this.favoritesStateService.isFavorited(this.product().id),
+  );
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
   );
@@ -181,6 +189,7 @@ export class ProductPageComponent {
       'UK used iPhone 16 Pro, neatly used and fully working. Good battery health.',
     condition: 'Used',
     saves: '0',
+    isSaved: false,
     deliveryOptions: ['Seller delivery', 'Nation-wide', 'Public location'],
     images: [
       {
@@ -484,6 +493,67 @@ export class ProductPageComponent {
     }
   }
 
+  async toggleWishlist(closeMenu = false): Promise<void> {
+    if (closeMenu) {
+      this.closeListingActionsMenu();
+    }
+
+    if (this.isWishlistPending()) {
+      return;
+    }
+
+    if (!this.authSession.isAuthenticated()) {
+      this.appToastService.show({
+        message: 'Please sign in to add listings to your wishlist',
+        imageSrc: this.product().images[0]?.src ?? '/assets/images/home-item-placeholder.png',
+        imageAlt: this.product().name,
+        durationMs: 1200,
+      });
+      setTimeout(() => {
+        void this.router.navigate(['/sign-in']);
+      }, 1200);
+      return;
+    }
+
+    const productId = this.product().id;
+    if (!productId) {
+      return;
+    }
+
+    const wasSaved = this.isProductSaved();
+    this.isWishlistPending.set(true);
+
+    try {
+      const response = await firstValueFrom(this.listingsService.toggleWishlist(productId));
+      const nextIsSaved = this.resolveWishlistState(response, wasSaved);
+      const nextSaveCount = this.resolveSaveCount(this.product().saves, wasSaved, nextIsSaved);
+
+      if (nextIsSaved) {
+        this.favoritesStateService.add(productId);
+      } else {
+        this.favoritesStateService.remove(productId);
+      }
+
+      this.product.update((product) => ({
+        ...product,
+        isSaved: nextIsSaved,
+        saves: nextSaveCount,
+      }));
+
+      this.appToastService.show({
+        message: nextIsSaved ? 'Added to Wishlist' : 'Removed from Wishlist',
+        imageSrc: this.product().images[0]?.src ?? '/assets/images/home-item-placeholder.png',
+        imageAlt: this.product().name,
+      });
+    } catch {
+      this.appToastService.show({
+        message: 'Unable to update wishlist right now.',
+      });
+    } finally {
+      this.isWishlistPending.set(false);
+    }
+  }
+
   closeCallVendorModal(): void {
     this.isCallVendorModalOpen.set(false);
   }
@@ -729,6 +799,10 @@ export class ProductPageComponent {
       this.formatCount(record['save_count']) ??
       this.formatCount(record['saved']) ??
       this.product().saves;
+    const listingId = this.readString(record['id']) ?? this.productId;
+    const isSaved =
+      this.readBoolean(record['is_saved']) ??
+      this.favoritesStateService.isFavorited(listingId);
     const deliveryOptions =
       this.extractDeliveryOptions(record) ?? this.product().deliveryOptions;
     const storeName =
@@ -766,7 +840,7 @@ export class ProductPageComponent {
     this.currentGalleryIndex.set(0);
     this.product.set({
       ...this.product(),
-      id: this.readString(record['id']) ?? this.productId,
+      id: listingId,
       name: productName,
       price: formattedPrice,
       oldPrice: formattedOldPrice,
@@ -775,6 +849,7 @@ export class ProductPageComponent {
       description,
       condition,
       saves,
+      isSaved,
       deliveryOptions,
       images: galleryImages,
     });
@@ -1261,6 +1336,31 @@ export class ProductPageComponent {
     return !previousState;
   }
 
+  private resolveWishlistState(
+    response: ToggleWishlistResponse,
+    previousState: boolean,
+  ): boolean {
+    if (!response || typeof response !== 'object') {
+      return !previousState;
+    }
+
+    const explicitState = response['is_saved'];
+    if (typeof explicitState === 'boolean') {
+      return explicitState;
+    }
+
+    const nestedState =
+      typeof response['data'] === 'object' && response['data'] !== null
+        ? (response['data'] as Record<string, unknown>)['is_saved']
+        : null;
+
+    if (typeof nestedState === 'boolean') {
+      return nestedState;
+    }
+
+    return !previousState;
+  }
+
   private resolveFollowerCount(
     backendValue: unknown,
     currentValue: string,
@@ -1272,6 +1372,20 @@ export class ProductPageComponent {
       return backendCount;
     }
 
+    const currentCount = this.readNumber(currentValue);
+    if (currentCount === null || previousState === nextState) {
+      return currentValue;
+    }
+
+    const nextCount = nextState ? currentCount + 1 : Math.max(0, currentCount - 1);
+    return this.formatCount(nextCount) ?? currentValue;
+  }
+
+  private resolveSaveCount(
+    currentValue: string,
+    previousState: boolean,
+    nextState: boolean,
+  ): string {
     const currentCount = this.readNumber(currentValue);
     if (currentCount === null || previousState === nextState) {
       return currentValue;

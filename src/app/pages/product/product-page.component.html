@@ -138,10 +138,22 @@
 
           <button
             type="button"
+            (click)="void toggleWishlist()"
             class="absolute right-5 top-5 z-10 inline-flex items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 py-2 text-sm text-[#2D2D2D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+            [attr.aria-label]="isProductSaved() ? 'Remove from wishlist' : 'Add to wishlist'"
+            [attr.aria-pressed]="isProductSaved()"
+            [disabled]="isWishlistPending()"
           >
             <span>{{ product().saves }}</span>
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <svg
+              class="h-5 w-5 transition-colors"
+              [class.text-[#6453D9]]="isProductSaved()"
+              [class.text-[#2D2D2D]]="!isProductSaved()"
+              viewBox="0 0 24 24"
+              [attr.fill]="isProductSaved() ? 'currentColor' : 'none'"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -737,6 +749,33 @@
     role="menu"
     aria-label="Listing actions"
   >
+    <button
+      type="button"
+      (click)="void toggleWishlist(true)"
+      class="flex w-full items-center gap-3 px-5 py-3 text-left text-[14px] font-medium text-[#2E323B] transition hover:bg-[#F8F8FA]"
+      role="menuitem"
+      [attr.aria-pressed]="isProductSaved()"
+      [disabled]="isWishlistPending()"
+    >
+      <svg
+        class="h-4 w-4 transition-colors"
+        [class.text-[#6453D9]]="isProductSaved()"
+        [class.text-[#7B8088]]="!isProductSaved()"
+        viewBox="0 0 24 24"
+        [attr.fill]="isProductSaved() ? 'currentColor' : 'none'"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.8"
+          d="m12 21-1.45-1.32C5.4 15.05 2 11.97 2 8.2 2 5.12 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6.04 6.04 0 0116.5 3C19.58 3 22 5.12 22 8.2c0 3.77-3.4 6.85-8.55 11.49L12 21z"
+        />
+      </svg>
+      {{ isProductSaved() ? 'Remove from wishlist' : 'Add to wishlist' }}
+    </button>
+
     <button
       type="button"
       (click)="shareListing()"
