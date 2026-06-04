@@ -83,14 +83,82 @@
               </span>
             </h1>
 
-            <form class="mt-10 flex w-full max-w-[631px] items-center justify-between rounded-[222px] border border-[#dddddd] bg-white py-2 pl-6 pr-2 shadow-[0_12px_30px_rgba(151,150,196,0.25)]" (submit)="submitHomeSearch($event)">
-              <label class="sr-only" for="desktop-home-search">Search for products</label>
-              <input id="desktop-home-search" type="search" [value]="homeSearchQuery()" (input)="updateHomeSearchQuery($event)" placeholder="What are you looking for?" class="min-w-0 flex-1 border-none bg-transparent text-2xl text-[#2c2c2c] outline-none placeholder:text-[#adadad]" />
-              <button type="submit" class="flex h-[54px] items-center gap-2 rounded-full border border-white bg-[#6453d9] px-5 text-xl font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]">
-                <img ngSrc="/assets/icons/home-search.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
-                Search
-              </button>
-            </form>
+            <div class="relative mt-10 w-full max-w-[647px]">
+              @if (isDesktopSearchOverlayOpen()) {
+                <button
+                  type="button"
+                  class="fixed inset-0 z-10 hidden cursor-default lg:block"
+                  aria-label="Close search suggestions"
+                  (click)="closeDesktopSearchOverlay()"
+                ></button>
+              }
+
+              <div
+                class="relative z-20 overflow-hidden rounded-[44px] border border-[#EAEAEA] bg-white shadow-[0_4px_8px_4px_rgba(210,210,210,0.25)] transition-all duration-200"
+                [class.pb-[31px]]="isDesktopSearchOverlayOpen()"
+              >
+                <form
+                  class="relative z-[1] flex items-center justify-between rounded-[222px] border border-[#dddddd] bg-white py-2 pl-6 pr-2 shadow-[0_12px_30px_rgba(151,150,196,0.25)]"
+                  [class.mx-[7px]]="isDesktopSearchOverlayOpen()"
+                  [class.mt-[7px]]="isDesktopSearchOverlayOpen()"
+                  [class.w-[631px]]="isDesktopSearchOverlayOpen()"
+                  (submit)="submitHomeSearch($event)"
+                >
+                  <label class="sr-only" for="desktop-home-search">Search for products</label>
+                  <input
+                    id="desktop-home-search"
+                    type="search"
+                    [value]="homeSearchQuery()"
+                    (input)="updateHomeSearchQuery($event)"
+                    (focus)="openDesktopSearchOverlay()"
+                    placeholder="What are you looking for?"
+                    class="min-w-0 flex-1 border-none bg-transparent text-2xl text-[#010101] outline-none placeholder:text-[#adadad]"
+                  />
+                  <button
+                    type="submit"
+                    class="flex h-[54px] items-center gap-2 rounded-full border border-white bg-[#6453d9] px-5 text-xl font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]"
+                  >
+                    <img
+                      ngSrc="/assets/icons/home-search.svg"
+                      alt=""
+                      width="20"
+                      height="20"
+                      class="h-5 w-5"
+                      aria-hidden="true"
+                    />
+                    Search
+                  </button>
+                </form>
+
+                @if (isDesktopSearchOverlayOpen()) {
+                  <div class="px-[31px] pt-[48px]">
+                    <div class="flex items-start justify-between gap-4">
+                      <h2 class="text-[18px] font-medium leading-[1.2] text-[#1A1B1D]">
+                        Popular right now
+                      </h2>
+                      <span
+                        class="text-[14px] font-medium leading-5 text-[#01A204] opacity-0"
+                        aria-hidden="true"
+                      >
+                        Clear history
+                      </span>
+                    </div>
+
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      @for (term of popularSearches; track term) {
+                        <button
+                          type="button"
+                          (click)="applySearchTerm(term)"
+                          class="inline-flex h-11 items-center rounded-full bg-[#F9F9F9] px-4 text-[14px] font-medium leading-[1.4] text-[#1A1B1D]"
+                        >
+                          {{ term }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
 
             <div class="mt-5 flex items-center gap-1 rounded-full bg-[#f7f7f7] p-1">
               @for (cardSet of heroCardSets; track $index) {

@@ -116,6 +116,7 @@ export class HomePageComponent {
   readonly showBottomNav = input(true);
   readonly isCategoriesSheetOpen = signal(false);
   readonly isMobileSearchOverlayOpen = signal(false);
+  readonly isDesktopSearchOverlayOpen = signal(false);
   readonly selectedLocationQueryValue = signal<string>('All Nigeria');
   readonly activeHeroCardSetIndex = signal(0);
   readonly enteringHeroCardSetIndex = signal(1);
@@ -556,6 +557,14 @@ export class HomePageComponent {
     this.isMobileSearchOverlayOpen.set(false);
   }
 
+  openDesktopSearchOverlay(): void {
+    this.isDesktopSearchOverlayOpen.set(true);
+  }
+
+  closeDesktopSearchOverlay(): void {
+    this.isDesktopSearchOverlayOpen.set(false);
+  }
+
   updateMobileSearchQuery(event: Event): void {
     const target = event.target as HTMLInputElement | null;
     this.mobileSearchQuery.set(target?.value ?? '');
@@ -571,6 +580,7 @@ export class HomePageComponent {
 
     const query = this.homeSearchQuery().trim() || this.mobileSearchQuery().trim() || 'iPhone';
     this.isMobileSearchOverlayOpen.set(false);
+    this.isDesktopSearchOverlayOpen.set(false);
     void this.router.navigate(['/search'], { queryParams: { q: query } });
   }
 
@@ -585,6 +595,8 @@ export class HomePageComponent {
   applySearchTerm(term: string): void {
     this.mobileSearchQuery.set(term);
     this.homeSearchQuery.set(term);
+    this.isDesktopSearchOverlayOpen.set(false);
+    void this.router.navigate(['/search'], { queryParams: { q: term } });
   }
 
   scrollCategories(): void {
