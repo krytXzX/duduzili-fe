@@ -247,53 +247,7 @@ export class ProductPageComponent {
     },
   ]);
 
-  readonly moreFromSeller = signal<Listing[]>([
-    {
-      id: 'ms1',
-      title: 'Logitech ergonomic mouse',
-      price: '₦35,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '5 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_sneakers.png'],
-    },
-    {
-      id: 'ms2',
-      title: 'iPhone 17 Pro Max',
-      price: '₦2,500,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '12 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_watch_luxury.png'],
-    },
-    {
-      id: 'ms3',
-      title: 'RGB keyboard',
-      price: '₦35,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '15 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_keyboard_rgb.png'],
-    },
-    {
-      id: 'ms4',
-      title: 'Sweatshirt',
-      price: '₦25,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '20 mins ago',
-      isVerified: true,
-      images: ['/assets/images/fashion_menswear_hero.png'],
-    },
-    {
-      id: 'ms5',
-      title: 'iPhone X (64 gb)',
-      price: '₦35,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '2 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_watch_luxury.png'],
-    },
-  ]);
+  readonly moreFromSeller = signal<Listing[]>([]);
 
   readonly relatedItems = signal<Listing[]>([]);
 
@@ -876,9 +830,12 @@ export class ProductPageComponent {
       this.relatedItems.set(relatedListings);
     }
 
-    const category = this.readString(record['category']);
-    if (category) {
-      await this.loadRelatedItems(category, this.readString(record['id']) ?? this.productId);
+    const categoryQuery =
+      this.readString(record['category_id']) ??
+      this.readString(record['category_slug']) ??
+      this.readString(record['category']);
+    if (categoryQuery) {
+      await this.loadRelatedItems(categoryQuery, this.readString(record['id']) ?? this.productId);
     }
   }
 
@@ -899,9 +856,9 @@ export class ProductPageComponent {
     }
   }
 
-  private async loadRelatedItems(category: string, currentListingId: string): Promise<void> {
+  private async loadRelatedItems(categoryQuery: string, currentListingId: string): Promise<void> {
     try {
-      const response = await firstValueFrom(this.listingsService.getCategoryListings(category));
+      const response = await firstValueFrom(this.listingsService.getCategoryListings(categoryQuery));
       const listings = this.extractSearchListingItems(response)
         .map((record, index) => this.toListingCard(record, index))
         .filter((listing): listing is Listing => listing !== null)
