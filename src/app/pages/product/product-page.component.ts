@@ -1,5 +1,12 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -13,9 +20,11 @@ import {
   ListingsApiItem,
   ListingsSearchResponse,
   ListingsService,
+  ToggleWishlistResponse,
 } from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { FavoritesStateService } from '../../services/favorites-state.service';
 import { MessagesService } from '../../services/messages.service';
 import {
   VendorsService,
@@ -41,6 +50,7 @@ interface ProductDetails {
   readonly description: string;
   readonly condition: string;
   readonly saves: string;
+  readonly isSaved: boolean;
   readonly deliveryOptions: readonly string[];
   readonly images: readonly ProductGalleryImage[];
 }
@@ -81,10 +91,13 @@ type SellerReportStep = 1 | 2;
   templateUrl: './product-page.component.html',
   host: {
     class: 'block h-full overflow-y-auto overflow-x-hidden bg-white text-[#1F1F1F]',
+    '(document:keydown.escape)': 'handleGalleryPreviewEscape()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductPageComponent {
+  private readonly document = inject(DOCUMENT);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
@@ -92,6 +105,7 @@ export class ProductPageComponent {
   private readonly vendorsService = inject(VendorsService);
   private readonly appToastService = inject(AppToastService);
   private readonly authSession = inject(AuthSessionService);
+  private readonly favoritesStateService = inject(FavoritesStateService);
   private readonly messagesService = inject(MessagesService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
@@ -102,6 +116,7 @@ export class ProductPageComponent {
   readonly isCallVendorModalOpen = signal(false);
   readonly isRequestCallbackModalOpen = signal(false);
   readonly isMakeOfferModalOpen = signal(false);
+  readonly isShareListingModalOpen = signal(false);
   readonly isReportModalOpen = signal(false);
   readonly isReportSuccessModalOpen = signal(false);
   readonly isSellerReportSuccessModalOpen = signal(false);
@@ -109,15 +124,25 @@ export class ProductPageComponent {
   readonly sellerReportStep = signal<SellerReportStep>(1);
   readonly selectedSellerReportReason = signal<string | null>(null);
   readonly currentGalleryIndex = signal(0);
+  readonly isGalleryPreviewOpen = signal(false);
   readonly isFollowPending = signal(false);
+  readonly isWishlistPending = signal(false);
+  readonly hasCopiedShareUrl = signal(false);
   readonly isSubmittingListingReport = signal(false);
   readonly isSubmittingSellerReport = signal(false);
   readonly isStartingConversation = signal(false);
   readonly isSubmittingOffer = signal(false);
   readonly isSubmittingCallbackRequest = signal(false);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
+  readonly isProductSaved = computed(() =>
+    this.product().isSaved || this.favoritesStateService.isFavorited(this.product().id),
+  );
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
+  );
+  readonly shareUrl = computed(() => this.document.defaultView?.location.href ?? '');
+  readonly canUseNativeShare = computed(
+    () => typeof navigator !== 'undefined' && 'share' in navigator,
   );
   readonly formattedOfferValue = computed(() => {
     const rawValue = this.makeOfferForm.controls.amount.value ?? '';
@@ -170,6 +195,7 @@ export class ProductPageComponent {
       'UK used iPhone 16 Pro, neatly used and fully working. Good battery health.',
     condition: 'Used',
     saves: '0',
+    isSaved: false,
     deliveryOptions: ['Seller delivery', 'Nation-wide', 'Public location'],
     images: [
       {
@@ -236,101 +262,9 @@ export class ProductPageComponent {
     },
   ]);
 
-  readonly moreFromSeller = signal<Listing[]>([
-    {
-      id: 'ms1',
-      title: 'Logitech ergonomic mouse',
-      price: '₦35,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '5 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_sneakers.png'],
-    },
-    {
-      id: 'ms2',
-      title: 'iPhone 17 Pro Max',
-      price: '₦2,500,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '12 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_watch_luxury.png'],
-    },
-    {
-      id: 'ms3',
-      title: 'RGB keyboard',
-      price: '₦35,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '15 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_keyboard_rgb.png'],
-    },
-    {
-      id: 'ms4',
-      title: 'Sweatshirt',
-      price: '₦25,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '20 mins ago',
-      isVerified: true,
-      images: ['/assets/images/fashion_menswear_hero.png'],
-    },
-    {
-      id: 'ms5',
-      title: 'iPhone X (64 gb)',
-      price: '₦35,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '2 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_watch_luxury.png'],
-    },
-  ]);
+  readonly moreFromSeller = signal<Listing[]>([]);
 
-  readonly relatedItems = signal<Listing[]>([
-    {
-      id: 're1',
-      title: 'Tie',
-      price: '₦15,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '2 mins ago',
-      isVerified: true,
-      images: ['/assets/images/fashion_menswear.png'],
-    },
-    {
-      id: 're2',
-      title: 'McLaren',
-      price: '₦200M',
-      location: 'Ikeja, Lagos',
-      timeAgo: '10 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_watch_luxury.png'],
-    },
-    {
-      id: 're3',
-      title: 'Perfume',
-      price: '₦55,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '15 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_keyboard_rgb.png'],
-    },
-    {
-      id: 're4',
-      title: 'Watch for men',
-      price: '₦25,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '25 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_watch_luxury.png'],
-    },
-    {
-      id: 're5',
-      title: 'Headphones',
-      price: '₦85,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '30 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_keyboard_rgb.png'],
-    },
-  ]);
+  readonly relatedItems = signal<Listing[]>([]);
 
   readonly safetyTips = [
     'Avoid paying in advance, even for delivery.',
@@ -343,11 +277,26 @@ export class ProductPageComponent {
   readonly ratingStars = [1, 2, 3, 4, 5] as const;
 
   constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.document.body.style.overflow = '';
+    });
+
     void this.loadProductDetails();
 
     if (this.route.snapshot.queryParamMap.get('report') === 'seller') {
       this.openReportModal('seller');
     }
+  }
+
+  openGalleryPreview(index = this.currentGalleryIndex()): void {
+    this.setGalleryIndex(index);
+    this.isGalleryPreviewOpen.set(true);
+    this.document.body.style.overflow = 'hidden';
+  }
+
+  closeGalleryPreview(): void {
+    this.isGalleryPreviewOpen.set(false);
+    this.document.body.style.overflow = '';
   }
 
   setGalleryIndex(index: number): void {
@@ -365,6 +314,18 @@ export class ProductPageComponent {
       (currentIndex) =>
         (currentIndex - 1 + this.product().images.length) % this.product().images.length,
     );
+  }
+
+  galleryImageCountLabel(): string {
+    return `${this.currentGalleryIndex() + 1}/${this.product().images.length}`;
+  }
+
+  handleGalleryPreviewEscape(): void {
+    if (!this.isGalleryPreviewOpen()) {
+      return;
+    }
+
+    this.closeGalleryPreview();
   }
 
   whatsappLink(): string {
@@ -409,14 +370,138 @@ export class ProductPageComponent {
 
   shareListing(): void {
     this.closeListingActionsMenu();
+    this.hasCopiedShareUrl.set(false);
+    this.isShareListingModalOpen.set(true);
+  }
 
-    if (typeof navigator !== 'undefined' && 'share' in navigator) {
-      void navigator.share({
+  closeShareListingModal(): void {
+    this.isShareListingModalOpen.set(false);
+    this.hasCopiedShareUrl.set(false);
+  }
+
+  async shareListingWithDevice(): Promise<void> {
+    const shareUrl = this.shareUrl();
+    if (!shareUrl) {
+      this.appToastService.show({
+        message: 'Unable to share listing right now.',
+      });
+      return;
+    }
+
+    if (!(typeof navigator !== 'undefined' && 'share' in navigator)) {
+      this.appToastService.show({
+        message: 'Sharing is not available on this device.',
+      });
+      return;
+    }
+
+    try {
+      await navigator.share({
         title: this.product().name,
         text: `Check out ${this.product().name} on Duduzili`,
-        url: typeof window !== 'undefined' ? window.location.href : undefined,
-      }).catch(() => undefined);
+        url: shareUrl,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+
+      this.appToastService.show({
+        message: 'Unable to share listing right now.',
+      });
     }
+  }
+
+  async copyShareUrl(): Promise<void> {
+    this.closeListingActionsMenu();
+
+    const shareUrl = this.shareUrl();
+    if (!shareUrl) {
+      this.appToastService.show({
+        message: 'Unable to share listing right now.',
+      });
+      return;
+    }
+
+    const copied = await this.copyTextToClipboard(shareUrl);
+    if (copied) {
+      this.hasCopiedShareUrl.set(true);
+      this.appToastService.show({
+        message: 'Listing link copied',
+        durationMs: 2200,
+      });
+      return;
+    }
+
+    this.appToastService.show({
+      message: 'Unable to share listing right now.',
+    });
+  }
+
+  shareViaWhatsApp(): void {
+    const shareUrl = this.shareUrl();
+    if (!shareUrl) {
+      return;
+    }
+
+    this.openExternalShareUrl(
+      `https://wa.me/?text=${encodeURIComponent(`Check out ${this.product().name} on Duduzili: ${shareUrl}`)}`,
+    );
+  }
+
+  shareViaEmail(): void {
+    const shareUrl = this.shareUrl();
+    if (!shareUrl) {
+      return;
+    }
+
+    this.openExternalShareUrl(
+      `mailto:?subject=${encodeURIComponent(this.product().name)}&body=${encodeURIComponent(`Check out ${this.product().name} on Duduzili: ${shareUrl}`)}`,
+    );
+  }
+
+  shareViaX(): void {
+    const shareUrl = this.shareUrl();
+    if (!shareUrl) {
+      return;
+    }
+
+    this.openExternalShareUrl(
+      `https://x.com/intent/tweet?text=${encodeURIComponent(`Check out ${this.product().name} on Duduzili`)}&url=${encodeURIComponent(shareUrl)}`,
+    );
+  }
+
+  private async copyTextToClipboard(value: string): Promise<boolean> {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+    } catch {
+      // Fall back to execCommand when clipboard permissions are unavailable.
+    }
+
+    const textArea = this.document.createElement('textarea');
+    textArea.value = value;
+    textArea.setAttribute('readonly', '');
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    textArea.style.pointerEvents = 'none';
+    this.document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      return this.document.execCommand('copy');
+    } catch {
+      return false;
+    } finally {
+      this.document.body.removeChild(textArea);
+    }
+  }
+
+  private openExternalShareUrl(url: string): void {
+    this.document.defaultView?.open(url, '_blank', 'noopener,noreferrer');
   }
 
   openReportModal(subject: ReportSubject): void {
@@ -535,6 +620,67 @@ export class ProductPageComponent {
       }));
     } finally {
       this.isFollowPending.set(false);
+    }
+  }
+
+  async toggleWishlist(closeMenu = false): Promise<void> {
+    if (closeMenu) {
+      this.closeListingActionsMenu();
+    }
+
+    if (this.isWishlistPending()) {
+      return;
+    }
+
+    if (!this.authSession.isAuthenticated()) {
+      this.appToastService.show({
+        message: 'Please sign in to add listings to your wishlist',
+        imageSrc: this.product().images[0]?.src ?? '/assets/images/home-item-placeholder.png',
+        imageAlt: this.product().name,
+        durationMs: 1200,
+      });
+      setTimeout(() => {
+        void this.router.navigate(['/sign-in']);
+      }, 1200);
+      return;
+    }
+
+    const productId = this.product().id;
+    if (!productId) {
+      return;
+    }
+
+    const wasSaved = this.isProductSaved();
+    this.isWishlistPending.set(true);
+
+    try {
+      const response = await firstValueFrom(this.listingsService.toggleWishlist(productId));
+      const nextIsSaved = this.resolveWishlistState(response, wasSaved);
+      const nextSaveCount = this.resolveSaveCount(this.product().saves, wasSaved, nextIsSaved);
+
+      if (nextIsSaved) {
+        this.favoritesStateService.add(productId);
+      } else {
+        this.favoritesStateService.remove(productId);
+      }
+
+      this.product.update((product) => ({
+        ...product,
+        isSaved: nextIsSaved,
+        saves: nextSaveCount,
+      }));
+
+      this.appToastService.show({
+        message: nextIsSaved ? 'Added to Wishlist' : 'Removed from Wishlist',
+        imageSrc: this.product().images[0]?.src ?? '/assets/images/home-item-placeholder.png',
+        imageAlt: this.product().name,
+      });
+    } catch {
+      this.appToastService.show({
+        message: 'Unable to update wishlist right now.',
+      });
+    } finally {
+      this.isWishlistPending.set(false);
     }
   }
 
@@ -783,6 +929,10 @@ export class ProductPageComponent {
       this.formatCount(record['save_count']) ??
       this.formatCount(record['saved']) ??
       this.product().saves;
+    const listingId = this.readString(record['id']) ?? this.productId;
+    const isSaved =
+      this.readBoolean(record['is_saved']) ??
+      this.favoritesStateService.isFavorited(listingId);
     const deliveryOptions =
       this.extractDeliveryOptions(record) ?? this.product().deliveryOptions;
     const storeName =
@@ -820,7 +970,7 @@ export class ProductPageComponent {
     this.currentGalleryIndex.set(0);
     this.product.set({
       ...this.product(),
-      id: this.readString(record['id']) ?? this.productId,
+      id: listingId,
       name: productName,
       price: formattedPrice,
       oldPrice: formattedOldPrice,
@@ -829,6 +979,7 @@ export class ProductPageComponent {
       description,
       condition,
       saves,
+      isSaved,
       deliveryOptions,
       images: galleryImages,
     });
@@ -884,9 +1035,12 @@ export class ProductPageComponent {
       this.relatedItems.set(relatedListings);
     }
 
-    const category = this.readString(record['category']);
-    if (category) {
-      await this.loadRelatedItems(category, this.readString(record['id']) ?? this.productId);
+    const categoryQuery =
+      this.readString(record['category_id']) ??
+      this.readString(record['category_slug']) ??
+      this.readString(record['category']);
+    if (categoryQuery) {
+      await this.loadRelatedItems(categoryQuery, this.readString(record['id']) ?? this.productId);
     }
   }
 
@@ -907,9 +1061,9 @@ export class ProductPageComponent {
     }
   }
 
-  private async loadRelatedItems(category: string, currentListingId: string): Promise<void> {
+  private async loadRelatedItems(categoryQuery: string, currentListingId: string): Promise<void> {
     try {
-      const response = await firstValueFrom(this.listingsService.getCategoryListings(category));
+      const response = await firstValueFrom(this.listingsService.getCategoryListings(categoryQuery));
       const listings = this.extractSearchListingItems(response)
         .map((record, index) => this.toListingCard(record, index))
         .filter((listing): listing is Listing => listing !== null)
@@ -1312,6 +1466,31 @@ export class ProductPageComponent {
     return !previousState;
   }
 
+  private resolveWishlistState(
+    response: ToggleWishlistResponse,
+    previousState: boolean,
+  ): boolean {
+    if (!response || typeof response !== 'object') {
+      return !previousState;
+    }
+
+    const explicitState = response['is_saved'];
+    if (typeof explicitState === 'boolean') {
+      return explicitState;
+    }
+
+    const nestedState =
+      typeof response['data'] === 'object' && response['data'] !== null
+        ? (response['data'] as Record<string, unknown>)['is_saved']
+        : null;
+
+    if (typeof nestedState === 'boolean') {
+      return nestedState;
+    }
+
+    return !previousState;
+  }
+
   private resolveFollowerCount(
     backendValue: unknown,
     currentValue: string,
@@ -1323,6 +1502,20 @@ export class ProductPageComponent {
       return backendCount;
     }
 
+    const currentCount = this.readNumber(currentValue);
+    if (currentCount === null || previousState === nextState) {
+      return currentValue;
+    }
+
+    const nextCount = nextState ? currentCount + 1 : Math.max(0, currentCount - 1);
+    return this.formatCount(nextCount) ?? currentValue;
+  }
+
+  private resolveSaveCount(
+    currentValue: string,
+    previousState: boolean,
+    nextState: boolean,
+  ): string {
     const currentCount = this.readNumber(currentValue);
     if (currentCount === null || previousState === nextState) {
       return currentValue;
