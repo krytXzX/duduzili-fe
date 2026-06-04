@@ -693,32 +693,26 @@
       </div>
     </section>
 
-    <section>
-      <div class="mb-4 flex items-center justify-between gap-4 lg:mb-5">
-        <h2 class="text-[20px] font-medium leading-6 text-[#1F1F1F] lg:text-[24px]">Explore related items</h2>
+    @if (relatedItems().length > 0) {
+      <section>
+        <div class="mb-4 flex items-center justify-between gap-4 lg:mb-5">
+          <h2 class="text-[20px] font-medium leading-6 text-[#1F1F1F] lg:text-[24px]">Explore related items</h2>
 
-        <button
-          type="button"
-          class="rounded-full bg-[#F3F3F3] px-4 py-2 text-[12px] font-medium text-[#777777] transition hover:bg-[#ECECEC]"
-        >
-          See all
-        </button>
-      </div>
+          <button
+            type="button"
+            class="rounded-full bg-[#F3F3F3] px-4 py-2 text-[12px] font-medium text-[#777777] transition hover:bg-[#ECECEC]"
+          >
+            See all
+          </button>
+        </div>
 
-      <div class="space-y-4">
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           @for (listing of relatedItems(); track listing.id) {
             <app-listing-card [listing]="listing" />
           }
         </div>
-
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          @for (listing of moreFromSeller(); track listing.id) {
-            <app-listing-card [listing]="listing" />
-          }
-        </div>
-      </div>
-    </section>
+      </section>
+    }
     </div>
     <app-home-footer />
   </main>

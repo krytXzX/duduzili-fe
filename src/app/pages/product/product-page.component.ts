@@ -295,53 +295,7 @@ export class ProductPageComponent {
     },
   ]);
 
-  readonly relatedItems = signal<Listing[]>([
-    {
-      id: 're1',
-      title: 'Tie',
-      price: '₦15,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '2 mins ago',
-      isVerified: true,
-      images: ['/assets/images/fashion_menswear.png'],
-    },
-    {
-      id: 're2',
-      title: 'McLaren',
-      price: '₦200M',
-      location: 'Ikeja, Lagos',
-      timeAgo: '10 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_watch_luxury.png'],
-    },
-    {
-      id: 're3',
-      title: 'Perfume',
-      price: '₦55,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '15 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_keyboard_rgb.png'],
-    },
-    {
-      id: 're4',
-      title: 'Watch for men',
-      price: '₦25,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '25 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_watch_luxury.png'],
-    },
-    {
-      id: 're5',
-      title: 'Headphones',
-      price: '₦85,000',
-      location: 'Ikeja, Lagos',
-      timeAgo: '30 mins ago',
-      isVerified: true,
-      images: ['/assets/images/product_keyboard_rgb.png'],
-    },
-  ]);
+  readonly relatedItems = signal<Listing[]>([]);
 
   readonly safetyTips = [
     'Avoid paying in advance, even for delivery.',
