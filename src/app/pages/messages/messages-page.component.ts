@@ -426,7 +426,7 @@ type ChatDay = {
           </aside>
 
           <section
-            class="grid min-h-0 min-w-0 flex-1 grid-rows-[83px_minmax(0,1fr)_77px] overflow-hidden rounded-[16px] border border-[#F1F1F1] bg-white"
+            class="grid min-h-0 min-w-0 flex-1 grid-rows-[83px_minmax(0,1fr)_auto] overflow-hidden rounded-[16px] border border-[#F1F1F1] bg-white"
           >
             @if (!hasConversations()) {
               <div class="col-span-full row-span-full flex min-h-0 items-center justify-center px-8 text-center text-[16px] text-[#6C6C6C]">
@@ -809,7 +809,7 @@ type ChatDay = {
               }
 
               <div class="px-[15px] py-[8px]">
-              <div class="flex items-center gap-5">
+              <div class="flex min-h-[45px] items-center gap-5">
                 <div class="flex items-center gap-3">
                   <button type="button">
                     <img
@@ -1356,8 +1356,8 @@ type ChatDay = {
               </div>
             }
 
-            <div class="px-[15px] py-[8px]">
-            <div class="flex h-[46px] items-center gap-4">
+            <div class="px-[15px] pb-[calc(8px+env(safe-area-inset-bottom))] pt-[8px]">
+            <div class="flex min-h-[46px] items-center gap-4">
               @if (!hasDraftMessage()) {
                 <button type="button" aria-label="Open gallery" class="shrink-0">
                   <img
