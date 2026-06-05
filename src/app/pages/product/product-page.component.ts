@@ -1,4 +1,5 @@
 import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -31,6 +32,8 @@ import {
   VendorFollowResponse,
   VendorListingRecord,
   VendorListingsResponse,
+  VendorReviewRecord,
+  VendorReviewsResponse,
 } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
 
@@ -57,6 +60,7 @@ interface ProductDetails {
 
 interface StoreDetails {
   readonly id: string;
+  readonly ownerUserId: string | null;
   readonly name: string;
   readonly location: string;
   readonly whatsappNumber: string;
@@ -91,7 +95,7 @@ type SellerReportStep = 1 | 2;
   templateUrl: './product-page.component.html',
   host: {
     class: 'block h-full overflow-y-auto overflow-x-hidden bg-white text-[#1F1F1F]',
-    '(document:keydown.escape)': 'handleGalleryPreviewEscape()',
+    '(document:keydown.escape)': 'handleOverlayEscape()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -117,6 +121,7 @@ export class ProductPageComponent {
   readonly isRequestCallbackModalOpen = signal(false);
   readonly isMakeOfferModalOpen = signal(false);
   readonly isShareListingModalOpen = signal(false);
+  readonly isReviewsModalOpen = signal(false);
   readonly isReportModalOpen = signal(false);
   readonly isReportSuccessModalOpen = signal(false);
   readonly isSellerReportSuccessModalOpen = signal(false);
@@ -134,9 +139,28 @@ export class ProductPageComponent {
   readonly isSubmittingOffer = signal(false);
   readonly isSubmittingCallbackRequest = signal(false);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
+  readonly reviewAverage = computed(() => {
+    const reviews = this.reviews();
+    if (reviews.length === 0) {
+      return '0.0';
+    }
+
+    const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return (total / reviews.length).toFixed(1);
+  });
+  readonly reviewCountLabel = computed(() => {
+    const count = this.reviews().length;
+    return `${count} ${count === 1 ? 'rating' : 'ratings'}`;
+  });
   readonly isProductSaved = computed(() =>
     this.product().isSaved || this.favoritesStateService.isFavorited(this.product().id),
   );
+  readonly isOwnStore = computed(() => {
+    const currentUserId = this.authSession.user()?.id;
+    const ownerUserId = this.store().ownerUserId;
+
+    return currentUserId !== undefined && ownerUserId !== null && String(currentUserId) === ownerUserId;
+  });
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
   );
@@ -220,6 +244,7 @@ export class ProductPageComponent {
 
   readonly store = signal<StoreDetails>({
     id: 'the-vine-collections-7691',
+    ownerUserId: null,
     name: 'The Vine Collections',
     location: 'Ikeja, Lagos',
     whatsappNumber: '08169397454',
@@ -235,32 +260,7 @@ export class ProductPageComponent {
     bannerImage: '/assets/images/hero_img_3.png',
   });
 
-  readonly reviews = signal<Review[]>([
-    {
-      rating: 5,
-      text: "I've bought items from this vendor and they had great customer service.",
-      author: 'Olakunle Joshua',
-      date: '4 days ago',
-    },
-    {
-      rating: 5,
-      text: "I've bought all this from The Vine Collections and they have wonderful service.",
-      author: 'Oyin Bankole',
-      date: '2 weeks ago',
-    },
-    {
-      rating: 4,
-      text: 'Delivery was a bit slow, but the product quality was worth the wait.',
-      author: 'Michael Chen',
-      date: '3 weeks ago',
-    },
-    {
-      rating: 5,
-      text: 'One of the most reliable tech vendors I have ordered from recently.',
-      author: 'Blessing Okoro',
-      date: '1 month ago',
-    },
-  ]);
+  readonly reviews = signal<Review[]>([]);
 
   readonly moreFromSeller = signal<Listing[]>([]);
 
@@ -291,12 +291,12 @@ export class ProductPageComponent {
   openGalleryPreview(index = this.currentGalleryIndex()): void {
     this.setGalleryIndex(index);
     this.isGalleryPreviewOpen.set(true);
-    this.document.body.style.overflow = 'hidden';
+    this.setBodyScrollLocked(true);
   }
 
   closeGalleryPreview(): void {
     this.isGalleryPreviewOpen.set(false);
-    this.document.body.style.overflow = '';
+    this.setBodyScrollLocked(false);
   }
 
   setGalleryIndex(index: number): void {
@@ -320,12 +320,20 @@ export class ProductPageComponent {
     return `${this.currentGalleryIndex() + 1}/${this.product().images.length}`;
   }
 
-  handleGalleryPreviewEscape(): void {
-    if (!this.isGalleryPreviewOpen()) {
+  handleOverlayEscape(): void {
+    if (this.isReviewsModalOpen()) {
+      this.closeReviewsModal();
       return;
     }
 
-    this.closeGalleryPreview();
+    if (this.isShareListingModalOpen()) {
+      this.closeShareListingModal();
+      return;
+    }
+
+    if (this.isGalleryPreviewOpen()) {
+      this.closeGalleryPreview();
+    }
   }
 
   whatsappLink(): string {
@@ -372,11 +380,23 @@ export class ProductPageComponent {
     this.closeListingActionsMenu();
     this.hasCopiedShareUrl.set(false);
     this.isShareListingModalOpen.set(true);
+    this.setBodyScrollLocked(true);
   }
 
   closeShareListingModal(): void {
     this.isShareListingModalOpen.set(false);
     this.hasCopiedShareUrl.set(false);
+    this.setBodyScrollLocked(false);
+  }
+
+  openReviewsModal(): void {
+    this.isReviewsModalOpen.set(true);
+    this.setBodyScrollLocked(true);
+  }
+
+  closeReviewsModal(): void {
+    this.isReviewsModalOpen.set(false);
+    this.setBodyScrollLocked(false);
   }
 
   async shareListingWithDevice(): Promise<void> {
@@ -504,6 +524,10 @@ export class ProductPageComponent {
     this.document.defaultView?.open(url, '_blank', 'noopener,noreferrer');
   }
 
+  private setBodyScrollLocked(isLocked: boolean): void {
+    this.document.body.style.overflow = isLocked ? 'hidden' : '';
+  }
+
   openReportModal(subject: ReportSubject): void {
     this.closeListingActionsMenu();
     this.reportSubject.set(subject);
@@ -532,6 +556,17 @@ export class ProductPageComponent {
     this.isCallVendorModalOpen.set(true);
   }
 
+  openMessageVendorModal(): void {
+    if (this.isOwnStore()) {
+      this.appToastService.show({
+        message: 'You cannot message your own store.',
+      });
+      return;
+    }
+
+    this.isMessageVendorModalOpen.set(true);
+  }
+
   openRequestCallbackModal(): void {
     this.isRequestCallbackModalOpen.set(true);
   }
@@ -551,6 +586,14 @@ export class ProductPageComponent {
 
   async startInAppConversation(): Promise<void> {
     if (this.isStartingConversation()) {
+      return;
+    }
+
+    if (this.isOwnStore()) {
+      this.appToastService.show({
+        message: 'You cannot message your own store.',
+      });
+      this.isMessageVendorModalOpen.set(false);
       return;
     }
 
@@ -574,9 +617,9 @@ export class ProductPageComponent {
       await this.router.navigate(['/chats'], {
         queryParams: conversationId ? { conversation: conversationId } : undefined,
       });
-    } catch {
+    } catch (error) {
       this.appToastService.show({
-        message: 'Unable to start conversation right now.',
+        message: this.extractErrorMessage(error) ?? 'Unable to start conversation right now.',
       });
     } finally {
       this.isStartingConversation.set(false);
@@ -990,6 +1033,11 @@ export class ProductPageComponent {
         this.readString(record['vendor_id']) ??
         this.readString(record['store_id']) ??
         this.store().id,
+      ownerUserId:
+        this.readString(storeInfo?.['user_id']) ??
+        this.readString(this.readRecord(storeInfo?.['user'])?.['id']) ??
+        this.readString(this.readRecord(record['user'])?.['id']) ??
+        this.store().ownerUserId,
       name: storeName,
       location: storeLocation,
       whatsappNumber: callNumber,
@@ -1029,6 +1077,7 @@ export class ProductPageComponent {
 
     if (storeId) {
       await this.loadMoreFromSeller(storeId, this.readString(record['id']) ?? this.productId);
+      await this.loadVendorReviews(storeId);
     }
 
     if (relatedListings.length > 0) {
@@ -1078,6 +1127,18 @@ export class ProductPageComponent {
     }
   }
 
+  private async loadVendorReviews(storeId: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.vendorsService.getVendorReviews(storeId));
+      const reviews = this.extractVendorReviewItems(response)
+        .map((review, index) => this.toReview(review, index))
+        .filter((review): review is Review => review !== null);
+      this.reviews.set(reviews);
+    } catch {
+      this.reviews.set([]);
+    }
+  }
+
   private extractVendorListingItems(response: VendorListingsResponse): readonly VendorListingRecord[] {
     if (Array.isArray(response)) {
       return response;
@@ -1113,6 +1174,26 @@ export class ProductPageComponent {
 
     if (Array.isArray(response.listings)) {
       return response.listings;
+    }
+
+    return [];
+  }
+
+  private extractVendorReviewItems(response: VendorReviewsResponse): VendorReviewRecord[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.reviews)) {
+      return response.reviews;
     }
 
     return [];
@@ -1186,6 +1267,40 @@ export class ProductPageComponent {
       .filter((image): image is ProductGalleryImage => image !== null && image.src.length > 0);
 
     return images;
+  }
+
+  private toReview(record: VendorReviewRecord, index: number): Review | null {
+    const reviewerRecord = this.readRecord(record['reviewer']);
+    const author =
+      this.readString(record['author']) ??
+      this.readString(record['username']) ??
+      this.readString(reviewerRecord?.['username']) ??
+      this.readString(this.readRecord(record['user'])?.['username']) ??
+      this.readString(record['full_name']) ??
+      `Customer ${index + 1}`;
+    const text =
+      this.readString(record['text']) ??
+      this.readString(record['comment']) ??
+      this.readString(record['review']) ??
+      this.readString(record['content']);
+    const rating = this.clampRating(record['rating']);
+
+    if (!text || rating === null) {
+      return null;
+    }
+
+    return {
+      author,
+      avatar:
+        this.resolveMediaUrl(this.readString(record['avatar'])) ??
+        this.resolveMediaUrl(this.readString(reviewerRecord?.['avatar'])) ??
+        this.resolveMediaUrl(this.readString(this.readRecord(record['user'])?.['avatar'])) ??
+        undefined,
+      rating,
+      text,
+      date: this.formatReviewDate(record['created_at']) ?? 'Recently',
+      images: this.extractReviewImages(record),
+    };
   }
 
   private extractDeliveryOptions(record: ListingsApiItem): readonly string[] | null {
@@ -1360,6 +1475,15 @@ export class ProductPageComponent {
     return parsed.toFixed(1);
   }
 
+  private clampRating(value: unknown): number | null {
+    const parsed = this.readNumber(value);
+    if (parsed === null) {
+      return null;
+    }
+
+    return Math.min(5, Math.max(1, Math.round(parsed)));
+  }
+
   private formatCondition(value: unknown): string | null {
     if (typeof value !== 'string' || !value.trim()) {
       return null;
@@ -1384,6 +1508,51 @@ export class ProductPageComponent {
     }
 
     return city ?? state ?? null;
+  }
+
+  private formatReviewDate(value: unknown): string | null {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat('en-NG', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(parsed);
+  }
+
+  private extractReviewImages(record: VendorReviewRecord): string[] | undefined {
+    const value = Array.isArray(record['photos']) ? record['photos'] : record['images'];
+    if (!Array.isArray(value)) {
+      return undefined;
+    }
+
+    const images = value
+      .map((image) => {
+        if (typeof image === 'string') {
+          return this.resolveMediaUrl(image);
+        }
+
+        if (typeof image === 'object' && image !== null) {
+          const imageRecord = image as Record<string, unknown>;
+          return this.resolveMediaUrl(
+            this.readString(imageRecord['image']) ??
+              this.readString(imageRecord['url']) ??
+              this.readString(imageRecord['src']),
+          );
+        }
+
+        return null;
+      })
+      .filter((image): image is string => image !== null);
+
+    return images.length > 0 ? images : undefined;
   }
 
   private resolveMediaUrl(value: string | null | undefined): string | null {
@@ -1431,6 +1600,29 @@ export class ProductPageComponent {
 
   private readRecord(value: unknown): Record<string, unknown> | null {
     return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
+  }
+
+  private extractErrorMessage(error: unknown): string | null {
+    if (!(error instanceof HttpErrorResponse)) {
+      return null;
+    }
+
+    const errorPayload = this.readRecord(error.error);
+    if (!errorPayload) {
+      return null;
+    }
+
+    const detail = this.readString(errorPayload['detail']);
+    if (detail) {
+      return detail;
+    }
+
+    const message = this.readString(errorPayload['message']);
+    if (message) {
+      return message;
+    }
+
+    return null;
   }
 
   private buildInitials(name: string): string {

@@ -426,7 +426,7 @@ type ChatDay = {
           </aside>
 
           <section
-            class="grid min-h-0 min-w-0 flex-1 grid-rows-[83px_minmax(0,1fr)_77px] overflow-hidden rounded-[16px] border border-[#F1F1F1] bg-white"
+            class="grid min-h-0 min-w-0 flex-1 grid-rows-[83px_minmax(0,1fr)_auto] overflow-hidden rounded-[16px] border border-[#F1F1F1] bg-white"
           >
             @if (!hasConversations()) {
               <div class="col-span-full row-span-full flex min-h-0 items-center justify-center px-8 text-center text-[16px] text-[#6C6C6C]">
@@ -778,14 +778,14 @@ type ChatDay = {
 
             <footer class="border-t border-[#EEEEEE] bg-white">
               @if (isReplyComposerOpen()) {
-                <div class="flex items-start justify-between border-b border-[#EEEEEE] px-[15px] py-[10px]">
-                  <div class="flex min-w-0 items-start gap-[6px]">
-                    <span class="mt-0.5 h-[35px] w-px bg-[#6453D9]"></span>
+                <div class="flex items-start justify-between border-b border-[#EEEEEE] px-[15px] py-[8px]">
+                  <div class="flex min-w-0 items-start gap-[8px]">
+                    <span class="mt-0.5 h-8 w-px shrink-0 bg-[#6453D9]"></span>
                     <div class="min-w-0">
                       <p class="text-[13px] font-medium leading-4 text-[#6453D9]">
                         Replying to {{ activeReplyTarget()?.author }}
                       </p>
-                      <p class="mt-[3px] truncate text-[13px] leading-4 text-[#202020]">
+                      <p class="mt-1 line-clamp-1 text-[13px] leading-4 text-[#202020]">
                         {{ activeReplyTarget()?.text }}
                       </p>
                     </div>
@@ -809,7 +809,7 @@ type ChatDay = {
               }
 
               <div class="px-[15px] py-[8px]">
-              <div class="flex items-center gap-5">
+              <div class="flex min-h-[45px] items-center gap-5">
                 <div class="flex items-center gap-3">
                   <button type="button">
                     <img
@@ -832,16 +832,17 @@ type ChatDay = {
                 </div>
 
                 <div
-                  class="relative flex h-[45px] min-w-0 flex-1 items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] px-[13px]"
+                  class="relative flex min-h-[45px] min-w-0 flex-1 items-end rounded-[24px] border border-[#EDEDED] bg-[#F8F8F8] px-[13px] py-[6px]"
                 >
-                  <input
-                    type="text"
+                  <textarea
+                    rows="1"
+                    data-chat-draft="true"
                     [value]="draftMessage()"
                     (input)="updateDraftMessage($event)"
-                    (keydown.enter)="sendDraftMessage()"
+                    (keydown)="handleDraftComposerKeydown($event)"
                     placeholder="Type a message..."
-                    class="w-full bg-transparent pr-10 text-[14px] leading-5 text-[#0D0D0D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
-                  />
+                    class="max-h-[112px] w-full resize-none overflow-y-auto bg-transparent pr-10 text-[14px] leading-5 text-[#0D0D0D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
+                  ></textarea>
                   @if (hasDraftMessage()) {
                     <button
                       type="button"
@@ -1326,14 +1327,14 @@ type ChatDay = {
             </div>
           } @else {
             @if (isReplyComposerOpen()) {
-              <div class="flex items-start justify-between border-b border-[#EEEEEE] px-[7px] py-[7px]">
-                <div class="flex min-w-0 items-start gap-[6px]">
-                  <span class="mt-[2px] h-[35px] w-px bg-[#6453D9]"></span>
+              <div class="flex items-start justify-between border-b border-[#EEEEEE] px-3 py-[6px]">
+                <div class="flex min-w-0 items-start gap-[8px]">
+                  <span class="mt-[2px] h-8 w-px shrink-0 bg-[#6453D9]"></span>
                   <div class="min-w-0">
-                    <p class="text-[13px] font-medium leading-4 text-[#6453D9]">
+                      <p class="text-[13px] font-medium leading-4 text-[#6453D9]">
                       Replying to {{ activeReplyTarget()?.author }}
                     </p>
-                    <p class="mt-[3px] text-[13px] leading-4 text-[#202020]">
+                    <p class="mt-1 line-clamp-1 text-[13px] leading-4 text-[#202020]">
                       {{ activeReplyTarget()?.text }}
                     </p>
                   </div>
@@ -1343,7 +1344,7 @@ type ChatDay = {
                   type="button"
                   (click)="closeReplyComposer()"
                   aria-label="Close reply preview"
-                  class="ml-3 flex h-6 w-6 shrink-0 items-center justify-center"
+                  class="ml-2 flex h-6 w-6 shrink-0 items-center justify-center"
                 >
                   <img
                     [ngSrc]="assets.clearChatClose"
@@ -1356,8 +1357,8 @@ type ChatDay = {
               </div>
             }
 
-            <div class="px-[15px] py-[8px]">
-            <div class="flex h-[46px] items-center gap-4">
+            <div class="px-[15px] pb-[calc(8px+env(safe-area-inset-bottom))] pt-[8px]">
+            <div class="flex min-h-[46px] items-center gap-4">
               @if (!hasDraftMessage()) {
                 <button type="button" aria-label="Open gallery" class="shrink-0">
                   <img
@@ -1371,18 +1372,19 @@ type ChatDay = {
               }
 
               <div
-                class="flex h-[46px] min-w-0 flex-1 items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] pl-[13px]"
+                class="flex min-h-[46px] min-w-0 flex-1 items-end rounded-[24px] border border-[#EDEDED] bg-[#F8F8F8] pl-[13px] py-[4px]"
                 [class.pr-[13px]]="!hasDraftMessage()"
                 [class.pr-1]="hasDraftMessage()"
               >
-                <input
-                  type="text"
+                <textarea
+                  rows="1"
+                  data-chat-draft="true"
                   [value]="draftMessage()"
                   (input)="updateDraftMessage($event)"
-                  (keydown.enter)="sendDraftMessage()"
+                  (keydown)="handleDraftComposerKeydown($event)"
                   placeholder="Type a message..."
-                  class="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#2D2D2D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
-                />
+                  class="max-h-[112px] min-w-0 flex-1 resize-none overflow-y-auto bg-transparent text-[14px] leading-5 text-[#2D2D2D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
+                ></textarea>
 
                 @if (!hasDraftMessage()) {
                   <button
@@ -2738,8 +2740,22 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   protected updateDraftMessage(event: Event): void {
-    const input = event.target as HTMLInputElement | null;
+    const input = event.target as HTMLInputElement | HTMLTextAreaElement | null;
     this.draftMessage.set(input?.value ?? '');
+    this.resizeDraftComposer(input);
+  }
+
+  protected handleDraftComposerKeydown(event: KeyboardEvent): void {
+    if (
+      event.key === 'Enter' &&
+      !event.shiftKey &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      void this.sendDraftMessage();
+    }
   }
 
   protected async sendDraftMessage(): Promise<void> {
@@ -2757,11 +2773,29 @@ export class MessagesPageComponent implements OnDestroy {
       this.appendOutgoingMessage(chatId, body);
       this.draftMessage.set('');
       this.activeReplyTarget.set(null);
+      this.resetDraftComposerHeights();
     } catch {
       // Keep the draft intact if the send request fails.
     } finally {
       this.isSendingMessage.set(false);
     }
+  }
+
+  private resizeDraftComposer(element: HTMLInputElement | HTMLTextAreaElement | null): void {
+    if (!(element instanceof HTMLTextAreaElement)) {
+      return;
+    }
+
+    element.style.height = 'auto';
+    element.style.height = `${Math.min(element.scrollHeight, 112)}px`;
+  }
+
+  private resetDraftComposerHeights(): void {
+    const draftFields = this.document.querySelectorAll<HTMLTextAreaElement>('textarea[data-chat-draft="true"]');
+
+    draftFields.forEach((field) => {
+      field.style.height = 'auto';
+    });
   }
 
   protected openStoreSelector(): void {

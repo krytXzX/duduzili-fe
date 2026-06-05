@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { Review } from '../../components/product/review-card.component';
@@ -47,6 +48,7 @@ interface BuyerStoreStats {
 
 interface BuyerStoreProfile {
   id: string;
+  ownerUserId: string | null;
   name: string;
   logo: string;
   banner: string;
@@ -512,13 +514,16 @@ type VendorTagSummary = {
                       <button
                         type="button"
                         (click)="openInAppChat()"
+                        [disabled]="isOwnStore()"
                         class="flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA]"
+                        [class.cursor-not-allowed]="isOwnStore()"
+                        [class.opacity-55]="isOwnStore()"
                       >
                         <ng-icon
                           name="heroChatBubbleOvalLeftEllipsis"
                           class="text-[18px] text-[#6B7280]"
                         ></ng-icon>
-                        Message in-app
+                        {{ isOwnStore() ? 'You own this store' : 'Message in-app' }}
                       </button>
                       <button
                         type="button"
@@ -1030,6 +1035,12 @@ export class BuyerFollowedStoreDetailsPageComponent {
   readonly isFollowPending = signal(false);
   readonly isStartingConversation = signal(false);
   readonly isSubmittingReview = signal(false);
+  readonly isOwnStore = computed(() => {
+    const currentUserId = this.authSession.user()?.id;
+    const ownerUserId = this.store().ownerUserId;
+
+    return currentUserId !== undefined && ownerUserId !== null && String(currentUserId) === ownerUserId;
+  });
   readonly reviewRating = signal(2);
   readonly selectedReviewTags = signal<string[]>([]);
   readonly reviewText = signal('');
@@ -1039,6 +1050,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   readonly store = signal<BuyerStoreProfile>({
     id: this.storeId,
+    ownerUserId: null,
     name: 'Store',
     logo: '/assets/images/product_sneakers_lifestyle.png',
     banner: '/assets/images/fashion_menswear_hero.png',
@@ -1059,6 +1071,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   private readonly demoStores: Record<string, BuyerStoreProfile> = {
     st1: {
       id: 'st1',
+      ownerUserId: null,
       name: 'The Vine Collections',
       logo: '/assets/images/store-vine-logo-desktop.png',
       banner: '/assets/images/store-vine-cover-desktop.png',
@@ -1078,6 +1091,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     st2: {
       id: 'st2',
+      ownerUserId: null,
       name: 'Eden Organics',
       logo: '/assets/images/store-eden-logo-desktop.png',
       banner: '/assets/images/store-eden-cover-desktop.png',
@@ -1097,6 +1111,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     st3: {
       id: 'st3',
+      ownerUserId: null,
       name: 'Snap Thrifts',
       logo: '/assets/images/store-snap-logo-desktop.png',
       banner: '/assets/images/store-snap-cover-desktop.png',
@@ -1116,6 +1131,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     st4: {
       id: 'st4',
+      ownerUserId: null,
       name: 'goMelon',
       logo: '/assets/images/store-gomelon-logo-desktop.png',
       banner: '/assets/images/store-gomelon-cover-desktop.png',
@@ -1135,6 +1151,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     st5: {
       id: 'st5',
+      ownerUserId: null,
       name: 'Amazing Fragrances',
       logo: '/assets/images/store-amazing-logo-desktop.png',
       banner: '/assets/images/store-amazing-cover-desktop.png',
@@ -1154,6 +1171,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     st6: {
       id: 'st6',
+      ownerUserId: null,
       name: 'None Electronics',
       logo: '/assets/images/store-none-logo-desktop.png',
       banner: '/assets/images/store-none-cover-desktop.png',
@@ -1173,6 +1191,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     st7: {
       id: 'st7',
+      ownerUserId: null,
       name: 'New Age Properties',
       logo: '/assets/images/store-newage-logo-desktop.png',
       banner: '/assets/images/store-newage-cover-desktop.png',
@@ -1192,6 +1211,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     st8: {
       id: 'st8',
+      ownerUserId: null,
       name: 'Swift Wears',
       logo: '/assets/images/store-swift-logo-desktop.png',
       banner: '/assets/images/store-swift-cover-desktop.png',
@@ -1211,6 +1231,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     'the-vine-collections-7691': {
       id: 'the-vine-collections-7691',
+      ownerUserId: null,
       name: 'The Vine Collections',
       logo: '/assets/images/store-1-banner.png',
       banner: '/assets/images/store-1-banner.png',
@@ -1230,6 +1251,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     'snap-thrifts-8646': {
       id: 'snap-thrifts-8646',
+      ownerUserId: null,
       name: 'Snap Thrifts',
       logo: '/assets/images/store-2-banner.png',
       banner: '/assets/images/store-2-banner.png',
@@ -1249,6 +1271,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     'gomelon-2046': {
       id: 'gomelon-2046',
+      ownerUserId: null,
       name: 'goMelon',
       logo: '/assets/images/store-3-banner.png',
       banner: '/assets/images/store-3-banner.png',
@@ -1268,6 +1291,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     },
     'new-age-properties-579': {
       id: 'new-age-properties-579',
+      ownerUserId: null,
       name: 'New Age Properties',
       logo: '/assets/images/store-1-banner.png',
       banner: '/assets/images/store-1-banner.png',
@@ -1624,6 +1648,13 @@ export class BuyerFollowedStoreDetailsPageComponent {
       return;
     }
 
+    if (this.isOwnStore()) {
+      this.appToastService.show({
+        message: 'You cannot message your own store.',
+      });
+      return;
+    }
+
     if (!this.authSession.isAuthenticated()) {
       await this.router.navigate(['/sign-in']);
       return;
@@ -1644,9 +1675,9 @@ export class BuyerFollowedStoreDetailsPageComponent {
       await this.router.navigate(['/chats'], {
         queryParams: conversationId ? { conversation: conversationId } : undefined,
       });
-    } catch {
+    } catch (error) {
       this.appToastService.show({
-        message: 'Unable to start conversation right now.',
+        message: this.extractErrorMessage(error) ?? 'Unable to start conversation right now.',
       });
     } finally {
       this.isStartingConversation.set(false);
@@ -1967,10 +1998,13 @@ export class BuyerFollowedStoreDetailsPageComponent {
     const whatsappNumber =
       this.readString(record['whatsapp_number']) ?? this.store().whatsappNumber;
     const callNumber = this.readString(record['call_number']) ?? this.store().callNumber;
+    const ownerUserId =
+      this.readString(userRecord?.['id']) ?? this.readString(record['user_id']) ?? this.store().ownerUserId;
 
     this.store.update((store) => ({
       ...store,
       id: this.readString(record['id']) ?? store.id,
+      ownerUserId,
       name: storeName ?? store.name,
       logo: logo ?? store.logo,
       banner: banner ?? store.banner,
@@ -2520,6 +2554,29 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   private readRecord(value: unknown): Record<string, unknown> | null {
     return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
+  }
+
+  private extractErrorMessage(error: unknown): string | null {
+    if (!(error instanceof HttpErrorResponse)) {
+      return null;
+    }
+
+    const errorPayload = this.readRecord(error.error);
+    if (!errorPayload) {
+      return null;
+    }
+
+    const detail = this.readString(errorPayload['detail']);
+    if (detail) {
+      return detail;
+    }
+
+    const message = this.readString(errorPayload['message']);
+    if (message) {
+      return message;
+    }
+
+    return null;
   }
 
   private formatCompactCount(value: unknown): string | null {
