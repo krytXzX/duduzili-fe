@@ -310,8 +310,11 @@
         <div class="flex flex-col gap-3">
           <button
             type="button"
-            (click)="isMessageVendorModalOpen.set(true)"
+            (click)="openMessageVendorModal()"
+            [disabled]="isOwnStore()"
             class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8]"
+            [class.cursor-not-allowed]="isOwnStore()"
+            [class.opacity-55]="isOwnStore()"
           >
             Message vendor
           </button>
@@ -1088,10 +1091,12 @@
           <button
             type="button"
             (click)="startInAppConversation()"
-            [disabled]="isStartingConversation()"
+            [disabled]="isStartingConversation() || isOwnStore()"
             class="flex h-[52px] w-full items-center justify-center rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.5px] text-[#05061A] transition hover:bg-[#ECECEC] md:h-[50px]"
+            [class.cursor-not-allowed]="isOwnStore()"
+            [class.opacity-55]="isOwnStore()"
           >
-            Message in-app
+            {{ isOwnStore() ? 'You own this store' : 'Message in-app' }}
           </button>
 
           <a

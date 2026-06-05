@@ -60,6 +60,7 @@ interface ProductDetails {
 
 interface StoreDetails {
   readonly id: string;
+  readonly ownerUserId: string | null;
   readonly name: string;
   readonly location: string;
   readonly whatsappNumber: string;
@@ -154,6 +155,12 @@ export class ProductPageComponent {
   readonly isProductSaved = computed(() =>
     this.product().isSaved || this.favoritesStateService.isFavorited(this.product().id),
   );
+  readonly isOwnStore = computed(() => {
+    const currentUserId = this.authSession.user()?.id;
+    const ownerUserId = this.store().ownerUserId;
+
+    return currentUserId !== undefined && ownerUserId !== null && String(currentUserId) === ownerUserId;
+  });
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
   );
@@ -237,6 +244,7 @@ export class ProductPageComponent {
 
   readonly store = signal<StoreDetails>({
     id: 'the-vine-collections-7691',
+    ownerUserId: null,
     name: 'The Vine Collections',
     location: 'Ikeja, Lagos',
     whatsappNumber: '08169397454',
@@ -548,6 +556,17 @@ export class ProductPageComponent {
     this.isCallVendorModalOpen.set(true);
   }
 
+  openMessageVendorModal(): void {
+    if (this.isOwnStore()) {
+      this.appToastService.show({
+        message: 'You cannot message your own store.',
+      });
+      return;
+    }
+
+    this.isMessageVendorModalOpen.set(true);
+  }
+
   openRequestCallbackModal(): void {
     this.isRequestCallbackModalOpen.set(true);
   }
@@ -567,6 +586,14 @@ export class ProductPageComponent {
 
   async startInAppConversation(): Promise<void> {
     if (this.isStartingConversation()) {
+      return;
+    }
+
+    if (this.isOwnStore()) {
+      this.appToastService.show({
+        message: 'You cannot message your own store.',
+      });
+      this.isMessageVendorModalOpen.set(false);
       return;
     }
 
@@ -1006,6 +1033,11 @@ export class ProductPageComponent {
         this.readString(record['vendor_id']) ??
         this.readString(record['store_id']) ??
         this.store().id,
+      ownerUserId:
+        this.readString(storeInfo?.['user_id']) ??
+        this.readString(this.readRecord(storeInfo?.['user'])?.['id']) ??
+        this.readString(this.readRecord(record['user'])?.['id']) ??
+        this.store().ownerUserId,
       name: storeName,
       location: storeLocation,
       whatsappNumber: callNumber,
