@@ -90,44 +90,46 @@ type AddListingPickerOption = {
 
         @if (isVerificationPendingReview()) {
           <div
-            class="relative mt-6 overflow-hidden rounded-2xl border border-[#f5f5e5] bg-[#fffff5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(171.22deg,rgba(252,255,161,0)_49.825%,rgba(252,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,255,245,0.44)_0%,rgba(255,255,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:px-[17px] lg:py-[18px]"
+            class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#f5f5e5] bg-[#fffff5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(171.22deg,rgba(252,255,161,0)_49.825%,rgba(252,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,255,245,0.44)_0%,rgba(255,255,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:px-[17px] lg:py-[18px]"
           >
             <div class="absolute left-[154px] top-[70px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(255,240,128,0.34)_0%,rgba(255,240,128,0.12)_35%,rgba(255,240,128,0)_72%)] lg:left-[234px]"></div>
             <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(183,234,109,0.24)_0%,rgba(183,234,109,0)_72%)]"></div>
 
-            <div class="relative z-10 flex items-center justify-between gap-3 lg:gap-6">
-              <div class="min-w-0 lg:max-w-[355px]">
-                <h2 class="text-[18px] font-medium leading-6 text-[#1f1f1f]">Verification under review</h2>
-                <p class="mt-0.5 max-w-[255px] text-sm leading-5 text-[#7b7979] lg:max-w-[495px]">
-                  Our team is reviewing your documents. You’ll be notified within 24–48 hours.
-                </p>
+            <div class="relative z-10 w-full lg:max-w-[355px]">
+              <div class="flex max-w-[255px] flex-col items-start gap-3 lg:max-w-[355px]">
+                <div class="w-full">
+                  <h2 class="text-[18px] font-medium leading-[24px] text-[#1f1f1f]">Verification under review</h2>
+                  <p class="mt-0.5 text-[14px] font-normal leading-[20px] text-[#7b7979] lg:min-w-[495px] lg:max-w-[495px]">
+                    Our team is reviewing your documents. You’ll be notified within 24–48 hours.
+                  </p>
+                </div>
 
                 <button
                   type="button"
                   (click)="openVerificationFlow()"
-                  class="mt-3 inline-flex h-10 items-center justify-center rounded-full border border-[#eaeaea] bg-white px-5 text-sm font-medium text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)] lg:mt-4"
+                  class="inline-flex h-10 items-center justify-center rounded-full border border-[#eaeaea] bg-white px-5 text-[14px] font-medium leading-[20px] text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)]"
                 >
                   View submission
                 </button>
               </div>
-
-              <img
-                ngSrc="/assets/images/listings-verification-under-review-mobile-illustration.png"
-                width="74"
-                height="74"
-                alt=""
-                aria-hidden="true"
-                class="h-[74px] w-[74px] shrink-0 object-contain lg:hidden"
-              />
-              <img
-                ngSrc="/assets/images/listings-verification-under-review-desktop-illustration.png"
-                width="116"
-                height="116"
-                alt=""
-                aria-hidden="true"
-                class="hidden h-[116px] w-[116px] shrink-0 rotate-[8.21deg] object-contain drop-shadow-[5px_4px_8px_rgba(60,60,60,0.25)] lg:block"
-              />
             </div>
+
+            <img
+              ngSrc="/assets/images/listings-verification-under-review-mobile-illustration.png"
+              width="74"
+              height="74"
+              alt=""
+              aria-hidden="true"
+              class="absolute right-[12px] top-[67px] h-[74px] w-[74px] rotate-[8.21deg] object-contain drop-shadow-[5px_4px_8px_rgba(60,60,60,0.25)] lg:hidden"
+            />
+            <img
+              ngSrc="/assets/images/listings-verification-under-review-desktop-illustration.png"
+              width="116"
+              height="116"
+              alt=""
+              aria-hidden="true"
+              class="absolute right-[53px] top-[17px] hidden h-[116px] w-[116px] rotate-[8.21deg] object-contain drop-shadow-[5px_4px_8px_rgba(60,60,60,0.25)] lg:block"
+            />
           </div>
         } @else {
           <div
