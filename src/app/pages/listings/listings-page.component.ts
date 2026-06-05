@@ -372,8 +372,8 @@ type AddListingPickerOption = {
           </div>
 
           <div class="border-t border-[#f4f4f4] bg-[#fafafa]">
-            <div class="grid grid-cols-[40px_1.7fr_1.15fr_1fr_1.5fr_1fr_56px] items-center px-[15px] py-[11px] text-xs font-medium text-[rgba(26,27,29,0.6)]">
-              <span class="inline-block h-4 w-4 rounded border border-[#b8b8b8]"></span>
+            <div class="grid grid-cols-[1.7fr_1.15fr_1fr_1.5fr_1fr_56px] items-center px-[15px] py-[11px] text-xs font-medium text-[rgba(26,27,29,0.6)]">
+              <!-- <span class="inline-block h-4 w-4 rounded border border-[#b8b8b8]"></span> -->
               <span>Name</span>
               <span>Category</span>
               <span>Price</span>
@@ -385,8 +385,8 @@ type AddListingPickerOption = {
 
           <div>
             @for (listing of filteredDesktopListings(); track listing.id) {
-              <div class="grid grid-cols-[40px_1.7fr_1.15fr_1fr_1.5fr_1fr_56px] items-center border-t border-[#f0f0f0] px-[15px] py-3 first:border-t-0">
-                <span class="inline-block h-4 w-4 rounded border border-[#b8b8b8]"></span>
+              <div class="grid grid-cols-[1.7fr_1.15fr_1fr_1.5fr_1fr_56px] items-center border-t border-[#f0f0f0] px-[15px] py-3 first:border-t-0">
+                <!-- <span class="inline-block h-4 w-4 rounded border border-[#b8b8b8]"></span> -->
 
                 <a [routerLink]="['/seller/listings', listing.id]" class="flex items-center gap-2 rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]">
                   <div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md bg-[#efefef]">
