@@ -97,7 +97,10 @@ type AddListingPickerOption = {
 
             <div class="relative z-10 w-full lg:max-w-[355px]">
               <div class="w-full max-w-[255px]">
-                <h2 class="text-[18px] font-medium leading-[24px] text-[#1f1f1f] lg:text-[20px]">You’re now a verified seller! 🎉</h2>
+                <h2 class="inline-flex items-center gap-1 whitespace-nowrap text-[18px] font-medium leading-[24px] text-[#1f1f1f] lg:text-[20px]">
+                  <span>You’re now a verified seller!</span>
+                  <span aria-hidden="true">🎉</span>
+                </h2>
                 <p class="mt-0.5 max-w-[289px] text-[14px] font-normal leading-[20px] text-[#7b7979] lg:min-w-[495px] lg:max-w-[495px] lg:text-[16px] lg:text-[#636363]">
                   Your listings now show a verified badge.
                 </p>
@@ -105,17 +108,13 @@ type AddListingPickerOption = {
             </div>
 
             <img
-              ngSrc="/assets/images/listings-verification-approved-mobile-illustration.png"
-              width="98"
-              height="98"
+              src="/assets/images/listings-verification-approved-mobile-illustration.png"
               alt=""
               aria-hidden="true"
               class="absolute right-[-6px] top-[7px] h-[98px] w-[98px] rotate-[11.29deg] object-contain drop-shadow-[4.448px_4.448px_13.345px_rgba(55,55,55,0.25)] lg:hidden"
             />
             <img
-              ngSrc="/assets/images/listings-verification-approved-desktop-illustration.png"
-              width="169"
-              height="169"
+              src="/assets/images/listings-verification-approved-desktop-illustration.png"
               alt=""
               aria-hidden="true"
               class="absolute right-[10px] top-[-2px] hidden h-[169px] w-[169px] rotate-[11.29deg] object-contain drop-shadow-[4.448px_4.448px_13.345px_rgba(55,55,55,0.25)] lg:block"
