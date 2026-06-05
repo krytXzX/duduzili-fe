@@ -92,7 +92,7 @@ type SellerReportStep = 1 | 2;
   templateUrl: './product-page.component.html',
   host: {
     class: 'block h-full overflow-y-auto overflow-x-hidden bg-white text-[#1F1F1F]',
-    '(document:keydown.escape)': 'handleGalleryPreviewEscape()',
+    '(document:keydown.escape)': 'handleOverlayEscape()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -118,6 +118,7 @@ export class ProductPageComponent {
   readonly isRequestCallbackModalOpen = signal(false);
   readonly isMakeOfferModalOpen = signal(false);
   readonly isShareListingModalOpen = signal(false);
+  readonly isReviewsModalOpen = signal(false);
   readonly isReportModalOpen = signal(false);
   readonly isReportSuccessModalOpen = signal(false);
   readonly isSellerReportSuccessModalOpen = signal(false);
@@ -135,6 +136,19 @@ export class ProductPageComponent {
   readonly isSubmittingOffer = signal(false);
   readonly isSubmittingCallbackRequest = signal(false);
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
+  readonly reviewAverage = computed(() => {
+    const reviews = this.reviews();
+    if (reviews.length === 0) {
+      return '0.0';
+    }
+
+    const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return (total / reviews.length).toFixed(1);
+  });
+  readonly reviewCountLabel = computed(() => {
+    const count = this.reviews().length;
+    return `${count} ${count === 1 ? 'rating' : 'ratings'}`;
+  });
   readonly isProductSaved = computed(() =>
     this.product().isSaved || this.favoritesStateService.isFavorited(this.product().id),
   );
@@ -292,12 +306,12 @@ export class ProductPageComponent {
   openGalleryPreview(index = this.currentGalleryIndex()): void {
     this.setGalleryIndex(index);
     this.isGalleryPreviewOpen.set(true);
-    this.document.body.style.overflow = 'hidden';
+    this.setBodyScrollLocked(true);
   }
 
   closeGalleryPreview(): void {
     this.isGalleryPreviewOpen.set(false);
-    this.document.body.style.overflow = '';
+    this.setBodyScrollLocked(false);
   }
 
   setGalleryIndex(index: number): void {
@@ -321,12 +335,20 @@ export class ProductPageComponent {
     return `${this.currentGalleryIndex() + 1}/${this.product().images.length}`;
   }
 
-  handleGalleryPreviewEscape(): void {
-    if (!this.isGalleryPreviewOpen()) {
+  handleOverlayEscape(): void {
+    if (this.isReviewsModalOpen()) {
+      this.closeReviewsModal();
       return;
     }
 
-    this.closeGalleryPreview();
+    if (this.isShareListingModalOpen()) {
+      this.closeShareListingModal();
+      return;
+    }
+
+    if (this.isGalleryPreviewOpen()) {
+      this.closeGalleryPreview();
+    }
   }
 
   whatsappLink(): string {
@@ -373,11 +395,23 @@ export class ProductPageComponent {
     this.closeListingActionsMenu();
     this.hasCopiedShareUrl.set(false);
     this.isShareListingModalOpen.set(true);
+    this.setBodyScrollLocked(true);
   }
 
   closeShareListingModal(): void {
     this.isShareListingModalOpen.set(false);
     this.hasCopiedShareUrl.set(false);
+    this.setBodyScrollLocked(false);
+  }
+
+  openReviewsModal(): void {
+    this.isReviewsModalOpen.set(true);
+    this.setBodyScrollLocked(true);
+  }
+
+  closeReviewsModal(): void {
+    this.isReviewsModalOpen.set(false);
+    this.setBodyScrollLocked(false);
   }
 
   async shareListingWithDevice(): Promise<void> {
@@ -503,6 +537,10 @@ export class ProductPageComponent {
 
   private openExternalShareUrl(url: string): void {
     this.document.defaultView?.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  private setBodyScrollLocked(isLocked: boolean): void {
+    this.document.body.style.overflow = isLocked ? 'hidden' : '';
   }
 
   openReportModal(subject: ReportSubject): void {
