@@ -90,7 +90,7 @@ type AddListingPickerOption = {
 
         @if (showApprovedVerificationBanner()) {
           <div
-            class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#eeeefd] bg-[#fff5f5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(174.53deg,rgba(177,255,161,0)_49.825%,rgba(168,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,245,245,0.44)_0%,rgba(255,245,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:border-[#e9f5e5] lg:px-[17px] lg:py-[18px]"
+            class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#e9f5e5] bg-[#fbfff8] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(174.53deg,rgba(177,255,161,0)_49.825%,rgba(168,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(245,255,245,0.44)_0%,rgba(255,250,250,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:px-[17px] lg:py-[18px]"
           >
             <div class="absolute left-[74px] top-[50px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(177,255,161,0.3)_0%,rgba(177,255,161,0.1)_35%,rgba(177,255,161,0)_72%)] lg:left-[234px] lg:top-[70px]"></div>
             <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(209,255,184,0.24)_0%,rgba(209,255,184,0)_72%)]"></div>
@@ -108,13 +108,13 @@ type AddListingPickerOption = {
             </div>
 
             <img
-              src="/assets/images/listings-verification-approved-mobile-illustration.png"
+              src="/assets/images/listings-verification-approved-mobile-illustration-clean.png"
               alt=""
               aria-hidden="true"
               class="absolute right-[-6px] top-[7px] h-[98px] w-[98px] rotate-[11.29deg] object-contain drop-shadow-[4.448px_4.448px_13.345px_rgba(55,55,55,0.25)] lg:hidden"
             />
             <img
-              src="/assets/images/listings-verification-approved-desktop-illustration.png"
+              src="/assets/images/listings-verification-approved-desktop-illustration-clean.png"
               alt=""
               aria-hidden="true"
               class="absolute right-[10px] top-[-2px] hidden h-[169px] w-[169px] rotate-[11.29deg] object-contain drop-shadow-[4.448px_4.448px_13.345px_rgba(55,55,55,0.25)] lg:block"
