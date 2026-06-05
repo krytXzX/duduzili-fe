@@ -21,6 +21,7 @@ type ListingFilter = 'All' | ListingStatus;
 type ListingCategoryFilter = string;
 type ListingStoreFilter = string;
 type ListingStatusFilter = 'all' | ListingStatus;
+type VerificationStatus = 'not_submitted' | 'pending' | 'under_review' | 'approved' | 'rejected';
 
 type ListingRow = {
   id: string;
@@ -87,39 +88,82 @@ type AddListingPickerOption = {
           </button>
         </div>
 
-        <div
-          class="relative mt-6 overflow-hidden rounded-2xl border border-[#eeeefd] bg-[rgba(246,245,255,0.44)] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] lg:mx-4 lg:mt-7 lg:px-[17px] lg:py-[18px]"
-        >
-          <div class="absolute left-[154px] top-[70px] h-[188px] w-[690px] rounded-full bg-[radial-gradient(circle,rgba(133,121,255,0.12)_0%,rgba(133,121,255,0.04)_35%,rgba(133,121,255,0)_70%)]"></div>
-          <div class="absolute right-[-12px] top-[38px] h-[126px] w-[126px] rounded-full bg-[radial-gradient(circle,rgba(180,171,255,0.22)_0%,rgba(180,171,255,0)_70%)] lg:right-[-18px] lg:top-[35px]"></div>
+        @if (isVerificationPendingReview()) {
+          <div
+            class="relative mt-6 overflow-hidden rounded-2xl border border-[#f5f5e5] bg-[#fffff5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(171.22deg,rgba(252,255,161,0)_49.825%,rgba(252,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,255,245,0.44)_0%,rgba(255,255,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:px-[17px] lg:py-[18px]"
+          >
+            <div class="absolute left-[154px] top-[70px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(255,240,128,0.34)_0%,rgba(255,240,128,0.12)_35%,rgba(255,240,128,0)_72%)] lg:left-[234px]"></div>
+            <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(183,234,109,0.24)_0%,rgba(183,234,109,0)_72%)]"></div>
 
-          <div class="relative z-10 flex items-center justify-between gap-3 lg:gap-6">
-            <div class="min-w-0 lg:max-w-[355px]">
-              <h2 class="text-[18px] font-medium leading-6 text-[#1f1f1f]">Build trust. Get more buyers</h2>
-              <p class="mt-0.5 max-w-[240px] text-sm leading-7 text-[#7b7979] lg:max-w-none lg:leading-5">
-                Verified sellers rank higher and attract more inquiries.
-              </p>
+            <div class="relative z-10 flex items-center justify-between gap-3 lg:gap-6">
+              <div class="min-w-0 lg:max-w-[355px]">
+                <h2 class="text-[18px] font-medium leading-6 text-[#1f1f1f]">Verification under review</h2>
+                <p class="mt-0.5 max-w-[255px] text-sm leading-5 text-[#7b7979] lg:max-w-[495px]">
+                  Our team is reviewing your documents. You’ll be notified within 24–48 hours.
+                </p>
 
-              <button
-                type="button"
-                (click)="openVerificationFlow()"
-                class="mt-3 inline-flex h-10 items-center gap-2 rounded-full border border-[#eaeaea] bg-white px-5 text-sm font-medium text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)] lg:mt-4"
-              >
-                {{ isVerificationSubmitted() ? 'View submission' : 'Verify my account' }}
-                <span aria-hidden="true">→</span>
-              </button>
+                <button
+                  type="button"
+                  (click)="openVerificationFlow()"
+                  class="mt-3 inline-flex h-10 items-center justify-center rounded-full border border-[#eaeaea] bg-white px-5 text-sm font-medium text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)] lg:mt-4"
+                >
+                  View submission
+                </button>
+              </div>
+
+              <img
+                ngSrc="/assets/images/listings-verification-under-review-mobile-illustration.png"
+                width="74"
+                height="74"
+                alt=""
+                aria-hidden="true"
+                class="h-[74px] w-[74px] shrink-0 object-contain lg:hidden"
+              />
+              <img
+                ngSrc="/assets/images/listings-verification-under-review-desktop-illustration.png"
+                width="116"
+                height="116"
+                alt=""
+                aria-hidden="true"
+                class="hidden h-[116px] w-[116px] shrink-0 rotate-[8.21deg] object-contain drop-shadow-[5px_4px_8px_rgba(60,60,60,0.25)] lg:block"
+              />
             </div>
-
-            <img
-              [ngSrc]="verificationIllustration()"
-              width="152"
-              height="152"
-              alt=""
-              aria-hidden="true"
-              class="h-[116px] w-[116px] shrink-0 object-contain lg:h-[152px] lg:w-[152px]"
-            />
           </div>
-        </div>
+        } @else {
+          <div
+            class="relative mt-6 overflow-hidden rounded-2xl border border-[#eeeefd] bg-[rgba(246,245,255,0.44)] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] lg:mx-4 lg:mt-7 lg:px-[17px] lg:py-[18px]"
+          >
+            <div class="absolute left-[154px] top-[70px] h-[188px] w-[690px] rounded-full bg-[radial-gradient(circle,rgba(133,121,255,0.12)_0%,rgba(133,121,255,0.04)_35%,rgba(133,121,255,0)_70%)]"></div>
+            <div class="absolute right-[-12px] top-[38px] h-[126px] w-[126px] rounded-full bg-[radial-gradient(circle,rgba(180,171,255,0.22)_0%,rgba(180,171,255,0)_70%)] lg:right-[-18px] lg:top-[35px]"></div>
+
+            <div class="relative z-10 flex items-center justify-between gap-3 lg:gap-6">
+              <div class="min-w-0 lg:max-w-[355px]">
+                <h2 class="text-[18px] font-medium leading-6 text-[#1f1f1f]">Build trust. Get more buyers</h2>
+                <p class="mt-0.5 max-w-[240px] text-sm leading-7 text-[#7b7979] lg:max-w-none lg:leading-5">
+                  Verified sellers rank higher and attract more inquiries.
+                </p>
+
+                <button
+                  type="button"
+                  (click)="openVerificationFlow()"
+                  class="mt-3 inline-flex h-10 items-center gap-2 rounded-full border border-[#eaeaea] bg-white px-5 text-sm font-medium text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)] lg:mt-4"
+                >
+                  {{ isVerificationSubmitted() ? 'View submission' : 'Verify my account' }}
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+
+              <img
+                [ngSrc]="verificationIllustration()"
+                width="152"
+                height="152"
+                alt=""
+                aria-hidden="true"
+                class="h-[116px] w-[116px] shrink-0 object-contain lg:h-[152px] lg:w-[152px]"
+              />
+            </div>
+          </div>
+        }
 
         @if (hasListings()) {
         <div class="mt-6 lg:mx-4">
@@ -437,6 +481,7 @@ export class ListingsPageComponent {
   protected readonly showIdentityModal = signal(false);
   protected readonly showVerificationDetailsModal = signal(false);
   protected readonly isVerificationSubmitted = signal(false);
+  protected readonly verificationStatus = signal<VerificationStatus>('not_submitted');
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly searchTerm = signal('');
@@ -451,6 +496,10 @@ export class ListingsPageComponent {
   protected readonly verificationIllustrationMobile = '/assets/images/listings-verify-illustration-mobile-v2.png';
 
   protected readonly hasListings = computed(() => this.listings().length > 0);
+  protected readonly isVerificationPendingReview = computed(() => {
+    const status = this.verificationStatus();
+    return status === 'pending' || status === 'under_review';
+  });
 
   protected readonly stats = computed<ListingStat[]>(() => {
     const listings = this.listings();
@@ -639,11 +688,14 @@ export class ListingsPageComponent {
         .map((item, index) => this.toListingRow(item, index))
         .filter((item): item is ListingRow => item !== null);
 
+      this.applyVerificationState(response);
       this.manageListingCategories.set(this.extractCategories(response));
       this.manageListingStores.set(this.extractStores(response));
       this.listings.set(mappedListings);
     } catch {
       this.errorMessage.set('We could not load your listings right now.');
+      this.verificationStatus.set('not_submitted');
+      this.isVerificationSubmitted.set(false);
       this.manageListingCategories.set([]);
       this.manageListingStores.set([]);
       this.listings.set([]);
@@ -666,6 +718,13 @@ export class ListingsPageComponent {
 
   private extractStores(response: ManageListingsResponse): readonly ManageListingsStore[] {
     return Array.isArray(response.stores) ? response.stores : [];
+  }
+
+  private applyVerificationState(response: ManageListingsResponse): void {
+    const verification = this.readRecord(response.identity_verification);
+    const status = this.normalizeVerificationStatus(this.readString(verification?.['status']));
+    this.verificationStatus.set(status);
+    this.isVerificationSubmitted.set(status !== 'not_submitted');
   }
 
   private toListingRow(item: ListingsApiItem, index: number): ListingRow | null {
@@ -776,11 +835,30 @@ export class ListingsPageComponent {
     return typeof value === 'boolean' ? value : null;
   }
 
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
+  }
+
   private readNestedString(container: unknown, key: string): string | null {
     if (!container || typeof container !== 'object') {
       return null;
     }
 
     return this.readString((container as Record<string, unknown>)[key]);
+  }
+
+  private normalizeVerificationStatus(value: string | null): VerificationStatus {
+    switch (value?.toLowerCase()) {
+      case 'pending':
+        return 'pending';
+      case 'under_review':
+        return 'under_review';
+      case 'approved':
+        return 'approved';
+      case 'rejected':
+        return 'rejected';
+      default:
+        return 'not_submitted';
+    }
   }
 }

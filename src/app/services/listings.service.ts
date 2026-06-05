@@ -41,6 +41,7 @@ export interface ManageListingsResponse {
   stats?: Record<string, number>;
   stores?: ManageListingsStore[];
   categories?: ManageListingsCategory[];
+  identity_verification?: Record<string, unknown>;
   states?: ManageListingsState[];
   cities?: ManageListingsCity[];
   delivery_options?: ManageListingsDeliveryOption[];
