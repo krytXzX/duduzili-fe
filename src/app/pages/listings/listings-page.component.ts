@@ -88,7 +88,69 @@ type AddListingPickerOption = {
           </button>
         </div>
 
-        @if (showApprovedVerificationBanner()) {
+        @if (showRejectedVerificationBanner()) {
+          <div
+            class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#eeeefd] bg-[#fff5f5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(171.22deg,rgba(255,161,161,0)_49.825%,rgba(255,161,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,245,245,0.44)_0%,rgba(255,245,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:border-[#f5e5e5] lg:px-[17px] lg:py-[18px]"
+          >
+            <div class="absolute left-[154px] top-[70px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(255,177,177,0.24)_0%,rgba(255,177,177,0.1)_35%,rgba(255,177,177,0)_72%)] lg:left-[234px]"></div>
+            <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(255,208,208,0.22)_0%,rgba(255,208,208,0)_72%)]"></div>
+
+            <div class="relative z-10 w-full lg:max-w-[355px]">
+              <div class="flex max-w-[255px] flex-col items-start gap-3 lg:max-w-[355px]">
+                <div class="w-full">
+                  <h2 class="text-[18px] font-medium leading-[24px] text-[#1f1f1f]">Verification failed</h2>
+                  <p class="mt-0.5 text-[14px] font-normal leading-[20px] text-[#7b7979] lg:min-w-[495px] lg:max-w-[495px] lg:text-[#636363]">
+                    Your documents are invalid. Kindly provide a valid documentation
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  (click)="openVerificationFlow()"
+                  class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#eaeaea] bg-white px-5 text-[14px] font-medium leading-[20px] text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)]"
+                >
+                  Verify my account
+                  <img
+                    src="/assets/icons/listings-verification-failed-arrow-right.svg"
+                    alt=""
+                    aria-hidden="true"
+                    class="h-4 w-4"
+                  />
+                </button>
+              </div>
+            </div>
+
+            <div class="absolute right-[-6px] top-[53px] h-[80px] w-[80px] rotate-[21.22deg] lg:hidden">
+              <img
+                src="/assets/images/listings-verification-failed-mobile-base.png"
+                alt=""
+                aria-hidden="true"
+                class="absolute inset-0 h-full w-full object-contain"
+              />
+              <img
+                src="/assets/images/listings-verification-failed-mobile-badge.png"
+                alt=""
+                aria-hidden="true"
+                class="absolute left-[3.5px] top-[18px] h-[35px] w-[36px]"
+              />
+            </div>
+
+            <div class="absolute right-[34px] top-[4px] hidden h-[149px] w-[149px] rotate-[21.22deg] lg:block">
+              <img
+                src="/assets/images/listings-verification-failed-desktop-base.png"
+                alt=""
+                aria-hidden="true"
+                class="absolute inset-0 h-[115px] w-[115px] object-contain"
+              />
+              <img
+                src="/assets/images/listings-verification-failed-desktop-badge.png"
+                alt=""
+                aria-hidden="true"
+                class="absolute left-[5px] top-[26px] h-[51px] w-[52px]"
+              />
+            </div>
+          </div>
+        } @else if (showApprovedVerificationBanner()) {
           <div
             class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#e9f5e5] bg-[#fbfff8] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(174.53deg,rgba(177,255,161,0)_49.825%,rgba(168,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(245,255,245,0.44)_0%,rgba(255,250,250,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:px-[17px] lg:py-[18px]"
           >
@@ -553,6 +615,9 @@ export class ListingsPageComponent {
   });
   protected readonly showApprovedVerificationBanner = computed(
     () => this.verificationStatus() === 'approved' && !this.approvedVerificationBannerDismissed(),
+  );
+  protected readonly showRejectedVerificationBanner = computed(
+    () => this.verificationStatus() === 'rejected',
   );
 
   protected readonly stats = computed<ListingStat[]>(() => {
