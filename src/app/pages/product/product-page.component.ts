@@ -1,4 +1,5 @@
 import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -574,9 +575,9 @@ export class ProductPageComponent {
       await this.router.navigate(['/chats'], {
         queryParams: conversationId ? { conversation: conversationId } : undefined,
       });
-    } catch {
+    } catch (error) {
       this.appToastService.show({
-        message: 'Unable to start conversation right now.',
+        message: this.extractErrorMessage(error) ?? 'Unable to start conversation right now.',
       });
     } finally {
       this.isStartingConversation.set(false);
@@ -1431,6 +1432,29 @@ export class ProductPageComponent {
 
   private readRecord(value: unknown): Record<string, unknown> | null {
     return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
+  }
+
+  private extractErrorMessage(error: unknown): string | null {
+    if (!(error instanceof HttpErrorResponse)) {
+      return null;
+    }
+
+    const errorPayload = this.readRecord(error.error);
+    if (!errorPayload) {
+      return null;
+    }
+
+    const detail = this.readString(errorPayload['detail']);
+    if (detail) {
+      return detail;
+    }
+
+    const message = this.readString(errorPayload['message']);
+    if (message) {
+      return message;
+    }
+
+    return null;
   }
 
   private buildInitials(name: string): string {
