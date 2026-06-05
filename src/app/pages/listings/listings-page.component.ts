@@ -88,7 +88,56 @@ type AddListingPickerOption = {
           </button>
         </div>
 
-        @if (isVerificationPendingReview()) {
+        @if (showApprovedVerificationBanner()) {
+          <div
+            class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#eeeefd] bg-[#fff5f5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(174.53deg,rgba(177,255,161,0)_49.825%,rgba(168,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,245,245,0.44)_0%,rgba(255,245,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:border-[#e9f5e5] lg:px-[17px] lg:py-[18px]"
+          >
+            <div class="absolute left-[74px] top-[50px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(177,255,161,0.3)_0%,rgba(177,255,161,0.1)_35%,rgba(177,255,161,0)_72%)] lg:left-[234px] lg:top-[70px]"></div>
+            <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(209,255,184,0.24)_0%,rgba(209,255,184,0)_72%)]"></div>
+
+            <div class="relative z-10 w-full lg:max-w-[355px]">
+              <div class="w-full max-w-[255px]">
+                <h2 class="text-[18px] font-medium leading-[24px] text-[#1f1f1f] lg:text-[20px]">You’re now a verified seller! 🎉</h2>
+                <p class="mt-0.5 max-w-[289px] text-[14px] font-normal leading-[20px] text-[#7b7979] lg:min-w-[495px] lg:max-w-[495px] lg:text-[16px] lg:text-[#636363]">
+                  Your listings now show a verified badge.
+                </p>
+              </div>
+            </div>
+
+            <img
+              ngSrc="/assets/images/listings-verification-approved-mobile-illustration.png"
+              width="98"
+              height="98"
+              alt=""
+              aria-hidden="true"
+              class="absolute right-[-6px] top-[7px] h-[98px] w-[98px] rotate-[11.29deg] object-contain drop-shadow-[4.448px_4.448px_13.345px_rgba(55,55,55,0.25)] lg:hidden"
+            />
+            <img
+              ngSrc="/assets/images/listings-verification-approved-desktop-illustration.png"
+              width="169"
+              height="169"
+              alt=""
+              aria-hidden="true"
+              class="absolute right-[10px] top-[-2px] hidden h-[169px] w-[169px] rotate-[11.29deg] object-contain drop-shadow-[4.448px_4.448px_13.345px_rgba(55,55,55,0.25)] lg:block"
+            />
+
+            <button
+              type="button"
+              (click)="dismissApprovedVerificationBanner()"
+              class="absolute right-[5px] top-[5px] hidden h-8 w-8 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_2.909px_5.818px_rgba(202,202,202,0.25)] lg:inline-flex"
+              aria-label="Dismiss verified seller banner"
+            >
+              <img
+                ngSrc="/assets/icons/listings-verification-approved-close.svg"
+                width="18"
+                height="18"
+                alt=""
+                aria-hidden="true"
+                class="h-[18px] w-[18px]"
+              />
+            </button>
+          </div>
+        } @else if (isVerificationPendingReview()) {
           <div
             class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#f5f5e5] bg-[#fffff5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(171.22deg,rgba(252,255,161,0)_49.825%,rgba(252,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,255,245,0.44)_0%,rgba(255,255,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:px-[17px] lg:py-[18px]"
           >
@@ -482,6 +531,7 @@ export class ListingsPageComponent {
   protected readonly showAddListingModal = signal(false);
   protected readonly showIdentityModal = signal(false);
   protected readonly showVerificationDetailsModal = signal(false);
+  protected readonly approvedVerificationBannerDismissed = signal(false);
   protected readonly isVerificationSubmitted = signal(false);
   protected readonly verificationStatus = signal<VerificationStatus>('not_submitted');
   protected readonly isLoading = signal(true);
@@ -502,6 +552,9 @@ export class ListingsPageComponent {
     const status = this.verificationStatus();
     return status === 'pending' || status === 'under_review';
   });
+  protected readonly showApprovedVerificationBanner = computed(
+    () => this.verificationStatus() === 'approved' && !this.approvedVerificationBannerDismissed(),
+  );
 
   protected readonly stats = computed<ListingStat[]>(() => {
     const listings = this.listings();
@@ -627,6 +680,10 @@ export class ListingsPageComponent {
     this.showIdentityModal.set(true);
   }
 
+  protected dismissApprovedVerificationBanner(): void {
+    this.approvedVerificationBannerDismissed.set(true);
+  }
+
   protected updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
@@ -696,6 +753,7 @@ export class ListingsPageComponent {
       this.listings.set(mappedListings);
     } catch {
       this.errorMessage.set('We could not load your listings right now.');
+      this.approvedVerificationBannerDismissed.set(false);
       this.verificationStatus.set('not_submitted');
       this.isVerificationSubmitted.set(false);
       this.manageListingCategories.set([]);
@@ -725,6 +783,7 @@ export class ListingsPageComponent {
   private applyVerificationState(response: ManageListingsResponse): void {
     const verification = this.readRecord(response.identity_verification);
     const status = this.normalizeVerificationStatus(this.readString(verification?.['status']));
+    this.approvedVerificationBannerDismissed.set(false);
     this.verificationStatus.set(status);
     this.isVerificationSubmitted.set(status !== 'not_submitted');
   }
