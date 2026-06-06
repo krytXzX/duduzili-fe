@@ -1554,12 +1554,14 @@ export class BuyerFollowedStoreDetailsPageComponent {
   constructor() {
     if (!this.appModeService.isBackendEnabled()) {
       this.loadDemoState();
+      this.applyInitialReviewIntent();
       return;
     }
 
     void this.loadVendorProfile();
     void this.loadVendorListings();
     void this.loadVendorReviews();
+    this.applyInitialReviewIntent();
   }
 
   readonly categoryChips = computed(() => [
@@ -1568,6 +1570,17 @@ export class BuyerFollowedStoreDetailsPageComponent {
   ]);
 
   readonly mobileCategoryChips = computed(() => this.categoryChips().slice(0, 5));
+
+  private applyInitialReviewIntent(): void {
+    const queryParams = this.route.snapshot.queryParamMap;
+    if (queryParams.get('tab') === 'reviews') {
+      this.activeTab.set('reviews');
+    }
+
+    if (queryParams.get('review') === '1') {
+      void this.openLeaveReviewModal();
+    }
+  }
 
   readonly mobileSections = computed<readonly MobileProductSection[]>(() =>
     this.filteredSections()

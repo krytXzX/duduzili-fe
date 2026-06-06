@@ -21,3 +21,6 @@ Different bottom nav for buyer and seller on mobile
 Remove arrow on search bar in top nav
 Search bar is sticky on mobile
 Replace the heart icon on listing card
+
+
+full purge of the assets folder for placeholder images and icons

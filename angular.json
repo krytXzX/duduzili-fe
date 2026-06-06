@@ -36,6 +36,7 @@
             "security": {
               "allowedHosts": []
             },
+            "prerender":true,
             "ssr": {
               "entry": "src/server.ts"
             },
