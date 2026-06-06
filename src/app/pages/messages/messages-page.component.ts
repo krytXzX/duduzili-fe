@@ -1,4 +1,4 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -872,6 +872,9 @@ type ChatDay = {
                   }
                 </div>
               </div>
+              <p class="mt-2 pr-1 text-right text-[11px] leading-4 text-[#8C8C92]">
+                Press Shift+Enter for new line
+              </p>
               </div>
             </footer>
             }
@@ -1975,6 +1978,7 @@ type ChatDay = {
 export class MessagesPageComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
   private readonly formBuilder = inject(FormBuilder);
   private readonly messagesService = inject(MessagesService);
   private readonly listingsService = inject(ListingsService);
@@ -2798,6 +2802,25 @@ export class MessagesPageComponent implements OnDestroy {
     });
   }
 
+  private focusDraftComposer(): void {
+    globalThis.setTimeout(() => {
+      const draftFields = Array.from(
+        this.document.querySelectorAll<HTMLTextAreaElement>('textarea[data-chat-draft="true"]'),
+      );
+      const activeField =
+        draftFields.find((field) => field.offsetParent !== null) ?? draftFields[0] ?? null;
+
+      if (!activeField) {
+        return;
+      }
+
+      activeField.focus();
+      const length = activeField.value.length;
+      activeField.setSelectionRange(length, length);
+      this.resizeDraftComposer(activeField);
+    }, 0);
+  }
+
   protected openStoreSelector(): void {
     this.isClearChatConfirmOpen.set(false);
     this.isMessageMenuOpen.set(false);
@@ -3141,6 +3164,7 @@ export class MessagesPageComponent implements OnDestroy {
 
     this.activeReplyTarget.set({ author: target.author, text: target.text });
     this.closeMessageMenu();
+    this.focusDraftComposer();
   }
 
   protected async copyMessageFromMenu(): Promise<void> {
