@@ -83,16 +83,7 @@
               </span>
             </h1>
 
-            <div class="relative mt-10 w-full max-w-[647px]">
-              @if (isDesktopSearchOverlayOpen()) {
-                <button
-                  type="button"
-                  class="fixed inset-0 z-10 hidden cursor-default lg:block"
-                  aria-label="Close search suggestions"
-                  (click)="closeDesktopSearchOverlay()"
-                ></button>
-              }
-
+            <div #desktopSearchShell class="relative mt-10 w-full max-w-[647px]">
               <div
                 class="relative z-20"
               >
@@ -290,23 +281,37 @@
     <section class="mx-auto max-w-[1440px] px-5 pb-8 lg:px-[100px] lg:pb-[72px]">
       <div class="hidden items-center gap-5 lg:flex">
         @for (promotion of promotions(); track promotion.id) {
-        <div class="relative overflow-hidden rounded-[24px]">
+        <button
+          type="button"
+          class="relative overflow-hidden rounded-[24px] text-left"
+          [class.cursor-pointer]="!!promotion.link"
+          [class.cursor-default]="!promotion.link"
+          (click)="openPromotion(promotion)"
+          [attr.aria-label]="promotion.link ? 'Open sponsored promotion' : null"
+        >
           <img [src]="promotion.image" alt="Sponsored promotion" width="505" height="225" class="h-[225px] w-full object-cover" />
           <span class="absolute bottom-5 left-5 rounded-full bg-black/55 px-3 py-1 text-sm font-medium text-white backdrop-blur-sm">
             Sponsored
           </span>
-        </div>
+        </button>
         }
       </div>
 
       <div class="lg:hidden">
         @if (mobilePromotion(); as promotion) {
-        <div class="relative overflow-hidden rounded-[18px]">
+        <button
+          type="button"
+          class="relative overflow-hidden rounded-[18px] text-left"
+          [class.cursor-pointer]="!!promotion.link"
+          [class.cursor-default]="!promotion.link"
+          (click)="openPromotion(promotion)"
+          [attr.aria-label]="promotion.link ? 'Open sponsored promotion' : null"
+        >
           <img [src]="promotion.image" alt="Sponsored promotion" width="399" height="224" class="h-auto w-full object-cover" />
           <span class="absolute bottom-3 left-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
             Sponsored
           </span>
-        </div>
+        </button>
         }
       </div>
     </section>
