@@ -49,6 +49,10 @@ export class MessagesService {
     return this.http.get<MessagesResponse>(`${this.apiUrl}/seller-stores/${id}/conversations/`);
   }
 
+  getVendorInbox(): Observable<MessagesResponse> {
+    return this.http.get<MessagesResponse>(`${this.apiUrl}/messages/vendor-inbox/`);
+  }
+
   getMessageDetails(id: string): Observable<Record<string, unknown>> {
     return this.http.get<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/`);
   }

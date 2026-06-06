@@ -2220,7 +2220,7 @@ export class MessagesPageComponent implements OnDestroy {
 
       if (initialStoreId) {
         if (initialStoreId === 'all') {
-          await this.loadBuyerConversations();
+          await this.loadSellerInboxConversations();
         } else {
           await this.loadSellerStoreConversations(initialStoreId);
         }
@@ -2244,6 +2244,22 @@ export class MessagesPageComponent implements OnDestroy {
 
     try {
       const response = await firstValueFrom(this.messagesService.getMessages());
+      await this.applyConversationsResponse(response);
+    } catch {
+      this.conversations.set([]);
+      this.activeChatId.set('');
+      this.conversationsError.set('We could not load your chats right now.');
+    } finally {
+      this.isLoadingConversations.set(false);
+    }
+  }
+
+  private async loadSellerInboxConversations(): Promise<void> {
+    this.isLoadingConversations.set(true);
+    this.conversationsError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.messagesService.getVendorInbox());
       await this.applyConversationsResponse(response);
     } catch {
       this.conversations.set([]);
@@ -2494,6 +2510,17 @@ export class MessagesPageComponent implements OnDestroy {
           [chatId]: mappedDays,
         }));
       }
+
+      this.conversations.update((items) =>
+        items.map((conversation) =>
+          conversation.id === chatId
+            ? {
+                ...conversation,
+                unreadCount: undefined,
+              }
+            : conversation,
+        ),
+      );
     } catch {
       // Keep existing fallback messages when the thread endpoint fails.
     } finally {
@@ -3354,7 +3381,7 @@ export class MessagesPageComponent implements OnDestroy {
 
     if (this.isSeller()) {
       if (storeId === 'all') {
-        await this.loadBuyerConversations();
+        await this.loadSellerInboxConversations();
         return;
       }
 
