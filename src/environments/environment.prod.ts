@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://ddb.sft.org.ng/api',
+  apiUrl: 'https://ddb.sft.org.ng/api',
   demoMode: false,
   backendEnabled: true,
 };
