@@ -319,7 +319,7 @@ type VendorTagSummary = {
             </div>
             <button
               type="button"
-              (click)="showLeaveReviewModal.set(true)"
+              (click)="void openLeaveReviewModal()"
               class="mt-4 w-full rounded-full bg-[#5932EA] px-6 py-3 text-[14px] font-medium text-white"
             >
               Leave a review
@@ -695,7 +695,7 @@ type VendorTagSummary = {
 
                     <button
                       type="button"
-                      (click)="showLeaveReviewModal.set(true)"
+                      (click)="void openLeaveReviewModal()"
                       class="w-full rounded-full bg-[#5932EA] px-6 py-3.5 text-sm font-medium text-white shadow-[0_10px_24px_-12px_rgba(89,50,234,0.7)] transition hover:bg-[#4E27DD]"
                     >
                       Leave a review
@@ -1045,6 +1045,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   readonly selectedReviewTags = signal<string[]>([]);
   readonly reviewText = signal('');
   readonly reviewImagePreviews = signal<string[]>([]);
+  readonly reviewImageFiles = signal<readonly File[]>([]);
   readonly reviewTagSummaries = signal<VendorTagSummary[]>([]);
   private readonly storeId = this.route.snapshot.paramMap.get('id') ?? 'bf1';
 
@@ -1641,6 +1642,15 @@ export class BuyerFollowedStoreDetailsPageComponent {
     return Array.from({ length: 5 }, (_, index) => index < rating);
   }
 
+  async openLeaveReviewModal(): Promise<void> {
+    if (!this.authSession.isAuthenticated()) {
+      await this.router.navigate(['/sign-in']);
+      return;
+    }
+
+    this.showLeaveReviewModal.set(true);
+  }
+
   async openInAppChat(): Promise<void> {
     this.showContactMenu.set(false);
 
@@ -1714,8 +1724,12 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   onReviewImagesSelected(input: HTMLInputElement) {
     const files = Array.from(input.files ?? []);
-    const previews = files.slice(0, 6).map((file) => URL.createObjectURL(file));
+    const limitedFiles = files.slice(0, 6);
+    const previews = limitedFiles.map((file) => URL.createObjectURL(file));
+    this.revokeReviewPreviewUrls();
+    this.reviewImageFiles.set(limitedFiles);
     this.reviewImagePreviews.set(previews);
+    input.value = '';
   }
 
   closeLeaveReviewModal() {
@@ -1893,6 +1907,8 @@ export class BuyerFollowedStoreDetailsPageComponent {
     this.reviewRating.set(2);
     this.selectedReviewTags.set([]);
     this.reviewText.set('');
+    this.reviewImageFiles.set([]);
+    this.revokeReviewPreviewUrls();
     this.reviewImagePreviews.set([]);
   }
 
@@ -1907,7 +1923,16 @@ export class BuyerFollowedStoreDetailsPageComponent {
       rating: this.reviewRating(),
       comment: this.reviewText().trim(),
       tag_ids: tagIds,
+      photo_files: this.reviewImageFiles(),
     };
+  }
+
+  private revokeReviewPreviewUrls(): void {
+    for (const preview of this.reviewImagePreviews()) {
+      if (preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    }
   }
 
   private resolveDemoStoreKey(storeId: string): string {

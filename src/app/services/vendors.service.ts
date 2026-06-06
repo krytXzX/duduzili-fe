@@ -21,6 +21,7 @@ export type CreateVendorReviewPayload = {
   rating: number;
   comment?: string;
   tag_ids?: number[];
+  photo_files?: readonly File[];
 };
 export type VendorsFollowingResponse =
   | VendorRecord[]
@@ -94,7 +95,23 @@ export class VendorsService {
   }
 
   createVendorReview(id: string, payload: CreateVendorReviewPayload): Observable<VendorReviewRecord> {
-    return this.http.post<VendorReviewRecord>(`${this.apiUrl}/vendors/${id}/reviews/create/`, payload);
+    const formData = new FormData();
+    formData.append('vendor', payload.vendor);
+    formData.append('rating', String(payload.rating));
+
+    if (payload.comment?.trim()) {
+      formData.append('comment', payload.comment.trim());
+    }
+
+    for (const tagId of payload.tag_ids ?? []) {
+      formData.append('tag_ids', String(tagId));
+    }
+
+    for (const file of payload.photo_files ?? []) {
+      formData.append('photo_files', file);
+    }
+
+    return this.http.post<VendorReviewRecord>(`${this.apiUrl}/vendors/${id}/reviews/create/`, formData);
   }
 
   getVendorAnalytics(id: string): Observable<VendorAnalyticsRecord> {
