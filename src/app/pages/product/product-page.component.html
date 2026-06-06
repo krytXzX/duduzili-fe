@@ -965,22 +965,20 @@
 
 @if (isReviewsModalOpen()) {
   <div
-    class="fixed inset-0 z-[82] flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] md:items-center md:p-4"
+    class="fixed inset-0 z-[82] flex items-end justify-center bg-[rgba(13,18,30,0.32)] backdrop-blur-[2px] md:items-center md:p-4"
     (click)="closeReviewsModal()"
   >
     <div
-      class="relative w-full rounded-t-[36px] bg-white px-4 pb-8 pt-4 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] md:max-h-[80vh] md:max-w-[720px] md:rounded-[32px] md:px-6 md:pb-8 md:pt-6"
+      class="relative flex max-h-[100dvh] w-full flex-col overflow-hidden rounded-t-[36px] bg-white shadow-[0_-12px_40px_rgba(19,27,45,0.12)] md:max-h-[860px] md:max-w-[1232px] md:rounded-[32px] md:shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="product-reviews-title"
       (click)="$event.stopPropagation()"
     >
-      <div class="mx-auto mb-5 h-1 w-[50px] rounded-full bg-[#EBEBEB] md:hidden"></div>
-
       <button
         type="button"
         (click)="closeReviewsModal()"
-        class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#434455] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#FAFAFA] md:right-5 md:top-5"
+        class="absolute right-5 top-5 z-10 hidden h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#434455] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#FAFAFA] md:flex"
         aria-label="Close reviews"
       >
         <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
@@ -988,58 +986,259 @@
         </svg>
       </button>
 
-      <div class="mx-auto flex max-w-[620px] flex-col gap-6 pt-4 md:pt-2">
-        <div class="space-y-2 pr-14">
-          <h2 id="product-reviews-title" class="text-[24px] font-semibold leading-8 text-[#15162B] md:text-[28px]">
-            Reviews
-          </h2>
-          <div class="flex items-center gap-3">
-            <span class="text-[30px] font-semibold leading-none text-[#15162B] md:text-[36px]">{{ reviewAverage() }}</span>
-            <div class="flex gap-1 text-[#E5D038]">
-              @for (star of ratingStars; track star) {
-                <svg class="h-[16px] w-[16px]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path
-                    d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.08 3.29a1 1 0 00.95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.81 2.03a1 1 0 00-.36 1.12l1.07 3.29c.3.92-.75 1.69-1.54 1.12l-2.8-2.04a1 1 0 00-1.18 0l-2.8 2.04c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 00-.36-1.12L2.98 8.72c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 00.95-.69l1.07-3.29z"
-                  />
-                </svg>
-              }
-            </div>
-          </div>
-          <p class="text-[14px] leading-6 text-[#5B5D6B]">{{ reviewCountLabel() }}</p>
+      <div class="md:hidden">
+        <div class="flex items-center justify-center pt-3">
+          <div class="h-1 w-[48px] rounded-full bg-[#E7E7E7]"></div>
         </div>
 
-        <div class="max-h-[58vh] space-y-3 overflow-y-auto pr-1 md:space-y-4">
-          @for (review of reviews(); track review.author + '-' + review.date) {
-            <article class="rounded-[20px] border border-[#EAEAEA] bg-white p-4 md:p-5">
-              <div class="flex items-start justify-between gap-4">
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2">
-                    <h3 class="truncate text-[15px] font-medium leading-6 text-[#1F1F1F] md:text-[16px]">{{ review.author }}</h3>
-                    <span class="text-[12px] leading-5 text-[#A0A0A0]">{{ review.date }}</span>
-                  </div>
+        <button
+          type="button"
+          (click)="closeReviewsModal()"
+          class="absolute right-5 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#434455] shadow-[0_4px_8px_rgba(202,202,202,0.2)]"
+          aria-label="Close reviews"
+        >
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-                  <div class="mt-2 flex gap-1 text-[#E5D038]">
-                    @for (star of ratingStars; track star) {
-                      <svg
-                        class="h-[14px] w-[14px]"
-                        [class.text-[#E5D038]]="star <= review.rating"
-                        [class.text-[#E9E9E9]]="star > review.rating"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.08 3.29a1 1 0 00.95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.81 2.03a1 1 0 00-.36 1.12l1.07 3.29c.3.92-.75 1.69-1.54 1.12l-2.8-2.04a1 1 0 00-1.18 0l-2.8 2.04c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 00-.36-1.12L2.98 8.72c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 00.95-.69l1.07-3.29z"
-                        />
-                      </svg>
-                    }
-                  </div>
-
-                  <p class="mt-3 text-[14px] leading-6 text-[#5A5A5A] md:text-[15px]">{{ review.text }}</p>
+        <div class="max-h-[calc(100dvh-24px)] overflow-y-auto px-5 pb-8 pt-8">
+          <div class="rounded-[24px] bg-[#FAFAFA] p-5">
+            <div class="flex items-start gap-4">
+              <div class="min-w-0 flex-1">
+                <h2 id="product-reviews-title" class="text-[18px] font-medium leading-6 text-[#15162B]">Reviews</h2>
+                <div class="mt-3 flex items-end gap-1 text-[#15162B]">
+                  <span class="text-[40px] font-semibold leading-none tracking-[-0.03em]">{{ reviewAveragePrecise() }}</span>
+                  <span class="pb-1 text-[18px] font-medium leading-none text-[#A0A0A0]">/5</span>
                 </div>
               </div>
-            </article>
+
+              <div class="min-w-0 flex-1 space-y-2.5 pt-1">
+                @for (item of ratingBreakdown(); track item.stars) {
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-2 text-[12px] font-medium leading-4 text-[#15162B]">{{ item.stars }}</span>
+                    <div class="h-[6px] flex-1 overflow-hidden rounded-full bg-[#EDEDED]">
+                      <div class="h-full rounded-full bg-[#D7DF23]" [style.width]="reviewBarWidth(item.percentage)"></div>
+                    </div>
+                    <span class="w-9 text-right text-[12px] leading-4 text-[#8C8C92]">{{ item.percentage }}%</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="void leaveReviewFromProduct()"
+            class="mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-[#6453D9] px-6 text-[15px] font-medium text-white shadow-[0_10px_24px_rgba(100,83,217,0.22)] transition hover:bg-[#5645cb]"
+          >
+            Leave a review
+          </button>
+
+          <div class="mt-7 flex items-center justify-between gap-4">
+            <h3 class="text-[24px] font-medium leading-8 tracking-[-0.03em] text-[#15162B]">{{ reviewTotalLabel() }}</h3>
+            <button
+              type="button"
+              (click)="toggleReviewSort()"
+              class="flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-4 text-[13px] font-medium text-[#1F1F1F]"
+              aria-label="Sort reviews"
+            >
+              {{ reviewSortLabel() }}
+              <svg class="h-4 w-4 text-[#7B7B7B]" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="m5.5 7.5 4.5 4.5 4.5-4.5" />
+              </svg>
+            </button>
+          </div>
+
+          @if (reviewTagSummaries().length > 0) {
+            <section class="mt-6 space-y-3">
+              <h4 class="text-[18px] font-medium leading-6 text-[#15162B]">This listing is great at..</h4>
+              <div class="flex flex-wrap gap-2.5">
+                @for (tag of reviewTagSummaries(); track tag.label) {
+                  <span class="inline-flex items-center rounded-full bg-[#F5F5F7] px-4 py-2 text-[13px] leading-5 text-[#35353A]">
+                    {{ tag.label }}
+                  </span>
+                }
+              </div>
+            </section>
           }
+
+          <div class="mt-6 space-y-5">
+            @for (review of sortedReviews(); track review.author + '-' + review.date + '-' + review.text) {
+              <article class="border-b border-[#F0F0F0] pb-5 last:border-b-0 last:pb-0">
+                <div class="flex items-start gap-3.5">
+                  @if (review.avatar) {
+                    <img [src]="review.avatar" [alt]="review.author" class="h-11 w-11 rounded-full object-cover" />
+                  } @else {
+                    <div class="flex h-11 w-11 items-center justify-center rounded-full bg-[#F2F2F7] text-[14px] font-medium text-[#434455]">
+                      {{ reviewAuthorInitials(review) }}
+                    </div>
+                  }
+
+                  <div class="min-w-0 flex-1">
+                    <h5 class="truncate text-[15px] font-medium leading-5 text-[#15162B]">{{ review.author }}</h5>
+                    <div class="mt-1 flex items-center gap-2 text-[#D7DF23]">
+                      <div class="flex items-center gap-0.5">
+                        @for (star of ratingStars; track star) {
+                          <svg
+                            class="h-[13px] w-[13px]"
+                            [class.text-[#D7DF23]]="star <= review.rating"
+                            [class.text-[#E5E7EB]]="star > review.rating"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.08 3.29a1 1 0 0 0 .95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.81 2.03a1 1 0 0 0-.36 1.12l1.07 3.29c.3.92-.75 1.69-1.54 1.12l-2.8-2.04a1 1 0 0 0-1.18 0l-2.8 2.04c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 0 0-.36-1.12L2.98 8.72c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 0 0 .95-.69l1.07-3.29Z" />
+                          </svg>
+                        }
+                      </div>
+                      <span class="text-[13px] leading-5 text-[#8C8C92]">{{ review.date }}</span>
+                    </div>
+                    <p class="mt-3 text-[14px] leading-6 text-[#2F3138]">{{ review.text }}</p>
+
+                    @if (review.images?.length) {
+                      <div class="mt-4 flex gap-3 overflow-x-auto pb-1">
+                        @for (image of review.images!.slice(0, 4); track image; let index = $index) {
+                          <div class="relative h-[88px] w-[88px] shrink-0 overflow-hidden rounded-[18px] bg-[#F5F5F7]">
+                            <img [src]="image" alt="" class="h-full w-full object-cover" />
+                            @if (index === 3 && review.images!.length > 4) {
+                              <div class="absolute inset-0 flex items-center justify-center bg-black/45 text-[18px] font-medium text-white">
+                                +{{ review.images!.length - 3 }}
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="hidden h-full md:block">
+        <div class="h-full overflow-y-auto px-8 pb-8 pt-8">
+          <div class="grid min-h-full grid-cols-[302px_minmax(0,1fr)] gap-9 pt-7">
+            <div class="space-y-6">
+              <div class="rounded-[24px] bg-[#FAFAFA] p-6">
+                <h2 id="product-reviews-title" class="text-[24px] font-medium leading-8 tracking-[-0.03em] text-[#15162B]">Reviews</h2>
+                <div class="mt-5 flex items-end gap-1 text-[#15162B]">
+                  <span class="text-[56px] font-semibold leading-none tracking-[-0.04em]">{{ reviewAveragePrecise() }}</span>
+                  <span class="pb-1.5 text-[28px] font-medium leading-none text-[#A0A0A0]">/5</span>
+                </div>
+
+                <div class="mt-8 space-y-3.5">
+                  @for (item of ratingBreakdown(); track item.stars) {
+                    <div class="flex items-center gap-3">
+                      <span class="w-3 text-[14px] font-medium leading-5 text-[#15162B]">{{ item.stars }}</span>
+                      <div class="h-[8px] flex-1 overflow-hidden rounded-full bg-[#E5E5E5]">
+                        <div class="h-full rounded-full bg-[#D7DF23]" [style.width]="reviewBarWidth(item.percentage)"></div>
+                      </div>
+                      <span class="w-10 text-right text-[13px] leading-5 text-[#8C8C92]">{{ item.percentage }}%</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <button
+                type="button"
+                (click)="void leaveReviewFromProduct()"
+                class="flex h-[52px] w-full items-center justify-center rounded-full bg-[#6453D9] px-6 text-[15px] font-medium text-white shadow-[0_10px_24px_rgba(100,83,217,0.22)] transition hover:bg-[#5645cb]"
+              >
+                Leave a review
+              </button>
+            </div>
+
+            <div class="flex min-h-0 flex-col">
+              <div class="flex items-center justify-between gap-4">
+                <h3 class="text-[32px] font-medium leading-[40px] tracking-[-0.04em] text-[#15162B]">{{ reviewTotalLabel() }}</h3>
+                <button
+                  type="button"
+                  (click)="toggleReviewSort()"
+                  class="flex h-11 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-[#1F1F1F]"
+                  aria-label="Sort reviews"
+                >
+                  {{ reviewSortLabel() }}
+                  <svg class="h-4 w-4 text-[#7B7B7B]" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="m5.5 7.5 4.5 4.5 4.5-4.5" />
+                  </svg>
+                </button>
+              </div>
+
+              @if (reviewTagSummaries().length > 0) {
+                <section class="mt-8 space-y-4">
+                  <h4 class="text-[20px] font-medium leading-7 text-[#15162B]">This vendor is great at..</h4>
+                  <div class="flex flex-wrap gap-3">
+                    @for (tag of reviewTagSummaries(); track tag.label) {
+                      <span class="inline-flex items-center rounded-full bg-[#F5F5F7] px-4 py-2 text-[14px] leading-5 text-[#35353A]">
+                        {{ tag.label }}
+                      </span>
+                    }
+                  </div>
+                </section>
+              }
+
+              <div class="mt-8 min-h-0 flex-1 space-y-7 overflow-y-auto pr-2">
+                @for (review of sortedReviews(); track review.author + '-' + review.date + '-' + review.text) {
+                  <article class="border-b border-[#F0F0F0] pb-7 last:border-b-0 last:pb-0">
+                    <div class="flex items-start gap-4">
+                      @if (review.avatar) {
+                        <img [src]="review.avatar" [alt]="review.author" class="h-12 w-12 rounded-full object-cover" />
+                      } @else {
+                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#F2F2F7] text-[15px] font-medium text-[#434455]">
+                          {{ reviewAuthorInitials(review) }}
+                        </div>
+                      }
+
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-start justify-between gap-4">
+                          <div class="min-w-0">
+                            <h5 class="truncate text-[16px] font-medium leading-6 text-[#15162B]">{{ review.author }}</h5>
+                            <div class="mt-1 flex items-center gap-2.5">
+                              <div class="flex items-center gap-0.5">
+                                @for (star of ratingStars; track star) {
+                                  <svg
+                                    class="h-[14px] w-[14px]"
+                                    [class.text-[#D7DF23]]="star <= review.rating"
+                                    [class.text-[#E5E7EB]]="star > review.rating"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                    aria-hidden="true"
+                                  >
+                                    <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.08 3.29a1 1 0 0 0 .95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.81 2.03a1 1 0 0 0-.36 1.12l1.07 3.29c.3.92-.75 1.69-1.54 1.12l-2.8-2.04a1 1 0 0 0-1.18 0l-2.8 2.04c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 0 0-.36-1.12L2.98 8.72c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 0 0 .95-.69l1.07-3.29Z" />
+                                  </svg>
+                                }
+                              </div>
+                              <span class="text-[13px] leading-5 text-[#8C8C92]">{{ review.date }}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <p class="mt-4 max-w-[642px] text-[15px] leading-7 text-[#2F3138]">{{ review.text }}</p>
+
+                        @if (review.images?.length) {
+                          <div class="mt-5 flex gap-3 overflow-x-auto pb-1">
+                            @for (image of review.images!.slice(0, 5); track image; let index = $index) {
+                              <div class="relative h-[104px] w-[104px] shrink-0 overflow-hidden rounded-[20px] bg-[#F5F5F7]">
+                                <img [src]="image" alt="" class="h-full w-full object-cover" />
+                                @if (index === 4 && review.images!.length > 5) {
+                                  <div class="absolute inset-0 flex items-center justify-center bg-black/45 text-[18px] font-medium text-white">
+                                    +{{ review.images!.length - 4 }}
+                                  </div>
+                                }
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </article>
+                }
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

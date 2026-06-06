@@ -319,7 +319,7 @@ type VendorTagSummary = {
             </div>
             <button
               type="button"
-              (click)="showLeaveReviewModal.set(true)"
+              (click)="void openLeaveReviewModal()"
               class="mt-4 w-full rounded-full bg-[#5932EA] px-6 py-3 text-[14px] font-medium text-white"
             >
               Leave a review
@@ -695,7 +695,7 @@ type VendorTagSummary = {
 
                     <button
                       type="button"
-                      (click)="showLeaveReviewModal.set(true)"
+                      (click)="void openLeaveReviewModal()"
                       class="w-full rounded-full bg-[#5932EA] px-6 py-3.5 text-sm font-medium text-white shadow-[0_10px_24px_-12px_rgba(89,50,234,0.7)] transition hover:bg-[#4E27DD]"
                     >
                       Leave a review
@@ -817,29 +817,33 @@ type VendorTagSummary = {
 
         @if (showLeaveReviewModal()) {
           <div
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4 backdrop-blur-sm"
+            class="fixed inset-0 z-50 flex items-end justify-center bg-black/35 px-0 pt-8 backdrop-blur-sm md:items-center md:p-4"
           >
             <div
-              class="relative max-h-[calc(100dvh-2rem)] w-full max-w-6xl overflow-y-auto rounded-[36px] bg-white p-6 shadow-2xl md:p-8"
+              class="relative max-h-[92dvh] w-full overflow-y-auto rounded-t-[32px] bg-white px-5 pb-7 pt-6 shadow-2xl md:max-h-[calc(100dvh-2rem)] md:max-w-6xl md:rounded-[36px] md:p-8"
             >
               <button
                 type="button"
                 (click)="closeLeaveReviewModal()"
-                class="absolute right-6 top-6 flex h-12 w-12 items-center justify-center rounded-full border border-[#E6E8EF] bg-white text-[#6B7280] transition hover:bg-[#F7F7FA]"
+                class="absolute right-5 top-5 flex h-12 w-12 items-center justify-center rounded-full border border-[#E6E8EF] bg-white text-[#6B7280] transition hover:bg-[#F7F7FA] md:right-6 md:top-6"
                 aria-label="Close leave review modal"
               >
                 <span class="text-[28px] leading-none">&times;</span>
               </button>
 
-              <div class="grid gap-8 md:grid-cols-[260px_minmax(0,1fr)] md:gap-10">
+              <div class="mb-4 flex justify-center md:hidden">
+                <div class="h-1.5 w-14 rounded-full bg-[#D7DAE2]"></div>
+              </div>
+
+              <div class="grid gap-7 md:gap-8 md:grid-cols-[260px_minmax(0,1fr)] md:gap-10">
                 <div
                   class="border-b border-[#EEF0F4] pb-6 md:border-b-0 md:border-r md:pb-0 md:pr-10"
                 >
-                  <h2 class="max-w-[220px] text-[28px] font-semibold leading-tight text-[#1A1C21]">
+                  <h2 class="max-w-[260px] pr-14 text-[24px] font-semibold leading-tight text-[#1A1C21] md:max-w-[220px] md:pr-0 md:text-[28px]">
                     Leave a review for this seller
                   </h2>
 
-                  <div class="mt-8 overflow-hidden rounded-[28px] border border-[#EEF0F4] bg-white">
+                  <div class="mt-6 overflow-hidden rounded-[24px] border border-[#EEF0F4] bg-white md:mt-8 md:rounded-[28px]">
                     <div class="h-24 overflow-hidden bg-[#F4F6FB]">
                       <img
                         [src]="store().banner"
@@ -878,12 +882,12 @@ type VendorTagSummary = {
 
                 <div>
                   <div>
-                    <h3 class="text-[18px] font-semibold text-[#1A1C21]">
+                    <h3 class="text-[17px] font-semibold text-[#1A1C21] md:text-[18px]">
                       How would you rate your experience with this seller?
                     </h3>
 
-                    <div class="mt-5 flex flex-wrap items-center gap-4">
-                      <div class="flex items-center gap-3">
+                    <div class="mt-5 flex flex-wrap items-center gap-3 md:gap-4">
+                      <div class="flex items-center gap-2.5 md:gap-3">
                         @for (star of [1, 2, 3, 4, 5]; track star) {
                           <button
                             type="button"
@@ -892,7 +896,7 @@ type VendorTagSummary = {
                             [attr.aria-label]="'Rate ' + star + ' stars'"
                           >
                             <span
-                              class="text-[52px] leading-none"
+                              class="text-[42px] leading-none md:text-[52px]"
                               [class.text-[#D3DC35]]="star <= reviewRating()"
                               [class.text-[#E5E7EB]]="star > reviewRating()"
                             >
@@ -906,8 +910,8 @@ type VendorTagSummary = {
                     </div>
                   </div>
 
-                  <div class="mt-10">
-                    <h3 class="text-[18px] font-semibold text-[#1A1C21]">
+                  <div class="mt-8 md:mt-10">
+                    <h3 class="text-[17px] font-semibold text-[#1A1C21] md:text-[18px]">
                       What stood out about this seller?
                       <span class="font-normal text-[#6B7280]">(optional)</span>
                     </h3>
@@ -932,8 +936,8 @@ type VendorTagSummary = {
                     </div>
                   </div>
 
-                  <div class="mt-10">
-                    <h3 class="text-[18px] font-semibold text-[#1A1C21]">Share more details</h3>
+                  <div class="mt-8 md:mt-10">
+                    <h3 class="text-[17px] font-semibold text-[#1A1C21] md:text-[18px]">Share more details</h3>
                     <label class="mt-4 block text-[15px] text-[#4B5563]">
                       What should others know about this seller?
                     </label>
@@ -946,8 +950,8 @@ type VendorTagSummary = {
                     ></textarea>
                   </div>
 
-                  <div class="mt-10">
-                    <h3 class="text-[18px] font-semibold text-[#1A1C21]">
+                  <div class="mt-8 md:mt-10">
+                    <h3 class="text-[17px] font-semibold text-[#1A1C21] md:text-[18px]">
                       Attach some pictures
                       <span class="font-normal text-[#6B7280]">(optional)</span>
                     </h3>
@@ -987,11 +991,11 @@ type VendorTagSummary = {
                     </div>
                   </div>
 
-                  <div class="mt-10 flex items-center justify-end gap-3">
+                  <div class="mt-8 flex flex-col-reverse gap-3 md:mt-10 md:flex-row md:items-center md:justify-end">
                     <button
                       type="button"
                       (click)="closeLeaveReviewModal()"
-                      class="rounded-full bg-[#F3F4F6] px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#EDEEF2]"
+                      class="w-full rounded-full bg-[#F3F4F6] px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#EDEEF2] md:w-auto"
                     >
                       Back
                     </button>
@@ -999,7 +1003,7 @@ type VendorTagSummary = {
                       type="button"
                       (click)="submitReview()"
                       [disabled]="isSubmittingReview()"
-                      class="rounded-full bg-[#5932EA] px-6 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-12px_rgba(89,50,234,0.7)] transition hover:bg-[#4E27DD]"
+                      class="w-full rounded-full bg-[#5932EA] px-6 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-12px_rgba(89,50,234,0.7)] transition hover:bg-[#4E27DD] md:w-auto"
                       [class.opacity-70]="isSubmittingReview()"
                     >
                       {{ isSubmittingReview() ? 'Submitting...' : 'Submit review' }}
@@ -1045,6 +1049,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   readonly selectedReviewTags = signal<string[]>([]);
   readonly reviewText = signal('');
   readonly reviewImagePreviews = signal<string[]>([]);
+  readonly reviewImageFiles = signal<readonly File[]>([]);
   readonly reviewTagSummaries = signal<VendorTagSummary[]>([]);
   private readonly storeId = this.route.snapshot.paramMap.get('id') ?? 'bf1';
 
@@ -1549,12 +1554,14 @@ export class BuyerFollowedStoreDetailsPageComponent {
   constructor() {
     if (!this.appModeService.isBackendEnabled()) {
       this.loadDemoState();
+      this.applyInitialReviewIntent();
       return;
     }
 
     void this.loadVendorProfile();
     void this.loadVendorListings();
     void this.loadVendorReviews();
+    this.applyInitialReviewIntent();
   }
 
   readonly categoryChips = computed(() => [
@@ -1563,6 +1570,17 @@ export class BuyerFollowedStoreDetailsPageComponent {
   ]);
 
   readonly mobileCategoryChips = computed(() => this.categoryChips().slice(0, 5));
+
+  private applyInitialReviewIntent(): void {
+    const queryParams = this.route.snapshot.queryParamMap;
+    if (queryParams.get('tab') === 'reviews') {
+      this.activeTab.set('reviews');
+    }
+
+    if (queryParams.get('review') === '1') {
+      void this.openLeaveReviewModal();
+    }
+  }
 
   readonly mobileSections = computed<readonly MobileProductSection[]>(() =>
     this.filteredSections()
@@ -1641,6 +1659,15 @@ export class BuyerFollowedStoreDetailsPageComponent {
     return Array.from({ length: 5 }, (_, index) => index < rating);
   }
 
+  async openLeaveReviewModal(): Promise<void> {
+    if (!this.authSession.isAuthenticated()) {
+      await this.router.navigate(['/sign-in']);
+      return;
+    }
+
+    this.showLeaveReviewModal.set(true);
+  }
+
   async openInAppChat(): Promise<void> {
     this.showContactMenu.set(false);
 
@@ -1714,8 +1741,12 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   onReviewImagesSelected(input: HTMLInputElement) {
     const files = Array.from(input.files ?? []);
-    const previews = files.slice(0, 6).map((file) => URL.createObjectURL(file));
+    const limitedFiles = files.slice(0, 6);
+    const previews = limitedFiles.map((file) => URL.createObjectURL(file));
+    this.revokeReviewPreviewUrls();
+    this.reviewImageFiles.set(limitedFiles);
     this.reviewImagePreviews.set(previews);
+    input.value = '';
   }
 
   closeLeaveReviewModal() {
@@ -1893,6 +1924,8 @@ export class BuyerFollowedStoreDetailsPageComponent {
     this.reviewRating.set(2);
     this.selectedReviewTags.set([]);
     this.reviewText.set('');
+    this.reviewImageFiles.set([]);
+    this.revokeReviewPreviewUrls();
     this.reviewImagePreviews.set([]);
   }
 
@@ -1907,7 +1940,16 @@ export class BuyerFollowedStoreDetailsPageComponent {
       rating: this.reviewRating(),
       comment: this.reviewText().trim(),
       tag_ids: tagIds,
+      photo_files: this.reviewImageFiles(),
     };
+  }
+
+  private revokeReviewPreviewUrls(): void {
+    for (const preview of this.reviewImagePreviews()) {
+      if (preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    }
   }
 
   private resolveDemoStoreKey(storeId: string): string {

@@ -31,14 +31,15 @@
             "styles": [
               "src/styles.css"
             ],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
             "security": {
               "allowedHosts": []
             },
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            "fileReplacements": [
+              {
+                "replace": "src/environments/environment.ts",
+                "with": "src/environments/environment.prod.ts"
+              }
+            ]
           },
           "configurations": {
             "production": {

@@ -76,6 +76,19 @@ interface StoreDetails {
   readonly bannerImage: string;
 }
 
+type ProductReviewSort = 'most-recent' | 'highest-rated';
+
+interface ReviewTagSummary {
+  readonly label: string;
+  readonly count: number;
+}
+
+interface ReviewRatingBreakdownItem {
+  readonly stars: number;
+  readonly count: number;
+  readonly percentage: number;
+}
+
 type ReportSubject = 'listing' | 'seller';
 type SellerReportStep = 1 | 2;
 
@@ -138,19 +151,63 @@ export class ProductPageComponent {
   readonly isStartingConversation = signal(false);
   readonly isSubmittingOffer = signal(false);
   readonly isSubmittingCallbackRequest = signal(false);
+  readonly reviewSort = signal<ProductReviewSort>('most-recent');
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
-  readonly reviewAverage = computed(() => {
+  readonly reviewAverageValue = computed(() => {
     const reviews = this.reviews();
     if (reviews.length === 0) {
-      return '0.0';
+      return 0;
     }
 
     const total = reviews.reduce((sum, review) => sum + review.rating, 0);
-    return (total / reviews.length).toFixed(1);
+    return total / reviews.length;
   });
+  readonly reviewAverage = computed(() => this.reviewAverageValue().toFixed(1));
+  readonly reviewAveragePrecise = computed(() => this.reviewAverageValue().toFixed(2));
+  readonly reviewCount = computed(() => this.reviews().length);
   readonly reviewCountLabel = computed(() => {
-    const count = this.reviews().length;
+    const count = this.reviewCount();
     return `${count} ${count === 1 ? 'rating' : 'ratings'}`;
+  });
+  readonly reviewTotalLabel = computed(() => {
+    const count = new Intl.NumberFormat('en-NG').format(this.reviewCount());
+    return `${count} reviews`;
+  });
+  readonly reviewSortLabel = computed(() =>
+    this.reviewSort() === 'most-recent' ? 'Most recent' : 'Highest rated',
+  );
+  readonly sortedReviews = computed(() => {
+    const reviews = [...this.reviews()];
+
+    if (this.reviewSort() === 'highest-rated') {
+      return reviews.sort((left, right) => right.rating - left.rating || right.date.localeCompare(left.date));
+    }
+
+    return reviews.sort((left, right) => this.reviewTimestamp(right.date) - this.reviewTimestamp(left.date));
+  });
+  readonly reviewTagSummaries = computed<readonly ReviewTagSummary[]>(() => {
+    const counts = new Map<string, number>();
+
+    for (const review of this.reviews()) {
+      for (const tag of review.tags ?? []) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+
+    return Array.from(counts.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
+      .slice(0, 5);
+  });
+  readonly ratingBreakdown = computed<readonly ReviewRatingBreakdownItem[]>(() => {
+    const reviews = this.reviews();
+    const total = reviews.length;
+
+    return [5, 4, 3, 2, 1].map((stars) => {
+      const count = reviews.filter((review) => review.rating === stars).length;
+      const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+      return { stars, count, percentage };
+    });
   });
   readonly isProductSaved = computed(() =>
     this.product().isSaved || this.favoritesStateService.isFavorited(this.product().id),
@@ -397,6 +454,37 @@ export class ProductPageComponent {
   closeReviewsModal(): void {
     this.isReviewsModalOpen.set(false);
     this.setBodyScrollLocked(false);
+  }
+
+  toggleReviewSort(): void {
+    this.reviewSort.update((current) =>
+      current === 'most-recent' ? 'highest-rated' : 'most-recent',
+    );
+  }
+
+  async leaveReviewFromProduct(): Promise<void> {
+    const storeId = this.store().id;
+    if (!storeId) {
+      return;
+    }
+
+    this.closeReviewsModal();
+    await this.router.navigate(['/stores', storeId], {
+      queryParams: { tab: 'reviews', review: '1' },
+    });
+  }
+
+  reviewAuthorInitials(review: Review): string {
+    return review.author
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('') || 'U';
+  }
+
+  reviewBarWidth(percentage: number): string {
+    return `${Math.max(0, Math.min(100, percentage))}%`;
   }
 
   async shareListingWithDevice(): Promise<void> {
@@ -1300,6 +1388,7 @@ export class ProductPageComponent {
       text,
       date: this.formatReviewDate(record['created_at']) ?? 'Recently',
       images: this.extractReviewImages(record),
+      tags: this.extractReviewTags(record),
     };
   }
 
@@ -1525,6 +1614,31 @@ export class ProductPageComponent {
       month: 'long',
       year: 'numeric',
     }).format(parsed);
+  }
+
+  private reviewTimestamp(value: string): number {
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+
+  private extractReviewTags(record: VendorReviewRecord): string[] | undefined {
+    const value = record['tags'];
+    if (!Array.isArray(value)) {
+      return undefined;
+    }
+
+    const tags = value
+      .map((tag) => {
+        if (typeof tag === 'string') {
+          return tag.trim();
+        }
+
+        const tagRecord = this.readRecord(tag);
+        return this.readString(tagRecord?.['label']) ?? this.readString(tagRecord?.['name']);
+      })
+      .filter((tag): tag is string => typeof tag === 'string' && tag.length > 0);
+
+    return tags.length > 0 ? tags : undefined;
   }
 
   private extractReviewImages(record: VendorReviewRecord): string[] | undefined {

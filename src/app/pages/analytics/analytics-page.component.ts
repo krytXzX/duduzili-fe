@@ -43,6 +43,8 @@ interface AggregateAnalyticsTotals {
   totalSaves: number;
   active: number;
   sold: number;
+  responseTimeSecondsTotal: number;
+  responseTimeSamples: number;
 }
 
 type AnalyticsRange = '7d' | '30d' | '90d';
@@ -171,7 +173,7 @@ type AnalyticsStoreFilter = string;
           </p>
 
           <div class="mt-10 flex flex-col items-center gap-[5px]">
-            <p class="text-[64px] font-medium leading-[normal] text-[#0D0D0D]">06 hrs</p>
+            <p class="text-[64px] font-medium leading-[normal] text-[#0D0D0D]">{{ averageResponseTimeLabel() }}</p>
             <p class="max-w-[287px] text-[12px] leading-[normal] text-[rgba(13,13,13,0.5)]">
               How quickly you respond to buyer inquiries. Faster responses increase your chances of selling.
             </p>
@@ -339,7 +341,7 @@ type AnalyticsStoreFilter = string;
               </p>
 
               <div class="mt-[43px] flex flex-col items-center gap-[5px]">
-                <p class="text-[64px] font-medium leading-[normal] text-[#0D0D0D]">06 hrs</p>
+                <p class="text-[64px] font-medium leading-[normal] text-[#0D0D0D]">{{ averageResponseTimeLabel() }}</p>
                 <p class="max-w-[287px] text-[12px] leading-[normal] text-[rgba(13,13,13,0.5)]">
                   How quickly you respond to buyer inquiries. Faster responses increase your chances of selling.
                 </p>
@@ -451,11 +453,15 @@ export class AnalyticsPageComponent {
     active: 0,
     sold: 0,
   });
+  readonly averageResponseTimeSeconds = signal<number | null>(null);
   readonly soldItemsSeries = signal<readonly SoldItemsChartPoint[]>([]);
   readonly mostViewedTitle = signal<string>('Iphone 17 pro max');
   readonly mostViewedImage = signal<string>(this.assets.mostViewedImage);
   readonly mostViewedViewsText = signal<string>('This store has been viewed 750,000 times');
   readonly isLoading = signal(false);
+  readonly averageResponseTimeLabel = computed(() =>
+    this.formatResponseTime(this.averageResponseTimeSeconds()),
+  );
 
   readonly range = signal<AnalyticsRange>('7d');
   readonly selectedStoreFilter = signal<AnalyticsStoreFilter>('all');
@@ -654,6 +660,7 @@ export class AnalyticsPageComponent {
       active: this.readNumber(distribution?.['active']) ?? 0,
       sold: this.readNumber(distribution?.['sold']) ?? 0,
     });
+    this.averageResponseTimeSeconds.set(this.readNumber(record['average_response_time_seconds']));
     this.soldItemsSeries.set(this.readSoldItemsSeries(record['sold_items_chart']));
     this.mostViewedTitle.set(this.readString(mostViewed?.['title']) ?? 'No listings yet');
     this.mostViewedImage.set(
@@ -682,6 +689,12 @@ export class AnalyticsPageComponent {
           totalSaves: summary.totalSaves + totalSaves,
           active: summary.active + active,
           sold: summary.sold + sold,
+          responseTimeSecondsTotal:
+            summary.responseTimeSecondsTotal
+            + (this.readNumber(record['average_response_time_seconds']) ?? 0),
+          responseTimeSamples:
+            summary.responseTimeSamples
+            + (this.readNumber(record['average_response_time_seconds']) !== null ? 1 : 0),
         };
       },
       {
@@ -690,6 +703,8 @@ export class AnalyticsPageComponent {
         totalSaves: 0,
         active: 0,
         sold: 0,
+        responseTimeSecondsTotal: 0,
+        responseTimeSamples: 0,
       },
     );
 
@@ -709,6 +724,11 @@ export class AnalyticsPageComponent {
       active: totals.active,
       sold: totals.sold,
     });
+    this.averageResponseTimeSeconds.set(
+      totals.responseTimeSamples > 0
+        ? Math.round(totals.responseTimeSecondsTotal / totals.responseTimeSamples)
+        : null,
+    );
     this.soldItemsSeries.set(this.aggregateSoldItemsSeries(records));
     this.mostViewedTitle.set(this.readString(mostViewed?.['title']) ?? 'No listings yet');
     this.mostViewedImage.set(
@@ -796,6 +816,27 @@ export class AnalyticsPageComponent {
 
   protected formatInteger(value: number): string {
     return new Intl.NumberFormat('en-NG').format(value);
+  }
+
+
+  private formatResponseTime(value: number | null): string {
+    if (value === null || !Number.isFinite(value) || value <= 0) {
+      return 'N/A';
+    }
+
+    const totalMinutes = Math.max(1, Math.round(value / 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours > 0 && minutes > 0) {
+      return `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m`;
+    }
+
+    if (hours > 0) {
+      return `${String(hours).padStart(2, '0')} hrs`;
+    }
+
+    return `${String(minutes).padStart(2, '0')} mins`;
   }
 
   private createSoldItemsChartOptions(height: number, compact: boolean): AppChartOptions {

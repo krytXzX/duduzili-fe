@@ -49,6 +49,7 @@ type HomeListing = {
 type HomePromotion = {
   id: string;
   image: string;
+  link?: string;
 };
 
 const CATEGORY_ICON_BY_SLUG: Record<string, string> = {
@@ -99,11 +100,13 @@ const CATEGORY_ICON_BY_SLUG: Record<string, string> = {
   styleUrl: './home-page.component.css',
   host: {
     class: 'block h-full overflow-auto bg-white text-[#1f1f1f]',
+    '(document:click)': 'onDocumentClick($event)',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent {
   private readonly categoryRail = viewChild<ElementRef<HTMLDivElement>>('categoryRail');
+  private readonly desktopSearchShell = viewChild<ElementRef<HTMLDivElement>>('desktopSearchShell');
   private readonly platformId = inject(PLATFORM_ID);
   private readonly homeService = inject(HomeService);
   private readonly router = inject(Router);
@@ -565,6 +568,22 @@ export class HomePageComponent {
     this.isDesktopSearchOverlayOpen.set(false);
   }
 
+  onDocumentClick(event: Event): void {
+    if (!this.isDesktopSearchOverlayOpen()) {
+      return;
+    }
+
+    const searchShell = this.desktopSearchShell()?.nativeElement;
+    const target = event.target;
+    if (!(searchShell instanceof HTMLElement) || !(target instanceof Node)) {
+      return;
+    }
+
+    if (!searchShell.contains(target)) {
+      this.closeDesktopSearchOverlay();
+    }
+  }
+
   updateMobileSearchQuery(event: Event): void {
     const target = event.target as HTMLInputElement | null;
     this.mobileSearchQuery.set(target?.value ?? '');
@@ -765,7 +784,39 @@ export class HomePageComponent {
     return {
       id: this.readId(record, `advertisement-${index}`),
       image,
+      link:
+        this.readString(record['link']) ??
+        this.readString(record['target_url']) ??
+        this.readString(record['url']) ??
+        undefined,
     };
+  }
+
+  openPromotion(promotion: HomePromotion): void {
+    if (!promotion.link) {
+      return;
+    }
+
+    const trimmedLink = promotion.link.trim();
+    if (!trimmedLink) {
+      return;
+    }
+
+    const isBrowser = isPlatformBrowser(this.platformId);
+    const baseUrl = isBrowser ? window.location.origin : this.apiOrigin;
+
+    try {
+      const resolved = new URL(trimmedLink, baseUrl);
+      if (isBrowser) {
+        window.open(resolved.toString(), '_blank', 'noopener,noreferrer');
+      }
+    } catch {
+      if (!isBrowser) {
+        return;
+      }
+
+      window.open(trimmedLink, '_blank', 'noopener,noreferrer');
+    }
   }
 
   private toStoreCard(record: HomeStoreResponse, fallbackId: string): Store {

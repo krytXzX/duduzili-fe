@@ -8,7 +8,9 @@ export interface Review {
   date: string;
   avatar?: string;
   images?: string[];
+  tags?: string[];
 }
+
 
 @Component({
   selector: 'app-review-card',
