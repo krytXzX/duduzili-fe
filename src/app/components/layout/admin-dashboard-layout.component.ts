@@ -31,7 +31,7 @@ import { AppToastComponent } from '../common/app-toast.component';
           [class.bg-[#F4F4F4]]="isAdminRoutePrefix('/admin/more')"
           [class.bg-white]="!isAdminRoutePrefix('/admin/more')"
         >
-          <a routerLink="/admin" class="flex items-center" aria-label="Go to admin home">
+          <a routerLink="/" class="flex items-center" aria-label="Go to Duduzili homepage">
             <img
               ngSrc="/assets/images/admin-mobile-shell/logo.svg"
               width="112"

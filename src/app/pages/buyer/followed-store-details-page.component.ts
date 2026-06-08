@@ -25,6 +25,11 @@ import { AppToastComponent } from '../../components/common/app-toast.component';
 import { AppToastService } from '../../services/app-toast.service';
 import { AppModeService } from '../../services/app-mode.service';
 import { MessagesService } from '../../services/messages.service';
+import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
+import { BuyerDashboardSidebarComponent } from '../../components/layout/buyer-dashboard-sidebar.component';
+import { HomeFooterComponent } from '../../components/layout/home-footer.component';
+import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
+import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
 import {
   CreateVendorReviewPayload,
   VendorFollowResponse,
@@ -85,7 +90,19 @@ type VendorTagSummary = {
 
 @Component({
   selector: 'app-followed-store-details-page',
-  imports: [CommonModule, RouterLink, ListingCardComponent, NgIcon, NgOptimizedImage, AppToastComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    ListingCardComponent,
+    NgIcon,
+    NgOptimizedImage,
+    AppToastComponent,
+    BuyerDashboardNavbarComponent,
+    BuyerDashboardSidebarComponent,
+    PublicHomeNavbarComponent,
+    HomeFooterComponent,
+    MobileBottomNavComponent,
+  ],
   providers: [
     provideIcons({
       heroChevronRight,
@@ -103,12 +120,44 @@ type VendorTagSummary = {
     }),
   ],
   template: `
-    <div class="min-h-full">
+    <div [class]="pageShellClass()">
+      @if (isAuthenticated()) {
+        <app-buyer-dashboard-navbar />
+      } @else {
+        <app-public-home-navbar />
+      }
+
+      @if (isAuthenticated()) {
+        <div class="flex min-h-0 flex-1 overflow-hidden lg:gap-4">
+          <aside class="hidden w-64 shrink-0 lg:block">
+            <app-buyer-dashboard-sidebar class="h-full" />
+          </aside>
+
+          <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white lg:rounded-4xl lg:shadow-sm">
+            <div class="bg-white pb-[120px] lg:px-4 lg:pb-12 lg:pt-20">
+              <ng-container [ngTemplateOutlet]="storeDetailsContent" />
+            </div>
+            <div class="h-[120px] lg:hidden" aria-hidden="true"></div>
+          </main>
+        </div>
+      } @else {
+        <main class="min-h-0 flex-1 bg-white pb-[48px] pt-0 lg:px-4 lg:pt-[112px]">
+          <ng-container [ngTemplateOutlet]="storeDetailsContent" />
+        </main>
+      }
+
+      @if (!isAuthenticated()) {
+        <app-home-footer />
+      } @else {
+        <app-mobile-bottom-nav variant="buyer" />
+      }
+
+      <ng-template #storeDetailsContent>
       <section class="bg-white pb-[32px] md:hidden">
         <div class="h-[54px] px-5">
           <div class="flex h-full items-center">
             <a
-              routerLink="/followed-stores"
+              [routerLink]="backRoute()"
               aria-label="Back"
               class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f3f3f3]"
             >
@@ -405,8 +454,8 @@ type VendorTagSummary = {
 
       <section class="hidden min-h-full px-6 py-6 md:block md:px-8">
         <nav class="mb-6 flex items-center gap-3 text-sm text-[#8C8C92]">
-          <a routerLink="/followed-stores" class="transition-colors hover:text-[#5932EA]">
-            Followed vendors
+          <a [routerLink]="backRoute()" class="transition-colors hover:text-[#5932EA]">
+            {{ breadcrumbRootLabel() }}
           </a>
           <span>/</span>
           <span class="font-medium text-[#1A1C21]">Vendor information</span>
@@ -1015,6 +1064,7 @@ type VendorTagSummary = {
           </div>
         }
       </section>
+      </ng-template>
     </div>
 
     <app-toast />
@@ -1039,6 +1089,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   readonly isFollowPending = signal(false);
   readonly isStartingConversation = signal(false);
   readonly isSubmittingReview = signal(false);
+  readonly isAuthenticated = this.authSession.isAuthenticated;
   readonly isOwnStore = computed(() => {
     const currentUserId = this.authSession.user()?.id;
     const ownerUserId = this.store().ownerUserId;
@@ -1570,6 +1621,15 @@ export class BuyerFollowedStoreDetailsPageComponent {
   ]);
 
   readonly mobileCategoryChips = computed(() => this.categoryChips().slice(0, 5));
+  readonly backRoute = computed(() => (this.isAuthenticated() ? '/followed-stores' : '/'));
+  readonly breadcrumbRootLabel = computed(() =>
+    this.isAuthenticated() ? 'Followed vendors' : 'Home',
+  );
+  readonly pageShellClass = computed(() =>
+    this.isAuthenticated()
+      ? 'flex h-screen flex-col bg-white lg:gap-4 lg:bg-gray-100 lg:p-4'
+      : 'flex min-h-screen flex-col bg-white overflow-x-hidden',
+  );
 
   private applyInitialReviewIntent(): void {
     const queryParams = this.route.snapshot.queryParamMap;

@@ -22,6 +22,14 @@ export const routes: Routes = [
     title: 'Home',
   },
   {
+    path: 'stores/:id',
+    title: 'Store Details',
+    loadComponent: () =>
+      import('./pages/buyer/followed-store-details-page.component').then(
+        (m) => m.BuyerFollowedStoreDetailsPageComponent,
+      ),
+  },
+  {
     path: '',
     component: BuyerDashboardLayoutComponent,
     canActivate: [buyerGuard],
@@ -50,14 +58,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/buyer/followed-stores-page.component').then(
             (m) => m.BuyerFollowedStoresPageComponent,
-          ),
-      },
-      {
-        path: 'stores/:id',
-        title: 'Store Details',
-        loadComponent: () =>
-          import('./pages/buyer/followed-store-details-page.component').then(
-            (m) => m.BuyerFollowedStoreDetailsPageComponent,
           ),
       },
       {

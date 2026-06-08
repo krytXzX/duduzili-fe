@@ -9,7 +9,7 @@ import { AuthSessionService } from '../../services/auth-session.service';
   template: `
     <div class="flex h-[72px] items-center justify-between gap-4 px-5 lg:hidden">
       <a
-        routerLink="/seller/listings"
+        routerLink="/"
         aria-label="Go to Duduzili home"
         class="block"
       >
