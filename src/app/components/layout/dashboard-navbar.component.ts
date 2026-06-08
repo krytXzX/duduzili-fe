@@ -33,7 +33,7 @@ type SellerMenuEntry = {
       >
         <div class="flex h-[72px] items-center justify-between gap-3 px-5 lg:hidden">
         <a
-          routerLink="/seller/listings"
+          routerLink="/"
           class="flex shrink-0 items-center transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]"
           aria-label="Duduzili seller home"
         >
@@ -205,7 +205,7 @@ type SellerMenuEntry = {
 
         <div class="hidden h-16 items-center justify-between lg:flex">
         <a
-          routerLink="/seller/listings"
+          routerLink="/"
           class="group flex items-center transition-opacity hover:opacity-90"
           aria-label="Duduzili seller home"
         >

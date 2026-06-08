@@ -85,14 +85,20 @@ export type PublicHomeLocationSelection = {
             class="pointer-events-auto flex w-full max-w-[1238px] items-center justify-between rounded-full bg-[#1a1a1a] px-6 py-[9px] shadow-[0_12px_28px_rgba(0,0,0,0.14)]"
           >
             <div class="flex items-center gap-6">
-              <img
-                ngSrc="/assets/icons/home-logo-light.svg"
-                alt="Duduzili"
-                width="112"
-                height="26"
-                class="h-[26px] w-auto"
-                priority
-              />
+              <a
+                routerLink="/"
+                class="flex items-center transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]"
+                aria-label="Go to Duduzili homepage"
+              >
+                <img
+                  ngSrc="/assets/icons/home-logo-light.svg"
+                  alt="Duduzili"
+                  width="112"
+                  height="26"
+                  class="h-[26px] w-auto"
+                  priority
+                />
+              </a>
 
               <button
                 type="button"

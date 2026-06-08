@@ -3,9 +3,15 @@
     <div class="mx-auto flex min-h-full w-full max-w-[390px] flex-col lg:max-w-[742px]">
 
       <header class="mx-auto mt-[16px] flex w-full max-w-[358px] items-center justify-between lg:mt-0 lg:max-w-[680.913px] lg:pt-4">
-        <img class="hidden h-[26px] w-[111.913px] lg:block" [ngSrc]="fullLogoUrl" alt="Duduzili" width="112" height="26" priority />
+        <a
+          routerLink="/"
+          aria-label="Go to Duduzili homepage"
+          class="inline-flex items-center rounded-[12px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+        >
+          <img class="hidden h-[26px] w-[111.913px] lg:block" [ngSrc]="fullLogoUrl" alt="Duduzili" width="112" height="26" priority />
 
-        <img class="block h-[23px] w-[23px] lg:hidden" [ngSrc]="iconLogoUrl" alt="Duduzili" width="23" height="23" priority />
+          <img class="block h-[23px] w-[23px] lg:hidden" [ngSrc]="iconLogoUrl" alt="Duduzili" width="23" height="23" priority />
+        </a>
 
         @if (showAccountPrompt()) {
         <div class="hidden items-center justify-end gap-4 text-right lg:flex">
