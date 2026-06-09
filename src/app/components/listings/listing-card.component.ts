@@ -60,6 +60,7 @@ export class ListingCardComponent {
   imageSizes = computed(
     () => '(min-width: 1024px) 22vw, (min-width: 768px) 25vw, 50vw',
   );
+  toastImageSrc = computed(() => this.listing().images[0] ?? undefined);
 
   isFavorited = computed(() =>
     (this.favoriteFilled() && !this.removedInitiallyFavorited())
@@ -77,7 +78,7 @@ export class ListingCardComponent {
     if (!this.authSession.isAuthenticated()) {
       this.appToastService.show({
         message: 'Please sign in to add listings to your wishlist',
-        imageSrc: this.listing().images[0] ?? '/assets/images/home-item-placeholder.png',
+        imageSrc: this.toastImageSrc(),
         imageAlt: this.listing().title,
         durationMs: 1200,
       });
@@ -99,7 +100,7 @@ export class ListingCardComponent {
         this.favoritesStateService.add(this.listing().id);
         this.appToastService.show({
           message: 'Added to Wishlist',
-          imageSrc: this.listing().images[0] ?? '/assets/images/home-item-placeholder.png',
+          imageSrc: this.toastImageSrc(),
           imageAlt: this.listing().title,
           actionLabel: 'Undo',
           action: () => {
@@ -122,7 +123,7 @@ export class ListingCardComponent {
       this.favoritesStateService.remove(this.listing().id);
       this.appToastService.show({
         message: 'Removed from Wishlist',
-        imageSrc: this.listing().images[0] ?? '/assets/images/home-item-placeholder.png',
+        imageSrc: this.toastImageSrc(),
         imageAlt: this.listing().title,
         actionLabel: 'Undo',
         action: () => {

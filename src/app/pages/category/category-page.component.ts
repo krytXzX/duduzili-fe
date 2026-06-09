@@ -220,7 +220,7 @@ export class CategoryPageComponent {
       return [this.resolveMediaUrl(singleImage)];
     }
 
-    return ['/assets/images/home-item-placeholder.png'];
+    return [];
   }
 
   private buildLocationLabel(item: ListingsApiItem): string {

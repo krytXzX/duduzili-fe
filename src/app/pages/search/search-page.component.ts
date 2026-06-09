@@ -524,7 +524,7 @@ export class SearchPageComponent {
       return [this.resolveMediaUrl(singleImage)];
     }
 
-    return ['/assets/images/home-item-placeholder.png'];
+    return [];
   }
 
   private buildLocationLabel(item: ListingsApiItem): string {
@@ -540,7 +540,7 @@ export class SearchPageComponent {
       return location;
     }
 
-    return state || city || 'Nigeria';
+    return state || city || '';
   }
 
   private resolveMediaUrl(path: string): string {

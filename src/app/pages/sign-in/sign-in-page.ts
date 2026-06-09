@@ -12,8 +12,6 @@ import {
   LoginTwoFactorChallengeResponse,
 } from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
-import { AppModeService } from '../../services/app-mode.service';
-import { DemoAuthService } from '../../services/demo-auth.service';
 
 @Component({
   selector: 'app-sign-in-page',
@@ -28,8 +26,6 @@ export class SignInPageComponent {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly authSessionService = inject(AuthSessionService);
-  private readonly appMode = inject(AppModeService);
-  private readonly demoAuth = inject(DemoAuthService);
 
   protected readonly googleIconUrl = '/assets/icons/signin-google.svg';
   protected readonly appleIconUrl = '/assets/icons/signin-apple.svg';
@@ -97,12 +93,6 @@ export class SignInPageComponent {
         return;
       }
 
-      if (!this.appMode.isBackendEnabled()) {
-        this.demoAuth.signIn(this.emailControl.getRawValue().trim());
-        await this.router.navigate(['/home']);
-        return;
-      }
-
       this.isSigningIn.set(true);
 
       try {
@@ -145,17 +135,6 @@ export class SignInPageComponent {
     this.submitted.set(false);
     this.emailErrorMessage.set(null);
     this.passwordErrorMessage.set(null);
-
-    if (!this.appMode.isBackendEnabled()) {
-      this.checkedEmailProfile.set({
-        username: this.emailControl.getRawValue().trim().split('@')[0] || 'Demo User',
-        avatar: null,
-      });
-      this.passwordControl.reset('');
-      this.showPassword.set(false);
-      this.isEmailValidated.set(true);
-      return;
-    }
 
     this.isCheckingEmail.set(true);
 

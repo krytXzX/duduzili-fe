@@ -37,15 +37,6 @@ type HomeCategory = {
   icon: string;
 };
 
-type HomeListing = {
-  id: string;
-  title: string;
-  price: string;
-  location: string;
-  tag?: string;
-  badge?: string;
-};
-
 type HomePromotion = {
   id: string;
   image: string;
@@ -146,76 +137,11 @@ export class HomePageComponent {
 
     return this.extractPopularSearches(response);
   });
-
-  readonly fallbackCategories: readonly HomeCategory[] = [
-    { id: 'automotives', label: 'Automotives', icon: '/assets/images/category-automotives.png' },
-    {
-      id: 'real-estate',
-      label: 'Real Estate & Properties',
-      icon: '/assets/images/category-real-estate-properties.png',
-    },
-    { id: 'phones', label: 'Phone & Tablet', icon: '/assets/images/category-phone-tablet.png' },
-    { id: 'electronics', label: 'Electronics', icon: '/assets/images/category-electronics.png' },
-    {
-      id: 'home',
-      label: 'Home, Furniture & Appliances',
-      icon: '/assets/images/category-home-furniture-appliances.png',
-    },
-    { id: 'menswear', label: 'Men’s fashion', icon: '/assets/images/category-mens-fashion.png' },
-    {
-      id: 'womenswear',
-      label: 'Women’s fashion',
-      icon: '/assets/images/category-womens-fashion.png',
-    },
-    {
-      id: 'children-baby',
-      label: 'Children & Baby fashion',
-      icon: '/assets/images/category-children-baby-fashion.png',
-    },
-    {
-      id: 'fashion-design',
-      label: 'Fashion & Design',
-      icon: '/assets/images/category-fashion-design.png',
-    },
-    {
-      id: 'beauty',
-      label: 'Beauty & Personal Care',
-      icon: '/assets/images/category-beauty-personal-care.png',
-    },
-    {
-      id: 'industrial-home',
-      label: 'Industrial & Home Supplies',
-      icon: '/assets/images/category-industrial-home-supplies.png',
-    },
-    {
-      id: 'business-industrial',
-      label: 'Business & Industrial',
-      icon: '/assets/images/category-business-industrial.png',
-    },
-    {
-      id: 'school-office',
-      label: 'School, Office & General Supplies',
-      icon: '/assets/images/category-school-office-general-supplies.png',
-    },
-    {
-      id: 'leisure',
-      label: 'Leisure & Activities',
-      icon: '/assets/images/category-leisure-activities.png',
-    },
-    { id: 'grocery', label: 'Grocery', icon: '/assets/images/category-grocery.png' },
-    { id: 'party', label: 'Party Supplies', icon: '/assets/images/category-party-supplies.png' },
-    {
-      id: 'food',
-      label: 'Food, Agriculture & Farming',
-      icon: '/assets/images/category-food-agriculture-farming.png',
-    },
-    { id: 'pets', label: 'Animals & Pets', icon: '/assets/images/category-animals-pets.png' },
-    {
-      id: 'books',
-      label: 'Books, Movies & Music',
-      icon: '/assets/images/category-books-movies-music.png',
-    },
-  ];
+  readonly categorySkeletonItems = [1, 2, 3, 4, 5, 6, 7, 8] as const;
+  readonly listingSkeletonItems = [1, 2, 3, 4] as const;
+  readonly nearbyListingSkeletonItems = [1, 2, 3, 4, 5] as const;
+  readonly promotionSkeletonItems = [1, 2] as const;
+  readonly storeSkeletonItems = [1, 2, 3, 4] as const;
 
   readonly heroCardSets = HOME_HERO_CARD_SETS;
   readonly heroHeadlineItems = HOME_HERO_HEADLINE_ITEMS;
@@ -243,237 +169,23 @@ export class HomePageComponent {
     return this.isHeroHeadlineAnimating() ? Math.max(activeWidth, enteringWidth) : activeWidth;
   });
 
-  readonly fallbackSponsoredListings: readonly HomeListing[] = [
-    {
-      id: 's1',
-      title: 'Nike sneaker',
-      price: '₦35,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-      badge: 'Used',
-    },
-    {
-      id: 's2',
-      title: 'Bone straight wig',
-      price: '₦45,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-      badge: 'Used',
-    },
-    {
-      id: 's3',
-      title: 'iPhone X (64 gig)',
-      price: '₦450,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-      badge: 'Used',
-    },
-    {
-      id: 's4',
-      title: 'Ergonomic chair',
-      price: '₦85,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-      badge: 'Used',
-    },
-  ];
-
-  readonly fallbackNearbyListings: readonly HomeListing[] = [
-    {
-      id: 'n1',
-      title: 'Orange iPhone',
-      price: '₦450,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-    },
-    {
-      id: 'n2',
-      title: 'Leather sandals',
-      price: '₦25,000',
-      location: 'Ikeja, Lagos',
-      badge: 'Used',
-    },
-    {
-      id: 'n3',
-      title: 'Mechanical keyboard',
-      price: '₦65,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-    },
-    { id: 'n4', title: 'White shirt', price: '₦18,500', location: 'Ikeja, Lagos', tag: 'Verified' },
-    { id: 'n5', title: 'Perfume set', price: '₦32,000', location: 'Ikeja, Lagos' },
-    {
-      id: 'n6',
-      title: 'Luxury watch',
-      price: '₦120,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-    },
-    {
-      id: 'n7',
-      title: 'Orange iPhone',
-      price: '₦450,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-    },
-    { id: 'n8', title: 'Leather sandals', price: '₦25,000', location: 'Ikeja, Lagos' },
-    {
-      id: 'n9',
-      title: 'Mechanical keyboard',
-      price: '₦65,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-    },
-    { id: 'n10', title: 'White shirt', price: '₦18,500', location: 'Ikeja, Lagos', badge: 'Used' },
-    {
-      id: 'n11',
-      title: 'Ceramic set',
-      price: '₦15,500',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-    },
-    { id: 'n12', title: 'Luxury watch', price: '₦120,000', location: 'Ikeja, Lagos' },
-    {
-      id: 'n13',
-      title: 'Orange iPhone',
-      price: '₦450,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-    },
-    {
-      id: 'n14',
-      title: 'Leather sandals',
-      price: '₦25,000',
-      location: 'Ikeja, Lagos',
-      badge: 'Used',
-    },
-    {
-      id: 'n15',
-      title: 'Mechanical keyboard',
-      price: '₦65,000',
-      location: 'Ikeja, Lagos',
-      tag: 'Verified',
-    },
-  ];
-
-  readonly fallbackPromotions: readonly HomePromotion[] = [
-    { id: 'p1', image: '/assets/images/home-promo-1.png' },
-    { id: 'p2', image: '/assets/images/home-promo-2.png' },
-    { id: 'p3', image: '/assets/images/home-promo-3.png' },
-  ];
-
-  readonly fallbackFeaturedStores: readonly Store[] = [
-    {
-      id: 'st1',
-      name: 'The Vine Collections',
-      location: 'Ikeja, Lagos',
-      coverImage: '/assets/images/store-vine-cover-desktop.png',
-      mobileCoverImage: '/assets/images/store-vine-cover-mobile.png',
-      logoImage: '/assets/images/store-vine-logo-desktop.png',
-      mobileLogoImage: '/assets/images/store-vine-logo-mobile.png',
-      route: ['/stores', 'st1'],
-    },
-    {
-      id: 'st2',
-      name: 'Eden Organics',
-      location: 'Ikeja, Lagos',
-      coverImage: '/assets/images/store-eden-cover-desktop.png',
-      mobileCoverImage: '/assets/images/store-eden-cover-mobile.png',
-      logoImage: '/assets/images/store-eden-logo-desktop.png',
-      mobileLogoImage: '/assets/images/store-eden-logo-mobile.png',
-      route: ['/stores', 'st2'],
-    },
-    {
-      id: 'st3',
-      name: 'Snap Thrifts',
-      location: 'Ikeja, Lagos',
-      coverImage: '/assets/images/store-snap-cover-desktop.png',
-      mobileCoverImage: '/assets/images/store-snap-cover-mobile.png',
-      logoImage: '/assets/images/store-snap-logo-desktop.png',
-      mobileLogoImage: '/assets/images/store-snap-logo-mobile.png',
-      route: ['/stores', 'st3'],
-    },
-    {
-      id: 'st4',
-      name: 'goMelon',
-      location: 'Ikeja, Lagos',
-      coverImage: '/assets/images/store-gomelon-cover-desktop.png',
-      mobileCoverImage: '/assets/images/store-gomelon-cover-mobile.png',
-      logoImage: '/assets/images/store-gomelon-logo-desktop.png',
-      mobileLogoImage: '/assets/images/store-gomelon-logo-mobile.png',
-      route: ['/stores', 'st4'],
-    },
-    {
-      id: 'st5',
-      name: 'Amazing Fragrances',
-      location: 'Ikeja, Lagos',
-      coverImage: '/assets/images/store-amazing-cover-desktop.png',
-      mobileCoverImage: '/assets/images/store-amazing-cover-desktop.png',
-      logoImage: '/assets/images/store-amazing-logo-desktop.png',
-      mobileLogoImage: '/assets/images/store-amazing-logo-desktop.png',
-      route: ['/stores', 'st5'],
-    },
-    {
-      id: 'st6',
-      name: 'None Electronics',
-      location: 'Ikeja, Lagos',
-      coverImage: '/assets/images/store-none-cover-desktop.png',
-      mobileCoverImage: '/assets/images/store-none-cover-desktop.png',
-      logoImage: '/assets/images/store-none-logo-desktop.png',
-      mobileLogoImage: '/assets/images/store-none-logo-desktop.png',
-      route: ['/stores', 'st6'],
-    },
-    {
-      id: 'st7',
-      name: 'New Age Properties',
-      location: 'Ikeja, Lagos',
-      coverImage: '/assets/images/store-newage-cover-desktop.png',
-      mobileCoverImage: '/assets/images/store-newage-cover-desktop.png',
-      logoImage: '/assets/images/store-newage-logo-desktop.png',
-      mobileLogoImage: '/assets/images/store-newage-logo-desktop.png',
-      route: ['/stores', 'st7'],
-    },
-    {
-      id: 'st8',
-      name: 'Swift Wears',
-      location: 'Ikeja, Lagos',
-      coverImage: '/assets/images/store-swift-cover-desktop.png',
-      mobileCoverImage: '/assets/images/store-swift-cover-desktop.png',
-      logoImage: '/assets/images/store-swift-logo-desktop.png',
-      mobileLogoImage: '/assets/images/store-swift-logo-desktop.png',
-      route: ['/stores', 'st8'],
-    },
-  ];
-
   readonly categories = computed(() => {
     const response = this.homeResponse();
-    if (!response) {
-      return this.fallbackCategories;
-    }
-
-    return (response.categories ?? []).map((category) => this.toHomeCategory(category));
+    return (response?.categories ?? []).map((category) => this.toHomeCategory(category));
   });
 
   readonly sponsoredListingCards = computed(() => {
     const response = this.homeResponse();
-    if (!response) {
-      return this.fallbackSponsoredListings.map((listing) => this.toReusableListing(listing));
-    }
-
-    return (response.sponsored_listings ?? []).map((listing, index) =>
-      this.toListingCard(listing, `sponsored-${index}`),
-    );
+    return (response?.sponsored_listings ?? [])
+      .map((listing, index) => this.toListingCard(listing, `sponsored-${index}`))
+      .filter((listing): listing is Listing => listing !== null);
   });
 
   readonly nearbyListingCards = computed(() => {
     const response = this.homeResponse();
-    if (!response) {
-      return this.fallbackNearbyListings.map((listing) => this.toReusableListing(listing));
-    }
-
-    return (response.nearby_listings ?? []).map((listing, index) =>
-      this.toListingCard(listing, `nearby-${index}`),
-    );
+    return (response?.nearby_listings ?? [])
+      .map((listing, index) => this.toListingCard(listing, `nearby-${index}`))
+      .filter((listing): listing is Listing => listing !== null);
   });
 
   readonly initialFavoritedListingIds = computed(() => {
@@ -489,33 +201,21 @@ export class HomePageComponent {
 
   readonly promotions = computed(() => {
     const response = this.homeResponse();
-    if (!response) {
-      return this.fallbackPromotions;
-    }
-
-    return (response.advertisements ?? [])
+    return (response?.advertisements ?? [])
       .map((advertisement, index) => this.toPromotion(advertisement, index))
       .filter((promotion): promotion is HomePromotion => promotion !== null);
   });
 
   readonly featuredStores = computed(() => {
     const response = this.homeResponse();
-    if (!response) {
-      return this.fallbackFeaturedStores;
-    }
-
-    return (response.featured_stores ?? []).map((store, index) =>
-      this.toStoreCard(store, `featured-store-${index}`),
-    );
+    return (response?.featured_stores ?? [])
+      .map((store, index) => this.toStoreCard(store, `featured-store-${index}`))
+      .filter((store): store is Store => store !== null);
   });
 
   readonly mobilePromotion = computed(() => {
     const promotions = this.promotions();
-    if (promotions.length > 0) {
-      return promotions[0];
-    }
-
-    return this.homeResponse() ? null : this.fallbackPromotions[0];
+    return promotions[0] ?? null;
   });
 
   constructor() {
@@ -701,20 +401,6 @@ export class HomePageComponent {
     }, 620);
   }
 
-  private toReusableListing(listing: HomeListing): Listing {
-    return {
-      id: listing.id,
-      title: listing.title,
-      price: listing.price,
-      location: listing.location,
-      images: ['/assets/images/home-item-placeholder.png'],
-      timeAgo: listing.badge ?? '',
-      isVerified: listing.tag === 'Verified',
-      discountBadge:
-        listing.tag && listing.tag !== 'Verified' ? listing.tag.toUpperCase() : undefined,
-    };
-  }
-
   private selectedLocationQuery(): string | undefined {
     return this.selectedLocationQueryValue();
   }
@@ -852,8 +538,16 @@ export class HomePageComponent {
     };
   }
 
-  private toListingCard(record: HomeListingResponse, fallbackId: string): Listing {
+  private toListingCard(record: HomeListingResponse, fallbackId: string): Listing | null {
     const images = this.extractImageList(record);
+    const title =
+      this.readString(record['title']) ??
+      this.readString(record['name']) ??
+      this.readString(record['listing_name']);
+    if (!title) {
+      return null;
+    }
+
     const location = this.buildLocationLabel(record);
     const verified =
       this.readBoolean(record['is_verified']) ??
@@ -863,11 +557,7 @@ export class HomePageComponent {
 
     return {
       id: this.readId(record, fallbackId),
-      title:
-        this.readString(record['title']) ??
-        this.readString(record['name']) ??
-        this.readString(record['listing_name']) ??
-        'Listing',
+      title,
       price: this.formatPrice(
         record['price'] ??
           record['amount'] ??
@@ -876,7 +566,7 @@ export class HomePageComponent {
       ),
       originalPrice: this.formatPriceOptional(record['original_price'] ?? record['originalPrice']),
       location,
-      images: images.length > 0 ? images : ['/assets/images/home-item-placeholder.png'],
+      images,
       timeAgo:
         this.readString(record['time_ago']) ??
         this.readString(record['condition']) ??
@@ -945,38 +635,41 @@ export class HomePageComponent {
     }
   }
 
-  private toStoreCard(record: HomeStoreResponse, fallbackId: string): Store {
+  private toStoreCard(record: HomeStoreResponse, fallbackId: string): Store | null {
+    const id = this.readId(record, fallbackId);
+    const name =
+      record.store_name?.trim() ||
+      this.readString(record['name']) ||
+      this.readString(record['business_name']);
+    if (!id || !name) {
+      return null;
+    }
+
     const banner =
       this.resolveMediaUrl(record.cover_image ?? null) ??
       this.resolveMediaUrl(this.readString(record['banner'])) ??
-      this.resolveMediaUrl(this.readString(record['cover'])) ??
-      '/assets/images/store-vine-cover-desktop.png';
+      this.resolveMediaUrl(this.readString(record['cover']));
     const user = record.user ?? null;
     const logo =
       this.resolveMediaUrl(record.profile_photo ?? null) ??
       this.resolveMediaUrl(user?.avatar ?? null) ??
       this.resolveMediaUrl(this.readString(record['logo'])) ??
       this.resolveMediaUrl(this.readString(record['avatar'])) ??
-      this.resolveMediaUrl(this.readString(record['profile_image'])) ??
-      '/assets/images/store-vine-logo-desktop.png';
+      this.resolveMediaUrl(this.readString(record['profile_image']));
 
     return {
-      id: this.readId(record, fallbackId),
-      name:
-        record.store_name?.trim() ||
-        this.readString(record['name']) ||
-        this.readString(record['business_name']) ||
-        'Store',
+      id,
+      name,
       description:
         record.store_bio?.trim() ||
         this.readString(record['description']) ||
         this.readString(record['bio']) ||
         undefined,
       location: this.buildLocationLabel(record),
-      coverImage: banner,
-      mobileCoverImage: banner,
-      logoImage: logo,
-      mobileLogoImage: logo,
+      coverImage: banner ?? undefined,
+      mobileCoverImage: banner ?? undefined,
+      logoImage: logo ?? undefined,
+      mobileLogoImage: logo ?? undefined,
       isVerified:
         user?.is_verified ??
         this.readBoolean(record['is_verified']) ??
@@ -987,7 +680,7 @@ export class HomePageComponent {
           ? `${record.followers_count} followers`
           : undefined,
       callNumber: record.call_number?.trim() || undefined,
-      route: ['/stores', this.readId(record, fallbackId)],
+      route: ['/stores', id],
     };
   }
 
@@ -1042,7 +735,7 @@ export class HomePageComponent {
       return `${location}, ${state}`;
     }
 
-    return location ?? state ?? 'Nigeria';
+    return location ?? state ?? '';
   }
 
   private readId(record: Record<string, unknown>, fallbackId: string): string {
@@ -1057,7 +750,7 @@ export class HomePageComponent {
 
   private formatPrice(value: unknown): string {
     const normalized = this.normalizePriceValue(value);
-    return normalized === null ? '₦0' : `₦${new Intl.NumberFormat('en-NG').format(normalized)}`;
+    return normalized === null ? '' : `₦${new Intl.NumberFormat('en-NG').format(normalized)}`;
   }
 
   private formatPriceOptional(value: unknown): string | undefined {

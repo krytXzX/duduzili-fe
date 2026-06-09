@@ -766,7 +766,7 @@ export class ProductPageComponent {
     if (!this.authSession.isAuthenticated()) {
       this.appToastService.show({
         message: 'Please sign in to add listings to your wishlist',
-        imageSrc: this.product().images[0]?.src ?? '/assets/images/home-item-placeholder.png',
+        imageSrc: this.product().images[0]?.src ?? undefined,
         imageAlt: this.product().name,
         durationMs: 1200,
       });
@@ -803,7 +803,7 @@ export class ProductPageComponent {
 
       this.appToastService.show({
         message: nextIsSaved ? 'Added to Wishlist' : 'Removed from Wishlist',
-        imageSrc: this.product().images[0]?.src ?? '/assets/images/home-item-placeholder.png',
+        imageSrc: this.product().images[0]?.src ?? undefined,
         imageAlt: this.product().name,
       });
     } catch {
@@ -1480,7 +1480,7 @@ export class ProductPageComponent {
       this.resolveMediaUrl(this.readString(record['image'])) ??
       this.resolveMediaUrl(this.readString(record['cover_image']));
 
-    return singleImage ? [singleImage] : ['/assets/images/home-item-placeholder.png'];
+    return singleImage ? [singleImage] : [];
   }
 
   private formatPrice(value: unknown): string | null {

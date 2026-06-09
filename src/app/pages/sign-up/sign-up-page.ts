@@ -8,8 +8,6 @@ import { firstValueFrom } from 'rxjs';
 import { OtpInputComponent } from '../../components/common/otp-input/otp-input.component';
 import { AuthService } from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
-import { AppModeService } from '../../services/app-mode.service';
-import { DemoAuthService } from '../../services/demo-auth.service';
 
 type SignUpStep = 1 | 2 | 3;
 
@@ -28,8 +26,6 @@ export class SignUpPageComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
   private readonly authSessionService = inject(AuthSessionService);
-  private readonly appMode = inject(AppModeService);
-  private readonly demoAuth = inject(DemoAuthService);
 
   protected readonly currentStep = signal<SignUpStep>(1);
   protected readonly submitted = signal(false);
@@ -224,14 +220,6 @@ export class SignUpPageComponent {
         return;
       }
 
-      if (!this.appMode.isBackendEnabled()) {
-        this.otpControl.reset('');
-        this.currentStep.set(2);
-        this.submitted.set(false);
-        this.startResendCountdown();
-        return;
-      }
-
       this.isSendingOtp.set(true);
 
       try {
@@ -259,12 +247,6 @@ export class SignUpPageComponent {
         return;
       }
 
-      if (!this.appMode.isBackendEnabled()) {
-        this.currentStep.set(3);
-        this.submitted.set(false);
-        return;
-      }
-
       this.isVerifyingOtp.set(true);
 
       try {
@@ -286,15 +268,6 @@ export class SignUpPageComponent {
     }
 
     if (!this.isStep3Valid()) {
-      return;
-    }
-
-    if (!this.appMode.isBackendEnabled()) {
-      this.demoAuth.signUp(
-        this.emailControl.getRawValue().trim(),
-        this.fullNameControl.getRawValue().trim(),
-      );
-      await this.router.navigate(['/home']);
       return;
     }
 
@@ -388,12 +361,6 @@ export class SignUpPageComponent {
 
   private async handleResendClick(): Promise<void> {
     if (this.resendCountdown() > 0 || this.isResendingOtp()) {
-      return;
-    }
-
-    if (!this.appMode.isBackendEnabled()) {
-      this.otpErrorMessage.set(null);
-      this.startResendCountdown();
       return;
     }
 

@@ -325,20 +325,20 @@ export class BuyerFollowedStoresPageComponent {
     return {
       id,
       name,
-      banner: banner ?? '/assets/images/product_sneakers_lifestyle.png',
-      logo: logo ?? '/assets/images/product_sneakers_lifestyle.png',
+      banner: banner ?? undefined,
+      logo: logo ?? undefined,
       followers: this.formatCompactCount(record['followers_count']) ?? '0',
-      metaLabel: this.composeLocation(record) ?? 'Nigeria',
-      location: this.composeLocation(record) ?? 'Nigeria',
+      metaLabel: this.composeLocation(record) ?? '',
+      location: this.composeLocation(record) ?? '',
       isVerified:
         this.readBoolean(this.readRecord(record['user'])?.['is_verified']) ??
         this.readBoolean(record['is_verified']) ??
         false,
       route: ['/stores', id],
-      coverImage: banner ?? '/assets/images/product_sneakers_lifestyle.png',
-      mobileCoverImage: banner ?? '/assets/images/product_sneakers_lifestyle.png',
-      logoImage: logo ?? '/assets/images/product_sneakers_lifestyle.png',
-      mobileLogoImage: logo ?? '/assets/images/product_sneakers_lifestyle.png',
+      coverImage: banner ?? undefined,
+      mobileCoverImage: banner ?? undefined,
+      logoImage: logo ?? undefined,
+      mobileLogoImage: logo ?? undefined,
       description: this.readString(record['store_bio']) ?? undefined,
       callNumber: this.readString(record['call_number']) ?? undefined,
     };

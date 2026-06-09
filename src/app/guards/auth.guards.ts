@@ -1,8 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router';
 import { AuthSessionService } from '../services/auth-session.service';
-import { AppModeService } from '../services/app-mode.service';
-import { DemoAuthService } from '../services/demo-auth.service';
 
 function signedInRedirectTarget(authSession: AuthSessionService): string[] {
   if (authSession.isSuperuser()) {
@@ -13,14 +11,8 @@ function signedInRedirectTarget(authSession: AuthSessionService): string[] {
 }
 
 async function redirectAuthenticatedUsers(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
-  const appMode = inject(AppModeService);
-  const demoAuth = inject(DemoAuthService);
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
-
-  if (!appMode.isBackendEnabled()) {
-    return demoAuth.isAuthenticated() ? router.createUrlTree(['/home']) : true;
-  }
 
   await authSession.waitForBootstrap();
 
@@ -30,14 +22,8 @@ async function redirectAuthenticatedUsers(): Promise<boolean | ReturnType<Router
 }
 
 async function requireAuthentication(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
-  const appMode = inject(AppModeService);
-  const demoAuth = inject(DemoAuthService);
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
-
-  if (!appMode.isBackendEnabled()) {
-    return demoAuth.isAuthenticated() ? true : router.createUrlTree(['/sign-in']);
-  }
 
   await authSession.waitForBootstrap();
 
@@ -45,14 +31,8 @@ async function requireAuthentication(): Promise<boolean | ReturnType<Router['cre
 }
 
 async function requireBuyerAccess(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
-  const appMode = inject(AppModeService);
-  const demoAuth = inject(DemoAuthService);
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
-
-  if (!appMode.isBackendEnabled()) {
-    return demoAuth.isAuthenticated() ? true : router.createUrlTree(['/sign-in']);
-  }
 
   await authSession.waitForBootstrap();
 
@@ -68,14 +48,8 @@ async function requireBuyerAccess(): Promise<boolean | ReturnType<Router['create
 }
 
 async function requireSellerAccess(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
-  const appMode = inject(AppModeService);
-  const demoAuth = inject(DemoAuthService);
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
-
-  if (!appMode.isBackendEnabled()) {
-    return demoAuth.isAuthenticated() ? true : router.createUrlTree(['/sign-in']);
-  }
 
   await authSession.waitForBootstrap();
 
@@ -91,14 +65,8 @@ async function requireSellerAccess(): Promise<boolean | ReturnType<Router['creat
 }
 
 async function requireAdminAccess(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
-  const appMode = inject(AppModeService);
-  const demoAuth = inject(DemoAuthService);
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
-
-  if (!appMode.isBackendEnabled()) {
-    return demoAuth.isAuthenticated() ? true : router.createUrlTree(['/sign-in']);
-  }
 
   await authSession.waitForBootstrap();
 

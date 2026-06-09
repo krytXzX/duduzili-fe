@@ -276,7 +276,7 @@ export class BuyerWishlistPageComponent {
       this.resolveMediaUrl(this.readString(item['image'])) ??
       this.resolveMediaUrl(this.readString(item['cover_image']));
 
-    return singleImage ? [singleImage] : ['/assets/images/home-item-placeholder.png'];
+    return singleImage ? [singleImage] : [];
   }
 
   private formatPrice(value: unknown): string | null {
