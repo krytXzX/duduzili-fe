@@ -41,7 +41,6 @@ type BuyerMenuEntry = {
             alt="Duduzili"
             width="111"
             height="24"
-            priority
             class="h-6 w-auto object-contain"
           />
         </a>
@@ -221,7 +220,6 @@ type BuyerMenuEntry = {
             alt="Duduzili"
             width="112"
             height="26"
-            priority
             class="h-[26px] w-auto object-contain"
           />
         </a>

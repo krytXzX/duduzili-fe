@@ -107,7 +107,6 @@ interface ReviewTagCount {
                 width="350"
                 height="91"
                 alt=""
-                priority
                 class="h-full w-full object-cover"
               />
               <div
@@ -444,7 +443,6 @@ interface ReviewTagCount {
                 width="1061"
                 height="197"
                 alt=""
-                priority
                 class="h-full w-full object-cover"
               />
               <div

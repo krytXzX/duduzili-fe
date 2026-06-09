@@ -1918,7 +1918,6 @@ type ChatDay = {
                 alt=""
                 width="164"
                 height="164"
-                priority
                 class="h-[164px] w-[164px] object-contain"
               />
 

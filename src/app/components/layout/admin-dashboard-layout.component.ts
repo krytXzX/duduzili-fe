@@ -37,7 +37,6 @@ import { AppToastComponent } from '../common/app-toast.component';
               width="112"
               height="24"
               alt="Duduzili"
-              priority
               class="h-6 w-[111px]"
             />
           </a>

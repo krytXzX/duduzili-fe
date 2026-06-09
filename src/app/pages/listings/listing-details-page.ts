@@ -1185,7 +1185,6 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           [ngSrc]="primaryImage.src"
                           [alt]="primaryImage.alt"
                           fill
-                          priority
                           sizes="58vw"
                           class="object-cover"
                         />
@@ -1735,7 +1734,6 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                                 [ngSrc]="primaryImage.src"
                                 [alt]="primaryImage.alt"
                                 fill
-                                priority
                                 sizes="(min-width: 768px) 23vw, 65vw"
                                 class="object-cover"
                               />

@@ -35,7 +35,6 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
                   alt=""
                   width="512"
                   height="512"
-                  priority
                   class="absolute left-1/2 top-1/2 h-[163px] w-[163px] -translate-x-1/2 -translate-y-1/2 object-contain"
                   aria-hidden="true"
                 />

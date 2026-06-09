@@ -96,7 +96,6 @@ export type PublicHomeLocationSelection = {
                   width="112"
                   height="26"
                   class="h-[26px] w-auto"
-                  priority
                 />
               </a>
 
@@ -173,7 +172,6 @@ export type PublicHomeLocationSelection = {
             width="111"
             height="24"
             class="h-6 w-auto"
-            priority
           />
         </a>
 
@@ -252,7 +250,6 @@ export type PublicHomeLocationSelection = {
                 width="111"
                 height="24"
                 class="h-6 w-auto"
-                priority
               />
             </a>
 

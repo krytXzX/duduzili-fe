@@ -18,7 +18,6 @@ import { AuthSessionService } from '../../services/auth-session.service';
           width="111"
           height="24"
           alt="Duduzili"
-          priority
           class="h-6 w-auto object-contain"
         >
       </a>

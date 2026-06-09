@@ -41,7 +41,6 @@ import { AuthFlowService } from '../../services/auth-flow.service';
               alt="Duduzili"
               width="24"
               height="24"
-              priority
               class="brightness-0 invert object-contain"
             />
           </div>

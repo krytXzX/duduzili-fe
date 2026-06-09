@@ -40,7 +40,6 @@ type ProfilePanelMode = 'full' | 'details-only';
               height="100"
               alt="Profile avatar"
               class="h-full w-full object-cover"
-              priority
             >
           </span>
           <span class="flex h-[100px] w-[100px] items-center justify-center rounded-full bg-[#FFA72B] text-[54px] font-semibold leading-[1.2] text-white md:hidden">
