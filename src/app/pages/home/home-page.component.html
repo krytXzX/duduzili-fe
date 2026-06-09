@@ -138,8 +138,9 @@
                       </span>
                     </div>
 
+                  @if (popularSearches().length) {
                     <div class="mt-3 flex flex-wrap gap-2">
-                      @for (term of popularSearches; track term) {
+                      @for (term of popularSearches(); track term) {
                         <button
                           type="button"
                           (click)="applySearchTerm(term)"
@@ -149,7 +150,8 @@
                         </button>
                       }
                     </div>
-                  </div>
+                  }
+                </div>
                 }
               </div>
             </div>
@@ -499,16 +501,18 @@
           </div>
         </section>
 
-        <section>
-          <h2 class="mb-3 text-[18px] font-medium leading-[1.2] text-[#1A1B1D]">Popular right now</h2>
-          <div class="flex flex-wrap gap-2">
-            @for (term of popularSearches; track term) {
-            <button type="button" (click)="applySearchTerm(term)" class="inline-flex h-11 items-center rounded-full bg-[#F9F9F9] px-4 text-[14px] font-medium text-[#1A1B1D]">
-              {{ term }}
-            </button>
-            }
-          </div>
-        </section>
+        @if (popularSearches().length) {
+          <section>
+            <h2 class="mb-3 text-[18px] font-medium leading-[1.2] text-[#1A1B1D]">Popular right now</h2>
+            <div class="flex flex-wrap gap-2">
+              @for (term of popularSearches(); track term) {
+              <button type="button" (click)="applySearchTerm(term)" class="inline-flex h-11 items-center rounded-full bg-[#F9F9F9] px-4 text-[14px] font-medium text-[#1A1B1D]">
+                {{ term }}
+              </button>
+              }
+            </div>
+          </section>
+        }
       </div>
     </div>
 

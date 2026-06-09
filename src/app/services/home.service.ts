@@ -53,6 +53,10 @@ export type HomeResponse = {
   nearby_listings?: HomeListingResponse[];
   featured_stores?: HomeStoreResponse[];
   advertisements?: HomeAdvertisementResponse[];
+  popular_searches?: string[];
+  popular_search_terms?: string[];
+  search_suggestions?: string[];
+  trending_searches?: string[];
 };
 
 @Injectable({ providedIn: 'root' })

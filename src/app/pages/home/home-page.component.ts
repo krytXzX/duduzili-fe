@@ -140,15 +140,14 @@ export class HomePageComponent {
     'male accessories',
     'necklaces for men',
   ]);
-  readonly popularSearches = [
-    'bags for men',
-    'watch for men',
-    'male accessories',
-    'necklaces for men',
-    'Toyota camry 2016 model',
-    'Miniflat in Lagos',
-    'shirt for men',
-  ] as const;
+  readonly popularSearches = computed(() => {
+    const response = this.homeResponse();
+    if (!response) {
+      return [] as string[];
+    }
+
+    return this.extractPopularSearches(response);
+  });
 
   readonly fallbackCategories: readonly HomeCategory[] = [
     { id: 'automotives', label: 'Automotives', icon: '/assets/images/category-automotives.png' },
@@ -711,6 +710,58 @@ export class HomePageComponent {
 
   private selectedLocationQuery(): string | undefined {
     return this.selectedLocationQueryValue();
+  }
+
+  private extractPopularSearches(response: HomeResponse): string[] {
+    const explicitSuggestions =
+      this.readSearchTerms(response.popular_searches) ??
+      this.readSearchTerms(response.popular_search_terms) ??
+      this.readSearchTerms(response.search_suggestions) ??
+      this.readSearchTerms(response.trending_searches);
+
+    if (explicitSuggestions && explicitSuggestions.length > 0) {
+      return explicitSuggestions.slice(0, 7);
+    }
+
+    const derivedSuggestions = [
+      ...(response.sponsored_listings ?? [])
+        .map((listing) => this.extractSearchLabelFromListing(listing))
+        .filter((label): label is string => label !== null),
+      ...(response.nearby_listings ?? [])
+        .map((listing) => this.extractSearchLabelFromListing(listing))
+        .filter((label): label is string => label !== null),
+      ...(response.categories ?? [])
+        .map((category) => category.name?.trim() || null)
+        .filter((label): label is string => !!label),
+    ];
+
+    return Array.from(
+      new Map(
+        derivedSuggestions.map((label) => [label.toLowerCase(), label]),
+      ).values(),
+    ).slice(0, 7);
+  }
+
+  private readSearchTerms(value: unknown): string[] | null {
+    if (!Array.isArray(value)) {
+      return null;
+    }
+
+    const terms = value
+      .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+      .filter((entry) => entry.length > 0);
+
+    return terms.length > 0 ? terms : null;
+  }
+
+  private extractSearchLabelFromListing(record: HomeListingResponse): string | null {
+    return (
+      this.readString(record['title']) ??
+      this.readString(record['name']) ??
+      this.readString(record['listing_name']) ??
+      this.readString(record['category_name']) ??
+      this.readString(record['subcategory_name'])
+    );
   }
 
   private toHomeCategory(category: HomeCategoryResponse): HomeCategory {
