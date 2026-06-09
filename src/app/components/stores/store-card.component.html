@@ -17,6 +17,7 @@
           [alt]="store().name"
           width="173"
           height="90"
+          sizes="(min-width: 1024px) 25vw, 50vw"
           class="h-full w-full object-cover lg:hidden"
         />
       } @else {
@@ -25,6 +26,8 @@
           [alt]="store().name"
           width="173"
           height="90"
+          [attr.loading]="imageLoadingMode()"
+          sizes="(min-width: 1024px) 25vw, 50vw"
           class="h-full w-full object-cover lg:hidden"
         />
       }
@@ -44,6 +47,7 @@
           [alt]="store().name"
           width="300"
           height="158"
+          sizes="(min-width: 1024px) 25vw, 50vw"
           class="hidden h-full w-full object-cover lg:block"
         />
       } @else {
@@ -52,6 +56,8 @@
           [alt]="store().name"
           width="300"
           height="158"
+          [attr.loading]="imageLoadingMode()"
+          sizes="(min-width: 1024px) 25vw, 50vw"
           class="hidden h-full w-full object-cover lg:block"
         />
       }
@@ -82,6 +88,8 @@
             [alt]="store().name + ' logo'"
             width="43"
             height="43"
+            [attr.loading]="imageLoadingMode()"
+            sizes="43px"
             class="h-full w-full object-cover lg:hidden"
           />
         }
@@ -100,6 +108,8 @@
             [alt]="store().name + ' logo'"
             width="74"
             height="74"
+            [attr.loading]="imageLoadingMode()"
+            sizes="74px"
             class="hidden h-full w-full object-cover lg:block"
           />
         }

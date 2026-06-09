@@ -38,6 +38,7 @@ export class StoreCardComponent {
   store = input.required<Store>();
   showFavorite = input(true);
   priority = input(false);
+  imageLoading = input<'lazy' | 'eager' | 'auto'>('lazy');
 
   protected readonly route = computed(() => this.store().route ?? ['/my-stores', this.store().id]);
   protected readonly desktopCoverImage = computed(() => this.store().coverImage ?? this.store().banner ?? '');
@@ -55,8 +56,11 @@ export class StoreCardComponent {
   );
   protected readonly hasLocation = computed(() => this.locationLabel().trim().length > 0);
   protected readonly isVerified = computed(() => this.store().isVerified ?? true);
+  protected readonly imageLoadingMode = computed(() =>
+    this.priority() ? 'eager' : this.imageLoading(),
+  );
 
   protected isDataUrl(value: string): boolean {
-    return value.startsWith('data:');
+    return value.startsWith('data:') || value.startsWith('blob:');
   }
 }

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AppToastService } from '../../services/app-toast.service';
@@ -22,8 +22,7 @@ export interface Listing {
 
 @Component({
   selector: 'app-listing-card',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [NgOptimizedImage, RouterLink],
   templateUrl: './listing-card.component.html',
   styles: `
     :host {
@@ -45,6 +44,8 @@ export class ListingCardComponent {
   );
   showFavorite = input(true);
   favoriteFilled = input(false);
+  priority = input(false);
+  imageLoading = input<'lazy' | 'eager' | 'auto'>('lazy');
   favoriteChanged = output<{ id: string; isFavorited: boolean }>();
   removedInitiallyFavorited = signal(false);
   currentImageIndex = signal(0);
@@ -55,6 +56,8 @@ export class ListingCardComponent {
     if (!images || images.length === 0) return '';
     return images[this.currentImageIndex()];
   });
+  currentImageLoading = computed(() => (this.priority() ? 'eager' : this.imageLoading()));
+  imageSizes = computed(() => '(min-width: 1024px) 20vw, (min-width: 768px) 25vw, 50vw');
 
   isFavorited = computed(() =>
     (this.favoriteFilled() && !this.removedInitiallyFavorited())
@@ -148,6 +151,10 @@ export class ListingCardComponent {
     if (images && images.length > 0) {
       this.currentImageIndex.update(idx => (idx - 1 + images.length) % images.length);
     }
+  }
+
+  protected isUnoptimizedImageSource(value: string): boolean {
+    return value.startsWith('data:') || value.startsWith('blob:');
   }
 
   private resolveFavoriteState(

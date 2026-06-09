@@ -302,8 +302,8 @@
       </div>
 
       <div class="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-5">
-        @for (listing of sponsoredListingCards(); track listing.id) {
-        <app-listing-card [listing]="listing" [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)" />
+        @for (listing of sponsoredListingCards(); track listing.id; let index = $index) {
+        <app-listing-card [listing]="listing" [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)" [priority]="index < 4" [imageLoading]="index < 4 ? 'eager' : 'lazy'" />
         }
       </div>
     </section>
@@ -315,7 +315,7 @@
 
       <div class="grid grid-cols-2 gap-2.5 lg:grid-cols-5 lg:gap-4">
         @for (listing of nearbyListingCards(); track listing.id) {
-        <app-listing-card [listing]="listing" [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)" />
+        <app-listing-card [listing]="listing" [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)" imageLoading="lazy" />
         }
       </div>
 
@@ -370,8 +370,8 @@
       </div>
 
       <div class="grid grid-cols-2 gap-[10px] lg:grid-cols-4 lg:gap-6">
-        @for (store of featuredStores(); track store.id) {
-        <app-store-card [store]="store" [showFavorite]="false" />
+        @for (store of featuredStores(); track store.id; let index = $index) {
+        <app-store-card [store]="store" [showFavorite]="false" [priority]="index < 4" [imageLoading]="index < 4 ? 'eager' : 'lazy'" />
         }
       </div>
     </section>
