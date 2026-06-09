@@ -88,7 +88,7 @@ export interface TeamMemberUpdatePayload {
           <div class="flex flex-wrap items-center gap-4">
             @if (member().avatar) {
               <img
-                [ngSrc]="member().avatar"
+                [ngSrc]="member().avatar!"
                 [alt]="member().userName"
                 width="80"
                 height="80"

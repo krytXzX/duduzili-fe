@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ListingCardComponent, Listing } from '../listings/listing-card.component';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroPlus, heroChevronDown } from '@ng-icons/heroicons/outline';
@@ -7,7 +7,7 @@ import { heroPlus, heroChevronDown } from '@ng-icons/heroicons/outline';
 @Component({
   selector: 'app-store-products',
   standalone: true,
-  imports: [CommonModule, ListingCardComponent, NgIcon],
+  imports: [CommonModule, ListingCardComponent, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({ heroPlus, heroChevronDown })
   ],
@@ -77,7 +77,7 @@ import { heroPlus, heroChevronDown } from '@ng-icons/heroicons/outline';
         <!-- Empty State -->
         <div class="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-95 duration-500">
           <div class="mb-8 flex items-center justify-center">
-            <img src="/assets/images/empty_state.svg" alt="No products" class="w-48 h-48">
+            <img ngSrc="/assets/images/empty_state.svg" width="192" height="192" alt="No products" class="w-48 h-48">
           </div>
           
           <h3 class="text-[21px] font-black text-[#1A1C21] mb-2 tracking-tight">Look at the empty space here</h3>

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
@@ -68,6 +68,7 @@ const VERIFICATION_PARAM_BY_LABEL: Record<string, 'true' | 'false'> = {
   standalone: true,
   imports: [
     CommonModule,
+    NgOptimizedImage,
     RouterLink,
     BuyerDashboardNavbarComponent,
     PublicHomeNavbarComponent,
@@ -258,6 +259,16 @@ export class SearchPageComponent {
   readonly locationLabel = computed(() => {
     return this.selectedLocations().length ? `Location (${this.selectedLocations().length})` : 'Location';
   });
+
+  protected storeInitials(name: string): string {
+    return name
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('') || 'S';
+  }
 
   readonly conditionLabel = computed(() => 'Condition');
   readonly verificationLabel = computed(() => 'Verification status');

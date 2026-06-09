@@ -68,7 +68,7 @@ export interface AdminSellerReportDetails {
             <div class="h-18 w-18 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
               @if (report().sellerAvatar) {
                 <img
-                  [ngSrc]="report().sellerAvatar"
+                  [ngSrc]="report().sellerAvatar!"
                   [alt]="report().sellerName"
                   width="72"
                   height="72"
@@ -108,7 +108,7 @@ export interface AdminSellerReportDetails {
               <div class="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                 @if (report().reportedByAvatar) {
                   <img
-                    [ngSrc]="report().reportedByAvatar"
+                    [ngSrc]="report().reportedByAvatar!"
                     [alt]="report().reportedByName"
                     width="32"
                     height="32"

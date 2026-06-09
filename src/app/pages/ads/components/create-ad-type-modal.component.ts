@@ -846,8 +846,12 @@ interface StorePromotionOption {
                     class="flex w-full items-center gap-3 text-left"
                   >
                     <img
-                      [src]="store.image"
+                      [ngSrc]="store.image"
                       [alt]="store.name"
+                      width="36"
+                      height="36"
+                      loading="lazy"
+                      sizes="36px"
                       class="h-9 w-9 rounded-full object-cover"
                     />
                     <span class="min-w-0 flex-1 truncate text-[13px] font-medium text-[#232632]">{{

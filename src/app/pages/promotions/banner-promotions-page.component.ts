@@ -117,8 +117,12 @@ interface BannerPromotion {
                 <a [routerLink]="promotion.route ?? ['/promotions']" class="block">
                   <div class="relative h-[192.629px] overflow-hidden rounded-[20.639px]">
                     <img
-                      [src]="promotion.mobileImageSrc ?? promotion.imageSrc"
+                      [ngSrc]="promotion.mobileImageSrc ?? promotion.imageSrc"
                       alt=""
+                      width="379"
+                      height="193"
+                      loading="lazy"
+                      sizes="(max-width: 767px) calc(100vw - 40px), 379px"
                       class="h-full w-full object-cover"
                     />
 
@@ -317,7 +321,15 @@ interface BannerPromotion {
                   >
                     <a [routerLink]="promotion.route ?? ['/promotions']" class="block">
                       <div class="relative h-[224px] overflow-hidden rounded-[24px]">
-                        <img [src]="promotion.imageSrc" alt="" class="h-full w-full object-cover" />
+                        <img
+                          [ngSrc]="promotion.imageSrc"
+                          alt=""
+                          width="407"
+                          height="224"
+                          loading="lazy"
+                          sizes="(min-width: 1440px) 407px, (min-width: 1024px) 28vw, 100vw"
+                          class="h-full w-full object-cover"
+                        />
 
                         <div
                           class="absolute left-[7.7px] top-[7.5px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[14px] font-medium leading-4 text-[#4E3E07]"

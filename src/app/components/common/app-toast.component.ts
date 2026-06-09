@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { AppToastService } from '../../services/app-toast.service';
 
 @Component({
   selector: 'app-toast',
-  imports: [CommonModule],
+  imports: [CommonModule, NgOptimizedImage],
   template: `
     @if (toast(); as activeToast) {
       <div
@@ -18,7 +18,15 @@ import { AppToastService } from '../../services/app-toast.service';
         >
           @if (toastImage()) {
             <div class="h-16 w-16 shrink-0 overflow-hidden rounded-[14px] bg-white/10">
-              <img [src]="toastImage()!" [alt]="toastImageAlt()" class="h-full w-full object-cover" />
+              <img
+                [ngSrc]="toastImage()!"
+                [alt]="toastImageAlt()"
+                width="64"
+                height="64"
+                loading="eager"
+                sizes="64px"
+                class="h-full w-full object-cover"
+              />
             </div>
           }
 
