@@ -4,13 +4,11 @@ import { provideRouter, TitleStrategy } from '@angular/router';
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { provideServiceWorker } from '@angular/service-worker';
 import { AppTitleStrategy } from './app-title.strategy';
 import { apiAuthInterceptor } from './interceptors/api-auth.interceptor';
 import { authErrorInterceptor } from './interceptors/auth-error.interceptor';
 import { AuthBootstrapService } from './services/auth-bootstrap.service';
 import { APP_ENVIRONMENT } from './config/app-environment.token';
-import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,10 +23,6 @@ export const appConfig: ApplicationConfig = {
     ),
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
-    provideServiceWorker('ngsw-worker.js', {
-      enabled: environment.production,
-      registrationStrategy: 'registerWhenStable:30000',
-    }),
     {
       provide: TitleStrategy,
       useClass: AppTitleStrategy,
