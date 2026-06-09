@@ -192,7 +192,7 @@ export class StoreItemCardComponent {
 
   protected imageSizes(): string {
     return this.mode() === 'desktop'
-      ? '(min-width: 1440px) 185px, (min-width: 1024px) 16vw, 44vw'
+      ? '(min-width: 1024px) 16vw, 44vw'
       : '44vw';
   }
 
