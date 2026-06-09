@@ -1068,7 +1068,15 @@
               <article class="border-b border-[#F0F0F0] pb-5 last:border-b-0 last:pb-0">
                 <div class="flex items-start gap-3.5">
                   @if (review.avatar) {
-                    <img [src]="review.avatar" [alt]="review.author" class="h-11 w-11 rounded-full object-cover" />
+                    <img
+                      [ngSrc]="review.avatar"
+                      [alt]="review.author"
+                      width="44"
+                      height="44"
+                      loading="lazy"
+                      sizes="44px"
+                      class="h-11 w-11 rounded-full object-cover"
+                    />
                   } @else {
                     <div class="flex h-11 w-11 items-center justify-center rounded-full bg-[#F2F2F7] text-[14px] font-medium text-[#434455]">
                       {{ reviewAuthorInitials(review) }}
@@ -1100,7 +1108,15 @@
                       <div class="mt-4 flex gap-3 overflow-x-auto pb-1">
                         @for (image of review.images!.slice(0, 4); track image; let index = $index) {
                           <div class="relative h-[88px] w-[88px] shrink-0 overflow-hidden rounded-[18px] bg-[#F5F5F7]">
-                            <img [src]="image" alt="" class="h-full w-full object-cover" />
+                            <img
+                              [ngSrc]="image"
+                              alt=""
+                              width="88"
+                              height="88"
+                              loading="lazy"
+                              sizes="88px"
+                              class="h-full w-full object-cover"
+                            />
                             @if (index === 3 && review.images!.length > 4) {
                               <div class="absolute inset-0 flex items-center justify-center bg-black/45 text-[18px] font-medium text-white">
                                 +{{ review.images!.length - 3 }}
@@ -1185,7 +1201,15 @@
                   <article class="border-b border-[#F0F0F0] pb-7 last:border-b-0 last:pb-0">
                     <div class="flex items-start gap-4">
                       @if (review.avatar) {
-                        <img [src]="review.avatar" [alt]="review.author" class="h-12 w-12 rounded-full object-cover" />
+                        <img
+                          [ngSrc]="review.avatar"
+                          [alt]="review.author"
+                          width="48"
+                          height="48"
+                          loading="lazy"
+                          sizes="48px"
+                          class="h-12 w-12 rounded-full object-cover"
+                        />
                       } @else {
                         <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#F2F2F7] text-[15px] font-medium text-[#434455]">
                           {{ reviewAuthorInitials(review) }}
@@ -1222,7 +1246,15 @@
                           <div class="mt-5 flex gap-3 overflow-x-auto pb-1">
                             @for (image of review.images!.slice(0, 5); track image; let index = $index) {
                               <div class="relative h-[104px] w-[104px] shrink-0 overflow-hidden rounded-[20px] bg-[#F5F5F7]">
-                                <img [src]="image" alt="" class="h-full w-full object-cover" />
+                                <img
+                                  [ngSrc]="image"
+                                  alt=""
+                                  width="104"
+                                  height="104"
+                                  loading="lazy"
+                                  sizes="104px"
+                                  class="h-full w-full object-cover"
+                                />
                                 @if (index === 4 && review.images!.length > 5) {
                                   <div class="absolute inset-0 flex items-center justify-center bg-black/45 text-[18px] font-medium text-white">
                                     +{{ review.images!.length - 4 }}

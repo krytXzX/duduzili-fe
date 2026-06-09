@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 export interface Review {
   rating: number;
@@ -14,8 +14,7 @@ export interface Review {
 
 @Component({
   selector: 'app-review-card',
-  standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgOptimizedImage],
   templateUrl: './review-card.component.html',
   styles: `
     :host {
@@ -26,9 +25,11 @@ export interface Review {
 })
 export class ReviewCardComponent {
   review = input.required<Review>();
+  protected readonly avatarSrc = computed(
+    () => this.review().avatar?.trim() || '/assets/images/auth-avatar-fallback.svg',
+  );
 
   get stars() {
     return Array(5).fill(0).map((_, i) => i < this.review().rating);
   }
 }
-

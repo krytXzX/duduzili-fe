@@ -36,6 +36,8 @@ type StoreItemCardMode = 'desktop' | 'mobile';
           [width]="imageWidth()"
           [height]="imageHeight()"
           [alt]="item().title"
+          [attr.loading]="imageLoading()"
+          [sizes]="imageSizes()"
           [class]="imageClass()"
         />
         <div
@@ -154,6 +156,7 @@ export class StoreItemCardComponent {
 
   readonly item = input.required<StoreItemCardData>();
   readonly mode = input<StoreItemCardMode>('desktop');
+  readonly imageLoading = input<'lazy' | 'eager' | 'auto'>('lazy');
   readonly badgeIcon = input.required<string>();
   readonly heartIcon = input.required<string>();
   readonly locationIcon = input.required<string>();
@@ -185,6 +188,12 @@ export class StoreItemCardComponent {
 
   protected imageHeight(): number {
     return this.mode() === 'desktop' ? 264 : 168;
+  }
+
+  protected imageSizes(): string {
+    return this.mode() === 'desktop'
+      ? '(min-width: 1440px) 185px, (min-width: 1024px) 16vw, 44vw'
+      : '44vw';
   }
 
   protected carouselNavClass(): string {

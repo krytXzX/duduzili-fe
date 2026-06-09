@@ -17,7 +17,7 @@
           [alt]="store().name"
           width="173"
           height="90"
-          sizes="(min-width: 1024px) 25vw, 50vw"
+          [sizes]="coverSizes()"
           class="h-full w-full object-cover lg:hidden"
         />
       } @else {
@@ -27,7 +27,7 @@
           width="173"
           height="90"
           [attr.loading]="imageLoadingMode()"
-          sizes="(min-width: 1024px) 25vw, 50vw"
+          [sizes]="coverSizes()"
           class="h-full w-full object-cover lg:hidden"
         />
       }
@@ -47,7 +47,7 @@
           [alt]="store().name"
           width="300"
           height="158"
-          sizes="(min-width: 1024px) 25vw, 50vw"
+          [sizes]="coverSizes()"
           class="hidden h-full w-full object-cover lg:block"
         />
       } @else {
@@ -57,7 +57,7 @@
           width="300"
           height="158"
           [attr.loading]="imageLoadingMode()"
-          sizes="(min-width: 1024px) 25vw, 50vw"
+          [sizes]="coverSizes()"
           class="hidden h-full w-full object-cover lg:block"
         />
       }

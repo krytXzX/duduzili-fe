@@ -59,6 +59,9 @@ export class StoreCardComponent {
   protected readonly imageLoadingMode = computed(() =>
     this.priority() ? 'eager' : this.imageLoading(),
   );
+  protected readonly coverSizes = computed(
+    () => '(min-width: 1440px) 300px, (min-width: 1024px) 22vw, 50vw',
+  );
 
   protected isDataUrl(value: string): boolean {
     return value.startsWith('data:') || value.startsWith('blob:');

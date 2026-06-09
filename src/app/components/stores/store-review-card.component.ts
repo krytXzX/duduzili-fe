@@ -27,6 +27,8 @@ type StoreReviewCardMode = 'desktop' | 'mobile';
               [width]="avatarSize()"
               [height]="avatarSize()"
               [alt]="review().author"
+              [attr.loading]="imageLoading()"
+              [sizes]="avatarSizes()"
               class="h-full w-full object-cover"
             />
           </div>
@@ -55,6 +57,8 @@ type StoreReviewCardMode = 'desktop' | 'mobile';
                   [width]="galleryImageSize()"
                   [height]="galleryImageSize()"
                   alt=""
+                  [attr.loading]="imageLoading()"
+                  [sizes]="gallerySizes()"
                   class="h-full w-full object-cover"
                 />
 
@@ -77,6 +81,7 @@ type StoreReviewCardMode = 'desktop' | 'mobile';
 export class StoreReviewCardComponent {
   readonly review = input.required<StoreReviewCardData>();
   readonly mode = input<StoreReviewCardMode>('desktop');
+  readonly imageLoading = input<'lazy' | 'eager' | 'auto'>('lazy');
   readonly starsImage = input.required<string>();
 
   protected articleClass(): string {
@@ -94,6 +99,10 @@ export class StoreReviewCardComponent {
 
   protected avatarSize(): number {
     return this.mode() === 'desktop' ? 40 : 44;
+  }
+
+  protected avatarSizes(): string {
+    return this.mode() === 'desktop' ? '40px' : '44px';
   }
 
   protected authorClass(): string {
@@ -122,6 +131,10 @@ export class StoreReviewCardComponent {
 
   protected galleryImageSize(): number {
     return this.mode() === 'desktop' ? 117 : 78;
+  }
+
+  protected gallerySizes(): string {
+    return this.mode() === 'desktop' ? '117px' : '78px';
   }
 
   protected galleryOverflowClass(): string {
