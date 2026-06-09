@@ -119,6 +119,7 @@ type VendorTagSummary = {
       heroChatBubbleOvalLeftEllipsis,
     }),
   ],
+  host: { class: 'block h-full overflow-auto bg-white' },
   template: `
     <div [class]="pageShellClass()">
       @if (isAuthenticated()) {
