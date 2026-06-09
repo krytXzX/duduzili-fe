@@ -119,7 +119,7 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
                 class="h-24 w-24 overflow-hidden rounded-full border-[6px] border-white bg-white shadow-md md:h-28 md:w-28"
               >
                 @if (store().logo) {
-                  <img [ngSrc]="store().logo" [alt]="store().name" width="112" height="112" loading="lazy" sizes="112px" class="h-full w-full rounded-full object-cover" />
+                  <img [ngSrc]="store().logo" [alt]="store().name" width="112" height="112" loading="lazy" class="h-full w-full rounded-full object-cover" />
                 } @else {
                   <div class="flex h-full w-full items-center justify-center rounded-full bg-[#EEF0F4] text-[24px] font-semibold text-[#1A1C21]">
                     {{ store().name.charAt(0) }}
@@ -399,7 +399,7 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
                         <div class="flex items-center gap-2">
                           <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full">
                             @if (review.avatar) {
-                              <img [ngSrc]="review.avatar" [alt]="review.author" width="44" height="44" loading="lazy" sizes="44px" class="h-full w-full rounded-full object-cover" />
+                              <img [ngSrc]="review.avatar" [alt]="review.author" width="44" height="44" loading="lazy" class="h-full w-full rounded-full object-cover" />
                             } @else {
                               <div
                                 class="flex h-full w-full items-center justify-center rounded-full text-[12px] font-semibold text-white"
@@ -430,7 +430,7 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
                           <div class="mt-4 flex w-full max-w-full flex-wrap gap-2 overflow-hidden pb-1 md:flex-nowrap md:gap-3">
                             @for (image of review.images!.slice(0, 6); track $index) {
                               <div class="relative h-[78px] w-[78px] shrink-0 overflow-hidden rounded-[11px] bg-[#E9E9E9] md:h-[117px] md:w-[117px] md:rounded-[16px]">
-                                <img [ngSrc]="image" alt="" width="117" height="117" loading="lazy" sizes="(max-width: 767px) 78px, 117px" class="h-full w-full object-cover" />
+                                <img [ngSrc]="image" alt="" width="117" height="117" loading="lazy" class="h-full w-full object-cover" />
                                 @if ($index === 5 && review.images!.length > 6) {
                                   <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[12px] font-medium text-white md:text-[18px]">
                                     +{{ review.images!.length - 5 }}

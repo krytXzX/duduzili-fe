@@ -122,7 +122,6 @@ interface BannerPromotion {
                       width="379"
                       height="193"
                       loading="lazy"
-                      sizes="(max-width: 767px) calc(100vw - 40px), 379px"
                       class="h-full w-full object-cover"
                     />
 
@@ -327,7 +326,6 @@ interface BannerPromotion {
                           width="407"
                           height="224"
                           loading="lazy"
-                          sizes="(min-width: 1440px) 407px, (min-width: 1024px) 28vw, 100vw"
                           class="h-full w-full object-cover"
                         />
 

@@ -50,7 +50,7 @@ import { PromoteStoreModalComponent } from './promote-store-modal.component';
         
         <!-- Logo/Avatar (Overlapping) -->
         <div class="absolute bottom-[-40px] left-8 w-36 h-36 rounded-full border-[6px] border-white overflow-hidden bg-white shadow-xl z-20">
-          <img [ngSrc]="logo()" alt="Store Logo" width="144" height="144" loading="lazy" sizes="144px" class="w-full h-full object-cover">
+          <img [ngSrc]="logo()" alt="Store Logo" width="144" height="144" loading="lazy" class="w-full h-full object-cover">
         </div>
       </div>
 

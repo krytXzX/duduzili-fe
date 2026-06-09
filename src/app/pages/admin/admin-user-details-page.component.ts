@@ -530,7 +530,6 @@ interface AdminUserActivityYearGroup {
                     width="82"
                     height="82"
                     loading="lazy"
-                    sizes="82px"
                     class="h-[82px] w-[82px] object-cover"
                   />
                 }
@@ -655,7 +654,6 @@ interface AdminUserActivityYearGroup {
                           width="44"
                           height="44"
                           loading="lazy"
-                          sizes="44px"
                           class="h-11 w-11 object-cover"
                         />
                       }
@@ -741,7 +739,6 @@ interface AdminUserActivityYearGroup {
                     width="173"
                     height="90"
                     loading="lazy"
-                    sizes="173px"
                     class="h-full w-full object-cover"
                   />
                 }
@@ -763,7 +760,6 @@ interface AdminUserActivityYearGroup {
                       width="42"
                       height="42"
                       loading="lazy"
-                      sizes="42px"
                       class="h-full w-full object-cover"
                     />
                   } @else {
@@ -905,7 +901,6 @@ interface AdminUserActivityYearGroup {
                               width="167"
                               height="159"
                               loading="lazy"
-                              sizes="167px"
                               class="h-full w-full"
                               [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
                               [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
@@ -1149,7 +1144,7 @@ interface AdminUserActivityYearGroup {
                     <div class="flex items-center gap-2">
                       <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
                         @if (review.avatar) {
-                          <img [ngSrc]="review.avatar" [alt]="review.author" width="44" height="44" loading="lazy" sizes="44px" class="h-11 w-11 object-cover" />
+                          <img [ngSrc]="review.avatar" [alt]="review.author" width="44" height="44" loading="lazy" class="h-11 w-11 object-cover" />
                         } @else {
                           <span
                             class="flex h-11 w-11 items-center justify-center rounded-full text-[12px] font-semibold text-[#1A1C21]"
@@ -1179,7 +1174,7 @@ interface AdminUserActivityYearGroup {
                     <div class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       @for (image of review.images!; track $index) {
                         <div class="relative h-[77.898px] w-[77.898px] shrink-0 overflow-hidden rounded-[10.653px] bg-[#E9E9E9]">
-                          <img [ngSrc]="image" alt="" width="78" height="78" loading="lazy" sizes="78px" class="h-full w-full object-cover" />
+                          <img [ngSrc]="image" alt="" width="78" height="78" loading="lazy" class="h-full w-full object-cover" />
 
                           @if ($last && review.moreImagesLabel) {
                             <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[11.984px] font-medium leading-4 text-white">
@@ -1250,7 +1245,6 @@ interface AdminUserActivityYearGroup {
                             width="42"
                             height="42"
                             loading="lazy"
-                            sizes="42px"
                             class="h-[42px] w-[42px] object-cover"
                           />
                         } @else {
@@ -1272,7 +1266,6 @@ interface AdminUserActivityYearGroup {
                             width="24"
                             height="24"
                             loading="lazy"
-                            sizes="24px"
                             class="h-6 w-6 rounded-full object-cover"
                           />
                         } @else {
@@ -1311,7 +1304,6 @@ interface AdminUserActivityYearGroup {
                             width="40"
                             height="40"
                             loading="lazy"
-                            sizes="40px"
                             class="h-10 w-10 object-cover"
                           />
                         }
@@ -1332,7 +1324,6 @@ interface AdminUserActivityYearGroup {
                             width="24"
                             height="24"
                             loading="lazy"
-                            sizes="24px"
                             class="h-6 w-6 rounded-full object-cover"
                           />
                         } @else {
@@ -1357,7 +1348,6 @@ interface AdminUserActivityYearGroup {
                             width="24"
                             height="24"
                             loading="lazy"
-                            sizes="24px"
                             class="h-6 w-6 rounded-full object-cover"
                           />
                         } @else {
@@ -1442,7 +1432,6 @@ interface AdminUserActivityYearGroup {
                                     width="22"
                                     height="22"
                                     loading="lazy"
-                                    sizes="22px"
                                     class="h-[22px] w-[22px] rounded-full object-cover"
                                   />
                                 } @else {
@@ -1699,7 +1688,6 @@ interface AdminUserActivityYearGroup {
                         width="82"
                         height="112"
                         loading="lazy"
-                        sizes="82px"
                         class="h-[112px] w-[82px] object-cover"
                       >
                     </div>
@@ -1840,7 +1828,6 @@ interface AdminUserActivityYearGroup {
                             width="40"
                             height="40"
                             loading="lazy"
-                            sizes="40px"
                             class="h-10 w-10 rounded-[10px] border border-[#ECEEF3] object-cover"
                           >
                           <p class="text-[14px] font-semibold text-[#2A2D34]">{{ listing.name }}</p>
@@ -1938,7 +1925,6 @@ interface AdminUserActivityYearGroup {
                         width="263"
                         height="158"
                         loading="lazy"
-                        sizes="(min-width: 1440px) 263px, (min-width: 1024px) 22vw, 100vw"
                         class="h-full w-full object-cover"
                       />
                     }
@@ -1970,7 +1956,6 @@ interface AdminUserActivityYearGroup {
                         width="74"
                         height="74"
                         loading="lazy"
-                        sizes="74px"
                         class="h-full w-full object-cover"
                       />
                     } @else {
@@ -2082,7 +2067,7 @@ interface AdminUserActivityYearGroup {
                   @for (store of visiblePromotedStores(); track store.id) {
                     <article class="overflow-hidden rounded-[22px] border border-[#ECEEF3] bg-white shadow-[0_12px_24px_-24px_rgba(17,24,39,0.55)]">
                       <div class="relative m-1.5 overflow-hidden rounded-[20px]">
-                        <img [ngSrc]="store.banner" [alt]="store.name" width="407" height="170" loading="lazy" sizes="(min-width: 1440px) 407px, (min-width: 1024px) 32vw, 100vw" class="h-[170px] w-full object-cover">
+                        <img [ngSrc]="store.banner" [alt]="store.name" width="407" height="170" loading="lazy" class="h-[170px] w-full object-cover">
 
                         <div class="absolute left-3 top-3 rounded-full bg-[#F2F5A7] px-2.5 py-1 text-[10px] font-bold text-[#6A6B1F]">
                           Active until: {{ store.expiresOn }}
@@ -2091,7 +2076,7 @@ interface AdminUserActivityYearGroup {
                         <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/90 to-transparent"></div>
 
                         <div class="absolute bottom-4 left-4 flex h-[74px] w-[74px] items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white shadow-[0_14px_26px_-18px_rgba(17,24,39,0.45)]">
-                          <img [ngSrc]="store.logo" [alt]="store.name" width="74" height="74" loading="lazy" sizes="74px" class="h-full w-full object-cover">
+                          <img [ngSrc]="store.logo" [alt]="store.name" width="74" height="74" loading="lazy" class="h-full w-full object-cover">
                         </div>
                       </div>
 
@@ -2192,7 +2177,6 @@ interface AdminUserActivityYearGroup {
                                 width="188"
                                 height="224"
                                 loading="lazy"
-                                sizes="188px"
                                 class="h-full w-full"
                                 [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
                                 [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
@@ -2355,7 +2339,6 @@ interface AdminUserActivityYearGroup {
                               width="188"
                               height="224"
                               loading="lazy"
-                              sizes="188px"
                               class="h-full w-full"
                               [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
                               [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
@@ -2691,7 +2674,7 @@ interface AdminUserActivityYearGroup {
                       <div class="flex gap-4">
                         <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
                           @if (review.avatar) {
-                            <img [ngSrc]="review.avatar" [alt]="review.author" width="40" height="40" loading="lazy" sizes="40px" class="h-10 w-10 object-cover" />
+                            <img [ngSrc]="review.avatar" [alt]="review.author" width="40" height="40" loading="lazy" class="h-10 w-10 object-cover" />
                           } @else {
                             <span
                               class="flex h-10 w-10 items-center justify-center rounded-full text-[11px] font-semibold text-[#1A1C21]"
@@ -2721,7 +2704,7 @@ interface AdminUserActivityYearGroup {
                             <div class="mt-4 flex flex-wrap gap-3">
                               @for (image of review.images!; track $index) {
                                 <div class="relative h-[117px] w-[117px] overflow-hidden rounded-[16px] bg-[#E9E9E9]">
-                                  <img [ngSrc]="image" alt="" width="117" height="117" loading="lazy" sizes="117px" class="h-full w-full object-cover" />
+                                  <img [ngSrc]="image" alt="" width="117" height="117" loading="lazy" class="h-full w-full object-cover" />
 
                                   @if ($last && review.moreImagesLabel) {
                                     <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[18px] font-medium leading-6 text-white">
@@ -2847,7 +2830,7 @@ interface AdminUserActivityYearGroup {
                             <div class="flex items-center gap-3">
                               <div class="h-8 w-8 overflow-hidden rounded-full bg-[#F3F4F6]">
                                 @if (report.storeLogo) {
-                                  <img [ngSrc]="report.storeLogo" [alt]="report.storeName" width="32" height="32" loading="lazy" sizes="32px" class="h-8 w-8 object-cover" />
+                                  <img [ngSrc]="report.storeLogo" [alt]="report.storeName" width="32" height="32" loading="lazy" class="h-8 w-8 object-cover" />
                                 } @else {
                                   <span class="text-[12px] font-semibold text-[#1A1C21]">{{ storeInitials(report.storeName) }}</span>
                                 }
@@ -2859,7 +2842,7 @@ interface AdminUserActivityYearGroup {
                             <div class="flex items-center gap-3">
                               <div class="h-9 w-9 overflow-hidden rounded-full bg-[#F3F4F6]">
                                 @if (report.reporterAvatar) {
-                                  <img [ngSrc]="report.reporterAvatar" [alt]="report.reporterName" width="36" height="36" loading="lazy" sizes="36px" class="h-9 w-9 object-cover" />
+                                  <img [ngSrc]="report.reporterAvatar" [alt]="report.reporterName" width="36" height="36" loading="lazy" class="h-9 w-9 object-cover" />
                                 } @else {
                                   <span
                                     class="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold text-[#1A1C21]"
@@ -2899,7 +2882,7 @@ interface AdminUserActivityYearGroup {
                           <td class="px-4 py-[18px]">
                             <div class="flex items-center gap-3">
                               @if (report.listingImage) {
-                                <img [ngSrc]="report.listingImage" [alt]="report.listingName" width="40" height="40" loading="lazy" sizes="40px" class="h-10 w-10 rounded-[8px] border border-[#EAEAEA] object-cover" />
+                                <img [ngSrc]="report.listingImage" [alt]="report.listingName" width="40" height="40" loading="lazy" class="h-10 w-10 rounded-[8px] border border-[#EAEAEA] object-cover" />
                               }
                               <span class="text-[14px] font-normal leading-5 text-[#1A1B1D]">{{ report.listingName }}</span>
                             </div>
@@ -2908,7 +2891,7 @@ interface AdminUserActivityYearGroup {
                             <div class="flex items-center gap-3">
                               <div class="h-8 w-8 overflow-hidden rounded-full bg-[#F3F4F6]">
                                 @if (report.storeIcon) {
-                                  <img [ngSrc]="report.storeIcon" [alt]="report.storeName" width="32" height="32" loading="lazy" sizes="32px" class="h-8 w-8 object-cover" />
+                                  <img [ngSrc]="report.storeIcon" [alt]="report.storeName" width="32" height="32" loading="lazy" class="h-8 w-8 object-cover" />
                                 } @else {
                                   <span class="text-[12px] font-semibold text-[#1A1C21]">{{ storeInitials(report.storeName) }}</span>
                                 }
@@ -2920,7 +2903,7 @@ interface AdminUserActivityYearGroup {
                             <div class="flex items-center gap-3">
                               <div class="h-9 w-9 overflow-hidden rounded-full bg-[#F3F4F6]">
                                 @if (report.reporterAvatar) {
-                                  <img [ngSrc]="report.reporterAvatar" [alt]="report.reporterName" width="36" height="36" loading="lazy" sizes="36px" class="h-9 w-9 object-cover" />
+                                  <img [ngSrc]="report.reporterAvatar" [alt]="report.reporterName" width="36" height="36" loading="lazy" class="h-9 w-9 object-cover" />
                                 } @else {
                                   <span
                                     class="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold text-[#1A1C21]"
@@ -3046,7 +3029,6 @@ interface AdminUserActivityYearGroup {
                                         width="20"
                                         height="20"
                                         loading="lazy"
-                                        sizes="20px"
                                         class="h-5 w-5 rounded-full object-cover"
                                       />
                                     } @else {

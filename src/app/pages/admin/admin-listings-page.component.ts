@@ -110,7 +110,7 @@ interface AdminListingRecord {
                   <div class="flex min-w-0 items-center gap-3">
                     <div class="h-11 w-11 shrink-0 overflow-hidden rounded-[6.6px] border border-[#F0F0F0] bg-[#EFEFEF]">
                       @if (listing.thumbnail) {
-                        <img [ngSrc]="listing.thumbnail" [alt]="listing.name" width="44" height="44" loading="lazy" sizes="44px" class="h-11 w-11 object-cover" />
+                        <img [ngSrc]="listing.thumbnail" [alt]="listing.name" width="44" height="44" loading="lazy" class="h-11 w-11 object-cover" />
                       }
                     </div>
 
@@ -263,7 +263,7 @@ interface AdminListingRecord {
                         <div class="flex items-center gap-2">
                           <div class="h-10 w-10 overflow-hidden rounded-[6px] border border-[#F0F0F0] bg-[#EFEFEF]">
                             @if (listing.thumbnail) {
-                              <img [ngSrc]="listing.thumbnail" [alt]="listing.name" width="40" height="40" loading="lazy" sizes="40px" class="h-10 w-10 object-cover" />
+                              <img [ngSrc]="listing.thumbnail" [alt]="listing.name" width="40" height="40" loading="lazy" class="h-10 w-10 object-cover" />
                             }
                           </div>
                           <p class="text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ listing.name }}</p>
@@ -277,7 +277,7 @@ interface AdminListingRecord {
                         <div class="flex items-center gap-2">
                           <div class="h-8 w-8 overflow-hidden rounded-full border-[1.73px] border-white bg-white">
                             @if (listing.storeAvatar) {
-                              <img [ngSrc]="listing.storeAvatar" [alt]="listing.storeName" width="32" height="32" loading="lazy" sizes="32px" class="h-8 w-8 object-cover" />
+                              <img [ngSrc]="listing.storeAvatar" [alt]="listing.storeName" width="32" height="32" loading="lazy" class="h-8 w-8 object-cover" />
                             }
                           </div>
                           <span class="text-[14px] leading-5 text-[#1A1B1D]">{{ listing.storeName }}</span>

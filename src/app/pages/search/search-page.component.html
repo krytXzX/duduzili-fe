@@ -170,7 +170,7 @@
                 : 'inline-flex items-center gap-3 rounded-full border border-[#C9CDD5] px-3 py-2 text-[14px] font-medium text-[#1A1C21] transition'"
             >
               @if (store.logo; as storeLogo) {
-              <img [ngSrc]="storeLogo" [alt]="store.name" width="28" height="28" loading="lazy" sizes="28px" class="h-7 w-7 rounded-full object-cover">
+              <img [ngSrc]="storeLogo!" [alt]="store.name" width="28" height="28" loading="lazy" class="h-7 w-7 rounded-full object-cover">
               } @else {
               <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#E8EAED] text-[10px] font-semibold text-[#4B5563]">
                 {{ storeInitials(store.name) }}

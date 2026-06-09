@@ -58,7 +58,7 @@ export class ListingCardComponent {
   });
   currentImageLoading = computed(() => (this.priority() ? 'eager' : this.imageLoading()));
   imageSizes = computed(
-    () => '(min-width: 1440px) 300px, (min-width: 1024px) 22vw, (min-width: 768px) 25vw, 50vw',
+    () => '(min-width: 1024px) 22vw, (min-width: 768px) 25vw, 50vw',
   );
 
   isFavorited = computed(() =>

@@ -73,7 +73,6 @@ export interface AdminSellerReportDetails {
                   width="72"
                   height="72"
                   loading="lazy"
-                  sizes="72px"
                   class="h-18 w-18 object-cover"
                 >
               } @else {
@@ -113,7 +112,6 @@ export interface AdminSellerReportDetails {
                     width="32"
                     height="32"
                     loading="lazy"
-                    sizes="32px"
                     class="h-8 w-8 object-cover"
                   >
                 } @else {

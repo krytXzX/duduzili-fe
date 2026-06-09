@@ -93,7 +93,6 @@ export interface TeamMemberUpdatePayload {
                 width="80"
                 height="80"
                 loading="lazy"
-                sizes="80px"
                 class="h-20 w-20 shrink-0 rounded-full object-cover"
               >
             } @else {

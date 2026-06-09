@@ -196,7 +196,7 @@ type EditorMode = 'create-parent' | 'create-subcategory' | 'edit' | null;
                   <div class="flex min-w-0 items-center gap-4">
                     <div class="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#F7F7F7]">
                       @if (category.icon_url) {
-                        <img [ngSrc]="category.icon_url" [alt]="category.name" width="28" height="28" loading="lazy" sizes="28px" class="h-7 w-7 object-contain">
+                        <img [ngSrc]="category.icon_url" [alt]="category.name" width="28" height="28" loading="lazy" class="h-7 w-7 object-contain">
                       } @else {
                         <ng-icon name="heroSquares2x2" class="text-[20px] text-[#777777]"></ng-icon>
                       }

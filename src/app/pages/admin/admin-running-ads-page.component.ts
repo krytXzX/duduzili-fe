@@ -160,7 +160,6 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                       width="44"
                       height="44"
                       loading="lazy"
-                      sizes="44px"
                       class="h-11 w-11 object-cover"
                     >
                   </div>
@@ -249,7 +248,6 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                           width="44"
                           height="44"
                           loading="lazy"
-                          sizes="44px"
                           class="h-11 w-11 object-cover"
                         >
                     </div>
@@ -304,7 +302,6 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                           width="24"
                           height="24"
                           loading="lazy"
-                          sizes="24px"
                           class="h-6 w-6 object-cover"
                         >
                       </div>
@@ -333,7 +330,6 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                     width="343"
                     height="193"
                     loading="lazy"
-                    sizes="(max-width: 1023px) calc(100vw - 40px), 343px"
                     class="h-full w-full object-cover"
                   >
 
@@ -414,7 +410,6 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                         width="840"
                         height="456"
                         loading="lazy"
-                        sizes="(min-width: 1440px) 560px, (min-width: 1024px) 46vw, 100vw"
                         class="h-full w-full object-cover"
                       >
 
@@ -531,7 +526,6 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                               width="32"
                               height="32"
                               loading="lazy"
-                              sizes="32px"
                               class="h-8 w-8 object-cover"
                             >
                           </div>
@@ -587,7 +581,6 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                             width="40"
                             height="40"
                             loading="lazy"
-                            sizes="40px"
                             class="h-10 w-10 object-cover"
                           >
                         </div>

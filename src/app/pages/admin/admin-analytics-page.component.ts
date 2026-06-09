@@ -291,7 +291,7 @@ interface ConversionMetric {
                       <div class="flex min-w-0 items-center gap-2">
                         <div class="h-9 w-9 shrink-0 overflow-hidden rounded-[5.4px] border border-[#F0F0F0] bg-[#EFEFEF]">
                           @if (listing.image) {
-                            <img [ngSrc]="listing.image" [alt]="listing.title" width="36" height="36" loading="lazy" sizes="36px" class="h-9 w-9 object-cover">
+                            <img [ngSrc]="listing.image" [alt]="listing.title" width="36" height="36" loading="lazy" class="h-9 w-9 object-cover">
                           } @else {
                             <div class="flex h-9 w-9 items-center justify-center text-[11px] font-semibold text-[#6F6F6F]">{{ listing.initials }}</div>
                           }
@@ -312,7 +312,7 @@ interface ConversionMetric {
                       <div class="flex min-w-0 items-center gap-2">
                         <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#F3F3F3]">
                           @if (seller.avatar) {
-                            <img [ngSrc]="seller.avatar" [alt]="seller.name" width="36" height="36" loading="lazy" sizes="36px" class="h-9 w-9 rounded-full object-cover">
+                            <img [ngSrc]="seller.avatar" [alt]="seller.name" width="36" height="36" loading="lazy" class="h-9 w-9 rounded-full object-cover">
                           } @else {
                             <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[#EDEBFF] text-[11px] font-semibold text-[#6453D9]">{{ seller.initials }}</div>
                           }
@@ -575,7 +575,7 @@ interface ConversionMetric {
                       <div class="flex min-w-0 items-center gap-3">
                         <div class="h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-[#f3f3f3]">
                           @if (listing.image) {
-                            <img [ngSrc]="listing.image" [alt]="listing.title" width="40" height="40" loading="lazy" sizes="40px" class="h-10 w-10 object-cover">
+                            <img [ngSrc]="listing.image" [alt]="listing.title" width="40" height="40" loading="lazy" class="h-10 w-10 object-cover">
                           } @else {
                             <div class="flex h-10 w-10 items-center justify-center text-[12px] font-semibold text-[#6F6F6F]">{{ listing.initials }}</div>
                           }
@@ -597,7 +597,7 @@ interface ConversionMetric {
                       <div class="flex min-w-0 items-center gap-3">
                         <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                           @if (seller.avatar) {
-                            <img [ngSrc]="seller.avatar" [alt]="seller.name" width="40" height="40" loading="lazy" sizes="40px" class="h-10 w-10 rounded-full object-cover">
+                            <img [ngSrc]="seller.avatar" [alt]="seller.name" width="40" height="40" loading="lazy" class="h-10 w-10 rounded-full object-cover">
                           } @else {
                             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#EDEBFF] text-[12px] font-semibold text-[#6453D9]">{{ seller.initials }}</div>
                           }

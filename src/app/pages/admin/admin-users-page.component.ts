@@ -135,7 +135,6 @@ interface AdminUser {
                       width="36"
                       height="36"
                       loading="lazy"
-                      sizes="36px"
                       class="h-9 w-9 shrink-0 rounded-full object-cover"
                       aria-hidden="true"
                     >
@@ -305,7 +304,6 @@ interface AdminUser {
                               width="40"
                               height="40"
                               loading="lazy"
-                              sizes="40px"
                               class="h-10 w-10 rounded-full object-cover"
                               aria-hidden="true"
                             >

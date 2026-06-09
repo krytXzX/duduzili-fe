@@ -165,7 +165,6 @@ interface ListingReportRecord {
                                 width="40"
                                 height="40"
                                 loading="lazy"
-                                sizes="40px"
                                 class="h-10 w-10 object-cover"
                               >
                             } @else {
@@ -191,7 +190,6 @@ interface ListingReportRecord {
                                 width="40"
                                 height="40"
                                 loading="lazy"
-                                sizes="40px"
                                 class="h-10 w-10 object-cover"
                               >
                             } @else {
@@ -234,7 +232,6 @@ interface ListingReportRecord {
                             width="42"
                             height="42"
                             loading="lazy"
-                            sizes="42px"
                             class="h-[42px] w-[42px] rounded-full object-cover"
                           >
                         } @else {
@@ -257,7 +254,6 @@ interface ListingReportRecord {
                               width="24"
                               height="24"
                               loading="lazy"
-                              sizes="24px"
                               class="h-6 w-6 rounded-full object-cover"
                             >
                           } @else {
@@ -310,7 +306,6 @@ interface ListingReportRecord {
                                 width="48"
                                 height="48"
                                 loading="lazy"
-                                sizes="48px"
                                 class="h-12 w-12 object-cover"
                               >
                             } @else {
@@ -333,7 +328,6 @@ interface ListingReportRecord {
                                 width="40"
                                 height="40"
                                 loading="lazy"
-                                sizes="40px"
                                 class="h-10 w-10 object-cover"
                               >
                             } @else {
@@ -359,7 +353,6 @@ interface ListingReportRecord {
                                 width="40"
                                 height="40"
                                 loading="lazy"
-                                sizes="40px"
                                 class="h-10 w-10 object-cover"
                               >
                             } @else {
@@ -400,7 +393,6 @@ interface ListingReportRecord {
                             width="40"
                             height="40"
                             loading="lazy"
-                            sizes="40px"
                             class="h-10 w-10 object-cover"
                           >
                         } @else {
@@ -423,7 +415,6 @@ interface ListingReportRecord {
                               width="24"
                               height="24"
                               loading="lazy"
-                              sizes="24px"
                               class="h-6 w-6 rounded-full object-cover"
                             >
                           } @else {
@@ -445,7 +436,6 @@ interface ListingReportRecord {
                               width="24"
                               height="24"
                               loading="lazy"
-                              sizes="24px"
                               class="h-6 w-6 rounded-full object-cover"
                             >
                           } @else {

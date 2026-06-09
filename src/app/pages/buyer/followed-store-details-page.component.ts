@@ -175,7 +175,6 @@ type VendorTagSummary = {
               width="350"
               height="91"
               loading="lazy"
-              sizes="(max-width: 767px) calc(100vw - 40px), 350px"
               class="h-full w-full object-cover"
             />
             <div
@@ -193,7 +192,6 @@ type VendorTagSummary = {
                 width="74"
                 height="74"
                 loading="lazy"
-                sizes="74px"
                 class="h-full w-full object-cover"
               />
             </div>
@@ -418,7 +416,6 @@ type VendorTagSummary = {
                         width="36"
                         height="36"
                         loading="lazy"
-                        sizes="36px"
                         class="h-full w-full object-cover"
                       />
                     </div>
@@ -445,7 +442,7 @@ type VendorTagSummary = {
                             <div
                               class="h-[68px] w-[68px] overflow-hidden rounded-[10px] bg-[#F3F4F6]"
                             >
-                              <img [ngSrc]="image" alt="" width="68" height="68" loading="lazy" sizes="68px" class="h-full w-full object-cover" />
+                              <img [ngSrc]="image" alt="" width="68" height="68" loading="lazy" class="h-full w-full object-cover" />
                             </div>
                           }
                         </div>
@@ -493,7 +490,6 @@ type VendorTagSummary = {
                       width="112"
                       height="112"
                       loading="lazy"
-                      sizes="112px"
                       class="h-full w-full rounded-full object-cover"
                     />
                   </div>
@@ -812,7 +808,6 @@ type VendorTagSummary = {
                                 width="40"
                                 height="40"
                                 loading="lazy"
-                                sizes="40px"
                                 class="h-full w-full object-cover"
                               />
                             </div>
@@ -853,7 +848,6 @@ type VendorTagSummary = {
                                         width="112"
                                         height="112"
                                         loading="lazy"
-                                        sizes="112px"
                                         class="h-full w-full object-cover"
                                       />
 
@@ -916,7 +910,6 @@ type VendorTagSummary = {
                         width="320"
                         height="96"
                         loading="lazy"
-                        sizes="320px"
                         class="h-full w-full object-cover"
                       />
                     </div>
@@ -930,7 +923,6 @@ type VendorTagSummary = {
                           width="64"
                           height="64"
                           loading="lazy"
-                          sizes="64px"
                           class="h-full w-full object-cover"
                         />
                       </div>

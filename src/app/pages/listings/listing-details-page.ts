@@ -806,7 +806,6 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         [ngSrc]="image.src"
                         [alt]="image.alt"
                         fill
-                        sizes="(min-width: 1280px) 14vw, 22vw"
                         class="object-cover"
                       />
                     </div>
@@ -1734,7 +1733,6 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                                 [ngSrc]="primaryImage.src"
                                 [alt]="primaryImage.alt"
                                 fill
-                                sizes="(min-width: 768px) 23vw, 65vw"
                                 class="object-cover"
                               />
 
@@ -1787,7 +1785,6 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                                   [ngSrc]="secondaryImage.src"
                                   [alt]="secondaryImage.alt"
                                   fill
-                                  sizes="(min-width: 768px) 12vw, 28vw"
                                   class="object-cover"
                                 />
 
@@ -1857,7 +1854,6 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                                 [ngSrc]="image.src"
                                 [alt]="image.alt"
                                 fill
-                                sizes="(min-width: 768px) 10vw, 25vw"
                                 class="object-cover"
                               />
                               <span

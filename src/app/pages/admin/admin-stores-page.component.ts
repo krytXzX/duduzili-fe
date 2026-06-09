@@ -74,7 +74,7 @@ type AdminStoreRecord = {
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex min-w-0 items-center gap-3">
                     <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-white bg-white">
-                      <img [ngSrc]="store.logo" [alt]="store.name" width="44" height="44" loading="lazy" sizes="44px" class="h-11 w-11 object-cover" />
+                      <img [ngSrc]="store.logo" [alt]="store.name" width="44" height="44" loading="lazy" class="h-11 w-11 object-cover" />
                     </div>
                     <div class="min-w-0">
                       <h2 class="truncate text-[16px] font-medium leading-6 text-[#0D0D0D]/80">{{ store.name }}</h2>
@@ -89,7 +89,7 @@ type AdminStoreRecord = {
                   <div class="flex items-center justify-between gap-4">
                     <span class="text-[#1A1B1D]/50">Linked user</span>
                     <span class="flex items-center gap-2 text-right font-medium text-[#1A1B1D]">
-                      <img [ngSrc]="store.linkedUserAvatar" [alt]="store.linkedUser" width="24" height="24" loading="lazy" sizes="24px" class="h-6 w-6 rounded-full object-cover" />
+                      <img [ngSrc]="store.linkedUserAvatar" [alt]="store.linkedUser" width="24" height="24" loading="lazy" class="h-6 w-6 rounded-full object-cover" />
                       {{ store.linkedUser }}
                     </span>
                   </div>
@@ -168,7 +168,7 @@ type AdminStoreRecord = {
                     <td class="px-4 py-[15px]">
                       <div class="flex items-center gap-2">
                         <div class="h-8 w-8 overflow-hidden rounded-full border-[1.73px] border-white">
-                          <img [ngSrc]="store.logo" [alt]="store.name" width="32" height="32" loading="lazy" sizes="32px" class="h-8 w-8 object-cover" />
+                          <img [ngSrc]="store.logo" [alt]="store.name" width="32" height="32" loading="lazy" class="h-8 w-8 object-cover" />
                         </div>
                         <span>{{ store.name }}</span>
                       </div>
@@ -176,7 +176,7 @@ type AdminStoreRecord = {
                     <td class="px-4 py-[15px]">{{ store.location }}</td>
                     <td class="px-4 py-[15px]">
                       <div class="flex items-center gap-2">
-                        <img [ngSrc]="store.linkedUserAvatar" [alt]="store.linkedUser" width="32" height="32" loading="lazy" sizes="32px" class="h-8 w-8 rounded-full object-cover" />
+                        <img [ngSrc]="store.linkedUserAvatar" [alt]="store.linkedUser" width="32" height="32" loading="lazy" class="h-8 w-8 rounded-full object-cover" />
                         <span>{{ store.linkedUser }}</span>
                       </div>
                     </td>

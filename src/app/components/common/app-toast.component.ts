@@ -24,7 +24,6 @@ import { AppToastService } from '../../services/app-toast.service';
                 width="64"
                 height="64"
                 loading="eager"
-                sizes="64px"
                 class="h-full w-full object-cover"
               />
             </div>
