@@ -52,6 +52,9 @@ type HomePromotion = {
   link?: string;
 };
 
+const HOME_RECENT_SEARCHES_KEY = 'duduzili.home.recent-searches';
+const HOME_RECENT_SEARCHES_LIMIT = 8;
+
 const CATEGORY_ICON_BY_SLUG: Record<string, string> = {
   automotives: '/assets/images/category-automotives.png',
   'real-estate': '/assets/images/category-real-estate-properties.png',
@@ -134,12 +137,7 @@ export class HomePageComponent {
   readonly isHomeLoading = signal(false);
   readonly homeError = signal<string | null>(null);
   readonly homeResponse = signal<HomeResponse | null>(null);
-  readonly recentSearches = signal([
-    'bags for men',
-    'watch for men',
-    'male accessories',
-    'necklaces for men',
-  ]);
+  readonly recentSearches = signal<string[]>([]);
   readonly popularSearches = computed(() => {
     const response = this.homeResponse();
     if (!response) {
@@ -522,6 +520,7 @@ export class HomePageComponent {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
+      this.restoreRecentSearches();
       this.startHeroCarousel();
     }
 
@@ -597,22 +596,30 @@ export class HomePageComponent {
     event?.preventDefault();
 
     const query = this.homeSearchQuery().trim() || this.mobileSearchQuery().trim() || 'iPhone';
+    this.pushRecentSearch(query);
     this.isMobileSearchOverlayOpen.set(false);
     this.isDesktopSearchOverlayOpen.set(false);
     void this.router.navigate(['/search'], { queryParams: { q: query } });
   }
 
   removeRecentSearch(term: string): void {
-    this.recentSearches.update((current) => current.filter((item) => item !== term));
+    this.recentSearches.update((current) => {
+      const next = current.filter((item) => item !== term);
+      this.persistRecentSearches(next);
+      return next;
+    });
   }
 
   clearRecentSearchHistory(): void {
     this.recentSearches.set([]);
+    this.persistRecentSearches([]);
   }
 
   applySearchTerm(term: string): void {
     this.mobileSearchQuery.set(term);
     this.homeSearchQuery.set(term);
+    this.pushRecentSearch(term);
+    this.isMobileSearchOverlayOpen.set(false);
     this.isDesktopSearchOverlayOpen.set(false);
     void this.router.navigate(['/search'], { queryParams: { q: term } });
   }
@@ -710,6 +717,74 @@ export class HomePageComponent {
 
   private selectedLocationQuery(): string | undefined {
     return this.selectedLocationQueryValue();
+  }
+
+  private restoreRecentSearches(): void {
+    const storage = this.browserStorage();
+    if (!storage) {
+      return;
+    }
+
+    try {
+      const rawValue = storage.getItem(HOME_RECENT_SEARCHES_KEY);
+      if (!rawValue) {
+        return;
+      }
+
+      const parsedValue: unknown = JSON.parse(rawValue);
+      if (!Array.isArray(parsedValue)) {
+        storage.removeItem(HOME_RECENT_SEARCHES_KEY);
+        return;
+      }
+
+      const searches = parsedValue
+        .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+        .filter((entry) => entry.length > 0)
+        .slice(0, HOME_RECENT_SEARCHES_LIMIT);
+
+      this.recentSearches.set(searches);
+    } catch {
+      storage.removeItem(HOME_RECENT_SEARCHES_KEY);
+    }
+  }
+
+  private pushRecentSearch(term: string): void {
+    const normalizedTerm = term.trim();
+    if (!normalizedTerm) {
+      return;
+    }
+
+    this.recentSearches.update((current) => {
+      const next = [
+        normalizedTerm,
+        ...current.filter((item) => item.toLowerCase() !== normalizedTerm.toLowerCase()),
+      ].slice(0, HOME_RECENT_SEARCHES_LIMIT);
+
+      this.persistRecentSearches(next);
+      return next;
+    });
+  }
+
+  private persistRecentSearches(searches: readonly string[]): void {
+    const storage = this.browserStorage();
+    if (!storage) {
+      return;
+    }
+
+    if (searches.length === 0) {
+      storage.removeItem(HOME_RECENT_SEARCHES_KEY);
+      return;
+    }
+
+    storage.setItem(HOME_RECENT_SEARCHES_KEY, JSON.stringify(searches));
+  }
+
+  private browserStorage(): Storage | null {
+    if (!isPlatformBrowser(this.platformId)) {
+      return null;
+    }
+
+    return window.localStorage;
   }
 
   private extractPopularSearches(response: HomeResponse): string[] {
