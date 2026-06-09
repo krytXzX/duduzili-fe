@@ -9,6 +9,7 @@ import { apiAuthInterceptor } from './interceptors/api-auth.interceptor';
 import { authErrorInterceptor } from './interceptors/auth-error.interceptor';
 import { AuthBootstrapService } from './services/auth-bootstrap.service';
 import { APP_ENVIRONMENT } from './config/app-environment.token';
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
