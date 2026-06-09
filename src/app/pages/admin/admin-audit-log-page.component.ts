@@ -1,3 +1,4 @@
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -36,7 +37,7 @@ interface AuditLogRecord {
 
 @Component({
   selector: 'app-admin-audit-log-page',
-  imports: [RouterLink, NgIcon, CustomDropdownComponent],
+  imports: [NgOptimizedImage, RouterLink, NgIcon, CustomDropdownComponent],
   providers: [
     provideIcons({
       heroAdjustmentsHorizontal,
@@ -87,7 +88,7 @@ interface AuditLogRecord {
                 <div class="flex min-w-0 items-center gap-2">
                       <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#F3F3F3]">
                         @if (record.avatar) {
-                          <img [src]="record.avatar" [alt]="record.userName" class="h-10 w-10 rounded-full object-cover">
+                          <img [ngSrc]="record.avatar" [alt]="record.userName" width="40" height="40" loading="lazy" sizes="40px" class="h-10 w-10 rounded-full object-cover">
                         } @else {
                           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#EDEBFF] text-[11px] font-semibold text-[#6453D9]">
                             {{ record.initials }}
@@ -185,7 +186,7 @@ interface AuditLogRecord {
                       <div class="flex items-center gap-3">
                         <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                           @if (record.avatar) {
-                            <img [src]="record.avatar" [alt]="record.userName" class="h-9 w-9 object-cover">
+                            <img [ngSrc]="record.avatar" [alt]="record.userName" width="36" height="36" loading="lazy" sizes="36px" class="h-9 w-9 object-cover">
                           } @else {
                             <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[#EDEBFF] text-[11px] font-semibold text-[#6453D9]">
                               {{ record.initials }}

@@ -1,3 +1,4 @@
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -25,7 +26,7 @@ export interface AdminSellerReportDetails {
 
 @Component({
   selector: 'app-admin-seller-report-details-modal',
-  imports: [NgIcon, RouterLink],
+  imports: [NgOptimizedImage, NgIcon, RouterLink],
   providers: [
     provideIcons({
       heroArrowTopRightOnSquare,
@@ -67,10 +68,12 @@ export interface AdminSellerReportDetails {
             <div class="h-18 w-18 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
               @if (report().sellerAvatar) {
                 <img
-                  [src]="report().sellerAvatar"
+                  [ngSrc]="report().sellerAvatar"
                   [alt]="report().sellerName"
                   width="72"
                   height="72"
+                  loading="lazy"
+                  sizes="72px"
                   class="h-18 w-18 object-cover"
                 >
               } @else {
@@ -105,10 +108,12 @@ export interface AdminSellerReportDetails {
               <div class="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                 @if (report().reportedByAvatar) {
                   <img
-                    [src]="report().reportedByAvatar"
+                    [ngSrc]="report().reportedByAvatar"
                     [alt]="report().reportedByName"
                     width="32"
                     height="32"
+                    loading="lazy"
+                    sizes="32px"
                     class="h-8 w-8 object-cover"
                   >
                 } @else {

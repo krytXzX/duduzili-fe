@@ -1,3 +1,4 @@
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -35,7 +36,7 @@ export interface TeamMemberUpdatePayload {
 
 @Component({
   selector: 'app-admin-team-member-details-modal',
-  imports: [NgIcon, ReactiveFormsModule],
+  imports: [NgOptimizedImage, NgIcon, ReactiveFormsModule],
   providers: [
     provideIcons({
       heroArrowPath,
@@ -87,8 +88,12 @@ export interface TeamMemberUpdatePayload {
           <div class="flex flex-wrap items-center gap-4">
             @if (member().avatar) {
               <img
-                [src]="member().avatar"
+                [ngSrc]="member().avatar"
                 [alt]="member().userName"
+                width="80"
+                height="80"
+                loading="lazy"
+                sizes="80px"
                 class="h-20 w-20 shrink-0 rounded-full object-cover"
               >
             } @else {

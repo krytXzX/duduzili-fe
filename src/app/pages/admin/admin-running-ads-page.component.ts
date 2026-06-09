@@ -155,10 +155,12 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                 <div class="flex items-start gap-3">
                   <div class="h-11 w-11 shrink-0 overflow-hidden rounded-[10px] bg-[#f3f3f3]">
                     <img
-                      [src]="record.thumbnail"
+                      [ngSrc]="record.thumbnail"
                       [alt]="record.title"
                       width="44"
                       height="44"
+                      loading="lazy"
+                      sizes="44px"
                       class="h-11 w-11 object-cover"
                     >
                   </div>
@@ -242,10 +244,12 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                   <div class="flex min-w-0 items-center gap-3">
                     <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#3d785f]">
                         <img
-                          [src]="record.thumbnail"
+                          [ngSrc]="record.thumbnail"
                           [alt]="record.storeOrUser"
                           width="44"
                           height="44"
+                          loading="lazy"
+                          sizes="44px"
                           class="h-11 w-11 object-cover"
                         >
                     </div>
@@ -295,10 +299,12 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                     <div class="flex min-w-0 items-center gap-2">
                       <div class="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-[#ececec]">
                         <img
-                          [src]="record.ownerAvatarImage || ownerAvatarFallback"
+                          [ngSrc]="record.ownerAvatarImage || ownerAvatarFallback"
                           [alt]="record.ownerName || 'Owner avatar'"
                           width="24"
                           height="24"
+                          loading="lazy"
+                          sizes="24px"
                           class="h-6 w-6 object-cover"
                         >
                       </div>
@@ -322,10 +328,12 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
               <article class="overflow-hidden rounded-[21px] border border-[#eaeaea] bg-white p-[3px]">
                 <div class="relative h-[193px] overflow-hidden rounded-[20px]">
                   <img
-                    [src]="record.thumbnail || mobileBannerPreviewImage"
+                    [ngSrc]="record.thumbnail || mobileBannerPreviewImage"
                     [alt]="record.title"
                     width="343"
                     height="193"
+                    loading="lazy"
+                    sizes="(max-width: 1023px) calc(100vw - 40px), 343px"
                     class="h-full w-full object-cover"
                   >
 
@@ -401,10 +409,12 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                   <div class="p-1.5">
                     <div class="relative h-[228px] overflow-hidden rounded-[22px]">
                       <img
-                        [src]="record.thumbnail"
+                        [ngSrc]="record.thumbnail"
                         [alt]="record.title"
                         width="840"
                         height="456"
+                        loading="lazy"
+                        sizes="(min-width: 1440px) 560px, (min-width: 1024px) 46vw, 100vw"
                         class="h-full w-full object-cover"
                       >
 
@@ -516,10 +526,12 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                         <div class="flex items-center gap-3">
                           <div class="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                             <img
-                              [src]="record.ownerAvatarImage || record.thumbnail"
+                              [ngSrc]="record.ownerAvatarImage || record.thumbnail"
                               [alt]="record.ownerName || record.storeOrUser"
                               width="32"
                               height="32"
+                              loading="lazy"
+                              sizes="32px"
                               class="h-8 w-8 object-cover"
                             >
                           </div>
@@ -570,10 +582,12 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                       <div class="flex items-center gap-3">
                         <div class="h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-[#f3f3f3]">
                           <img
-                            [src]="record.thumbnail"
+                            [ngSrc]="record.thumbnail"
                             [alt]="record.title"
                             width="40"
                             height="40"
+                            loading="lazy"
+                            sizes="40px"
                             class="h-10 w-10 object-cover"
                           >
                         </div>

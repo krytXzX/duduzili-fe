@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, Output, EventEmitter, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { 
   heroCheckBadge, 
@@ -21,7 +21,7 @@ import { PromoteStoreModalComponent } from './promote-store-modal.component';
 @Component({
   selector: 'app-store-header',
   standalone: true,
-  imports: [CommonModule, NgIcon, PromoteStoreModalComponent],
+  imports: [CommonModule, NgOptimizedImage, NgIcon, PromoteStoreModalComponent],
   providers: [
     provideIcons({ 
       heroCheckBadge, 
@@ -44,13 +44,13 @@ import { PromoteStoreModalComponent } from './promote-store-modal.component';
     <div class="relative w-full rounded-[32px] overflow-hidden bg-white shadow-sm mb-6 pb-6">
       <!-- Banner Section -->
       <div class="relative h-64 w-full bg-gray-100">
-        <img [src]="banner()" alt="Store Banner" class="w-full h-full object-cover">
+        <img [ngSrc]="banner()" alt="Store Banner" width="1440" height="256" loading="lazy" sizes="100vw" class="w-full h-full object-cover">
         <!-- Smooth Bottom Gradient Fade -->
         <div class="absolute inset-x-0 bottom-0 h-48 bg-linear-to-t from-white via-white/80 to-transparent"></div>
         
         <!-- Logo/Avatar (Overlapping) -->
         <div class="absolute bottom-[-40px] left-8 w-36 h-36 rounded-full border-[6px] border-white overflow-hidden bg-white shadow-xl z-20">
-          <img [src]="logo()" alt="Store Logo" class="w-full h-full object-cover">
+          <img [ngSrc]="logo()" alt="Store Logo" width="144" height="144" loading="lazy" sizes="144px" class="w-full h-full object-cover">
         </div>
       </div>
 
@@ -175,5 +175,4 @@ export class StoreHeaderComponent {
     this.showPromoteModal.set(false);
   }
 }
-
 

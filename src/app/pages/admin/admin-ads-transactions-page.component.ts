@@ -122,10 +122,12 @@ interface AdsTransactionRecord {
                   <div class="flex min-w-0 items-center gap-2">
                     <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                       <img
-                        [src]="record.avatar"
+                        [ngSrc]="record.avatar"
                         [alt]="record.userName"
                         width="40"
                         height="40"
+                        loading="lazy"
+                        sizes="40px"
                         class="h-10 w-10 object-cover"
                       >
                     </div>
@@ -257,10 +259,12 @@ interface AdsTransactionRecord {
                       <div class="flex items-center gap-3">
                         <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                           <img
-                            [src]="record.avatar"
+                            [ngSrc]="record.avatar"
                             [alt]="record.userName"
                             width="36"
                             height="36"
+                            loading="lazy"
+                            sizes="36px"
                             class="h-9 w-9 object-cover"
                           >
                         </div>

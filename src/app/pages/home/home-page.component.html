@@ -337,7 +337,7 @@
           (click)="openPromotion(promotion)"
           [attr.aria-label]="promotion.link ? 'Open sponsored promotion' : null"
         >
-          <img [src]="promotion.image" alt="Sponsored promotion" width="505" height="225" class="h-[225px] w-full object-cover" />
+          <img [ngSrc]="promotion.image" alt="Sponsored promotion" width="505" height="225" loading="lazy" sizes="(min-width: 1440px) 505px, (min-width: 1024px) 34vw, 100vw" class="h-[225px] w-full object-cover" />
           <span class="absolute bottom-5 left-5 rounded-full bg-black/55 px-3 py-1 text-sm font-medium text-white backdrop-blur-sm">
             Sponsored
           </span>
@@ -355,7 +355,7 @@
           (click)="openPromotion(promotion)"
           [attr.aria-label]="promotion.link ? 'Open sponsored promotion' : null"
         >
-          <img [src]="promotion.image" alt="Sponsored promotion" width="399" height="224" class="h-auto w-full object-cover" />
+          <img [ngSrc]="promotion.image" alt="Sponsored promotion" width="399" height="224" loading="lazy" sizes="calc(100vw - 40px)" class="h-auto w-full object-cover" />
           <span class="absolute bottom-3 left-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
             Sponsored
           </span>

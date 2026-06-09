@@ -170,10 +170,12 @@ type VendorTagSummary = {
         <div class="px-5">
           <div class="relative h-[91px] overflow-hidden rounded-t-[11px]">
             <img
-              [src]="store().banner"
+              [ngSrc]="store().banner"
               [alt]="store().name + ' banner'"
               width="350"
               height="91"
+              loading="lazy"
+              sizes="(max-width: 767px) calc(100vw - 40px), 350px"
               class="h-full w-full object-cover"
             />
             <div
@@ -186,10 +188,12 @@ type VendorTagSummary = {
               class="h-[74px] w-[74px] overflow-hidden rounded-full border-4 border-white bg-[#3d785f]"
             >
               <img
-                [src]="store().logo"
+                [ngSrc]="store().logo"
                 [alt]="store().name + ' logo'"
                 width="74"
                 height="74"
+                loading="lazy"
+                sizes="74px"
                 class="h-full w-full object-cover"
               />
             </div>
@@ -409,10 +413,12 @@ type VendorTagSummary = {
                   <div class="flex gap-3">
                     <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
                       <img
-                        [src]="
-                          review.avatar || 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
-                        "
+                        [ngSrc]="review.avatar || '/assets/images/auth-avatar-fallback.svg'"
                         [alt]="review.author"
+                        width="36"
+                        height="36"
+                        loading="lazy"
+                        sizes="36px"
                         class="h-full w-full object-cover"
                       />
                     </div>
@@ -439,7 +445,7 @@ type VendorTagSummary = {
                             <div
                               class="h-[68px] w-[68px] overflow-hidden rounded-[10px] bg-[#F3F4F6]"
                             >
-                              <img [src]="image" alt="" class="h-full w-full object-cover" />
+                              <img [ngSrc]="image" alt="" width="68" height="68" loading="lazy" sizes="68px" class="h-full w-full object-cover" />
                             </div>
                           }
                         </div>
@@ -467,7 +473,7 @@ type VendorTagSummary = {
             <div
               class="relative h-[184px] overflow-hidden rounded-[32px] bg-[#F4F6FB] md:h-[220px]"
             >
-              <img [src]="store().banner" [alt]="store().name" class="h-full w-full object-cover" />
+              <img [ngSrc]="store().banner" [alt]="store().name" width="1200" height="220" loading="lazy" sizes="100vw" class="h-full w-full object-cover" />
               <div
                 class="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-white via-white/85 to-transparent"
               ></div>
@@ -482,8 +488,12 @@ type VendorTagSummary = {
                     class="h-24 w-24 shrink-0 aspect-square overflow-hidden rounded-full border-[6px] border-white bg-white shadow-md md:h-28 md:w-28"
                   >
                     <img
-                      [src]="store().logo"
+                      [ngSrc]="store().logo"
                       [alt]="store().name"
+                      width="112"
+                      height="112"
+                      loading="lazy"
+                      sizes="112px"
                       class="h-full w-full rounded-full object-cover"
                     />
                   </div>
@@ -797,11 +807,12 @@ type VendorTagSummary = {
                               class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]"
                             >
                               <img
-                                [src]="
-                                  review.avatar ||
-                                  'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
-                                "
+                                [ngSrc]="review.avatar || '/assets/images/auth-avatar-fallback.svg'"
                                 [alt]="review.author"
+                                width="40"
+                                height="40"
+                                loading="lazy"
+                                sizes="40px"
                                 class="h-full w-full object-cover"
                               />
                             </div>
@@ -837,8 +848,12 @@ type VendorTagSummary = {
                                       class="relative h-28 w-28 overflow-hidden rounded-[18px] bg-[#F3F4F6]"
                                     >
                                       <img
-                                        [src]="image"
+                                        [ngSrc]="image"
                                         alt=""
+                                        width="112"
+                                        height="112"
+                                        loading="lazy"
+                                        sizes="112px"
                                         class="h-full w-full object-cover"
                                       />
 
@@ -896,8 +911,12 @@ type VendorTagSummary = {
                   <div class="mt-6 overflow-hidden rounded-[24px] border border-[#EEF0F4] bg-white md:mt-8 md:rounded-[28px]">
                     <div class="h-24 overflow-hidden bg-[#F4F6FB]">
                       <img
-                        [src]="store().banner"
+                        [ngSrc]="store().banner"
                         [alt]="store().name"
+                        width="320"
+                        height="96"
+                        loading="lazy"
+                        sizes="320px"
                         class="h-full w-full object-cover"
                       />
                     </div>
@@ -906,8 +925,12 @@ type VendorTagSummary = {
                         class="absolute -top-8 left-5 h-16 w-16 overflow-hidden rounded-full border-4 border-white bg-white shadow-sm"
                       >
                         <img
-                          [src]="store().logo"
+                          [ngSrc]="store().logo"
                           [alt]="store().name"
+                          width="64"
+                          height="64"
+                          loading="lazy"
+                          sizes="64px"
                           class="h-full w-full object-cover"
                         />
                       </div>

@@ -1,3 +1,4 @@
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -64,7 +65,7 @@ interface ListingReportRecord {
 
 @Component({
   selector: 'app-admin-reports-page',
-  imports: [RouterLink, NgIcon, AdminSellerReportDetailsModalComponent, AdminListingReportDetailsModalComponent],
+  imports: [NgOptimizedImage, RouterLink, NgIcon, AdminSellerReportDetailsModalComponent, AdminListingReportDetailsModalComponent],
   providers: [
     provideIcons({
       heroArrowLeft,
@@ -159,10 +160,12 @@ interface ListingReportRecord {
                           <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                             @if (record.sellerAvatar) {
                               <img
-                                [src]="record.sellerAvatar"
+                                [ngSrc]="record.sellerAvatar"
                                 [alt]="record.sellerName"
                                 width="40"
                                 height="40"
+                                loading="lazy"
+                                sizes="40px"
                                 class="h-10 w-10 object-cover"
                               >
                             } @else {
@@ -183,10 +186,12 @@ interface ListingReportRecord {
                           <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                             @if (record.reportedByAvatar) {
                               <img
-                                [src]="record.reportedByAvatar"
+                                [ngSrc]="record.reportedByAvatar"
                                 [alt]="record.reportedByName"
                                 width="40"
                                 height="40"
+                                loading="lazy"
+                                sizes="40px"
                                 class="h-10 w-10 object-cover"
                               >
                             } @else {
@@ -224,10 +229,12 @@ interface ListingReportRecord {
                       <div class="flex h-[42px] w-[42px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
                         @if (record.sellerAvatar) {
                           <img
-                            [src]="record.sellerAvatar"
+                            [ngSrc]="record.sellerAvatar"
                             [alt]="record.sellerName"
                             width="42"
                             height="42"
+                            loading="lazy"
+                            sizes="42px"
                             class="h-[42px] w-[42px] rounded-full object-cover"
                           >
                         } @else {
@@ -245,10 +252,12 @@ interface ListingReportRecord {
                         <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#0D0D0D]">
                           @if (record.reportedByAvatar) {
                             <img
-                              [src]="record.reportedByAvatar"
+                              [ngSrc]="record.reportedByAvatar"
                               [alt]="record.reportedByName"
                               width="24"
                               height="24"
+                              loading="lazy"
+                              sizes="24px"
                               class="h-6 w-6 rounded-full object-cover"
                             >
                           } @else {
@@ -296,10 +305,12 @@ interface ListingReportRecord {
                           <div class="h-12 w-12 shrink-0 overflow-hidden rounded-[12px] bg-[#f3f3f3]">
                             @if (record.listingImage) {
                               <img
-                                [src]="record.listingImage"
+                                [ngSrc]="record.listingImage"
                                 [alt]="record.listingTitle"
                                 width="48"
                                 height="48"
+                                loading="lazy"
+                                sizes="48px"
                                 class="h-12 w-12 object-cover"
                               >
                             } @else {
@@ -317,10 +328,12 @@ interface ListingReportRecord {
                           <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                             @if (record.sellerAvatar) {
                               <img
-                                [src]="record.sellerAvatar"
+                                [ngSrc]="record.sellerAvatar"
                                 [alt]="record.sellerName"
                                 width="40"
                                 height="40"
+                                loading="lazy"
+                                sizes="40px"
                                 class="h-10 w-10 object-cover"
                               >
                             } @else {
@@ -341,10 +354,12 @@ interface ListingReportRecord {
                           <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
                             @if (record.reportedByAvatar) {
                               <img
-                                [src]="record.reportedByAvatar"
+                                [ngSrc]="record.reportedByAvatar"
                                 [alt]="record.reportedByName"
                                 width="40"
                                 height="40"
+                                loading="lazy"
+                                sizes="40px"
                                 class="h-10 w-10 object-cover"
                               >
                             } @else {
@@ -380,10 +395,12 @@ interface ListingReportRecord {
                       <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[6px] bg-[#efefef]">
                         @if (record.listingImage) {
                           <img
-                            [src]="record.listingImage"
+                            [ngSrc]="record.listingImage"
                             [alt]="record.listingTitle"
                             width="40"
                             height="40"
+                            loading="lazy"
+                            sizes="40px"
                             class="h-10 w-10 object-cover"
                           >
                         } @else {
@@ -401,10 +418,12 @@ interface ListingReportRecord {
                         <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#0D0D0D]">
                           @if (record.reportedByAvatar) {
                             <img
-                              [src]="record.reportedByAvatar"
+                              [ngSrc]="record.reportedByAvatar"
                               [alt]="record.reportedByName"
                               width="24"
                               height="24"
+                              loading="lazy"
+                              sizes="24px"
                               class="h-6 w-6 rounded-full object-cover"
                             >
                           } @else {
@@ -421,10 +440,12 @@ interface ListingReportRecord {
                         <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#0D0D0D]">
                           @if (record.sellerAvatar) {
                             <img
-                              [src]="record.sellerAvatar"
+                              [ngSrc]="record.sellerAvatar"
                               [alt]="record.sellerName"
                               width="24"
                               height="24"
+                              loading="lazy"
+                              sizes="24px"
                               class="h-6 w-6 rounded-full object-cover"
                             >
                           } @else {

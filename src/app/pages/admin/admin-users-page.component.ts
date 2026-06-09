@@ -130,8 +130,12 @@ interface AdminUser {
                 <div class="flex min-w-0 items-center gap-2">
                   @if (user.avatarUrl) {
                     <img
-                      [src]="user.avatarUrl"
+                      [ngSrc]="user.avatarUrl"
                       alt=""
+                      width="36"
+                      height="36"
+                      loading="lazy"
+                      sizes="36px"
                       class="h-9 w-9 shrink-0 rounded-full object-cover"
                       aria-hidden="true"
                     >
@@ -296,8 +300,12 @@ interface AdminUser {
                         <div class="flex items-center gap-3">
                           @if (user.avatarUrl) {
                             <img
-                              [src]="user.avatarUrl"
+                              [ngSrc]="user.avatarUrl"
                               alt=""
+                              width="40"
+                              height="40"
+                              loading="lazy"
+                              sizes="40px"
                               class="h-10 w-10 rounded-full object-cover"
                               aria-hidden="true"
                             >
