@@ -26,7 +26,6 @@ import {
   UpdateProfileRequest,
 } from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
-import { AppModeService } from '../../services/app-mode.service';
 import { AdminSettingsService } from '../../services/admin-settings.service';
 
 type ModalMode =
@@ -1578,7 +1577,6 @@ export class SettingsPageComponent {
   private readonly appToastService = inject(AppToastService);
   private readonly authService = inject(AuthService);
   private readonly authSession = inject(AuthSessionService);
-  private readonly appMode = inject(AppModeService);
   private readonly adminSettingsService = inject(AdminSettingsService);
   protected readonly mobileBackRoute = computed(() => {
     const currentUrl = this.router.url.split('?')[0] ?? this.router.url;
@@ -2067,13 +2065,6 @@ export class SettingsPageComponent {
       return;
     }
 
-    if (!this.appMode.isBackendEnabled()) {
-      this.resetPasswordForm();
-      this.showToast('Password updated successfully');
-      await this.authFlow.logout();
-      return;
-    }
-
     this.isPasswordSubmitting.set(true);
     try {
       await firstValueFrom(this.authService.changePassword(payload));
@@ -2089,13 +2080,6 @@ export class SettingsPageComponent {
 
   async beginTwoFactorSetup(): Promise<void> {
     if (this.isTwoFactorSubmitting()) {
-      return;
-    }
-
-    if (!this.appMode.isBackendEnabled()) {
-      this.twoFactorQrCode.set(null);
-      this.twoFactorManualSecret.set(null);
-      this.isTwoFactorModalOpen.set(true);
       return;
     }
 
@@ -2122,14 +2106,6 @@ export class SettingsPageComponent {
       return;
     }
 
-    if (!this.appMode.isBackendEnabled()) {
-      this.isTwoFactorModalOpen.set(false);
-      this.isTwoFactorEnabled.set(true);
-      this.twoFactorEnabledDate.set(this.formatEnabledDate(new Date().toISOString()));
-      this.showToast('2-Factor Authentication enabled successfully');
-      return;
-    }
-
     this.isTwoFactorSubmitting.set(true);
     try {
       const response = await firstValueFrom(this.authService.enableTwoFactor({ code }));
@@ -2146,14 +2122,6 @@ export class SettingsPageComponent {
 
   async disableTwoFactor(): Promise<void> {
     if (this.isTwoFactorSubmitting()) {
-      return;
-    }
-
-    if (!this.appMode.isBackendEnabled()) {
-      this.isTurnOffTwoFactorModalOpen.set(false);
-      this.isTwoFactorEnabled.set(false);
-      this.twoFactorEnabledDate.set('');
-      this.showToast('2-Factor Authentication disabled successfully');
       return;
     }
 
@@ -2240,11 +2208,6 @@ export class SettingsPageComponent {
 
     this.isKycRequired.set(nextValue);
 
-    if (!this.appMode.isBackendEnabled()) {
-      this.showToast(`KYC requirement ${nextValue ? 'enabled' : 'disabled'} successfully`);
-      return;
-    }
-
     this.isPlatformSettingSubmitting.set(true);
     try {
       const response = await firstValueFrom(
@@ -2269,11 +2232,6 @@ export class SettingsPageComponent {
     const nextValue = !previousValue;
 
     this.isSubscriptionsEnabled.set(nextValue);
-
-    if (!this.appMode.isBackendEnabled()) {
-      this.showToast(`Subscriptions ${nextValue ? 'enabled' : 'disabled'} successfully`);
-      return;
-    }
 
     this.isPlatformSettingSubmitting.set(true);
     try {
@@ -2306,11 +2264,6 @@ export class SettingsPageComponent {
       return;
     }
 
-    if (!this.appMode.isBackendEnabled()) {
-      this.isKycRequired.set(true);
-      return;
-    }
-
     try {
       const response = await firstValueFrom(this.adminSettingsService.getSiteConfiguration());
       this.isKycRequired.set(response.kyc_required);
@@ -2322,11 +2275,6 @@ export class SettingsPageComponent {
   }
 
   private async loadProfile(): Promise<void> {
-    if (!this.appMode.isBackendEnabled()) {
-      this.hydrateProfileFromUser(this.authSession.user());
-      return;
-    }
-
     try {
       const response = await firstValueFrom(this.authService.getProfile());
       this.authSession.initializeFromProfile(response);
@@ -2337,10 +2285,6 @@ export class SettingsPageComponent {
   }
 
   private async loadTwoFactorStatus(): Promise<void> {
-    if (!this.appMode.isBackendEnabled()) {
-      return;
-    }
-
     try {
       const response = await firstValueFrom(this.authService.getTwoFactorStatus());
       this.syncTwoFactorStatus(response);
@@ -2372,11 +2316,6 @@ export class SettingsPageComponent {
   }
 
   private async persistProfileChanges(payload: UpdateProfileRequest): Promise<boolean> {
-    if (!this.appMode.isBackendEnabled()) {
-      this.applyProfilePayloadLocally(payload);
-      return true;
-    }
-
     try {
       const response = await firstValueFrom(this.authService.updateProfile(payload));
       this.authSession.initializeFromProfile(response);
@@ -2391,10 +2330,6 @@ export class SettingsPageComponent {
   private async persistNotificationSettings(
     payload: Pick<UpdateProfileRequest, 'notification_channels' | 'notification_preferences'>,
   ): Promise<boolean> {
-    if (!this.appMode.isBackendEnabled()) {
-      return true;
-    }
-
     if (this.isNotificationSubmitting()) {
       return false;
     }
@@ -2414,10 +2349,6 @@ export class SettingsPageComponent {
   }
 
   private async confirmProfileOtp(otpCode: string): Promise<boolean> {
-    if (!this.appMode.isBackendEnabled()) {
-      return true;
-    }
-
     const verificationType = this.currentVerificationType();
     if (!verificationType) {
       return false;
@@ -2438,10 +2369,6 @@ export class SettingsPageComponent {
   }
 
   private async refreshProfileFromBackend(): Promise<void> {
-    if (!this.appMode.isBackendEnabled()) {
-      return;
-    }
-
     try {
       const response = await firstValueFrom(this.authService.getProfile());
       this.authSession.initializeFromProfile(response);
@@ -2611,28 +2538,6 @@ export class SettingsPageComponent {
     }
 
     return fallback;
-  }
-
-  private applyProfilePayloadLocally(payload: UpdateProfileRequest): void {
-    this.profile.update((profile) => ({
-      ...profile,
-      email: payload.email ?? profile.email,
-      fullName: payload.full_name ?? profile.fullName,
-      callNumber: payload.phone_number ?? profile.callNumber,
-      whatsappNumber: payload.whatsapp_number ?? profile.whatsappNumber,
-    }));
-
-    if (payload.notification_channels) {
-      this.notificationSettings.set(
-        this.normalizeNotificationChannels(payload.notification_channels),
-      );
-    }
-
-    if (payload.notification_preferences) {
-      this.notificationPreferences.set(
-        this.normalizeNotificationPreferences(payload.notification_preferences),
-      );
-    }
   }
 
   private resolveProfileUser(response: ProfileResponse): AuthUser | null {

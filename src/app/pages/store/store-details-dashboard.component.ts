@@ -17,7 +17,6 @@ import {
 } from '../../components/stores/store-review-card.component';
 import { StoreEditSidePanelComponent } from '../../components/stores/store-edit-side-panel.component';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
-import { AppModeService } from '../../services/app-mode.service';
 import { AppToastService } from '../../services/app-toast.service';
 import { SellerMonetizationService } from '../../services/seller-monetization.service';
 import {
@@ -889,7 +888,6 @@ interface ReviewTagCount {
 export class StoreDetailsDashboardComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly vendorsService = inject(VendorsService);
-  private readonly appMode = inject(AppModeService);
   private readonly appToastService = inject(AppToastService);
   private readonly sellerMonetizationService = inject(SellerMonetizationService);
   private readonly apiOrigin = this.resolveApiOrigin();
@@ -1261,9 +1259,7 @@ export class StoreDetailsDashboardComponent {
   );
 
   constructor() {
-    if (this.appMode.isBackendEnabled()) {
-      void this.loadStorePage();
-    }
+    void this.loadStorePage();
   }
 
   private async loadStorePage(): Promise<void> {
@@ -1624,12 +1620,6 @@ export class StoreDetailsDashboardComponent {
   }
 
   async onSaveStore(updatedStore: Partial<StoreProfile>): Promise<void> {
-    if (!this.appMode.isBackendEnabled()) {
-      this.store.update((previousStore) => ({ ...previousStore, ...updatedStore }));
-      this.showEditModal.set(false);
-      return;
-    }
-
     const storeId = this.store().id;
     if (!storeId) {
       this.appToastService.show({

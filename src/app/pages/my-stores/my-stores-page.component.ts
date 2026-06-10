@@ -5,7 +5,6 @@ import { firstValueFrom } from 'rxjs';
 import { StoreCardComponent, Store } from '../../components/stores/store-card.component';
 import { AddStoreModalComponent } from './components/add-store-modal.component';
 import { SuccessModalComponent } from './components/success-modal.component';
-import { AppModeService } from '../../services/app-mode.service';
 import { AppToastService } from '../../services/app-toast.service';
 import { MyStoresResponse, VendorRecord, VendorsService } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
@@ -327,7 +326,6 @@ interface NewStoreFormData {
 })
 export class MyStoresPageComponent {
   private readonly vendorsService = inject(VendorsService);
-  private readonly appMode = inject(AppModeService);
   private readonly appToastService = inject(AppToastService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
@@ -450,9 +448,7 @@ export class MyStoresPageComponent {
   });
 
   constructor() {
-    if (this.appMode.isBackendEnabled()) {
-      void this.loadMyStores();
-    }
+    void this.loadMyStores();
   }
 
   protected openStoreSearch(): void {
@@ -475,17 +471,6 @@ export class MyStoresPageComponent {
 
   private async createStore(formData: NewStoreFormData): Promise<void> {
     const fallbackStore = this.buildOptimisticStore(formData);
-
-    if (!this.appMode.isBackendEnabled()) {
-      this.stores.update((previousStores) => [fallbackStore, ...previousStores]);
-      this.isAddingStore.set(false);
-      this.latestCreatedStoreName.set(formData.name);
-
-      setTimeout(() => {
-        this.isSuccess.set(true);
-      }, 300);
-      return;
-    }
 
     try {
       const response = await firstValueFrom(this.vendorsService.createStore(this.buildCreateStorePayload(formData)));

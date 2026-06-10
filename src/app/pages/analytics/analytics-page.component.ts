@@ -12,7 +12,6 @@ import {
   type VendorAnalyticsRecord,
   type VendorRecord,
 } from '../../services/vendors.service';
-import { AppModeService } from '../../services/app-mode.service';
 
 interface SummaryMetric {
   label: string;
@@ -396,7 +395,6 @@ type AnalyticsStoreFilter = string;
 })
 export class AnalyticsPageComponent {
   private readonly vendorsService = inject(VendorsService);
-  private readonly appMode = inject(AppModeService);
   private readonly apiOrigin = this.resolveApiOrigin();
   readonly assets = {
     arrowUpIcon: '/assets/icons/analytics-arrow-up.svg',
@@ -547,10 +545,6 @@ export class AnalyticsPageComponent {
   ]);
 
   constructor() {
-    if (!this.appMode.isBackendEnabled()) {
-      return;
-    }
-
     void this.loadAnalyticsStores();
   }
 
@@ -611,10 +605,6 @@ export class AnalyticsPageComponent {
 
   protected async onStoreFilterChange(storeId: AnalyticsStoreFilter): Promise<void> {
     this.selectedStoreFilter.set(storeId);
-
-    if (!this.appMode.isBackendEnabled()) {
-      return;
-    }
 
     if (storeId === 'all') {
       await this.loadAllStoresAnalytics();
