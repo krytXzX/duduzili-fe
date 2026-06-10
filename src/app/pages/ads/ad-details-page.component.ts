@@ -1474,7 +1474,7 @@ export class AdDetailsPageComponent implements OnDestroy {
         this.currentStatus.set(this.mapStatusLabel(updatedAd.status));
       },
       error: () => {
-        this.appToastService.show({ message: 'We could not update this ad status right now.' });
+        this.appToastService.show({ message: 'This ad status couldn’t be updated right now. Please try again.' });
       },
     });
   }
@@ -1563,7 +1563,7 @@ export class AdDetailsPageComponent implements OnDestroy {
         this.appToastService.show({ message: 'Destination link updated.' });
       },
       error: () => {
-        this.appToastService.show({ message: 'We could not update that destination link right now.' });
+        this.appToastService.show({ message: 'That destination link couldn’t be updated right now. Please try again.' });
       },
     });
   }

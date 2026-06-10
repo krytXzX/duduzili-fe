@@ -5131,7 +5131,7 @@ export class AdminUserDetailsPageComponent {
             return;
           }
 
-          this.toast.show({ message: 'We could not load that user right now.' });
+          this.toast.show({ message: 'That user isn’t available right now. Please try again shortly.' });
         },
       });
 
@@ -5973,7 +5973,7 @@ export class AdminUserDetailsPageComponent {
         this.toast.show({ message: 'User suspended successfully.' });
       },
       error: () => {
-        this.toast.show({ message: 'We could not suspend that user right now.' });
+        this.toast.show({ message: 'That user couldn’t be deactivated right now. Please try again.' });
       },
     });
   }
@@ -5995,7 +5995,7 @@ export class AdminUserDetailsPageComponent {
         this.toast.show({ message: 'User activated successfully.' });
       },
       error: () => {
-        this.toast.show({ message: 'We could not activate that user right now.' });
+        this.toast.show({ message: 'That user couldn’t be activated right now. Please try again.' });
       },
     });
   }
@@ -6038,7 +6038,7 @@ export class AdminUserDetailsPageComponent {
         this.toast.show({ message: 'User banned successfully. Active sessions were revoked.' });
       },
       error: () => {
-        this.toast.show({ message: 'We could not ban that user right now.' });
+        this.toast.show({ message: 'That user couldn’t be banned right now. Please try again.' });
       },
     });
   }

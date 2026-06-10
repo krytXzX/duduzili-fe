@@ -485,7 +485,7 @@ export class MyStoresPageComponent {
       }, 300);
     } catch {
       this.appToastService.show({
-        message: 'We could not create your store right now.',
+        message: 'Your store couldn’t be created right now. Please try again.',
         durationMs: 2800,
       });
     }
@@ -503,7 +503,7 @@ export class MyStoresPageComponent {
 
       this.stores.set(mappedStores);
     } catch {
-      this.errorMessage.set('We could not load your stores right now.');
+      this.errorMessage.set('Your stores aren’t available right now. Please try again shortly.');
       this.stores.set([]);
     } finally {
       this.isLoading.set(false);

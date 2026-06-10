@@ -259,7 +259,7 @@ export class SignUpPageComponent {
         this.currentStep.set(3);
         this.submitted.set(false);
       } catch (error: unknown) {
-        this.otpErrorMessage.set(this.resolveBackendMessage(error) ?? 'Request failed.');
+        this.otpErrorMessage.set(this.resolveBackendMessage(error) ?? 'We couldn’t verify that code right now. Please try again.');
       } finally {
         this.isVerifyingOtp.set(false);
       }
@@ -285,7 +285,7 @@ export class SignUpPageComponent {
       this.authSessionService.saveLoginSession(response, null);
       await this.router.navigate(['/home']);
     } catch (error: unknown) {
-      this.passwordErrorMessage.set(this.resolveBackendMessage(error) ?? 'Request failed.');
+      this.passwordErrorMessage.set(this.resolveBackendMessage(error) ?? 'We couldn’t create your account right now. Please try again.');
     } finally {
       this.isRegistering.set(false);
     }
@@ -375,7 +375,7 @@ export class SignUpPageComponent {
       );
       this.startResendCountdown();
     } catch (error: unknown) {
-      this.otpErrorMessage.set(this.resolveBackendMessage(error) ?? 'Request failed.');
+      this.otpErrorMessage.set(this.resolveBackendMessage(error) ?? 'We couldn’t resend the code right now. Please try again.');
     } finally {
       this.isResendingOtp.set(false);
     }

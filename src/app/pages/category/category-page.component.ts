@@ -367,6 +367,6 @@ export class CategoryPageComponent {
       }
     }
 
-    return 'We could not load this category right now.';
+    return 'This category isn’t available right now. Please try again in a moment.';
   }
 }

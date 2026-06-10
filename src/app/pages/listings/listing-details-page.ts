@@ -500,7 +500,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
               >
                 <p class="text-[15px] font-semibold text-[#202335]">No requests yet</p>
                 <p class="mt-2 text-[13px] text-[#8A8F9A]">
-                  Buyer messages and offers will appear here when the backend returns data.
+                  Buyer messages and offers will appear here as soon as people start reaching out.
                 </p>
               </div>
             }
@@ -1022,7 +1022,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                 >
                   <p class="text-[18px] font-semibold text-[#202335]">No requests yet</p>
                   <p class="mt-2 text-[14px] text-[#8A8F9A]">
-                    Buyer messages and offers will appear here when the backend returns data.
+                    Buyer messages and offers will appear here as soon as people start reaching out.
                   </p>
                 </div>
               }
@@ -3426,7 +3426,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
         this.appToastService.show({ message: 'Listing updated successfully.' });
       })
       .catch(() => {
-        this.appToastService.show({ message: 'We could not save your listing changes right now.' });
+        this.appToastService.show({ message: 'Your listing changes couldn’t be saved right now. Please try again.' });
       })
       .finally(() => {
         this.isSavingEdit.set(false);
@@ -3446,7 +3446,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
         await this.router.navigateByUrl('/seller/listings');
       })
       .catch(() => {
-        this.appToastService.show({ message: 'We could not delete this listing right now.' });
+        this.appToastService.show({ message: 'This listing couldn’t be deleted right now. Please try again.' });
       })
       .finally(() => {
         this.isDeletingListing.set(false);
@@ -3467,7 +3467,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
     const plan = this.resolvePromotionPlan(selection.durationDays);
     if (!plan) {
       this.appToastService.show({
-        message: 'No active promotion plan matches that duration right now.',
+        message: 'That promotion option isn’t available right now. Please choose another one or try again later.',
       });
       return;
     }
@@ -3500,7 +3500,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
         const message =
           this.readString(responseRecord?.['error']) ??
           this.readString(responseRecord?.['message']) ??
-          'We could not promote this listing right now.';
+          'This listing couldn’t be promoted right now. Please try again.';
         this.appToastService.show({ message });
       })
       .finally(() => {
@@ -3937,7 +3937,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
       this.applyListingDetails(refreshed);
       this.appToastService.show({ message: `Listing status updated to ${status}.` });
     } catch {
-      this.appToastService.show({ message: 'We could not update the listing status right now.' });
+      this.appToastService.show({ message: 'This listing status couldn’t be updated right now. Please try again.' });
     } finally {
       this.isUpdatingStatus.set(false);
     }

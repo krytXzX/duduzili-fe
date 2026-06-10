@@ -536,7 +536,7 @@ export class AdminAdsApprovalsPageComponent {
           this.hasNextPage.set(false);
           this.hasPreviousPage.set(false);
           this.counts.set({ all: 0, pending: 0, approved: 0, declined: 0 });
-          this.showToast('We could not load ad approvals right now.');
+          this.showToast('Ad approvals aren’t available right now. Please try again shortly.');
         },
       });
   }
@@ -582,7 +582,7 @@ export class AdminAdsApprovalsPageComponent {
         this.showToast('Banner ad approved successfully.');
       },
       error: () => {
-        this.showToast('We could not approve that banner ad right now.');
+        this.showToast('That banner ad couldn’t be approved right now. Please try again.');
       },
     });
   }
@@ -600,7 +600,7 @@ export class AdminAdsApprovalsPageComponent {
         this.showToast('Banner ad declined successfully.');
       },
       error: () => {
-        this.showToast('We could not decline that banner ad right now.');
+        this.showToast('That banner ad couldn’t be declined right now. Please try again.');
       },
     });
   }

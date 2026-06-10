@@ -272,7 +272,7 @@ export class BuyerFollowedStoresPageComponent {
           .filter((store): store is Store => store !== null),
       );
     } catch {
-      this.errorMessage.set('We could not load followed stores right now.');
+      this.errorMessage.set('Your followed stores aren’t available right now. Please try again shortly.');
     } finally {
       this.isLoading.set(false);
     }

@@ -1839,7 +1839,7 @@ export class AddListingModalComponent implements OnDestroy {
       this.currentStep.set(5);
     } catch {
       this.appToastService.show({
-        message: 'We could not publish your listing right now.',
+        message: 'Your listing couldn’t be published right now. Please try again.',
         durationMs: 2600,
       });
     } finally {
@@ -1873,7 +1873,7 @@ export class AddListingModalComponent implements OnDestroy {
       this.close.emit();
     } catch {
       this.appToastService.show({
-        message: 'We could not save your draft right now.',
+        message: 'Your draft couldn’t be saved right now. Please try again.',
         durationMs: 2600,
       });
     } finally {

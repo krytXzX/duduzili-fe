@@ -95,7 +95,7 @@ export class TwoFactorPageComponent implements OnInit {
       await this.router.navigate(this.resolvePostLoginRoute(response.user?.role));
     } catch (error: unknown) {
       this.errorMessage.set(
-        this.readBackendMessage(error) ?? 'We could not verify that code right now.',
+        this.readBackendMessage(error) ?? 'We couldn’t verify that code right now. Please try again.',
       );
     } finally {
       this.isProcessing.set(false);

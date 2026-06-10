@@ -156,7 +156,7 @@ export class BuyerRecentlyViewedPageComponent {
       }
       this.favoritesStateService.setAll(Array.from(mergedFavoritedIds));
     } catch {
-      this.errorMessage.set('We could not load your recently viewed listings right now.');
+      this.errorMessage.set('Your recently viewed items aren’t available right now. Please try again shortly.');
     } finally {
       this.isLoading.set(false);
     }

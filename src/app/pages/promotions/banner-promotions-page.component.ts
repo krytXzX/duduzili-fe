@@ -595,7 +595,7 @@ export class BannerPromotionsPageComponent {
           this.loadBannerPromotions();
         },
         error: () => {
-          this.appToastService.show({ message: 'We could not create that banner ad right now.' });
+          this.appToastService.show({ message: 'That banner ad couldn’t be created right now. Please try again.' });
         },
       });
   }

@@ -787,11 +787,11 @@ export class WalletPageComponent {
             globalThis.location?.assign(paymentUrl);
             return;
           }
-          this.appToastService.show({ message: 'We could not start online funding right now.' });
+          this.appToastService.show({ message: 'Online funding isn’t available right now. Please try again.' });
         },
         error: () => {
           this.isFundingOnline.set(false);
-          this.appToastService.show({ message: 'We could not start online funding right now.' });
+          this.appToastService.show({ message: 'Online funding isn’t available right now. Please try again.' });
         },
       });
   }
@@ -835,7 +835,7 @@ export class WalletPageComponent {
       },
       error: () => {
         this.isLoadingFundWalletDetails.set(false);
-        this.appToastService.show({ message: 'We could not load your wallet account details.' });
+        this.appToastService.show({ message: 'Your wallet details aren’t available right now. Please try again shortly.' });
       },
     });
   }

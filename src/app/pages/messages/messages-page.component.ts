@@ -2231,7 +2231,7 @@ export class MessagesPageComponent implements OnDestroy {
     } catch {
       this.conversations.set([]);
       this.activeChatId.set('');
-      this.conversationsError.set('We could not load your chats right now.');
+      this.conversationsError.set('Your chats aren’t available right now. Please try again shortly.');
     } finally {
       this.isLoadingConversations.set(false);
     }
@@ -2247,7 +2247,7 @@ export class MessagesPageComponent implements OnDestroy {
     } catch {
       this.conversations.set([]);
       this.activeChatId.set('');
-      this.conversationsError.set('We could not load your chats right now.');
+      this.conversationsError.set('Your chats aren’t available right now. Please try again shortly.');
     } finally {
       this.isLoadingConversations.set(false);
     }
@@ -2263,7 +2263,7 @@ export class MessagesPageComponent implements OnDestroy {
     } catch {
       this.conversations.set([]);
       this.activeChatId.set('');
-      this.conversationsError.set('We could not load your chats right now.');
+      this.conversationsError.set('Your chats aren’t available right now. Please try again shortly.');
     } finally {
       this.isLoadingConversations.set(false);
     }
@@ -2279,7 +2279,7 @@ export class MessagesPageComponent implements OnDestroy {
     } catch {
       this.conversations.set([]);
       this.activeChatId.set('');
-      this.conversationsError.set('We could not load your chats right now.');
+      this.conversationsError.set('Your chats aren’t available right now. Please try again shortly.');
     } finally {
       this.isLoadingConversations.set(false);
     }
@@ -2978,7 +2978,7 @@ export class MessagesPageComponent implements OnDestroy {
 
     if (!vendorId || !sellerReason) {
       this.appToastService.show({
-        message: 'Unable to submit seller report right now.',
+        message: 'We couldn’t submit that report right now. Please try again.',
       });
       return;
     }
@@ -3000,7 +3000,7 @@ export class MessagesPageComponent implements OnDestroy {
       this.resetSellerReportFlow();
     } catch {
       this.appToastService.show({
-        message: 'Unable to submit seller report right now.',
+        message: 'We couldn’t submit that report right now. Please try again.',
       });
     } finally {
       this.isSubmittingSellerReport.set(false);
@@ -3051,7 +3051,7 @@ export class MessagesPageComponent implements OnDestroy {
         this.isClearChatConfirmOpen.set(false);
       } catch {
         this.appToastService.show({
-          message: 'We could not delete those messages right now.',
+          message: 'Those messages couldn’t be deleted right now. Please try again.',
         });
       } finally {
         this.isDeletingMessages.set(false);
@@ -3091,7 +3091,7 @@ export class MessagesPageComponent implements OnDestroy {
       this.deleteIntent.set('chat');
     } catch {
       this.appToastService.show({
-        message: 'We could not clear this chat right now.',
+        message: 'This chat couldn’t be cleared right now. Please try again.',
       });
     } finally {
       this.isDeletingMessages.set(false);

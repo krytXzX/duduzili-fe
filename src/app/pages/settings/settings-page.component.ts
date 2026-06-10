@@ -2072,7 +2072,7 @@ export class SettingsPageComponent {
       this.showToast('Password updated successfully');
       await this.authFlow.logout();
     } catch (error: unknown) {
-      this.showToast(this.extractSettingsErrorMessage(error, 'We could not update your password right now.'));
+      this.showToast(this.extractSettingsErrorMessage(error, 'Your password couldn’t be updated right now. Please try again.'));
     } finally {
       this.isPasswordSubmitting.set(false);
     }
@@ -2095,7 +2095,7 @@ export class SettingsPageComponent {
       this.twoFactorManualSecret.set(response.secret ?? null);
       this.isTwoFactorModalOpen.set(true);
     } catch (error: unknown) {
-      this.showToast(this.extractSettingsErrorMessage(error, 'We could not start 2FA setup right now.'));
+      this.showToast(this.extractSettingsErrorMessage(error, 'We couldn’t start two-factor setup right now. Please try again.'));
     } finally {
       this.isTwoFactorSubmitting.set(false);
     }
@@ -2114,7 +2114,7 @@ export class SettingsPageComponent {
       this.twoFactorEnabledDate.set(this.formatEnabledDate(response.enabled_at));
       this.showToast('2-Factor Authentication enabled successfully');
     } catch (error: unknown) {
-      this.showToast(this.extractSettingsErrorMessage(error, 'We could not verify that 2FA code right now.'));
+      this.showToast(this.extractSettingsErrorMessage(error, 'We couldn’t verify that two-factor code right now. Please try again.'));
     } finally {
       this.isTwoFactorSubmitting.set(false);
     }
@@ -2133,7 +2133,7 @@ export class SettingsPageComponent {
       this.twoFactorEnabledDate.set('');
       this.showToast('2-Factor Authentication disabled successfully');
     } catch (error: unknown) {
-      this.showToast(this.extractSettingsErrorMessage(error, 'We could not disable 2FA right now.'));
+      this.showToast(this.extractSettingsErrorMessage(error, 'We couldn’t turn off two-factor authentication right now. Please try again.'));
     } finally {
       this.isTwoFactorSubmitting.set(false);
     }
@@ -2217,7 +2217,7 @@ export class SettingsPageComponent {
       this.showToast(`KYC requirement ${response.kyc_required ? 'enabled' : 'disabled'} successfully`);
     } catch {
       this.isKycRequired.set(previousValue);
-      this.showToast('We could not update the KYC requirement right now.');
+      this.showToast('The KYC setting couldn’t be updated right now. Please try again.');
     } finally {
       this.isPlatformSettingSubmitting.set(false);
     }
@@ -2242,7 +2242,7 @@ export class SettingsPageComponent {
       this.showToast(`Subscriptions ${response.subscriptions_enabled ? 'enabled' : 'disabled'} successfully`);
     } catch {
       this.isSubscriptionsEnabled.set(previousValue);
-      this.showToast('We could not update the subscription setting right now.');
+      this.showToast('The subscription setting couldn’t be updated right now. Please try again.');
     } finally {
       this.isPlatformSettingSubmitting.set(false);
     }
@@ -2322,7 +2322,7 @@ export class SettingsPageComponent {
       this.hydrateProfileFromUser(this.resolveProfileUser(response));
       return true;
     } catch {
-      this.showToast('We could not update your profile right now.');
+      this.showToast('Your profile couldn’t be updated right now. Please try again.');
       return false;
     }
   }
@@ -2341,7 +2341,7 @@ export class SettingsPageComponent {
       this.hydrateProfileFromUser(this.resolveProfileUser(response));
       return true;
     } catch {
-      this.showToast('We could not update your notification settings right now.');
+      this.showToast('Your notification settings couldn’t be updated right now. Please try again.');
       return false;
     } finally {
       this.isNotificationSubmitting.set(false);
@@ -2363,7 +2363,7 @@ export class SettingsPageComponent {
       );
       return true;
     } catch {
-      this.showToast('We could not verify that code right now.');
+      this.showToast('We couldn’t verify that code right now. Please try again.');
       return false;
     }
   }

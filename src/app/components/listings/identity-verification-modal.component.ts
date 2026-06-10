@@ -1376,7 +1376,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
     }
 
     if (attempt >= 10) {
-      this.cameraError.set('We could not prepare the camera view. Please try again.');
+      this.cameraError.set('We couldn’t open your camera preview. Please try again.');
       return;
     }
 
@@ -1454,7 +1454,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
       }
     }
 
-    return 'We could not start your camera. Please try again.';
+    return 'We couldn’t start your camera. Please try again.';
   }
 
   private revokeObjectUrl(url: string) {

@@ -351,7 +351,7 @@ export class HomePageComponent {
         return;
       }
 
-      this.homeError.set(error instanceof Error ? error.message : 'Request failed.');
+      this.homeError.set('We’re having trouble loading the homepage right now. Please try again in a moment.');
       this.homeResponse.set(null);
     } finally {
       if (requestId === this.currentHomeRequestId) {

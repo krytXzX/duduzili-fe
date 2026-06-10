@@ -910,7 +910,7 @@ export class AdminTeamManagementPageComponent {
           this.refreshUsers();
         },
         error: () => {
-          this.toast.show({ message: 'We could not add that team member right now.' });
+          this.toast.show({ message: 'That team member couldn’t be added right now. Please try again.' });
         },
       });
   }
@@ -944,7 +944,7 @@ export class AdminTeamManagementPageComponent {
           this.refreshRoles();
         },
         error: () => {
-          this.toast.show({ message: 'We could not create that role right now.' });
+          this.toast.show({ message: 'That role couldn’t be created right now. Please try again.' });
         },
       });
   }
@@ -998,7 +998,7 @@ export class AdminTeamManagementPageComponent {
           this.toast.show({ message: 'Team member role updated successfully.' });
         },
         error: () => {
-          this.toast.show({ message: 'We could not update that team member right now.' });
+          this.toast.show({ message: 'That team member couldn’t be updated right now. Please try again.' });
         },
       });
   }
@@ -1015,7 +1015,7 @@ export class AdminTeamManagementPageComponent {
           this.toast.show({ message: 'Team member deactivated successfully.' });
         },
         error: () => {
-          this.toast.show({ message: 'We could not deactivate that team member right now.' });
+          this.toast.show({ message: 'That team member couldn’t be deactivated right now. Please try again.' });
         },
       });
   }
@@ -1047,7 +1047,7 @@ export class AdminTeamManagementPageComponent {
           this.toast.show({ message: 'Team member activated successfully.' });
         },
         error: () => {
-          this.toast.show({ message: 'We could not activate that team member right now.' });
+          this.toast.show({ message: 'That team member couldn’t be activated right now. Please try again.' });
         },
       });
   }
@@ -1076,7 +1076,7 @@ export class AdminTeamManagementPageComponent {
           this.toast.show({ message: 'Invite email sent successfully.' });
         },
         error: () => {
-          this.toast.show({ message: 'We could not resend that invite right now.' });
+          this.toast.show({ message: 'That invite couldn’t be resent right now. Please try again.' });
         },
       });
   }
@@ -1111,7 +1111,7 @@ export class AdminTeamManagementPageComponent {
           this.toast.show({ message: 'Team member removed successfully.' });
         },
         error: () => {
-          this.toast.show({ message: 'We could not remove that team member right now.' });
+          this.toast.show({ message: 'That team member couldn’t be removed right now. Please try again.' });
         },
       });
   }

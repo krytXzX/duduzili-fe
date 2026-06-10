@@ -1421,7 +1421,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
       });
     } catch (error) {
       this.appToastService.show({
-        message: this.extractErrorMessage(error) ?? 'Unable to start conversation right now.',
+        message: this.extractErrorMessage(error) ?? 'We couldn’t open this chat right now. Please try again.',
       });
     } finally {
       this.isStartingConversation.set(false);
@@ -1484,7 +1484,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
     const vendorId = this.store().id;
     if (!vendorId) {
       this.appToastService.show({
-        message: 'Unable to submit your review right now.',
+        message: 'Your review couldn’t be submitted right now. Please try again.',
       });
       return;
     }
@@ -1888,7 +1888,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   private extractReviewErrorMessage(error: unknown): string {
     if (typeof error !== 'object' || error === null) {
-      return 'Unable to submit your review right now.';
+      return 'Your review couldn’t be submitted right now. Please try again.';
     }
 
     const errorRecord = error as Record<string, unknown>;
@@ -1917,7 +1917,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
       return ratingError[0];
     }
 
-    return 'Unable to submit your review right now.';
+    return 'Your review couldn’t be submitted right now. Please try again.';
   }
 
   private extractReviewTags(review: StoreReview): string[] {

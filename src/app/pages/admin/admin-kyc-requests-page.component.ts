@@ -532,7 +532,7 @@ export class AdminKycRequestsPageComponent {
           this.hasNextPage.set(false);
           this.hasPreviousPage.set(false);
           this.counts.set({ all: 0, pending: 0, approved: 0, rejected: 0 });
-          this.showToast('We could not load KYC requests right now.');
+          this.showToast('KYC requests aren’t available right now. Please try again shortly.');
         },
       });
   }
@@ -609,7 +609,7 @@ export class AdminKycRequestsPageComponent {
         this.showToast('KYC request successfully approved');
       },
       error: () => {
-        this.showToast('We could not approve that KYC request right now.');
+        this.showToast('That KYC request couldn’t be approved right now. Please try again.');
       },
     });
   }
@@ -628,7 +628,7 @@ export class AdminKycRequestsPageComponent {
         this.showToast('KYC request successfully declined');
       },
       error: () => {
-        this.showToast('We could not decline that KYC request right now.');
+        this.showToast('That KYC request couldn’t be declined right now. Please try again.');
       },
     });
   }

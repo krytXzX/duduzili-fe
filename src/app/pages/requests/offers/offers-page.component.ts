@@ -870,7 +870,7 @@ export class OffersPageComponent implements OnDestroy {
       await this.navigateToMessages(offer, this.readId(response['id']) ?? offer.conversationId);
     } catch {
       this.appToastService.show({
-        message: 'We could not open this chat right now.',
+        message: 'We couldn’t open this chat right now. Please try again.',
       });
     }
   }

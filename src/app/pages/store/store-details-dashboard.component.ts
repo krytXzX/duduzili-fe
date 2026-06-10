@@ -1623,7 +1623,7 @@ export class StoreDetailsDashboardComponent {
     const storeId = this.store().id;
     if (!storeId) {
       this.appToastService.show({
-        message: 'We could not save this store right now.',
+        message: 'This store can’t be saved right now. Please try again.',
       });
       return;
     }
@@ -1639,7 +1639,7 @@ export class StoreDetailsDashboardComponent {
       });
     } catch {
       this.appToastService.show({
-        message: 'We could not update this store right now.',
+        message: 'Your store changes couldn’t be saved right now. Please try again.',
       });
     }
   }
@@ -1647,7 +1647,7 @@ export class StoreDetailsDashboardComponent {
   onPromoteStore(): void {
     const storeId = this.store().id;
     if (!storeId) {
-      this.appToastService.show({ message: 'We could not determine which store to promote.' });
+      this.appToastService.show({ message: 'We couldn’t find the store to promote. Please refresh and try again.' });
       return;
     }
 
@@ -1658,7 +1658,7 @@ export class StoreDetailsDashboardComponent {
         this.appToastService.show({ message: 'Store promotion is now running.' });
       },
       error: () => {
-        this.appToastService.show({ message: 'We could not promote this store right now.' });
+        this.appToastService.show({ message: 'Your store couldn’t be promoted right now. Please try again.' });
       },
     });
   }

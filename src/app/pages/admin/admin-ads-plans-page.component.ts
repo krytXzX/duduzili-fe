@@ -453,7 +453,7 @@ export class AdminAdsPlansPageComponent {
     );
 
     if (!backendPlan) {
-      this.toast.show({ message: 'We could not match that subscription plan right now.' });
+      this.toast.show({ message: 'That subscription plan isn’t available right now. Please try again.' });
       return;
     }
 
@@ -467,7 +467,7 @@ export class AdminAdsPlansPageComponent {
         this.toast.show({ message: 'Subscription plan updated successfully.' });
       },
       error: () => {
-        this.toast.show({ message: 'We could not update that subscription plan right now.' });
+        this.toast.show({ message: 'That subscription plan couldn’t be updated right now. Please try again.' });
       },
     });
   }
@@ -483,7 +483,7 @@ export class AdminAdsPlansPageComponent {
     const backendPlan = this.singleBoostingPlanRecords().find((plan) => plan.name === updatedPlan.name);
 
     if (!backendPlan) {
-      this.toast.show({ message: 'We could not match that single boosting plan right now.' });
+      this.toast.show({ message: 'That boost plan isn’t available right now. Please try again.' });
       return;
     }
 
@@ -497,7 +497,7 @@ export class AdminAdsPlansPageComponent {
         this.toast.show({ message: 'Single boosting plan updated successfully.' });
       },
       error: () => {
-        this.toast.show({ message: 'We could not update that single boosting plan right now.' });
+        this.toast.show({ message: 'That boost plan couldn’t be updated right now. Please try again.' });
       },
     });
   }
@@ -511,7 +511,7 @@ export class AdminAdsPlansPageComponent {
       error: () => {
         this.subscriptionPlanRecords.set([]);
         this.singleBoostingPlanRecords.set([]);
-        this.toast.show({ message: 'We could not load ads plans right now.' });
+        this.toast.show({ message: 'Ads plans aren’t available right now. Please try again shortly.' });
       },
     });
   }

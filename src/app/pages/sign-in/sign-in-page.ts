@@ -172,26 +172,16 @@ export class SignInPageComponent {
 
   private resolveCheckEmailErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return this.readBackendMessage(error.error) ?? 'Request failed.';
+      return this.readBackendMessage(error.error) ?? 'We couldn’t check that email right now. Please try again.';
     }
-
-    if (error instanceof Error && error.message.trim().length > 0) {
-      return error.message;
-    }
-
-    return 'Request failed.';
+    return 'We couldn’t check that email right now. Please try again.';
   }
 
   private resolveLoginErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return this.readBackendMessage(error.error) ?? 'Request failed.';
+      return this.readBackendMessage(error.error) ?? 'We couldn’t sign you in right now. Please try again.';
     }
-
-    if (error instanceof Error && error.message.trim().length > 0) {
-      return error.message;
-    }
-
-    return 'Request failed.';
+    return 'We couldn’t sign you in right now. Please try again.';
   }
 
   private resolvePostLoginRoute(loginResponse: { user?: { role?: string } }): string[] {

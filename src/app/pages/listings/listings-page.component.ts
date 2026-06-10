@@ -816,7 +816,7 @@ export class ListingsPageComponent {
       this.manageListingStores.set(this.extractStores(response));
       this.listings.set(mappedListings);
     } catch {
-      this.errorMessage.set('We could not load your listings right now.');
+      this.errorMessage.set('Your listings aren’t available right now. Please try again shortly.');
       this.approvedVerificationBannerDismissed.set(false);
       this.verificationStatus.set('not_submitted');
       this.isVerificationSubmitted.set(false);

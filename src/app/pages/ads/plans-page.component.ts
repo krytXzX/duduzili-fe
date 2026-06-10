@@ -538,7 +538,7 @@ export class AdsPlansPageComponent {
 
     const backendPlan = this.selectedBackendPlan();
     if (!backendPlan) {
-      this.appToastService.show({ message: 'We could not determine the selected plan.' });
+      this.appToastService.show({ message: 'We couldn’t find the selected plan. Please choose one again.' });
       return;
     }
 
@@ -569,7 +569,7 @@ export class AdsPlansPageComponent {
             ? error.error.error
             : typeof error?.error?.message === 'string'
               ? error.error.message
-              : 'We could not complete your subscription right now.';
+              : 'Your subscription couldn’t be completed right now. Please try again.';
         this.appToastService.show({ message: backendMessage });
       },
     });

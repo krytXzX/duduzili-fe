@@ -145,7 +145,7 @@ export class BuyerWishlistPageComponent {
       this.allWishlistEntries.set(entries);
       this.favoritesStateService.setAll(entries.map((entry) => entry.listing.id));
     } catch {
-      this.errorMessage.set('We could not load your wishlist right now.');
+      this.errorMessage.set('Your wishlist isn’t available right now. Please try again shortly.');
     } finally {
       this.isLoading.set(false);
     }

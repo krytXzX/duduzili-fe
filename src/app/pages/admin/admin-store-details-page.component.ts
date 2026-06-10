@@ -788,7 +788,7 @@ export class AdminStoreDetailsPageComponent {
         this.toast.show({ message: response.detail || 'Store suspended successfully.' });
       },
       error: () => {
-        this.toast.show({ message: 'We could not suspend this store right now.' });
+        this.toast.show({ message: 'This store couldn’t be suspended right now. Please try again.' });
       },
       complete: () => {
         this.isActionPending.set(false);
@@ -809,7 +809,7 @@ export class AdminStoreDetailsPageComponent {
         this.toast.show({ message: response.detail || 'Store restored successfully.' });
       },
       error: () => {
-        this.toast.show({ message: 'We could not restore this store right now.' });
+        this.toast.show({ message: 'This store couldn’t be restored right now. Please try again.' });
       },
       complete: () => {
         this.isActionPending.set(false);
@@ -823,7 +823,7 @@ export class AdminStoreDetailsPageComponent {
         this.hydrateFromResponse(response);
       },
       error: () => {
-        this.toast.show({ message: 'We could not load this store right now.' });
+        this.toast.show({ message: 'This store isn’t available right now. Please try again shortly.' });
       },
     });
   }

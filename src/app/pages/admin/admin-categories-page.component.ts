@@ -597,10 +597,10 @@ export class AdminCategoriesPageComponent {
 
   private categoryErrorMessage(error: unknown, action: 'load' | 'create' | 'update' | 'delete'): string {
     const fallbackMap = {
-      load: 'We could not load categories right now.',
-      create: 'We could not create this category right now.',
-      update: 'We could not update this category right now.',
-      delete: 'We could not delete this category right now.',
+      load: 'Categories aren’t available right now. Please try again shortly.',
+      create: 'This category couldn’t be created right now. Please try again.',
+      update: 'This category couldn’t be updated right now. Please try again.',
+      delete: 'This category couldn’t be deleted right now. Please try again.',
     } as const;
 
     if (!(error instanceof HttpErrorResponse)) {

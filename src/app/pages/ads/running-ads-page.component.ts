@@ -1414,7 +1414,7 @@ export class RunningAdsPageComponent {
           this.loadAdsData();
         },
         error: () => {
-          this.appToastService.show({ message: 'We could not create that banner ad right now.' });
+          this.appToastService.show({ message: 'That banner ad couldn’t be created right now. Please try again.' });
         },
       });
   }
@@ -1430,7 +1430,7 @@ export class RunningAdsPageComponent {
         this.loadAdsData();
       },
       error: () => {
-        this.appToastService.show({ message: 'We could not create that store promotion right now.' });
+        this.appToastService.show({ message: 'That store promotion couldn’t be created right now. Please try again.' });
       },
     });
   }

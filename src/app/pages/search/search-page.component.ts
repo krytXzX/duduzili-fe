@@ -671,7 +671,7 @@ export class SearchPageComponent {
       }
     }
 
-    return 'We could not load search results right now.';
+    return 'Search results aren’t available right now. Please try again in a moment.';
   }
 
   private lastSelected(values: string[]): string | null {
