@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize, map, switchMap, tap } from 'rxjs';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   heroAdjustmentsHorizontal,
@@ -82,7 +82,40 @@ interface AuditLogRecord {
         </div>
 
         <div class="mt-6 flex flex-col">
-          @for (record of paginatedLogs(); track record.id) {
+          @if (isLoading()) {
+            @for (_ of mobileSkeletonCards; track $index) {
+              <article class="border-b border-[#EBEBEB] py-3">
+                <div class="animate-pulse">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex min-w-0 items-center gap-2">
+                      <div class="h-10 w-10 shrink-0 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="space-y-2">
+                        <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                      </div>
+                    </div>
+                    <div class="h-4 w-16 rounded-full bg-[#EEF2FF]"></div>
+                  </div>
+
+                  <div class="mt-4 space-y-3">
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-4 w-32 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="h-3 w-16 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            }
+          } @else {
+            @for (record of paginatedLogs(); track record.id) {
             <article class="border-b border-[#EBEBEB] py-3">
               <div class="flex items-start justify-between gap-3">
                 <div class="flex min-w-0 items-center gap-2">
@@ -120,6 +153,7 @@ interface AuditLogRecord {
                 </div>
               </dl>
             </article>
+          }
           }
         </div>
       </div>
@@ -180,7 +214,26 @@ interface AuditLogRecord {
               </thead>
 
               <tbody>
-                @for (record of paginatedLogs(); track record.id) {
+                @if (isLoading()) {
+                  @for (_ of tableSkeletonRows; track $index) {
+                    <tr class="border-b border-[#efefef] last:border-b-0">
+                      <td class="px-4 py-4">
+                        <div class="flex animate-pulse items-center gap-3">
+                          <div class="h-9 w-9 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="space-y-2">
+                            <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-4"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-4 w-40 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div></td>
+                    </tr>
+                  }
+                } @else {
+                  @for (record of paginatedLogs(); track record.id) {
                   <tr class="border-b border-[#efefef] last:border-b-0">
                     <td class="px-4 py-4">
                       <div class="flex items-center gap-3">
@@ -205,6 +258,7 @@ interface AuditLogRecord {
                     <td class="px-4 py-4 text-[15px] text-[#303030]">{{ record.ipAddress }}</td>
                     <td class="px-4 py-4 text-[15px] text-[#303030]">{{ record.date }}</td>
                   </tr>
+                }
                 }
               </tbody>
             </table>
@@ -265,6 +319,9 @@ export class AdminAuditLogPageComponent {
   readonly dateFilter = signal<AuditDateFilter>('all');
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
+  readonly isLoading = signal(true);
+  readonly mobileSkeletonCards = Array.from({ length: 4 });
+  readonly tableSkeletonRows = Array.from({ length: 5 });
   private readonly query = toSignal(
     toObservable(
       computed(() => ({
@@ -296,7 +353,12 @@ export class AdminAuditLogPageComponent {
   );
 
   readonly response = toSignal(
-    toObservable(this.query).pipe(switchMap((query) => this.auditLogService.getAuditLogs(query))),
+    toObservable(this.query).pipe(
+      tap(() => this.isLoading.set(true)),
+      switchMap((query) =>
+        this.auditLogService.getAuditLogs(query).pipe(finalize(() => this.isLoading.set(false))),
+      ),
+    ),
     { initialValue: null },
   );
 

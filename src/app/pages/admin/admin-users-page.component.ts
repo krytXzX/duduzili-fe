@@ -20,7 +20,7 @@ import {
   heroExclamationCircle,
   heroMagnifyingGlass,
 } from '@ng-icons/heroicons/outline';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, finalize, switchMap, tap } from 'rxjs/operators';
 
 type UserStatus = 'active' | 'suspended' | 'banned';
 type UserStatusFilter = 'active' | 'suspended';
@@ -117,7 +117,35 @@ interface AdminUser {
       </div>
 
       <div class="mt-6 flex flex-col">
-        @if (visibleUsers().length === 0) {
+        @if (isLoading()) {
+          @for (_ of mobileSkeletonCards; track $index) {
+            <div class="border-b border-[#EBEBEB] py-3">
+              <div class="animate-pulse">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex min-w-0 items-center gap-2">
+                    <div class="h-9 w-9 shrink-0 rounded-full bg-[#EEF2FF]"></div>
+                    <div class="min-w-0 space-y-2">
+                      <div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-3 w-36 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                  </div>
+                  <div class="h-6 w-20 rounded-lg bg-[#EEF2FF]"></div>
+                </div>
+
+                <div class="mt-4 space-y-3">
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                    <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                  </div>
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="h-3 w-24 rounded-full bg-[#EEF2FF]"></div>
+                    <div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        } @else if (visibleUsers().length === 0) {
           <p class="py-8 text-[14px] font-medium text-[#8E9199]">No users match the current filters.</p>
         } @else {
           @for (user of visibleUsers(); track user.id) {
@@ -283,7 +311,26 @@ interface AdminUser {
                 </tr>
               </thead>
               <tbody>
-                @if (visibleUsers().length === 0) {
+                @if (isLoading()) {
+                  @for (_ of tableSkeletonRows; track $index) {
+                    <tr class="border-b border-[#F4F5F7] last:border-b-0">
+                      <td class="px-8 py-5">
+                        <div class="flex animate-pulse items-center gap-3">
+                          <div class="h-10 w-10 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="space-y-2">
+                            <div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-3 w-36 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-5"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-5"><div class="h-7 w-28 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-5"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-5"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-5"><div class="h-7 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                    </tr>
+                  }
+                } @else if (visibleUsers().length === 0) {
                   <tr>
                     <td colspan="6" class="px-8 py-12 text-center text-[14px] font-medium text-[#8E9199]">
                       No users match the current filters.
@@ -431,12 +478,15 @@ export class AdminUsersPageComponent {
   readonly users = signal<AdminUser[]>([]);
   readonly totalResults = signal(0);
   readonly currentPage = signal(1);
+  readonly isLoading = signal(true);
   readonly counts = signal({ all: 0, active: 0, suspended: 0 });
   readonly activeSummary = signal<'all' | UserStatusFilter>('all');
   readonly categoryFilter = signal<AdminUsersCategoryFilter>('all');
   readonly storeFilter = signal<AdminUsersStoreFilter>('all');
   readonly statusFilter = signal<'all' | UserStatusFilter>('all');
   readonly searchQuery = signal('');
+  readonly mobileSkeletonCards = Array.from({ length: 4 });
+  readonly tableSkeletonRows = Array.from({ length: 5 });
 
   readonly summaryCards = computed(() => [
     { id: 'all' as const, label: 'All', value: this.formatCount(this.counts().all) },
@@ -467,9 +517,12 @@ export class AdminUsersPageComponent {
   constructor() {
     toObservable(this.requestQuery)
       .pipe(
+        tap(() => this.isLoading.set(true)),
         debounceTime(150),
         distinctUntilChanged((previous, current) => JSON.stringify(previous) === JSON.stringify(current)),
-        switchMap((query) => this.adminUsersService.getUsers(query)),
+        switchMap((query) =>
+          this.adminUsersService.getUsers(query).pipe(finalize(() => this.isLoading.set(false))),
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((response) => {

@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize, switchMap, tap } from 'rxjs';
 import {
   heroArrowLeft,
   heroChevronLeft,
@@ -150,7 +150,33 @@ interface ListingReportRecord {
                 </thead>
 
                 <tbody>
-                  @for (record of paginatedSellerReports(); track record.id) {
+                  @if (isLoading()) {
+                    @for (_ of tableSkeletonRows; track $index) {
+                      <tr class="border-b border-[#efefef]">
+                        <td class="px-4 py-5 align-top">
+                          <div class="flex animate-pulse items-center gap-3">
+                            <div class="h-10 w-10 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="space-y-2">
+                              <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                              <div class="h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-5 align-top">
+                          <div class="flex animate-pulse items-center gap-3">
+                            <div class="h-10 w-10 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="space-y-2">
+                              <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                              <div class="h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-5"><div class="h-4 w-40 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-5"><div class="h-4 w-full rounded-full bg-[#EEF2FF]"></div></td>
+                      </tr>
+                    }
+                  } @else {
+                    @for (record of paginatedSellerReports(); track record.id) {
                     <tr
                       class="cursor-pointer border-b border-[#efefef] transition-colors hover:bg-[#fcfcfc] last:border-b-0"
                       (click)="openSellerReportDetails(record)"
@@ -212,12 +238,39 @@ interface ListingReportRecord {
                       </td>
                     </tr>
                   }
+                  }
                 </tbody>
                 </table>
               </div>
 
               <div class="lg:hidden">
-                @for (record of paginatedSellerReports(); track record.id) {
+                @if (isLoading()) {
+                  @for (_ of mobileSkeletonCards; track $index) {
+                    <div class="border-b border-[#ebebeb] py-3 last:border-b-0">
+                      <div class="animate-pulse">
+                        <div class="flex items-center gap-2">
+                          <div class="h-[42px] w-[42px] rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-32 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                          <div class="flex items-center justify-between gap-4">
+                            <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                          <div class="flex items-center justify-between gap-4">
+                            <div class="h-3 w-14 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-4 w-20 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                          <div class="flex items-start justify-between gap-4">
+                            <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-10 w-32 rounded-[12px] bg-[#EEF2FF]"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  @for (record of paginatedSellerReports(); track record.id) {
                   <button
                     type="button"
                     class="block w-full border-b border-[#ebebeb] py-3 text-left last:border-b-0"
@@ -277,6 +330,7 @@ interface ListingReportRecord {
                     </dl>
                   </button>
                 }
+                }
               </div>
             } @else {
               <div class="hidden overflow-x-auto lg:block">
@@ -291,7 +345,38 @@ interface ListingReportRecord {
                 </thead>
 
                 <tbody>
-                  @for (record of paginatedListingReports(); track record.id) {
+                  @if (isLoading()) {
+                    @for (_ of tableSkeletonRows; track $index) {
+                      <tr class="border-b border-[#efefef]">
+                        <td class="px-4 py-5 align-top">
+                          <div class="flex animate-pulse items-center gap-3">
+                            <div class="h-12 w-12 rounded-[12px] bg-[#EEF2FF]"></div>
+                            <div class="h-4 w-32 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-5 align-top">
+                          <div class="flex animate-pulse items-center gap-3">
+                            <div class="h-10 w-10 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="space-y-2">
+                              <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                              <div class="h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-5 align-top">
+                          <div class="flex animate-pulse items-center gap-3">
+                            <div class="h-10 w-10 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="space-y-2">
+                              <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                              <div class="h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-5"><div class="h-4 w-full rounded-full bg-[#EEF2FF]"></div></td>
+                      </tr>
+                    }
+                  } @else {
+                    @for (record of paginatedListingReports(); track record.id) {
                     <tr
                       class="cursor-pointer border-b border-[#efefef] transition-colors hover:bg-[#fcfcfc] last:border-b-0"
                       (click)="openListingReportDetails(record)"
@@ -373,12 +458,39 @@ interface ListingReportRecord {
                       </td>
                     </tr>
                   }
+                  }
                 </tbody>
                 </table>
               </div>
 
               <div class="lg:hidden">
-                @for (record of paginatedListingReports(); track record.id) {
+                @if (isLoading()) {
+                  @for (_ of mobileSkeletonCards; track $index) {
+                    <div class="border-b border-[#ebebeb] py-3 text-left last:border-b-0">
+                      <div class="animate-pulse">
+                        <div class="flex items-center gap-2">
+                          <div class="h-10 w-10 rounded-[6px] bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-32 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                          <div class="flex items-center justify-between gap-4">
+                            <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                          <div class="flex items-center justify-between gap-4">
+                            <div class="h-3 w-12 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                          <div class="flex items-start justify-between gap-4">
+                            <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-10 w-32 rounded-[12px] bg-[#EEF2FF]"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  @for (record of paginatedListingReports(); track record.id) {
                   <button
                     type="button"
                     class="block w-full border-b border-[#ebebeb] py-3 text-left last:border-b-0"
@@ -454,6 +566,7 @@ interface ListingReportRecord {
                     </dl>
                   </button>
                 }
+                }
               </div>
             }
           </section>
@@ -525,10 +638,13 @@ export class AdminReportsPageComponent {
   readonly sellerReports = signal<SellerReportRecord[]>([]);
   readonly listingReports = signal<ListingReportRecord[]>([]);
   readonly totalResults = signal(0);
+  readonly isLoading = signal(true);
   readonly hasNextPage = signal(false);
   readonly hasPreviousPage = signal(false);
   readonly sellerReportsCount = signal(0);
   readonly listingReportsCount = signal(0);
+  readonly mobileSkeletonCards = Array.from({ length: 4 });
+  readonly tableSkeletonRows = Array.from({ length: 5 });
 
   readonly visibleResultsCount = computed(() =>
     this.activeTab() === 'reported sellers'
@@ -560,13 +676,16 @@ export class AdminReportsPageComponent {
   constructor() {
     toObservable(this.reportsQuery)
       .pipe(
+        tap(() => this.isLoading.set(true)),
         debounceTime(150),
         distinctUntilChanged((previous, current) =>
           previous.type === current.type
           && previous.page === current.page
           && previous.search === current.search
         ),
-        switchMap((query) => this.adminReportsService.getReports(query)),
+        switchMap((query) =>
+          this.adminReportsService.getReports(query).pipe(finalize(() => this.isLoading.set(false))),
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((response) => {

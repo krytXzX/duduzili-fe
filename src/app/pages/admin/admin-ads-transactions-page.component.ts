@@ -116,7 +116,43 @@ interface AdsTransactionRecord {
           </div>
 
           <div class="mt-6">
-            @for (record of paginatedTransactions(); track record.id) {
+            @if (isLoading()) {
+              @for (_ of mobileSkeletonCards; track $index) {
+                <article class="border-b border-[#ebebeb] py-3">
+                  <div class="animate-pulse">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="flex min-w-0 items-center gap-2">
+                        <div class="h-10 w-10 shrink-0 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="space-y-2">
+                          <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 space-y-2">
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="h-3 w-12 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                      </div>
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="h-3 w-24 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div>
+                      </div>
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="h-3 w-16 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="h-4 w-20 rounded-full bg-[#EEF2FF]"></div>
+                      </div>
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="h-3 w-12 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              }
+            } @else {
+              @for (record of paginatedTransactions(); track record.id) {
               <article class="border-b border-[#ebebeb] py-3">
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex min-w-0 items-center gap-2">
@@ -160,6 +196,7 @@ interface AdsTransactionRecord {
                   </div>
                 </div>
               </article>
+            }
             }
           </div>
         </section>
@@ -250,7 +287,26 @@ interface AdsTransactionRecord {
               </thead>
 
               <tbody>
-                @for (record of paginatedTransactions(); track record.id) {
+                @if (isLoading()) {
+                  @for (_ of tableSkeletonRows; track $index) {
+                    <tr class="border-b border-[#efefef] last:border-b-0">
+                      <td class="px-4 py-4"><div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4">
+                        <div class="flex animate-pulse items-center gap-3">
+                          <div class="h-9 w-9 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="space-y-2">
+                            <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-4"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-4 w-20 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                    </tr>
+                  }
+                } @else {
+                  @for (record of paginatedTransactions(); track record.id) {
                   <tr class="border-b border-[#efefef] last:border-b-0">
                     <td class="px-4 py-4 text-[15px] text-[#303030]">{{ record.transactionId }}</td>
 
@@ -277,6 +333,7 @@ interface AdsTransactionRecord {
                     <td class="px-4 py-4 text-[15px] font-medium text-[#303030]">{{ record.amount }}</td>
                     <td class="px-4 py-4 text-[15px] text-[#303030]">{{ record.date }}</td>
                   </tr>
+                }
                 }
               </tbody>
             </table>
@@ -338,6 +395,8 @@ export class AdminAdsTransactionsPageComponent {
   readonly currentPage = signal(1);
   readonly pageSize = 5;
   readonly isLoading = signal(true);
+  readonly mobileSkeletonCards = Array.from({ length: 4 });
+  readonly tableSkeletonRows = Array.from({ length: 5 });
   readonly totalResults = signal(0);
   readonly totalTransactions = signal(0);
   readonly totalAmount = signal(0);

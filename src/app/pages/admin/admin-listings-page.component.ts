@@ -2,7 +2,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, finalize, switchMap, tap } from 'rxjs/operators';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroChevronLeft,
@@ -101,7 +101,35 @@ interface AdminListingRecord {
         </div>
 
         <div class="mt-4 flex flex-col gap-0">
-          @if (mobileListings().length === 0) {
+          @if (isLoading()) {
+            @for (_ of mobileSkeletonCards; track $index) {
+              <article class="border-b border-[#EBEBEB] py-3">
+                <div class="animate-pulse">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex min-w-0 items-center gap-3">
+                      <div class="h-11 w-11 shrink-0 rounded-[6.6px] bg-[#EEF2FF]"></div>
+                      <div class="space-y-2">
+                        <div class="h-4 w-36 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                      </div>
+                    </div>
+                    <div class="h-6 w-20 rounded-lg bg-[#EEF2FF]"></div>
+                  </div>
+
+                  <div class="mt-4 space-y-3">
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="h-3 w-16 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            }
+          } @else if (mobileListings().length === 0) {
             <p class="py-8 text-[14px] font-medium text-[#8E9199]">No listings match the current filters.</p>
           } @else {
             @for (listing of mobileListings(); track listing.id) {
@@ -250,7 +278,28 @@ interface AdminListingRecord {
                 </tr>
               </thead>
               <tbody>
-                @if (desktopListings().length === 0) {
+                @if (isLoading()) {
+                  @for (_ of tableSkeletonRows; track $index) {
+                    <tr class="border-b border-[#F0F0F0]">
+                      <td class="px-4 py-3">
+                        <div class="flex animate-pulse items-center gap-2">
+                          <div class="h-10 w-10 rounded-[6px] bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-32 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-3"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-3">
+                        <div class="flex animate-pulse items-center gap-2">
+                          <div class="h-8 w-8 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3"><div class="h-6 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-3 text-right"><div class="ml-auto h-8 w-8 rounded-full bg-[#EEF2FF]"></div></td>
+                    </tr>
+                  }
+                } @else if (desktopListings().length === 0) {
                   <tr>
                     <td colspan="6" class="px-4 py-10 text-center text-[14px] font-medium text-[#8E9199]">
                       No listings match the current filters.
@@ -361,6 +410,7 @@ export class AdminListingsPageComponent {
   readonly listings = signal<AdminListingRecord[]>([]);
   readonly totalResults = signal(0);
   readonly currentPage = signal(1);
+  readonly isLoading = signal(true);
   readonly totalPages = signal(1);
   readonly hasNextPage = signal(false);
   readonly hasPreviousPage = signal(false);
@@ -412,6 +462,8 @@ export class AdminListingsPageComponent {
 
   readonly desktopListings = computed(() => this.listings());
   readonly mobileListings = computed(() => this.listings());
+  readonly mobileSkeletonCards = Array.from({ length: 4 });
+  readonly tableSkeletonRows = Array.from({ length: 5 });
 
   private readonly requestQuery = computed(() => ({
     page: this.currentPage(),
@@ -424,9 +476,12 @@ export class AdminListingsPageComponent {
   constructor() {
     toObservable(this.requestQuery)
       .pipe(
+        tap(() => this.isLoading.set(true)),
         debounceTime(150),
         distinctUntilChanged((previous, current) => JSON.stringify(previous) === JSON.stringify(current)),
-        switchMap((query) => this.adminListingsService.getListings(query)),
+        switchMap((query) =>
+          this.adminListingsService.getListings(query).pipe(finalize(() => this.isLoading.set(false))),
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((response) => {

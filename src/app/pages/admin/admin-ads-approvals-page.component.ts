@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { switchMap } from 'rxjs';
+import { finalize, switchMap, tap } from 'rxjs';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   heroCheckCircle,
@@ -144,7 +144,32 @@ interface ApprovalRecord {
         </div>
 
         <div class="mt-4">
-          @for (record of paginatedApprovals(); track record.id) {
+          @if (isLoading()) {
+            @for (_ of mobileSkeletonCards; track $index) {
+              <div class="w-full border-b border-[#ebebeb] py-3">
+                <div class="animate-pulse">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex min-w-0 items-center gap-2">
+                      <div class="h-[42px] w-[75px] shrink-0 rounded-[7px] bg-[#EEF2FF]"></div>
+                      <div class="h-4 w-32 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                    <div class="h-6 w-20 rounded-[8px] bg-[#EEF2FF]"></div>
+                  </div>
+                  <div class="mt-3 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          } @else {
+            @for (record of paginatedApprovals(); track record.id) {
             <button
               type="button"
               (click)="openRequestDetails(record)"
@@ -192,6 +217,7 @@ interface ApprovalRecord {
                 </div>
               </div>
             </button>
+          }
           }
         </div>
       </div>
@@ -285,7 +311,24 @@ interface ApprovalRecord {
               </thead>
 
               <tbody>
-                @for (record of paginatedApprovals(); track record.id) {
+                @if (isLoading()) {
+                  @for (_ of tableSkeletonRows; track $index) {
+                    <tr class="border-b border-[#efefef]">
+                      <td class="px-4 py-4"><div class="h-4 w-32 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-9 w-[72px] rounded-[8px] bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4">
+                        <div class="flex items-center gap-3">
+                          <div class="h-8 w-8 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-4"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-6 w-20 rounded-full bg-[#EEF2FF]"></div></td>
+                    </tr>
+                  }
+                } @else {
+                  @for (record of paginatedApprovals(); track record.id) {
                   <tr
                     class="cursor-pointer border-b border-[#efefef] transition-colors hover:bg-[#fcfcfc] last:border-b-0"
                     (click)="openRequestDetails(record)"
@@ -336,6 +379,7 @@ interface ApprovalRecord {
                       </span>
                     </td>
                   </tr>
+                }
                 }
               </tbody>
             </table>
@@ -429,11 +473,14 @@ export class AdminAdsApprovalsPageComponent {
   readonly declineRequestId = signal<string | null>(null);
   readonly approvals = signal<ApprovalRecord[]>([]);
   readonly totalResults = signal(0);
+  readonly isLoading = signal(true);
   readonly hasNextPage = signal(false);
   readonly hasPreviousPage = signal(false);
   readonly counts = signal({ all: 0, pending: 0, approved: 0, declined: 0 });
   readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalResults() / this.pageSize)));
   readonly paginatedApprovals = computed(() => this.approvals());
+  readonly mobileSkeletonCards = Array.from({ length: 4 });
+  readonly tableSkeletonRows = Array.from({ length: 5 });
 
   readonly storeFilterOptions = computed<readonly CustomDropdownOption<string>[]>(() => [
     { value: 'all', label: 'All stores' },
@@ -469,7 +516,10 @@ export class AdminAdsApprovalsPageComponent {
   constructor() {
     toObservable(this.query)
       .pipe(
-        switchMap((query) => this.approvalsService.getApprovals(query)),
+        tap(() => this.isLoading.set(true)),
+        switchMap((query) =>
+          this.approvalsService.getApprovals(query).pipe(finalize(() => this.isLoading.set(false))),
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
