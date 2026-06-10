@@ -47,7 +47,9 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 
                 <p class="max-w-[315px] text-[16px] leading-6 text-[#747474] md:max-w-none">
                   You have successfully created
-                  <span class="font-medium text-[#0d0d0d]"> {{ storeName() }}</span>
+                  <span class="font-medium text-[#0d0d0d]">
+                    {{ storeName() ? storeName() : 'your store' }}
+                  </span>
                 </p>
               </div>
             </div>
@@ -77,7 +79,7 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SuccessModalComponent implements OnDestroy {
-  readonly storeName = input('The Vine Collections');
+  readonly storeName = input<string | null>(null);
   readonly ok = output<void>();
   readonly addAnother = output<void>();
 

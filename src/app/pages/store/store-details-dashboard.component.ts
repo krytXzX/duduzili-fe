@@ -86,6 +86,91 @@ interface ReviewTagCount {
   },
   template: `
     <div class="min-h-full bg-white lg:bg-transparent">
+      @if (isLoading()) {
+        <section class="space-y-6 px-5 py-6 lg:px-4">
+          <div class="lg:hidden">
+            <div class="h-10 w-44 animate-pulse rounded-full bg-[#F3F4F6]"></div>
+            <div class="mt-6 overflow-hidden rounded-[24px] border border-[#ECEFF3] bg-white p-4">
+              <div class="h-[92px] animate-pulse rounded-[18px] bg-[#EEF1F5]"></div>
+              <div class="-mt-10 flex items-end justify-between px-3">
+                <div class="flex items-end gap-3">
+                  <div class="h-[74px] w-[74px] animate-pulse rounded-full bg-[#E7EBF0]"></div>
+                  <div class="space-y-3 pb-1">
+                    <div class="h-5 w-36 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                    <div class="h-4 w-28 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <div class="h-9 w-9 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                  <div class="h-9 w-24 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                </div>
+              </div>
+              <div class="mt-6 grid grid-cols-2 gap-3">
+                @for (placeholder of loadingPlaceholders; track placeholder) {
+                  <div class="space-y-2 rounded-2xl bg-[#FAFAFB] p-4">
+                    <div class="h-3 w-20 animate-pulse rounded-full bg-[#E9ECF2]"></div>
+                    <div class="h-5 w-14 animate-pulse rounded-full bg-[#E9ECF2]"></div>
+                  </div>
+                }
+              </div>
+              <div class="mt-6 space-y-3">
+                <div class="h-10 w-full animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                <div class="grid grid-cols-2 gap-3">
+                  @for (placeholder of loadingPlaceholders; track placeholder) {
+                    <div class="h-[220px] animate-pulse rounded-[20px] bg-[#F2F4F7]"></div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hidden lg:block">
+            <div class="h-5 w-48 animate-pulse rounded-full bg-[#F3F4F6]"></div>
+            <div class="mt-5 overflow-hidden rounded-[24px] border border-[#ECEFF3] bg-white">
+              <div class="h-[197px] animate-pulse bg-[#EEF1F5]"></div>
+              <div class="px-9 py-6">
+                <div class="flex items-end justify-between">
+                  <div class="flex items-end gap-4">
+                    <div class="h-[97px] w-[97px] animate-pulse rounded-full bg-[#E7EBF0]"></div>
+                    <div class="space-y-3 pb-2">
+                      <div class="h-6 w-56 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                      <div class="h-4 w-36 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                    </div>
+                  </div>
+                  <div class="flex gap-3 pt-8">
+                    <div class="h-10 w-36 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                    <div class="h-10 w-28 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                    <div class="h-10 w-10 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                  </div>
+                </div>
+
+                <div class="mt-6 grid grid-cols-4 gap-4">
+                  @for (placeholder of loadingPlaceholders; track placeholder) {
+                    <div class="space-y-2 rounded-[20px] bg-[#FAFAFB] p-4">
+                      <div class="h-3 w-20 animate-pulse rounded-full bg-[#E9ECF2]"></div>
+                      <div class="h-6 w-16 animate-pulse rounded-full bg-[#E9ECF2]"></div>
+                    </div>
+                  }
+                </div>
+
+                <div class="mt-8 h-20 w-full animate-pulse rounded-[20px] bg-[#F2F4F7]"></div>
+                <div class="mt-8 space-y-6">
+                  @for (placeholder of loadingPlaceholders; track placeholder) {
+                    <div class="space-y-4">
+                      <div class="h-5 w-56 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                      <div class="grid grid-cols-5 gap-4">
+                        @for (card of loadingPlaceholders; track card) {
+                          <div class="h-[320px] animate-pulse rounded-[24px] bg-[#F2F4F7]"></div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      } @else {
       @if (store(); as s) {
         <section class="px-5 pb-12 pt-2 lg:hidden">
           <div class="flex items-center gap-3">
@@ -932,249 +1017,12 @@ export class StoreDetailsDashboardComponent {
   readonly showAddListingModal = signal(false);
   readonly showPromoteStoreModal = signal(false);
 
-  readonly store = signal<StoreProfile>({
-    id: '1',
-    name: 'The Vine Collections',
-    logo: '/assets/images/store-filled-logo-desktop.png',
-    mobileLogo: '/assets/images/store-filled-logo-mobile.png',
-    banner: '/assets/images/store-filled-banner-desktop.png',
-    mobileBanner: '/assets/images/store-filled-banner-mobile.png',
-    isVerified: true,
-    products: '1,456',
-    followers: '2.5k',
-    rating: '4.8',
-    dateCreated: '16 Feb, 2024',
-    dateJoined: '16 Feb, 2024',
-    promoted: true,
-    location: 'Ikeja, Lagos',
-    description: 'Premium gadgets, fashion finds, and curated essentials delivered with care.',
-    whatsappNumber: '0816 939 7444',
-    callNumber: '0816 939 7444',
-    alternateCallNumber: '0701 234 5678',
-  });
-
-  readonly desktopSections = signal<ProductSection[]>([
-    {
-      id: 'Phones & Laptops',
-      title: 'Phones & Laptops',
-      viewAllLabel: 'View all (3,341)',
-      items: [
-        {
-          id: 'd-1',
-          title: 'Iphone 17 pro max',
-          image: '/assets/images/store-filled-item-01.png',
-          price: '₦2,500,000',
-          location: 'Ikeja, Lagos',
-          showCarousel: true,
-        },
-        {
-          id: 'd-2',
-          title: 'Logitech ergonomic mouse',
-          image: '/assets/images/store-filled-item-02.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-        },
-        {
-          id: 'd-3',
-          title: 'RGB keyboard',
-          image: '/assets/images/store-filled-item-03.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-        },
-        {
-          id: 'd-4',
-          title: 'Iphone X (64 gig)',
-          image: '/assets/images/store-filled-item-04.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          condition: 'Used',
-          isVerified: true,
-          discount: '-22%',
-          originalPrice: '₦35,000',
-        },
-        {
-          id: 'd-5',
-          title: 'Ergonomic chair',
-          image: '/assets/images/store-filled-item-05.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          condition: 'New',
-        },
-      ],
-    },
-    {
-      id: 'Men',
-      title: 'Men',
-      viewAllLabel: 'View all (3,341)',
-      items: [
-        {
-          id: 'd-6',
-          title: 'Corporate shirt',
-          image: '/assets/images/store-filled-item-06.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-        },
-        {
-          id: 'd-7',
-          title: 'Mclaren sports car',
-          image: '/assets/images/store-filled-item-07.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-        },
-        {
-          id: 'd-8',
-          title: 'Nike sneaker',
-          image: '/assets/images/store-filled-item-08.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          isVerified: true,
-        },
-        {
-          id: 'd-9',
-          title: 'Sauvage perfume',
-          image: '/assets/images/store-filled-item-09.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-        },
-        {
-          id: 'd-10',
-          title: 'Luxury wrist watch',
-          image: '/assets/images/store-filled-item-10.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-        },
-      ],
-    },
-  ]);
-
-  readonly mobileSections = signal<ProductSection[]>([
-    {
-      id: 'Phones & Laptops',
-      title: 'Phones & Laptops',
-      viewAllLabel: 'View all (3,341)',
-      items: [
-        {
-          id: 'm-1',
-          title: 'Nike sneaker',
-          image: '/assets/images/store-filled-item-08.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          condition: 'Used',
-          isVerified: true,
-        },
-        {
-          id: 'm-2',
-          title: 'Bone straight wig',
-          image: '/assets/images/store-filled-item-11.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          condition: 'Used',
-          showCarousel: true,
-        },
-        {
-          id: 'm-3',
-          title: 'Iphone X (64 gig)',
-          image: '/assets/images/store-filled-item-04.png',
-          price: '₦35,000',
-          originalPrice: '₦35,000',
-          location: 'Ikeja, Lagos',
-          condition: 'Used',
-          isVerified: true,
-          discount: '-22%',
-        },
-        {
-          id: 'm-4',
-          title: 'Ergonomic chair',
-          image: '/assets/images/store-filled-item-05.png',
-          price: 'Free',
-          location: 'Ikeja, Lagos',
-          condition: 'New',
-          isVerified: true,
-        },
-      ],
-    },
-    {
-      id: 'Men',
-      title: 'Men',
-      viewAllLabel: 'View all (3,341)',
-      items: [
-        {
-          id: 'm-5',
-          title: 'Nike sneaker',
-          image: '/assets/images/store-filled-item-08.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          condition: 'Used',
-          isVerified: true,
-        },
-        {
-          id: 'm-6',
-          title: 'Bone straight wig',
-          image: '/assets/images/store-filled-item-11.png',
-          price: '₦35,000',
-          location: 'Ikeja, Lagos',
-          condition: 'Used',
-          showCarousel: true,
-        },
-        {
-          id: 'm-7',
-          title: 'Iphone X (64 gig)',
-          image: '/assets/images/store-filled-item-04.png',
-          price: '₦35,000',
-          originalPrice: '₦35,000',
-          location: 'Ikeja, Lagos',
-          condition: 'Used',
-          isVerified: true,
-          discount: '-22%',
-        },
-        {
-          id: 'm-8',
-          title: 'Ergonomic chair',
-          image: '/assets/images/store-filled-item-05.png',
-          price: 'Free',
-          location: 'Ikeja, Lagos',
-          condition: 'New',
-          isVerified: true,
-        },
-      ],
-    },
-  ]);
-
-  readonly reviews = signal<StoreReviewCardData[]>([
-    {
-      author: 'Mary Jane',
-      avatar: '/assets/images/store-reviews-avatar-mary.jpg',
-      rating: 5,
-      text: 'Contacted the seller. Went to their office to purchase the item and their hospitality was okay. Truly reliable. And he’s a funny man 😂',
-      desktopDate: 'August 14, 2025',
-      mobileDate: 'August 2025',
-    },
-    {
-      author: 'Apeli Obubra',
-      avatar: '/assets/images/store-reviews-avatar-apeli.jpg',
-      rating: 3,
-      text: 'Straightforward guy! easy transaction great goods',
-      desktopDate: 'August 14, 2025',
-      mobileDate: 'August 2025',
-    },
-    {
-      author: 'Ibiso Amiesimaka',
-      avatar: '/assets/images/store-reviews-avatar-ibiso.png',
-      rating: 4,
-      text: 'infact it was amazing if everyone is like this Nigeria will be better than this i advice everybody that wants to by laptop should call this man',
-      desktopDate: 'August 14, 2025',
-      mobileDate: 'August 2025',
-      galleryOverflowCount: 6,
-      galleryImages: [
-        '/assets/images/store-reviews-gallery-1.png',
-        '/assets/images/store-reviews-gallery-2.png',
-        '/assets/images/store-reviews-gallery-3.png',
-        '/assets/images/store-reviews-gallery-4.png',
-        '/assets/images/store-reviews-gallery-5.png',
-        '/assets/images/store-reviews-gallery-6.png',
-      ],
-    },
-  ]);
+  readonly store = signal<StoreProfile | null>(null);
+  readonly desktopSections = signal<ProductSection[]>([]);
+  readonly mobileSections = signal<ProductSection[]>([]);
+  readonly reviews = signal<StoreReviewCardData[]>([]);
+  readonly isLoading = signal(true);
+  readonly loadingPlaceholders = [1, 2, 3, 4] as const;
   readonly reviewRecords = signal<readonly VendorReviewRecord[]>([]);
   readonly chips = computed(() => [
     'All',
