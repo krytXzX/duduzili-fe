@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { switchMap } from 'rxjs';
+import { finalize, switchMap, tap } from 'rxjs';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import {
   AdminRunningAdsCounts,
@@ -150,7 +150,32 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
           </div>
 
           <div class="mt-5 space-y-3">
-            @for (record of paginatedAds(); track record.id) {
+            @if (isLoading()) {
+              @for (_ of mobileSkeletonCards; track $index) {
+                <article class="rounded-[14px] border border-[#e9e9e9] bg-white p-3">
+                  <div class="animate-pulse">
+                    <div class="flex items-start gap-3">
+                      <div class="h-11 w-11 shrink-0 rounded-[10px] bg-[#EEF2FF]"></div>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-start justify-between gap-2">
+                          <div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-6 w-20 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                        <div class="mt-2 flex gap-2">
+                          <div class="h-3 w-10 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-3 w-10 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-3 w-10 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-3 w-10 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                        <div class="mt-2 h-3 w-32 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="mt-2 h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              }
+            } @else {
+              @for (record of paginatedAds(); track record.id) {
               <article class="rounded-[14px] border border-[#e9e9e9] bg-white p-3">
                 <div class="flex items-start gap-3">
                   <div class="h-11 w-11 shrink-0 overflow-hidden rounded-[10px] bg-[#f3f3f3]">
@@ -213,6 +238,7 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                 </div>
               </article>
             }
+            }
           </div>
         } @else if (activeCategory() === 'store promotions') {
           <div class="mt-4 flex items-center gap-2">
@@ -237,7 +263,39 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
           </div>
 
           <div class="mt-4">
-            @for (record of paginatedAds(); track record.id) {
+            @if (isLoading()) {
+              @for (_ of mobileSkeletonCards; track $index) {
+                <article class="border-b border-[#ebebeb] py-3">
+                  <div class="animate-pulse">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="flex min-w-0 items-center gap-3">
+                        <div class="h-11 w-11 shrink-0 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="space-y-2">
+                          <div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="flex gap-2">
+                            <div class="h-3 w-10 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-3 w-10 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-3 w-10 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="h-6 w-20 rounded-[8px] bg-[#EEF2FF]"></div>
+                    </div>
+                    <div class="mt-3 space-y-2">
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="h-3 w-12 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                      </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                        <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              }
+            } @else {
+              @for (record of paginatedAds(); track record.id) {
               <article class="border-b border-[#ebebeb] py-3">
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex min-w-0 items-center gap-3">
@@ -318,10 +376,24 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                 </div>
               </article>
             }
+            }
           </div>
         } @else if (activeCategory() === 'banner ads') {
           <div class="mt-4 space-y-4">
-            @for (record of paginatedAds(); track record.id; let index = $index) {
+            @if (isLoading()) {
+              @for (_ of bannerSkeletonCards; track $index) {
+                <article class="overflow-hidden rounded-[21px] border border-[#eaeaea] bg-white p-[3px]">
+                  <div class="animate-pulse">
+                    <div class="h-[193px] rounded-[20px] bg-[#EEF2FF]"></div>
+                    <div class="flex gap-3 px-4 py-2">
+                      <div class="h-3 w-12 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-3 w-12 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                  </div>
+                </article>
+              }
+            } @else {
+              @for (record of paginatedAds(); track record.id; let index = $index) {
               <article class="overflow-hidden rounded-[21px] border border-[#eaeaea] bg-white p-[3px]">
                 <div class="relative h-[193px] overflow-hidden rounded-[20px]">
                   <img
@@ -355,6 +427,7 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                   </span>
                 </div>
               </article>
+            }
             }
           </div>
         }
@@ -400,7 +473,20 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
         @if (activeCategory() === 'banner ads') {
           <section class="mt-8">
             <div class="grid gap-5 xl:grid-cols-2">
-              @for (record of paginatedAds(); track record.id) {
+              @if (isLoading()) {
+                @for (_ of bannerSkeletonCards; track $index) {
+                  <article class="overflow-hidden rounded-[20px] border border-[#e9e9e9] bg-white">
+                    <div class="p-1.5">
+                      <div class="h-[228px] rounded-[22px] bg-[#EEF2FF]"></div>
+                    </div>
+                    <div class="flex gap-4 px-4 pb-4">
+                      <div class="h-3 w-12 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-3 w-12 rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                  </article>
+                }
+              } @else {
+                @for (record of paginatedAds(); track record.id) {
                 <article class="overflow-hidden rounded-[20px] border border-[#e9e9e9] bg-white">
                   <div class="p-1.5">
                     <div class="relative h-[228px] overflow-hidden rounded-[22px]">
@@ -434,6 +520,7 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                     </span>
                   </div>
                 </article>
+              }
               }
             </div>
           </section>
@@ -500,7 +587,33 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                 </thead>
 
                 <tbody>
-                  @for (record of paginatedAds(); track record.id) {
+                  @if (isLoading()) {
+                    @for (_ of tableSkeletonRows; track $index) {
+                      <tr class="border-b border-[#efefef] last:border-b-0">
+                        <td class="px-4 py-4">
+                          <div class="flex animate-pulse items-center gap-3">
+                            <div class="h-10 w-10 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="space-y-2">
+                              <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                              <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-4">
+                          <div class="flex animate-pulse items-center gap-3">
+                            <div class="h-8 w-8 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-4"><div class="h-4 w-10 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 w-12 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 w-12 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 w-20 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-4"><div class="h-6 w-20 rounded-full bg-[#EEF2FF]"></div></td>
+                      </tr>
+                    }
+                  } @else {
+                    @for (record of paginatedAds(); track record.id) {
                     <tr class="border-b border-[#efefef] last:border-b-0">
                       <td class="px-4 py-4">
                         <div class="flex items-center gap-3">
@@ -552,6 +665,7 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                       </td>
                     </tr>
                   }
+                  }
                 </tbody>
               </table>
             } @else {
@@ -570,7 +684,31 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
               </thead>
 
               <tbody>
-                @for (record of paginatedAds(); track record.id) {
+                @if (isLoading()) {
+                  @for (_ of tableSkeletonRows; track $index) {
+                    <tr class="border-b border-[#efefef] last:border-b-0">
+                      <td class="px-4 py-4">
+                        <div class="flex animate-pulse items-center gap-3">
+                          <div class="h-10 w-10 rounded-[10px] bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-4">
+                        <div class="flex animate-pulse items-center gap-3">
+                          <div class="h-8 w-8 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-4"><div class="h-4 w-10 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-4 w-10 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-4 w-12 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-4 w-10 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-4 w-20 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-6 w-20 rounded-full bg-[#EEF2FF]"></div></td>
+                    </tr>
+                  }
+                } @else {
+                  @for (record of paginatedAds(); track record.id) {
                   <tr class="border-b border-[#efefef] last:border-b-0">
                     <td class="px-4 py-4">
                       <div class="flex items-center gap-3">
@@ -619,6 +757,7 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                       </span>
                     </td>
                   </tr>
+                }
                 }
               </tbody>
               </table>
@@ -708,6 +847,9 @@ export class AdminRunningAdsPageComponent {
   readonly pageSize = 5;
   readonly counts = signal<AdminRunningAdsCounts>(EMPTY_COUNTS);
   readonly runningAds = signal<RunningAdsRecord[]>([]);
+  readonly mobileSkeletonCards = Array.from({ length: 4 });
+  readonly tableSkeletonRows = Array.from({ length: 5 });
+  readonly bannerSkeletonCards = Array.from({ length: 4 });
   readonly statusDropdownOptions: readonly CustomDropdownOption<'all' | AdStatus>[] = [
     { value: 'all', label: 'All statuses' },
     { value: 'active', label: 'Active' },
@@ -770,11 +912,15 @@ export class AdminRunningAdsPageComponent {
   constructor() {
     toObservable(this.query)
       .pipe(
-        switchMap((query) => {
+        tap(() => {
           this.isLoading.set(true);
           this.loadFailed.set(false);
-          return this.adminRunningAdsService.getRunningAds(query);
         }),
+        switchMap((query) =>
+          this.adminRunningAdsService
+            .getRunningAds(query)
+            .pipe(finalize(() => this.isLoading.set(false))),
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
@@ -784,14 +930,12 @@ export class AdminRunningAdsPageComponent {
           this.totalResults.set(response.count);
           this.hasNextPage.set(Boolean(response.next));
           this.hasPreviousPage.set(Boolean(response.previous));
-          this.isLoading.set(false);
         },
         error: () => {
           this.runningAds.set([]);
           this.totalResults.set(0);
           this.hasNextPage.set(false);
           this.hasPreviousPage.set(false);
-          this.isLoading.set(false);
           this.loadFailed.set(true);
         },
       });

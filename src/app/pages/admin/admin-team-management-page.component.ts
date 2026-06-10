@@ -53,7 +53,7 @@ import {
   CreateAdminRolePayload,
 } from '../../services/admin-team-management.service';
 import { AppToastService } from '../../services/app-toast.service';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 
 type TeamManagementTab = 'users' | 'roles';
 type TeamMemberStatus = 'active' | 'inactive' | 'pending activation';
@@ -193,7 +193,35 @@ interface TeamRoleRecord {
             </div>
 
             <div class="mt-4 flex flex-col">
-              @for (record of paginatedUsers(); track record.id) {
+              @if (isLoading()) {
+                @for (_ of mobileSkeletonCards; track $index) {
+                  <div class="w-full border-b border-[#EBEBEB] py-3">
+                    <div class="animate-pulse">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="flex min-w-0 items-center gap-2">
+                          <div class="h-9 w-9 shrink-0 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="space-y-2">
+                            <div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-3 w-32 rounded-full bg-[#EEF2FF]"></div>
+                          </div>
+                        </div>
+                        <div class="h-6 w-24 rounded-[8px] bg-[#EEF2FF]"></div>
+                      </div>
+                      <div class="mt-4 space-y-3">
+                        <div class="flex items-center justify-between gap-4">
+                          <div class="h-3 w-10 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-20 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                          <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              } @else {
+                @for (record of paginatedUsers(); track record.id) {
                 <button
                   type="button"
                   class="w-full border-b border-[#EBEBEB] py-3 text-left"
@@ -269,6 +297,7 @@ interface TeamRoleRecord {
                   </dl>
                 </button>
               }
+              }
             </div>
           </section>
         } @else {
@@ -298,7 +327,26 @@ interface TeamRoleRecord {
             </div>
 
             <div class="mt-4 flex flex-col">
-              @for (role of paginatedRoles(); track role.id) {
+              @if (isLoading()) {
+                @for (_ of mobileSkeletonCards; track $index) {
+                  <div class="w-full border-b border-[#EBEBEB] py-3">
+                    <div class="animate-pulse">
+                      <div class="h-5 w-32 rounded-full bg-[#EEF2FF]"></div>
+                      <div class="mt-4 space-y-3">
+                        <div class="flex items-center justify-between gap-4">
+                          <div class="h-3 w-12 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-12 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                          <div class="h-3 w-20 rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-12 rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              } @else {
+                @for (role of paginatedRoles(); track role.id) {
                 <button
                   type="button"
                   class="w-full border-b border-[#EBEBEB] py-3 text-left"
@@ -322,6 +370,7 @@ interface TeamRoleRecord {
                     </div>
                   </dl>
                 </button>
+              }
               }
             </div>
           </section>
@@ -418,7 +467,26 @@ interface TeamRoleRecord {
                 </thead>
 
                 <tbody>
-                  @for (record of paginatedUsers(); track record.id) {
+                  @if (isLoading()) {
+                    @for (_ of tableSkeletonRows; track $index) {
+                      <tr class="border-b border-[#efefef] last:border-b-0">
+                        <td class="px-4 py-4">
+                          <div class="flex animate-pulse items-center gap-3">
+                            <div class="h-10 w-10 rounded-full bg-[#EEF2FF]"></div>
+                            <div class="space-y-2">
+                              <div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div>
+                              <div class="h-3 w-28 rounded-full bg-[#EEF2FF]"></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-4"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-4"><div class="h-6 w-24 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-4 text-right"><div class="ml-auto h-8 w-8 rounded-full bg-[#EEF2FF]"></div></td>
+                      </tr>
+                    }
+                  } @else {
+                    @for (record of paginatedUsers(); track record.id) {
                     <tr
                       class="cursor-pointer border-b border-[#efefef] transition-colors hover:bg-[#fcfcfc] last:border-b-0"
                       (click)="openMemberDetails(record)"
@@ -488,6 +556,7 @@ interface TeamRoleRecord {
                         </button>
                       </td>
                     </tr>
+                  }
                   }
                 </tbody>
               </table>
@@ -571,7 +640,17 @@ interface TeamRoleRecord {
                 </thead>
 
                 <tbody>
-                  @for (role of paginatedRoles(); track role.id) {
+                  @if (isLoading()) {
+                    @for (_ of tableSkeletonRows; track $index) {
+                      <tr class="border-b border-[#efefef] last:border-b-0">
+                        <td class="px-4 py-5"><div class="h-4 w-28 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-5"><div class="h-4 w-full rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-5"><div class="h-4 w-12 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-5"><div class="h-4 w-12 rounded-full bg-[#EEF2FF]"></div></td>
+                      </tr>
+                    }
+                  } @else {
+                    @for (role of paginatedRoles(); track role.id) {
                     <tr
                       class="cursor-pointer border-b border-[#efefef] transition-colors hover:bg-[#fcfcfc] last:border-b-0"
                       (click)="openRoleDetails(role)"
@@ -587,6 +666,7 @@ interface TeamRoleRecord {
                       <td class="px-4 py-5 text-[15px] text-[#303030]">{{ role.users }}</td>
                       <td class="px-4 py-5 text-[15px] text-[#303030]">{{ role.permissions }}</td>
                     </tr>
+                  }
                   }
                 </tbody>
               </table>
@@ -725,6 +805,7 @@ export class AdminTeamManagementPageComponent {
   readonly activateMemberId = signal<string | null>(null);
   readonly deactivateMemberId = signal<string | null>(null);
   readonly deleteMemberId = signal<string | null>(null);
+  readonly isLoading = signal(true);
   readonly teamRoles = signal<TeamRoleRecord[]>([]);
   readonly teamMembers = signal<TeamMemberRecord[]>([]);
   readonly totalResults = signal({ users: 0, roles: 0 });
@@ -738,6 +819,8 @@ export class AdminTeamManagementPageComponent {
   readonly addUserRoles = this.availableRoles;
   readonly paginatedUsers = computed(() => this.teamMembers());
   readonly paginatedRoles = computed(() => this.teamRoles());
+  readonly mobileSkeletonCards = Array.from({ length: 4 });
+  readonly tableSkeletonRows = Array.from({ length: 5 });
   readonly totalPages = computed(() => {
     const count =
       this.activeTab() === 'users' ? this.totalResults().users : this.totalResults().roles;
@@ -753,6 +836,7 @@ export class AdminTeamManagementPageComponent {
   constructor() {
     toObservable(this.requestQuery)
       .pipe(
+        tap(() => this.isLoading.set(true)),
         debounceTime(150),
         distinctUntilChanged(
           (previous, current) => JSON.stringify(previous) === JSON.stringify(current),
@@ -765,6 +849,7 @@ export class AdminTeamManagementPageComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((response) => {
+        this.isLoading.set(false);
         if (this.activeTab() === 'users') {
           this.teamMembers.set(
             response.results.map((member) => this.mapTeamMember(member as AdminTeamMemberRecord)),
