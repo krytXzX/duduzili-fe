@@ -21,7 +21,6 @@ import {
   type SellerCallbackRecord,
   type SellerCallbacksResponse,
 } from '../../../services/seller-requests.service';
-import { AppModeService } from '../../../services/app-mode.service';
 
 type CallbackStoreFilter = 'all' | string;
 type CallbackDateFilter = 'newest' | 'oldest';
@@ -645,7 +644,6 @@ interface CallbackRecord {
 export class CallbacksPageComponent implements OnDestroy {
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly sellerRequestsService = inject(SellerRequestsService);
-  private readonly appMode = inject(AppModeService);
 
   readonly searchTerm = signal('');
   readonly selectedRequest = signal<CallbackRecord | null>(null);
@@ -668,70 +666,8 @@ export class CallbacksPageComponent implements OnDestroy {
     { value: 'oldest', label: 'Date requested: Oldest first' },
   ] as const;
 
-  readonly callbacks = signal<readonly CallbackRecord[]>([
-    {
-      id: '1',
-      buyerName: 'Halima Bala',
-      buyerAvatar: '/assets/images/offers-buyer-halima.png',
-      phoneNumber: '0816 939 7454',
-      listingName: 'Iphone 17 pro max',
-      listingImage: '/assets/images/offers-listing-iphone.png',
-      storeName: 'The Vine Collections',
-      storeImage: '/assets/icons/offers-store-vine.svg',
-      storeUsesContain: true,
-      dateRequested: '14 Feb, 2025',
-      dateRequestedAt: new Date('2025-02-14').getTime(),
-    },
-    {
-      id: '2',
-      buyerName: 'Joseph Olamide',
-      buyerAvatar: '/assets/images/offers-buyer-joseph.png',
-      phoneNumber: '0816 939 7454',
-      listingName: 'Logitech ergonomic mouse',
-      listingImage: '/assets/images/offers-listing-mouse.png',
-      storeName: 'Eden Organics',
-      storeImage: '/assets/images/offers-store-eden.png',
-      dateRequested: '14 Feb, 2025',
-      dateRequestedAt: new Date('2025-02-14').getTime(),
-    },
-    {
-      id: '3',
-      buyerName: 'Kelechi Oduah',
-      buyerAvatar: '/assets/images/offers-buyer-kelechi.png',
-      phoneNumber: '0816 939 7454',
-      listingName: 'Nike sneaker',
-      listingImage: '/assets/images/offers-listing-sneaker.png',
-      storeName: 'Amazing Fragrances',
-      storeImage: '/assets/images/offers-store-amazing.png',
-      dateRequested: '14 Feb, 2025',
-      dateRequestedAt: new Date('2025-02-14').getTime(),
-    },
-    {
-      id: '4',
-      buyerName: 'Timipre Izuokumo',
-      buyerAvatar: '/assets/images/offers-buyer-timipre.png',
-      phoneNumber: '0816 939 7454',
-      listingName: 'Bone straight wig',
-      listingImage: '/assets/images/offers-listing-wig.png',
-      storeName: 'Personal account',
-      storeImage: '/assets/images/offers-store-personal.png',
-      dateRequested: '14 Feb, 2025',
-      dateRequestedAt: new Date('2025-02-14').getTime(),
-    },
-    {
-      id: '5',
-      buyerName: 'Amina Yusuf',
-      buyerAvatar: '/assets/images/offers-buyer-halima.png',
-      phoneNumber: '0816 939 7454',
-      listingName: 'Iphone 17 pro max',
-      listingImage: '/assets/images/offers-listing-iphone.png',
-      storeName: 'The Vine Collections',
-      storeImage: '/assets/icons/offers-store-vine.svg',
-      storeUsesContain: true,
-      dateRequested: '14 Feb, 2025',
-      dateRequestedAt: new Date('2025-02-14').getTime(),
-    },
-  ]);
+  readonly callbacks = signal<readonly CallbackRecord[]>([]);
+  readonly isLoading = signal(false);
 
   readonly filteredCallbacks = computed(() => {
     const query = this.searchTerm().trim().toLowerCase();
@@ -777,9 +713,7 @@ export class CallbacksPageComponent implements OnDestroy {
   );
 
   constructor() {
-    if (this.appMode.isBackendEnabled()) {
-      void this.loadCallbacks();
-    }
+    void this.loadCallbacks();
   }
 
   protected updateSearch(event: Event): void {
@@ -832,6 +766,8 @@ export class CallbacksPageComponent implements OnDestroy {
   }
 
   private async loadCallbacksPage(page: number): Promise<void> {
+    this.isLoading.set(true);
+
     try {
       const response = await firstValueFrom(this.sellerRequestsService.getReceivedCallbacks(page));
       const items = this.extractCallbackRecords(response);
@@ -843,6 +779,8 @@ export class CallbacksPageComponent implements OnDestroy {
       this.currentPage.set(1);
       this.hasNextPage.set(false);
       this.hasPreviousPage.set(false);
+    } finally {
+      this.isLoading.set(false);
     }
   }
 

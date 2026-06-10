@@ -24,7 +24,6 @@ import {
   type SellerOfferRecord,
   type SellerOffersResponse,
 } from '../../../services/seller-requests.service';
-import { AppModeService } from '../../../services/app-mode.service';
 
 type OfferStoreFilter = 'all' | string;
 type OfferDateFilter = 'newest' | 'oldest';
@@ -686,7 +685,6 @@ export class OffersPageComponent implements OnDestroy {
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly messagesService = inject(MessagesService);
   private readonly sellerRequestsService = inject(SellerRequestsService);
-  private readonly appMode = inject(AppModeService);
   private readonly router = inject(Router);
   private readonly apiOrigin = this.resolveApiOrigin();
 
@@ -711,70 +709,8 @@ export class OffersPageComponent implements OnDestroy {
     { value: 'oldest', label: 'Date requested: Oldest first' },
   ] as const;
 
-  readonly offers = signal<readonly OfferRecord[]>([
-    {
-      id: '1',
-      buyerName: 'Halima Bala',
-      buyerAvatar: '/assets/images/offers-buyer-halima.png',
-      listingName: 'Iphone 17 pro max',
-      listingImage: '/assets/images/offers-listing-iphone.png',
-      storeName: 'The Vine Collections',
-      storeImage: '/assets/icons/offers-store-vine.svg',
-      storeUsesContain: true,
-      offerAmount: 2500000,
-      dateRequested: '14 Feb, 2025',
-      dateRequestedAt: new Date('2025-02-14').getTime(),
-    },
-    {
-      id: '2',
-      buyerName: 'Joseph Olamide',
-      buyerAvatar: '/assets/images/offers-buyer-joseph.png',
-      listingName: 'Logitech ergonomic mouse',
-      listingImage: '/assets/images/offers-listing-mouse.png',
-      storeName: 'Eden Organics',
-      storeImage: '/assets/images/offers-store-eden.png',
-      offerAmount: 2500000,
-      dateRequested: '14 Feb, 2025',
-      dateRequestedAt: new Date('2025-02-14').getTime(),
-    },
-    {
-      id: '3',
-      buyerName: 'Kelechi Oduah',
-      buyerAvatar: '/assets/images/offers-buyer-kelechi.png',
-      listingName: 'Nike sneaker',
-      listingImage: '/assets/images/offers-listing-sneaker.png',
-      storeName: 'Amazing Fragrances',
-      storeImage: '/assets/images/offers-store-amazing.png',
-      offerAmount: 2500000,
-      dateRequested: '14 Feb, 2025',
-      dateRequestedAt: new Date('2025-02-14').getTime(),
-    },
-    {
-      id: '4',
-      buyerName: 'Timipre Izuokumo',
-      buyerAvatar: '/assets/images/offers-buyer-timipre.png',
-      listingName: 'Bone straight wig',
-      listingImage: '/assets/images/offers-listing-wig.png',
-      storeName: 'Personal account',
-      storeImage: '/assets/images/offers-store-personal.png',
-      offerAmount: 2500000,
-      dateRequested: '14 Feb, 2025',
-      dateRequestedAt: new Date('2025-02-14').getTime(),
-    },
-    {
-      id: '5',
-      buyerName: 'Amina Yusuf',
-      buyerAvatar: '/assets/images/offers-buyer-halima.png',
-      listingName: 'Iphone 17 pro max',
-      listingImage: '/assets/images/offers-listing-iphone.png',
-      storeName: 'The Vine Collections',
-      storeImage: '/assets/icons/offers-store-vine.svg',
-      storeUsesContain: true,
-      offerAmount: 2500000,
-      dateRequested: '14 Feb, 2025',
-      dateRequestedAt: new Date('2025-02-14').getTime(),
-    },
-  ]);
+  readonly offers = signal<readonly OfferRecord[]>([]);
+  readonly isLoading = signal(false);
 
   readonly filteredOffers = computed(() => {
     const query = this.searchTerm().trim().toLowerCase();
@@ -818,9 +754,7 @@ export class OffersPageComponent implements OnDestroy {
   );
 
   constructor() {
-    if (this.appMode.isBackendEnabled()) {
-      void this.loadOffers();
-    }
+    void this.loadOffers();
   }
 
   protected updateSearch(event: Event): void {
@@ -927,6 +861,8 @@ export class OffersPageComponent implements OnDestroy {
   }
 
   private async loadOffersPage(page: number): Promise<void> {
+    this.isLoading.set(true);
+
     try {
       const response = await firstValueFrom(this.sellerRequestsService.getReceivedOffers(page));
       const items = this.extractOfferRecords(response);
@@ -938,6 +874,8 @@ export class OffersPageComponent implements OnDestroy {
       this.currentPage.set(1);
       this.hasNextPage.set(false);
       this.hasPreviousPage.set(false);
+    } finally {
+      this.isLoading.set(false);
     }
   }
 
