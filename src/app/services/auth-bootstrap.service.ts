@@ -4,22 +4,14 @@ import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
 import { AuthRefreshService } from './auth-refresh.service';
 import { AuthSessionService } from './auth-session.service';
-import { AppModeService } from './app-mode.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthBootstrapService {
   private readonly authService = inject(AuthService);
   private readonly authRefreshService = inject(AuthRefreshService);
   private readonly authSession = inject(AuthSessionService);
-  private readonly appMode = inject(AppModeService);
 
   async initialize(): Promise<void> {
-    if (!this.appMode.isBackendEnabled()) {
-      this.authSession.clearSession();
-      this.authSession.markBootstrapComplete();
-      return;
-    }
-
     try {
       const profileResponse = await firstValueFrom(this.authService.getProfile());
       this.authSession.initializeFromProfile(profileResponse);
