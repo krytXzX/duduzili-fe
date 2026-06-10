@@ -146,7 +146,7 @@ interface AdminUser {
             </div>
           }
         } @else if (visibleUsers().length === 0) {
-          <p class="py-8 text-[14px] font-medium text-[#8E9199]">No users match the current filters.</p>
+          <p class="py-8 text-[14px] font-medium text-[#8E9199]">No users match these filters right now.</p>
         } @else {
           @for (user of visibleUsers(); track user.id) {
             <button
@@ -333,7 +333,7 @@ interface AdminUser {
                 } @else if (visibleUsers().length === 0) {
                   <tr>
                     <td colspan="6" class="px-8 py-12 text-center text-[14px] font-medium text-[#8E9199]">
-                      No users match the current filters.
+                      No users match these filters right now.
                     </td>
                   </tr>
                 } @else {

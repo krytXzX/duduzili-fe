@@ -78,7 +78,7 @@ type EditorMode = 'create-parent' | 'create-subcategory' | 'edit' | null;
           @if (isLoading()) {
             <p class="py-6 text-[14px] text-[#777777]">Loading categories...</p>
           } @else if (categories().length === 0) {
-            <p class="py-6 text-[14px] text-[#777777]">No categories match your current search.</p>
+            <p class="py-6 text-[14px] text-[#777777]">No categories match that search yet. Try a different keyword.</p>
           } @else {
             @for (category of categories(); track category.id) {
               <article class="rounded-[20px] border border-[#EFEFEF] bg-white p-4">
@@ -187,7 +187,7 @@ type EditorMode = 'create-parent' | 'create-subcategory' | 'edit' | null;
         @if (isLoading()) {
           <p class="py-6 text-[14px] text-[#777777]">Loading categories...</p>
         } @else if (categories().length === 0) {
-          <p class="py-6 text-[14px] text-[#777777]">No categories match your current search.</p>
+          <p class="py-6 text-[14px] text-[#777777]">No categories match that search yet. Try a different keyword.</p>
         } @else {
           <div class="space-y-4">
             @for (category of categories(); track category.id) {

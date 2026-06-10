@@ -167,7 +167,7 @@ interface PaymentItem extends AdminHomePayment {
 
             <div class="mt-4 border-t border-[#E6E8EE] pt-4">
               @if (payments().length === 0) {
-                <p class="py-8 text-[14px] font-medium text-[#8E9199]">No subscription payments yet.</p>
+                <p class="py-8 text-[14px] font-medium text-[#8E9199]">Subscription payments will appear here once they come in.</p>
               } @else {
                 @for (payment of payments(); track payment.id) {
                   <button
@@ -208,7 +208,7 @@ interface PaymentItem extends AdminHomePayment {
 
             <div class="mt-4 border-t border-[#E6E8EE] pt-4">
               @if (activities().length === 0) {
-                <p class="py-8 text-[14px] font-medium text-[#8E9199]">No recent admin activities yet.</p>
+                <p class="py-8 text-[14px] font-medium text-[#8E9199]">Recent admin activity will appear here once actions start happening.</p>
               } @else {
                 <div class="flex items-center gap-3">
                   <span class="text-[12px] font-medium uppercase tracking-[0.08em] text-[#9AA0AA]">Today</span>

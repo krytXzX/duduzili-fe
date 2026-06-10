@@ -352,7 +352,7 @@ type ChatDay = {
                 </div>
               } @else if (!hasConversations()) {
                 <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#6C6C6C]">
-                  No chats yet.
+                  Your conversations will show up here once you start chatting.
                 </div>
               } @else {
                 <div class="space-y-1">
@@ -994,7 +994,7 @@ type ChatDay = {
               </div>
             } @else if (!hasConversations()) {
               <div class="flex min-h-[220px] items-center justify-center text-center text-[14px] text-[#6C6C6C]">
-                No chats yet.
+                Your conversations will show up here once you start chatting.
               </div>
             } @else {
               <div class="space-y-1">

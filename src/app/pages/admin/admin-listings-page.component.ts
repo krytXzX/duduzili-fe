@@ -130,7 +130,7 @@ interface AdminListingRecord {
               </article>
             }
           } @else if (mobileListings().length === 0) {
-            <p class="py-8 text-[14px] font-medium text-[#8E9199]">No listings match the current filters.</p>
+            <p class="py-8 text-[14px] font-medium text-[#8E9199]">No listings match these filters right now.</p>
           } @else {
             @for (listing of mobileListings(); track listing.id) {
               <article class="border-b border-[#EBEBEB] py-3" (click)="openListing(listing.id)">
@@ -302,7 +302,7 @@ interface AdminListingRecord {
                 } @else if (desktopListings().length === 0) {
                   <tr>
                     <td colspan="6" class="px-4 py-10 text-center text-[14px] font-medium text-[#8E9199]">
-                      No listings match the current filters.
+                      No listings match these filters right now.
                     </td>
                   </tr>
                 } @else {

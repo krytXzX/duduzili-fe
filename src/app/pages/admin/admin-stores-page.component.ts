@@ -67,7 +67,7 @@ type AdminStoreRecord = {
           @if (isLoading()) {
             <p class="py-6 text-[14px] text-[#777777]">Loading stores...</p>
           } @else if (visibleMobileStores().length === 0) {
-            <p class="py-6 text-[14px] text-[#777777]">No stores match your current search.</p>
+            <p class="py-6 text-[14px] text-[#777777]">No stores match that search yet. Try a different keyword.</p>
           } @else {
             @for (store of visibleMobileStores(); track store.id) {
               <article class="border-b border-[#EBEBEB] py-3" (click)="openStore(store.id)">
@@ -160,7 +160,7 @@ type AdminStoreRecord = {
                 </tr>
               } @else if (visibleDesktopStores().length === 0) {
                 <tr>
-                  <td colspan="6" class="px-4 py-6 text-[14px] text-[#777777]">No stores match your current filters.</td>
+                  <td colspan="6" class="px-4 py-6 text-[14px] text-[#777777]">No stores match these filters right now.</td>
                 </tr>
               } @else {
                 @for (store of visibleDesktopStores(); track store.id) {

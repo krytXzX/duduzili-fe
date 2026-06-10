@@ -363,7 +363,7 @@ type VendorTagSummary = {
               }
             } @else {
               <div class="rounded-[20px] border border-[#EEF0F4] bg-[#FCFCFD] px-4 py-6 text-center text-[14px] text-[#6B7280]">
-                No listings are available for this store yet.
+                This store hasn’t added any listings yet.
               </div>
             }
           </div>
@@ -502,7 +502,7 @@ type VendorTagSummary = {
                 }
               } @else {
                 <div class="rounded-[20px] border border-[#EEF0F4] bg-[#FCFCFD] px-4 py-6 text-center text-[14px] text-[#6B7280]">
-                  No reviews have been published for this store yet.
+                  This store doesn’t have any reviews yet.
                 </div>
               }
             </div>
@@ -789,7 +789,7 @@ type VendorTagSummary = {
                     }
                   } @else {
                     <div class="rounded-[24px] border border-[#EEF0F4] bg-[#FCFCFD] px-6 py-10 text-center text-[15px] text-[#6B7280]">
-                      No listings are available for this store yet.
+                      This store hasn’t added any listings yet.
                     </div>
                   }
                 </div>
@@ -970,7 +970,7 @@ type VendorTagSummary = {
                         }
                       } @else {
                         <div class="rounded-[24px] border border-[#EEF0F4] bg-[#FCFCFD] px-6 py-10 text-center text-[15px] text-[#6B7280]">
-                          No reviews have been published for this store yet.
+                          This store doesn’t have any reviews yet.
                         </div>
                       }
                     </div>

@@ -3,8 +3,8 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { 
-  heroXMark, 
+import {
+  heroXMark,
   heroCheckBadge,
   heroChevronLeft,
   heroChevronRight,
@@ -23,8 +23,8 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
   selector: 'app-identity-verification-modal',
   imports: [CommonModule, NgIcon, FormsModule, NgOptimizedImage, RouterLink],
   providers: [
-    provideIcons({ 
-      heroXMark, 
+    provideIcons({
+      heroXMark,
       heroCheckBadge,
       heroChevronLeft,
       heroChevronRight,
@@ -430,22 +430,22 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
         </div>
       </div>
 
-      <div 
+      <div
         class="relative z-[240] hidden max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-[32px] bg-white shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 md:flex md:flex-col"
         style="margin: 1rem;"
         (click)="$event.stopPropagation()"
       >
         <!-- Header -->
         <div class="px-8 py-6 flex items-center gap-4 border-b border-gray-50 shrink-0">
-          <button 
-            (click)="close.emit()" 
+          <button
+            (click)="close.emit()"
             class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors text-gray-700"
           >
             <ng-icon name="heroXMark" class="text-xl"></ng-icon>
           </button>
 
           @if (currentStep() !== 'intro' && currentStep() !== 'success') {
-            <button 
+            <button
               (click)="goBack()"
               class="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors group"
             >
@@ -461,19 +461,19 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
 
         <!-- Content Area -->
         <div class="flex-1 flex overflow-hidden">
-          
+
           <!-- Sidebar (Left) -->
           @if (currentStep() !== 'intro' && currentStep() !== 'success') {
             <div class="w-64 border-r border-gray-50 p-8 hidden md:block shrink-0 bg-white">
                <div class="space-y-6">
                   <!-- Step 1: Government ID -->
                   <div class="flex items-center gap-3">
-                     <div 
+                     <div
                       class="h-px w-6 transition-all duration-300"
                       [class.bg-[#5932EA]]="['selection', 'upload_method', 'upload', 'camera_capture'].includes(currentStep())"
                       [class.bg-gray-200]="!['selection', 'upload_method', 'upload', 'camera_capture'].includes(currentStep())"
                      ></div>
-                     <span 
+                     <span
                       class="text-sm font-semibold tracking-tight transition-colors duration-300"
                       [class.text-[#1A1C21]]="['selection', 'upload_method', 'upload', 'camera_capture'].includes(currentStep())"
                       [class.text-gray-300]="!['selection', 'upload_method', 'upload', 'camera_capture'].includes(currentStep())"
@@ -484,12 +484,12 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
 
                   <!-- Step 2: Selfie -->
                   <div class="flex items-center gap-3">
-                     <div 
+                     <div
                       class="h-px w-3 transition-all duration-300"
                       [class.bg-[#5932EA]]="['selfie_intro', 'selfie_capture', 'selfie_review'].includes(currentStep())"
                       [class.bg-gray-200]="!['selfie_intro', 'selfie_capture', 'selfie_review'].includes(currentStep())"
                      ></div>
-                     <span 
+                     <span
                       class="text-sm font-semibold tracking-tight transition-colors duration-300"
                       [class.text-[#1A1C21]]="['selfie_intro', 'selfie_capture', 'selfie_review'].includes(currentStep())"
                       [class.text-gray-300]="!['selfie_intro', 'selfie_capture', 'selfie_review'].includes(currentStep())"
@@ -503,19 +503,19 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
 
           <div class="flex-1 overflow-y-auto min-h-[400px]">
             <div class="p-8">
-              
+
               <!-- STEP 1: INTRO -->
               @if (currentStep() === 'intro') {
                 <div class="flex flex-col items-center text-center py-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-lg mx-auto">
                   <div class="relative w-48 h-48 mb-6">
-                     <img 
-                      ngSrc="/assets/images/identity_verification_id_card_illustration.png" 
-                      fill 
-                      class="object-contain" 
+                     <img
+                      ngSrc="/assets/images/identity_verification_id_card_illustration.png"
+                      fill
+                      class="object-contain"
                       alt="ID verification illustration"
                      >
                   </div>
-                  
+
                   <h3 class="text-[24px] font-semibold text-[#1A1C21] tracking-tight mb-2">Verify your identity</h3>
                   <p class="text-[14px] text-gray-400 leading-relaxed">
                     We need to verify your identity so we can stay secure and complaint. <br>
@@ -562,7 +562,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                      </div>
                   </div>
 
-                  <button 
+                  <button
                     (click)="nextStep()"
                     class="w-full bg-[#5932EA] hover:bg-purple-700 text-white py-4 rounded-2xl text-[14px] font-semibold transition-all shadow-xl shadow-purple-200 active:scale-95 mb-6"
                   >
@@ -575,11 +575,11 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
               @if (currentStep() === 'selection') {
                 <div class="animate-in fade-in slide-in-from-right-4 duration-500">
                   <h3 class="text-[21px] font-semibold text-[#1A1C21] tracking-tight mb-8">Choose an ID type to add</h3>
-                  
+
                   <div class="space-y-2 mb-8">
                     <label class="ml-1 text-[12px] font-medium text-gray-500">Issuing country/region</label>
                     <div class="relative">
-                       <select 
+                       <select
                         [(ngModel)]="selectedCountry"
                         class="w-full appearance-none rounded-xl border border-gray-100 bg-white p-3 pr-12 text-[#1A1C21] text-[14px] font-medium focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all shadow-sm"
                        >
@@ -596,7 +596,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
 
                   <div class="grid grid-cols-1 gap-3 mb-8">
                     @for (doc of documentTypes; track doc.id) {
-                      <button 
+                      <button
                         (click)="selectedDocType.set(doc.id)"
                         class="flex items-center justify-between p-4 rounded-2xl border-2 transition-all group hover:bg-gray-100"
                         [class.border-[#5932EA]]="selectedDocType() === doc.id"
@@ -605,7 +605,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                         [class.bg-gray-50/50]="selectedDocType() !== doc.id"
                       >
                         <div class="flex items-center gap-4 text-left">
-                           <div 
+                           <div
                              class="w-12 h-10 shrink-0 rounded-lg bg-contain bg-no-repeat bg-center transition-transform group-hover:scale-110"
                              [style.background-image]="'url(/assets/images/id_type_icons_3d.png)'"
                              [style.background-position]="doc.id === 'license' ? 'left' : (doc.id === 'passport' ? 'center' : 'right')"
@@ -613,7 +613,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                            ></div>
                            <span class="text-[14px] font-medium text-[#1A1C21] opacity-90">{{ doc.name }}</span>
                         </div>
-                        <div 
+                        <div
                           class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all bg-white"
                           [class.border-[#5932EA]]="selectedDocType() === doc.id"
                           [class.border-gray-100]="selectedDocType() !== doc.id"
@@ -631,13 +631,13 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                   </p>
 
                   <div class="flex items-center justify-between gap-4">
-                     <button 
+                     <button
                       (click)="close.emit()"
                       class="rounded-full border border-gray-100 px-8 py-3 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-all active:scale-95"
                      >
                        Cancel
                      </button>
-                     <button 
+                     <button
                       (click)="nextStep()"
                       [disabled]="!selectedDocType()"
                       class="rounded-full bg-[#5932EA] px-10 py-3 text-sm font-medium text-white transition-all shadow-lg shadow-purple-100 active:scale-95 hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -655,7 +655,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                   <p class="mb-10 text-[13px] text-gray-400">You can upload a file or use your webcam</p>
 
                   <div class="grid grid-cols-1 gap-3 mb-12">
-                     <button 
+                     <button
                       (click)="selectedUploadMethod.set('file')"
                       class="flex items-center justify-between p-6 rounded-2xl border-2 transition-all text-left"
                       [class.border-[#5932EA]]="selectedUploadMethod() === 'file'"
@@ -664,7 +664,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                       [class.bg-gray-50/50]="selectedUploadMethod() !== 'file'"
                      >
                         <span class="font-medium text-[#1A1C21]">Upload an existing photo</span>
-                        <div 
+                        <div
                           class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all bg-white"
                           [class.border-[#5932EA]]="selectedUploadMethod() === 'file'"
                           [class.border-gray-100]="selectedUploadMethod() !== 'file'"
@@ -675,7 +675,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                         </div>
                      </button>
 
-                     <button 
+                     <button
                       (click)="selectedUploadMethod.set('webcam')"
                       class="flex items-center justify-between p-6 rounded-2xl border-2 transition-all text-left"
                       [class.border-[#5932EA]]="selectedUploadMethod() === 'webcam'"
@@ -684,7 +684,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                       [class.bg-gray-50/50]="selectedUploadMethod() !== 'webcam'"
                      >
                         <span class="font-medium text-[#1A1C21]">Take a photo with a webcam</span>
-                        <div 
+                        <div
                           class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all bg-white"
                           [class.border-[#5932EA]]="selectedUploadMethod() === 'webcam'"
                           [class.border-gray-100]="selectedUploadMethod() !== 'webcam'"
@@ -697,13 +697,13 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                   </div>
 
                   <div class="flex items-center justify-between gap-4">
-                     <button 
+                     <button
                       (click)="goBack()"
                       class="rounded-full border border-gray-100 px-8 py-3 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-all active:scale-95"
                      >
                        Back
                      </button>
-                     <button 
+                     <button
                       (click)="nextStep()"
                       [disabled]="!selectedUploadMethod()"
                       class="rounded-full bg-[#5932EA] px-10 py-3 text-sm font-medium text-white transition-all shadow-lg shadow-purple-100 active:scale-95 hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -734,15 +734,15 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                                 <ng-icon name="heroIdentification" class="text-2xl"></ng-icon>
                              </div>
                            }
-                           
+
                            <button type="button" (click)="openFilePicker(frontUploadInput, $event)" class="mb-4 rounded-full border border-gray-200 bg-white px-8 py-2.5 text-[12px] font-medium text-[#1A1C21] shadow-sm hover:bg-gray-50 transition-all active:scale-95">
                               {{ capturedDocumentFront() ? 'Replace front' : 'Upload front' }}
                            </button>
-                           
+
                            <span class="text-[11px] font-medium text-gray-300">Jpeg, Png only</span>
                         </div>
                      </div>
-                     
+
                      <!-- Back -->
                      <div class="flex flex-col">
                         <input #backUploadInput type="file" accept="image/*" class="hidden" (change)="onDocumentUpload('back', $event)">
@@ -754,24 +754,24 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                                 <ng-icon name="heroIdentification" class="text-2xl"></ng-icon>
                              </div>
                            }
-                           
+
                            <button type="button" (click)="openFilePicker(backUploadInput, $event)" class="mb-4 rounded-full border border-gray-200 bg-white px-8 py-2.5 text-[12px] font-medium text-[#1A1C21] shadow-sm hover:bg-gray-50 transition-all active:scale-95">
                               {{ capturedDocumentBack() ? 'Replace back' : 'Upload back' }}
                            </button>
-                           
+
                            <span class="text-[11px] font-medium text-gray-300">Jpeg, Png only</span>
                         </div>
                      </div>
                   </div>
 
                   <div class="flex items-center justify-between gap-4 pt-4">
-                    <button 
+                    <button
                       (click)="goBack()"
                       class="rounded-full border border-gray-100 px-8 py-3 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-all active:scale-95"
                     >
                       Back
                     </button>
-                    <button 
+                    <button
                       (click)="nextStep()"
                       [disabled]="!hasDocumentImages()"
                       class="rounded-full bg-[#5932EA] px-10 py-3 text-sm font-medium text-white transition-all shadow-lg shadow-purple-100 active:scale-95 hover:bg-purple-700"
@@ -852,13 +852,13 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                   </div>
 
                   <div class="flex items-center gap-6">
-                    <button 
+                    <button
                       (click)="goBack()"
                       class="rounded-full border border-gray-100 px-8 py-4 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-all active:scale-95"
                     >
                       Back
                     </button>
-                    <button 
+                    <button
                       (click)="captureDocumentImage()"
                       class="w-16 h-16 rounded-full bg-[#5932EA] hover:bg-purple-700 text-white flex items-center justify-center shadow-xl shadow-purple-200 active:scale-95 group transition-all"
                     >
@@ -880,20 +880,20 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
               @if (currentStep() === 'selfie_intro') {
                 <div class="flex flex-col items-center text-center py-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-md mx-auto">
                   <div class="relative w-48 h-48 mb-8">
-                     <img 
-                      ngSrc="/assets/images/selfie_intro_illustration.png" 
-                      fill 
-                      class="object-contain" 
+                     <img
+                      ngSrc="/assets/images/selfie_intro_illustration.png"
+                      fill
+                      class="object-contain"
                       alt="Selfie capture illustration"
                      >
                   </div>
-                  
+
                   <h3 class="text-[21px] font-semibold text-[#1A1C21] tracking-tight mb-3">Let's capture a selfie.</h3>
                   <p class="mb-12 text-[13px] leading-relaxed text-gray-400">
                     Ensure a well-lit environment and <br> remove your hat or glasses.
                   </p>
 
-                  <button 
+                  <button
                     (click)="nextStep()"
                     class="mb-6 w-full rounded-2xl bg-[#5932EA] py-4 text-[14px] font-medium text-white transition-all shadow-xl shadow-purple-200 hover:bg-purple-700 active:scale-95"
                   >
@@ -907,13 +907,13 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                 <div class="flex flex-col items-center py-2 animate-in fade-in zoom-in-95 duration-500 text-center">
                   <div class="relative w-80 h-80 mb-10 group">
                      <!-- Outer Ring -->
-                     <div 
+                     <div
                       class="absolute inset-0 rounded-full border-4 transition-all duration-700"
                       [class.border-purple-600]="!capturedSelfie()"
                       [class.border-green-500]="!!capturedSelfie()"
                       [class.scale-105]="!!capturedSelfie()"
                      ></div>
-                     
+
                      <!-- Camera Mock -->
                      <div class="absolute inset-4 bg-gray-100 rounded-full overflow-hidden flex items-center justify-center border-4 border-white shadow-inner">
                         @if (capturedSelfie()) {
@@ -935,9 +935,9 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                              }
                           </div>
                         }
-                        
+
                         <!-- Scanning lines -->
-                        <div 
+                        <div
                           class="absolute inset-0 bg-linear-to-b from-transparent via-purple-500/20 to-transparent h-16 w-full animate-scan pointer-events-none"
                           [class.opacity-0]="!!capturedSelfie()"
                         ></div>
@@ -963,7 +963,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                     >
                       {{ capturedSelfie() ? 'Retake selfie' : 'Capture selfie' }}
                     </button>
-                    <button 
+                    <button
                       (click)="completeVerification()"
                       [disabled]="!capturedSelfie()"
                       class="flex-1 rounded-2xl bg-[#5932EA] py-4 text-[14px] font-medium text-white transition-all shadow-xl shadow-purple-200 hover:bg-purple-700 active:scale-95 disabled:grayscale disabled:opacity-30"
@@ -978,20 +978,20 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
               @if (currentStep() === 'success') {
                 <div class="flex flex-col items-center text-center py-8 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-md mx-auto">
                   <div class="relative w-56 h-56 mb-8">
-                     <img 
-                      ngSrc="/assets/images/verification_success_illustration.png" 
-                      fill 
-                      class="object-contain" 
+                     <img
+                      ngSrc="/assets/images/verification_success_illustration.png"
+                      fill
+                      class="object-contain"
                       alt="Verification success illustration"
                      >
                   </div>
-                  
+
                   <h3 class="text-[21px] font-semibold text-[#1A1C21] tracking-tight mb-3">Identity Verified Successfully!</h3>
                   <p class="mb-12 text-[13px] leading-relaxed text-gray-400">
                     Your verification is complete. <br> You can now access all services.
                   </p>
 
-                  <button 
+                  <button
                     (click)="submitted.emit(); close.emit()"
                     class="mb-6 w-full rounded-2xl bg-[#5932EA] py-4 text-[14px] font-medium text-white transition-all shadow-xl shadow-purple-200 hover:bg-purple-700 active:scale-95"
                   >
@@ -1008,7 +1008,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
         @if (currentStep() !== 'intro' && currentStep() !== 'success') {
           <div class="px-8 py-4 bg-gray-50/50 flex shrink-0">
              <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div 
+                <div
                   class="h-full bg-purple-600 transition-all duration-500 ease-out"
                   [style.width.%]="progress()"
                 ></div>
@@ -1041,7 +1041,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
   private readonly desktopDocumentVideoRef = viewChild<ElementRef<HTMLVideoElement>>('desktopDocumentVideo');
   private readonly mobileSelfieVideoRef = viewChild<ElementRef<HTMLVideoElement>>('mobileSelfieVideo');
   private readonly desktopSelfieVideoRef = viewChild<ElementRef<HTMLVideoElement>>('desktopSelfieVideo');
-  
+
   protected readonly currentStep = signal<VerificationStep>('intro');
   protected selectedCountry = 'Nigeria';
   protected readonly selectedDocType = signal<string | null>(null);
@@ -1115,7 +1115,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
 
   nextStep() {
     const step = this.currentStep();
-    
+
     if (step === 'intro') {
       this.currentStep.set('selection');
     } else if (step === 'selection') {
@@ -1159,7 +1159,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
 
   goBack() {
     const step = this.currentStep();
-    
+
     if (step === 'selection') {
       this.currentStep.set('intro');
     } else if (step === 'upload_method') {
@@ -1449,6 +1449,7 @@ export class IdentityVerificationModalComponent implements OnDestroy {
         case 'DevicesNotFoundError':
           return 'No camera was found on this device.';
         case 'NotReadableError':
+        return 'Your camera is already in use by another application.';
         case 'TrackStartError':
           return 'Your camera is currently in use by another app.';
       }

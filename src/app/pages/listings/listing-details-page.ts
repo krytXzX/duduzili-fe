@@ -3006,7 +3006,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
     datePosted: '--',
     location: '--',
     price: '--',
-    description: 'No description available yet.',
+    description: 'Details will be added for this listing soon.',
     status: 'Available',
     messages: 0,
     views: '0',

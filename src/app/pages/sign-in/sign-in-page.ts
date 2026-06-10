@@ -171,7 +171,12 @@ export class SignInPageComponent {
   }
 
   private resolveCheckEmailErrorMessage(error: unknown): string {
+    // console.log(error)
+    // console.log(this.readBackendMessage((error as any).error));
     if (error instanceof HttpErrorResponse) {
+      if(error.status === 0) {
+        return "Something went wrong, please try again later.";
+      }
       return this.readBackendMessage(error.error) ?? 'We couldn’t check that email right now. Please try again.';
     }
     return 'We couldn’t check that email right now. Please try again.';
