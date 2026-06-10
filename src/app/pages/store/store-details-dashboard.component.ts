@@ -943,9 +943,9 @@ interface ReviewTagCount {
         </section>
       }
 
-      @if (showEditModal()) {
+      @if (showEditModal() && store(); as s) {
         <app-store-edit-side-panel
-          [store]="store()"
+          [store]="s"
           (close)="showEditModal.set(false)"
           (save)="onSaveStore($event)"
         ></app-store-edit-side-panel>
@@ -965,6 +965,7 @@ interface ReviewTagCount {
           (close)="showAddListingModal.set(false)"
           (save)="onPublishListing($event)"
         ></app-add-listing-modal>
+      }
       }
     </div>
   `,
@@ -1049,19 +1050,25 @@ export class StoreDetailsDashboardComponent {
     return (total / reviews.length).toFixed(2);
   });
 
-  protected readonly desktopStats = computed(() => [
-    { label: 'Followers', value: this.store().followers },
-    { label: 'Listings', value: this.store().products },
-    { label: 'Rating', value: this.store().rating, highlightIcon: 'star' as const },
-    { label: 'Date created', value: this.store().dateCreated },
-  ]);
+  protected readonly desktopStats = computed(() => {
+    const s = this.store();
+    return [
+      { label: 'Followers', value: s?.followers ?? '0' },
+      { label: 'Listings', value: s?.products ?? '0' },
+      { label: 'Rating', value: s?.rating ?? '0.0', highlightIcon: 'star' as const },
+      { label: 'Date created', value: s?.dateCreated ?? '---' },
+    ];
+  });
 
-  protected readonly mobileStats = computed(() => [
-    { label: 'Followers', value: this.store().followers },
-    { label: 'Products', value: this.store().products },
-    { label: 'Rating', value: this.store().rating, highlightIcon: 'star' as const },
-    { label: 'Date joined', value: this.store().dateJoined },
-  ]);
+  protected readonly mobileStats = computed(() => {
+    const s = this.store();
+    return [
+      { label: 'Followers', value: s?.followers ?? '0' },
+      { label: 'Products', value: s?.products ?? '0' },
+      { label: 'Rating', value: s?.rating ?? '0.0', highlightIcon: 'star' as const },
+      { label: 'Date joined', value: s?.dateJoined ?? '---' },
+    ];
+  });
 
   protected readonly filteredDesktopSections = computed(() => {
     const chip = this.activeChip();
@@ -1149,18 +1156,19 @@ export class StoreDetailsDashboardComponent {
   }
 
   private mapStore(record: VendorRecord): StoreProfile {
-    const name = this.readString(record['store_name']) ?? this.store().name;
+    const current = this.store();
+    const name = this.readString(record['store_name']) ?? current?.name ?? '';
     const profilePhoto =
-      this.resolveMediaUrl(this.readString(record['profile_photo'])) ?? this.store().logo;
+      this.resolveMediaUrl(this.readString(record['profile_photo'])) ?? current?.logo ?? '';
     const coverImage =
-      this.resolveMediaUrl(this.readString(record['cover_image'])) ?? this.store().banner;
+      this.resolveMediaUrl(this.readString(record['cover_image'])) ?? current?.banner ?? '';
     const averageRating = this.readNumber(record['average_rating']);
     const productCount = this.readNumber(record['products_count']);
     const followerCount = this.readNumber(record['followers_count']);
     const joinedAt = this.readString(record['date_joined']);
 
     return {
-      id: this.readId(record['id']) ?? this.store().id,
+      id: this.readId(record['id']) ?? current?.id ?? '',
       name,
       description: this.readString(record['store_bio']) ?? '',
       logo: profilePhoto,
@@ -1177,7 +1185,8 @@ export class StoreDetailsDashboardComponent {
       location:
         this.readString(record['location']) ??
         this.composeLocation(record) ??
-        this.store().location,
+        current?.location ??
+        '',
       whatsappNumber: this.readString(record['whatsapp_number']) ?? undefined,
       callNumber: this.readString(record['call_number']) ?? undefined,
       alternateCallNumber: this.readString(record['call_number_2']) ?? undefined,
@@ -1261,7 +1270,8 @@ export class StoreDetailsDashboardComponent {
       location:
         this.readString(record['location']) ??
         this.composeLocation(record) ??
-        this.store().location,
+        this.store()?.location ??
+        '',
       condition:
         condition === 'new' ? 'New' : condition === 'used' ? 'Used' : undefined,
       isVerified: this.readBoolean(record['is_verified']) ?? false,
@@ -1468,8 +1478,8 @@ export class StoreDetailsDashboardComponent {
   }
 
   async onSaveStore(updatedStore: Partial<StoreProfile>): Promise<void> {
-    const storeId = this.store().id;
-    if (!storeId) {
+    const currentStore = this.store();
+    if (!currentStore) {
       this.appToastService.show({
         message: 'This store can’t be saved right now. Please try again.',
       });
@@ -1478,7 +1488,7 @@ export class StoreDetailsDashboardComponent {
 
     try {
       const response = await firstValueFrom(
-        this.vendorsService.updateStore(storeId, this.toUpdateStorePayload(updatedStore)),
+        this.vendorsService.updateStore(currentStore.id, this.toUpdateStorePayload(updatedStore)),
       );
       this.store.set(this.mapStore(response));
       this.showEditModal.set(false);
@@ -1493,16 +1503,16 @@ export class StoreDetailsDashboardComponent {
   }
 
   onPromoteStore(): void {
-    const storeId = this.store().id;
-    if (!storeId) {
+    const currentStore = this.store();
+    if (!currentStore) {
       this.appToastService.show({ message: 'We couldn’t find the store to promote. Please refresh and try again.' });
       return;
     }
 
-    this.sellerMonetizationService.createStorePromotion({ vendorId: storeId }).subscribe({
+    this.sellerMonetizationService.createStorePromotion({ vendorId: currentStore.id }).subscribe({
       next: () => {
         this.showPromoteStoreModal.set(false);
-        this.store.update((current) => ({ ...current, promoted: true }));
+        this.store.update((current) => current ? { ...current, promoted: true } : null);
         this.appToastService.show({ message: 'Store promotion is now running.' });
       },
       error: () => {
@@ -1520,7 +1530,7 @@ export class StoreDetailsDashboardComponent {
         data.currency === 'NGN'
           ? `₦${data.price.toLocaleString()}`
           : `$${data.price.toLocaleString()}`,
-      location: this.store().location,
+      location: this.store()?.location ?? '',
       condition: 'New',
     };
 
@@ -1538,15 +1548,16 @@ export class StoreDetailsDashboardComponent {
   }
 
   private toUpdateStorePayload(updatedStore: Partial<StoreProfile>): UpdateVendorPayload {
+    const currentStore = this.store();
     return {
-      store_name: updatedStore.name?.trim() || this.store().name,
-      store_bio: updatedStore.description?.trim() ?? this.store().description ?? '',
-      location: updatedStore.location?.trim() || this.store().location,
+      store_name: updatedStore.name?.trim() || currentStore?.name || '',
+      store_bio: updatedStore.description?.trim() ?? currentStore?.description ?? '',
+      location: updatedStore.location?.trim() || currentStore?.location || '',
       whatsapp_number:
-        updatedStore.whatsappNumber?.trim() ?? this.store().whatsappNumber ?? '',
-      call_number: updatedStore.callNumber?.trim() ?? this.store().callNumber ?? '',
+        updatedStore.whatsappNumber?.trim() ?? currentStore?.whatsappNumber ?? '',
+      call_number: updatedStore.callNumber?.trim() ?? currentStore?.callNumber ?? '',
       call_number_2:
-        updatedStore.alternateCallNumber?.trim() ?? this.store().alternateCallNumber ?? '',
+        updatedStore.alternateCallNumber?.trim() ?? currentStore?.alternateCallNumber ?? '',
     };
   }
 
