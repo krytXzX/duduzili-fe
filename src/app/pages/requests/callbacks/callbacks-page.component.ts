@@ -135,89 +135,124 @@ interface CallbackRecord {
                     <span aria-hidden="true"></span>
                   </div>
 
-                  @for (request of filteredCallbacks(); track request.id) {
-                    <button
-                      type="button"
-                      (click)="openDetails(request)"
-                      class="grid w-full grid-cols-[180px_150px_208px_205px_124px_77px] items-center border-b border-[#F0F0F0] px-6 text-left transition hover:bg-[#FFFCF7]"
-                      [class.border-b-0]="$last"
-                    >
-                    <div class="flex min-h-[74px] items-center gap-2">
-                      <img
-                        [ngSrc]="request.buyerAvatar"
-                        width="32"
-                        height="32"
-                        [alt]="request.buyerName"
-                        class="h-8 w-8 rounded-full object-cover"
-                      />
-                      <span class="text-[14px] font-medium leading-normal text-[#0D0D0D]">
-                        {{ request.buyerName }}
-                      </span>
-                    </div>
-
-                    <div class="flex min-h-[74px] items-center">
-                      <span class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
-                        {{ request.phoneNumber }}
-                      </span>
-                    </div>
-
-                    <div class="flex min-h-[74px] items-center gap-2">
-                      <span
-                        class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[6px] border border-[#F0F0F0] bg-[#EFEFEF]"
+                  @if (isLoading()) {
+                    @for (row of [1, 2, 3, 4, 5, 6]; track row) {
+                      <div
+                        class="grid grid-cols-[180px_150px_208px_205px_124px_77px] items-center border-b border-[#F0F0F0] px-6"
                       >
-                        <img
-                          [ngSrc]="request.listingImage"
-                          width="40"
-                          height="40"
-                          [alt]="request.listingName"
-                          class="h-10 w-10 object-cover"
-                        />
-                      </span>
-                      <span class="text-[14px] font-medium leading-normal text-[#1A1B1D]">
-                        {{ request.listingName }}
-                      </span>
-                    </div>
+                        <div class="flex min-h-[74px] items-center gap-2">
+                          <div class="h-8 w-8 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-24 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                        </div>
 
-                    <div class="flex min-h-[74px] items-center gap-2">
-                      <span
-                        class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full"
-                        [class.bg-[#3D785F]]="request.storeName === 'The Vine Collections'"
+                        <div class="flex min-h-[74px] items-center">
+                          <div class="h-4 w-24 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+
+                        <div class="flex min-h-[74px] items-center gap-2">
+                          <div class="h-10 w-10 animate-pulse rounded-[6px] bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-32 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+
+                        <div class="flex min-h-[74px] items-center gap-2">
+                          <div class="h-8 w-8 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-28 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+
+                        <div class="flex min-h-[74px] items-center">
+                          <div class="h-4 w-20 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+
+                        <div class="flex min-h-[74px] items-center justify-end">
+                          <div class="h-10 w-[52px] animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                        </div>
+                      </div>
+                    }
+                  } @else {
+                    @for (request of filteredCallbacks(); track request.id) {
+                      <button
+                        type="button"
+                        (click)="openDetails(request)"
+                        class="grid w-full grid-cols-[180px_150px_208px_205px_124px_77px] items-center border-b border-[#F0F0F0] px-6 text-left transition hover:bg-[#FFFCF7]"
+                        [class.border-b-0]="$last"
                       >
+                      <div class="flex min-h-[74px] items-center gap-2">
                         <img
-                          [ngSrc]="request.storeImage"
+                          [ngSrc]="request.buyerAvatar"
                           width="32"
                           height="32"
-                          [alt]="request.storeName"
-                          class="h-8 w-8"
-                          [class.object-contain]="request.storeUsesContain"
-                          [class.object-cover]="!request.storeUsesContain"
+                          [alt]="request.buyerName"
+                          class="h-8 w-8 rounded-full object-cover"
                         />
-                      </span>
-                      <span class="text-[14px] leading-normal text-[#1A1B1D]">
-                        {{ request.storeName }}
-                      </span>
-                    </div>
+                        <span class="text-[14px] font-medium leading-normal text-[#0D0D0D]">
+                          {{ request.buyerName }}
+                        </span>
+                      </div>
 
-                    <div class="flex min-h-[74px] items-center">
-                      <span class="text-[14px] leading-normal text-[#1A1B1D]">
-                        {{ request.dateRequested }}
-                      </span>
-                    </div>
+                      <div class="flex min-h-[74px] items-center">
+                        <span class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
+                          {{ request.phoneNumber }}
+                        </span>
+                      </div>
 
-                    <div class="flex min-h-[74px] items-center justify-end">
-                      <span
-                        class="flex h-10 w-[52px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white"
-                      >
-                        <img
-                          ngSrc="/assets/icons/callbacks-call-desktop.svg"
-                          width="16"
-                          height="16"
-                          alt=""
-                          class="h-4 w-4"
-                        />
-                      </span>
-                    </div>
-                    </button>
+                      <div class="flex min-h-[74px] items-center gap-2">
+                        <span
+                          class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[6px] border border-[#F0F0F0] bg-[#EFEFEF]"
+                        >
+                          <img
+                            [ngSrc]="request.listingImage"
+                            width="40"
+                            height="40"
+                            [alt]="request.listingName"
+                            class="h-10 w-10 object-cover"
+                          />
+                        </span>
+                        <span class="text-[14px] font-medium leading-normal text-[#1A1B1D]">
+                          {{ request.listingName }}
+                        </span>
+                      </div>
+
+                      <div class="flex min-h-[74px] items-center gap-2">
+                        <span
+                          class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full"
+                          [class.bg-[#3D785F]]="request.storeName === 'The Vine Collections'"
+                        >
+                          <img
+                            [ngSrc]="request.storeImage"
+                            width="32"
+                            height="32"
+                            [alt]="request.storeName"
+                            class="h-8 w-8"
+                            [class.object-contain]="request.storeUsesContain"
+                            [class.object-cover]="!request.storeUsesContain"
+                          />
+                        </span>
+                        <span class="text-[14px] leading-normal text-[#1A1B1D]">
+                          {{ request.storeName }}
+                        </span>
+                      </div>
+
+                      <div class="flex min-h-[74px] items-center">
+                        <span class="text-[14px] leading-normal text-[#1A1B1D]">
+                          {{ request.dateRequested }}
+                        </span>
+                      </div>
+
+                      <div class="flex min-h-[74px] items-center justify-end">
+                        <span
+                          class="flex h-10 w-[52px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white"
+                        >
+                          <img
+                            ngSrc="/assets/icons/callbacks-call-desktop.svg"
+                            width="16"
+                            height="16"
+                            alt=""
+                            class="h-4 w-4"
+                          />
+                        </span>
+                      </div>
+                      </button>
+                    }
                   }
                 </div>
               </div>
@@ -325,70 +360,100 @@ interface CallbackRecord {
           </div>
 
           <div class="mt-6">
-            @for (request of filteredCallbacks(); track request.id) {
-              <button
-                type="button"
-                (click)="openDetails(request)"
-                class="block w-full border-b border-[#EBEBEB] py-3 text-left"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <img
-                      [ngSrc]="request.buyerAvatar"
-                      width="36"
-                      height="36"
-                      [alt]="request.buyerName"
-                      class="h-9 w-9 rounded-full object-cover"
-                    />
-                    <p class="text-[16px] font-medium leading-6 text-[rgba(13,13,13,0.8)]">
-                      {{ request.buyerName }}
-                    </p>
+            @if (isLoading()) {
+              @for (item of [1, 2, 3, 4]; track item) {
+                <div class="border-b border-[#EBEBEB] py-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="h-9 w-9 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-5 w-28 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+
+                    <div class="h-10 w-[54px] animate-pulse rounded-full bg-[#EEF2FF]"></div>
                   </div>
 
-                  <span
-                    class="flex h-10 w-[54px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white"
-                  >
-                    <img
-                      ngSrc="/assets/icons/callbacks-call-mobile.svg"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="h-4 w-4"
-                    />
-                  </span>
+                  <div class="mt-4 space-y-3">
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="h-4 w-12 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                      <div class="flex items-center gap-2">
+                        <div class="h-7 w-7 animate-pulse rounded-[4.2px] bg-[#EEF2FF]"></div>
+                        <div class="h-4 w-28 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="h-4 w-24 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-4 w-24 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                    </div>
+                  </div>
                 </div>
+              }
+            } @else {
+              @for (request of filteredCallbacks(); track request.id) {
+                <button
+                  type="button"
+                  (click)="openDetails(request)"
+                  class="block w-full border-b border-[#EBEBEB] py-3 text-left"
+                >
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <img
+                        [ngSrc]="request.buyerAvatar"
+                        width="36"
+                        height="36"
+                        [alt]="request.buyerName"
+                        class="h-9 w-9 rounded-full object-cover"
+                      />
+                      <p class="text-[16px] font-medium leading-6 text-[rgba(13,13,13,0.8)]">
+                        {{ request.buyerName }}
+                      </p>
+                    </div>
 
-                <div class="mt-4 space-y-3">
-                  <div class="flex items-center justify-between gap-4">
-                    <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Listing</span>
-                    <span class="flex items-center gap-2">
-                      <span
-                        class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-[4.2px] bg-[#EFEFEF]"
-                      >
-                        <img
-                          [ngSrc]="request.listingImage"
-                          width="28"
-                          height="28"
-                          [alt]="request.listingName"
-                          class="h-7 w-7 object-cover"
-                        />
-                      </span>
-                      <span class="text-[14px] font-medium leading-normal text-[#1A1B1D]">
-                        {{ request.listingName }}
-                      </span>
-                    </span>
-                  </div>
-
-                  <div class="flex items-center justify-between gap-4">
-                    <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]"
-                      >Phone number</span
+                    <span
+                      class="flex h-10 w-[54px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white"
                     >
-                    <span class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
-                      {{ request.phoneNumber }}
+                      <img
+                        ngSrc="/assets/icons/callbacks-call-mobile.svg"
+                        width="16"
+                        height="16"
+                        alt=""
+                        class="h-4 w-4"
+                      />
                     </span>
                   </div>
-                </div>
-              </button>
+
+                  <div class="mt-4 space-y-3">
+                    <div class="flex items-center justify-between gap-4">
+                      <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">Listing</span>
+                      <span class="flex items-center gap-2">
+                        <span
+                          class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-[4.2px] bg-[#EFEFEF]"
+                        >
+                          <img
+                            [ngSrc]="request.listingImage"
+                            width="28"
+                            height="28"
+                            [alt]="request.listingName"
+                            class="h-7 w-7 object-cover"
+                          />
+                        </span>
+                        <span class="text-[14px] font-medium leading-normal text-[#1A1B1D]">
+                          {{ request.listingName }}
+                        </span>
+                      </span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4">
+                      <span class="text-[14px] leading-5 text-[rgba(26,27,29,0.5)]"
+                        >Phone number</span
+                      >
+                      <span class="text-[14px] font-medium leading-5 text-[#1F1F1F]">
+                        {{ request.phoneNumber }}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              }
             }
           </div>
         </div>
