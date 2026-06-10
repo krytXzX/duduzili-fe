@@ -84,40 +84,69 @@ interface ReviewTagCount {
   host: {
     class: 'block min-h-full',
   },
+  styles: [
+    `
+      .skeleton-shimmer {
+        position: relative;
+        overflow: hidden;
+        background: #f1f3f6;
+      }
+
+      .skeleton-shimmer::after {
+        position: absolute;
+        inset: 0;
+        content: '';
+        transform: translateX(-100%);
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.72) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        animation: store-skeleton-shimmer 1.45s ease-in-out infinite;
+      }
+
+      @keyframes store-skeleton-shimmer {
+        100% {
+          transform: translateX(100%);
+        }
+      }
+    `,
+  ],
   template: `
     <div class="min-h-full bg-white lg:bg-transparent">
       @if (isLoading()) {
         <section class="space-y-6 px-5 py-6 lg:px-4">
           <div class="lg:hidden">
-            <div class="h-10 w-44 animate-pulse rounded-full bg-[#F3F4F6]"></div>
+            <div class="h-10 w-44 rounded-full skeleton-shimmer"></div>
             <div class="mt-6 overflow-hidden rounded-[24px] border border-[#ECEFF3] bg-white p-4">
-              <div class="h-[92px] animate-pulse rounded-[18px] bg-[#EEF1F5]"></div>
+              <div class="h-[92px] rounded-[18px] skeleton-shimmer"></div>
               <div class="-mt-10 flex items-end justify-between px-3">
                 <div class="flex items-end gap-3">
-                  <div class="h-[74px] w-[74px] animate-pulse rounded-full bg-[#E7EBF0]"></div>
+                  <div class="h-[74px] w-[74px] rounded-full skeleton-shimmer"></div>
                   <div class="space-y-3 pb-1">
-                    <div class="h-5 w-36 animate-pulse rounded-full bg-[#EEF1F5]"></div>
-                    <div class="h-4 w-28 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                    <div class="h-5 w-36 rounded-full skeleton-shimmer"></div>
+                    <div class="h-4 w-28 rounded-full skeleton-shimmer"></div>
                   </div>
                 </div>
                 <div class="flex gap-2">
-                  <div class="h-9 w-9 animate-pulse rounded-full bg-[#EEF1F5]"></div>
-                  <div class="h-9 w-24 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                  <div class="h-9 w-9 rounded-full skeleton-shimmer"></div>
+                  <div class="h-9 w-24 rounded-full skeleton-shimmer"></div>
                 </div>
               </div>
               <div class="mt-6 grid grid-cols-2 gap-3">
                 @for (placeholder of loadingPlaceholders; track placeholder) {
                   <div class="space-y-2 rounded-2xl bg-[#FAFAFB] p-4">
-                    <div class="h-3 w-20 animate-pulse rounded-full bg-[#E9ECF2]"></div>
-                    <div class="h-5 w-14 animate-pulse rounded-full bg-[#E9ECF2]"></div>
+                    <div class="h-3 w-20 rounded-full skeleton-shimmer"></div>
+                    <div class="h-5 w-14 rounded-full skeleton-shimmer"></div>
                   </div>
                 }
               </div>
               <div class="mt-6 space-y-3">
-                <div class="h-10 w-full animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                <div class="h-10 w-full rounded-full skeleton-shimmer"></div>
                 <div class="grid grid-cols-2 gap-3">
                   @for (placeholder of loadingPlaceholders; track placeholder) {
-                    <div class="h-[220px] animate-pulse rounded-[20px] bg-[#F2F4F7]"></div>
+                    <div class="h-[220px] rounded-[20px] skeleton-shimmer"></div>
                   }
                 </div>
               </div>
@@ -125,42 +154,42 @@ interface ReviewTagCount {
           </div>
 
           <div class="hidden lg:block">
-            <div class="h-5 w-48 animate-pulse rounded-full bg-[#F3F4F6]"></div>
+            <div class="h-5 w-48 rounded-full skeleton-shimmer"></div>
             <div class="mt-5 overflow-hidden rounded-[24px] border border-[#ECEFF3] bg-white">
-              <div class="h-[197px] animate-pulse bg-[#EEF1F5]"></div>
+              <div class="h-[197px] skeleton-shimmer"></div>
               <div class="px-9 py-6">
                 <div class="flex items-end justify-between">
                   <div class="flex items-end gap-4">
-                    <div class="h-[97px] w-[97px] animate-pulse rounded-full bg-[#E7EBF0]"></div>
+                    <div class="h-[97px] w-[97px] rounded-full skeleton-shimmer"></div>
                     <div class="space-y-3 pb-2">
-                      <div class="h-6 w-56 animate-pulse rounded-full bg-[#EEF1F5]"></div>
-                      <div class="h-4 w-36 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                      <div class="h-6 w-56 rounded-full skeleton-shimmer"></div>
+                      <div class="h-4 w-36 rounded-full skeleton-shimmer"></div>
                     </div>
                   </div>
                   <div class="flex gap-3 pt-8">
-                    <div class="h-10 w-36 animate-pulse rounded-full bg-[#EEF1F5]"></div>
-                    <div class="h-10 w-28 animate-pulse rounded-full bg-[#EEF1F5]"></div>
-                    <div class="h-10 w-10 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                    <div class="h-10 w-36 rounded-full skeleton-shimmer"></div>
+                    <div class="h-10 w-28 rounded-full skeleton-shimmer"></div>
+                    <div class="h-10 w-10 rounded-full skeleton-shimmer"></div>
                   </div>
                 </div>
 
                 <div class="mt-6 grid grid-cols-4 gap-4">
                   @for (placeholder of loadingPlaceholders; track placeholder) {
                     <div class="space-y-2 rounded-[20px] bg-[#FAFAFB] p-4">
-                      <div class="h-3 w-20 animate-pulse rounded-full bg-[#E9ECF2]"></div>
-                      <div class="h-6 w-16 animate-pulse rounded-full bg-[#E9ECF2]"></div>
+                      <div class="h-3 w-20 rounded-full skeleton-shimmer"></div>
+                      <div class="h-6 w-16 rounded-full skeleton-shimmer"></div>
                     </div>
                   }
                 </div>
 
-                <div class="mt-8 h-20 w-full animate-pulse rounded-[20px] bg-[#F2F4F7]"></div>
+                <div class="mt-8 h-20 w-full rounded-[20px] skeleton-shimmer"></div>
                 <div class="mt-8 space-y-6">
                   @for (placeholder of loadingPlaceholders; track placeholder) {
                     <div class="space-y-4">
-                      <div class="h-5 w-56 animate-pulse rounded-full bg-[#EEF1F5]"></div>
+                      <div class="h-5 w-56 rounded-full skeleton-shimmer"></div>
                       <div class="grid grid-cols-5 gap-4">
                         @for (card of loadingPlaceholders; track card) {
-                          <div class="h-[320px] animate-pulse rounded-[24px] bg-[#F2F4F7]"></div>
+                          <div class="h-[320px] rounded-[24px] skeleton-shimmer"></div>
                         }
                       </div>
                     </div>

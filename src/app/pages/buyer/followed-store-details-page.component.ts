@@ -119,6 +119,35 @@ type VendorTagSummary = {
     }),
   ],
   host: { class: 'block h-full overflow-auto bg-white' },
+  styles: [
+    `
+      .skeleton-shimmer {
+        position: relative;
+        overflow: hidden;
+        background: #f1f3f6;
+      }
+
+      .skeleton-shimmer::after {
+        position: absolute;
+        inset: 0;
+        content: '';
+        transform: translateX(-100%);
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.72) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        animation: buyer-store-skeleton-shimmer 1.45s ease-in-out infinite;
+      }
+
+      @keyframes buyer-store-skeleton-shimmer {
+        100% {
+          transform: translateX(100%);
+        }
+      }
+    `,
+  ],
   template: `
     <div [class]="pageShellClass()">
       @if (isAuthenticated()) {
@@ -330,14 +359,14 @@ type VendorTagSummary = {
             @if (isListingsLoading()) {
               @for (card of [1, 2, 3, 4]; track card) {
                 <div class="space-y-3">
-                  <div class="h-6 w-40 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                  <div class="h-6 w-40 rounded-full skeleton-shimmer"></div>
                   <div class="grid grid-cols-2 gap-[8px]">
                     @for (tile of [1, 2]; track tile) {
                       <div class="overflow-hidden rounded-[18px] border border-[#F1F3F7] bg-white">
-                        <div class="aspect-[0.84] animate-pulse bg-[#EEF2FF]"></div>
+                        <div class="aspect-[0.84] skeleton-shimmer"></div>
                         <div class="space-y-2 p-3">
-                          <div class="h-4 w-3/4 animate-pulse rounded-full bg-[#EEF2FF]"></div>
-                          <div class="h-4 w-1/2 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                          <div class="h-4 w-3/4 rounded-full skeleton-shimmer"></div>
+                          <div class="h-4 w-1/2 rounded-full skeleton-shimmer"></div>
                         </div>
                       </div>
                     }
@@ -441,12 +470,12 @@ type VendorTagSummary = {
               @if (isReviewsLoading()) {
                 @for (item of [1, 2, 3]; track item) {
                   <div class="flex gap-3 border-b border-[#F0F1F4] pb-5">
-                    <div class="h-9 w-9 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                    <div class="h-9 w-9 rounded-full skeleton-shimmer"></div>
                     <div class="flex-1 space-y-2">
-                      <div class="h-4 w-32 animate-pulse rounded-full bg-[#EEF2FF]"></div>
-                      <div class="h-3 w-24 animate-pulse rounded-full bg-[#EEF2FF]"></div>
-                      <div class="h-3 w-full animate-pulse rounded-full bg-[#EEF2FF]"></div>
-                      <div class="h-3 w-5/6 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                      <div class="h-4 w-32 rounded-full skeleton-shimmer"></div>
+                      <div class="h-3 w-24 rounded-full skeleton-shimmer"></div>
+                      <div class="h-3 w-full rounded-full skeleton-shimmer"></div>
+                      <div class="h-3 w-5/6 rounded-full skeleton-shimmer"></div>
                     </div>
                   </div>
                 }
@@ -734,14 +763,14 @@ type VendorTagSummary = {
                   @if (isListingsLoading()) {
                     @for (section of [1, 2]; track section) {
                       <div class="space-y-6">
-                        <div class="h-7 w-44 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                        <div class="h-7 w-44 rounded-full skeleton-shimmer"></div>
                         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
                           @for (card of [1, 2, 3, 4, 5]; track card) {
                             <div class="overflow-hidden rounded-[24px] border border-[#F1F3F7] bg-white">
-                              <div class="aspect-[0.82] animate-pulse bg-[#EEF2FF]"></div>
+                              <div class="aspect-[0.82] skeleton-shimmer"></div>
                               <div class="space-y-3 p-4">
-                                <div class="h-4 w-3/4 animate-pulse rounded-full bg-[#EEF2FF]"></div>
-                                <div class="h-4 w-1/2 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                                <div class="h-4 w-3/4 rounded-full skeleton-shimmer"></div>
+                                <div class="h-4 w-1/2 rounded-full skeleton-shimmer"></div>
                               </div>
                             </div>
                           }
@@ -884,12 +913,12 @@ type VendorTagSummary = {
                       @if (isReviewsLoading()) {
                         @for (item of [1, 2, 3]; track item) {
                           <div class="flex gap-4 rounded-[24px] bg-white">
-                            <div class="h-10 w-10 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                            <div class="h-10 w-10 rounded-full skeleton-shimmer"></div>
                             <div class="flex-1 space-y-3">
-                              <div class="h-4 w-32 animate-pulse rounded-full bg-[#EEF2FF]"></div>
-                              <div class="h-3 w-24 animate-pulse rounded-full bg-[#EEF2FF]"></div>
-                              <div class="h-3 w-full animate-pulse rounded-full bg-[#EEF2FF]"></div>
-                              <div class="h-3 w-5/6 animate-pulse rounded-full bg-[#EEF2FF]"></div>
+                              <div class="h-4 w-32 rounded-full skeleton-shimmer"></div>
+                              <div class="h-3 w-24 rounded-full skeleton-shimmer"></div>
+                              <div class="h-3 w-full rounded-full skeleton-shimmer"></div>
+                              <div class="h-3 w-5/6 rounded-full skeleton-shimmer"></div>
                             </div>
                           </div>
                         }
