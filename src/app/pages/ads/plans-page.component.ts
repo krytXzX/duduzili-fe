@@ -518,7 +518,7 @@ export class AdsPlansPageComponent {
     const backendPlan = this.matchBackendPlanByDisplayPlanId(plan.id);
     if (!backendPlan) {
       this.appToastService.show({
-        message: 'This plan is not available from the backend right now.',
+        message: 'This plan is not available right now.',
       });
       return;
     }
@@ -544,7 +544,7 @@ export class AdsPlansPageComponent {
 
     if (selection.paymentId !== 'wallet') {
       this.appToastService.show({
-        message: 'Online subscription payment is not supported by the backend yet.',
+        message: 'Online subscription payment is not supported yet.',
       });
       return;
     }

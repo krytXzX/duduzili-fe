@@ -110,6 +110,35 @@ type SellerReportStep = 1 | 2;
     class: 'block h-full overflow-y-auto overflow-x-hidden bg-white text-[#1F1F1F]',
     '(document:keydown.escape)': 'handleOverlayEscape()',
   },
+  styles: [
+    `
+      .skeleton-shimmer {
+        position: relative;
+        overflow: hidden;
+        background: #f1f3f6;
+      }
+
+      .skeleton-shimmer::after {
+        position: absolute;
+        inset: 0;
+        content: '';
+        transform: translateX(-100%);
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.72) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        animation: product-skeleton-shimmer 1.45s ease-in-out infinite;
+      }
+
+      @keyframes product-skeleton-shimmer {
+        100% {
+          transform: translateX(100%);
+        }
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductPageComponent {
@@ -151,6 +180,8 @@ export class ProductPageComponent {
   readonly isStartingConversation = signal(false);
   readonly isSubmittingOffer = signal(false);
   readonly isSubmittingCallbackRequest = signal(false);
+  readonly isProductLoading = signal(true);
+  readonly productLoadError = signal<string | null>(null);
   readonly reviewSort = signal<ProductReviewSort>('most-recent');
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
   readonly reviewAverageValue = computed(() => {
@@ -245,7 +276,7 @@ export class ProductPageComponent {
   );
 
   readonly requestCallbackForm = this.formBuilder.nonNullable.group({
-    name: ['Bryan Odjede', [Validators.required]],
+    name: ['', [Validators.required]],
     phoneNumber: ['', [Validators.required]],
   });
 
@@ -267,54 +298,35 @@ export class ProductPageComponent {
 
   readonly product = signal<ProductDetails>({
     id: this.productId,
-    name: 'Iphone 16 pro',
-    price: '₦2,500,000',
-    oldPrice: '₦35,000',
-    discount: '-24%',
-    lastUpdated: '24 January, 2026',
-    description:
-      'UK used iPhone 16 Pro, neatly used and fully working. Good battery health.',
-    condition: 'Used',
+    name: '',
+    price: '',
+    oldPrice: '',
+    discount: '',
+    lastUpdated: '',
+    description: '',
+    condition: '',
     saves: '0',
     isSaved: false,
-    deliveryOptions: ['Seller delivery', 'Nation-wide', 'Public location'],
-    images: [
-      {
-        src: '/assets/images/product-mobile-gallery-1.png',
-        alt: 'Front view of the featured product',
-      },
-      {
-        src: '/assets/images/product-mobile-gallery-2.png',
-        alt: 'Side angle of the featured product',
-      },
-      {
-        src: '/assets/images/product-mobile-gallery-3.png',
-        alt: 'What is inside the package',
-        eyebrow: "What's inside",
-      },
-      {
-        src: '/assets/images/product-mobile-gallery-4.png',
-        alt: 'Extra gallery angle of the featured product',
-      },
-    ],
+    deliveryOptions: [],
+    images: [],
   });
 
   readonly store = signal<StoreDetails>({
-    id: 'the-vine-collections-7691',
+    id: '',
     ownerUserId: null,
-    name: 'The Vine Collections',
-    location: 'Ikeja, Lagos',
-    whatsappNumber: '08169397454',
-    followers: '2.5k',
-    products: '1,456',
-    rating: '4.8',
-    joined: '16 Feb, 2024',
-    isVerified: true,
+    name: '',
+    location: '',
+    whatsappNumber: '',
+    followers: '0',
+    products: '0',
+    rating: '0.0',
+    joined: '',
+    isVerified: false,
     isFollowed: false,
-    initials: 'VC',
-    accentFrom: '#E3A03B',
-    accentTo: '#3D785F',
-    bannerImage: '/assets/images/hero_img_3.png',
+    initials: '',
+    accentFrom: '#E5E7EB',
+    accentTo: '#CBD5E1',
+    bannerImage: '',
   });
 
   readonly reviews = signal<Review[]>([]);
@@ -361,19 +373,33 @@ export class ProductPageComponent {
   }
 
   nextImage(): void {
+    const imageCount = this.product().images.length;
+    if (imageCount === 0) {
+      return;
+    }
+
     this.currentGalleryIndex.update(
-      (currentIndex) => (currentIndex + 1) % this.product().images.length,
+      (currentIndex) => (currentIndex + 1) % imageCount,
     );
   }
 
   prevImage(): void {
+    const imageCount = this.product().images.length;
+    if (imageCount === 0) {
+      return;
+    }
+
     this.currentGalleryIndex.update(
       (currentIndex) =>
-        (currentIndex - 1 + this.product().images.length) % this.product().images.length,
+        (currentIndex - 1 + imageCount) % imageCount,
     );
   }
 
   galleryImageCountLabel(): string {
+    if (this.product().images.length === 0) {
+      return '0/0';
+    }
+
     return `${this.currentGalleryIndex() + 1}/${this.product().images.length}`;
   }
 
@@ -1032,59 +1058,68 @@ export class ProductPageComponent {
   }
 
   private async loadProductDetails(): Promise<void> {
+    this.isProductLoading.set(true);
+    this.productLoadError.set(null);
     try {
       const record = await firstValueFrom(this.listingsService.getListingDetails(this.productId));
       await this.applyProductDetails(record);
-    } catch {
-      // Keep the existing fallback content when the detail request fails.
+    } catch (error) {
+      this.productLoadError.set(this.extractErrorMessage(error));
+      this.moreFromSeller.set([]);
+      this.relatedItems.set([]);
+      this.reviews.set([]);
+    } finally {
+      this.isProductLoading.set(false);
     }
   }
 
   private async applyProductDetails(record: ListingsApiItem): Promise<void> {
     const storeInfo = this.readRecord(record['store_info']);
     const galleryImages = this.extractGalleryImages(record);
-    const productName = this.readString(record['title']) ?? this.product().name;
+    const currentProduct = this.product();
+    const currentStore = this.store();
+    const productName = this.readString(record['title']) ?? 'Listing';
     const formattedPrice =
-      this.formatPrice(record['price']) ?? this.product().price;
+      this.formatPrice(record['price']) ?? 'Price unavailable';
     const formattedOldPrice =
-      this.formatPrice(record['original_price']) ?? this.product().oldPrice;
+      this.formatPrice(record['original_price']) ?? '';
     const formattedDiscount =
-      this.formatDiscountBadge(record['discount_percentage']) ?? this.product().discount;
+      this.formatDiscountBadge(record['discount_percentage']) ?? '';
     const description =
-      this.readString(record['description']) ?? this.product().description;
+      this.readString(record['description']) ?? 'No description has been added for this listing yet.';
     const condition =
-      this.formatCondition(record['condition']) ?? this.product().condition;
+      this.formatCondition(record['condition']) ?? '';
     const lastUpdated =
-      this.formatDate(record['updated_at'] ?? record['created_at']) ?? this.product().lastUpdated;
+      this.formatDate(record['updated_at'] ?? record['created_at']) ?? 'Recently updated';
     const saves =
       this.formatCount(record['save_count']) ??
       this.formatCount(record['saved']) ??
-      this.product().saves;
+      currentProduct.saves;
     const listingId = this.readString(record['id']) ?? this.productId;
     const isSaved =
       this.readBoolean(record['is_saved']) ??
       this.favoritesStateService.isFavorited(listingId);
     const deliveryOptions =
-      this.extractDeliveryOptions(record) ?? this.product().deliveryOptions;
+      this.extractDeliveryOptions(record) ?? [];
     const storeName =
       this.readString(storeInfo?.['store_name']) ??
       this.readString(record['store_name']) ??
       this.readString(record['vendor_name']) ??
-      this.store().name;
+      'Store';
     const storeLocation =
       this.readString(storeInfo?.['location']) ??
       this.readString(record['store_location']) ??
       this.composeLocation(record) ??
-      this.store().location;
+      '';
     const callNumber =
       this.readString(storeInfo?.['whatsapp_number']) ??
       this.readString(storeInfo?.['call_number']) ??
       this.readString(record['whatsapp_number']) ??
       this.readString(record['call_number']) ??
-      this.store().whatsappNumber;
+      '';
     const joined =
       this.formatDate(storeInfo?.['date_joined'] ?? record['date_joined'] ?? record['created_at']) ??
-      this.store().joined;
+      '';
     const bannerImage =
       this.resolveMediaUrl(
         this.readString(storeInfo?.['cover_image']) ??
@@ -1092,7 +1127,7 @@ export class ProductPageComponent {
           this.readString(record['store_cover_image']) ??
           this.readString(record['cover_image']) ??
           this.readString(record['banner_image']),
-      ) ?? this.store().bannerImage;
+      ) ?? '';
     const relatedListings = this.extractRelatedListings(record['related_items']);
     const sellerListings = this.extractRelatedListings(
       record['more_from_seller'] ?? record['seller_listings'],
@@ -1100,7 +1135,6 @@ export class ProductPageComponent {
 
     this.currentGalleryIndex.set(0);
     this.product.set({
-      ...this.product(),
       id: listingId,
       name: productName,
       price: formattedPrice,
@@ -1115,42 +1149,43 @@ export class ProductPageComponent {
       images: galleryImages,
     });
     this.store.set({
-      ...this.store(),
       id:
         this.readString(storeInfo?.['id']) ??
         this.readString(record['vendor_id']) ??
         this.readString(record['store_id']) ??
-        this.store().id,
+        currentStore.id,
       ownerUserId:
         this.readString(storeInfo?.['user_id']) ??
         this.readString(this.readRecord(storeInfo?.['user'])?.['id']) ??
         this.readString(this.readRecord(record['user'])?.['id']) ??
-        this.store().ownerUserId,
+        currentStore.ownerUserId,
       name: storeName,
       location: storeLocation,
       whatsappNumber: callNumber,
       followers:
         this.formatCount(storeInfo?.['followers_count'] ?? record['followers_count']) ??
-        this.store().followers,
+        currentStore.followers,
       products:
         this.formatCount(storeInfo?.['products_count'] ?? record['products_count']) ??
-        this.store().products,
+        currentStore.products,
       rating:
         this.formatRating(
           storeInfo?.['average_rating'] ??
             storeInfo?.['store_rating'] ??
             record['average_rating'] ??
             record['store_rating'],
-        ) ?? this.store().rating,
+        ) ?? currentStore.rating,
       joined,
       isVerified:
         this.readBoolean(
           storeInfo?.['is_verified'] ??
             this.readRecord(record['user'])?.['is_verified'] ??
             record['is_verified'],
-        ) ?? this.store().isVerified,
-      isFollowed: this.readBoolean(record['is_followed']) ?? this.store().isFollowed,
+        ) ?? currentStore.isVerified,
+      isFollowed: this.readBoolean(record['is_followed']) ?? currentStore.isFollowed,
       initials: this.buildInitials(storeName),
+      accentFrom: currentStore.accentFrom,
+      accentTo: currentStore.accentTo,
       bannerImage,
     });
 
@@ -1194,7 +1229,7 @@ export class ProductPageComponent {
         this.moreFromSeller.set(listings);
       }
     } catch {
-      // Keep the current section state when seller listings cannot be loaded.
+      this.moreFromSeller.set([]);
     }
   }
 
@@ -1211,7 +1246,7 @@ export class ProductPageComponent {
         this.relatedItems.set(listings);
       }
     } catch {
-      // Keep the current section state when related items cannot be loaded.
+      this.relatedItems.set([]);
     }
   }
 
@@ -1311,7 +1346,7 @@ export class ProductPageComponent {
       return [{ src: singleImage, alt: this.readString(record['title']) ?? 'Listing image' }];
     }
 
-    return this.product().images;
+    return [];
   }
 
   private toGalleryImages(value: unknown): ProductGalleryImage[] {
