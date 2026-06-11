@@ -251,7 +251,7 @@ export class ProductPageComponent {
     return currentUserId !== undefined && ownerUserId !== null && String(currentUserId) === ownerUserId;
   });
   readonly currentGalleryImage = computed(
-    () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0],
+    () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0] ?? null,
   );
   readonly shareUrl = computed(() => this.document.defaultView?.location.href ?? '');
   readonly canUseNativeShare = computed(
