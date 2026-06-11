@@ -295,9 +295,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                 <button
                   type="button"
                   (click)="activeImageIndex.set(index)"
-                  class="relative h-[168px] w-[152px] shrink-0 overflow-hidden rounded-[24px] border bg-[#F3F4F7]"
-                  [class.border-[#202335]]="activeImageIndex() === index"
-                  [class.border-transparent]="activeImageIndex() !== index"
+                  class="relative h-[168px] w-[152px] shrink-0 overflow-hidden rounded-[24px] bg-[#F3F4F7]"
                 >
                   <img
                     [ngSrc]="image.src"
@@ -801,9 +799,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                   <button
                     type="button"
                     (click)="activeImageIndex.set(index)"
-                    class="relative overflow-hidden rounded-[28px] border bg-[#F3F4F7]"
-                    [class.border-[#202335]]="activeImageIndex() === index"
-                    [class.border-transparent]="activeImageIndex() !== index"
+                    class="relative overflow-hidden rounded-[28px] bg-[#F3F4F7]"
                   >
                     <div class="relative aspect-[0.92] w-full">
                       <img
