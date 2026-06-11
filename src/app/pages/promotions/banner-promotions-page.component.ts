@@ -472,6 +472,7 @@ interface BannerPromotion {
 
     @if (isCreateModalOpen()) {
       <app-create-banner-ad-modal
+        [isSubmitting]="isSubmittingBannerAd()"
         (close)="isCreateModalOpen.set(false)"
         (submit)="onCreateBannerAd($event)"
       ></app-create-banner-ad-modal>
@@ -502,6 +503,7 @@ export class BannerPromotionsPageComponent {
 
   readonly activeTab = signal<PromotionTabValue>('all');
   readonly isCreateModalOpen = signal(false);
+  readonly isSubmittingBannerAd = signal(false);
   // readonly mobileTabs = this.tabs.slice(0, 3);
   readonly currentPage = signal(1);
   readonly totalResults = signal(0);
@@ -574,11 +576,15 @@ export class BannerPromotionsPageComponent {
   }
 
   onCreateBannerAd(payload: CreateBannerAdPayload): void {
+    if (this.isSubmittingBannerAd()) {
+      return;
+    }
     if (!payload.mediaFile) {
       this.appToastService.show({ message: 'Please choose a banner image or video first.' });
       return;
     }
 
+    this.isSubmittingBannerAd.set(true);
     this.sellerMonetizationService
       .createBannerAd({
         title: payload.title,
@@ -588,6 +594,7 @@ export class BannerPromotionsPageComponent {
       })
       .subscribe({
         next: () => {
+          this.isSubmittingBannerAd.set(false);
           this.isCreateModalOpen.set(false);
           this.activeTab.set('pending approval');
           this.currentPage.set(1);
@@ -595,6 +602,7 @@ export class BannerPromotionsPageComponent {
           this.loadBannerPromotions();
         },
         error: () => {
+          this.isSubmittingBannerAd.set(false);
           this.appToastService.show({ message: 'That banner ad couldn’t be created right now. Please try again.' });
         },
       });

@@ -92,9 +92,10 @@ type PickerOption = {
             <button
               type="button"
               (click)="saveDraft()"
-              class="text-[14px] font-medium text-[#2A2D34] underline underline-offset-2"
+              [disabled]="isSavingDraft() || isPublishing()"
+              class="text-[14px] font-medium text-[#2A2D34] underline underline-offset-2 disabled:opacity-50 disabled:no-underline disabled:pointer-events-none"
             >
-              Save to drafts
+              {{ isSavingDraft() ? 'Saving...' : 'Save to drafts' }}
             </button>
           }
         </div>
@@ -130,8 +131,15 @@ type PickerOption = {
             <button
               type="button"
               (click)="saveDraft()"
-              class="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors tracking-tight"
+              [disabled]="isSavingDraft() || isPublishing()"
+              class="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors tracking-tight disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2"
             >
+              @if (isSavingDraft()) {
+                <svg class="animate-spin h-4 w-4 text-gray-600 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              }
               Save to drafts
             </button>
           </div>
@@ -1319,7 +1327,8 @@ type PickerOption = {
               <button 
                 type="button"
                 (click)="prevStep()"
-                class="pointer-events-auto bg-[#F3F4F6] hover:bg-gray-200 text-[#1A1C21] px-8 py-3.5 rounded-full font-medium transition-all active:scale-95 text-[15px]"
+                [disabled]="isPublishing() || isSavingDraft()"
+                class="pointer-events-auto bg-[#F3F4F6] hover:bg-gray-200 text-[#1A1C21] px-8 py-3.5 rounded-full font-medium transition-all active:scale-95 text-[15px] disabled:opacity-50 disabled:pointer-events-none"
               >
                 Back
               </button>
@@ -1327,8 +1336,15 @@ type PickerOption = {
             <button 
               type="button"
               (click)="currentStep() === 4 ? publish() : nextStep()" 
-              class="pointer-events-auto bg-[#5932EA] hover:bg-purple-700 text-white px-8 py-3.5 rounded-full font-medium transition-all active:scale-95 text-[15px] shadow-sm"
+              [disabled]="isPublishing() || isSavingDraft()"
+              class="pointer-events-auto bg-[#5932EA] hover:bg-purple-700 text-white px-8 py-3.5 rounded-full font-medium transition-all active:scale-95 text-[15px] shadow-sm disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
             >
+              @if (currentStep() === 4 && isPublishing()) {
+                <svg class="animate-spin h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              }
               {{ currentStep() === 4 ? 'List item' : 'Continue' }}
             </button>
           </div>
@@ -1341,7 +1357,8 @@ type PickerOption = {
                   <button
                     type="button"
                     (click)="prevStep()"
-                    class="inline-flex min-h-14 items-center justify-center rounded-full border border-[#E7E9EF] bg-white px-6 py-4 text-[14px] font-medium text-[#202335]"
+                    [disabled]="isPublishing() || isSavingDraft()"
+                    class="inline-flex min-h-14 items-center justify-center rounded-full border border-[#E7E9EF] bg-white px-6 py-4 text-[14px] font-medium text-[#202335] disabled:opacity-50 disabled:pointer-events-none"
                   >
                     Back
                   </button>
@@ -1350,8 +1367,15 @@ type PickerOption = {
                 <button
                   type="button"
                   (click)="currentStep() === 4 ? publish() : nextStep()"
-                  class="inline-flex min-h-14 items-center justify-center rounded-full bg-[#6F56F6] px-6 py-4 text-[14px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(111,86,246,0.95)]"
+                  [disabled]="isPublishing() || isSavingDraft()"
+                  class="inline-flex min-h-14 items-center justify-center rounded-full bg-[#6F56F6] px-6 py-4 text-[14px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(111,86,246,0.95)] disabled:opacity-50 disabled:pointer-events-none gap-2"
                 >
+                  @if (currentStep() === 4 && isPublishing()) {
+                    <svg class="animate-spin h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  }
                   {{ currentStep() === 4 ? 'List item' : 'Continue' }}
                 </button>
               </div>

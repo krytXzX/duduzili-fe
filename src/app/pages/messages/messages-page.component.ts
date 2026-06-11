@@ -1873,6 +1873,7 @@ type ChatDay = {
       [selectedReason]="selectedSellerReportReason()"
       [reasons]="sellerReportReasons"
       [form]="sellerReportForm"
+      [isSubmitting]="isSubmittingSellerReport()"
       (closed)="closeSellerReportModal()"
       (back)="backSellerReportStep()"
       (reasonSelected)="selectSellerReportReason($event)"

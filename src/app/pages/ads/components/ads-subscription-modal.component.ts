@@ -172,8 +172,15 @@ interface FeaturePlanConfig {
                 <button
                   type="button"
                   (click)="handleSubscribe()"
-                  class="mt-6 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+                  [disabled]="isSubmitting()"
+                  class="mt-6 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
                 >
+                  @if (isSubmitting()) {
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  }
                   Subscribe
                 </button>
 
@@ -219,8 +226,15 @@ interface FeaturePlanConfig {
                 <button
                   type="button"
                   (click)="emitSelectedSubscription()"
-                  class="inline-flex h-[52px] w-[174px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5]"
+                  [disabled]="isSubmitting()"
+                  class="inline-flex h-[52px] w-[174px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5] disabled:opacity-50 disabled:pointer-events-none gap-2"
                 >
+                  @if (isSubmitting()) {
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  }
                   Got it
                 </button>
               </div>
@@ -457,8 +471,15 @@ interface FeaturePlanConfig {
                 <button
                   type="button"
                   (click)="emitSelectedSubscription()"
-                  class="inline-flex h-10 w-[208px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[14px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5]"
+                  [disabled]="isSubmitting()"
+                  class="inline-flex h-10 w-[208px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[14px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5] disabled:opacity-50 disabled:pointer-events-none gap-2"
                 >
+                  @if (isSubmitting()) {
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  }
                   Got it
                 </button>
               </div>
@@ -474,6 +495,7 @@ export class AdsSubscriptionModalComponent implements OnDestroy {
   readonly close = output<void>();
   readonly subscribe = output<AdsSubscriptionSelection>();
   readonly plan = input<'pro' | 'premium' | 'enterprise'>('pro');
+  readonly isSubmitting = input(false);
 
   private readonly mobileOverlayService = inject(MobileOverlayService);
   readonly successDesktopImage = '/assets/images/ads-plan-success-desktop.png';

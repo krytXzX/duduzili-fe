@@ -22,7 +22,8 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
         <button
           type="button"
           (click)="close.emit()"
-          class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#333436] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6"
+          [disabled]="isLoading()"
+          class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#333436] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6 disabled:opacity-50 disabled:pointer-events-none"
           aria-label="Close modal"
         >
           <img
@@ -63,7 +64,8 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
                   [type]="inputType()"
                   [value]="value()"
                   (input)="onInput($event)"
-                  class="min-w-0 flex-1 bg-transparent text-[16px] leading-6 text-[#252628] outline-none placeholder:text-[#A8A8A8] md:text-[14px] md:leading-5 md:text-[#434455]"
+                  [readonly]="isLoading()"
+                  class="min-w-0 flex-1 bg-transparent text-[16px] leading-6 text-[#252628] outline-none placeholder:text-[#A8A8A8] md:text-[14px] md:leading-5 md:text-[#434455] readonly:opacity-50"
                 >
 
                 @if (value()) {
@@ -92,15 +94,23 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
             <button
               type="button"
               (click)="close.emit()"
-              class="hidden h-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-black transition hover:bg-[#FAFAFA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:flex"
+              [disabled]="isLoading()"
+              class="hidden h-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-black transition hover:bg-[#FAFAFA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:flex disabled:opacity-50 disabled:pointer-events-none"
             >
               Cancel
             </button>
             <button
               type="button"
               (click)="confirm.emit()"
-              class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:text-[14px] md:leading-5"
+              [disabled]="isLoading()"
+              class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:text-[14px] md:leading-5 disabled:opacity-50 disabled:pointer-events-none gap-2"
             >
+              @if (isLoading()) {
+                <svg class="animate-spin h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              }
               @if (isPhoneInput() && confirmLabel() === 'Add number') {
                 <span class="md:hidden">Send verification code</span>
                 <span class="hidden md:inline">Add number</span>
@@ -134,6 +144,7 @@ export class SettingsActionModalComponent {
   readonly inputType = input<'text' | 'email' | 'tel'>('text');
   readonly confirmLabel = input.required<string>();
   readonly showDropdown = input(false);
+  readonly isLoading = input(false);
 
   readonly close = output<void>();
   readonly confirm = output<void>();

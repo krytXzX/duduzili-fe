@@ -285,6 +285,7 @@ interface PlanDefinition {
     @if (isSubscriptionModalOpen()) {
       <app-ads-subscription-modal
         [plan]="selectedPlanType()"
+        [isSubmitting]="isSubmittingSubscription()"
         (close)="isSubscriptionModalOpen.set(false)"
         (subscribe)="handleSubscribe($event)"
       ></app-ads-subscription-modal>

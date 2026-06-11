@@ -191,6 +191,7 @@ interface NewStoreFormData {
 
     @if (isAddingStore()) {
       <app-add-store-modal
+        [isSubmitting]="isSubmittingStore()"
         (close)="isAddingStore.set(false)"
         (submit)="onStoreSubmit($event)"
       />
@@ -221,6 +222,7 @@ export class MyStoresPageComponent {
   protected readonly stores = signal<Store[]>([]);
   protected readonly searchQuery = signal('');
   protected readonly isAddingStore = signal(false);
+  protected readonly isSubmittingStore = signal(false);
   protected readonly isSuccess = signal(false);
   protected readonly isLoading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
@@ -260,6 +262,10 @@ export class MyStoresPageComponent {
   }
 
   private async createStore(formData: NewStoreFormData): Promise<void> {
+    if (this.isSubmittingStore()) {
+      return;
+    }
+    this.isSubmittingStore.set(true);
     try {
       const response = await firstValueFrom(this.vendorsService.createStore(this.buildCreateStorePayload(formData)));
       this.isAddingStore.set(false);
@@ -271,6 +277,8 @@ export class MyStoresPageComponent {
         message: 'Your store couldn’t be created right now. Please try again.',
         durationMs: 2800,
       });
+    } finally {
+      this.isSubmittingStore.set(false);
     }
   }
 

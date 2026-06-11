@@ -4,6 +4,7 @@ import {
   OnDestroy,
   computed,
   inject,
+  input,
   output,
   signal,
 } from '@angular/core';
@@ -234,7 +235,8 @@ interface BoostingPlan {
                           <button
                             type="button"
                             (click)="mobileFileInput.click()"
-                            class="flex min-h-[126px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8D8D8] bg-[#F9F9F9] px-4 py-5 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10"
+                            [disabled]="isSubmitting()"
+                            class="flex min-h-[126px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8D8D8] bg-[#F9F9F9] px-4 py-5 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10 disabled:opacity-75 disabled:pointer-events-none"
                           >
                             @if (imagePreview()) {
                               <div class="flex w-full max-w-[240px] flex-col items-center gap-3">
@@ -286,16 +288,23 @@ interface BoostingPlan {
                       <button
                         type="button"
                         (click)="close.emit()"
-                        class="h-[52px] min-w-0 flex-1 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A]"
+                        [disabled]="isSubmitting()"
+                        class="h-[52px] min-w-0 flex-1 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] disabled:opacity-50 disabled:pointer-events-none"
                       >
                         Back
                       </button>
                       <button
                         type="button"
                         (click)="submitForm()"
-                        [disabled]="bannerForm.invalid"
-                        class="h-[52px] w-[205px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none"
+                        [disabled]="bannerForm.invalid || isSubmitting()"
+                        class="h-[52px] w-[205px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
                       >
+                        @if (isSubmitting()) {
+                          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        }
                         Submit for approval
                       </button>
                     </div>
@@ -698,15 +707,23 @@ interface BoostingPlan {
                       <button
                         type="button"
                         (click)="resetFlow()"
-                        class="h-[52px] rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A]"
+                        [disabled]="isSubmitting()"
+                        class="h-[52px] rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] disabled:opacity-50 disabled:pointer-events-none"
                       >
                         Create another Ad
                       </button>
                       <button
                         type="button"
                         (click)="finishAndClose()"
-                        class="h-[52px] rounded-[64px] border border-white bg-[#6453D9] px-6 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                        [disabled]="isSubmitting()"
+                        class="h-[52px] rounded-[64px] border border-white bg-[#6453D9] px-6 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:opacity-50 disabled:pointer-events-none gap-2 inline-flex items-center justify-center"
                       >
+                        @if (isSubmitting()) {
+                          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        }
                         View running Ads
                       </button>
                     </div>
@@ -870,7 +887,8 @@ interface BoostingPlan {
                           <button
                             type="button"
                             (click)="fileInput.click()"
-                            class="flex min-h-[138px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8D8D8] bg-[#F9F9F9] px-6 py-10 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10"
+                            [disabled]="isSubmitting()"
+                            class="flex min-h-[138px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8D8D8] bg-[#F9F9F9] px-6 py-10 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10 disabled:opacity-75 disabled:pointer-events-none"
                           >
                             @if (imagePreview()) {
                               <div class="flex w-full max-w-[460px] flex-col items-center gap-4">
@@ -1078,16 +1096,23 @@ interface BoostingPlan {
                   <button
                     type="button"
                     (click)="close.emit()"
-                    class="h-11 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] transition hover:bg-[#E8E9ED] focus:outline-none focus:ring-4 focus:ring-gray-200"
+                    [disabled]="isSubmitting()"
+                    class="h-11 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] transition hover:bg-[#E8E9ED] focus:outline-none focus:ring-4 focus:ring-gray-200 disabled:opacity-50 disabled:pointer-events-none"
                   >
                     Back
                   </button>
                   <button
                     type="button"
                     (click)="submitForm()"
-                    [disabled]="bannerForm.invalid"
-                    class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5F50DE] focus:outline-none focus:ring-4 focus:ring-[#6B5BE7]/20 disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none"
+                    [disabled]="bannerForm.invalid || isSubmitting()"
+                    class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5F50DE] focus:outline-none focus:ring-4 focus:ring-[#6B5BE7]/20 disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
                   >
+                    @if (isSubmitting()) {
+                      <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    }
                     Submit for approval
                   </button>
                 </div>
@@ -1336,15 +1361,23 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="resetFlow()"
-                      class="h-11 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A]"
+                      [disabled]="isSubmitting()"
+                      class="h-11 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] disabled:opacity-50 disabled:pointer-events-none"
                     >
                       Create another Ad
                     </button>
                     <button
                       type="button"
                       (click)="finishAndClose()"
-                      class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                      [disabled]="isSubmitting()"
+                      class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:opacity-50 disabled:pointer-events-none gap-2 inline-flex items-center justify-center"
                     >
+                      @if (isSubmitting()) {
+                        <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      }
                       View running Ads
                     </button>
                   </div>
@@ -1361,6 +1394,7 @@ interface BoostingPlan {
 export class CreateBannerAdModalComponent implements OnDestroy {
   readonly close = output<void>();
   readonly submit = output<CreateBannerAdPayload>();
+  readonly isSubmitting = input(false);
 
   private readonly fb = inject(FormBuilder);
   private readonly mobileOverlayService = inject(MobileOverlayService);
@@ -1513,6 +1547,9 @@ export class CreateBannerAdModalComponent implements OnDestroy {
   }
 
   handleBackdropClick(): void {
+    if (this.isSubmitting()) {
+      return;
+    }
     if (typeof window !== 'undefined' && window.innerWidth >= 768) {
       this.close.emit();
     }

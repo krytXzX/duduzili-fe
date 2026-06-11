@@ -1229,6 +1229,7 @@ type NotificationPreferenceSettings = Record<
         [inputType]="modal.inputType"
         [confirmLabel]="modal.confirmLabel"
         [showDropdown]="modal.showDropdown"
+        [isLoading]="isProfileSubmitting()"
         (close)="modalMode.set(null)"
         (valueChange)="modalValue.set($event)"
         (confirm)="handleModalConfirm()"
@@ -1238,6 +1239,7 @@ type NotificationPreferenceSettings = Record<
     @if (currentVerificationConfig(); as verification) {
       <app-settings-verification-modal
         [destination]="verification.destination"
+        [isLoading]="isProfileSubmitting()"
         (close)="verificationMode.set(null)"
         (back)="handleVerificationBack()"
         (confirm)="completeVerification($event)"
@@ -1636,6 +1638,7 @@ export class SettingsPageComponent {
   });
 
   readonly modalMode = signal<ModalMode>(null);
+  readonly isProfileSubmitting = signal(false);
   readonly verificationMode = signal<VerificationMode>(null);
   readonly verificationReturnMode = signal<Exclude<ModalMode, 'name' | null> | null>(null);
   readonly modalValue = signal('');
@@ -1912,62 +1915,67 @@ export class SettingsPageComponent {
   }
 
   async handleModalConfirm(): Promise<void> {
-    switch (this.modalMode()) {
-      case 'name':
-        if (!(await this.persistProfileChanges({ full_name: this.modalValue() }))) {
-          return;
-        }
+    this.isProfileSubmitting.set(true);
+    try {
+      switch (this.modalMode()) {
+        case 'name':
+          if (!(await this.persistProfileChanges({ full_name: this.modalValue() }))) {
+            return;
+          }
 
-        this.showToast('Profile updated successfully');
-        this.modalMode.set(null);
-        break;
-      case 'call-add':
-        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
-          return;
-        }
+          this.showToast('Profile updated successfully');
+          this.modalMode.set(null);
+          break;
+        case 'call-add':
+          if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+            return;
+          }
 
-        this.verificationReturnMode.set('call-add');
-        this.verificationMode.set('call');
-        this.modalMode.set(null);
-        break;
-      case 'whatsapp-add':
-        if (!(await this.persistProfileChanges({ whatsapp_number: this.modalValue() }))) {
-          return;
-        }
+          this.verificationReturnMode.set('call-add');
+          this.verificationMode.set('call');
+          this.modalMode.set(null);
+          break;
+        case 'whatsapp-add':
+          if (!(await this.persistProfileChanges({ whatsapp_number: this.modalValue() }))) {
+            return;
+          }
 
-        this.verificationReturnMode.set('whatsapp-add');
-        this.verificationMode.set('whatsapp');
-        this.modalMode.set(null);
-        break;
-      case 'call-update':
-        if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
-          return;
-        }
+          this.verificationReturnMode.set('whatsapp-add');
+          this.verificationMode.set('whatsapp');
+          this.modalMode.set(null);
+          break;
+        case 'call-update':
+          if (!(await this.persistProfileChanges({ phone_number: this.modalValue() }))) {
+            return;
+          }
 
-        this.verificationReturnMode.set('call-update');
-        this.verificationMode.set('call');
-        this.modalMode.set(null);
-        break;
-      case 'whatsapp-update':
-        if (!(await this.persistProfileChanges({ whatsapp_number: this.modalValue() }))) {
-          return;
-        }
+          this.verificationReturnMode.set('call-update');
+          this.verificationMode.set('call');
+          this.modalMode.set(null);
+          break;
+        case 'whatsapp-update':
+          if (!(await this.persistProfileChanges({ whatsapp_number: this.modalValue() }))) {
+            return;
+          }
 
-        this.verificationReturnMode.set('whatsapp-update');
-        this.verificationMode.set('whatsapp');
-        this.modalMode.set(null);
-        break;
-      case 'email':
-        if (!(await this.persistProfileChanges({ email: this.modalValue() }))) {
-          return;
-        }
+          this.verificationReturnMode.set('whatsapp-update');
+          this.verificationMode.set('whatsapp');
+          this.modalMode.set(null);
+          break;
+        case 'email':
+          if (!(await this.persistProfileChanges({ email: this.modalValue() }))) {
+            return;
+          }
 
-        this.verificationReturnMode.set('email');
-        this.verificationMode.set('email');
-        this.modalMode.set(null);
-        break;
-      default:
-        break;
+          this.verificationReturnMode.set('email');
+          this.verificationMode.set('email');
+          this.modalMode.set(null);
+          break;
+        default:
+          break;
+      }
+    } finally {
+      this.isProfileSubmitting.set(false);
     }
   }
 
@@ -1995,37 +2003,42 @@ export class SettingsPageComponent {
   }
 
   async completeVerification(otpCode: string): Promise<void> {
-    if (!(await this.confirmProfileOtp(otpCode))) {
-      return;
-    }
+    this.isProfileSubmitting.set(true);
+    try {
+      if (!(await this.confirmProfileOtp(otpCode))) {
+        return;
+      }
 
-    switch (this.verificationMode()) {
-      case 'email':
-        await this.refreshProfileFromBackend();
-        this.showToast('Profile updated successfully');
-        break;
-      case 'call':
-        await this.refreshProfileFromBackend();
-        this.showToast(
-          this.verificationReturnMode() === 'call-add'
-            ? 'Phone number added successfully'
-            : 'Phone number updated successfully',
-        );
-        break;
-      case 'whatsapp':
-        await this.refreshProfileFromBackend();
-        this.showToast(
-          this.verificationReturnMode() === 'whatsapp-add'
-            ? 'Phone number added successfully'
-            : 'Phone number updated successfully',
-        );
-        break;
-      default:
-        break;
-    }
+      switch (this.verificationMode()) {
+        case 'email':
+          await this.refreshProfileFromBackend();
+          this.showToast('Profile updated successfully');
+          break;
+        case 'call':
+          await this.refreshProfileFromBackend();
+          this.showToast(
+            this.verificationReturnMode() === 'call-add'
+              ? 'Phone number added successfully'
+              : 'Phone number updated successfully',
+          );
+          break;
+        case 'whatsapp':
+          await this.refreshProfileFromBackend();
+          this.showToast(
+            this.verificationReturnMode() === 'whatsapp-add'
+              ? 'Phone number added successfully'
+              : 'Phone number updated successfully',
+          );
+          break;
+        default:
+          break;
+      }
 
-    this.verificationMode.set(null);
-    this.verificationReturnMode.set(null);
+      this.verificationMode.set(null);
+      this.verificationReturnMode.set(null);
+    } finally {
+      this.isProfileSubmitting.set(false);
+    }
   }
 
   updateNewPassword(event: Event): void {

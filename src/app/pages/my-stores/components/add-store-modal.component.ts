@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  input,
   OnDestroy,
   output,
   signal,
@@ -31,7 +32,7 @@ export interface AddStoreFormValue {
   template: `
     <div
       class="fixed inset-0 z-50 bg-black/40 backdrop-blur-[4px] md:flex md:items-center md:justify-center md:p-4"
-      (click)="close.emit()"
+      (click)="!isSubmitting() && close.emit()"
     >
       <div
         class="fixed inset-x-0 bottom-0 top-3 flex max-h-[calc(100dvh-0.75rem)] flex-col overflow-x-hidden overflow-y-hidden rounded-t-[36px] bg-white md:relative md:top-auto md:max-h-[90vh] md:w-full md:max-w-[600px] md:rounded-[16px]"
@@ -55,9 +56,10 @@ export interface AddStoreFormValue {
 
                 <button
                   type="button"
-                  class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                  class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] disabled:opacity-50 disabled:pointer-events-none"
                   aria-label="Close add store flow"
                   (click)="close.emit()"
+                  [disabled]="isSubmitting()"
                 >
                   <img
                     [ngSrc]="closeIconUrl"
@@ -210,8 +212,9 @@ export interface AddStoreFormValue {
 
                 <button
                   type="button"
-                  class="relative mt-3 inline-flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-full border border-[#eaeaea] bg-[#f9f9f9]"
+                  class="relative mt-3 inline-flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-full border border-[#eaeaea] bg-[#f9f9f9] disabled:opacity-70 disabled:pointer-events-none"
                   (click)="profileInput.click()"
+                  [disabled]="isSubmitting()"
                   aria-label="Upload profile photo"
                 >
                   @if (profilePreview(); as profilePreview) {
@@ -264,8 +267,9 @@ export interface AddStoreFormValue {
 
                 <button
                   type="button"
-                  class="relative mt-3 flex h-[138px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-dashed border-[#d8d8d8] bg-[#f9f9f9]"
+                  class="relative mt-3 flex h-[138px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-dashed border-[#d8d8d8] bg-[#f9f9f9] disabled:opacity-70 disabled:pointer-events-none"
                   (click)="coverInput.click()"
+                  [disabled]="isSubmitting()"
                   aria-label="Upload cover photo"
                 >
                   @if (coverPreview(); as coverPreview) {
@@ -298,9 +302,16 @@ export interface AddStoreFormValue {
           <div class="shrink-0 bg-white px-4 pb-[14px] pt-[11px] md:hidden">
             <button
               type="button"
-              class="flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453d9] text-[16px] leading-6 font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8] disabled:opacity-50"
+              class="flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453d9] text-[16px] leading-6 font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8] disabled:opacity-50 disabled:pointer-events-none gap-2"
               (click)="onSubmit()"
+              [disabled]="isSubmitting()"
             >
+              @if (isSubmitting()) {
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              }
               Add store
             </button>
           </div>
@@ -308,17 +319,25 @@ export interface AddStoreFormValue {
           <div class="hidden h-20 items-center justify-end gap-2 bg-white px-[29px] md:flex">
             <button
               type="button"
-              class="inline-flex h-10 items-center justify-center rounded-[82px] bg-[#f5f5f5] px-6 text-[16px] leading-[22px] font-medium tracking-[-0.03em] text-[#05061a]"
+              class="inline-flex h-10 items-center justify-center rounded-[82px] bg-[#f5f5f5] px-6 text-[16px] leading-[22px] font-medium tracking-[-0.03em] text-[#05061a] disabled:opacity-50 disabled:pointer-events-none"
               (click)="close.emit()"
+              [disabled]="isSubmitting()"
             >
               Cancel
             </button>
 
             <button
               type="button"
-              class="inline-flex h-10 items-center justify-center rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] disabled:opacity-50"
+              class="inline-flex h-10 items-center justify-center rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] disabled:opacity-50 disabled:pointer-events-none gap-2"
               (click)="onSubmit()"
+              [disabled]="isSubmitting()"
             >
+              @if (isSubmitting()) {
+                <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              }
               Add store
             </button>
           </div>
@@ -351,6 +370,7 @@ export interface AddStoreFormValue {
 export class AddStoreModalComponent implements OnDestroy {
   readonly close = output<void>();
   readonly submit = output<AddStoreFormValue>();
+  readonly isSubmitting = input(false);
 
   protected readonly closeIconUrl = '/assets/icons/my-stores-add-close.svg';
   protected readonly chevronIconUrl = '/assets/icons/my-stores-add-chevron.svg';
