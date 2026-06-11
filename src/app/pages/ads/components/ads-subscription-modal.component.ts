@@ -56,7 +56,7 @@ interface FeaturePlanConfig {
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="absolute right-4 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#1A1C21]"
+                  class="absolute right-4 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#1A1C21] transition hover:bg-[#FAFAFB] active:scale-95 duration-200"
                   aria-label="Close subscription modal"
                 >
                   <ng-icon name="heroXMark" class="text-[16px]"></ng-icon>
@@ -127,7 +127,7 @@ interface FeaturePlanConfig {
                       <button
                         type="button"
                         (click)="selectedBillingId.set(option.id)"
-                        class="flex w-full items-center justify-between rounded-[16px] border px-4 py-3 text-left transition"
+                        class="flex w-full items-center justify-between rounded-[16px] border px-4 py-3 text-left transition hover:border-[#6D5AF0]/60 active:scale-[0.98] duration-200"
                         [class.border-[#6D5AF0]]="selectedBillingId() === option.id"
                         [class.bg-[#FBFAFF]]="selectedBillingId() === option.id"
                         [class.border-[#E6E7EB]]="selectedBillingId() !== option.id"
@@ -173,7 +173,7 @@ interface FeaturePlanConfig {
                   type="button"
                   (click)="handleSubscribe()"
                   [disabled]="isSubmitting()"
-                  class="mt-6 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
+                  class="mt-6 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
                 >
                   @if (isSubmitting()) {
                     <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -227,7 +227,7 @@ interface FeaturePlanConfig {
                   type="button"
                   (click)="emitSelectedSubscription()"
                   [disabled]="isSubmitting()"
-                  class="inline-flex h-[52px] w-[174px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5] disabled:opacity-50 disabled:pointer-events-none gap-2"
+                  class="inline-flex h-[52px] w-[174px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5] transition hover:bg-[#5341C6] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none gap-2"
                 >
                   @if (isSubmitting()) {
                     <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -260,7 +260,7 @@ interface FeaturePlanConfig {
                       <button
                         type="button"
                         (click)="selectedBillingId.set(option.id)"
-                        class="flex w-full items-center justify-between rounded-[18px] border px-4 py-4 text-left transition"
+                        class="flex w-full items-center justify-between rounded-[18px] border px-4 py-4 text-left transition hover:border-[#6D5AF0]/60 active:scale-[0.98] duration-200"
                         [class.border-[#6D5AF0]]="selectedBillingId() === option.id"
                         [class.bg-[#FBFAFF]]="selectedBillingId() === option.id"
                         [class.border-[#E6E7EB]]="selectedBillingId() !== option.id"
@@ -313,7 +313,7 @@ interface FeaturePlanConfig {
                     <button
                       type="button"
                       (click)="selectedPaymentId.set('wallet')"
-                      class="flex items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition"
+                      class="flex items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition hover:border-[#6D5AF0]/60 active:scale-[0.98] duration-200"
                       [class.border-[#6D5AF0]]="selectedPaymentId() === 'wallet'"
                       [class.bg-[#FBFAFF]]="selectedPaymentId() === 'wallet'"
                       [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
@@ -338,7 +338,7 @@ interface FeaturePlanConfig {
                     <button
                       type="button"
                       (click)="selectedPaymentId.set('online')"
-                      class="flex items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition"
+                      class="flex items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition hover:border-[#6D5AF0]/60 active:scale-[0.98] duration-200"
                       [class.border-[#6D5AF0]]="selectedPaymentId() === 'online'"
                       [class.bg-[#FBFAFF]]="selectedPaymentId() === 'online'"
                       [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
@@ -382,7 +382,7 @@ interface FeaturePlanConfig {
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#1A1C21] transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-gray-200"
+                  class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#1A1C21] transition hover:bg-white active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-gray-200"
                 >
                   <ng-icon name="heroXMark" class="text-xl"></ng-icon>
                 </button>
@@ -427,7 +427,7 @@ interface FeaturePlanConfig {
                 <button
                   type="button"
                   (click)="step.set('success')"
-                  class="mt-12 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
+                  class="mt-12 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
                 >
                   Subscribe
                 </button>
@@ -472,7 +472,7 @@ interface FeaturePlanConfig {
                   type="button"
                   (click)="emitSelectedSubscription()"
                   [disabled]="isSubmitting()"
-                  class="inline-flex h-10 w-[208px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[14px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5] disabled:opacity-50 disabled:pointer-events-none gap-2"
+                  class="inline-flex h-10 w-[208px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[14px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5] transition hover:bg-[#5341C6] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none gap-2"
                 >
                   @if (isSubmitting()) {
                     <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

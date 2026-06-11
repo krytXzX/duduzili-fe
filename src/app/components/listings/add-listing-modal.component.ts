@@ -78,7 +78,7 @@ type PickerOption = {
             <button
               type="button"
               (click)="close.emit()"
-              class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
+              class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34] transition hover:bg-gray-100 active:scale-95 duration-200"
               aria-label="Close add listing flow"
             >
               <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
@@ -93,7 +93,7 @@ type PickerOption = {
               type="button"
               (click)="saveDraft()"
               [disabled]="isSavingDraft() || isPublishing()"
-              class="text-[14px] font-medium text-[#2A2D34] underline underline-offset-2 disabled:opacity-50 disabled:no-underline disabled:pointer-events-none"
+              class="text-[14px] font-medium text-[#2A2D34] underline underline-offset-2 transition hover:text-black active:scale-95 duration-200 disabled:opacity-50 disabled:no-underline disabled:pointer-events-none"
             >
               {{ isSavingDraft() ? 'Saving...' : 'Save to drafts' }}
             </button>
@@ -118,7 +118,7 @@ type PickerOption = {
         <div class="flex items-center gap-6">
           <button 
             (click)="close.emit()" 
-            class="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            class="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors active:scale-95 duration-200"
           >
             <ng-icon name="heroXMark" class="text-xl text-gray-700"></ng-icon>
           </button>
@@ -132,7 +132,7 @@ type PickerOption = {
               type="button"
               (click)="saveDraft()"
               [disabled]="isSavingDraft() || isPublishing()"
-              class="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors tracking-tight disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2"
+              class="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors tracking-tight active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2"
             >
               @if (isSavingDraft()) {
                 <svg class="animate-spin h-4 w-4 text-gray-600 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -408,7 +408,7 @@ type PickerOption = {
                       <button
                         type="button"
                         (click)="openPicker('category')"
-                        class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none"
+                        class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none transition-all hover:border-[#6F56F6]/50 active:scale-[0.99] duration-200"
                       >
                         <span>{{ selectedCategoryLabel() || 'Select category' }}</span>
                         <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
@@ -421,7 +421,7 @@ type PickerOption = {
                         <button
                           type="button"
                           (click)="openPicker('condition')"
-                          class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none"
+                          class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none transition-all hover:border-[#6F56F6]/50 active:scale-[0.99] duration-200"
                         >
                           <span>{{ selectedConditionLabel() || 'Select condition' }}</span>
                           <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
@@ -433,7 +433,7 @@ type PickerOption = {
                         <button
                           type="button"
                           (click)="openPicker('store')"
-                          class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none"
+                          class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none transition-all hover:border-[#6F56F6]/50 active:scale-[0.99] duration-200"
                         >
                           <span class="truncate">{{ selectedStoreLabel() || 'Select store' }}</span>
                           <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
@@ -476,7 +476,7 @@ type PickerOption = {
                       <button
                         type="button"
                         (click)="openPicker('category')"
-                        class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all"
+                        class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all hover:border-[#6F56F6]/40 active:scale-[0.99] duration-200"
                       >
                         <span>{{ selectedCategoryLabel() || 'Select category' }}</span>
                         <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
@@ -488,7 +488,7 @@ type PickerOption = {
                       <button
                         type="button"
                         (click)="openPicker('condition')"
-                        class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all"
+                        class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all hover:border-[#6F56F6]/40 active:scale-[0.99] duration-200"
                       >
                         <span>{{ selectedConditionLabel() || 'Select condition' }}</span>
                         <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
@@ -500,7 +500,7 @@ type PickerOption = {
                       <button
                         type="button"
                         (click)="openPicker('store')"
-                        class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all"
+                        class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all hover:border-[#6F56F6]/40 active:scale-[0.99] duration-200"
                       >
                         <span>{{ selectedStoreLabel() || 'Select store' }}</span>
                         <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
@@ -1225,7 +1225,7 @@ type PickerOption = {
                       <span class="min-w-0 flex-1 truncate text-left text-[12px] font-medium text-[#5F6470]">https://duduzili.com/listing001</span>
                       <button
                         type="button"
-                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E1E3E8] bg-white text-[#202335]"
+                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E1E3E8] bg-white text-[#202335] transition-all hover:bg-gray-50 hover:border-gray-300 active:scale-95 duration-200"
                         aria-label="Copy link"
                       >
                         <ng-icon name="heroDocumentDuplicate" class="text-[18px]"></ng-icon>
@@ -1233,16 +1233,16 @@ type PickerOption = {
                     </div>
 
                     <div class="mt-6 flex items-center justify-center gap-5">
-                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#111111]" aria-label="Share on X">
+                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#111111] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on X">
                         <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 22.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                       </button>
-                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#25D366]" aria-label="Share on WhatsApp">
+                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#25D366] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on WhatsApp">
                         <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M12.031 0A12.03 12.03 0 0 0 0 12.03c0 2.378.618 4.698 1.791 6.745L.044 24l5.345-1.401A11.97 11.97 0 0 0 12.03 24c6.643 0 12.03-5.385 12.03-12.029A12.03 12.03 0 0 0 12.031 0m6.417 17.15c-.266.75-1.554 1.432-2.158 1.503-.54.062-1.258.18-3.568-.781-2.8-1.168-4.576-4.01-4.714-4.195-.14-.184-1.127-1.503-1.127-2.864 0-1.362.706-2.031.956-2.28 0 0 .367-.369.832-.369.176 0 .332.006.464.012.214.011.5-.084.78.591.353.845 1.205 2.949 1.312 3.166.108.217.18.471.042.748-.138.277-.208.448-.415.698-.207.25-.436.56-.622.736-.208.196-.43.407-.197.808.233.4 1.034 1.705 2.222 2.766 1.528 1.365 2.8 1.789 3.197 1.957.398.17.632.146.868-.124.237-.27.994-1.159 1.261-1.556.265-.398.532-.332.895-.198.363.136 2.308 1.085 2.705 1.282.398.197.664.296.76.463.096.168.096.974-.17 1.725"/></svg>
                       </button>
-                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#E4405F]" aria-label="Share on Instagram">
+                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#E4405F] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on Instagram">
                         <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm3.98-10.366a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0z"/></svg>
                       </button>
-                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#1877F2]" aria-label="Share on Facebook">
+                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#1877F2] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on Facebook">
                         <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                       </button>
                     </div>
@@ -1274,10 +1274,10 @@ type PickerOption = {
                     <p class="text-[14px] font-medium text-gray-400 mb-10">You also boosted it for 7 days</p>
 
                     <div class="flex items-center gap-4 mb-16 px-10 w-full max-w-[460px] mx-auto">
-                       <button type="button" (click)="resetForm()" class="flex-1 bg-[#FAFAFA] hover:bg-gray-100 text-[#1A1C21] py-3.5 rounded-full font-bold transition-all text-[15px]">
+                       <button type="button" (click)="resetForm()" class="flex-1 bg-[#FAFAFA] hover:bg-gray-100 text-[#1A1C21] py-3.5 rounded-full font-bold transition-all active:scale-95 duration-200 text-[15px]">
                           Add another listing
                        </button>
-                       <button type="button" (click)="close.emit()" class="flex-1 bg-[#5932EA] hover:bg-purple-700 text-white py-3.5 rounded-full font-bold transition-all text-[15px] shadow-sm">
+                       <button type="button" (click)="close.emit()" class="flex-1 bg-[#5932EA] hover:bg-purple-700 text-white py-3.5 rounded-full font-bold transition-all active:scale-95 duration-200 text-[15px] shadow-sm">
                           View listing
                        </button>
                     </div>
@@ -1358,7 +1358,7 @@ type PickerOption = {
                     type="button"
                     (click)="prevStep()"
                     [disabled]="isPublishing() || isSavingDraft()"
-                    class="inline-flex min-h-14 items-center justify-center rounded-full border border-[#E7E9EF] bg-white px-6 py-4 text-[14px] font-medium text-[#202335] disabled:opacity-50 disabled:pointer-events-none"
+                    class="inline-flex min-h-14 items-center justify-center rounded-full border border-[#E7E9EF] bg-white px-6 py-4 text-[14px] font-medium text-[#202335] transition-all hover:bg-gray-50 hover:border-gray-300 active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none"
                   >
                     Back
                   </button>
@@ -1368,7 +1368,7 @@ type PickerOption = {
                   type="button"
                   (click)="currentStep() === 4 ? publish() : nextStep()"
                   [disabled]="isPublishing() || isSavingDraft()"
-                  class="inline-flex min-h-14 items-center justify-center rounded-full bg-[#6F56F6] px-6 py-4 text-[14px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(111,86,246,0.95)] disabled:opacity-50 disabled:pointer-events-none gap-2"
+                  class="inline-flex min-h-14 items-center justify-center rounded-full bg-[#6F56F6] px-6 py-4 text-[14px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(111,86,246,0.95)] transition-all hover:bg-[#5a43db] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none gap-2"
                 >
                   @if (currentStep() === 4 && isPublishing()) {
                     <svg class="animate-spin h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

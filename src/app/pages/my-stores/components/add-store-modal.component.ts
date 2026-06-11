@@ -56,7 +56,7 @@ export interface AddStoreFormValue {
 
                 <button
                   type="button"
-                  class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] disabled:opacity-50 disabled:pointer-events-none"
+                  class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] disabled:opacity-50 disabled:pointer-events-none hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 duration-200"
                   aria-label="Close add store flow"
                   (click)="close.emit()"
                   [disabled]="isSubmitting()"
@@ -212,7 +212,7 @@ export interface AddStoreFormValue {
 
                 <button
                   type="button"
-                  class="relative mt-3 inline-flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-full border border-[#eaeaea] bg-[#f9f9f9] disabled:opacity-70 disabled:pointer-events-none"
+                  class="relative mt-3 inline-flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-full border border-[#eaeaea] bg-[#f9f9f9] disabled:opacity-70 disabled:pointer-events-none hover:border-[#6453d9] hover:bg-[#fafafc] transition-all duration-200 active:scale-98"
                   (click)="profileInput.click()"
                   [disabled]="isSubmitting()"
                   aria-label="Upload profile photo"
@@ -267,7 +267,7 @@ export interface AddStoreFormValue {
 
                 <button
                   type="button"
-                  class="relative mt-3 flex h-[138px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-dashed border-[#d8d8d8] bg-[#f9f9f9] disabled:opacity-70 disabled:pointer-events-none"
+                  class="relative mt-3 flex h-[138px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-dashed border-[#d8d8d8] bg-[#f9f9f9] disabled:opacity-70 disabled:pointer-events-none hover:border-[#6453d9] hover:bg-[#fafafc] transition-all duration-200 active:scale-[0.99]"
                   (click)="coverInput.click()"
                   [disabled]="isSubmitting()"
                   aria-label="Upload cover photo"
@@ -302,7 +302,7 @@ export interface AddStoreFormValue {
           <div class="shrink-0 bg-white px-4 pb-[14px] pt-[11px] md:hidden">
             <button
               type="button"
-              class="flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453d9] text-[16px] leading-6 font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8] disabled:opacity-50 disabled:pointer-events-none gap-2"
+              class="flex h-[52px] w-full items-center justify-center rounded-[64px] border border-white bg-[#6453d9] text-[16px] leading-6 font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8] disabled:opacity-50 disabled:pointer-events-none gap-2 hover:bg-[#5342ca] hover:shadow-[0_6px_14px_rgba(81,35,173,0.5)] transition-all active:scale-[0.99] duration-200"
               (click)="onSubmit()"
               [disabled]="isSubmitting()"
             >
@@ -319,7 +319,7 @@ export interface AddStoreFormValue {
           <div class="hidden h-20 items-center justify-end gap-2 bg-white px-[29px] md:flex">
             <button
               type="button"
-              class="inline-flex h-10 items-center justify-center rounded-[82px] bg-[#f5f5f5] px-6 text-[16px] leading-[22px] font-medium tracking-[-0.03em] text-[#05061a] disabled:opacity-50 disabled:pointer-events-none"
+              class="inline-flex h-10 items-center justify-center rounded-[82px] bg-[#f5f5f5] px-6 text-[16px] leading-[22px] font-medium tracking-[-0.03em] text-[#05061a] disabled:opacity-50 disabled:pointer-events-none hover:bg-[#ebebeb] hover:text-black transition-all active:scale-95 duration-200"
               (click)="close.emit()"
               [disabled]="isSubmitting()"
             >
@@ -328,7 +328,7 @@ export interface AddStoreFormValue {
 
             <button
               type="button"
-              class="inline-flex h-10 items-center justify-center rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] disabled:opacity-50 disabled:pointer-events-none gap-2"
+              class="inline-flex h-10 items-center justify-center rounded-[64px] border border-white bg-[#6453d9] px-5 text-[14px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] disabled:opacity-50 disabled:pointer-events-none gap-2 hover:bg-[#5342ca] hover:shadow-[0_6px_16px_rgba(81,35,173,0.45)] transition-all active:scale-95 duration-200"
               (click)="onSubmit()"
               [disabled]="isSubmitting()"
             >

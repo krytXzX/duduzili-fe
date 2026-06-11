@@ -86,11 +86,11 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="close.emit()"
-                      class="inline-flex items-center gap-2 text-left text-[#1A1B1D]"
+                      class="inline-flex items-center gap-2 text-left text-[#1A1B1D] transition-all hover:text-black active:scale-95 duration-200"
                       aria-label="Close create ad modal"
                     >
                       <span
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5]"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5] transition duration-200 hover:bg-[#EAEAEA]"
                       >
                         <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
                       </span>
@@ -100,7 +100,7 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="openPreview()"
-                      class="text-[14px] font-medium leading-5 text-[#1A1B1D] underline underline-offset-[3px]"
+                      class="text-[14px] font-medium leading-5 text-[#1A1B1D] underline underline-offset-[3px] transition hover:text-[#6453D9] active:scale-95 duration-200"
                     >
                       Preview
                     </button>
@@ -182,7 +182,7 @@ interface BoostingPlan {
                           @for (option of bannerTypeOptions; track option.value) {
                             <label
                               (click)="setBannerType(option.value)"
-                              class="flex min-w-[151px] cursor-pointer items-center gap-2 rounded-[12px] border px-3 py-3 transition"
+                              class="flex min-w-[151px] cursor-pointer items-center gap-2 rounded-[12px] border px-3 py-3 transition hover:border-[#6453D9]/60 hover:bg-[#F9F7FF]/50 active:scale-[0.98] duration-200"
                               [class.border-[#6453D9]]="selectedBannerType() === option.value"
                               [class.bg-[#F9F7FF]]="selectedBannerType() === option.value"
                               [class.border-[#EAEAEA]]="selectedBannerType() !== option.value"
@@ -236,7 +236,7 @@ interface BoostingPlan {
                             type="button"
                             (click)="mobileFileInput.click()"
                             [disabled]="isSubmitting()"
-                            class="flex min-h-[126px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8D8D8] bg-[#F9F9F9] px-4 py-5 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10 disabled:opacity-75 disabled:pointer-events-none"
+                            class="flex min-h-[126px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8D8D8] bg-[#F9F9F9] px-4 py-5 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10 active:scale-[0.99] duration-200 disabled:opacity-75 disabled:pointer-events-none"
                           >
                             @if (imagePreview()) {
                               <div class="flex w-full max-w-[240px] flex-col items-center gap-3">
@@ -289,7 +289,7 @@ interface BoostingPlan {
                         type="button"
                         (click)="close.emit()"
                         [disabled]="isSubmitting()"
-                        class="h-[52px] min-w-0 flex-1 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] disabled:opacity-50 disabled:pointer-events-none"
+                        class="h-[52px] min-w-0 flex-1 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] transition hover:bg-[#EAEAEA] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none"
                       >
                         Back
                       </button>
@@ -297,7 +297,7 @@ interface BoostingPlan {
                         type="button"
                         (click)="submitForm()"
                         [disabled]="bannerForm.invalid || isSubmitting()"
-                        class="h-[52px] w-[205px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
+                        class="h-[52px] w-[205px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5341C6] hover:shadow-[0_6px_16px_0_rgba(81,35,173,0.45),0_0_0_1px_#6B5BD5] active:scale-95 duration-200 disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
                       >
                         @if (isSubmitting()) {
                           <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -318,7 +318,7 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="step.set(1)"
-                      class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A] transition hover:bg-[#E8EAEE] active:scale-95 duration-200"
                       aria-label="Back to create ad form"
                     >
                       <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
@@ -329,7 +329,7 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="close.emit()"
-                      class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260]"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] transition hover:bg-[#F5F6FA] active:scale-95 duration-200"
                       aria-label="Close preview"
                     >
                       <ng-icon name="heroXMark" class="text-[16px]"></ng-icon>
@@ -344,13 +344,13 @@ interface BoostingPlan {
                     <div class="mt-6 flex items-center gap-5 text-[#707583]">
                       <button
                         type="button"
-                        class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#E5E7ED]"
+                        class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#E5E7ED] bg-white transition hover:bg-[#F5F6FA] active:scale-95 duration-200"
                       >
                         <ng-icon name="heroMagnifyingGlassMinus" class="text-[13px]"></ng-icon>
                       </button>
                       <button
                         type="button"
-                        class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#E5E7ED]"
+                        class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#E5E7ED] bg-white transition hover:bg-[#F5F6FA] active:scale-95 duration-200"
                       >
                         <ng-icon name="heroMagnifyingGlassPlus" class="text-[13px]"></ng-icon>
                       </button>
@@ -440,7 +440,7 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="step.set(3)"
-                      class="mt-8 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+                      class="mt-8 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] hover:shadow-[0_18px_36px_-14px_rgba(102,83,228,1.0)] active:scale-95 duration-200"
                     >
                       Continue
                     </button>
@@ -459,7 +459,7 @@ interface BoostingPlan {
                   <button
                     type="button"
                     (click)="close.emit()"
-                    class="absolute right-4 top-3 z-20 inline-flex h-10 w-10 items-center justify-center pointer-events-auto md:hidden"
+                    class="absolute right-4 top-3 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all duration-200 pointer-events-auto md:hidden"
                     aria-label="Close plan selection"
                   >
                     <img
@@ -486,7 +486,7 @@ interface BoostingPlan {
                         <button
                           type="button"
                           (click)="selectedPlanId.set(plan.id)"
-                          class="relative flex h-[84px] w-full items-center justify-between rounded-[20px] border bg-white px-[15px] text-left"
+                          class="relative flex h-[84px] w-full items-center justify-between rounded-[20px] border bg-white px-[15px] text-left transition-all hover:border-[#357FF6]/50 active:scale-[0.98] duration-200"
                           [class.border-2]="selectedPlanId() === plan.id"
                           [class.border-[#357FF6]]="selectedPlanId() === plan.id"
                           [class.bg-[#FAFAFF]]="selectedPlanId() === plan.id"
@@ -525,7 +525,7 @@ interface BoostingPlan {
                       <button
                         type="button"
                         (click)="goToPaymentStep()"
-                        class="w-full rounded-[64px] border border-white bg-[#6453D9] px-6 py-3.5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_0_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8]"
+                        class="w-full rounded-[64px] border border-white bg-[#6453D9] px-6 py-3.5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_0_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5341C6] active:scale-95 duration-200"
                       >
                         Proceed
                       </button>
@@ -540,7 +540,7 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="step.set(3)"
-                      class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A]"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A] transition hover:bg-[#E8EAEE] active:scale-95 duration-200"
                       aria-label="Back to plan selection"
                     >
                       <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
@@ -551,7 +551,7 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="close.emit()"
-                      class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260]"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] transition hover:bg-[#F5F6FA] active:scale-95 duration-200"
                       aria-label="Close payment"
                     >
                       <ng-icon name="heroXMark" class="text-[16px]"></ng-icon>
@@ -612,7 +612,7 @@ interface BoostingPlan {
                         <button
                           type="button"
                           (click)="selectedPaymentId.set('wallet')"
-                          class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left"
+                          class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition hover:border-[#6955F2]/50 active:scale-[0.99] duration-200"
                           [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
                           [class.bg-[#F8F6FF]]="selectedPaymentId() === 'wallet'"
                           [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
@@ -640,7 +640,7 @@ interface BoostingPlan {
                         <button
                           type="button"
                           (click)="selectedPaymentId.set('online')"
-                          class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left"
+                          class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition hover:border-[#6955F2]/50 active:scale-[0.99] duration-200"
                           [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
                           [class.bg-[#F8F6FF]]="selectedPaymentId() === 'online'"
                           [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
@@ -668,7 +668,7 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="completePayment()"
-                      class="mt-7 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+                      class="mt-7 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] active:scale-95 duration-200"
                     >
                       Confirm and pay
                     </button>
@@ -708,7 +708,7 @@ interface BoostingPlan {
                         type="button"
                         (click)="resetFlow()"
                         [disabled]="isSubmitting()"
-                        class="h-[52px] rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] disabled:opacity-50 disabled:pointer-events-none"
+                        class="h-[52px] rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] transition hover:bg-[#EAEAEA] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none"
                       >
                         Create another Ad
                       </button>
@@ -716,7 +716,7 @@ interface BoostingPlan {
                         type="button"
                         (click)="finishAndClose()"
                         [disabled]="isSubmitting()"
-                        class="h-[52px] rounded-[64px] border border-white bg-[#6453D9] px-6 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:opacity-50 disabled:pointer-events-none gap-2 inline-flex items-center justify-center"
+                        class="h-[52px] rounded-[64px] border border-white bg-[#6453D9] px-6 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5341C6] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none gap-2 inline-flex items-center justify-center"
                       >
                         @if (isSubmitting()) {
                           <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -741,7 +741,7 @@ interface BoostingPlan {
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5] text-[#0D0D0D] transition hover:bg-[#EFEFF2] focus:outline-none focus:ring-4 focus:ring-gray-200"
+                  class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5] text-[#0D0D0D] transition hover:bg-[#EFEFF2] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-gray-200"
                   aria-label="Close create ad modal"
                 >
                   <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
@@ -831,7 +831,7 @@ interface BoostingPlan {
                           @for (option of bannerTypeOptions; track option.value) {
                             <label
                               (click)="setBannerType(option.value)"
-                              class="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-[12px] px-3 py-3 transition"
+                              class="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-[12px] px-3 py-3 transition hover:border-[#6453D9]/60 hover:bg-[#F9F7FF]/50 active:scale-[0.98] duration-200"
                               [class.border-[#6453D9]]="selectedBannerType() === option.value"
                               [class.bg-[#F9F7FF]]="selectedBannerType() === option.value"
                               [class.border]="selectedBannerType() !== option.value"
@@ -888,7 +888,7 @@ interface BoostingPlan {
                             type="button"
                             (click)="fileInput.click()"
                             [disabled]="isSubmitting()"
-                            class="flex min-h-[138px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8D8D8] bg-[#F9F9F9] px-6 py-10 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10 disabled:opacity-75 disabled:pointer-events-none"
+                            class="flex min-h-[138px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#D8D8D8] bg-[#F9F9F9] px-6 py-10 text-center transition hover:border-[#B9B7F8] hover:bg-[#FBFAFF] focus:outline-none focus:ring-2 focus:ring-[#7868F3]/10 active:scale-[0.99] duration-200 disabled:opacity-75 disabled:pointer-events-none"
                           >
                             @if (imagePreview()) {
                               <div class="flex w-full max-w-[460px] flex-col items-center gap-4">
@@ -948,7 +948,7 @@ interface BoostingPlan {
                         type="button"
                         (click)="previewMode.set('desktop')"
                         [attr.aria-pressed]="previewMode() === 'desktop'"
-                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-[0_4px_8px_0_rgba(202,202,202,0.25)] transition focus:outline-none focus:ring-4 focus:ring-[#7868F3]/10"
+                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-[0_4px_8px_0_rgba(202,202,202,0.25)] transition hover:bg-gray-50 active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#7868F3]/10"
                         [class.border]="previewMode() === 'desktop'"
                         [class.border-[#EAEAEA]]="previewMode() === 'desktop'"
                       >
@@ -958,7 +958,7 @@ interface BoostingPlan {
                         type="button"
                         (click)="previewMode.set('mobile')"
                         [attr.aria-pressed]="previewMode() === 'mobile'"
-                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-[0_4px_8px_0_rgba(202,202,202,0.25)] transition focus:outline-none focus:ring-4 focus:ring-[#7868F3]/10"
+                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-[0_4px_8px_0_rgba(202,202,202,0.25)] transition hover:bg-gray-50 active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#7868F3]/10"
                         [class.border]="previewMode() === 'mobile'"
                         [class.border-[#EAEAEA]]="previewMode() === 'mobile'"
                       >
@@ -1097,7 +1097,7 @@ interface BoostingPlan {
                     type="button"
                     (click)="close.emit()"
                     [disabled]="isSubmitting()"
-                    class="h-11 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] transition hover:bg-[#E8E9ED] focus:outline-none focus:ring-4 focus:ring-gray-200 disabled:opacity-50 disabled:pointer-events-none"
+                    class="h-11 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] transition hover:bg-[#E8E9ED] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-gray-200 disabled:opacity-50 disabled:pointer-events-none"
                   >
                     Back
                   </button>
@@ -1105,7 +1105,7 @@ interface BoostingPlan {
                     type="button"
                     (click)="submitForm()"
                     [disabled]="bannerForm.invalid || isSubmitting()"
-                    class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5F50DE] focus:outline-none focus:ring-4 focus:ring-[#6B5BE7]/20 disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
+                    class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5F50DE] hover:shadow-[0_6px_16px_0_rgba(81,35,173,0.45),0_0_0_1px_#6B5BD5] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6B5BE7]/20 disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
                   >
                     @if (isSubmitting()) {
                       <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1128,7 +1128,7 @@ interface BoostingPlan {
                   <button
                     type="button"
                     (click)="close.emit()"
-                    class="absolute right-6 top-4 flex h-10 w-10 items-center justify-center text-[#1A1C21] transition hover:bg-white/60 focus:outline-none focus:ring-4 focus:ring-white/40"
+                    class="absolute right-6 top-4 flex h-10 w-10 items-center justify-center rounded-full text-[#1A1C21] transition hover:bg-white/60 active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-white/40"
                   >
                     <img
                       [ngSrc]="bannerPlanCloseIcon"
@@ -1154,7 +1154,7 @@ interface BoostingPlan {
                         <button
                           type="button"
                           (click)="selectedPlanId.set(plan.id)"
-                          class="relative h-[225px] rounded-[20px] border text-left transition-all"
+                          class="relative h-[225px] rounded-[20px] border text-left transition-all hover:border-[#6453D9]/60 active:scale-[0.98] duration-200"
                           [class.border-2]="selectedPlanId() === plan.id"
                           [class.border-[#6453D9]]="selectedPlanId() === plan.id"
                           [class.bg-[rgba(100,83,217,0.04)]]="selectedPlanId() === plan.id"
@@ -1193,7 +1193,7 @@ interface BoostingPlan {
                       <button
                         type="button"
                         (click)="goToPaymentStep()"
-                        class="h-10 w-[445px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
+                        class="h-10 w-[445px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5945DB] hover:shadow-[0_6px_16px_0_rgba(81,35,173,0.45),0_0_0_1px_#6B5BD5] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
                       >
                         Proceed
                       </button>
@@ -1212,7 +1212,7 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="selectedPaymentId.set('wallet')"
-                      class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition"
+                      class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition hover:border-[#6955F2]/50 active:scale-[0.99] duration-200"
                       [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
                       [class.bg-[#F8F6FF]]="selectedPaymentId() === 'wallet'"
                       [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
@@ -1239,7 +1239,7 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="selectedPaymentId.set('online')"
-                      class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition"
+                      class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition hover:border-[#6955F2]/50 active:scale-[0.99] duration-200"
                       [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
                       [class.bg-[#F8F6FF]]="selectedPaymentId() === 'online'"
                       [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
@@ -1269,7 +1269,7 @@ interface BoostingPlan {
                   <button
                     type="button"
                     (click)="close.emit()"
-                    class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#1A1C21] transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-gray-200"
+                    class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#1A1C21] transition hover:bg-white active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-gray-200"
                   >
                     <ng-icon name="heroXMark" class="text-xl"></ng-icon>
                   </button>
@@ -1319,7 +1319,7 @@ interface BoostingPlan {
                   <button
                     type="button"
                     (click)="completePayment()"
-                    class="mt-16 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
+                    class="mt-16 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] hover:shadow-[0_18px_36px_-14px_rgba(102,83,228,1.0)] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
                   >
                     Confirm and pay
                   </button>
@@ -1362,7 +1362,7 @@ interface BoostingPlan {
                       type="button"
                       (click)="resetFlow()"
                       [disabled]="isSubmitting()"
-                      class="h-11 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] disabled:opacity-50 disabled:pointer-events-none"
+                      class="h-11 rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.031em] text-[#05061A] transition hover:bg-[#EAEAEA] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none"
                     >
                       Create another Ad
                     </button>
@@ -1370,7 +1370,7 @@ interface BoostingPlan {
                       type="button"
                       (click)="finishAndClose()"
                       [disabled]="isSubmitting()"
-                      class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:opacity-50 disabled:pointer-events-none gap-2 inline-flex items-center justify-center"
+                      class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5341C6] hover:shadow-[0_6px_16px_0_rgba(81,35,173,0.45),0_0_0_1px_#6B5BD5] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none gap-2 inline-flex items-center justify-center"
                     >
                       @if (isSubmitting()) {
                         <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

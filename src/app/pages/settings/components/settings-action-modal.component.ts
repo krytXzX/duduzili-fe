@@ -23,7 +23,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
           type="button"
           (click)="close.emit()"
           [disabled]="isLoading()"
-          class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#333436] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6 disabled:opacity-50 disabled:pointer-events-none"
+          class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#333436] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6 disabled:opacity-50 disabled:pointer-events-none"
           aria-label="Close modal"
         >
           <img
@@ -72,7 +72,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
                   <button
                     type="button"
                     (click)="clearValue()"
-                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F6F6F6] transition hover:bg-[#EEEEEE] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
+                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F6F6F6] transition hover:bg-[#EEEEEE] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
                     aria-label="Clear value"
                   >
                     <img
@@ -95,7 +95,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
               type="button"
               (click)="close.emit()"
               [disabled]="isLoading()"
-              class="hidden h-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-black transition hover:bg-[#FAFAFA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:flex disabled:opacity-50 disabled:pointer-events-none"
+              class="hidden h-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-black transition hover:bg-[#FAFAFA] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:flex disabled:opacity-50 disabled:pointer-events-none"
             >
               Cancel
             </button>
@@ -103,7 +103,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
               type="button"
               (click)="confirm.emit()"
               [disabled]="isLoading()"
-              class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:text-[14px] md:leading-5 disabled:opacity-50 disabled:pointer-events-none gap-2"
+              class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5848CF] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:text-[14px] md:leading-5 disabled:opacity-50 disabled:pointer-events-none gap-2"
             >
               @if (isLoading()) {
                 <svg class="animate-spin h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

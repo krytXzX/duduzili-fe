@@ -23,7 +23,7 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
               type="button"
               (click)="close.emit()"
               [disabled]="isSubmitting()"
-              class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6 disabled:opacity-50 disabled:pointer-events-none"
+              class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6 disabled:opacity-50 disabled:pointer-events-none"
               aria-label="Close 2FA modal"
             >
               <img
@@ -40,7 +40,7 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
                 type="button"
                 (click)="goBack()"
                 [disabled]="isSubmitting()"
-                class="absolute left-4 top-[26px] z-10 flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] text-[#1F1F1F] transition hover:bg-[#ECECEC] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:left-8 md:w-auto md:gap-1 md:bg-transparent md:px-0 md:text-[14px] md:font-medium md:leading-5 disabled:opacity-50 disabled:pointer-events-none"
+                class="absolute left-4 top-[26px] z-10 flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] text-[#1F1F1F] transition hover:bg-[#ECECEC] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:left-8 md:w-auto md:gap-1 md:bg-transparent md:px-0 md:text-[14px] md:font-medium md:leading-5 disabled:opacity-50 disabled:pointer-events-none"
                 aria-label="Back to authenticator setup"
               >
                 <img
@@ -96,7 +96,7 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
                   <div class="mt-[18px] text-[14.525px] font-medium leading-normal tracking-[-0.218px] md:mt-5 md:text-[16px] md:tracking-[-0.24px]">
                     <p>
                       <span class="text-[rgba(26,27,29,0.5)]">Didn’t get a code? </span>
-                      <button type="button" class="text-[#7F5EFF] transition hover:text-[#6548DF]">Resend</button>
+                      <button type="button" class="text-[#7F5EFF] transition hover:text-[#6548DF] active:scale-95 duration-200">Resend</button>
                     </p>
                   </div>
                 }
@@ -108,7 +108,7 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
                 type="button"
                 (click)="verifyAndComplete()"
                 [disabled]="isSubmitting()"
-                class="mx-auto flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:w-[440px] md:text-[14px] md:leading-5 disabled:opacity-50 disabled:pointer-events-none gap-2"
+                class="mx-auto flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5848CF] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:w-[440px] md:text-[14px] md:leading-5 disabled:opacity-50 disabled:pointer-events-none gap-2"
               >
                 @if (isSubmitting()) {
                   <svg class="animate-spin h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -133,7 +133,7 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
             <button
               type="button"
               (click)="close.emit()"
-              class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6"
+              class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9] md:right-6 md:top-6"
               aria-label="Close 2FA modal"
             >
               <img
@@ -170,7 +170,7 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
                     <button
                       type="button"
                       (click)="appStep.set('manual')"
-                      class="w-full text-center text-[14px] font-medium leading-normal text-[#6453D9] transition hover:text-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
+                      class="w-full text-center text-[14px] font-medium leading-normal text-[#6453D9] transition hover:text-[#5848CF] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
                     >
                       Can’t scan? Enter manually
                     </button>
@@ -185,7 +185,7 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
                     <button
                       type="button"
                       (click)="appStep.set('qr')"
-                      class="w-full text-center text-[14px] font-medium leading-normal text-[#6453D9] transition hover:text-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
+                      class="w-full text-center text-[14px] font-medium leading-normal text-[#6453D9] transition hover:text-[#5848CF] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
                     >
                       Scan QR code instead
                     </button>
@@ -198,7 +198,7 @@ export type TwoFactorMethod = 'sms' | 'email' | 'app';
               <button
                 type="button"
                 (click)="appStep.set('verify')"
-                class="mx-auto flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5848CF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:w-[440px] md:text-[14px] md:leading-5"
+                class="mx-auto flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5848CF] active:scale-95 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A6CE8] focus-visible:ring-offset-2 md:h-10 md:w-[440px] md:text-[14px] md:leading-5"
               >
                 Confirm
               </button>
