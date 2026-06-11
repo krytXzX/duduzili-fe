@@ -11,6 +11,7 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
@@ -155,7 +156,7 @@ export class ProductPageComponent {
   private readonly messagesService = inject(MessagesService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
-  readonly productId = this.route.snapshot.paramMap.get('id') ?? 'iphone-16-pro';
+  readonly productId = signal(this.route.snapshot.paramMap.get('id') ?? '');
   readonly isListingActionsMenuOpen = signal(false);
   readonly listingActionsMenuPosition = signal({ top: 0, left: 0 });
   readonly isMessageVendorModalOpen = signal(false);
@@ -297,7 +298,7 @@ export class ProductPageComponent {
   ] as const;
 
   readonly product = signal<ProductDetails>({
-    id: this.productId,
+    id: this.productId(),
     name: '',
     price: '',
     oldPrice: '',
@@ -350,7 +351,23 @@ export class ProductPageComponent {
       this.document.body.style.overflow = '';
     });
 
-    void this.loadProductDetails();
+    // Subscribe to live param changes so navigating between products
+    // (e.g. "More from store" / "Explore related items") properly reloads.
+    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      const id = params.get('id') ?? '';
+      if (id && id !== this.productId()) {
+        this.productId.set(id);
+        // Reset state for the new product
+        this.currentGalleryIndex.set(0);
+        this.reviewSort.set('most-recent');
+        this.moreFromSeller.set([]);
+        this.relatedItems.set([]);
+        this.reviews.set([]);
+        // Scroll host element back to top
+        this.document.querySelector('app-product-page')?.scrollTo({ top: 0, behavior: 'instant' });
+      }
+      void this.loadProductDetails();
+    });
 
     if (this.route.snapshot.queryParamMap.get('report') === 'seller') {
       this.openReportModal('seller');
@@ -1058,10 +1075,14 @@ export class ProductPageComponent {
   }
 
   private async loadProductDetails(): Promise<void> {
+    const id = this.productId();
+    if (!id) {
+      return;
+    }
     this.isProductLoading.set(true);
     this.productLoadError.set(null);
     try {
-      const record = await firstValueFrom(this.listingsService.getListingDetails(this.productId));
+      const record = await firstValueFrom(this.listingsService.getListingDetails(id));
       await this.applyProductDetails(record);
     } catch (error) {
       this.productLoadError.set(this.extractErrorMessage(error));
@@ -1095,7 +1116,7 @@ export class ProductPageComponent {
       this.formatCount(record['save_count']) ??
       this.formatCount(record['saved']) ??
       currentProduct.saves;
-    const listingId = this.readString(record['id']) ?? this.productId;
+    const listingId = this.readString(record['id']) ?? this.productId();
     const isSaved =
       this.readBoolean(record['is_saved']) ??
       this.favoritesStateService.isFavorited(listingId);
@@ -1199,7 +1220,7 @@ export class ProductPageComponent {
       this.readString(record['store_id']);
 
     if (storeId) {
-      await this.loadMoreFromSeller(storeId, this.readString(record['id']) ?? this.productId);
+      await this.loadMoreFromSeller(storeId, this.readString(record['id']) ?? this.productId());
       await this.loadVendorReviews(storeId);
     }
 
@@ -1212,7 +1233,7 @@ export class ProductPageComponent {
       this.readString(record['category_slug']) ??
       this.readString(record['category']);
     if (categoryQuery) {
-      await this.loadRelatedItems(categoryQuery, this.readString(record['id']) ?? this.productId);
+      await this.loadRelatedItems(categoryQuery, this.readString(record['id']) ?? this.productId());
     }
   }
 
