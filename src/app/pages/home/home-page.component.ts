@@ -312,7 +312,15 @@ export class HomePageComponent {
   submitHomeSearch(event?: Event): void {
     event?.preventDefault();
 
-    const query = this.homeSearchQuery().trim() || this.mobileSearchQuery().trim() || 'iPhone';
+    const query = this.submittedSearchQuery(event);
+    this.homeSearchQuery.set(query);
+    this.mobileSearchQuery.set(query);
+
+    if (!query) {
+      this.openSearchOverlayForSubmit(event);
+      return;
+    }
+
     this.pushRecentSearch(query);
     this.isMobileSearchOverlayOpen.set(false);
     this.isDesktopSearchOverlayOpen.set(false);
@@ -510,6 +518,37 @@ export class HomePageComponent {
       this.persistRecentSearches(next);
       return next;
     });
+  }
+
+  private submittedSearchQuery(event?: Event): string {
+    const submittedForm = event?.currentTarget;
+    if (submittedForm instanceof HTMLFormElement) {
+      const input = submittedForm.querySelector('input[type="search"], input[type="text"]');
+      if (input instanceof HTMLInputElement) {
+        return input.value.trim();
+      }
+    }
+
+    return (this.homeSearchQuery().trim() || this.mobileSearchQuery().trim()).trim();
+  }
+
+  private openSearchOverlayForSubmit(event?: Event): void {
+    const submittedForm = event?.currentTarget;
+    const input =
+      submittedForm instanceof HTMLFormElement
+        ? submittedForm.querySelector('input[type="search"], input[type="text"]')
+        : null;
+
+    if (input instanceof HTMLInputElement && input.id === 'mobile-home-search') {
+      this.openMobileSearchOverlay();
+      return;
+    }
+
+    if (this.isMobileSearchOverlayOpen()) {
+      return;
+    }
+
+    this.openDesktopSearchOverlay();
   }
 
   private persistRecentSearches(searches: readonly string[]): void {
