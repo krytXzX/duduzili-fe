@@ -33,7 +33,14 @@ export const appConfig: ApplicationConfig = {
       multi: true,
       useFactory: () => {
         const authBootstrapService = inject(AuthBootstrapService);
-        return () => authBootstrapService.initialize();
+        // Fire bootstrap in the background — do NOT await it here.
+        // This lets Angular render immediately instead of showing a blank page.
+        // Route guards still call waitForBootstrap() to safely await auth state
+        // before making any redirect decisions.
+        return () => {
+          authBootstrapService.initialize();
+          return Promise.resolve();
+        };
       },
     },
     {
