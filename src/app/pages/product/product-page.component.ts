@@ -139,6 +139,26 @@ type SellerReportStep = 1 | 2;
           transform: translateX(100%);
         }
       }
+
+      :host button:not(:disabled),
+      :host a {
+        transition-duration: 180ms;
+        transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+      }
+
+      :host button:not(:disabled):focus-visible,
+      :host a:focus-visible {
+        outline: 2px solid #6453d9;
+        outline-offset: 3px;
+      }
+
+      :host button:not(:disabled):hover {
+        filter: brightness(0.985);
+      }
+
+      :host button:not(:disabled):active {
+        filter: brightness(0.94);
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

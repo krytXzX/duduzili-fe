@@ -150,7 +150,7 @@
           <button
             type="button"
             (click)="openGalleryPreview(index)"
-            class="relative aspect-square overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all"
+            class="relative aspect-square overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-20px_rgba(17,24,39,0.35)] active:translate-y-0 active:scale-[0.97]"
             [attr.aria-label]="'View gallery image ' + (index + 1)"
           >
             <img
@@ -210,7 +210,7 @@
           <button
             type="button"
             (click)="toggleListingActionsMenu($event)"
-            class="flex h-6 w-6 items-center justify-center text-[#1F1F1F]"
+            class="flex h-9 w-9 items-center justify-center rounded-full text-[#1F1F1F] transition-all duration-200 hover:bg-[#F4F4F4] active:scale-[0.92]"
             aria-label="More listing actions"
             [attr.aria-expanded]="isListingActionsMenuOpen()"
             aria-haspopup="menu"
@@ -229,7 +229,7 @@
               <button
                 type="button"
                 (click)="openGalleryPreview(index)"
-                class="relative h-[350px] w-[86%] shrink-0 snap-start overflow-hidden rounded-[20px] bg-[#EFEFEF] transition"
+                class="relative h-[350px] w-[86%] shrink-0 snap-start overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_-24px_rgba(17,24,39,0.38)] active:translate-y-0 active:scale-[0.99]"
                 [attr.aria-label]="'Select gallery image ' + (index + 1)"
               >
                 <img
@@ -253,7 +253,7 @@
         <div class="relative hidden overflow-hidden rounded-[32px] bg-[#EFEFEF] lg:block">
           <button
             type="button"
-            class="absolute left-5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+            class="absolute left-5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:scale-105 hover:bg-[#F7F7F7] hover:shadow-[0_10px_20px_-14px_rgba(17,24,39,0.35)] active:scale-95"
             (click)="prevImage()"
             aria-label="Previous image"
           >
@@ -264,7 +264,7 @@
 
           <button
             type="button"
-            class="absolute right-5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+            class="absolute right-5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:scale-105 hover:bg-[#F7F7F7] hover:shadow-[0_10px_20px_-14px_rgba(17,24,39,0.35)] active:scale-95"
             (click)="nextImage()"
             aria-label="Next image"
           >
@@ -276,7 +276,7 @@
           <button
             type="button"
             (click)="void toggleWishlist()"
-            class="absolute right-5 top-5 z-10 inline-flex items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 py-2 text-sm text-[#2D2D2D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+            class="absolute right-5 top-5 z-10 inline-flex items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 py-2 text-sm text-[#2D2D2D] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#FAFAFA] hover:shadow-[0_12px_24px_-18px_rgba(17,24,39,0.35)] active:translate-y-0 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-60"
             [attr.aria-label]="isProductSaved() ? 'Remove from wishlist' : 'Add to wishlist'"
             [attr.aria-pressed]="isProductSaved()"
             [disabled]="isWishlistPending()"
@@ -328,7 +328,7 @@
           <button
             type="button"
             (click)="openGalleryPreview()"
-            class="block h-full w-full cursor-zoom-in"
+            class="block h-full w-full cursor-zoom-in transition-opacity duration-200 hover:opacity-95 active:opacity-90"
             aria-label="Open image preview"
           >
             @if (currentGalleryImage()?.src; as imageSrc) {
@@ -423,7 +423,7 @@
             <button
               type="button"
               (click)="toggleListingActionsMenu($event)"
-              class="flex h-9 w-9 items-center justify-center rounded-full text-[#1F1F1F] transition hover:bg-[#F4F4F4]"
+              class="flex h-9 w-9 items-center justify-center rounded-full text-[#1F1F1F] transition-all duration-200 hover:bg-[#F4F4F4] hover:scale-105 active:scale-95"
               aria-label="More listing actions"
               [attr.aria-expanded]="isListingActionsMenuOpen()"
               aria-haspopup="menu"
@@ -469,7 +469,7 @@
             type="button"
             (click)="openMessageVendorModal()"
             [disabled]="isOwnStore()"
-            class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8]"
+            class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#5848D6] hover:shadow-[0_14px_28px_-18px_rgba(81,35,173,0.7),0_0_0_1px_#2A6CE8] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none"
             [class.cursor-not-allowed]="isOwnStore()"
             [class.opacity-55]="isOwnStore()"
           >
@@ -479,7 +479,7 @@
           <button
             type="button"
             (click)="openCallVendorModal()"
-            class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#1F1F1F] text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(54,54,54,0.4),0_0_0_1px_#0B0B0B]"
+            class="flex h-[52px] items-center justify-center rounded-full border border-white bg-[#1F1F1F] text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(54,54,54,0.4),0_0_0_1px_#0B0B0B] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#111111] hover:shadow-[0_14px_28px_-18px_rgba(54,54,54,0.72),0_0_0_1px_#0B0B0B] active:translate-y-0 active:scale-[0.98]"
           >
             Call vendor
           </button>
@@ -488,7 +488,7 @@
             <button
               type="button"
               (click)="openMakeOfferModal()"
-              class="flex h-[52px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-4 text-[13px] font-medium text-[#1F1F1F]"
+              class="flex h-[52px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-4 text-[13px] font-medium text-[#1F1F1F] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#D8D8D8] hover:bg-[#F8F8F8] hover:shadow-[0_12px_24px_-20px_rgba(17,24,39,0.32)] active:translate-y-0 active:scale-[0.98]"
             >
               Make an offer
             </button>
@@ -496,7 +496,7 @@
             <button
               type="button"
               (click)="openRequestCallbackModal()"
-              class="flex h-[52px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-4 text-[13px] font-medium text-[#1F1F1F]"
+              class="flex h-[52px] items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-4 text-[13px] font-medium text-[#1F1F1F] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#D8D8D8] hover:bg-[#F8F8F8] hover:shadow-[0_12px_24px_-20px_rgba(17,24,39,0.32)] active:translate-y-0 active:scale-[0.98]"
             >
               Request call back
             </button>
@@ -504,7 +504,7 @@
 
           <button
             type="button"
-            class="flex items-center justify-center gap-1.5 self-center pt-0.5 text-[12px] leading-4 text-[#777777] lg:hidden"
+            class="flex items-center justify-center gap-1.5 self-center rounded-full px-3 py-1 text-[12px] leading-4 text-[#777777] transition-all duration-200 hover:bg-[#F7F7F7] hover:text-[#1F1F1F] active:scale-[0.97] lg:hidden"
           >
             <svg class="h-[14px] w-[14px] text-[#D8B14A]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path
@@ -528,7 +528,7 @@
             <button
               type="button"
               (click)="openReviewsModal()"
-              class="flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#7B7B7B] transition hover:bg-[#F7F7F7]"
+              class="flex h-8 w-8 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#7B7B7B] transition-all duration-200 hover:scale-105 hover:bg-[#F7F7F7] hover:text-[#1F1F1F] active:scale-95"
               aria-label="See more reviews"
             >
               <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
@@ -671,14 +671,14 @@
                 <button
                   type="button"
                   (click)="viewStoreProfile()"
-                  class="h-10 rounded-full bg-[#F4F4F4] px-4 text-[14px] font-medium text-[#2D2D2D] transition hover:bg-[#ECECEC]"
+                  class="h-10 rounded-full bg-[#F4F4F4] px-4 text-[14px] font-medium text-[#2D2D2D] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ECECEC] hover:shadow-[0_12px_24px_-20px_rgba(17,24,39,0.28)] active:translate-y-0 active:scale-[0.97]"
                 >
                   View profile
                 </button>
                 <button
                   type="button"
                   (click)="toggleVendorFollow()"
-                  class="h-10 rounded-full bg-[#F4F4F4] px-4 text-[14px] font-medium text-[#2D2D2D] transition hover:bg-[#ECECEC]"
+                  class="h-10 rounded-full bg-[#F4F4F4] px-4 text-[14px] font-medium text-[#2D2D2D] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ECECEC] hover:shadow-[0_12px_24px_-20px_rgba(17,24,39,0.28)] active:translate-y-0 active:scale-[0.97]"
                 >
                   {{ store().isFollowed ? 'Unfollow vendor' : 'Follow vendor' }}
                 </button>
@@ -701,7 +701,7 @@
             <button
               type="button"
               (click)="closeGalleryPreview()"
-              class="flex h-12 w-12 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F7F7F7]"
+              class="flex h-12 w-12 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:scale-105 hover:bg-[#F7F7F7] active:scale-95"
               aria-label="Close image preview"
             >
               <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
@@ -716,7 +716,7 @@
             <button
               type="button"
               (click)="prevImage()"
-              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F7F7F7]"
+              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:scale-105 hover:bg-[#F7F7F7] active:scale-95"
               aria-label="Previous image"
             >
               <svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
@@ -748,7 +748,7 @@
                   <button
                     type="button"
                     (click)="setGalleryIndex(index)"
-                    class="relative flex h-[92px] w-[104px] items-center justify-center overflow-hidden rounded-[20px] bg-[#EFEFEF] transition"
+                    class="relative flex h-[92px] w-[104px] items-center justify-center overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-20px_rgba(17,24,39,0.35)] active:translate-y-0 active:scale-[0.97]"
                     [attr.aria-label]="'Preview image ' + (index + 1)"
                   >
                     <img
@@ -766,7 +766,7 @@
             <button
               type="button"
               (click)="nextImage()"
-              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F7F7F7]"
+              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:scale-105 hover:bg-[#F7F7F7] active:scale-95"
               aria-label="Next image"
             >
               <svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
@@ -781,7 +781,7 @@
             <button
               type="button"
               (click)="closeGalleryPreview()"
-              class="flex h-12 w-12 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+              class="flex h-12 w-12 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:scale-105 hover:bg-[#F7F7F7] active:scale-95"
               aria-label="Close image preview"
             >
               <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
@@ -814,7 +814,7 @@
                 <button
                   type="button"
                   (click)="prevImage()"
-                  class="flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                  class="flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:scale-105 hover:bg-[#F7F7F7] active:scale-95"
                   aria-label="Previous image"
                 >
                   <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
@@ -827,7 +827,7 @@
                 <button
                   type="button"
                   (click)="nextImage()"
-                  class="flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                  class="flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:scale-105 hover:bg-[#F7F7F7] active:scale-95"
                   aria-label="Next image"
                 >
                   <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
@@ -842,7 +842,7 @@
                 <button
                   type="button"
                   (click)="setGalleryIndex(index)"
-                  class="relative h-[102px] w-[102px] shrink-0 overflow-hidden rounded-[22px] bg-[#EFEFEF] transition"
+                  class="relative h-[102px] w-[102px] shrink-0 overflow-hidden rounded-[22px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-20px_rgba(17,24,39,0.35)] active:translate-y-0 active:scale-[0.97]"
                   [attr.aria-label]="'Preview image ' + (index + 1)"
                 >
                   <img
@@ -870,7 +870,7 @@
           <button
             type="button"
             (click)="viewStoreProfile()"
-            class="rounded-full bg-[#F3F3F3] px-4 py-2 text-[12px] font-medium text-[#777777] transition hover:bg-[#ECECEC]"
+            class="rounded-full bg-[#F3F3F3] px-4 py-2 text-[12px] font-medium text-[#777777] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ECECEC] hover:text-[#1F1F1F] active:translate-y-0 active:scale-[0.97]"
           >
             See all
           </button>
@@ -891,7 +891,7 @@
 
           <button
             type="button"
-            class="rounded-full bg-[#F3F3F3] px-4 py-2 text-[12px] font-medium text-[#777777] transition hover:bg-[#ECECEC]"
+            class="rounded-full bg-[#F3F3F3] px-4 py-2 text-[12px] font-medium text-[#777777] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ECECEC] hover:text-[#1F1F1F] active:translate-y-0 active:scale-[0.97]"
           >
             See all
           </button>
