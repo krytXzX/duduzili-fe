@@ -1,6 +1,6 @@
 import { APP_INITIALIZER, ApplicationConfig, provideBrowserGlobalErrorListeners, inject } from '@angular/core';
 import { provideHttpClient, withFetch, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
-import { provideRouter, TitleStrategy } from '@angular/router';
+import { provideRouter, TitleStrategy, withPreloading, PreloadAllModules } from '@angular/router';
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -22,7 +22,7 @@ export const appConfig: ApplicationConfig = {
       }),
       withInterceptors([apiAuthInterceptor, authErrorInterceptor]),
     ),
-    provideRouter(routes),
+    provideRouter(routes, withPreloading(PreloadAllModules)),
     provideClientHydration(withEventReplay()),
     {
       provide: TitleStrategy,
