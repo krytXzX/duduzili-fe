@@ -4,7 +4,7 @@
   }
 
   <main>
-    <section class="hidden px-2 pt-6 lg:block lg:pt-[96px]">
+    <section class="hidden px-2 pt-6 lg:block" [class.lg:pt-[96px]]="showPublicChrome()" [class.lg:pt-8]="!showPublicChrome()">
       <div class="home-shell mx-auto max-w-[1440px]">
         <div class="home-hero-pattern relative rounded-[28px]">
           <div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
