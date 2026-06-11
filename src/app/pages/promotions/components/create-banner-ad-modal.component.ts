@@ -82,7 +82,7 @@ interface BoostingPlan {
             @switch (step()) {
               @case (1) {
                 <div class="flex min-h-0 flex-1 flex-col">
-                  <header class="flex items-center justify-between px-4 pb-3 pt-3.5">
+                  <header class="shrink-0 flex items-center justify-between px-4 pb-3 pt-3.5">
                     <button
                       type="button"
                       (click)="close.emit()"
@@ -283,7 +283,7 @@ interface BoostingPlan {
                     </form>
                   </div>
 
-                  <footer class="border-t border-[#EDEDED] bg-white px-5 py-[10px]">
+                  <footer class="sticky bottom-0 z-10 shrink-0 border-t border-[#EDEDED] bg-white px-5 py-[10px] shadow-[0_-12px_32px_-28px_rgba(15,23,42,0.45)]">
                     <div class="flex items-center gap-2">
                       <button
                         type="button"
@@ -736,7 +736,7 @@ interface BoostingPlan {
           <div class="hidden h-full flex-col md:flex">
             @if (step() === 1) {
               <header
-                class="flex items-center gap-[30px] bg-white/80 px-8 py-[15px] backdrop-blur-[2.5px]"
+                class="shrink-0 flex items-center gap-[30px] bg-white/80 px-8 py-[15px] backdrop-blur-[2.5px]"
               >
                 <button
                   type="button"
@@ -750,9 +750,9 @@ interface BoostingPlan {
                 <h1 class="text-[20px] font-semibold leading-7 text-[#0D0D0D]">Create Ad</h1>
               </header>
 
-              <div class="flex-1 overflow-y-auto">
+              <div class="min-h-0 flex-1 overflow-y-auto">
                 <div
-                  class="mx-auto grid h-full max-w-[1220px] grid-cols-[minmax(0,1fr)_360px] gap-8 px-8 py-[10px] xl:grid-cols-[552px_400px] xl:gap-12 xl:px-12 2xl:grid-cols-[552px_476px] 2xl:gap-[72px] 2xl:px-20"
+                  class="mx-auto grid min-h-full max-w-[1220px] grid-cols-[minmax(0,1fr)_360px] gap-8 px-8 py-[10px] xl:grid-cols-[552px_400px] xl:gap-12 xl:px-12 2xl:grid-cols-[552px_476px] 2xl:gap-[72px] 2xl:px-20"
                 >
                   <section class="min-w-0 pt-[22px]">
                     <h2 class="text-[32px] font-semibold leading-10 text-[#1A1B1D]">
@@ -1091,7 +1091,7 @@ interface BoostingPlan {
                 </div>
               </div>
 
-              <footer class="bg-white/80 px-6 py-[13px] backdrop-blur-[2.5px]">
+              <footer class="sticky bottom-0 z-10 shrink-0 border-t border-[#EDEDED] bg-white/90 px-6 py-[13px] shadow-[0_-12px_32px_-28px_rgba(15,23,42,0.45)] backdrop-blur-[2.5px]">
                 <div class="flex justify-end gap-2">
                   <button
                     type="button"
