@@ -1147,40 +1147,59 @@ export class StoreDetailsDashboardComponent {
   }
 
   private async loadStorePage(): Promise<void> {
-    const storeId = this.route.snapshot.paramMap.get('id')?.trim();
-    if (!storeId) {
-      return;
-    }
+    this.isLoading.set(true);
 
-    const [storeResult, listingsResult, reviewsResult] = await Promise.allSettled([
-      firstValueFrom(this.vendorsService.getVendorDetails(storeId)),
-      firstValueFrom(this.vendorsService.getVendorListings(storeId)),
-      firstValueFrom(this.vendorsService.getVendorReviews(storeId)),
-    ]);
+    try {
+      const storeId = this.route.snapshot.paramMap.get('id')?.trim();
+      if (!storeId) {
+        this.store.set(null);
+        this.desktopSections.set([]);
+        this.mobileSections.set([]);
+        this.reviewRecords.set([]);
+        this.reviews.set([]);
+        return;
+      }
 
-    if (storeResult.status === 'fulfilled') {
-      this.store.set(this.mapStore(storeResult.value));
-    }
+      const [storeResult, listingsResult, reviewsResult] = await Promise.allSettled([
+        firstValueFrom(this.vendorsService.getVendorDetails(storeId)),
+        firstValueFrom(this.vendorsService.getVendorListings(storeId)),
+        firstValueFrom(this.vendorsService.getVendorReviews(storeId)),
+      ]);
 
-    if (listingsResult.status === 'fulfilled') {
-      const listings = this.extractListingRecords(listingsResult.value);
-      const sections = this.mapProductSections(listings);
-      this.desktopSections.set(sections);
-      this.mobileSections.set(
-        sections.map((section) => ({
-          ...section,
-          items: section.items.slice(0, 4),
-        })),
-      );
-    }
+      if (storeResult.status === 'fulfilled') {
+        this.store.set(this.mapStore(storeResult.value));
+      } else {
+        this.store.set(null);
+      }
 
-    if (reviewsResult.status === 'fulfilled') {
-      const reviewRecords = this.extractReviewRecords(reviewsResult.value);
-      const reviews = reviewRecords.map((review) =>
-        this.mapReview(review),
-      );
-      this.reviewRecords.set(reviewRecords);
-      this.reviews.set(reviews);
+      if (listingsResult.status === 'fulfilled') {
+        const listings = this.extractListingRecords(listingsResult.value);
+        const sections = this.mapProductSections(listings);
+        this.desktopSections.set(sections);
+        this.mobileSections.set(
+          sections.map((section) => ({
+            ...section,
+            items: section.items.slice(0, 4),
+          })),
+        );
+      } else {
+        this.desktopSections.set([]);
+        this.mobileSections.set([]);
+      }
+
+      if (reviewsResult.status === 'fulfilled') {
+        const reviewRecords = this.extractReviewRecords(reviewsResult.value);
+        const reviews = reviewRecords.map((review) =>
+          this.mapReview(review),
+        );
+        this.reviewRecords.set(reviewRecords);
+        this.reviews.set(reviews);
+      } else {
+        this.reviewRecords.set([]);
+        this.reviews.set([]);
+      }
+    } finally {
+      this.isLoading.set(false);
     }
   }
 
