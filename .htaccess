@@ -2,8 +2,12 @@
   RewriteEngine On
   RewriteBase /
 
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+  # 1. Serve static files directly if they exist in the browser folder
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # 2. Forward all other requests to the running Node.js SSR process
+  # Assumes your Node.js application is running locally on port 4000
+  RewriteRule ^(.*)$ http://127.0.0.1:4000/$1 [P,L]
 </IfModule>
