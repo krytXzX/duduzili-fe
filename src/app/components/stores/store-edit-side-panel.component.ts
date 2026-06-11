@@ -56,7 +56,7 @@ export interface EditableStoreUpdate {
             <h2 class="text-[28px] font-semibold leading-10 text-[#0D0D0D]">Edit store</h2>
             <button
               type="button"
-              class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+              class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
               aria-label="Close edit store modal"
               (click)="close.emit()"
             >
@@ -182,7 +182,7 @@ export interface EditableStoreUpdate {
 
                   <button
                     type="button"
-                    class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)]"
+                    class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
                   >
                     <img
                       [ngSrc]="assets.pencil"
@@ -214,7 +214,7 @@ export interface EditableStoreUpdate {
                   />
                   <button
                     type="button"
-                    class="absolute right-2 top-2 inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)]"
+                    class="absolute right-2 top-2 inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
                   >
                     <img
                       [ngSrc]="assets.pencil"
@@ -232,14 +232,14 @@ export interface EditableStoreUpdate {
             <footer class="flex h-20 items-center justify-end gap-2 px-[29px]">
               <button
                 type="button"
-                class="inline-flex h-10 items-center justify-center rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium leading-[22px] tracking-[-0.5px] text-[#05061A]"
+                class="inline-flex h-10 items-center justify-center rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium leading-[22px] tracking-[-0.5px] text-[#05061A] transition-all duration-200 hover:bg-[#ebebeb] active:scale-95"
                 (click)="close.emit()"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="inline-flex h-10 items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                class="inline-flex h-10 items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
               >
                 Save changes
               </button>
@@ -258,7 +258,7 @@ export interface EditableStoreUpdate {
 
           <button
             type="button"
-            class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+            class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
             aria-label="Close edit store modal"
             (click)="close.emit()"
           >
@@ -392,7 +392,7 @@ export interface EditableStoreUpdate {
 
                     <button
                       type="button"
-                      class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)]"
+                      class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
                     >
                       <img
                         [ngSrc]="assets.pencil"
@@ -424,7 +424,7 @@ export interface EditableStoreUpdate {
                     />
                     <button
                       type="button"
-                      class="absolute right-2 top-2 inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)]"
+                      class="absolute right-2 top-2 inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
                     >
                       <img
                         [ngSrc]="assets.pencil"
@@ -443,7 +443,7 @@ export interface EditableStoreUpdate {
             <div class="bg-white px-4 pb-[26px] pt-[11px]">
               <button
                 type="submit"
-                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8]"
+                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
               >
                 Save changes
               </button>
@@ -486,14 +486,14 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
   );
   protected readonly selectedLocation = signal<string>(this.defaultLocation);
   protected readonly desktopLocationDropdownButtonClass =
-    'flex h-10 w-full items-center justify-between rounded-[8px] border border-[#EAEAEA] bg-white px-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none';
+    'flex h-10 w-full items-center justify-between rounded-[8px] border border-[#EAEAEA] bg-white px-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none transition-all duration-200 hover:bg-gray-50 active:scale-95';
   protected readonly mobileLocationDropdownButtonClass =
-    'flex h-12 w-full items-center justify-between rounded-[8px] border border-[#EAEAEA] bg-white px-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none';
+    'flex h-12 w-full items-center justify-between rounded-[8px] border border-[#EAEAEA] bg-white px-3 text-[14px] tracking-[-0.14px] text-[#0D0D0D] outline-none transition-all duration-200 hover:bg-gray-50 active:scale-95';
   protected readonly locationDropdownLabelClass = 'truncate text-left';
   protected readonly locationDropdownIconClass = 'text-[#0D0D0D]';
   protected readonly locationDropdownMenuClass = 'w-[min(100vw-32px,420px)]';
   protected readonly locationDropdownOptionClass =
-    'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]';
+    'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition-all hover:bg-[#F5F6FA] active:scale-[0.98] duration-200';
   protected readonly locationDropdownActiveOptionClass = 'bg-[#F5F1FF] text-[#5932EA]';
 
   private readonly mobileOverlayService = inject(MobileOverlayService);

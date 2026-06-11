@@ -19,7 +19,7 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 
         <button
           type="button"
-          class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] md:hidden"
+          class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] md:hidden transition-all duration-200 hover:bg-gray-50 active:scale-95"
           aria-label="Close success modal"
           (click)="ok.emit()"
         >
@@ -57,7 +57,7 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
             <div class="flex h-[52px] items-center gap-2 md:h-10">
               <button
                 type="button"
-                class="inline-flex h-full items-center justify-center rounded-[82px] bg-[#f5f5f5] px-6 text-[16px] leading-[22px] font-medium tracking-[-0.03em] text-[#05061a]"
+                class="inline-flex h-full items-center justify-center rounded-[82px] bg-[#f5f5f5] px-6 text-[16px] leading-[22px] font-medium tracking-[-0.03em] text-[#05061a] transition-all duration-200 hover:bg-[#ebebeb] active:scale-95"
                 (click)="addAnother.emit()"
               >
                 Add another store
@@ -65,7 +65,7 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 
               <button
                 type="button"
-                class="inline-flex h-full min-w-[89px] items-center justify-center rounded-[64px] border border-white bg-[#6453d9] px-5 text-[16px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] md:text-[14px]"
+                class="inline-flex h-full min-w-[89px] items-center justify-center rounded-[64px] border border-white bg-[#6453d9] px-5 text-[16px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] md:text-[14px] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
                 (click)="ok.emit()"
               >
                 Done

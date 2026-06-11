@@ -79,7 +79,7 @@ export interface ListingPromotionSelection {
               <button
                 type="button"
                 (click)="close.emit()"
-                class="absolute right-6 top-6 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                class="absolute right-6 top-6 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
                 aria-label="Close promote store flow"
               >
                 <img
@@ -133,14 +133,14 @@ export interface ListingPromotionSelection {
               <button
                 type="button"
                 (click)="close.emit()"
-                class="inline-flex h-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-black"
+                class="inline-flex h-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium leading-5 text-black transition-all duration-200 hover:bg-gray-50 active:scale-95"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 (click)="storeStep.set('plan')"
-                class="inline-flex h-10 items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                class="inline-flex h-10 items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
               >
                 Yes, promote store
               </button>
@@ -158,7 +158,7 @@ export interface ListingPromotionSelection {
             <button
               type="button"
               (click)="close.emit()"
-              class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+              class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
               aria-label="Close promote store flow"
             >
               <img
@@ -211,7 +211,7 @@ export interface ListingPromotionSelection {
               <button
                 type="button"
                 (click)="storeStep.set('plan')"
-                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8]"
+                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
               >
                 Yes, promote store
               </button>
@@ -229,7 +229,7 @@ export interface ListingPromotionSelection {
             <button
               type="button"
               (click)="close.emit()"
-              class="absolute right-[11px] top-[11px] inline-flex h-[57px] w-[57px] items-center justify-center"
+              class="absolute right-[11px] top-[11px] inline-flex h-[57px] w-[57px] items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
               aria-label="Close promote store plan picker"
             >
               <img
@@ -256,7 +256,7 @@ export interface ListingPromotionSelection {
                   <button
                     type="button"
                     (click)="selectedStorePlanId.set(plan.id)"
-                    class="relative flex h-[225px] flex-col justify-between rounded-[20px] border px-[18px] pb-[18px] pt-[18px] text-left"
+                    class="relative flex h-[225px] flex-col justify-between rounded-[20px] border px-[18px] pb-[18px] pt-[18px] text-left transition-all duration-200 hover:border-[#6453D9]/50 active:scale-[0.98]"
                     [class.bg-[rgba(100,83,217,0.04)]]="selectedStorePlanId() === plan.id"
                     [class.border-2]="selectedStorePlanId() === plan.id"
                     [class.border-[#6453D9]]="selectedStorePlanId() === plan.id"
@@ -324,7 +324,7 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="storeStep.set('payment')"
-                  class="flex h-10 w-[445px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                  class="flex h-10 w-[445px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
                 >
                   Proceed
                 </button>
@@ -343,7 +343,7 @@ export interface ListingPromotionSelection {
             <button
               type="button"
               (click)="close.emit()"
-              class="absolute right-0 top-3 flex h-10 w-10 items-center justify-center"
+              class="absolute right-0 top-3 flex h-10 w-10 items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
               aria-label="Close promote store plan picker"
             >
               <img
@@ -377,7 +377,7 @@ export interface ListingPromotionSelection {
                   <button
                     type="button"
                     (click)="selectedStorePlanId.set(plan.id)"
-                    class="relative flex h-[84px] w-full items-center justify-between rounded-[20px] border px-[14px] text-left"
+                    class="relative flex h-[84px] w-full items-center justify-between rounded-[20px] border px-[14px] text-left transition-all duration-200 hover:border-[#357FF6]/50 active:scale-[0.98]"
                     [class.bg-[#FAFAFF]]="selectedStorePlanId() === plan.id"
                     [class.border-2]="selectedStorePlanId() === plan.id"
                     [class.border-[#357FF6]]="selectedStorePlanId() === plan.id"
@@ -406,7 +406,7 @@ export interface ListingPromotionSelection {
               <button
                 type="button"
                 (click)="storeStep.set('payment')"
-                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8]"
+                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
               >
                 Proceed
               </button>
@@ -427,7 +427,7 @@ export interface ListingPromotionSelection {
                   <button
                     type="button"
                     (click)="selectedPaymentId.set(paymentMethod.id)"
-                    class="relative h-[67px] w-full rounded-[9.944px] border text-left"
+                    class="relative h-[67px] w-full rounded-[9.944px] border text-left transition-all duration-200 hover:border-[#6453D9]/50 active:scale-[0.98]"
                     [class.border-2]="selectedPaymentId() === paymentMethod.id"
                     [class.border-[#6453D9]]="selectedPaymentId() === paymentMethod.id"
                     [class.bg-[rgba(100,83,217,0.04)]]="selectedPaymentId() === paymentMethod.id"
@@ -467,7 +467,7 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-white"
+                  class="ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-white transition-all duration-200 hover:bg-gray-50 active:scale-95"
                   aria-label="Close promote store payment flow"
                 >
                   <img
@@ -526,7 +526,7 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="finishAndClose()"
-                  class="mt-[58px] flex h-10 w-[392px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                  class="mt-[58px] flex h-10 w-[392px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
                 >
                   Confirm and pay
                 </button>
@@ -552,7 +552,7 @@ export interface ListingPromotionSelection {
               <button
                 type="button"
                 (click)="storeStep.set('plan')"
-                class="absolute left-4 top-[26px] flex h-10 w-10 items-center justify-center rounded-full bg-[#F4F4F4]"
+                class="absolute left-4 top-[26px] flex h-10 w-10 items-center justify-center rounded-full bg-[#F4F4F4] transition-all duration-200 hover:bg-[#e8e8e8] active:scale-95"
                 aria-label="Go back"
               >
                 <img
@@ -567,7 +567,7 @@ export interface ListingPromotionSelection {
               <button
                 type="button"
                 (click)="close.emit()"
-                class="absolute left-[306px] top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+                class="absolute left-[306px] top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
                 aria-label="Close promote store payment flow"
               >
                 <img
@@ -635,7 +635,7 @@ export interface ListingPromotionSelection {
                     <button
                       type="button"
                       (click)="selectedPaymentId.set(paymentMethod.id)"
-                      class="relative h-[67px] w-full rounded-[9.944px] border text-left"
+                      class="relative h-[67px] w-full rounded-[9.944px] border text-left transition-all duration-200 hover:border-[#6453D9]/50 active:scale-[0.98]"
                       [class.border-2]="selectedPaymentId() === paymentMethod.id"
                       [class.border-[#6453D9]]="selectedPaymentId() === paymentMethod.id"
                       [class.bg-[rgba(100,83,217,0.04)]]="selectedPaymentId() === paymentMethod.id"
@@ -677,7 +677,7 @@ export interface ListingPromotionSelection {
                   type="button"
                   (click)="finishAndClose()"
                   [disabled]="isSubmitting()"
-                  class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] disabled:opacity-50 disabled:pointer-events-none gap-2"
+                  class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] disabled:opacity-50 disabled:pointer-events-none gap-2 transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
                 >
                   @if (isSubmitting()) {
                     <svg class="animate-spin h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -711,7 +711,7 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
                   [attr.aria-label]="'Close promote ' + targetLabel() + ' flow'"
                 >
                   <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
@@ -743,7 +743,7 @@ export interface ListingPromotionSelection {
               <button
                 type="button"
                 (click)="step.set('plan')"
-                class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+                class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
               >
                 {{ confirmActionLabel() }}
               </button>
@@ -758,7 +758,7 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="step.set('confirm')"
-                  class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F6F7FA] text-[#4D5260]"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F6F7FA] text-[#4D5260] transition-all duration-200 hover:bg-[#e8e8e8] active:scale-95"
                   aria-label="Go back"
                 >
                   <ng-icon name="heroChevronLeft" class="text-[20px]"></ng-icon>
@@ -766,7 +766,7 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
                   [attr.aria-label]="'Close promote ' + targetLabel() + ' flow'"
                 >
                   <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
@@ -789,7 +789,7 @@ export interface ListingPromotionSelection {
                       <button
                         type="button"
                         (click)="selectedPlanId.set(plan.id)"
-                        class="relative flex w-full items-center justify-between rounded-[16px] border bg-white px-4 py-4 text-left"
+                        class="relative flex w-full items-center justify-between rounded-[16px] border bg-white px-4 py-4 text-left transition-all duration-200 hover:border-[#6955F2]/50 active:scale-[0.98]"
                         [class.border-[#6955F2]]="selectedPlanId() === plan.id"
                         [class.border-[#E7E8EC]]="selectedPlanId() !== plan.id"
                       >
@@ -815,7 +815,7 @@ export interface ListingPromotionSelection {
               <button
                 type="button"
                 (click)="step.set('payment')"
-                class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+                class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
               >
                 Proceed
               </button>
@@ -830,7 +830,7 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="step.set('plan')"
-                  class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F6F7FA] text-[#4D5260]"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F6F7FA] text-[#4D5260] transition-all duration-200 hover:bg-[#e8e8e8] active:scale-95"
                   aria-label="Go back"
                 >
                   <ng-icon name="heroChevronLeft" class="text-[20px]"></ng-icon>
@@ -838,7 +838,7 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
                   [attr.aria-label]="'Close promote ' + targetLabel() + ' flow'"
                 >
                   <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
@@ -891,7 +891,7 @@ export interface ListingPromotionSelection {
                     <button
                       type="button"
                       (click)="selectedPaymentId.set('wallet')"
-                      class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition"
+                      class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition-all active:scale-[0.98] duration-200 hover:border-[#6955F2]/50"
                       [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
                       [class.bg-[#F8F6FF]]="selectedPaymentId() === 'wallet'"
                       [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
@@ -918,7 +918,7 @@ export interface ListingPromotionSelection {
                     <button
                       type="button"
                       (click)="selectedPaymentId.set('online')"
-                      class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition"
+                      class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition-all active:scale-[0.98] duration-200 hover:border-[#6955F2]/50"
                       [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
                       [class.bg-[#F8F6FF]]="selectedPaymentId() === 'online'"
                       [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
@@ -947,7 +947,7 @@ export interface ListingPromotionSelection {
                 type="button"
                 (click)="submitListingPromotion()"
                 [disabled]="isSubmitting()"
-                class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
               >
                 @if (isSubmitting()) {
                   <svg class="animate-spin h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -980,14 +980,14 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="resetFlow()"
-                  class="rounded-full bg-[#F3F3F5] px-6 py-3 text-[12px] font-medium text-[#353A43]"
+                  class="rounded-full bg-[#F3F3F5] px-6 py-3 text-[12px] font-medium text-[#353A43] transition-all duration-200 hover:bg-[#e4e4e6] active:scale-95"
                 >
                   {{ repeatActionLabel() }}
                 </button>
                 <button
                   type="button"
                   (click)="finishAndClose()"
-                  class="rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)]"
+                  class="rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
                 >
                   View running Ads
                 </button>
@@ -1007,7 +1007,7 @@ export interface ListingPromotionSelection {
               <button
                 type="button"
                 (click)="close.emit()"
-                class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm transition hover:text-gray-600"
+                class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:text-gray-600 active:scale-95"
               >
                 <ng-icon name="heroXMark" class="text-xl"></ng-icon>
               </button>
@@ -1036,14 +1036,14 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="rounded-full border border-gray-100 bg-white px-8 py-4 text-[15px] font-medium text-[#1A1C21] transition hover:bg-gray-50"
+                  class="rounded-full border border-gray-100 bg-white px-8 py-4 text-[15px] font-medium text-[#1A1C21] transition-all duration-200 hover:bg-gray-50 active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   (click)="step.set('plan')"
-                  class="rounded-full bg-[#6653E4] px-8 py-4 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
+                  class="rounded-full bg-[#6653E4] px-8 py-4 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
                 >
                   {{ confirmActionLabel() }}
                 </button>
@@ -1061,7 +1061,7 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="absolute right-8 top-8 flex h-10 w-10 items-center justify-center rounded-full text-[#1A1C21] transition hover:bg-white/60"
+                  class="absolute right-8 top-8 flex h-10 w-10 items-center justify-center rounded-full text-[#1A1C21] transition-all duration-200 hover:bg-white/60 hover:scale-105 active:scale-95"
                 >
                   <ng-icon name="heroXMark" class="text-2xl"></ng-icon>
                 </button>
@@ -1082,7 +1082,7 @@ export interface ListingPromotionSelection {
                     <button
                       type="button"
                       (click)="selectedPlanId.set(plan.id)"
-                      class="flex min-h-[225px] flex-col justify-between rounded-[26px] border bg-white p-6 text-left transition-all"
+                      class="flex min-h-[225px] flex-col justify-between rounded-[26px] border bg-white p-6 text-left transition-all hover:border-[#6955F2]/50 active:scale-[0.98]"
                       [class.border-[#6955F2]]="selectedPlanId() === plan.id"
                       [class.bg-[#F8F6FF]]="selectedPlanId() === plan.id"
                       [class.shadow-[0_16px_38px_-28px_rgba(105,85,242,0.8)]]="
@@ -1125,7 +1125,7 @@ export interface ListingPromotionSelection {
                   <button
                     type="button"
                     (click)="step.set('payment')"
-                    class="w-full max-w-[460px] rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
+                    class="w-full max-w-[460px] rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
                   >
                     Proceed
                   </button>
@@ -1145,7 +1145,7 @@ export interface ListingPromotionSelection {
                   <button
                     type="button"
                     (click)="selectedPaymentId.set('wallet')"
-                    class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition"
+                    class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition-all hover:border-[#6955F2]/50 active:scale-[0.98] duration-200"
                     [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
                     [class.bg-[#F8F6FF]]="selectedPaymentId() === 'wallet'"
                     [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
@@ -1172,7 +1172,7 @@ export interface ListingPromotionSelection {
                   <button
                     type="button"
                     (click)="selectedPaymentId.set('online')"
-                    class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition"
+                    class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition-all hover:border-[#6955F2]/50 active:scale-[0.98] duration-200"
                     [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
                     [class.bg-[#F8F6FF]]="selectedPaymentId() === 'online'"
                     [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
@@ -1202,7 +1202,7 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="close.emit()"
-                  class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#1A1C21] transition hover:bg-white"
+                  class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#1A1C21] transition-all duration-200 hover:bg-white active:scale-95"
                 >
                   <ng-icon name="heroXMark" class="text-xl"></ng-icon>
                 </button>
@@ -1253,7 +1253,7 @@ export interface ListingPromotionSelection {
                   type="button"
                   (click)="submitListingPromotion()"
                   [disabled]="isSubmitting()"
-                  class="mt-16 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                  class="mt-16 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
                 >
                   @if (isSubmitting()) {
                     <svg class="animate-spin h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1291,14 +1291,14 @@ export interface ListingPromotionSelection {
                 <button
                   type="button"
                   (click)="resetFlow()"
-                  class="rounded-full bg-[#F3F3F5] px-6 py-3.5 text-sm font-semibold text-[#353A43] transition hover:bg-[#E9EAF0]"
+                  class="rounded-full bg-[#F3F3F5] px-6 py-3.5 text-sm font-semibold text-[#353A43] transition-all duration-200 hover:bg-[#E9EAF0] active:scale-95"
                 >
                   {{ repeatActionLabel() }}
                 </button>
                 <button
                   type="button"
                   (click)="finishAndClose()"
-                  class="rounded-full bg-[#6653E4] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB]"
+                  class="rounded-full bg-[#6653E4] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
                 >
                   View running Ads
                 </button>

@@ -50,7 +50,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
           <button
             type="button"
             (click)="close.emit()"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
             aria-label="Close verification flow"
           >
             <ng-icon name="heroXMark" class="text-[22px]"></ng-icon>
@@ -102,7 +102,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
               <button
                 type="button"
                 (click)="nextStep()"
-                class="mt-auto rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]"
+                class="mt-auto rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)] transition-all duration-200 hover:bg-purple-700 active:scale-95"
               >
                 Start verification
               </button>
@@ -126,7 +126,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
               <button
                 type="button"
                 (click)="submitted.emit(); close.emit()"
-                class="mt-8 min-w-[140px] rounded-full bg-[#5E44EE] px-7 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]"
+                class="mt-8 min-w-[140px] rounded-full bg-[#5E44EE] px-7 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)] transition-all duration-200 hover:bg-purple-700 active:scale-95"
               >
                 Done
               </button>
@@ -170,7 +170,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                       <button
                         type="button"
                         (click)="selectedDocType.set(doc.id)"
-                        class="flex w-full items-center justify-between rounded-[14px] border px-3 py-3 text-left"
+                        class="flex w-full items-center justify-between rounded-[14px] border px-3 py-3 text-left transition-all duration-200 hover:bg-gray-50 active:scale-[0.98]"
                         [class.border-[#5E44EE]]="selectedDocType() === doc.id"
                         [class.bg-[#F6F4FF]]="selectedDocType() === doc.id"
                         [class.border-[#ECEEF4]]="selectedDocType() !== doc.id"
@@ -203,7 +203,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                     <button
                       type="button"
                       (click)="selectedUploadMethod.set('file')"
-                      class="flex w-full items-center justify-between rounded-[14px] border px-3 py-4 text-left"
+                      class="flex w-full items-center justify-between rounded-[14px] border px-3 py-4 text-left transition-all duration-200 hover:bg-gray-50 active:scale-[0.98]"
                       [class.border-[#5E44EE]]="selectedUploadMethod() === 'file'"
                       [class.bg-[#F6F4FF]]="selectedUploadMethod() === 'file'"
                       [class.border-[#ECEEF4]]="selectedUploadMethod() !== 'file'"
@@ -221,7 +221,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                     <button
                       type="button"
                       (click)="selectedUploadMethod.set('webcam')"
-                      class="flex w-full items-center justify-between rounded-[14px] border px-3 py-4 text-left"
+                      class="flex w-full items-center justify-between rounded-[14px] border px-3 py-4 text-left transition-all duration-200 hover:bg-gray-50 active:scale-[0.98]"
                       [class.border-[#5E44EE]]="selectedUploadMethod() === 'webcam'"
                       [class.bg-[#F6F4FF]]="selectedUploadMethod() === 'webcam'"
                       [class.border-[#ECEEF4]]="selectedUploadMethod() !== 'webcam'"
@@ -253,7 +253,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                             <ng-icon name="heroArrowUpTray" class="text-[24px]"></ng-icon>
                           </div>
                         }
-                        <button type="button" (click)="openFilePicker(frontUploadInput, $event)" class="mt-4 rounded-full bg-white px-5 py-2 text-[11px] font-medium text-[#202335] shadow-sm">
+                        <button type="button" (click)="openFilePicker(frontUploadInput, $event)" class="mt-4 rounded-full bg-white px-5 py-2 text-[11px] font-medium text-[#202335] shadow-sm transition-all duration-200 hover:bg-gray-50 active:scale-95">
                           {{ capturedDocumentFront() ? 'Replace front' : 'Upload front' }}
                         </button>
                         <p class="mt-2 text-[10px] text-[#A0A5B1]">Jpeg, Png only</p>
@@ -270,7 +270,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                             <ng-icon name="heroArrowUpTray" class="text-[24px]"></ng-icon>
                           </div>
                         }
-                        <button type="button" (click)="openFilePicker(backUploadInput, $event)" class="mt-4 rounded-full bg-white px-5 py-2 text-[11px] font-medium text-[#202335] shadow-sm">
+                        <button type="button" (click)="openFilePicker(backUploadInput, $event)" class="mt-4 rounded-full bg-white px-5 py-2 text-[11px] font-medium text-[#202335] shadow-sm transition-all duration-200 hover:bg-gray-50 active:scale-95">
                           {{ capturedDocumentBack() ? 'Replace back' : 'Upload back' }}
                         </button>
                         <p class="mt-2 text-[10px] text-[#A0A5B1]">Jpeg, Png only</p>
@@ -289,7 +289,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                     <button
                       type="button"
                       (click)="activeDocumentCaptureSide.set('front')"
-                      class="rounded-full px-4 py-2 text-[11px] font-medium transition-colors"
+                      class="rounded-full px-4 py-2 text-[11px] font-medium transition-all duration-200 active:scale-95"
                       [class.bg-white]="activeDocumentCaptureSide() === 'front'"
                       [class.text-[#5E44EE]]="activeDocumentCaptureSide() === 'front'"
                       [class.text-[#8A8F9A]]="activeDocumentCaptureSide() !== 'front'"
@@ -299,7 +299,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                     <button
                       type="button"
                       (click)="activeDocumentCaptureSide.set('back')"
-                      class="rounded-full px-4 py-2 text-[11px] font-medium transition-colors"
+                      class="rounded-full px-4 py-2 text-[11px] font-medium transition-all duration-200 active:scale-95"
                       [class.bg-white]="activeDocumentCaptureSide() === 'back'"
                       [class.text-[#5E44EE]]="activeDocumentCaptureSide() === 'back'"
                       [class.text-[#8A8F9A]]="activeDocumentCaptureSide() !== 'back'"
@@ -408,21 +408,21 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
 
               <div class="grid grid-cols-2 gap-3 pt-3">
                 @if (currentStep() === 'selection') {
-                  <button type="button" (click)="nextStep()" class="col-span-2 rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]" [disabled]="!selectedDocType()" [class.opacity-50]="!selectedDocType()">Continue</button>
+                  <button type="button" (click)="nextStep()" class="col-span-2 rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)] transition-all duration-200 hover:bg-[#4d33dd] active:scale-95" [disabled]="!selectedDocType()" [class.opacity-50]="!selectedDocType()">Continue</button>
                 } @else if (currentStep() === 'upload_method') {
-                  <button type="button" (click)="goBack()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335]">Back</button>
-                  <button type="button" (click)="nextStep()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]" [disabled]="!selectedUploadMethod()" [class.opacity-50]="!selectedUploadMethod()">Continue</button>
+                  <button type="button" (click)="goBack()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335] transition-all duration-200 hover:bg-[#e4e6ec] active:scale-95">Back</button>
+                  <button type="button" (click)="nextStep()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)] transition-all duration-200 hover:bg-[#4d33dd] active:scale-95" [disabled]="!selectedUploadMethod()" [class.opacity-50]="!selectedUploadMethod()">Continue</button>
                 } @else if (currentStep() === 'upload') {
-                  <button type="button" (click)="goBack()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335]">Back</button>
-                  <button type="button" (click)="nextStep()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]" [disabled]="!hasDocumentImages()" [class.opacity-50]="!hasDocumentImages()">Continue</button>
+                  <button type="button" (click)="goBack()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335] transition-all duration-200 hover:bg-[#e4e6ec] active:scale-95">Back</button>
+                  <button type="button" (click)="nextStep()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)] transition-all duration-200 hover:bg-[#4d33dd] active:scale-95" [disabled]="!hasDocumentImages()" [class.opacity-50]="!hasDocumentImages()">Continue</button>
                 } @else if (currentStep() === 'camera_capture') {
-                  <button type="button" (click)="goBack()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335]">Back</button>
-                  <button type="button" (click)="captureDocumentImage()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]">Capture photo</button>
+                  <button type="button" (click)="goBack()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335] transition-all duration-200 hover:bg-[#e4e6ec] active:scale-95">Back</button>
+                  <button type="button" (click)="captureDocumentImage()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)] transition-all duration-200 hover:bg-[#4d33dd] active:scale-95">Capture photo</button>
                 } @else if (currentStep() === 'selfie_intro') {
-                  <button type="button" (click)="captureSelfieForReview()" class="col-span-2 rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]">Take photo</button>
+                  <button type="button" (click)="captureSelfieForReview()" class="col-span-2 rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)] transition-all duration-200 hover:bg-[#4d33dd] active:scale-95">Take photo</button>
                 } @else if (currentStep() === 'selfie_review') {
-                  <button type="button" (click)="retakeSelfieForReview()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335]">Retake photo</button>
-                  <button type="button" (click)="submitSelfieReview()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)]">Submit photo</button>
+                  <button type="button" (click)="retakeSelfieForReview()" class="rounded-full bg-[#F3F4F7] px-5 py-3 text-[12px] font-medium text-[#202335] transition-all duration-200 hover:bg-[#e4e6ec] active:scale-95">Retake photo</button>
+                  <button type="button" (click)="submitSelfieReview()" class="rounded-full bg-[#5E44EE] px-5 py-3 text-[12px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(94,68,238,0.9)] transition-all duration-200 hover:bg-[#4d33dd] active:scale-95">Submit photo</button>
                 }
               </div>
             </div>
@@ -439,7 +439,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
         <div class="px-8 py-6 flex items-center gap-4 border-b border-gray-50 shrink-0">
           <button
             (click)="close.emit()"
-            class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors text-gray-700"
+            class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95 duration-200 text-gray-700"
           >
             <ng-icon name="heroXMark" class="text-xl"></ng-icon>
           </button>
@@ -598,7 +598,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                     @for (doc of documentTypes; track doc.id) {
                       <button
                         (click)="selectedDocType.set(doc.id)"
-                        class="flex items-center justify-between p-4 rounded-2xl border-2 transition-all group hover:bg-gray-100"
+                        class="flex items-center justify-between p-4 rounded-2xl border-2 transition-all group hover:bg-gray-100 active:scale-[0.98] duration-200"
                         [class.border-[#5932EA]]="selectedDocType() === doc.id"
                         [class.bg-[#F7F5FF]]="selectedDocType() === doc.id"
                         [class.border-transparent]="selectedDocType() !== doc.id"
@@ -657,7 +657,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                   <div class="grid grid-cols-1 gap-3 mb-12">
                      <button
                       (click)="selectedUploadMethod.set('file')"
-                      class="flex items-center justify-between p-6 rounded-2xl border-2 transition-all text-left"
+                      class="flex items-center justify-between p-6 rounded-2xl border-2 transition-all text-left active:scale-[0.98] duration-200"
                       [class.border-[#5932EA]]="selectedUploadMethod() === 'file'"
                       [class.bg-[#F7F5FF]]="selectedUploadMethod() === 'file'"
                       [class.border-transparent]="selectedUploadMethod() !== 'file'"
@@ -677,7 +677,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
 
                      <button
                       (click)="selectedUploadMethod.set('webcam')"
-                      class="flex items-center justify-between p-6 rounded-2xl border-2 transition-all text-left"
+                      class="flex items-center justify-between p-6 rounded-2xl border-2 transition-all text-left active:scale-[0.98] duration-200"
                       [class.border-[#5932EA]]="selectedUploadMethod() === 'webcam'"
                       [class.bg-[#F7F5FF]]="selectedUploadMethod() === 'webcam'"
                       [class.border-transparent]="selectedUploadMethod() !== 'webcam'"
@@ -794,7 +794,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                     <button
                       type="button"
                       (click)="activeDocumentCaptureSide.set('front')"
-                      class="rounded-full px-4 py-2 text-xs font-medium transition-colors"
+                      class="rounded-full px-4 py-2 text-xs font-medium transition-all active:scale-95 duration-200"
                       [class.bg-white]="activeDocumentCaptureSide() === 'front'"
                       [class.text-[#5932EA]]="activeDocumentCaptureSide() === 'front'"
                       [class.text-gray-500]="activeDocumentCaptureSide() !== 'front'"
@@ -804,7 +804,7 @@ export type VerificationStep = 'intro' | 'selection' | 'upload_method' | 'upload
                     <button
                       type="button"
                       (click)="activeDocumentCaptureSide.set('back')"
-                      class="rounded-full px-4 py-2 text-xs font-medium transition-colors"
+                      class="rounded-full px-4 py-2 text-xs font-medium transition-all active:scale-95 duration-200"
                       [class.bg-white]="activeDocumentCaptureSide() === 'back'"
                       [class.text-[#5932EA]]="activeDocumentCaptureSide() === 'back'"
                       [class.text-gray-500]="activeDocumentCaptureSide() !== 'back'"

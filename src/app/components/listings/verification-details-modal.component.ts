@@ -24,7 +24,7 @@ import { MobileOverlayService } from '../../services/mobile-overlay.service';
           </h2>
           <button 
             (click)="close.emit()" 
-            class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors text-gray-700"
+            class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95 duration-200 text-gray-700"
           >
             <ng-icon name="heroXMark" class="text-xl"></ng-icon>
           </button>

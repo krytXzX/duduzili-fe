@@ -75,13 +75,13 @@ export class CustomDropdownComponent<T extends string = string> {
   readonly fullWidth = input(false);
   readonly align = input<'left' | 'right'>('left');
   readonly buttonClass = input(
-    'inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-[#1A1B1D]',
+    'inline-flex h-10 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium text-[#1A1B1D] transition-all duration-200 hover:bg-gray-50 active:scale-95',
   );
   readonly labelClass = input('truncate');
   readonly iconClass = input('text-[#6F6F6F]');
   readonly menuClass = input('min-w-[180px]');
   readonly optionClass = input(
-    'flex w-full items-center rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F7F7FA]',
+    'flex w-full items-center rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition-all duration-200 hover:bg-[#F7F7FA] active:scale-[0.98]',
   );
   readonly activeOptionClass = input('bg-[#F3F1FF] text-[#6453D9]');
   readonly valueChange = output<T>();

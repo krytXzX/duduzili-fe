@@ -41,7 +41,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
            <div class="p-10 pt-16 flex flex-col items-center text-center">
               <button 
                 (click)="close.emit()"
-                class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white border border-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all shadow-sm"
+                class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white border border-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all shadow-sm hover:bg-gray-50 active:scale-95 duration-200"
               >
                 <ng-icon name="heroXMark" class="text-xl"></ng-icon>
               </button>
@@ -68,13 +68,13 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
               <div class="flex items-center justify-center gap-3 w-full">
                  <button 
                    (click)="close.emit()"
-                   class="flex-1 px-8 py-4 rounded-full bg-white border border-gray-100 text-[#1A1C21] font-bold text-[15px] hover:bg-gray-50 transition-all"
+                   class="flex-1 px-8 py-4 rounded-full bg-white border border-gray-100 text-[#1A1C21] font-bold text-[15px] hover:bg-gray-50 transition-all active:scale-95 duration-200"
                  >
                    Cancel
                  </button>
                  <button 
                    (click)="goToStep(2)"
-                   class="flex-2 px-8 py-4 rounded-full bg-[#5932EA] text-white font-bold text-[15px] shadow-lg shadow-purple-100 hover:shadow-purple-200 transition-all whitespace-nowrap"
+                   class="flex-2 px-8 py-4 rounded-full bg-[#5932EA] text-white font-bold text-[15px] shadow-lg shadow-purple-100 hover:shadow-purple-200 transition-all hover:bg-[#4a27c9] active:scale-95 duration-200 whitespace-nowrap"
                  >
                    Yes, promote store
                  </button>
@@ -89,7 +89,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
               <div class="relative h-44 bg-linear-to-b from-purple-100/50 to-transparent flex flex-col items-center justify-center text-center px-10">
                  <button 
                     (click)="close.emit()"
-                    class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all shadow-sm"
+                    class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all shadow-sm hover:bg-gray-50 active:scale-95 duration-200"
                  >
                     <ng-icon name="heroXMark" class="text-xl"></ng-icon>
                  </button>
@@ -105,7 +105,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
                     @for (plan of plans; track plan.id) {
                        <div 
-                          class="group relative h-64 bg-white border rounded-[28px] p-8 cursor-pointer transition-all flex flex-col justify-between"
+                          class="group relative h-64 bg-white border rounded-[28px] p-8 cursor-pointer transition-all hover:border-purple-600/50 active:scale-[0.98] duration-200 flex flex-col justify-between"
                           [class.border-purple-600]="selectedPlanId() === plan.id"
                           [class.bg-purple-50/20]="selectedPlanId() === plan.id"
                           [class.border-gray-100]="selectedPlanId() !== plan.id"
@@ -138,7 +138,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
                  <div class="flex justify-center">
                     <button 
                        (click)="goToStep(3)"
-                       class="w-full max-w-sm py-4 bg-[#5932EA] text-white font-bold text-[15px] rounded-full shadow-lg shadow-purple-100 hover:shadow-purple-200 transition-all active:scale-95"
+                       class="w-full max-w-sm py-4 bg-[#5932EA] text-white font-bold text-[15px] rounded-full shadow-lg shadow-purple-100 hover:shadow-purple-200 transition-all hover:bg-[#4a27c9] active:scale-95 duration-200"
                     >
                        Proceed
                     </button>
@@ -156,13 +156,13 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
                  
                  <div class="space-y-4">
                     <!-- Wallet Item -->
-                    <div 
-                       class="flex items-center justify-between p-6 rounded-[24px] border cursor-pointer transition-all"
-                       [class.border-purple-600]="selectedPaymentId() === 'wallet'"
-                       [class.bg-purple-50/10]="selectedPaymentId() === 'wallet'"
-                       [class.border-gray-100]="selectedPaymentId() !== 'wallet'"
-                       (click)="selectedPaymentId.set('wallet')"
-                    >
+                     <div 
+                        class="flex items-center justify-between p-6 rounded-[24px] border cursor-pointer transition-all hover:border-purple-600/50 active:scale-[0.98] duration-200"
+                        [class.border-purple-600]="selectedPaymentId() === 'wallet'"
+                        [class.bg-purple-50/10]="selectedPaymentId() === 'wallet'"
+                        [class.border-gray-100]="selectedPaymentId() !== 'wallet'"
+                        (click)="selectedPaymentId.set('wallet')"
+                     >
                        <div class="flex items-center gap-4">
                           <div class="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-600">
                              <ng-icon name="heroWallet" class="text-lg"></ng-icon>
@@ -184,13 +184,13 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
                     </div>
 
                     <!-- Online Item -->
-                    <div 
-                       class="flex items-center justify-between p-6 rounded-[24px] border cursor-pointer transition-all"
-                       [class.border-purple-600]="selectedPaymentId() === 'online'"
-                       [class.bg-purple-50/10]="selectedPaymentId() === 'online'"
-                       [class.border-gray-100]="selectedPaymentId() !== 'online'"
-                       (click)="selectedPaymentId.set('online')"
-                    >
+                     <div 
+                        class="flex items-center justify-between p-6 rounded-[24px] border cursor-pointer transition-all hover:border-purple-600/50 active:scale-[0.98] duration-200"
+                        [class.border-purple-600]="selectedPaymentId() === 'online'"
+                        [class.bg-purple-50/10]="selectedPaymentId() === 'online'"
+                        [class.border-gray-100]="selectedPaymentId() !== 'online'"
+                        (click)="selectedPaymentId.set('online')"
+                     >
                        <div class="flex items-center gap-4">
                           <div class="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-600">
                              <ng-icon name="heroGlobeAlt" class="text-lg"></ng-icon>
@@ -214,7 +214,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
               <div class="w-[440px] p-8 m-4 bg-[#FAFAFA] rounded-[32px] relative flex flex-col justify-between">
                  <button 
                     (click)="close.emit()"
-                    class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all shadow-sm"
+                    class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all shadow-sm hover:bg-gray-50 active:scale-95 duration-200"
                  >
                     <ng-icon name="heroXMark" class="text-xl"></ng-icon>
                  </button>
@@ -253,7 +253,7 @@ import { heroStarSolid } from '@ng-icons/heroicons/solid';
                  <div class="mt-12">
                     <button 
                        (click)="confirm()"
-                       class="w-full py-4 bg-[#5932EA] text-white font-bold text-[15px] rounded-full shadow-lg shadow-purple-100 hover:shadow-purple-200 transition-all flex items-center justify-center gap-2 mb-6"
+                       class="w-full py-4 bg-[#5932EA] text-white font-bold text-[15px] rounded-full shadow-lg shadow-purple-100 hover:shadow-purple-200 transition-all hover:bg-[#4a27c9] active:scale-95 duration-200 flex items-center justify-center gap-2 mb-6"
                     >
                        Confirm and pay
                     </button>
