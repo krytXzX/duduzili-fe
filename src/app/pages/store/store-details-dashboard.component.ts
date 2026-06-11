@@ -1,6 +1,8 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { heroEllipsisHorizontal } from '@ng-icons/heroicons/outline';
 import { firstValueFrom } from 'rxjs';
 import {
   AddListingModalComponent,
@@ -74,6 +76,7 @@ interface ReviewTagCount {
     CommonModule,
     RouterLink,
     NgOptimizedImage,
+    NgIcon,
     PromoteListingModalComponent,
     StoreEditSidePanelComponent,
     AddListingModalComponent,
@@ -81,6 +84,7 @@ interface ReviewTagCount {
     StoreReviewCardComponent,
     CustomDropdownComponent,
   ],
+  providers: [provideIcons({ heroEllipsisHorizontal })],
   host: {
     class: 'block min-h-full',
   },
@@ -655,16 +659,10 @@ interface ReviewTagCount {
 
                   <button
                     type="button"
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#EAEAEA] bg-white"
+                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F]"
                     aria-label="More options"
                   >
-                    <img
-                      [ngSrc]="assets.menuDotsDesktop"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="h-4 w-4"
-                    />
+                    <ng-icon name="heroEllipsisHorizontal" class="text-[22px]"></ng-icon>
                   </button>
                 </div>
               </div>
@@ -1023,7 +1021,6 @@ export class StoreDetailsDashboardComponent {
     itemLocationMobile: '/assets/icons/store-filled-item-location-mobile.svg',
     locationDesktop: '/assets/icons/store-filled-location-desktop.svg',
     locationMobile: '/assets/icons/store-filled-location-mobile.svg',
-    menuDotsDesktop: '/assets/icons/store-filled-menu-dots-desktop.svg',
     starDesktop: '/assets/icons/store-filled-star-desktop.svg',
     starMobile: '/assets/icons/store-filled-star-mobile.svg',
     tabListingsDesktop: '/assets/icons/store-filled-tab-listings-desktop.svg',
