@@ -23,7 +23,7 @@
 
       <div class="flex flex-wrap items-center gap-3 border-b border-[#eaebf2] py-6">
         @for (filter of desktopFilters; track filter.id) {
-        <button type="button" class="inline-flex h-[46px] items-center gap-2 rounded-full border border-[#e6e7ef] bg-white px-5 text-[15px] font-medium text-[#252837] shadow-[0_10px_24px_-22px_rgba(17,24,39,0.22)] transition hover:border-[#d7d9e4]">
+        <button type="button" class="inline-flex h-[46px] items-center gap-2 rounded-full border border-[#e6e7ef] bg-white px-5 text-[15px] font-medium text-[#252837] shadow-[0_10px_24px_-22px_rgba(17,24,39,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d7d9e4] hover:bg-[#fbfbff] hover:shadow-[0_16px_30px_-24px_rgba(17,24,39,0.34)] active:translate-y-0 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]">
           <span>{{ filter.label }}</span>
           @if (filter.trailingIcon === 'chevron') {
           <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 fill-[#7b8090]">
@@ -37,7 +37,7 @@
         </button>
         }
 
-        <button type="button" class="ml-2 text-[15px] font-medium text-[#6453d9] transition hover:text-[#5645d0]">
+        <button type="button" class="ml-2 rounded-full px-3 py-2 text-[15px] font-medium text-[#6453d9] transition-all duration-200 hover:bg-[#F5F3FF] hover:text-[#5645d0] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]">
           Reset all
         </button>
       </div>
@@ -56,10 +56,21 @@
       </div>
       } @else {
       <div class="grid grid-cols-5 gap-x-5 gap-y-6 pt-8">
-        @for (listing of listings(); track listing.id) {
+        @for (listing of visibleDesktopListings(); track listing.id) {
         <app-listing-card [listing]="listing" [favoriteFilled]="listing.favoriteFilled ?? false" />
         }
       </div>
+      @if (canShowMoreDesktop()) {
+      <div class="pt-8">
+        <button
+          type="button"
+          (click)="showMoreDesktopListings()"
+          class="flex w-full items-center justify-center gap-2 overflow-hidden rounded-[64px] bg-[#F4F4F4] px-6 py-3.5 text-center text-[14px] font-medium leading-5 text-[#2D2D2D] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ECECEC] hover:shadow-[0_18px_34px_-28px_rgba(17,24,39,0.38)] active:translate-y-0 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]"
+        >
+          Show more listings
+        </button>
+      </div>
+      }
       }
     </div>
   </section>
@@ -83,7 +94,7 @@
     <div class="-mx-4 overflow-x-auto px-4 pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div class="flex min-w-max items-center gap-2.5">
         @for (filter of mobileFilters; track filter.id) {
-        <button type="button" class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e6e7ef] bg-white px-4 text-[14px] font-medium text-[#252837] shadow-[0_10px_24px_-22px_rgba(17,24,39,0.22)]">
+        <button type="button" class="inline-flex h-10 items-center gap-2 rounded-full border border-[#e6e7ef] bg-white px-4 text-[14px] font-medium text-[#252837] shadow-[0_10px_24px_-22px_rgba(17,24,39,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d7d9e4] hover:bg-[#fbfbff] active:translate-y-0 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]">
           <span>{{ filter.label }}</span>
           <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 fill-[#7b8090]">
             <path d="M5.47 7.97a.75.75 0 0 1 1.06 0L10 11.44l3.47-3.47a.75.75 0 1 1 1.06 1.06l-4 4a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 0 1 0-1.06Z" />
@@ -113,8 +124,8 @@
     </div>
 
     @if (canShowMoreMobile()) {
-    <div class="pb-10 text-center">
-      <button type="button" (click)="showMoreMobileListings()" class="inline-flex h-11 items-center justify-center rounded-full border border-[#d8daea] bg-white px-5 text-[14px] font-medium text-[#272a36] shadow-[0_18px_28px_-24px_rgba(15,23,42,0.24)] transition hover:border-[#c8cbde]">
+    <div class="pb-10">
+      <button type="button" (click)="showMoreMobileListings()" class="flex w-full items-center justify-center rounded-[64px] bg-[#F4F4F4] px-6 py-3.5 text-center text-[14px] font-medium leading-5 text-[#2D2D2D] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ECECEC] hover:shadow-[0_18px_34px_-28px_rgba(17,24,39,0.38)] active:translate-y-0 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]">
         Show more listings
       </button>
     </div>

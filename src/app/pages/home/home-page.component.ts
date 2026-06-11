@@ -49,7 +49,7 @@ type HomePromotion = {
 
 const HOME_RECENT_SEARCHES_KEY = 'duduzili.home.recent-searches';
 const HOME_RECENT_SEARCHES_LIMIT = 8;
-const HOME_NEARBY_LISTINGS_PAGE_SIZE = 5;
+const HOME_NEARBY_LISTINGS_PAGE_SIZE = 10;
 
 const CATEGORY_ICON_BY_SLUG: Record<string, string> = {
   automotives: '/assets/images/category-automotives.png',

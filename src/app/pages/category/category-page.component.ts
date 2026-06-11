@@ -48,11 +48,12 @@ export class CategoryPageComponent {
   private currentCategoryRequestId = 0;
 
   readonly isAuthenticated = this.authSession.isAuthenticated;
-  readonly isMobileExpanded = signal(false);
   readonly isCategoryLoading = signal(false);
   readonly categoryError = signal<string | null>(null);
   readonly resultCount = signal(0);
   readonly listings = signal<CategoryListingView[]>([]);
+  readonly desktopListingLimit = signal(15);
+  readonly mobileListingLimit = signal(8);
 
   readonly categoryId = computed(() => this.queryParamMap().get('category')?.trim() || '1');
   readonly categoryName = computed(() => this.queryParamMap().get('name')?.trim() || 'Phone & Tablet');
@@ -74,11 +75,12 @@ export class CategoryPageComponent {
     { id: 'sort', label: 'Sort by', trailingIcon: 'chevron' },
   ];
 
-  readonly visibleMobileListings = computed(() => (
-    this.isMobileExpanded() ? this.listings() : this.listings().slice(0, 8)
-  ));
+  readonly visibleDesktopListings = computed(() => this.listings().slice(0, this.desktopListingLimit()));
 
-  readonly canShowMoreMobile = computed(() => !this.isMobileExpanded() && this.listings().length > 8);
+  readonly visibleMobileListings = computed(() => this.listings().slice(0, this.mobileListingLimit()));
+
+  readonly canShowMoreDesktop = computed(() => this.desktopListingLimit() < this.listings().length);
+  readonly canShowMoreMobile = computed(() => this.mobileListingLimit() < this.listings().length);
 
   constructor() {
     effect(() => {
@@ -87,15 +89,20 @@ export class CategoryPageComponent {
     });
   }
 
+  showMoreDesktopListings(): void {
+    this.desktopListingLimit.update((limit) => Math.min(limit + 10, this.listings().length));
+  }
+
   showMoreMobileListings(): void {
-    this.isMobileExpanded.set(true);
+    this.mobileListingLimit.update((limit) => Math.min(limit + 8, this.listings().length));
   }
 
   private async loadCategoryListings(categoryId: string): Promise<void> {
     const normalizedCategoryId = categoryId.trim();
     const requestId = ++this.currentCategoryRequestId;
 
-    this.isMobileExpanded.set(false);
+    this.desktopListingLimit.set(15);
+    this.mobileListingLimit.set(8);
 
     if (!normalizedCategoryId) {
       this.listings.set([]);
