@@ -12,6 +12,8 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { heroEllipsisHorizontal } from '@ng-icons/heroicons/outline';
 import {
   ListingPromotionSelection,
   PromoteListingModalComponent,
@@ -124,7 +126,9 @@ type EditSectionId = 'media' | 'details' | 'delivery';
     RouterLink,
     ReactiveFormsModule,
     PromoteListingModalComponent,
+    NgIcon,
   ],
+  providers: [provideIcons({ heroEllipsisHorizontal })],
   template: `
     <div class="mx-auto max-w-[1248px] px-4 pb-28 pt-4 md:px-0 md:pb-0 md:pt-0">
       <div class="md:hidden">
@@ -1195,17 +1199,10 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         <button
                           type="button"
                           (click)="openEditImagePicker()"
-                          class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
+                          class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_4px_8px_rgba(15,23,42,0.08)]"
                           aria-label="Photo actions"
                         >
-                          <img
-                            ngSrc="/assets/icons/edit-listing-menu-dots.svg"
-                            alt=""
-                            width="16"
-                            height="16"
-                            class="h-4 w-4"
-                            aria-hidden="true"
-                          />
+                          <ng-icon name="heroEllipsisHorizontal" class="text-[18px]" aria-hidden="true"></ng-icon>
                         </button>
                         <span
                           class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
@@ -1238,17 +1235,10 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           <button
                             type="button"
                             (click)="openEditImagePicker()"
-                            class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] items-center justify-center rounded-full bg-white"
+                            class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_4px_8px_rgba(15,23,42,0.08)]"
                             aria-label="Photo actions"
                           >
-                            <img
-                              ngSrc="/assets/icons/edit-listing-menu-dots.svg"
-                              alt=""
-                              width="16"
-                              height="16"
-                              class="h-4 w-4"
-                              aria-hidden="true"
-                            />
+                            <ng-icon name="heroEllipsisHorizontal" class="text-[18px]" aria-hidden="true"></ng-icon>
                           </button>
                           <span
                             class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
@@ -1745,17 +1735,10 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               <button
                                 type="button"
                                 (click)="openEditImagePicker()"
-                                class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
+                                class="absolute right-3 top-3 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_6px_14px_rgba(15,23,42,0.08)]"
                                 aria-label="Photo actions"
                               >
-                                <img
-                                  ngSrc="/assets/icons/edit-listing-menu-dots.svg"
-                                  alt=""
-                                  width="25"
-                                  height="25"
-                                  class="h-[25px] w-[25px]"
-                                  aria-hidden="true"
-                                />
+                                <ng-icon name="heroEllipsisHorizontal" class="text-[26px]" aria-hidden="true"></ng-icon>
                               </button>
 
                               <div
@@ -1791,17 +1774,10 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                                 <button
                                   type="button"
                                   (click)="openEditImagePicker()"
-                                  class="absolute right-3 top-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white"
+                                  class="absolute right-3 top-3 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_6px_14px_rgba(15,23,42,0.08)]"
                                   aria-label="Photo actions"
                                 >
-                                  <img
-                                    ngSrc="/assets/icons/edit-listing-menu-dots.svg"
-                                    alt=""
-                                    width="25"
-                                    height="25"
-                                    class="h-[25px] w-[25px]"
-                                    aria-hidden="true"
-                                  />
+                                  <ng-icon name="heroEllipsisHorizontal" class="text-[26px]" aria-hidden="true"></ng-icon>
                                 </button>
 
                                 <div
