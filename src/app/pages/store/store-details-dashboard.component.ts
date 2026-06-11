@@ -15,7 +15,7 @@ import {
   StoreReviewCardComponent,
   StoreReviewCardData,
 } from '../../components/stores/store-review-card.component';
-import { StoreEditSidePanelComponent } from '../../components/stores/store-edit-side-panel.component';
+import { StoreEditSidePanelComponent, type EditableStoreUpdate } from '../../components/stores/store-edit-side-panel.component';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { AppToastService } from '../../services/app-toast.service';
 import { SellerMonetizationService } from '../../services/seller-monetization.service';
@@ -1506,7 +1506,7 @@ export class StoreDetailsDashboardComponent {
     this.showEditModal.set(true);
   }
 
-  async onSaveStore(updatedStore: Partial<StoreProfile>): Promise<void> {
+  async onSaveStore(updatedStore: EditableStoreUpdate): Promise<void> {
     const currentStore = this.store();
     if (!currentStore) {
       this.appToastService.show({
@@ -1576,7 +1576,7 @@ export class StoreDetailsDashboardComponent {
     this.showAddListingModal.set(false);
   }
 
-  private toUpdateStorePayload(updatedStore: Partial<StoreProfile>): UpdateVendorPayload {
+  private toUpdateStorePayload(updatedStore: EditableStoreUpdate): UpdateVendorPayload {
     const currentStore = this.store();
     return {
       store_name: updatedStore.name?.trim() || currentStore?.name || '',
@@ -1587,6 +1587,8 @@ export class StoreDetailsDashboardComponent {
       call_number: updatedStore.callNumber?.trim() ?? currentStore?.callNumber ?? '',
       call_number_2:
         updatedStore.alternateCallNumber?.trim() ?? currentStore?.alternateCallNumber ?? '',
+      profile_photo: updatedStore.profilePhotoFile,
+      cover_image: updatedStore.coverPhotoFile,
     };
   }
 

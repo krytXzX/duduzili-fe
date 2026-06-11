@@ -15,6 +15,8 @@ export type UpdateVendorPayload = {
   whatsapp_number?: string;
   call_number?: string;
   call_number_2?: string;
+  profile_photo?: File;
+  cover_image?: File;
 };
 export type CreateVendorReviewPayload = {
   vendor: string;
@@ -83,6 +85,19 @@ export class VendorsService {
   }
 
   updateStore(id: string, payload: UpdateVendorPayload): Observable<VendorRecord> {
+    // If any file fields are present, send as FormData so the server can handle uploads
+    if (payload.profile_photo || payload.cover_image) {
+      const formData = new FormData();
+      if (payload.store_name !== undefined) formData.append('store_name', payload.store_name);
+      if (payload.store_bio !== undefined) formData.append('store_bio', payload.store_bio);
+      if (payload.location !== undefined) formData.append('location', payload.location);
+      if (payload.whatsapp_number !== undefined) formData.append('whatsapp_number', payload.whatsapp_number);
+      if (payload.call_number !== undefined) formData.append('call_number', payload.call_number);
+      if (payload.call_number_2 !== undefined) formData.append('call_number_2', payload.call_number_2);
+      if (payload.profile_photo) formData.append('profile_photo', payload.profile_photo);
+      if (payload.cover_image) formData.append('cover_image', payload.cover_image);
+      return this.http.patch<VendorRecord>(`${this.apiUrl}/vendors/${id}/`, formData);
+    }
     return this.http.patch<VendorRecord>(`${this.apiUrl}/vendors/${id}/`, payload);
   }
 

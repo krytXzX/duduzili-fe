@@ -32,6 +32,8 @@ export interface EditableStoreUpdate {
   whatsappNumber: string;
   callNumber: string;
   alternateCallNumber: string;
+  profilePhotoFile?: File;
+  coverPhotoFile?: File;
 }
 
 @Component({
@@ -180,9 +182,17 @@ export interface EditableStoreUpdate {
                     </div>
                   </div>
 
+                  <input
+                    #profilePhotoInputDesktop
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    (change)="onProfilePhotoSelected($event)"
+                  />
                   <button
                     type="button"
                     class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
+                    (click)="profilePhotoInputDesktop.click()"
                   >
                     <img
                       [ngSrc]="assets.pencil"
@@ -212,9 +222,17 @@ export interface EditableStoreUpdate {
                     alt=""
                     class="h-full w-full object-cover"
                   />
+                  <input
+                    #coverPhotoInputDesktop
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    (change)="onCoverPhotoSelected($event)"
+                  />
                   <button
                     type="button"
                     class="absolute right-2 top-2 inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
+                    (click)="coverPhotoInputDesktop.click()"
                   >
                     <img
                       [ngSrc]="assets.pencil"
@@ -390,9 +408,17 @@ export interface EditableStoreUpdate {
                       </div>
                     </div>
 
+                    <input
+                      #profilePhotoInputMobile
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      (change)="onProfilePhotoSelected($event)"
+                    />
                     <button
                       type="button"
                       class="inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
+                      (click)="profilePhotoInputMobile.click()"
                     >
                       <img
                         [ngSrc]="assets.pencil"
@@ -422,9 +448,17 @@ export interface EditableStoreUpdate {
                       alt=""
                       class="h-full w-full object-cover"
                     />
+                    <input
+                      #coverPhotoInputMobile
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      (change)="onCoverPhotoSelected($event)"
+                    />
                     <button
                       type="button"
                       class="absolute right-2 top-2 inline-flex h-8 items-center gap-2 rounded-full border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-black shadow-[0_4px_8px_rgba(123,123,123,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
+                      (click)="coverPhotoInputMobile.click()"
                     >
                       <img
                         [ngSrc]="assets.pencil"
@@ -499,6 +533,12 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly fb = inject(FormBuilder);
 
+  // Tracks selected File objects and their local preview URLs
+  private readonly selectedProfilePhotoFile = signal<File | null>(null);
+  private readonly selectedCoverPhotoFile = signal<File | null>(null);
+  private profilePhotoObjectUrl: string | null = null;
+  private coverPhotoObjectUrl: string | null = null;
+
   protected readonly editForm = this.fb.nonNullable.group({
     name: ['', Validators.required],
     description: ['', [Validators.required, Validators.minLength(10)]],
@@ -508,8 +548,20 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
     alternateCallNumber: [''],
   });
 
-  protected readonly profileImage = computed(() => this.store().logo || this.assets.logo);
-  protected readonly coverImage = computed(() => this.store().banner || this.assets.cover);
+  // Show local preview if a file was selected, otherwise fall back to the store's current image
+  protected readonly profileImage = computed(() => {
+    if (this.selectedProfilePhotoFile()) {
+      return this.profilePhotoObjectUrl ?? (this.store().logo || this.assets.logo);
+    }
+    return this.store().logo || this.assets.logo;
+  });
+
+  protected readonly coverImage = computed(() => {
+    if (this.selectedCoverPhotoFile()) {
+      return this.coverPhotoObjectUrl ?? (this.store().banner || this.assets.cover);
+    }
+    return this.store().banner || this.assets.cover;
+  });
 
   constructor() {
     this.mobileOverlayService.openMobileModal();
@@ -533,6 +585,28 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
     );
   }
 
+  onProfilePhotoSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    // Revoke previous object URL to avoid memory leaks
+    if (this.profilePhotoObjectUrl) {
+      URL.revokeObjectURL(this.profilePhotoObjectUrl);
+    }
+    this.profilePhotoObjectUrl = URL.createObjectURL(file);
+    this.selectedProfilePhotoFile.set(file);
+  }
+
+  onCoverPhotoSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    // Revoke previous object URL to avoid memory leaks
+    if (this.coverPhotoObjectUrl) {
+      URL.revokeObjectURL(this.coverPhotoObjectUrl);
+    }
+    this.coverPhotoObjectUrl = URL.createObjectURL(file);
+    this.selectedCoverPhotoFile.set(file);
+  }
+
   updateLocation(value: string): void {
     this.selectedLocation.set(value);
     this.editForm.controls.location.setValue(value);
@@ -542,11 +616,18 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
 
   onSubmit(): void {
     if (this.editForm.valid) {
-      this.save.emit(this.editForm.getRawValue());
+      this.save.emit({
+        ...this.editForm.getRawValue(),
+        profilePhotoFile: this.selectedProfilePhotoFile() ?? undefined,
+        coverPhotoFile: this.selectedCoverPhotoFile() ?? undefined,
+      });
     }
   }
 
   ngOnDestroy(): void {
     this.mobileOverlayService.closeMobileModal();
+    // Clean up object URLs
+    if (this.profilePhotoObjectUrl) URL.revokeObjectURL(this.profilePhotoObjectUrl);
+    if (this.coverPhotoObjectUrl) URL.revokeObjectURL(this.coverPhotoObjectUrl);
   }
 }
