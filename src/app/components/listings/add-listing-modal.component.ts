@@ -1852,6 +1852,24 @@ export class AddListingModalComponent implements OnDestroy {
 
     if (!this.listingForm.valid) {
       this.listingForm.markAllAsTouched();
+      const invalidFields: string[] = [];
+      const controls = this.listingForm.controls;
+
+      if (controls['name'].invalid) invalidFields.push('Listing Title');
+      if (controls['category'].invalid) invalidFields.push('Category');
+      if (controls['condition'].invalid) invalidFields.push('Condition');
+      if (controls['store'].invalid) invalidFields.push('Store');
+      if (controls['location'].invalid) invalidFields.push('Location');
+      if (controls['deliveryOptions'].invalid) invalidFields.push('Delivery Options');
+
+      const message = invalidFields.length > 0
+        ? `Please fill in the required fields: ${invalidFields.join(', ')}.`
+        : 'Please fill in all required fields correctly.';
+
+      this.appToastService.show({
+        message,
+        durationMs: 3500,
+      });
       return;
     }
 
@@ -1878,9 +1896,23 @@ export class AddListingModalComponent implements OnDestroy {
 
     if (!this.listingForm.valid) {
       this.listingForm.markAllAsTouched();
+      const invalidFields: string[] = [];
+      const controls = this.listingForm.controls;
+
+      if (controls['name'].invalid) invalidFields.push('Listing Title');
+      if (controls['category'].invalid) invalidFields.push('Category');
+      if (controls['condition'].invalid) invalidFields.push('Condition');
+      if (controls['store'].invalid) invalidFields.push('Store');
+      if (controls['location'].invalid) invalidFields.push('Location');
+      if (controls['deliveryOptions'].invalid) invalidFields.push('Delivery Options');
+
+      const message = invalidFields.length > 0
+        ? `Please complete the required fields before saving this draft: ${invalidFields.join(', ')}.`
+        : 'Please complete the required listing details before saving this draft.';
+
       this.appToastService.show({
-        message: 'Please complete the required listing details before saving this draft.',
-        durationMs: 2600,
+        message,
+        durationMs: 3500,
       });
       return;
     }
