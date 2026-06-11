@@ -305,9 +305,31 @@
         }
       </div>
       } @else if (nearbyListingCards().length) {
-      <div class="grid grid-cols-2 gap-2.5 lg:grid-cols-5 lg:gap-4">
-        @for (listing of nearbyListingCards(); track listing.id) {
-        <app-listing-card [listing]="listing" [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)" imageLoading="lazy" />
+      <div class="space-y-8">
+        <div class="grid grid-cols-2 gap-2.5 lg:grid-cols-5 lg:gap-4">
+          @for (listing of nearbyListingCards(); track listing.id) {
+          <app-listing-card [listing]="listing" [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)" imageLoading="lazy" />
+          }
+        </div>
+
+        @if (hasMoreNearbyListings()) {
+        <div class="flex justify-center">
+          <button
+            type="button"
+            (click)="loadMoreNearbyListings()"
+            [disabled]="isLoadingMoreNearbyListings()"
+            class="group inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#E6E2FF] bg-[#F5F3FF] px-6 text-[15px] font-semibold leading-5 text-[#6453D9] shadow-[0_8px_20px_-16px_rgba(100,83,217,0.7)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#CFC6FF] hover:bg-[#ECE8FF] hover:shadow-[0_14px_28px_-18px_rgba(100,83,217,0.85)] active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:bg-[#F5F3FF]"
+            [attr.aria-busy]="isLoadingMoreNearbyListings()"
+          >
+            @if (isLoadingMoreNearbyListings()) {
+            <span class="h-4 w-4 animate-spin rounded-full border-2 border-[#CFC6FF] border-t-[#6453D9]" aria-hidden="true"></span>
+            Loading more...
+            } @else {
+            View more listings
+            <span class="transition-transform duration-200 group-hover:translate-y-0.5" aria-hidden="true">↓</span>
+            }
+          </button>
+        </div>
         }
       </div>
       } @else {

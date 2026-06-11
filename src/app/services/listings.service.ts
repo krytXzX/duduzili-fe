@@ -57,12 +57,16 @@ export interface SearchListingsParams {
   max_price?: string;
   ordering?: string;
   is_verified?: 'true' | 'false';
+  page?: number;
+  page_size?: number;
 }
 
 export type ListingsSearchResponse =
   | ListingsApiItem[]
   | {
       count?: number;
+      next?: string | null;
+      previous?: string | null;
       results?: ListingsApiItem[];
       data?: ListingsApiItem[];
       listings?: ListingsApiItem[];
@@ -268,6 +272,10 @@ export class ListingsService {
     return Object.entries(params).reduce<Record<string, string>>((accumulator, [key, value]) => {
       if (typeof value === 'string' && value.length > 0) {
         accumulator[key] = value;
+      }
+
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        accumulator[key] = String(value);
       }
 
       return accumulator;

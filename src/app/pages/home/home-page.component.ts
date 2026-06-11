@@ -29,6 +29,10 @@ import {
   HomeService,
   HomeStoreResponse,
 } from '../../services/home.service';
+import {
+  ListingsSearchResponse,
+  ListingsService,
+} from '../../services/listings.service';
 import { environment } from '../../../environments/environment';
 
 type HomeCategory = {
@@ -45,6 +49,7 @@ type HomePromotion = {
 
 const HOME_RECENT_SEARCHES_KEY = 'duduzili.home.recent-searches';
 const HOME_RECENT_SEARCHES_LIMIT = 8;
+const HOME_NEARBY_LISTINGS_PAGE_SIZE = 5;
 
 const CATEGORY_ICON_BY_SLUG: Record<string, string> = {
   automotives: '/assets/images/category-automotives.png',
@@ -103,6 +108,7 @@ export class HomePageComponent {
   private readonly desktopSearchShell = viewChild<ElementRef<HTMLDivElement>>('desktopSearchShell');
   private readonly platformId = inject(PLATFORM_ID);
   private readonly homeService = inject(HomeService);
+  private readonly listingsService = inject(ListingsService);
   private readonly router = inject(Router);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private heroCarouselIntervalId: number | null = null;
@@ -126,8 +132,12 @@ export class HomePageComponent {
   readonly homeSearchQuery = signal('');
   readonly mobileSearchQuery = signal('');
   readonly isHomeLoading = signal(false);
+  readonly isLoadingMoreNearbyListings = signal(false);
   readonly homeError = signal<string | null>(null);
   readonly homeResponse = signal<HomeResponse | null>(null);
+  readonly extraNearbyListingRecords = signal<readonly HomeListingResponse[]>([]);
+  readonly nearbyListingsPage = signal(1);
+  readonly hasMoreNearbyListings = signal(true);
   readonly recentSearches = signal<string[]>([]);
   readonly popularSearches = computed(() => {
     const response = this.homeResponse();
@@ -183,7 +193,10 @@ export class HomePageComponent {
 
   readonly nearbyListingCards = computed(() => {
     const response = this.homeResponse();
-    return (response?.nearby_listings ?? [])
+    return [
+      ...(response?.nearby_listings ?? []),
+      ...this.extraNearbyListingRecords(),
+    ]
       .map((listing, index) => this.toListingCard(listing, `nearby-${index}`))
       .filter((listing): listing is Listing => listing !== null);
   });
@@ -194,7 +207,11 @@ export class HomePageComponent {
       return [];
     }
 
-    return [...(response.sponsored_listings ?? []), ...(response.nearby_listings ?? [])]
+    return [
+      ...(response.sponsored_listings ?? []),
+      ...(response.nearby_listings ?? []),
+      ...this.extraNearbyListingRecords(),
+    ]
       .filter((listing) => listing['is_saved'] === true)
       .map((listing) => String(listing['id']));
   });
@@ -331,6 +348,44 @@ export class HomePageComponent {
     });
   }
 
+  async loadMoreNearbyListings(): Promise<void> {
+    if (this.isLoadingMoreNearbyListings() || !this.hasMoreNearbyListings()) {
+      return;
+    }
+
+    const nextPage = this.nearbyListingsPage() + 1;
+    this.isLoadingMoreNearbyListings.set(true);
+
+    try {
+      const response = await firstValueFrom(
+        this.listingsService.searchListings({
+          location: this.selectedLocationQuery(),
+          page: nextPage,
+          page_size: HOME_NEARBY_LISTINGS_PAGE_SIZE,
+        }),
+      );
+      const existingIds = new Set(this.nearbyListingCards().map((listing) => listing.id));
+      const records = this.extractSearchListingItems(response);
+      const uniqueRecords = records.filter((record, index) => {
+        const id = this.readId(record, `nearby-page-${nextPage}-${index}`);
+        if (existingIds.has(id)) {
+          return false;
+        }
+
+        existingIds.add(id);
+        return true;
+      });
+
+      this.extraNearbyListingRecords.update((current) => [...current, ...uniqueRecords]);
+      this.nearbyListingsPage.set(nextPage);
+      this.hasMoreNearbyListings.set(this.searchResponseHasMore(response, records.length));
+    } catch {
+      this.homeError.set('We couldn’t load more listings right now. Please try again.');
+    } finally {
+      this.isLoadingMoreNearbyListings.set(false);
+    }
+  }
+
   private async loadHome(): Promise<void> {
     const requestId = ++this.currentHomeRequestId;
     this.isHomeLoading.set(true);
@@ -346,6 +401,9 @@ export class HomePageComponent {
       }
 
       this.homeResponse.set(response);
+      this.extraNearbyListingRecords.set([]);
+      this.nearbyListingsPage.set(1);
+      this.hasMoreNearbyListings.set((response.nearby_listings?.length ?? 0) >= HOME_NEARBY_LISTINGS_PAGE_SIZE);
     } catch (error: unknown) {
       if (requestId !== this.currentHomeRequestId) {
         return;
@@ -353,6 +411,9 @@ export class HomePageComponent {
 
       this.homeError.set('We’re having trouble loading the homepage right now. Please try again in a moment.');
       this.homeResponse.set(null);
+      this.extraNearbyListingRecords.set([]);
+      this.nearbyListingsPage.set(1);
+      this.hasMoreNearbyListings.set(false);
     } finally {
       if (requestId === this.currentHomeRequestId) {
         this.isHomeLoading.set(false);
@@ -523,6 +584,46 @@ export class HomePageComponent {
       this.readString(record['category_name']) ??
       this.readString(record['subcategory_name'])
     );
+  }
+
+  private extractSearchListingItems(response: ListingsSearchResponse): HomeListingResponse[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response.results)) {
+      return response.results;
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.listings)) {
+      return response.listings;
+    }
+
+    return [];
+  }
+
+  private searchResponseHasMore(response: ListingsSearchResponse, receivedCount: number): boolean {
+    if (Array.isArray(response)) {
+      return receivedCount >= HOME_NEARBY_LISTINGS_PAGE_SIZE;
+    }
+
+    if (typeof response.next === 'string' && response.next.length > 0) {
+      return true;
+    }
+
+    if ('next' in response && response.next === null) {
+      return false;
+    }
+
+    if (typeof response.count === 'number') {
+      return this.nearbyListingCards().length < response.count;
+    }
+
+    return receivedCount >= HOME_NEARBY_LISTINGS_PAGE_SIZE;
   }
 
   private toHomeCategory(category: HomeCategoryResponse): HomeCategory {
