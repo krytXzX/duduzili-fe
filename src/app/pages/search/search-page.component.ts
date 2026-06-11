@@ -5,7 +5,6 @@ import { Listing, ListingCardComponent } from '../../components/listings/listing
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
-import { FooterComponent } from '../../components/layout/footer.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AppToastComponent } from '../../components/common/app-toast.component';
@@ -73,7 +72,6 @@ const VERIFICATION_PARAM_BY_LABEL: Record<string, 'true' | 'false'> = {
     BuyerDashboardNavbarComponent,
     PublicHomeNavbarComponent,
     ListingCardComponent,
-    FooterComponent,
     StoreCardComponent,
     AppToastComponent,
   ],
