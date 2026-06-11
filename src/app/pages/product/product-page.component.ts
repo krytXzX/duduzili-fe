@@ -50,6 +50,7 @@ interface ProductDetails {
   readonly price: string;
   readonly oldPrice: string;
   readonly discount: string;
+  readonly hasDiscount: boolean;
   readonly lastUpdated: string;
   readonly description: string;
   readonly condition: string;
@@ -303,6 +304,7 @@ export class ProductPageComponent {
     price: '',
     oldPrice: '',
     discount: '',
+    hasDiscount: false,
     lastUpdated: '',
     description: '',
     condition: '',
@@ -1100,12 +1102,7 @@ export class ProductPageComponent {
     const currentProduct = this.product();
     const currentStore = this.store();
     const productName = this.readString(record['title']) ?? 'Listing';
-    const formattedPrice =
-      this.formatPrice(record['price']) ?? 'Price unavailable';
-    const formattedOldPrice =
-      this.formatPrice(record['original_price']) ?? '';
-    const formattedDiscount =
-      this.formatDiscountBadge(record['discount_percentage']) ?? '';
+    const pricing = this.buildProductPricing(record);
     const description =
       this.readString(record['description']) ?? 'No description has been added for this listing yet.';
     const condition =
@@ -1158,9 +1155,10 @@ export class ProductPageComponent {
     this.product.set({
       id: listingId,
       name: productName,
-      price: formattedPrice,
-      oldPrice: formattedOldPrice,
-      discount: formattedDiscount,
+      price: pricing.price,
+      oldPrice: pricing.oldPrice,
+      discount: pricing.discount,
+      hasDiscount: pricing.hasDiscount,
       lastUpdated,
       description,
       condition,
@@ -1476,7 +1474,18 @@ export class ProductPageComponent {
       this.readString(record['title']) ??
       this.readString(record['name']) ??
       this.readString(record['listing_name']);
-    const price = this.formatPrice(record['price']);
+    const price = this.readBoolean(record['is_free']) === true
+      ? 'Free'
+      : this.formatPrice(record['price']);
+    const priceValue = this.readNumber(record['price']);
+    const originalPriceValue = this.readNumber(record['original_price']);
+    const hasDiscount =
+      priceValue !== null &&
+      originalPriceValue !== null &&
+      originalPriceValue > priceValue;
+    const discountValue =
+      this.readNumber(record['discount_percentage']) ??
+      (hasDiscount ? ((originalPriceValue - priceValue) / originalPriceValue) * 100 : null);
 
     if (!title || !price) {
       return null;
@@ -1486,8 +1495,8 @@ export class ProductPageComponent {
       id: this.readString(record['id']) ?? `related-${index + 1}`,
       title,
       price,
-      originalPrice: this.formatPrice(record['original_price']) ?? undefined,
-      discountBadge: this.formatDiscountBadge(record['discount_percentage']) ?? undefined,
+      originalPrice: hasDiscount ? this.formatPrice(originalPriceValue) ?? undefined : undefined,
+      discountBadge: hasDiscount ? this.formatDiscountBadge(discountValue) ?? undefined : undefined,
       location: this.composeLocation(record) ?? 'Nigeria',
       timeAgo: this.formatRelativeTime(record['created_at']) ?? 'Recently',
       isVerified:
@@ -1546,6 +1555,34 @@ export class ProductPageComponent {
     }
 
     return `₦${new Intl.NumberFormat('en-NG').format(parsed)}`;
+  }
+
+  private buildProductPricing(record: ListingsApiItem): Pick<ProductDetails, 'price' | 'oldPrice' | 'discount' | 'hasDiscount'> {
+    if (this.readBoolean(record['is_free']) === true) {
+      return {
+        price: 'Free',
+        oldPrice: '',
+        discount: '',
+        hasDiscount: false,
+      };
+    }
+
+    const priceValue = this.readNumber(record['price']);
+    const originalPriceValue = this.readNumber(record['original_price']);
+    const hasDiscount =
+      priceValue !== null &&
+      originalPriceValue !== null &&
+      originalPriceValue > priceValue;
+    const discountValue =
+      this.readNumber(record['discount_percentage']) ??
+      (hasDiscount ? ((originalPriceValue - priceValue) / originalPriceValue) * 100 : null);
+
+    return {
+      price: this.formatPrice(priceValue) ?? 'Price unavailable',
+      oldPrice: hasDiscount ? this.formatPrice(originalPriceValue) ?? '' : '',
+      discount: hasDiscount ? this.formatDiscountBadge(discountValue) ?? '' : '',
+      hasDiscount,
+    };
   }
 
   private formatDiscountBadge(value: unknown): string | null {
