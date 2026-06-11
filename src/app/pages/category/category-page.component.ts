@@ -351,6 +351,9 @@ export class CategoryPageComponent {
   }
 
   private extractErrorMessage(error: unknown): string {
+    if ((error as any).status===500 || (error as any).status ===0){
+      return 'Something went wrong, try again.';
+    }
     if (error && typeof error === 'object') {
       const maybeError = error as { error?: unknown; message?: unknown };
 

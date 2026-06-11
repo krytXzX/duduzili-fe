@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { finalize, Observable, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export type ListingsApiItem = Record<string, unknown>;
@@ -158,10 +158,22 @@ export interface UpdateListingRequest {
   status?: string;
 }
 
+interface ListingDetailsCacheEntry {
+  readonly record: ListingsApiItem;
+  readonly cachedAt: number;
+}
+
+interface ListingDetailsCacheOptions {
+  readonly forceRefresh?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ListingsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
+  private readonly listingDetailsCacheTtlMs = 5 * 60 * 1000;
+  private readonly listingDetailsCache = new Map<string, ListingDetailsCacheEntry>();
+  private readonly listingDetailsRequests = new Map<string, Observable<ListingsApiItem>>();
 
   getWishlist(): Observable<WishlistResponse> {
     return this.http.get<WishlistResponse>(`${this.apiUrl}/wishlist/`);
@@ -210,15 +222,43 @@ export class ListingsService {
   }
 
   createOffer(payload: CreateOfferRequest): Observable<Record<string, unknown>> {
-    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/offers/`, payload);
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/offers/`, payload).pipe(
+      tap(() => this.invalidateListingDetails(payload.listing)),
+    );
   }
 
   createCallbackRequest(payload: CreateCallbackRequest): Observable<Record<string, unknown>> {
-    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/callback-requests/`, payload);
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/callback-requests/`, payload).pipe(
+      tap(() => this.invalidateListingDetails(payload.listing)),
+    );
   }
 
-  getListingDetails(id: string): Observable<ListingsApiItem> {
-    return this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`);
+  getListingDetails(
+    id: string,
+    options: ListingDetailsCacheOptions = {},
+  ): Observable<ListingsApiItem> {
+    const cacheKey = this.toListingCacheKey(id);
+
+    if (!options.forceRefresh) {
+      const cached = this.listingDetailsCache.get(cacheKey);
+      if (cached && Date.now() - cached.cachedAt < this.listingDetailsCacheTtlMs) {
+        return of(cached.record);
+      }
+
+      const pendingRequest = this.listingDetailsRequests.get(cacheKey);
+      if (pendingRequest) {
+        return pendingRequest;
+      }
+    }
+
+    const request = this.http.get<ListingsApiItem>(`${this.apiUrl}/listings/${cacheKey}/`).pipe(
+      tap((record) => this.setCachedListingDetails(cacheKey, record)),
+      finalize(() => this.listingDetailsRequests.delete(cacheKey)),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
+
+    this.listingDetailsRequests.set(cacheKey, request);
+    return request;
   }
 
   getListingOffers(id: string): Observable<ListingOfferResponse> {
@@ -238,21 +278,36 @@ export class ListingsService {
   }
 
   promoteListings(payload: PromoteListingsRequest): Observable<Record<string, unknown>> {
-    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/ads/promote-listings/`, payload);
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/ads/promote-listings/`, payload).pipe(
+      tap(() => {
+        for (const listingId of payload.listing_ids) {
+          this.invalidateListingDetails(listingId);
+        }
+      }),
+    );
   }
 
   updateListing(id: string, payload: UpdateListingRequest | FormData): Observable<ListingsApiItem> {
-    return this.http.patch<ListingsApiItem>(`${this.apiUrl}/listings/${id}/`, payload);
+    const cacheKey = this.toListingCacheKey(id);
+    return this.http.patch<ListingsApiItem>(`${this.apiUrl}/listings/${cacheKey}/`, payload).pipe(
+      tap(() => this.invalidateListingDetails(cacheKey)),
+    );
   }
 
   deleteListing(id: string): Observable<null> {
-    return this.http.delete<null>(`${this.apiUrl}/listings/${id}/`);
+    const cacheKey = this.toListingCacheKey(id);
+    return this.http.delete<null>(`${this.apiUrl}/listings/${cacheKey}/`).pipe(
+      tap(() => this.invalidateListingDetails(cacheKey)),
+    );
   }
 
   toggleWishlist(id: string): Observable<ToggleWishlistResponse> {
+    const cacheKey = this.toListingCacheKey(id);
     return this.http.post<ToggleWishlistResponse>(
-      `${this.apiUrl}/wishlist/toggle/${id}/`,
+      `${this.apiUrl}/wishlist/toggle/${cacheKey}/`,
       {},
+    ).pipe(
+      tap(() => this.invalidateListingDetails(cacheKey)),
     );
   }
 
@@ -268,6 +323,17 @@ export class ListingsService {
     });
   }
 
+  invalidateListingDetails(id: string): void {
+    const cacheKey = this.toListingCacheKey(id);
+    this.listingDetailsCache.delete(cacheKey);
+    this.listingDetailsRequests.delete(cacheKey);
+  }
+
+  clearListingDetailsCache(): void {
+    this.listingDetailsCache.clear();
+    this.listingDetailsRequests.clear();
+  }
+
   private toHttpParams(params: SearchListingsParams): Record<string, string> {
     return Object.entries(params).reduce<Record<string, string>>((accumulator, [key, value]) => {
       if (typeof value === 'string' && value.length > 0) {
@@ -280,5 +346,16 @@ export class ListingsService {
 
       return accumulator;
     }, {});
+  }
+
+  private setCachedListingDetails(id: string, record: ListingsApiItem): void {
+    this.listingDetailsCache.set(this.toListingCacheKey(id), {
+      record,
+      cachedAt: Date.now(),
+    });
+  }
+
+  private toListingCacheKey(id: string): string {
+    return id.trim();
   }
 }
