@@ -92,6 +92,7 @@ interface ListingDetails {
   isPromoted: boolean;
   gallery: GalleryImage[];
   store: {
+    id: string;
     name: string;
     logo: string;
   };
@@ -373,7 +374,13 @@ type EditSectionId = 'media' | 'details' | 'delivery';
               <div class="pt-5">
                 <p class="mb-3 text-[12px] text-[#8A8F9A]">Store</p>
                 <div class="flex items-center justify-between gap-3">
-                  <div class="flex min-w-0 items-center gap-3">
+                  <button
+                    type="button"
+                    (click)="openStoreDetails()"
+                    [disabled]="!listing().store.id"
+                    class="flex min-w-0 items-center gap-3 rounded-[16px] text-left transition hover:bg-[#F7F8FB] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#6453D9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+                    [attr.aria-label]="'Open ' + listing().store.name + ' store details'"
+                  >
                     <div
                       class="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#EEF4F0]"
                     >
@@ -404,10 +411,12 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                       </div>
                       <p class="mt-1 text-[11px] text-[#8A8F9A]">Verified store</p>
                     </div>
-                  </div>
+                  </button>
 
                   <button
                     type="button"
+                    (click)="openStoreDetails()"
+                    [disabled]="!listing().store.id"
                     class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF3] bg-white text-[#202335]"
                     aria-label="Open store"
                   >
@@ -916,7 +925,13 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                     <div class="pt-6">
                       <p class="mb-4 text-[13px] text-[#8A8F9A]">Store</p>
                       <div class="flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
+                        <button
+                          type="button"
+                          (click)="openStoreDetails()"
+                          [disabled]="!listing().store.id"
+                          class="flex min-w-0 items-center gap-3 rounded-[16px] text-left transition hover:bg-[#F7F8FB] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#6453D9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+                          [attr.aria-label]="'Open ' + listing().store.name + ' store details'"
+                        >
                           <div
                             class="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-[#EEF4F0]"
                           >
@@ -947,10 +962,12 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                             </div>
                             <p class="mt-1 text-[12px] text-[#8A8F9A]">Verified store</p>
                           </div>
-                        </div>
+                        </button>
 
                         <button
                           type="button"
+                          (click)="openStoreDetails()"
+                          [disabled]="!listing().store.id"
                           class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#ECEEF3] bg-white text-[#202335]"
                           aria-label="Open store"
                         >
@@ -2989,6 +3006,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
     isPromoted: false,
     gallery: [],
     store: {
+      id: '',
       name: 'Store details',
       logo: '',
     },
@@ -3367,6 +3385,15 @@ export class ListingDetailsPageComponent implements OnDestroy {
     this.editSheetOpen.set(true);
   }
 
+  protected openStoreDetails(): void {
+    const storeId = this.listing().store.id;
+    if (!storeId) {
+      return;
+    }
+
+    void this.router.navigate(['/seller/my-stores', storeId]);
+  }
+
   protected saveEditListing(): void {
     if (this.isSavingEdit()) {
       return;
@@ -3606,6 +3633,11 @@ export class ListingDetailsPageComponent implements OnDestroy {
       isPromoted: this.readBoolean(record['is_promoted']) ?? this.listing().isPromoted,
       gallery,
       store: {
+        id:
+          this.readIdentifier(storeInfo?.['id']) ??
+          this.readIdentifier(record['vendor_id']) ??
+          this.readIdentifier(record['store_id']) ??
+          this.listing().store.id,
         name: storeName,
         logo:
           this.resolveMediaUrl(this.readString(storeInfo?.['profile_photo'])) ??
@@ -4285,6 +4317,14 @@ export class ListingDetailsPageComponent implements OnDestroy {
 
   private readString(value: unknown): string | null {
     return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readIdentifier(value: unknown): string | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    return this.readString(value);
   }
 
   private readNumber(value: unknown): number | null {
