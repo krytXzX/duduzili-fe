@@ -1981,24 +1981,10 @@ export class AddListingModalComponent implements OnDestroy {
       return;
     }
 
-    if (!this.listingForm.valid) {
-      this.listingForm.markAllAsTouched();
-      const invalidFields: string[] = [];
-      const controls = this.listingForm.controls;
-
-      if (controls['name'].invalid) invalidFields.push('Listing Title');
-      if (controls['category'].invalid) invalidFields.push('Category');
-      if (controls['condition'].invalid) invalidFields.push('Condition');
-      if (controls['store'].invalid) invalidFields.push('Store');
-      if (controls['location'].invalid) invalidFields.push('Location');
-      if (controls['deliveryOptions'].invalid) invalidFields.push('Delivery Options');
-
-      const message = invalidFields.length > 0
-        ? `Please complete the required fields before saving this draft: ${invalidFields.join(', ')}.`
-        : 'Please complete the required listing details before saving this draft.';
-
+    if (!this.listingForm.controls['store'].valid) {
+      this.listingForm.controls['store'].markAsTouched();
       this.appToastService.show({
-        message,
+        message: 'Choose a store before saving this draft.',
         durationMs: 3500,
       });
       return;
@@ -2007,7 +1993,7 @@ export class AddListingModalComponent implements OnDestroy {
     this.isSavingDraft.set(true);
 
     try {
-      await firstValueFrom(this.listingsService.saveListingDraft(this.buildCreateListingPayload()));
+      await firstValueFrom(this.listingsService.saveListingDraft(this.buildCreateListingPayload({ draft: true })));
       this.appToastService.show({
         message: 'Listing saved to drafts.',
         durationMs: 2200,
@@ -2194,7 +2180,8 @@ export class AddListingModalComponent implements OnDestroy {
     );
   }
 
-  private buildCreateListingPayload(): FormData {
+  private buildCreateListingPayload(options: { readonly draft?: boolean } = {}): FormData {
+    const isDraft = options.draft === true;
     const formValue = this.listingForm.getRawValue() as {
       name: string;
       category: string;
@@ -2217,14 +2204,14 @@ export class AddListingModalComponent implements OnDestroy {
     };
 
     const payload = new FormData();
-    payload.append('title', formValue.name);
-    payload.append('category', formValue.category);
-    payload.append('condition', formValue.condition);
-    payload.append('store', formValue.store);
-    payload.append('description', formValue.description ?? '');
-    payload.append('location', formValue.location);
-    payload.append('whatsapp_number', formValue.whatsappNumber ?? '');
-    payload.append('call_number', formValue.callNumber ?? '');
+    this.appendFormDataValue(payload, 'title', formValue.name, { optional: isDraft });
+    this.appendFormDataValue(payload, 'category', formValue.category, { optional: isDraft });
+    this.appendFormDataValue(payload, 'condition', formValue.condition, { optional: isDraft });
+    this.appendFormDataValue(payload, 'store', formValue.store);
+    this.appendFormDataValue(payload, 'description', formValue.description, { optional: isDraft });
+    this.appendFormDataValue(payload, 'location', formValue.location, { optional: isDraft });
+    this.appendFormDataValue(payload, 'whatsapp_number', formValue.whatsappNumber, { optional: isDraft });
+    this.appendFormDataValue(payload, 'call_number', formValue.callNumber, { optional: isDraft });
     payload.append('accept_offers', String(!!formValue.acceptOffers));
     payload.append('is_free', String(!!formValue.listForFree));
 
@@ -2232,13 +2219,11 @@ export class AddListingModalComponent implements OnDestroy {
       payload.append('price', String(formValue.price));
     }
 
-    if (formValue.youtubeLink?.trim()) {
-      payload.append('youtube_link', formValue.youtubeLink.trim());
+    for (const deliveryOption of formValue.deliveryOptions ?? []) {
+      payload.append(isDraft ? 'delivery_option_ids' : 'delivery_options', deliveryOption);
     }
 
-    for (const deliveryOption of formValue.deliveryOptions ?? []) {
-      payload.append('delivery_options', deliveryOption);
-    }
+    this.appendFormDataValue(payload, 'youtube_link', formValue.youtubeLink, { optional: true });
 
     if (formValue.addDiscount && formValue.discountPrice !== null && formValue.discountPrice !== undefined) {
       payload.append('discount_type', formValue.discountType);
@@ -2264,6 +2249,20 @@ export class AddListingModalComponent implements OnDestroy {
     }
 
     return payload;
+  }
+
+  private appendFormDataValue(
+    payload: FormData,
+    key: string,
+    value: string | null | undefined,
+    options: { readonly optional?: boolean } = {},
+  ): void {
+    const normalized = value?.trim() ?? '';
+    if (options.optional && normalized.length === 0) {
+      return;
+    }
+
+    payload.append(key, normalized);
   }
 
   private listingRouteReference(record: ListingsApiItem | null): string | null {
