@@ -46,6 +46,7 @@ export interface EditableStoreUpdate {
         type="button"
         class="absolute inset-0 bg-black/20 backdrop-blur-[2px]"
         aria-label="Close edit store modal"
+        [disabled]="isSaving()"
         (click)="close.emit()"
       ></button>
 
@@ -61,6 +62,7 @@ export interface EditableStoreUpdate {
               type="button"
               class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
               aria-label="Close edit store modal"
+              [disabled]="isSaving()"
               (click)="close.emit()"
             >
               <img [ngSrc]="assets.closeDesktop" width="24" height="24" alt="" class="h-6 w-6" />
@@ -267,16 +269,24 @@ export interface EditableStoreUpdate {
             <footer class="flex h-20 items-center justify-end gap-2 px-[29px]">
               <button
                 type="button"
-                class="inline-flex h-10 items-center justify-center rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium leading-[22px] tracking-[-0.5px] text-[#05061A] transition-all duration-200 hover:bg-[#ebebeb] active:scale-95"
+                class="inline-flex h-10 items-center justify-center rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium leading-[22px] tracking-[-0.5px] text-[#05061A] transition-all duration-200 hover:bg-[#ebebeb] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-[#F5F5F5] disabled:active:scale-100"
+                [disabled]="isSaving()"
                 (click)="close.emit()"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="inline-flex h-10 items-center justify-center rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
+                class="inline-flex h-10 min-w-[126px] items-center justify-center gap-2 rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition-all duration-200 hover:bg-[#5342c6] active:scale-95 disabled:cursor-wait disabled:bg-[#7B6CE2] disabled:active:scale-100"
+                [disabled]="isSaving()"
+                [attr.aria-busy]="isSaving()"
               >
-                Save changes
+                @if (isSaving()) {
+                  <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
+                  Saving...
+                } @else {
+                  Save changes
+                }
               </button>
             </footer>
           </form>
@@ -295,6 +305,7 @@ export interface EditableStoreUpdate {
             type="button"
             class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
             aria-label="Close edit store modal"
+            [disabled]="isSaving()"
             (click)="close.emit()"
           >
             <img [ngSrc]="assets.closeMobile" width="24" height="24" alt="" class="h-6 w-6" />
@@ -510,9 +521,16 @@ export interface EditableStoreUpdate {
             <div class="bg-white px-4 pb-[26px] pt-[11px]">
               <button
                 type="submit"
-                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
+                class="flex h-[52px] w-full items-center justify-center gap-2 rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition-all duration-200 hover:bg-[#5342c6] active:scale-95 disabled:cursor-wait disabled:bg-[#7B6CE2] disabled:active:scale-100"
+                [disabled]="isSaving()"
+                [attr.aria-busy]="isSaving()"
               >
-                Save changes
+                @if (isSaving()) {
+                  <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
+                  Saving...
+                } @else {
+                  Save changes
+                }
               </button>
             </div>
           </form>
@@ -527,6 +545,7 @@ export interface EditableStoreUpdate {
 })
 export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
   readonly store = input.required<EditableStoreProfile>();
+  readonly isSaving = input(false);
   readonly close = output<void>();
   readonly save = output<EditableStoreUpdate>();
   private readonly defaultLocation = 'Ikeja, Lagos';
@@ -649,6 +668,10 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
   }
 
   onSubmit(): void {
+    if (this.isSaving()) {
+      return;
+    }
+
     this.editForm.patchValue(
       {
         name: this.editForm.controls.name.value.trim(),

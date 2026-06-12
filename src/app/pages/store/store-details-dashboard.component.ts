@@ -1012,6 +1012,7 @@ interface ReviewTagCount {
       @if (showEditModal() && store(); as s) {
         <app-store-edit-side-panel
           [store]="s"
+          [isSaving]="isSavingStore()"
           (close)="showEditModal.set(false)"
           (save)="onSaveStore($event)"
         ></app-store-edit-side-panel>
@@ -1083,6 +1084,7 @@ export class StoreDetailsDashboardComponent {
   readonly showAddListingModal = signal(false);
   readonly showPromoteStoreModal = signal(false);
   readonly isStoreActionsMenuOpen = signal(false);
+  readonly isSavingStore = signal(false);
 
   readonly store = signal<StoreProfile | null>(null);
   readonly desktopSections = signal<ProductSection[]>([]);
@@ -1581,6 +1583,10 @@ export class StoreDetailsDashboardComponent {
   }
 
   async onSaveStore(updatedStore: EditableStoreUpdate): Promise<void> {
+    if (this.isSavingStore()) {
+      return;
+    }
+
     const currentStore = this.store();
     if (!currentStore) {
       this.appToastService.show({
@@ -1589,11 +1595,21 @@ export class StoreDetailsDashboardComponent {
       return;
     }
 
+    this.isSavingStore.set(true);
+
     try {
       const response = await firstValueFrom(
         this.vendorsService.updateStore(currentStore.id, this.toUpdateStorePayload(updatedStore)),
       );
       this.store.set(this.mapStore(response));
+
+      try {
+        const refreshedStore = await firstValueFrom(this.vendorsService.getVendorDetails(currentStore.id));
+        this.store.set(this.mapStore(refreshedStore));
+      } catch {
+        // Keep the successful PATCH response if the follow-up refresh has a transient issue.
+      }
+
       this.showEditModal.set(false);
       this.appToastService.show({
         message: 'Store details updated.',
@@ -1602,6 +1618,8 @@ export class StoreDetailsDashboardComponent {
       this.appToastService.show({
         message: 'Your store changes couldn’t be saved right now. Please try again.',
       });
+    } finally {
+      this.isSavingStore.set(false);
     }
   }
 
