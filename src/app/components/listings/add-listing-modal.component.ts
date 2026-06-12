@@ -1662,10 +1662,13 @@ export class AddListingModalComponent implements OnDestroy {
     })),
   );
 
-  reviewImages = computed(() => [
-    ...(this.mainImage() ? [this.mainImage()] : []),
-    ...this.additionalImages().filter((image): image is string => !!image),
-  ]);
+  reviewImages = computed<string[]>(() => {
+    const mainImage = this.mainImage();
+    return [
+      ...(mainImage ? [mainImage] : []),
+      ...this.additionalImages().filter((image): image is string => !!image),
+    ];
+  });
 
   discountInputPlaceholder = computed(() =>
     this.formValues().discountType === 'percentage' ? '10' : '2,000,000',

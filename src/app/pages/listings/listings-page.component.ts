@@ -21,6 +21,7 @@ type ListingFilter = 'All' | ListingStatus;
 type ListingCategoryFilter = string;
 type ListingStoreFilter = string;
 type ListingStatusFilter = 'all' | ListingStatus;
+type MobileFilterView = 'root' | 'store' | 'status';
 type VerificationStatus = 'not_submitted' | 'pending' | 'under_review' | 'approved' | 'rejected';
 
 type ListingRow = {
@@ -42,6 +43,12 @@ type ListingStat = {
   key: ListingFilter;
   label: string;
   value: string;
+};
+
+type MobileStoreFilterOption = {
+  readonly value: ListingStoreFilter;
+  readonly label: string;
+  readonly image: string;
 };
 
 type AddListingPickerOption = {
@@ -311,10 +318,197 @@ type AddListingPickerOption = {
             />
           </label>
 
-          <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full" aria-label="Filter listings">
-            <img ngSrc="/assets/icons/listings-filter-mobile.svg" alt="" width="24" height="24" class="h-6 w-6" aria-hidden="true" />
+          <button
+            type="button"
+            (click)="openMobileFilterSheet()"
+            class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f9f9f9] shadow-[0_0_0_1px_rgba(18,55,105,0.06)] transition-all duration-200 hover:bg-[#f1f1f4] active:scale-95"
+            [attr.aria-label]="mobileFilterButtonLabel()"
+          >
+            <img ngSrc="/assets/icons/listings-filter-mobile.svg" alt="" width="18" height="18" class="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
         </div>
+
+        @if (showMobileFilterSheet()) {
+          <button
+            type="button"
+            class="fixed inset-0 z-[70] bg-black/35 lg:hidden"
+            aria-label="Close listing filters"
+            (click)="closeMobileFilterSheet()"
+          ></button>
+
+          <section
+            class="fixed inset-x-0 bottom-0 z-[80] max-h-[calc(100svh-56px)] overflow-hidden rounded-t-[36px] bg-white shadow-[0_-28px_70px_-36px_rgba(20,20,20,0.55)] lg:hidden"
+            role="dialog"
+            aria-modal="true"
+            [attr.aria-label]="mobileFilterTitle()"
+          >
+            <div class="mx-auto mt-[11px] h-1 w-[50px] rounded-full bg-[#ebebeb]"></div>
+
+            <button
+              type="button"
+              class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#eaeaea] bg-white text-[#1a1b1d] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all hover:bg-[#f7f7f8] active:scale-95"
+              aria-label="Close filters"
+              (click)="closeMobileFilterSheet()"
+            >
+              <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            </button>
+
+            @if (mobileFilterView() !== 'root') {
+              <button
+                type="button"
+                class="absolute left-4 top-[26px] inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#f4f4f4] text-[#1a1b1d] transition-all hover:bg-[#eeeeef] active:scale-95"
+                aria-label="Back to filter categories"
+                (click)="mobileFilterView.set('root')"
+              >
+                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 6l-6 6 6 6" />
+                </svg>
+              </button>
+            }
+
+            <div class="flex max-h-[calc(100svh-80px)] flex-col px-4 pb-4 pt-14">
+              @switch (mobileFilterView()) {
+                @case ('root') {
+                  <div class="flex min-h-[300px] flex-col">
+                    <h2 class="text-[24px] font-semibold leading-[1.2] tracking-[-0.03em] text-[#15162b]">Filter by</h2>
+
+                    <div class="mt-4 space-y-6">
+                      <div>
+                        <button
+                          type="button"
+                          class="flex w-full items-center justify-between rounded-lg bg-white py-3 text-left text-[14px] font-medium leading-5 text-[#1a1b1d] transition-colors hover:bg-[#fafafa]"
+                          (click)="mobileFilterView.set('store')"
+                        >
+                          <span>{{ selectedStoreFilterLabel() }}</span>
+                          <svg viewBox="0 0 24 24" class="h-5 w-5 text-[#1a1b1d]" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 5l6 7-6 7" />
+                          </svg>
+                        </button>
+
+                        @if (selectedStoreFilterChip(); as storeChip) {
+                          <div class="mt-1 inline-flex h-11 max-w-full items-center gap-2 rounded-full bg-[#f9f9f9] py-1 pl-2 pr-4">
+                            <img [ngSrc]="storeChip.image" [alt]="storeChip.label" width="24" height="24" class="h-6 w-6 rounded-full object-cover" />
+                            <span class="truncate text-[14px] font-medium leading-6 text-[#1f1f1f]">{{ storeChip.label }}</span>
+                            <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[#1a1b1d] transition-colors hover:bg-[#eeeeef]" aria-label="Clear store filter" (click)="clearMobileStoreFilter()">
+                              <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                                <path d="M5 5l10 10M15 5 5 15" />
+                              </svg>
+                            </button>
+                          </div>
+                        }
+                      </div>
+
+                      <div>
+                        <button
+                          type="button"
+                          class="flex w-full items-center justify-between rounded-lg bg-white py-3 text-left text-[14px] font-medium leading-5 text-[#1a1b1d] transition-colors hover:bg-[#fafafa]"
+                          (click)="mobileFilterView.set('status')"
+                        >
+                          <span>{{ selectedStatusFilterLabel() }}</span>
+                          <svg viewBox="0 0 24 24" class="h-5 w-5 text-[#1a1b1d]" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 5l6 7-6 7" />
+                          </svg>
+                        </button>
+
+                        @if (draftStatusFilter() !== 'all') {
+                          <div class="mt-2 inline-flex h-11 items-center gap-2 rounded-full bg-[#f9f9f9] px-4 py-1">
+                            <span class="text-[16px] leading-6 tracking-[-0.08px] text-[#1a1b1d]">{{ draftStatusFilter() }}</span>
+                            <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[#1a1b1d] transition-colors hover:bg-[#eeeeef]" aria-label="Clear status filter" (click)="clearMobileStatusFilter()">
+                              <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                                <path d="M5 5l10 10M15 5 5 15" />
+                              </svg>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="mt-auto border-t border-transparent pt-8">
+                      <button
+                        type="button"
+                        class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453d9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8] transition-all hover:bg-[#5747ca] active:scale-[0.98]"
+                        (click)="resetMobileFilters()"
+                      >
+                        Reset filters
+                      </button>
+                    </div>
+                  </div>
+                }
+
+                @case ('store') {
+                  <div class="flex min-h-[356px] flex-col">
+                    <h2 class="text-[24px] font-semibold leading-[1.2] tracking-[-0.03em] text-[#15162b]">Store</h2>
+
+                    <div class="mt-4 max-h-[calc(100svh-250px)] overflow-y-auto pb-4">
+                      @for (store of mobileStoreFilterOptions(); track store.value) {
+                        <button
+                          type="button"
+                          class="flex w-full items-center justify-between rounded-lg bg-white py-3 text-left transition-colors hover:bg-[#fafafa]"
+                          (click)="draftStoreFilter.set(store.value)"
+                        >
+                          <span class="flex min-w-0 items-center gap-2">
+                            <img [ngSrc]="store.image" [alt]="store.label" width="32" height="32" class="h-8 w-8 shrink-0 rounded-full object-cover" />
+                            <span class="truncate text-[16px] font-medium leading-6 text-[#1f1f1f]">{{ store.label }}</span>
+                          </span>
+                          <span
+                            class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border"
+                            [class.border-[#e1e1e1]]="draftStoreFilter() !== store.value"
+                            [class.bg-[#6453d9]]="draftStoreFilter() === store.value"
+                            [class.border-[#6453d9]]="draftStoreFilter() === store.value"
+                            aria-hidden="true"
+                          >
+                            @if (draftStoreFilter() === store.value) {
+                              <svg viewBox="0 0 20 20" class="h-4 w-4 text-white" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 10.5 8.5 14 15 6.5" />
+                              </svg>
+                            }
+                          </span>
+                        </button>
+                      }
+                    </div>
+
+                    <div class="mt-auto pt-5">
+                      <button
+                        type="button"
+                        class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453d9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8] transition-all hover:bg-[#5747ca] active:scale-[0.98]"
+                        (click)="applyMobileFilters()"
+                      >
+                        Apply filter
+                      </button>
+                    </div>
+                  </div>
+                }
+
+                @case ('status') {
+                  <div class="min-h-[300px]">
+                    <h2 class="text-[24px] font-semibold leading-[1.2] tracking-[-0.03em] text-[#15162b]">Status</h2>
+
+                    <div class="mt-4 space-y-1">
+                      @for (status of mobileStatusFilterOptions; track status.value) {
+                        <button
+                          type="button"
+                          class="flex w-full items-center justify-between rounded-lg bg-white py-3 text-left text-[14px] font-medium leading-5 text-[#1a1b1d] transition-colors hover:bg-[#fafafa]"
+                          (click)="selectMobileStatusFilter(status.value)"
+                        >
+                          <span>{{ status.label }}</span>
+                          @if (draftStatusFilter() === status.value) {
+                            <span class="inline-flex h-5 w-5 items-center justify-center rounded bg-[#6453d9] text-white" aria-hidden="true">
+                              <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 10.5 8.5 14 15 6.5" />
+                              </svg>
+                            </span>
+                          }
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          </section>
+        }
 
         <div class="mt-5 hidden rounded-2xl border border-[#f0f0f0] bg-white lg:block">
           <div class="flex items-center justify-between px-[15px] py-[15px]">
@@ -602,6 +796,10 @@ export class ListingsPageComponent {
   protected readonly categoryFilter = signal<ListingCategoryFilter>('all');
   protected readonly storeFilter = signal<ListingStoreFilter>('all');
   protected readonly statusFilter = signal<ListingStatusFilter>('all');
+  protected readonly showMobileFilterSheet = signal(false);
+  protected readonly mobileFilterView = signal<MobileFilterView>('root');
+  protected readonly draftStoreFilter = signal<ListingStoreFilter>('all');
+  protected readonly draftStatusFilter = signal<ListingStatusFilter>('all');
   private readonly manageListingCategories = signal<readonly ManageListingsCategory[]>([]);
   private readonly manageListingStores = signal<readonly ManageListingsStore[]>([]);
 
@@ -693,6 +891,67 @@ export class ListingsPageComponent {
     { value: 'Suspended', label: 'Suspended' },
   ];
 
+  protected readonly mobileStatusFilterOptions: readonly CustomDropdownOption<ListingStatus>[] = [
+    { value: 'Available', label: 'Available' },
+    { value: 'Sold', label: 'Sold' },
+    { value: 'Draft', label: 'Draft' },
+    { value: 'Paused', label: 'Paused' },
+    { value: 'Suspended', label: 'Suspended' },
+  ];
+
+  protected readonly mobileStoreFilterOptions = computed<readonly MobileStoreFilterOption[]>(() => {
+    const options = new Map<string, MobileStoreFilterOption>();
+
+    for (const listing of this.listings()) {
+      if (listing.storeKey === 'all') {
+        continue;
+      }
+
+      options.set(listing.storeKey, {
+        value: listing.storeKey,
+        label: listing.store,
+        image: listing.storeLogo,
+      });
+    }
+
+    return Array.from(options.values());
+  });
+
+  protected readonly selectedStoreFilterChip = computed(() => {
+    const selected = this.draftStoreFilter();
+    if (selected === 'all') {
+      return null;
+    }
+
+    return this.mobileStoreFilterOptions().find((store) => store.value === selected) ?? null;
+  });
+
+  protected readonly selectedStoreFilterLabel = computed(() => {
+    const selectedStoreCount = this.draftStoreFilter() === 'all' ? 0 : 1;
+    return selectedStoreCount > 0 ? 'Store' : `Store (${this.mobileStoreFilterOptions().length})`;
+  });
+
+  protected readonly selectedStatusFilterLabel = computed(() => {
+    const selectedStatusCount = this.draftStatusFilter() === 'all' ? 0 : 1;
+    return selectedStatusCount > 0 ? 'Status' : 'Status (1)';
+  });
+
+  protected readonly mobileFilterTitle = computed(() => {
+    switch (this.mobileFilterView()) {
+      case 'store':
+        return 'Filter by store';
+      case 'status':
+        return 'Filter by listing status';
+      default:
+        return 'Filter listings';
+    }
+  });
+
+  protected readonly mobileFilterButtonLabel = computed(() => {
+    const activeFilters = Number(this.storeFilter() !== 'all') + Number(this.statusFilter() !== 'all');
+    return activeFilters > 0 ? `Filter listings, ${activeFilters} active` : 'Filter listings';
+  });
+
   protected readonly filteredMobileListings = computed(() => this.filteredDesktopListings().slice(0, 5));
   protected readonly addListingCategoryOptions = computed<readonly AddListingPickerOption[]>(() =>
     this.manageListingCategories().map((category) => ({
@@ -751,6 +1010,48 @@ export class ListingsPageComponent {
   protected updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
+  }
+
+  protected openMobileFilterSheet(): void {
+    this.draftStoreFilter.set(this.storeFilter());
+    this.draftStatusFilter.set(this.statusFilter());
+    this.mobileFilterView.set('root');
+    this.showMobileFilterSheet.set(true);
+  }
+
+  protected closeMobileFilterSheet(): void {
+    this.showMobileFilterSheet.set(false);
+    this.mobileFilterView.set('root');
+  }
+
+  protected applyMobileFilters(): void {
+    this.storeFilter.set(this.draftStoreFilter());
+    this.statusFilter.set(this.draftStatusFilter());
+    this.closeMobileFilterSheet();
+  }
+
+  protected resetMobileFilters(): void {
+    this.draftStoreFilter.set('all');
+    this.draftStatusFilter.set('all');
+    this.storeFilter.set('all');
+    this.statusFilter.set('all');
+    this.mobileFilterView.set('root');
+  }
+
+  protected clearMobileStoreFilter(): void {
+    this.draftStoreFilter.set('all');
+    this.storeFilter.set('all');
+  }
+
+  protected clearMobileStatusFilter(): void {
+    this.draftStatusFilter.set('all');
+    this.statusFilter.set('all');
+  }
+
+  protected selectMobileStatusFilter(status: ListingStatus): void {
+    this.draftStatusFilter.set(status);
+    this.statusFilter.set(status);
+    this.mobileFilterView.set('root');
   }
 
   protected statusIcon(status: ListingStatus): string {

@@ -9,3 +9,42 @@ body {
   color: #36394a;
   font-family: 'Mona Sans', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
+
+@layer base {
+  :where(button) {
+    -webkit-tap-highlight-color: transparent;
+    transition-property: transform, box-shadow, filter, background-color, border-color, color, opacity;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :where(button:not(:disabled):not([aria-disabled='true'])):hover {
+      transform: translateY(var(--button-hover-y, -1px));
+      filter: brightness(var(--button-hover-brightness, 1.03));
+      box-shadow: var(--button-hover-shadow, 0 10px 24px -18px rgba(15, 23, 42, 0.55));
+    }
+  }
+
+  :where(button:not(:disabled):not([aria-disabled='true'])):active {
+    transform: translateY(0) scale(var(--button-active-scale, 0.98));
+    filter: brightness(var(--button-active-brightness, 0.98));
+  }
+
+  :where(button:disabled, button[aria-disabled='true']) {
+    cursor: not-allowed;
+    filter: none;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where(button) {
+      transition-duration: 1ms;
+    }
+
+    :where(button:not(:disabled):not([aria-disabled='true'])):hover,
+    :where(button:not(:disabled):not([aria-disabled='true'])):active {
+      transform: none;
+    }
+  }
+}
