@@ -7,6 +7,7 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 import { AppTitleStrategy } from './app-title.strategy';
 import { apiAuthInterceptor } from './interceptors/api-auth.interceptor';
 import { authErrorInterceptor } from './interceptors/auth-error.interceptor';
+import { networkErrorInterceptor } from './interceptors/network-error.interceptor';
 import { AuthBootstrapService } from './services/auth-bootstrap.service';
 import { APP_ENVIRONMENT } from './config/app-environment.token';
 import { environment } from '../environments/environment';
@@ -20,7 +21,7 @@ export const appConfig: ApplicationConfig = {
         cookieName: 'csrftoken',
         headerName: 'X-CSRFToken',
       }),
-      withInterceptors([apiAuthInterceptor, authErrorInterceptor]),
+      withInterceptors([apiAuthInterceptor, authErrorInterceptor, networkErrorInterceptor]),
     ),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideClientHydration(withEventReplay()),
