@@ -1240,9 +1240,11 @@ type NotificationPreferenceSettings = Record<
       <app-settings-verification-modal
         [destination]="verification.destination"
         [isLoading]="isProfileSubmitting()"
+        [isResending]="isVerificationResending()"
         (close)="verificationMode.set(null)"
         (back)="handleVerificationBack()"
         (confirm)="completeVerification($event)"
+        (resend)="resendVerificationCode()"
       ></app-settings-verification-modal>
     }
 
@@ -1639,6 +1641,7 @@ export class SettingsPageComponent {
 
   readonly modalMode = signal<ModalMode>(null);
   readonly isProfileSubmitting = signal(false);
+  readonly isVerificationResending = signal(false);
   readonly verificationMode = signal<VerificationMode>(null);
   readonly verificationReturnMode = signal<Exclude<ModalMode, 'name' | null> | null>(null);
   readonly modalValue = signal('');
@@ -2041,6 +2044,28 @@ export class SettingsPageComponent {
     }
   }
 
+  async resendVerificationCode(): Promise<void> {
+    if (this.isVerificationResending() || this.isProfileSubmitting()) {
+      return;
+    }
+
+    const payload = this.currentVerificationPayload();
+    if (!payload) {
+      this.showToast('We couldn’t resend the code right now. Please try again.');
+      return;
+    }
+
+    this.isVerificationResending.set(true);
+    try {
+      await firstValueFrom(this.authService.updateProfile(payload));
+      this.showToast('We sent a new verification code.');
+    } catch (error: unknown) {
+      this.showToast(this.extractSettingsErrorMessage(error, 'We couldn’t resend the code right now. Please try again.'));
+    } finally {
+      this.isVerificationResending.set(false);
+    }
+  }
+
   updateNewPassword(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.newPassword.set(input.value);
@@ -2424,6 +2449,24 @@ export class SettingsPageComponent {
         return 'whatsapp';
       case 'email':
         return 'email';
+      default:
+        return null;
+    }
+  }
+
+  private currentVerificationPayload(): UpdateProfileRequest | null {
+    const value = this.modalValue().trim();
+    if (!value) {
+      return null;
+    }
+
+    switch (this.verificationMode()) {
+      case 'call':
+        return { phone_number: value };
+      case 'whatsapp':
+        return { whatsapp_number: value };
+      case 'email':
+        return { email: value };
       default:
         return null;
     }

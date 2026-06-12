@@ -80,12 +80,26 @@ import { OtpInputComponent } from '../../../components/common/otp-input/otp-inpu
 
             <div class="mt-[18px] text-[14.525px] font-medium leading-normal tracking-[-0.218px] md:mt-5 md:text-[16px] md:tracking-[-0.24px]">
               <p class="md:hidden">
-                <span class="text-[rgba(26,27,29,0.5)]">Resend code in </span>
-                <span class="text-[#1A1B1D]">00:28</span>
+                <span class="text-[rgba(26,27,29,0.5)]">Didn’t get a code? </span>
+                <button
+                  type="button"
+                  (click)="requestResend()"
+                  [disabled]="isLoading() || isResending()"
+                  class="text-[#7F5EFF] transition duration-200 hover:text-[#6548DF] active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  {{ isResending() ? 'Sending...' : 'Resend' }}
+                </button>
               </p>
               <p class="hidden md:block">
                 <span class="text-[rgba(26,27,29,0.5)]">Didn’t get a code? </span>
-                <button type="button" class="text-[#7F5EFF] transition hover:text-[#6548DF] active:scale-95 duration-200">Resend</button>
+                <button
+                  type="button"
+                  (click)="requestResend()"
+                  [disabled]="isLoading() || isResending()"
+                  class="text-[#7F5EFF] transition duration-200 hover:text-[#6548DF] active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  {{ isResending() ? 'Sending...' : 'Resend' }}
+                </button>
               </p>
             </div>
           </div>
@@ -126,10 +140,12 @@ import { OtpInputComponent } from '../../../components/common/otp-input/otp-inpu
 export class SettingsVerificationModalComponent {
   readonly destination = input.required<string>();
   readonly isLoading = input(false);
+  readonly isResending = input(false);
 
   readonly close = output<void>();
   readonly back = output<void>();
   readonly confirm = output<string>();
+  readonly resend = output<void>();
 
   protected readonly otpValue = signal('');
   protected readonly submitted = signal(false);
@@ -142,5 +158,13 @@ export class SettingsVerificationModalComponent {
     }
 
     this.confirm.emit(this.otpValue());
+  }
+
+  protected requestResend(): void {
+    if (this.isLoading() || this.isResending()) {
+      return;
+    }
+
+    this.resend.emit();
   }
 }
