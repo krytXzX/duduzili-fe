@@ -13,6 +13,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+import { AppToastService } from '../../services/app-toast.service';
 
 export interface EditableStoreProfile {
   name: string;
@@ -172,13 +173,21 @@ export interface EditableStoreUpdate {
                     <div
                       class="aspect-square h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-[50%] border-4 border-white bg-[#3D785F]"
                     >
-                      <img
-                        [ngSrc]="profileImage()"
-                        width="100"
-                        height="100"
-                        alt="{{ store().name }} logo"
-                        class="aspect-square h-full w-full rounded-[50%] object-contain"
-                      />
+                      @if (isPreviewImageSource(profileImage())) {
+                        <img
+                          [src]="profileImage()"
+                          alt="{{ store().name }} logo"
+                          class="aspect-square h-full w-full rounded-[50%] object-contain"
+                        />
+                      } @else {
+                        <img
+                          [ngSrc]="profileImage()"
+                          width="100"
+                          height="100"
+                          alt="{{ store().name }} logo"
+                          class="aspect-square h-full w-full rounded-[50%] object-contain"
+                        />
+                      }
                     </div>
                   </div>
 
@@ -215,13 +224,21 @@ export interface EditableStoreUpdate {
                 <div
                   class="relative h-[138px] overflow-hidden rounded-[12px] border border-[#D8D8D8] bg-[#F9F9F9]"
                 >
-                  <img
-                    [ngSrc]="coverImage()"
-                    width="552"
-                    height="138"
-                    alt=""
-                    class="h-full w-full object-cover"
-                  />
+                  @if (isPreviewImageSource(coverImage())) {
+                    <img
+                      [src]="coverImage()"
+                      alt=""
+                      class="h-full w-full object-cover"
+                    />
+                  } @else {
+                    <img
+                      [ngSrc]="coverImage()"
+                      width="552"
+                      height="138"
+                      alt=""
+                      class="h-full w-full object-cover"
+                    />
+                  }
                   <input
                     #coverPhotoInputDesktop
                     type="file"
@@ -398,13 +415,21 @@ export interface EditableStoreUpdate {
                       <div
                         class="aspect-square h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-[50%] border-4 border-white bg-[#3D785F]"
                       >
-                        <img
-                          [ngSrc]="profileImage()"
-                          width="100"
-                          height="100"
-                          alt="{{ store().name }} logo"
-                          class="aspect-square h-full w-full rounded-[50%] object-contain"
-                        />
+                        @if (isPreviewImageSource(profileImage())) {
+                          <img
+                            [src]="profileImage()"
+                            alt="{{ store().name }} logo"
+                            class="aspect-square h-full w-full rounded-[50%] object-contain"
+                          />
+                        } @else {
+                          <img
+                            [ngSrc]="profileImage()"
+                            width="100"
+                            height="100"
+                            alt="{{ store().name }} logo"
+                            class="aspect-square h-full w-full rounded-[50%] object-contain"
+                          />
+                        }
                       </div>
                     </div>
 
@@ -441,13 +466,21 @@ export interface EditableStoreUpdate {
                   <div
                     class="relative h-[138px] overflow-hidden rounded-[12px] border border-[#D8D8D8] bg-[#F9F9F9]"
                   >
-                    <img
-                      [ngSrc]="coverImage()"
-                      width="334"
-                      height="138"
-                      alt=""
-                      class="h-full w-full object-cover"
-                    />
+                    @if (isPreviewImageSource(coverImage())) {
+                      <img
+                        [src]="coverImage()"
+                        alt=""
+                        class="h-full w-full object-cover"
+                      />
+                    } @else {
+                      <img
+                        [ngSrc]="coverImage()"
+                        width="334"
+                        height="138"
+                        alt=""
+                        class="h-full w-full object-cover"
+                      />
+                    }
                     <input
                       #coverPhotoInputMobile
                       type="file"
@@ -532,6 +565,7 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
 
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly fb = inject(FormBuilder);
+  private readonly appToastService = inject(AppToastService);
 
   // Tracks selected File objects and their local preview URLs
   private readonly selectedProfilePhotoFile = signal<File | null>(null);
@@ -577,8 +611,8 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
         name: store.name,
         description: store.description || '',
         location: selectedLocation,
-        whatsappNumber: store.whatsappNumber || '0816 939 7444',
-        callNumber: store.callNumber || '0816 939 7444',
+        whatsappNumber: store.whatsappNumber || '',
+        callNumber: store.callNumber || '',
         alternateCallNumber: store.alternateCallNumber || '',
       },
       { emitEvent: false },
@@ -615,13 +649,36 @@ export class StoreEditSidePanelComponent implements OnDestroy, OnInit {
   }
 
   onSubmit(): void {
-    if (this.editForm.valid) {
-      this.save.emit({
-        ...this.editForm.getRawValue(),
-        profilePhotoFile: this.selectedProfilePhotoFile() ?? undefined,
-        coverPhotoFile: this.selectedCoverPhotoFile() ?? undefined,
+    this.editForm.patchValue(
+      {
+        name: this.editForm.controls.name.value.trim(),
+        description: this.editForm.controls.description.value.trim(),
+        location: this.editForm.controls.location.value.trim(),
+        whatsappNumber: this.editForm.controls.whatsappNumber.value.trim(),
+        callNumber: this.editForm.controls.callNumber.value.trim(),
+        alternateCallNumber: this.editForm.controls.alternateCallNumber.value.trim(),
+      },
+      { emitEvent: false },
+    );
+
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      this.appToastService.show({
+        message: 'Please complete all required store details correctly.',
+        durationMs: 2600,
       });
+      return;
     }
+
+    this.save.emit({
+      ...this.editForm.getRawValue(),
+      profilePhotoFile: this.selectedProfilePhotoFile() ?? undefined,
+      coverPhotoFile: this.selectedCoverPhotoFile() ?? undefined,
+    });
+  }
+
+  protected isPreviewImageSource(value: string): boolean {
+    return value.startsWith('blob:') || value.startsWith('data:');
   }
 
   ngOnDestroy(): void {

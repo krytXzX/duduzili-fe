@@ -394,7 +394,7 @@ export class MyStoresPageComponent {
     payload.append('call_number', formData.callNumber);
 
     if (formData.alternateCallNumber.trim()) {
-      payload.append('alternate_call_number', formData.alternateCallNumber.trim());
+      payload.append('call_number_2', formData.alternateCallNumber.trim());
     }
 
     if (formData.profileFile) {
