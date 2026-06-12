@@ -87,6 +87,7 @@ interface ReviewTagCount {
   providers: [provideIcons({ heroEllipsisHorizontal })],
   host: {
     class: 'block min-h-full',
+    '(document:keydown.escape)': 'closeStoreActionsMenu()',
   },
   styles: [
     `
@@ -657,13 +658,51 @@ interface ReviewTagCount {
                     Edit store
                   </button>
 
-                  <button
-                    type="button"
-                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F]"
-                    aria-label="More options"
-                  >
-                    <ng-icon name="heroEllipsisHorizontal" class="text-[22px]"></ng-icon>
-                  </button>
+                  <div class="relative">
+                    <button
+                      type="button"
+                      (click)="toggleStoreActionsMenu()"
+                      class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#1F1F1F] transition hover:bg-[#F7F7F7] active:scale-95"
+                      aria-label="More store options"
+                      aria-haspopup="menu"
+                      [attr.aria-expanded]="isStoreActionsMenuOpen()"
+                    >
+                      <ng-icon name="heroEllipsisHorizontal" class="text-[22px]"></ng-icon>
+                    </button>
+
+                    @if (isStoreActionsMenuOpen()) {
+                      <button
+                        type="button"
+                        class="fixed inset-0 z-20 cursor-default bg-transparent"
+                        aria-label="Close store options"
+                        (click)="closeStoreActionsMenu()"
+                      ></button>
+                      <div
+                        class="absolute right-0 top-12 z-30 w-[190px] overflow-hidden rounded-[18px] border border-[#EAEAEA] bg-white p-1.5 shadow-[0_18px_40px_-22px_rgba(17,24,39,0.45)]"
+                        role="menu"
+                        aria-label="Store options"
+                      >
+                        <button
+                          type="button"
+                          role="menuitem"
+                          (click)="openEditModalFromActions()"
+                          class="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-left text-[14px] font-medium text-[#1F1F1F] transition hover:bg-[#F7F7F7] active:scale-[0.98]"
+                        >
+                          <img [ngSrc]="assets.editDesktop" width="14" height="14" alt="" class="h-[14px] w-[14px]" />
+                          Edit store
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          (click)="openPromoteStoreFromActions()"
+                          class="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-left text-[14px] font-medium text-[#1F1F1F] transition hover:bg-[#F7F7F7] active:scale-[0.98]"
+                        >
+                          <img [ngSrc]="assets.awardDesktop" width="14" height="14" alt="" class="h-[14px] w-[14px]" />
+                          Promote store
+                        </button>
+                      </div>
+                    }
+                  </div>
                 </div>
               </div>
 
@@ -1043,6 +1082,7 @@ export class StoreDetailsDashboardComponent {
   readonly showEditModal = signal(false);
   readonly showAddListingModal = signal(false);
   readonly showPromoteStoreModal = signal(false);
+  readonly isStoreActionsMenuOpen = signal(false);
 
   readonly store = signal<StoreProfile | null>(null);
   readonly desktopSections = signal<ProductSection[]>([]);
@@ -1520,6 +1560,24 @@ export class StoreDetailsDashboardComponent {
 
   openEditModal(): void {
     this.showEditModal.set(true);
+  }
+
+  toggleStoreActionsMenu(): void {
+    this.isStoreActionsMenuOpen.update((isOpen) => !isOpen);
+  }
+
+  closeStoreActionsMenu(): void {
+    this.isStoreActionsMenuOpen.set(false);
+  }
+
+  openEditModalFromActions(): void {
+    this.closeStoreActionsMenu();
+    this.openEditModal();
+  }
+
+  openPromoteStoreFromActions(): void {
+    this.closeStoreActionsMenu();
+    this.showPromoteStoreModal.set(true);
   }
 
   async onSaveStore(updatedStore: EditableStoreUpdate): Promise<void> {
