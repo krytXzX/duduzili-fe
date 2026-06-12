@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -20,10 +21,11 @@ import {
   heroDocumentDuplicate,
   heroMagnifyingGlass
 } from '@ng-icons/heroicons/outline';
-import { ListingCardComponent } from './listing-card.component';
+import { Listing, ListingCardComponent } from './listing-card.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
-import { ListingsService } from '../../services/listings.service';
+import { ListingsApiItem, ListingsService } from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
+import { environment } from '../../../environments/environment';
 
 export interface ListingData {
   name: string;
@@ -1188,9 +1190,9 @@ type PickerOption = {
                         <div class="absolute right-[16%] top-12 h-1 w-1 rounded-full bg-[#FFD43B]"></div>
                       </div>
 
-                      <div class="relative z-10 w-[132px] rounded-[18px] bg-white p-2 shadow-[0_24px_38px_-28px_rgba(32,35,53,0.55)] ring-1 ring-[#ECEEF4]">
-                        <div class="pointer-events-none scale-[0.78] origin-top-left">
-                          <app-listing-card [listing]="previewListing()" [showFavorite]="false"></app-listing-card>
+                      <div class="relative z-10 h-[228px] w-[148px] overflow-hidden rounded-[18px] bg-white p-2 shadow-[0_24px_38px_-28px_rgba(32,35,53,0.55)] ring-1 ring-[#ECEEF4]">
+                        <div class="pointer-events-none w-[212px] origin-top-left scale-[0.62]">
+                          <app-listing-card [listing]="successPreviewListing()" [showFavorite]="false"></app-listing-card>
                         </div>
                       </div>
                     </div>
@@ -1208,7 +1210,7 @@ type PickerOption = {
                       </button>
                       <button
                         type="button"
-                        (click)="close.emit()"
+                        (click)="viewPublishedListing()"
                         class="inline-flex min-h-12 items-center justify-center rounded-full bg-[#6F56F6] px-4 py-3 text-[14px] font-medium text-white shadow-[0_18px_28px_-18px_rgba(111,86,246,0.95)]"
                       >
                         View listing
@@ -1222,27 +1224,28 @@ type PickerOption = {
                     </div>
 
                     <div class="mt-8 flex w-full items-center gap-3 rounded-full bg-[#F7F7F9] px-4 py-3">
-                      <span class="min-w-0 flex-1 truncate text-left text-[12px] font-medium text-[#5F6470]">https://duduzili.com/listing001</span>
+                      <span class="min-w-0 flex-1 truncate text-left text-[12px] font-medium text-[#5F6470]">{{ publishedListingUrl() }}</span>
                       <button
                         type="button"
+                        (click)="copyPublishedListingUrl()"
                         class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E1E3E8] bg-white text-[#202335] transition-all hover:bg-gray-50 hover:border-gray-300 active:scale-95 duration-200"
-                        aria-label="Copy link"
+                        [attr.aria-label]="hasCopiedListingUrl() ? 'Listing link copied' : 'Copy listing link'"
                       >
                         <ng-icon name="heroDocumentDuplicate" class="text-[18px]"></ng-icon>
                       </button>
                     </div>
 
                     <div class="mt-6 flex items-center justify-center gap-5">
-                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#111111] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on X">
+                      <button type="button" (click)="sharePublishedListing('x')" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#111111] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on X">
                         <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 22.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                       </button>
-                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#25D366] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on WhatsApp">
+                      <button type="button" (click)="sharePublishedListing('whatsapp')" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#25D366] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on WhatsApp">
                         <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M12.031 0A12.03 12.03 0 0 0 0 12.03c0 2.378.618 4.698 1.791 6.745L.044 24l5.345-1.401A11.97 11.97 0 0 0 12.03 24c6.643 0 12.03-5.385 12.03-12.029A12.03 12.03 0 0 0 12.031 0m6.417 17.15c-.266.75-1.554 1.432-2.158 1.503-.54.062-1.258.18-3.568-.781-2.8-1.168-4.576-4.01-4.714-4.195-.14-.184-1.127-1.503-1.127-2.864 0-1.362.706-2.031.956-2.28 0 0 .367-.369.832-.369.176 0 .332.006.464.012.214.011.5-.084.78.591.353.845 1.205 2.949 1.312 3.166.108.217.18.471.042.748-.138.277-.208.448-.415.698-.207.25-.436.56-.622.736-.208.196-.43.407-.197.808.233.4 1.034 1.705 2.222 2.766 1.528 1.365 2.8 1.789 3.197 1.957.398.17.632.146.868-.124.237-.27.994-1.159 1.261-1.556.265-.398.532-.332.895-.198.363.136 2.308 1.085 2.705 1.282.398.197.664.296.76.463.096.168.096.974-.17 1.725"/></svg>
                       </button>
-                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#E4405F] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on Instagram">
+                      <button type="button" (click)="sharePublishedListing('instagram')" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#E4405F] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Copy link for Instagram">
                         <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm3.98-10.366a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0z"/></svg>
                       </button>
-                      <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#1877F2] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on Facebook">
+                      <button type="button" (click)="sharePublishedListing('facebook')" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F7F9] text-[#1877F2] transition-all hover:bg-[#EEEDF2] active:scale-95 duration-200" aria-label="Share on Facebook">
                         <svg fill="currentColor" viewBox="0 0 24 24" class="h-5 w-5"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                       </button>
                     </div>
@@ -1263,9 +1266,9 @@ type PickerOption = {
                          <div class="absolute top-24 right-[20%] w-1 h-1 bg-yellow-400 rotate-12"></div>
                        </div>
 
-                       <div class="relative z-10 w-64 transform transition-all hover:scale-105 duration-500 shadow-2xl rounded-[24px]">
+                       <div class="relative z-10 h-[346px] w-64 overflow-hidden rounded-[24px] shadow-2xl transition-all duration-500 hover:scale-105">
                           <div class="pointer-events-none">
-                             <app-listing-card [listing]="previewListing()" [showFavorite]="false"></app-listing-card>
+                             <app-listing-card [listing]="successPreviewListing()" [showFavorite]="false"></app-listing-card>
                           </div>
                        </div>
                     </div>
@@ -1277,7 +1280,7 @@ type PickerOption = {
                        <button type="button" (click)="resetForm()" class="flex-1 bg-[#FAFAFA] hover:bg-gray-100 text-[#1A1C21] py-3.5 rounded-full font-bold transition-all active:scale-95 duration-200 text-[15px]">
                           Add another listing
                        </button>
-                       <button type="button" (click)="close.emit()" class="flex-1 bg-[#5932EA] hover:bg-purple-700 text-white py-3.5 rounded-full font-bold transition-all active:scale-95 duration-200 text-[15px] shadow-sm">
+                       <button type="button" (click)="viewPublishedListing()" class="flex-1 bg-[#5932EA] hover:bg-purple-700 text-white py-3.5 rounded-full font-bold transition-all active:scale-95 duration-200 text-[15px] shadow-sm">
                           View listing
                        </button>
                     </div>
@@ -1292,24 +1295,24 @@ type PickerOption = {
                     <div class="flex items-center justify-center gap-3.5">
                        <!-- Link Copy -->
                        <div class="flex items-center justify-between border border-gray-100 rounded-full pl-5 pr-1.5 py-1.5 bg-[#FAFAFA] w-[260px]">
-                          <span class="text-[11px] text-gray-500 truncate mt-0.5">https://duduzili.com/listing001</span>
-                          <button type="button" class="flex items-center gap-1.5 bg-white border border-gray-200 shadow-sm rounded-full px-3 py-1.5 hover:bg-gray-50 transition-colors">
-                             <span class="text-[11px] font-bold text-[#1A1C21]">Copy link</span>
+                          <span class="text-[11px] text-gray-500 truncate mt-0.5">{{ publishedListingUrl() }}</span>
+                          <button type="button" (click)="copyPublishedListingUrl()" class="flex items-center gap-1.5 bg-white border border-gray-200 shadow-sm rounded-full px-3 py-1.5 hover:bg-gray-50 transition-colors">
+                             <span class="text-[11px] font-bold text-[#1A1C21]">{{ hasCopiedListingUrl() ? 'Copied' : 'Copy link' }}</span>
                              <ng-icon name="heroDocumentDuplicate" class="text-[12px] text-[#1A1C21]"></ng-icon>
                           </button>
                        </div>
                        
                        <!-- Social Icons -->
-                       <button type="button" class="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center hover:bg-gray-100 transition-colors">
+                       <button type="button" (click)="sharePublishedListing('x')" class="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center hover:bg-gray-100 transition-colors" aria-label="Share on X">
                           <svg fill="currentColor" viewBox="0 0 24 24" class="w-[15px] h-[15px] text-[#1A1C21]"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 22.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                        </button>
-                       <button type="button" class="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center hover:bg-gray-100 transition-colors">
+                       <button type="button" (click)="sharePublishedListing('whatsapp')" class="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center hover:bg-gray-100 transition-colors" aria-label="Share on WhatsApp">
                           <svg fill="currentColor" viewBox="0 0 24 24" class="w-[18px] h-[18px] text-[#25D366]"><path d="M12.031 0A12.03 12.03 0 0 0 0 12.03c0 2.378.618 4.698 1.791 6.745L.044 24l5.345-1.401A11.97 11.97 0 0 0 12.03 24c6.643 0 12.03-5.385 12.03-12.029A12.03 12.03 0 0 0 12.031 0m6.417 17.15c-.266.75-1.554 1.432-2.158 1.503-.54.062-1.258.18-3.568-.781-2.8-1.168-4.576-4.01-4.714-4.195-.14-.184-1.127-1.503-1.127-2.864 0-1.362.706-2.031.956-2.28 0 0 .367-.369.832-.369.176 0 .332.006.464.012.214.011.5-.084.78.591.353.845 1.205 2.949 1.312 3.166.108.217.18.471.042.748-.138.277-.208.448-.415.698-.207.25-.436.56-.622.736-.208.196-.43.407-.197.808.233.4 1.034 1.705 2.222 2.766 1.528 1.365 2.8 1.789 3.197 1.957.398.17.632.146.868-.124.237-.27.994-1.159 1.261-1.556.265-.398.532-.332.895-.198.363.136 2.308 1.085 2.705 1.282.398.197.664.296.76.463.096.168.096.974-.17 1.725"/></svg>
                        </button>
-                       <button type="button" class="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center hover:bg-gray-100 transition-colors">
+                       <button type="button" (click)="sharePublishedListing('instagram')" class="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center hover:bg-gray-100 transition-colors" aria-label="Copy link for Instagram">
                           <svg fill="currentColor" viewBox="0 0 24 24" class="w-[18px] h-[18px] text-[#E4405F]"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm3.98-10.366a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0z"/></svg>
                        </button>
-                       <button type="button" class="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center hover:bg-gray-100 transition-colors">
+                       <button type="button" (click)="sharePublishedListing('facebook')" class="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center hover:bg-gray-100 transition-colors" aria-label="Share on Facebook">
                           <svg fill="currentColor" viewBox="0 0 24 24" class="w-[18px] h-[18px] text-[#1877F2]"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                        </button>
                     </div>
@@ -1548,20 +1551,24 @@ type PickerOption = {
 })
 export class AddListingModalComponent implements OnDestroy {
   private fb = inject(FormBuilder);
+  private readonly router = inject(Router);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly listingsService = inject(ListingsService);
   private readonly appToastService = inject(AppToastService);
+  private readonly apiOrigin = new URL(environment.apiUrl).origin;
   
   close = output<void>();
   save = output<ListingData>();
   draftSaved = output<void>();
-  listingPublished = output<void>();
+  listingPublished = output<ListingsApiItem>();
   readonly categoryOptionsInput = input<readonly PickerOption[]>([]);
   readonly storeOptionsInput = input<readonly PickerOption[]>([]);
 
   currentStep = signal(1);
   isPublishing = signal(false);
   isSavingDraft = signal(false);
+  publishedListing = signal<ListingsApiItem | null>(null);
+  hasCopiedListingUrl = signal(false);
   
   listingForm!: FormGroup;
 
@@ -1678,7 +1685,7 @@ export class AddListingModalComponent implements OnDestroy {
     );
   });
 
-  previewListing = computed(() => {
+  previewListing = computed<Listing>(() => {
      const form = this.formValues();
      const previewImages = this.reviewImages();
      const basePrice = Number(form.price) || 0;
@@ -1693,14 +1700,94 @@ export class AddListingModalComponent implements OnDestroy {
      return {
         id: 'preview',
         title: form.name || 'Untitled listing',
-        price: `₦${discountedPrice.toLocaleString()}`,
+        price: form.listForFree ? 'Free' : `₦${discountedPrice.toLocaleString()}`,
         originalPrice: hasDiscount ? `₦${basePrice.toLocaleString()}` : undefined,
         discountBadge: hasDiscount && form.discountType === 'percentage' ? `-${discountValue}%` : undefined,
-        images: previewImages.length > 0 ? previewImages : ['https://via.placeholder.com/400'],
+        images: previewImages,
         location: form.location || 'Location',
         timeAgo: 'Just now',
         isVerified: true
-     } as any;
+     };
+  });
+
+  successPreviewListing = computed<Listing>(() => {
+    const publishedListing = this.publishedListing();
+    const fallback = this.previewListing();
+
+    if (!publishedListing) {
+      return fallback;
+    }
+
+    const basePrice =
+      this.readNumber(publishedListing['price']) ??
+      this.readNumber(publishedListing['amount']) ??
+      this.readNumber(publishedListing['sale_price']);
+    const originalPrice =
+      this.readNumber(publishedListing['original_price']) ??
+      this.readNumber(publishedListing['originalPrice']);
+    const discountValue =
+      this.readNumber(publishedListing['discount_percentage']) ??
+      this.readNumber(publishedListing['discount_percent']) ??
+      this.readNumber(publishedListing['discount_value']);
+    const hasDiscount =
+      (discountValue !== null && discountValue > 0) ||
+      (originalPrice !== null && basePrice !== null && originalPrice > basePrice);
+
+    return {
+      id: this.listingRouteReference(publishedListing) ?? fallback.id,
+      title:
+        this.readString(publishedListing['title']) ??
+        this.readString(publishedListing['name']) ??
+        this.readString(publishedListing['listing_name']) ??
+        fallback.title,
+      price: this.readBoolean(publishedListing['is_free'])
+        ? 'Free'
+        : this.formatPrice(
+          publishedListing['formatted_price'] ??
+          publishedListing['price_display'] ??
+          publishedListing['price'] ??
+          publishedListing['amount'],
+        ) || fallback.price,
+      originalPrice:
+        this.formatPriceOptional(publishedListing['original_price'] ?? publishedListing['originalPrice']) ??
+        (hasDiscount ? fallback.originalPrice : undefined),
+      discountBadge:
+        this.formatDiscountBadge(publishedListing['discount_percentage']) ??
+        this.readString(publishedListing['discount_badge']) ??
+        this.readString(publishedListing['badge']) ??
+        (hasDiscount ? fallback.discountBadge : undefined),
+      images: this.extractListingImages(publishedListing, fallback.images),
+      location:
+        this.readString(publishedListing['location']) ??
+        this.readString(publishedListing['city']) ??
+        this.readString(publishedListing['state']) ??
+        fallback.location,
+      timeAgo:
+        this.readString(publishedListing['time_ago']) ??
+        this.readString(publishedListing['created_at']) ??
+        'Just now',
+      isVerified:
+        this.readBoolean(publishedListing['is_verified']) ??
+        this.readBoolean(publishedListing['verified']) ??
+        fallback.isVerified,
+    };
+  });
+
+  publishedListingUrl = computed(() => {
+    const listing = this.publishedListing();
+    const explicitUrl =
+      this.readString(listing?.['frontend_url']) ??
+      this.readString(listing?.['listing_url']) ??
+      this.readString(listing?.['absolute_url']);
+
+    if (explicitUrl && /^https?:\/\//i.test(explicitUrl)) {
+      return explicitUrl;
+    }
+
+    const routeReference = this.listingRouteReference(listing);
+    const origin = this.currentOrigin();
+
+    return routeReference ? `${origin}/product/${routeReference}` : `${origin}/seller/listings`;
   });
 
   stepTitle = computed(() => {
@@ -1876,8 +1963,12 @@ export class AddListingModalComponent implements OnDestroy {
     this.isPublishing.set(true);
 
     try {
-      await firstValueFrom(this.listingsService.createListing(this.buildCreateListingPayload()));
-      this.listingPublished.emit();
+      const createdListing = await firstValueFrom(
+        this.listingsService.createListing(this.buildCreateListingPayload()),
+      );
+      this.publishedListing.set(createdListing);
+      this.hasCopiedListingUrl.set(false);
+      this.listingPublished.emit(createdListing);
       this.currentStep.set(5);
     } catch {
       this.appToastService.show({
@@ -1965,7 +2056,60 @@ export class AddListingModalComponent implements OnDestroy {
      this.additionalImages.set([null, null, null, null, null]);
      this.mainImageFile = null;
      this.additionalImageFiles = [null, null, null, null, null];
+     this.publishedListing.set(null);
+     this.hasCopiedListingUrl.set(false);
      this.currentStep.set(1);
+  }
+
+  async copyPublishedListingUrl(): Promise<void> {
+    const url = this.publishedListingUrl();
+    const copied = await this.copyText(url);
+
+    if (!copied) {
+      this.appToastService.show({
+        message: 'We could not copy the listing link. Please try again.',
+        durationMs: 2200,
+      });
+      return;
+    }
+
+    this.hasCopiedListingUrl.set(true);
+    this.appToastService.show({
+      message: 'Listing link copied.',
+      durationMs: 1800,
+    });
+  }
+
+  viewPublishedListing(): void {
+    const routeReference = this.listingRouteReference(this.publishedListing());
+
+    if (!routeReference) {
+      this.close.emit();
+      return;
+    }
+
+    this.close.emit();
+    void this.router.navigate(['/product', routeReference]);
+  }
+
+  sharePublishedListing(channel: 'x' | 'whatsapp' | 'instagram' | 'facebook'): void {
+    const url = this.publishedListingUrl();
+    const title = this.successPreviewListing().title;
+
+    if (channel === 'instagram') {
+      void this.copyPublishedListingUrl();
+      return;
+    }
+
+    const encodedUrl = encodeURIComponent(url);
+    const encodedText = encodeURIComponent(`Check out ${title} on Duduzili`);
+    const shareUrls: Record<'x' | 'whatsapp' | 'facebook', string> = {
+      x: `https://x.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`Check out ${title} on Duduzili: ${url}`)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    };
+
+    this.openExternalUrl(shareUrls[channel]);
   }
 
   openFilePicker(input: HTMLInputElement, event?: Event) {
@@ -2124,6 +2268,173 @@ export class AddListingModalComponent implements OnDestroy {
     }
 
     return payload;
+  }
+
+  private listingRouteReference(record: ListingsApiItem | null): string | null {
+    if (!record) {
+      return null;
+    }
+
+    return (
+      this.readIdentifier(record['slug']) ??
+      this.readIdentifier(record['id']) ??
+      this.readIdentifier(record['listing_id']) ??
+      this.readIdentifier(record['pk'])
+    );
+  }
+
+  private extractListingImages(record: ListingsApiItem, fallbackImages: readonly string[]): string[] {
+    const arrayCandidates = [record['images'], record['gallery'], record['photos'], record['uploaded_images']];
+
+    for (const candidate of arrayCandidates) {
+      if (!Array.isArray(candidate)) {
+        continue;
+      }
+
+      const images = candidate
+        .map((entry) => {
+          if (typeof entry === 'string') {
+            return this.resolveMediaUrl(entry);
+          }
+
+          const imageRecord = this.readRecord(entry);
+          if (!imageRecord) {
+            return null;
+          }
+
+          return (
+            this.resolveMediaUrl(this.readString(imageRecord['image'])) ??
+            this.resolveMediaUrl(this.readString(imageRecord['url'])) ??
+            this.resolveMediaUrl(this.readString(imageRecord['src'])) ??
+            this.resolveMediaUrl(this.readString(imageRecord['thumbnail'])) ??
+            this.resolveMediaUrl(this.readString(imageRecord['image_url']))
+          );
+        })
+        .filter((image): image is string => !!image);
+
+      if (images.length > 0) {
+        return images;
+      }
+    }
+
+    const singleImage =
+      this.resolveMediaUrl(this.readString(record['image'])) ??
+      this.resolveMediaUrl(this.readString(record['thumbnail'])) ??
+      this.resolveMediaUrl(this.readString(record['image_url'])) ??
+      this.resolveMediaUrl(this.readString(record['cover_image']));
+
+    if (singleImage) {
+      return [singleImage];
+    }
+
+    return [...fallbackImages];
+  }
+
+  private resolveMediaUrl(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (/^(https?:|data:|blob:)/i.test(value)) {
+      return value;
+    }
+
+    if (value.startsWith('/')) {
+      return `${this.apiOrigin}${value}`;
+    }
+
+    return `${this.apiOrigin}/${value.replace(/^\/+/, '')}`;
+  }
+
+  private currentOrigin(): string {
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      return window.location.origin;
+    }
+
+    return 'https://duduzili.com';
+  }
+
+  private openExternalUrl(url: string): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  private async copyText(value: string): Promise<boolean> {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(value);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    return false;
+  }
+
+  private formatPrice(value: unknown): string {
+    const normalized = this.readNumber(value);
+    return normalized === null ? this.readString(value) ?? '' : `₦${new Intl.NumberFormat('en-NG').format(normalized)}`;
+  }
+
+  private formatPriceOptional(value: unknown): string | undefined {
+    const formatted = this.formatPrice(value);
+    return formatted || undefined;
+  }
+
+  private formatDiscountBadge(value: unknown): string | undefined {
+    const discount = this.readNumber(value);
+
+    if (discount !== null && discount > 0) {
+      return `-${Math.round(discount)}%`;
+    }
+
+    return this.readString(value) ?? undefined;
+  }
+
+  private readIdentifier(value: unknown): string | null {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    return null;
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim();
+      if (!normalized) {
+        return null;
+      }
+
+      const parsed = Number(normalized.replace(/[^0-9.-]/g, ''));
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  private readBoolean(value: unknown): boolean | null {
+    return typeof value === 'boolean' ? value : null;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === 'object' && value !== null ? value as Record<string, unknown> : null;
   }
 
   private optionsForPicker(kind: PickerKind | null): readonly PickerOption[] {
