@@ -1610,29 +1610,18 @@ export class ProductPageComponent {
       this.readString(record['title']) ??
       this.readString(record['name']) ??
       this.readString(record['listing_name']);
-    const price = this.readBoolean(record['is_free']) === true
-      ? 'Free'
-      : this.formatPrice(record['price']);
-    const priceValue = this.readNumber(record['price']);
-    const originalPriceValue = this.readNumber(record['original_price']);
-    const hasDiscount =
-      priceValue !== null &&
-      originalPriceValue !== null &&
-      originalPriceValue > priceValue;
-    const discountValue =
-      this.readNumber(record['discount_percentage']) ??
-      (hasDiscount ? ((originalPriceValue - priceValue) / originalPriceValue) * 100 : null);
+    const pricing = this.extractListingPricing(record);
 
-    if (!title || !price) {
+    if (!title || !pricing.price) {
       return null;
     }
 
     return {
       id: this.readString(record['id']) ?? `related-${index + 1}`,
       title,
-      price,
-      originalPrice: hasDiscount ? this.formatPrice(originalPriceValue) ?? undefined : undefined,
-      discountBadge: hasDiscount ? this.formatDiscountBadge(discountValue) ?? undefined : undefined,
+      price: pricing.price,
+      originalPrice: pricing.originalPrice,
+      discountBadge: pricing.discountBadge,
       location: this.composeLocation(record) ?? 'Nigeria',
       timeAgo: this.formatRelativeTime(record['created_at']) ?? 'Recently',
       isVerified:
@@ -1694,30 +1683,72 @@ export class ProductPageComponent {
   }
 
   private buildProductPricing(record: ListingsApiItem): Pick<ProductDetails, 'price' | 'oldPrice' | 'discount' | 'hasDiscount'> {
-    if (this.readBoolean(record['is_free']) === true) {
-      return {
-        price: 'Free',
-        oldPrice: '',
-        discount: '',
-        hasDiscount: false,
-      };
-    }
-
-    const priceValue = this.readNumber(record['price']);
-    const originalPriceValue = this.readNumber(record['original_price']);
-    const hasDiscount =
-      priceValue !== null &&
-      originalPriceValue !== null &&
-      originalPriceValue > priceValue;
-    const discountValue =
-      this.readNumber(record['discount_percentage']) ??
-      (hasDiscount ? ((originalPriceValue - priceValue) / originalPriceValue) * 100 : null);
+    const pricing = this.extractListingPricing(record);
 
     return {
-      price: this.formatPrice(priceValue) ?? 'Price unavailable',
-      oldPrice: hasDiscount ? this.formatPrice(originalPriceValue) ?? '' : '',
-      discount: hasDiscount ? this.formatDiscountBadge(discountValue) ?? '' : '',
-      hasDiscount,
+      price: pricing.price || 'Price unavailable',
+      oldPrice: pricing.originalPrice ?? '',
+      discount: pricing.discountBadge ?? '',
+      hasDiscount: !!pricing.originalPrice && !!pricing.discountBadge,
+    };
+  }
+
+  private extractListingPricing(record: ListingsApiItem): {
+    readonly price: string;
+    readonly originalPrice?: string;
+    readonly discountBadge?: string;
+  } {
+    if (this.readBoolean(record['is_free']) === true) {
+      return { price: 'Free' };
+    }
+
+    const salePrice = this.readNumber(
+      record['sale_price'] ??
+        record['discounted_price'] ??
+        record['discount_price'] ??
+        record['current_price'],
+    );
+    const listedPrice = this.readNumber(record['price'] ?? record['amount']);
+    const currentPrice = salePrice ?? listedPrice;
+    const explicitOriginalPrice = this.readNumber(
+      record['original_price'] ??
+        record['originalPrice'] ??
+        record['regular_price'] ??
+        record['list_price'] ??
+        record['old_price'] ??
+        record['before_discount_price'],
+    );
+    const originalPrice =
+      explicitOriginalPrice ??
+      (salePrice !== null && listedPrice !== null && listedPrice > salePrice ? listedPrice : null);
+    const hasDiscount =
+      currentPrice !== null &&
+      originalPrice !== null &&
+      originalPrice > currentPrice;
+    const computedDiscount =
+      hasDiscount ? ((originalPrice - currentPrice) / originalPrice) * 100 : null;
+    const discountValue = hasDiscount
+      ? (this.readNumber(
+          record['discount_percentage'] ??
+            record['discount_percent'] ??
+            record['discount_rate'] ??
+            record['discount'],
+        ) ?? computedDiscount)
+      : null;
+
+    return {
+      price:
+        this.formatPrice(currentPrice) ??
+        this.readString(record['price_display']) ??
+        this.readString(record['formatted_price']) ??
+        '',
+      originalPrice: hasDiscount ? this.formatPrice(originalPrice) ?? undefined : undefined,
+      discountBadge: hasDiscount
+        ? this.formatDiscountBadge(discountValue) ??
+          this.readString(record['discount_badge']) ??
+          this.readString(record['badge']) ??
+          undefined
+        : undefined,
     };
   }
 
