@@ -178,6 +178,7 @@ export class ProductPageComponent {
   private readonly favoritesStateService = inject(FavoritesStateService);
   private readonly messagesService = inject(MessagesService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
+  private productLoadVersion = 0;
 
   readonly productId = signal(this.route.snapshot.paramMap.get('id') ?? '');
   readonly isListingActionsMenuOpen = signal(false);
@@ -1104,22 +1105,31 @@ export class ProductPageComponent {
     if (!id) {
       return;
     }
+    const loadVersion = ++this.productLoadVersion;
     this.isProductLoading.set(true);
     this.productLoadError.set(null);
     try {
       const record = await firstValueFrom(this.listingsService.getListingDetails(id));
-      await this.applyProductDetails(record);
+      if (!this.isCurrentProductLoad(loadVersion)) {
+        return;
+      }
+      this.applyProductDetails(record, loadVersion);
     } catch (error) {
+      if (!this.isCurrentProductLoad(loadVersion)) {
+        return;
+      }
       this.productLoadError.set(this.extractErrorMessage(error));
       this.moreFromSeller.set([]);
       this.relatedItems.set([]);
       this.reviews.set([]);
     } finally {
-      this.isProductLoading.set(false);
+      if (this.isCurrentProductLoad(loadVersion)) {
+        this.isProductLoading.set(false);
+      }
     }
   }
 
-  private async applyProductDetails(record: ListingsApiItem): Promise<void> {
+  private applyProductDetails(record: ListingsApiItem, loadVersion: number): void {
     const storeInfo = this.readRecord(record['store_info']);
     const galleryImages = this.extractGalleryImages(record);
     const currentProduct = this.product();
@@ -1252,11 +1262,9 @@ export class ProductPageComponent {
       this.readString(record['store_id']);
 
     if (storeId) {
-      await Promise.all([
-        this.loadVendorProfile(storeId),
-        this.loadMoreFromSeller(storeId, this.readString(record['id']) ?? this.productId()),
-        this.loadVendorReviews(storeId),
-      ]);
+      void this.loadVendorProfile(storeId, loadVersion);
+      void this.loadMoreFromSeller(storeId, this.readString(record['id']) ?? this.productId(), loadVersion);
+      void this.loadVendorReviews(storeId, loadVersion);
     }
 
     if (relatedListings.length > 0) {
@@ -1268,13 +1276,20 @@ export class ProductPageComponent {
       this.readString(record['category_slug']) ??
       this.readString(record['category']);
     if (categoryQuery) {
-      await this.loadRelatedItems(categoryQuery, this.readString(record['id']) ?? this.productId());
+      void this.loadRelatedItems(categoryQuery, this.readString(record['id']) ?? this.productId(), loadVersion);
     }
   }
 
-  private async loadMoreFromSeller(storeId: string, currentListingId: string): Promise<void> {
+  private async loadMoreFromSeller(
+    storeId: string,
+    currentListingId: string,
+    loadVersion: number,
+  ): Promise<void> {
     try {
       const response = await firstValueFrom(this.vendorsService.getVendorListings(storeId));
+      if (!this.isCurrentProductLoad(loadVersion)) {
+        return;
+      }
       const listings = this.extractVendorListingItems(response)
         .map((record, index) => this.toListingCard(record, index))
         .filter((listing): listing is Listing => listing !== null)
@@ -1285,13 +1300,19 @@ export class ProductPageComponent {
         this.moreFromSeller.set(listings);
       }
     } catch {
+      if (!this.isCurrentProductLoad(loadVersion)) {
+        return;
+      }
       this.moreFromSeller.set([]);
     }
   }
 
-  private async loadVendorProfile(storeId: string): Promise<void> {
+  private async loadVendorProfile(storeId: string, loadVersion: number): Promise<void> {
     try {
       const response = await firstValueFrom(this.vendorsService.getVendorDetails(storeId));
+      if (!this.isCurrentProductLoad(loadVersion)) {
+        return;
+      }
       this.applyVendorProfile(response);
     } catch {
       // The listing detail payload already contains enough store data to render the card.
@@ -1347,9 +1368,16 @@ export class ProductPageComponent {
     });
   }
 
-  private async loadRelatedItems(categoryQuery: string, currentListingId: string): Promise<void> {
+  private async loadRelatedItems(
+    categoryQuery: string,
+    currentListingId: string,
+    loadVersion: number,
+  ): Promise<void> {
     try {
       const response = await firstValueFrom(this.listingsService.getCategoryListings(categoryQuery));
+      if (!this.isCurrentProductLoad(loadVersion)) {
+        return;
+      }
       const listings = this.extractSearchListingItems(response)
         .map((record, index) => this.toListingCard(record, index))
         .filter((listing): listing is Listing => listing !== null)
@@ -1360,20 +1388,33 @@ export class ProductPageComponent {
         this.relatedItems.set(listings);
       }
     } catch {
+      if (!this.isCurrentProductLoad(loadVersion)) {
+        return;
+      }
       this.relatedItems.set([]);
     }
   }
 
-  private async loadVendorReviews(storeId: string): Promise<void> {
+  private async loadVendorReviews(storeId: string, loadVersion: number): Promise<void> {
     try {
       const response = await firstValueFrom(this.vendorsService.getVendorReviews(storeId));
+      if (!this.isCurrentProductLoad(loadVersion)) {
+        return;
+      }
       const reviews = this.extractVendorReviewItems(response)
         .map((review, index) => this.toReview(review, index))
         .filter((review): review is Review => review !== null);
       this.reviews.set(reviews);
     } catch {
+      if (!this.isCurrentProductLoad(loadVersion)) {
+        return;
+      }
       this.reviews.set([]);
     }
+  }
+
+  private isCurrentProductLoad(loadVersion: number): boolean {
+    return loadVersion === this.productLoadVersion;
   }
 
   private extractVendorListingItems(response: VendorListingsResponse): readonly VendorListingRecord[] {
