@@ -33,6 +33,7 @@ import {
   VendorFollowResponse,
   VendorListingRecord,
   VendorListingsResponse,
+  VendorRecord,
   VendorReviewRecord,
   VendorReviewsResponse,
 } from '../../services/vendors.service';
@@ -75,6 +76,7 @@ interface StoreDetails {
   readonly initials: string;
   readonly accentFrom: string;
   readonly accentTo: string;
+  readonly logoImage: string;
   readonly bannerImage: string;
 }
 
@@ -349,6 +351,7 @@ export class ProductPageComponent {
     initials: '',
     accentFrom: '#E5E7EB',
     accentTo: '#CBD5E1',
+    logoImage: '',
     bannerImage: '',
   });
 
@@ -1166,6 +1169,16 @@ export class ProductPageComponent {
           this.readString(record['cover_image']) ??
           this.readString(record['banner_image']),
       ) ?? '';
+    const logoImage =
+      this.resolveMediaUrl(
+        this.readString(storeInfo?.['profile_photo']) ??
+          this.readString(storeInfo?.['logo']) ??
+          this.readString(storeInfo?.['avatar']) ??
+          this.readString(record['store_logo']) ??
+          this.readString(record['store_avatar']) ??
+          this.readString(record['vendor_avatar']) ??
+          this.readString(record['profile_photo']),
+      ) ?? '';
     const relatedListings = this.extractRelatedListings(record['related_items']);
     const sellerListings = this.extractRelatedListings(
       record['more_from_seller'] ?? record['seller_listings'],
@@ -1225,6 +1238,7 @@ export class ProductPageComponent {
       initials: this.buildInitials(storeName),
       accentFrom: currentStore.accentFrom,
       accentTo: currentStore.accentTo,
+      logoImage,
       bannerImage,
     });
 
@@ -1238,8 +1252,11 @@ export class ProductPageComponent {
       this.readString(record['store_id']);
 
     if (storeId) {
-      await this.loadMoreFromSeller(storeId, this.readString(record['id']) ?? this.productId());
-      await this.loadVendorReviews(storeId);
+      await Promise.all([
+        this.loadVendorProfile(storeId),
+        this.loadMoreFromSeller(storeId, this.readString(record['id']) ?? this.productId()),
+        this.loadVendorReviews(storeId),
+      ]);
     }
 
     if (relatedListings.length > 0) {
@@ -1270,6 +1287,64 @@ export class ProductPageComponent {
     } catch {
       this.moreFromSeller.set([]);
     }
+  }
+
+  private async loadVendorProfile(storeId: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.vendorsService.getVendorDetails(storeId));
+      this.applyVendorProfile(response);
+    } catch {
+      // The listing detail payload already contains enough store data to render the card.
+    }
+  }
+
+  private applyVendorProfile(record: VendorRecord): void {
+    const currentStore = this.store();
+    const user = this.readRecord(record['user']);
+    const storeName = this.readString(record['store_name']) ?? currentStore.name;
+    const location =
+      this.readString(record['location']) ??
+      this.composeLocation(record) ??
+      currentStore.location;
+    const logoImage =
+      this.resolveMediaUrl(
+        this.readString(record['profile_photo']) ??
+          this.readString(record['logo']) ??
+          this.readString(record['avatar']) ??
+          this.readString(user?.['avatar']),
+      ) ?? currentStore.logoImage;
+    const bannerImage =
+      this.resolveMediaUrl(
+        this.readString(record['cover_image']) ??
+          this.readString(record['banner_image']),
+      ) ?? currentStore.bannerImage;
+
+    this.store.set({
+      ...currentStore,
+      id: this.readString(record['id']) ?? currentStore.id,
+      ownerUserId:
+        this.readString(record['user_id']) ??
+        this.readString(user?.['id']) ??
+        currentStore.ownerUserId,
+      name: storeName,
+      location,
+      whatsappNumber:
+        this.readString(record['whatsapp_number']) ??
+        this.readString(record['call_number']) ??
+        currentStore.whatsappNumber,
+      followers: this.formatCount(record['followers_count']) ?? currentStore.followers,
+      products: this.formatCount(record['products_count']) ?? currentStore.products,
+      rating: this.formatRating(record['average_rating']) ?? currentStore.rating,
+      joined: this.formatDate(record['date_joined']) ?? currentStore.joined,
+      isVerified:
+        this.readBoolean(record['is_verified']) ??
+        this.readBoolean(user?.['is_verified']) ??
+        currentStore.isVerified,
+      isFollowed: this.readBoolean(record['is_followed']) ?? currentStore.isFollowed,
+      initials: this.buildInitials(storeName),
+      logoImage,
+      bannerImage,
+    });
   }
 
   private async loadRelatedItems(categoryQuery: string, currentListingId: string): Promise<void> {
