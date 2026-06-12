@@ -568,26 +568,26 @@ type PickerOption = {
                       <div class="space-y-3">
                         <label class="block text-[12px] font-medium text-[#3F4452]">Delivery options</label>
                         <div class="grid grid-cols-2 gap-3">
-                          @for (opt of availableDeliveryOptions; track opt.id) {
+                          @for (opt of availableDeliveryOptions(); track opt.value) {
                             <button
                               type="button"
-                              (click)="toggleDeliveryOption(opt.id)"
+                              (click)="toggleDeliveryOption(opt.value)"
                               class="flex items-center gap-2 rounded-[14px] border px-3 py-3 text-left transition-colors"
-                              [class.border-[#6F56F6]]="isDeliveryOptionSelected(opt.id)"
-                              [class.bg-[#F8F7FF]]="isDeliveryOptionSelected(opt.id)"
-                              [class.text-[#2A2D34]]="isDeliveryOptionSelected(opt.id)"
-                              [class.border-[#E1E3E8]]="!isDeliveryOptionSelected(opt.id)"
-                              [class.bg-white]="!isDeliveryOptionSelected(opt.id)"
-                              [class.text-[#2A2D34]]="!isDeliveryOptionSelected(opt.id)"
+                              [class.border-[#6F56F6]]="isDeliveryOptionSelected(opt.value)"
+                              [class.bg-[#F8F7FF]]="isDeliveryOptionSelected(opt.value)"
+                              [class.text-[#2A2D34]]="isDeliveryOptionSelected(opt.value)"
+                              [class.border-[#E1E3E8]]="!isDeliveryOptionSelected(opt.value)"
+                              [class.bg-white]="!isDeliveryOptionSelected(opt.value)"
+                              [class.text-[#2A2D34]]="!isDeliveryOptionSelected(opt.value)"
                             >
                               <span
                                 class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border"
-                                [class.border-[#6F56F6]]="isDeliveryOptionSelected(opt.id)"
-                                [class.bg-[#6F56F6]]="isDeliveryOptionSelected(opt.id)"
-                                [class.border-[#D4D7DE]]="!isDeliveryOptionSelected(opt.id)"
-                                [class.bg-white]="!isDeliveryOptionSelected(opt.id)"
+                                [class.border-[#6F56F6]]="isDeliveryOptionSelected(opt.value)"
+                                [class.bg-[#6F56F6]]="isDeliveryOptionSelected(opt.value)"
+                                [class.border-[#D4D7DE]]="!isDeliveryOptionSelected(opt.value)"
+                                [class.bg-white]="!isDeliveryOptionSelected(opt.value)"
                               >
-                                @if (isDeliveryOptionSelected(opt.id)) {
+                                @if (isDeliveryOptionSelected(opt.value)) {
                                   <ng-icon name="heroCheck" class="text-[10px] text-white"></ng-icon>
                                 }
                               </span>
@@ -778,27 +778,27 @@ type PickerOption = {
                       <div class="space-y-3">
                         <label class="text-[13px] font-medium text-gray-700 block">Delivery options</label>
                         <div class="grid grid-cols-3 gap-3">
-                        @for (opt of availableDeliveryOptions; track opt.id) {
+                        @for (opt of availableDeliveryOptions(); track opt.value) {
                           <div 
                              class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors"
-                             [class.border-purple-600]="isDeliveryOptionSelected(opt.id)"
-                             [class.bg-purple-50]="isDeliveryOptionSelected(opt.id)"
-                             [class.border-gray-100]="!isDeliveryOptionSelected(opt.id)"
-                             (click)="toggleDeliveryOption(opt.id)"
+                             [class.border-purple-600]="isDeliveryOptionSelected(opt.value)"
+                             [class.bg-purple-50]="isDeliveryOptionSelected(opt.value)"
+                             [class.border-gray-100]="!isDeliveryOptionSelected(opt.value)"
+                             (click)="toggleDeliveryOption(opt.value)"
                           >
                              <div 
                                 class="w-4 h-4 rounded-[4px] border flex items-center justify-center transition-colors"
-                                [class.bg-purple-600]="isDeliveryOptionSelected(opt.id)"
-                                [class.border-purple-600]="isDeliveryOptionSelected(opt.id)"
-                                [class.border-gray-300]="!isDeliveryOptionSelected(opt.id)"
+                                [class.bg-purple-600]="isDeliveryOptionSelected(opt.value)"
+                                [class.border-purple-600]="isDeliveryOptionSelected(opt.value)"
+                                [class.border-gray-300]="!isDeliveryOptionSelected(opt.value)"
                              >
-                                @if (isDeliveryOptionSelected(opt.id)) {
+                                @if (isDeliveryOptionSelected(opt.value)) {
                                    <ng-icon name="heroCheck" class="text-[10px] text-white stroke-[3]"></ng-icon>
                                 }
                              </div>
                              <span class="text-[13px] font-medium"
-                               [class.text-purple-600]="isDeliveryOptionSelected(opt.id)"
-                               [class.text-gray-500]="!isDeliveryOptionSelected(opt.id)"
+                               [class.text-purple-600]="isDeliveryOptionSelected(opt.value)"
+                               [class.text-gray-500]="!isDeliveryOptionSelected(opt.value)"
                              >{{ opt.label }}</span>
                           </div>
                         }
@@ -1563,6 +1563,7 @@ export class AddListingModalComponent implements OnDestroy {
   listingPublished = output<ListingsApiItem>();
   readonly categoryOptionsInput = input<readonly PickerOption[]>([]);
   readonly storeOptionsInput = input<readonly PickerOption[]>([]);
+  readonly deliveryOptionsInput = input<readonly PickerOption[]>([]);
 
   currentStep = signal(1);
   isPublishing = signal(false);
@@ -1611,6 +1612,7 @@ export class AddListingModalComponent implements OnDestroy {
 
   readonly categoryOptions = computed(() => this.categoryOptionsInput());
   readonly storeOptions = computed(() => this.storeOptionsInput());
+  readonly availableDeliveryOptions = computed(() => this.deliveryOptionsInput());
 
   formValues: any;
   private createdObjectUrls = new Set<string>();
@@ -1643,15 +1645,6 @@ export class AddListingModalComponent implements OnDestroy {
 
     this.formValues = toSignal(this.listingForm.valueChanges, { initialValue: this.listingForm.value });
   }
-
-  availableDeliveryOptions = [
-    { id: 'buyer_pickup', label: 'Buyer pickup' },
-    { id: 'seller_delivery', label: 'Seller delivery' },
-    { id: 'public_location', label: 'Public location' },
-    { id: 'nation_wide', label: 'Nation-wide' },
-    { id: 'state_wide', label: 'State-wide' },
-    { id: 'international', label: 'International' },
-  ];
 
   imageSlots = computed(() =>
     this.additionalImages().map((image, index) => ({
@@ -1922,7 +1915,7 @@ export class AddListingModalComponent implements OnDestroy {
     const selectedIds = this.listingForm.get('deliveryOptions')?.value as string[] || [];
     if (!selectedIds.length) return '---';
     return selectedIds
-      .map(id => this.availableDeliveryOptions.find(o => o.id === id)?.label)
+      .map((id) => this.availableDeliveryOptions().find((option) => option.value === id)?.label)
       .filter(Boolean)
       .join(', ');
   }

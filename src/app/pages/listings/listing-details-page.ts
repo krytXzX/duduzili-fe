@@ -103,6 +103,12 @@ interface StatusOption {
   tone: 'available' | 'paused' | 'sold';
 }
 
+interface DeliveryOption {
+  readonly id: string;
+  readonly label: string;
+  readonly kind: 'method' | 'range' | 'other';
+}
+
 interface TabItem {
   id: ListingTab;
   label: string;
@@ -2110,7 +2116,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           </span>
                           <div class="space-y-3">
                             <div class="grid grid-cols-3 gap-3">
-                              @for (option of deliveryMethodOptions; track option.id) {
+                              @for (option of deliveryMethodOptions(); track option.id) {
                                 <button
                                   type="button"
                                   (click)="toggleDeliveryMethod(option.id)"
@@ -2138,7 +2144,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                             </div>
 
                             <div class="grid grid-cols-3 gap-3">
-                              @for (option of deliveryRangeOptions; track option.id) {
+                              @for (option of deliveryRangeOptions(); track option.id) {
                                 <button
                                   type="button"
                                   (click)="toggleDeliveryRange(option.id)"
@@ -2871,17 +2877,6 @@ export class ListingDetailsPageComponent implements OnDestroy {
   private readonly fallbackEditConditions = ['Used', 'Brand new', 'Refurbished'];
   private readonly fallbackEditStores = ['The Vine Collections', 'Duduzili Store'];
   private readonly fallbackEditLocations = ['Ikeja, Lagos', 'Yaba, Lagos', 'Abuja'];
-  private readonly fallbackDeliveryMethodOptions = [
-    { id: 'buyer-pickup', label: 'Buyer pickup' },
-    { id: 'seller-delivery', label: 'Seller delivery' },
-    { id: 'public-location', label: 'Public location' },
-  ];
-  private readonly fallbackDeliveryRangeOptions = [
-    { id: 'nation-wide', label: 'Nation-wide' },
-    { id: 'state-wide', label: 'State-wide' },
-    { id: 'international', label: 'International' },
-  ];
-
   protected readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? '1');
   private readonly listingRecord = signal<ListingsApiItem | null>(null);
   private readonly manageListingsMetadata = signal<ManageListingsResponse | null>(null);
@@ -2903,8 +2898,8 @@ export class ListingDetailsPageComponent implements OnDestroy {
   protected readonly isUpdatingStatus = signal(false);
   protected readonly isDeletingListing = signal(false);
   protected readonly isPromotingListing = signal(false);
-  protected readonly selectedDeliveryMethods = signal<string[]>(['seller-delivery']);
-  protected readonly selectedDeliveryRanges = signal<string[]>(['nation-wide']);
+  protected readonly selectedDeliveryMethods = signal<string[]>([]);
+  protected readonly selectedDeliveryRanges = signal<string[]>([]);
   protected readonly editMediaPlaceholderSlots = [4, 5, 6] as const;
   private readonly editImageInput = viewChild<ElementRef<HTMLInputElement>>('editImageInput');
   private readonly editableGalleryImages = signal<EditableGalleryImage[]>([]);
@@ -2937,12 +2932,20 @@ export class ListingDetailsPageComponent implements OnDestroy {
     );
     return options;
   });
-  protected readonly deliveryMethodOptions = this.fallbackDeliveryMethodOptions;
-  protected readonly deliveryRangeOptions = this.fallbackDeliveryRangeOptions;
-  protected readonly mobileDeliveryOptions = computed(() => [
-    ...this.deliveryMethodOptions,
-    ...this.deliveryRangeOptions,
-  ]);
+  private readonly deliveryOptions = computed<readonly DeliveryOption[]>(() =>
+    (this.manageListingsMetadata()?.delivery_options ?? []).map((option) => ({
+      id: String(option.id),
+      label: option.name,
+      kind: this.resolveDeliveryOptionKind(option),
+    })),
+  );
+  protected readonly deliveryMethodOptions = computed<readonly DeliveryOption[]>(() =>
+    this.deliveryOptions().filter((option) => option.kind === 'method'),
+  );
+  protected readonly deliveryRangeOptions = computed<readonly DeliveryOption[]>(() =>
+    this.deliveryOptions().filter((option) => option.kind !== 'method'),
+  );
+  protected readonly mobileDeliveryOptions = computed(() => this.deliveryOptions());
   protected readonly editPrimaryGalleryImage = computed(
     () => this.editableGalleryImages()[0] ?? this.editableGalleryImages()[1] ?? null,
   );
@@ -3239,7 +3242,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   }
 
   protected handleMobileDeliveryOption(optionId: string): void {
-    if (this.deliveryMethodOptions.some((option) => option.id === optionId)) {
+    if (this.deliveryMethodOptions().some((option) => option.id === optionId)) {
       this.toggleDeliveryMethod(optionId);
       return;
     }
@@ -3860,10 +3863,19 @@ export class ListingDetailsPageComponent implements OnDestroy {
         }
 
         const entryRecord = this.readRecord(option);
+        const rawOptionId = entryRecord?.['id'];
+        const optionId =
+          typeof rawOptionId === 'number' || typeof rawOptionId === 'string'
+            ? String(rawOptionId).trim()
+            : null;
         const optionName =
           this.readString(entryRecord?.['name']) ??
           this.readString(entryRecord?.['label']) ??
           this.readString(entryRecord?.['option']);
+
+        if (optionId) {
+          selectedIds.add(optionId);
+        }
 
         if (optionName) {
           selectedIds.add(this.slugify(optionName));
@@ -3871,16 +3883,16 @@ export class ListingDetailsPageComponent implements OnDestroy {
       }
     }
 
-    const methods = this.deliveryMethodOptions
+    const methods = this.deliveryMethodOptions()
       .map((option) => option.id)
       .filter((id) => selectedIds.has(id));
-    const ranges = this.deliveryRangeOptions
+    const ranges = this.deliveryRangeOptions()
       .map((option) => option.id)
       .filter((id) => selectedIds.has(id));
 
     return {
-      methods: methods.length > 0 ? methods : this.selectedDeliveryMethods(),
-      ranges: ranges.length > 0 ? ranges : this.selectedDeliveryRanges(),
+      methods,
+      ranges,
     };
   }
 
@@ -4078,8 +4090,32 @@ export class ListingDetailsPageComponent implements OnDestroy {
     ]);
 
     return deliveryOptions
-      .filter((option) => selectedLabels.has(this.slugify(option.name)))
+      .filter((option) => selectedLabels.has(String(option.id)) || selectedLabels.has(this.slugify(option.name)))
       .map((option) => option.id);
+  }
+
+  private resolveDeliveryOptionKind(option: ManageListingsDeliveryOption): DeliveryOption['kind'] {
+    const key = this.slugify(option.name);
+
+    if (
+      key.includes('pickup') ||
+      key.includes('delivery') ||
+      key.includes('public-location') ||
+      key.includes('meetup')
+    ) {
+      return 'method';
+    }
+
+    if (
+      key.includes('nation') ||
+      key.includes('state') ||
+      key.includes('international') ||
+      key.includes('local')
+    ) {
+      return 'range';
+    }
+
+    return 'other';
   }
 
   private readStoreName(store: ManageListingsStore): string | null {

@@ -11,6 +11,7 @@ import {
   ListingsApiItem,
   ListingsService,
   ManageListingsCategory,
+  ManageListingsDeliveryOption,
   ManageListingsResponse,
   ManageListingsStore,
 } from '../../services/listings.service';
@@ -751,6 +752,7 @@ type AddListingPickerOption = {
         <app-add-listing-modal
           [categoryOptionsInput]="addListingCategoryOptions()"
           [storeOptionsInput]="addListingStoreOptions()"
+          [deliveryOptionsInput]="addListingDeliveryOptions()"
           (listingPublished)="handleListingPublished()"
           (draftSaved)="handleDraftSaved()"
           (close)="showAddListingModal.set(false)"
@@ -802,6 +804,7 @@ export class ListingsPageComponent {
   protected readonly draftStatusFilter = signal<ListingStatusFilter>('all');
   private readonly manageListingCategories = signal<readonly ManageListingsCategory[]>([]);
   private readonly manageListingStores = signal<readonly ManageListingsStore[]>([]);
+  private readonly manageListingDeliveryOptions = signal<readonly ManageListingsDeliveryOption[]>([]);
 
   protected readonly verificationIllustrationDesktop = '/assets/images/listings-verify-illustration-desktop-v2.png';
   protected readonly verificationIllustrationMobile = '/assets/images/listings-verify-illustration-mobile-v2.png';
@@ -976,6 +979,12 @@ export class ListingsPageComponent {
         ) ?? '/assets/images/dashboard-avatar-mobile.png',
     })),
   );
+  protected readonly addListingDeliveryOptions = computed<readonly AddListingPickerOption[]>(() =>
+    this.manageListingDeliveryOptions().map((option) => ({
+      value: String(option.id),
+      label: option.name,
+    })),
+  );
 
   constructor() {
     effect(() => {
@@ -1115,6 +1124,7 @@ export class ListingsPageComponent {
       this.applyVerificationState(response);
       this.manageListingCategories.set(this.extractCategories(response));
       this.manageListingStores.set(this.extractStores(response));
+      this.manageListingDeliveryOptions.set(this.extractDeliveryOptions(response));
       this.listings.set(mappedListings);
     } catch {
       this.errorMessage.set('Your listings aren’t available right now. Please try again shortly.');
@@ -1123,6 +1133,7 @@ export class ListingsPageComponent {
       this.isVerificationSubmitted.set(false);
       this.manageListingCategories.set([]);
       this.manageListingStores.set([]);
+      this.manageListingDeliveryOptions.set([]);
       this.listings.set([]);
     } finally {
       this.isLoading.set(false);
@@ -1143,6 +1154,10 @@ export class ListingsPageComponent {
 
   private extractStores(response: ManageListingsResponse): readonly ManageListingsStore[] {
     return Array.isArray(response.stores) ? response.stores : [];
+  }
+
+  private extractDeliveryOptions(response: ManageListingsResponse): readonly ManageListingsDeliveryOption[] {
+    return Array.isArray(response.delivery_options) ? response.delivery_options : [];
   }
 
   private applyVerificationState(response: ManageListingsResponse): void {
