@@ -126,9 +126,14 @@ export type AdminUserAdRecord = {
   link: string;
   ad_type: 'listing' | 'store' | 'banner' | string;
   promoted_listing_id: number | null;
+  promoted_listing_title?: string | null;
+  promoted_listing_price?: string | null;
+  promoted_listing_category?: string | null;
   promoted_store_id: string | null;
   promoted_store_name: string | null;
   promoted_store_image: string | null;
+  promoted_store_location?: string | null;
+  promoted_store_is_verified?: boolean;
   status: string;
   is_active: boolean;
   start_date: string;
@@ -136,6 +141,8 @@ export type AdminUserAdRecord = {
   amount_paid: string;
   total_views: number;
   total_clicks: number;
+  total_messages?: number;
+  total_calls?: number;
   created_at: string;
 };
 
