@@ -450,7 +450,7 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'home',
+    path: 'en',
     title: 'Home',
     canActivate: [buyerGuard],
     loadComponent: () =>

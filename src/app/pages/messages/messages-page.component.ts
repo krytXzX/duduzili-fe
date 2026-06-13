@@ -2,10 +2,12 @@ import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   OnDestroy,
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -491,10 +493,6 @@ type ChatDay = {
                         <p class="text-[20px] font-medium leading-6 text-[#002F35]">
                           {{ activeDesktopConversation().name }}
                         </p>
-                        <div class="mt-1 flex items-center gap-1">
-                          <span class="h-1 w-1 rounded-full bg-[#BFBFBF]"></span>
-                          <span class="text-[14px] leading-5 text-[#9C9C9C]"> Active 25 mins ago </span>
-                        </div>
                       </div>
                     </div>
 
@@ -859,16 +857,6 @@ type ChatDay = {
                         class="h-[18px] w-[18px]"
                       />
                     </button>
-                  } @else {
-                    <button type="button" class="absolute right-[11px] top-1/2 -translate-y-1/2">
-                      <img
-                        [ngSrc]="assets.micDesktop"
-                        width="24"
-                        height="24"
-                        alt=""
-                        class="h-6 w-6"
-                      />
-                    </button>
                   }
                 </div>
               </div>
@@ -1069,7 +1057,11 @@ type ChatDay = {
     </div>
 
     @if (isMobileConversationOpen()) {
-      <section class="fixed left-0 top-0 z-[95] flex h-dvh w-screen flex-col overflow-hidden bg-white md:hidden">
+      <section
+        class="fixed left-0 top-0 z-[95] flex h-dvh w-screen flex-col overflow-hidden bg-white md:hidden"
+        [style.height.px]="mobileViewportHeight()"
+        [style.top.px]="mobileViewportOffsetTop()"
+      >
         <header class="shrink-0 border-b border-[#EAEAEA] bg-white px-4 pt-0">
           @if (isSelectionMode()) {
             <div class="flex items-center justify-between gap-3 py-[14px]">
@@ -1142,19 +1134,11 @@ type ChatDay = {
                     <p class="truncate text-[20px] font-medium leading-6 text-[#002F35]">
                       {{ activeMobileConversation().name }}
                     </p>
-                    <div class="mt-1 flex items-center gap-1">
-                      <span class="h-1 w-1 rounded-full bg-[#BFBFBF]"></span>
-                      <span class="text-[14px] leading-5 text-[#9C9C9C]">Active 25 mins ago</span>
-                    </div>
                   </div>
                 </div>
               </div>
 
               <div class="flex shrink-0 items-center">
-                <button type="button" class="rounded-[40px] p-[10px]" aria-label="Search chat">
-                  <img [ngSrc]="assets.searchMobile" width="20" height="20" alt="" class="h-5 w-5" />
-                </button>
-
                 <button
                   type="button"
                   (click)="openProfileMenu()"
@@ -1171,9 +1155,31 @@ type ChatDay = {
         </header>
 
         <div
-          class="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-6 chats-scrollbar"
+          #mobileMessagesScroller
+          class="min-h-0 flex-1 overscroll-contain overflow-y-auto px-4 pb-8 pt-6 chats-scrollbar"
           (contextmenu)="suppressNativeContextMenu($event)"
+          aria-live="polite"
         >
+          @if (isLoadingConversationDetails() && activeConversationDays().length === 0) {
+            <div class="space-y-5" aria-label="Loading messages">
+              <div class="mx-auto h-4 w-20 animate-pulse rounded-full bg-[#EFEFEF]"></div>
+              <div class="h-14 w-[72%] animate-pulse rounded-[24px] bg-[#F2F2F2]"></div>
+              <div class="ml-auto h-16 w-[68%] animate-pulse rounded-[24px] bg-[#EAE7FF]"></div>
+              <div class="h-12 w-[58%] animate-pulse rounded-[24px] bg-[#F2F2F2]"></div>
+            </div>
+          } @else if (conversationDetailsError()) {
+            <div class="flex min-h-full items-center justify-center px-6 text-center">
+              <p class="text-[14px] leading-5 text-[#6F6F6F]">
+                {{ conversationDetailsError() }}
+              </p>
+            </div>
+          } @else if (activeConversationDays().length === 0) {
+            <div class="flex min-h-full items-center justify-center px-6 text-center">
+              <p class="text-[14px] leading-5 text-[#6F6F6F]">
+                No messages yet. Say hello to start the conversation.
+              </p>
+            </div>
+          } @else {
           <div class="space-y-6">
             @for (day of activeConversationDays(); track day.id) {
               <section>
@@ -1274,61 +1280,10 @@ type ChatDay = {
               </section>
             }
           </div>
+          }
         </div>
 
         <footer class="shrink-0 border-t border-[#EEEEEE] bg-white">
-          @if (isRecordingVoice()) {
-            <div class="px-[15px] py-[8px]">
-              <div
-                class="mx-auto flex h-[46px] w-full max-w-[350px] items-center rounded-full border border-[#EDEDED] bg-[#F8F8F8] px-[2.4px]"
-              >
-              <button
-                type="button"
-                aria-label="Cancel recording"
-                (click)="stopVoiceRecording()"
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white"
-              >
-                <img
-                  [ngSrc]="assets.recordingCancelMobile"
-                  width="24"
-                  height="24"
-                  alt=""
-                  class="h-6 w-6 -rotate-45"
-                />
-              </button>
-
-              <span class="ml-[11px] text-[14px] font-medium leading-5 text-[#FF2524]">
-                Recording...
-              </span>
-
-              <div class="ml-auto flex items-center gap-2 pr-[14px]">
-                <span class="w-[33px] text-[14px] leading-5 text-[#666666]">0:06</span>
-                <img
-                  [ngSrc]="assets.recordingMicMobile"
-                  width="20"
-                  height="20"
-                  alt=""
-                  class="h-5 w-5"
-                />
-              </div>
-
-              <button
-                type="button"
-                aria-label="Send voice note"
-                (click)="stopVoiceRecording()"
-                class="flex h-10 w-[58px] shrink-0 items-center justify-center rounded-full bg-[#6453D9]"
-              >
-                <img
-                  [ngSrc]="assets.recordingSendMobile"
-                  width="24"
-                  height="24"
-                  alt=""
-                  class="h-6 w-6"
-                />
-              </button>
-              </div>
-            </div>
-          } @else {
             @if (isReplyComposerOpen()) {
               <div class="flex items-start justify-between border-b border-[#EEEEEE] px-3 py-[6px]">
                 <div class="flex min-w-0 items-start gap-[8px]">
@@ -1360,10 +1315,13 @@ type ChatDay = {
               </div>
             }
 
-            <div class="px-[15px] pb-[calc(8px+env(safe-area-inset-bottom))] pt-[8px]">
-            <div class="flex min-h-[46px] items-center gap-4">
-              @if (!hasDraftMessage()) {
-                <button type="button" aria-label="Open gallery" class="shrink-0">
+            <div class="px-3 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2">
+            <div class="flex min-h-[46px] items-end gap-2">
+                <button
+                  type="button"
+                  aria-label="Open gallery"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+                >
                   <img
                     [ngSrc]="assets.galleryMobile"
                     width="24"
@@ -1372,11 +1330,10 @@ type ChatDay = {
                     class="h-6 w-6"
                   />
                 </button>
-              }
 
               <div
-                class="flex min-h-[46px] min-w-0 flex-1 items-end rounded-[24px] border border-[#EDEDED] bg-[#F8F8F8] pl-[13px] py-[4px]"
-                [class.pr-[13px]]="!hasDraftMessage()"
+                class="flex min-h-[46px] min-w-0 flex-1 items-end rounded-[24px] border border-[#EDEDED] bg-[#F8F8F8] py-1 pl-[13px]"
+                [class.pr-3]="!hasDraftMessage()"
                 [class.pr-1]="hasDraftMessage()"
               >
                 <textarea
@@ -1386,25 +1343,16 @@ type ChatDay = {
                   (input)="updateDraftMessage($event)"
                   (keydown)="handleDraftComposerKeydown($event)"
                   placeholder="Type a message..."
-                  class="max-h-[112px] min-w-0 flex-1 resize-none overflow-y-auto bg-transparent text-[14px] leading-5 text-[#2D2D2D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
+                  class="max-h-[112px] min-w-0 flex-1 resize-none overflow-y-auto bg-transparent py-[9px] text-[16px] leading-5 text-[#2D2D2D] outline-none placeholder:text-[rgba(13,13,13,0.4)]"
                 ></textarea>
 
-                @if (!hasDraftMessage()) {
-                  <button
-                    type="button"
-                    aria-label="Record voice note"
-                    (click)="startVoiceRecording()"
-                    class="shrink-0"
-                  >
-                    <img [ngSrc]="assets.micMobile" width="24" height="24" alt="" class="h-6 w-6" />
-                  </button>
-                } @else {
+                @if (hasDraftMessage()) {
                   <button
                     type="button"
                     aria-label="Send message"
                     (click)="sendDraftMessage()"
                     [disabled]="isSendingMessage()"
-                    class="flex h-10 w-[58px] shrink-0 items-center justify-center rounded-full bg-[#6453D9]"
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#6453D9] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <img
                       [ngSrc]="assets.sendMobile"
@@ -1418,7 +1366,6 @@ type ChatDay = {
               </div>
             </div>
             </div>
-          }
         </footer>
       </section>
     }
@@ -2021,11 +1968,6 @@ export class MessagesPageComponent implements OnDestroy {
     profileMenuTrash: '/assets/icons/chats-profile-menu-trash.svg',
     bryanBadgeDesktop: '/assets/icons/chats-bryan-badge-desktop.svg',
     bryanBadgeMobile: '/assets/icons/chats-bryan-badge-mobile.svg',
-    micDesktop: '/assets/icons/chats-mic-desktop.svg',
-    micMobile: '/assets/icons/chats-mic-mobile.svg',
-    recordingCancelMobile: '/assets/icons/chats-recording-cancel-mobile.svg',
-    recordingMicMobile: '/assets/icons/chats-recording-mic-mobile.svg',
-    recordingSendMobile: '/assets/icons/chats-recording-send-mobile.svg',
     searchDesktop: '/assets/icons/chats-search-desktop.svg',
     searchMobile: '/assets/icons/chats-search-mobile.svg',
     selectorAvatarOne: '/assets/images/chats-store-selector-avatar-1.png',
@@ -2056,7 +1998,6 @@ export class MessagesPageComponent implements OnDestroy {
   readonly messageMenuTarget = signal<MessageMenuTarget | null>(null);
   readonly messageMenuViewport = signal<'desktop' | 'mobile' | null>(null);
   readonly isReplyComposerOpen = computed(() => this.activeReplyTarget() !== null);
-  readonly isRecordingVoice = signal(false);
   readonly isStoreSelectorOpen = signal(false);
   readonly isSellerReportModalOpen = signal(false);
   readonly isSellerReportSuccessModalOpen = signal(false);
@@ -2073,7 +2014,10 @@ export class MessagesPageComponent implements OnDestroy {
   readonly isLoadingConversations = signal(true);
   readonly conversationsError = signal<string | null>(null);
   readonly isLoadingConversationDetails = signal(false);
+  readonly conversationDetailsError = signal<string | null>(null);
   readonly isSendingMessage = signal(false);
+  readonly mobileViewportHeight = signal<number | null>(null);
+  readonly mobileViewportOffsetTop = signal(0);
   readonly isDeletingMessages = signal(false);
   readonly isSubmittingSellerReport = signal(false);
   readonly hasConversations = computed(() => this.conversations().length > 0);
@@ -2092,6 +2036,15 @@ export class MessagesPageComponent implements OnDestroy {
   readonly sellerReportStep = signal<1 | 2>(1);
   readonly selectedSellerReportReason = signal<string | null>(null);
   private longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly mobileMessagesScroller =
+    viewChild<ElementRef<HTMLDivElement>>('mobileMessagesScroller');
+  private readonly browserWindow = this.document.defaultView;
+  private readonly updateMobileViewportHeight = (): void => {
+    const viewportHeight =
+      this.browserWindow?.visualViewport?.height ?? this.browserWindow?.innerHeight ?? null;
+    this.mobileViewportHeight.set(viewportHeight);
+    this.mobileViewportOffsetTop.set(this.browserWindow?.visualViewport?.offsetTop ?? 0);
+  };
 
   readonly storeOptions = signal<readonly StoreOption[]>([]);
 
@@ -2164,6 +2117,16 @@ export class MessagesPageComponent implements OnDestroy {
   });
 
   constructor() {
+    this.updateMobileViewportHeight();
+    this.browserWindow?.visualViewport?.addEventListener(
+      'resize',
+      this.updateMobileViewportHeight,
+    );
+    this.browserWindow?.visualViewport?.addEventListener(
+      'scroll',
+      this.updateMobileViewportHeight,
+    );
+    this.browserWindow?.addEventListener('orientationchange', this.updateMobileViewportHeight);
     void this.initializePage();
   }
 
@@ -2175,7 +2138,6 @@ export class MessagesPageComponent implements OnDestroy {
     this.deleteIntent.set('chat');
     this.messageMenuTarget.set(null);
     this.activeReplyTarget.set(null);
-    this.isRecordingVoice.set(false);
     this.isStoreSelectorOpen.set(false);
     this.selectedMessageIds.set([]);
     this.isMobileConversationOpen.set(true);
@@ -2185,6 +2147,7 @@ export class MessagesPageComponent implements OnDestroy {
       this.mobileConversationOverlayOpen = true;
     }
 
+    this.scrollMobileMessagesToBottom();
     void this.loadConversationDetails(chatId);
   }
 
@@ -2491,6 +2454,7 @@ export class MessagesPageComponent implements OnDestroy {
 
   private async loadConversationDetails(chatId: string): Promise<void> {
     this.isLoadingConversationDetails.set(true);
+    this.conversationDetailsError.set(null);
 
     try {
       const response = await firstValueFrom(this.messagesService.getMessageDetails(chatId));
@@ -2504,12 +2468,10 @@ export class MessagesPageComponent implements OnDestroy {
         }));
       }
 
-      if (mappedDays.length > 0) {
-        this.conversationDays.update((current) => ({
-          ...current,
-          [chatId]: mappedDays,
-        }));
-      }
+      this.conversationDays.update((current) => ({
+        ...current,
+        [chatId]: mappedDays,
+      }));
 
       this.conversations.update((items) =>
         items.map((conversation) =>
@@ -2521,8 +2483,11 @@ export class MessagesPageComponent implements OnDestroy {
             : conversation,
         ),
       );
+      this.scrollMobileMessagesToBottom();
     } catch {
-      // Keep existing fallback messages when the thread endpoint fails.
+      this.conversationDetailsError.set(
+        'This conversation could not be loaded right now. Please try again.',
+      );
     } finally {
       this.isLoadingConversationDetails.set(false);
     }
@@ -2747,7 +2712,6 @@ export class MessagesPageComponent implements OnDestroy {
     this.deleteIntent.set('chat');
     this.messageMenuTarget.set(null);
     this.activeReplyTarget.set(null);
-    this.isRecordingVoice.set(false);
     this.isStoreSelectorOpen.set(false);
     this.selectedMessageIds.set([]);
     void this.loadConversationDetails(chatId);
@@ -2760,7 +2724,6 @@ export class MessagesPageComponent implements OnDestroy {
     this.deleteIntent.set('chat');
     this.messageMenuTarget.set(null);
     this.activeReplyTarget.set(null);
-    this.isRecordingVoice.set(false);
     this.selectedMessageIds.set([]);
     this.isMobileConversationOpen.set(false);
 
@@ -2805,8 +2768,11 @@ export class MessagesPageComponent implements OnDestroy {
       this.draftMessage.set('');
       this.activeReplyTarget.set(null);
       this.resetDraftComposerHeights();
+      this.scrollMobileMessagesToBottom();
     } catch {
-      // Keep the draft intact if the send request fails.
+      this.appToastService.show({
+        message: 'Your message could not be sent. Please try again.',
+      });
     } finally {
       this.isSendingMessage.set(false);
     }
@@ -2845,7 +2811,19 @@ export class MessagesPageComponent implements OnDestroy {
       const length = activeField.value.length;
       activeField.setSelectionRange(length, length);
       this.resizeDraftComposer(activeField);
+      this.scrollMobileMessagesToBottom();
     }, 0);
+  }
+
+  private scrollMobileMessagesToBottom(): void {
+    this.browserWindow?.requestAnimationFrame(() => {
+      this.browserWindow?.requestAnimationFrame(() => {
+        const scroller = this.mobileMessagesScroller()?.nativeElement;
+        if (scroller) {
+          scroller.scrollTop = scroller.scrollHeight;
+        }
+      });
+    });
   }
 
   protected openStoreSelector(): void {
@@ -3120,7 +3098,6 @@ export class MessagesPageComponent implements OnDestroy {
     this.closeProfileMenu();
     this.closeStoreSelector();
     this.activeReplyTarget.set(null);
-    this.isRecordingVoice.set(false);
     this.selectedMessageIds.set([messageId]);
   }
 
@@ -3342,7 +3319,6 @@ export class MessagesPageComponent implements OnDestroy {
     this.isProfileMenuOpen.set(false);
     this.isStoreSelectorOpen.set(false);
     this.isClearChatConfirmOpen.set(false);
-    this.isRecordingVoice.set(false);
   }
 
   private resolveMenuAnchorFromTarget(event: PointerEvent): { left: number; top: number } | null {
@@ -3394,20 +3370,20 @@ export class MessagesPageComponent implements OnDestroy {
     this.storeSearchTerm.set(input?.value ?? '');
   }
 
-  protected startVoiceRecording(): void {
-    this.isClearChatConfirmOpen.set(false);
-    this.isMessageMenuOpen.set(false);
-    this.isProfileMenuOpen.set(false);
-    this.messageMenuTarget.set(null);
-    this.isRecordingVoice.set(true);
-  }
-
-  protected stopVoiceRecording(): void {
-    this.isRecordingVoice.set(false);
-  }
-
   ngOnDestroy(): void {
     this.clearLongPressTimer();
+    this.browserWindow?.visualViewport?.removeEventListener(
+      'resize',
+      this.updateMobileViewportHeight,
+    );
+    this.browserWindow?.visualViewport?.removeEventListener(
+      'scroll',
+      this.updateMobileViewportHeight,
+    );
+    this.browserWindow?.removeEventListener(
+      'orientationchange',
+      this.updateMobileViewportHeight,
+    );
     if (this.mobileConversationOverlayOpen) {
       this.mobileOverlayService.closeMobileModal();
       this.mobileConversationOverlayOpen = false;
