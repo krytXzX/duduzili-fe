@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -284,7 +284,10 @@ export class AdminUserDetailsService {
     return this.http.get<AdminUserDetailResponse>(`${this.apiUrl}/admin/users/${userId}/`);
   }
 
-  getUserListings(userId: string, query: AdminUserListingsQuery = {}): Observable<AdminUserListingsResponse> {
+  getUserListings(
+    userId: string,
+    query: AdminUserListingsQuery = {},
+  ): Observable<AdminUserListingsResponse> {
     let params = new HttpParams();
 
     if (query.category && query.category !== 'all') {
@@ -304,7 +307,10 @@ export class AdminUserDetailsService {
       params = params.set('search', search);
     }
 
-    return this.http.get<AdminUserListingsResponse>(`${this.apiUrl}/admin/users/${userId}/listings/`, { params });
+    return this.http.get<AdminUserListingsResponse>(
+      `${this.apiUrl}/admin/users/${userId}/listings/`,
+      { params },
+    );
   }
 
   getUserStores(userId: string): Observable<AdminUserStoresResponse> {
@@ -315,7 +321,10 @@ export class AdminUserDetailsService {
     return this.http.get<AdminUserAdsResponse>(`${this.apiUrl}/admin/users/${userId}/ads/`);
   }
 
-  getUserTransactions(userId: string, query: AdminUserTransactionsQuery = {}): Observable<AdminUserTransactionsResponse> {
+  getUserTransactions(
+    userId: string,
+    query: AdminUserTransactionsQuery = {},
+  ): Observable<AdminUserTransactionsResponse> {
     let params = new HttpParams();
 
     if (query.transactionType && query.transactionType !== 'all') {
@@ -330,41 +339,75 @@ export class AdminUserDetailsService {
       params = params.set('date', query.date);
     }
 
-    return this.http.get<AdminUserTransactionsResponse>(`${this.apiUrl}/admin/users/${userId}/transactions/`, { params });
+    return this.http.get<AdminUserTransactionsResponse>(
+      `${this.apiUrl}/admin/users/${userId}/transactions/`,
+      { params },
+    );
   }
 
-  getUserReviews(userId: string, ordering: 'most_recent' | 'highest' = 'most_recent'): Observable<AdminUserReviewsResponse> {
+  getUserReviews(
+    userId: string,
+    ordering: 'most_recent' | 'highest' = 'most_recent',
+  ): Observable<AdminUserReviewsResponse> {
     const params = new HttpParams().set('ordering', ordering);
-    return this.http.get<AdminUserReviewsResponse>(`${this.apiUrl}/admin/users/${userId}/reviews/`, { params });
+    return this.http.get<AdminUserReviewsResponse>(
+      `${this.apiUrl}/admin/users/${userId}/reviews/`,
+      { params },
+    );
   }
 
-  getUserReports(userId: string, type: 'profile' | 'listing', search = ''): Observable<AdminUserReportsResponse> {
+  getUserReports(
+    userId: string,
+    type: 'profile' | 'listing',
+    search = '',
+  ): Observable<AdminUserReportsResponse> {
     let params = new HttpParams().set('type', type);
     const normalizedSearch = search.trim();
     if (normalizedSearch) {
       params = params.set('search', normalizedSearch);
     }
-    return this.http.get<AdminUserReportsResponse>(`${this.apiUrl}/admin/users/${userId}/reports/`, { params });
+    return this.http.get<AdminUserReportsResponse>(
+      `${this.apiUrl}/admin/users/${userId}/reports/`,
+      { params },
+    );
   }
 
-  getUserActivities(userId: string, period: 'this_week' | 'this_month' | 'all' = 'all'): Observable<AdminUserActivitiesResponse> {
+  getUserActivities(
+    userId: string,
+    period: 'this_week' | 'this_month' | 'all' = 'all',
+  ): Observable<AdminUserActivitiesResponse> {
     const params = new HttpParams().set('period', period);
-    return this.http.get<AdminUserActivitiesResponse>(`${this.apiUrl}/admin/users/${userId}/activities/`, { params });
+    return this.http.get<AdminUserActivitiesResponse>(
+      `${this.apiUrl}/admin/users/${userId}/activities/`,
+      { params },
+    );
   }
 
   suspendUser(userId: string): Observable<{ detail: string; is_active: boolean }> {
-    return this.http.post<{ detail: string; is_active: boolean }>(`${this.apiUrl}/admin/users/${userId}/suspend/`, {});
+    return this.http.post<{ detail: string; is_active: boolean }>(
+      `${this.apiUrl}/admin/users/${userId}/suspend/`,
+      {},
+    );
   }
 
   banUser(userId: string): Observable<{ detail: string; is_active: boolean; is_banned: boolean }> {
-    return this.http.post<{ detail: string; is_active: boolean; is_banned: boolean }>(`${this.apiUrl}/admin/users/${userId}/ban/`, {});
+    return this.http.post<{ detail: string; is_active: boolean; is_banned: boolean }>(
+      `${this.apiUrl}/admin/users/${userId}/ban/`,
+      {},
+    );
   }
 
   activateUser(userId: string): Observable<{ detail: string; is_active: boolean }> {
-    return this.http.post<{ detail: string; is_active: boolean }>(`${this.apiUrl}/admin/users/${userId}/activate/`, {});
+    return this.http.post<{ detail: string; is_active: boolean }>(
+      `${this.apiUrl}/admin/users/${userId}/activate/`,
+      {},
+    );
   }
 
-  downloadUserDataUrl(userId: string): string {
-    return `${this.apiUrl}/admin/users/${userId}/download/`;
+  downloadUserData(userId: string): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.apiUrl}/admin/users/${userId}/download/`, {
+      observe: 'response',
+      responseType: 'blob',
+    });
   }
 }

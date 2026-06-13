@@ -1,5 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
+import { DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -8,7 +15,10 @@ import { forkJoin } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { StoreCardComponent, type Store } from '../../components/stores/store-card.component';
-import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
+import {
+  CustomDropdownComponent,
+  type CustomDropdownOption,
+} from '../../components/ui/custom-dropdown.component';
 import {
   BannerPromotionCardComponent,
   type BannerPromotionCardData,
@@ -44,12 +54,7 @@ type AdminManagedListingStatus = 'available' | 'sold' | 'draft' | 'paused';
 type AdminManagedListingCategory = 'all' | string;
 type AdminManagedListingStore = 'all' | string;
 type AdminManagedAdStatus = 'active' | 'paused' | 'expired';
-type AdminManagedBannerStatus =
-  | 'active'
-  | 'paused'
-  | 'pending approval'
-  | 'declined'
-  | 'expired';
+type AdminManagedBannerStatus = 'active' | 'paused' | 'pending approval' | 'declined' | 'expired';
 type AdminManagedAdsFilterStatus =
   | 'active'
   | 'paused'
@@ -58,9 +63,7 @@ type AdminManagedAdsFilterStatus =
   | 'expired';
 type AdminManagedAdPlacement = 'promoted listings' | 'store promotions' | 'banner ads';
 type AdminManagedAdCategory = 'other listings' | 'automobile listings' | 'property listings';
-type AdminManagedPromotedListingCategory =
-  | AdminManagedAdCategory
-  | 'phones & laptops';
+type AdminManagedPromotedListingCategory = AdminManagedAdCategory | 'phones & laptops';
 type AdminManagedPromotedListingPriceDisplay = 'naira-icon' | 'strikethrough-n' | 'text';
 type MobilePromotedStore = Store & { status: AdminManagedAdStatus };
 type AdminUserTransactionStatus = 'successful' | 'failed';
@@ -270,7 +273,14 @@ interface AdminUserActivityYearGroup {
 
 @Component({
   selector: 'app-admin-user-details-page',
-  imports: [RouterLink, NgIcon, NgOptimizedImage, StoreCardComponent, BannerPromotionCardComponent, CustomDropdownComponent],
+  imports: [
+    RouterLink,
+    NgIcon,
+    NgOptimizedImage,
+    StoreCardComponent,
+    BannerPromotionCardComponent,
+    CustomDropdownComponent,
+  ],
   providers: [
     provideIcons({
       heroCalendarDays,
@@ -336,7 +346,10 @@ interface AdminUserActivityYearGroup {
             >
               <button
                 type="button"
+                [disabled]="isDownloadingUserData()"
                 class="flex h-8 items-center gap-1.5 rounded-[8px] bg-white px-2 text-left text-[14px] font-medium leading-5 text-[#292D32]"
+                [class.cursor-wait]="isDownloadingUserData()"
+                [class.opacity-60]="isDownloadingUserData()"
                 role="menuitem"
                 (click)="downloadUserData()"
               >
@@ -348,7 +361,7 @@ interface AdminUserActivityYearGroup {
                   class="h-[14px] w-[14px] shrink-0"
                   aria-hidden="true"
                 />
-                Download data
+                {{ isDownloadingUserData() ? 'Preparing…' : 'Download data' }}
               </button>
 
               <button
@@ -400,8 +413,12 @@ interface AdminUserActivityYearGroup {
             aria-hidden="true"
           />
           <div class="min-w-0">
-            <h1 class="truncate text-[20px] font-semibold leading-8 text-[#1A1B1D]">{{ user().name }}</h1>
-            <p class="truncate text-[14px] font-medium leading-5 text-[#0D0D0D]/40">{{ user().email }}</p>
+            <h1 class="truncate text-[20px] font-semibold leading-8 text-[#1A1B1D]">
+              {{ user().name }}
+            </h1>
+            <p class="truncate text-[14px] font-medium leading-5 text-[#0D0D0D]/40">
+              {{ user().email }}
+            </p>
           </div>
         </div>
 
@@ -420,14 +437,12 @@ interface AdminUserActivityYearGroup {
         </span>
       </div>
 
-      <div class="-mx-3 mt-8 overflow-x-auto border-b border-[#EAEAEA] px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div
+        class="-mx-3 mt-8 overflow-x-auto border-b border-[#EAEAEA] px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         <div class="flex w-max items-end">
           @for (tab of mobileTabs; track tab.id) {
-            <button
-              type="button"
-              (click)="activeTab.set(tab.id)"
-              class="flex flex-col gap-1.5"
-            >
+            <button type="button" (click)="activeTab.set(tab.id)" class="flex flex-col gap-1.5">
               <span
                 class="flex items-center gap-1 rounded-lg px-3 py-1 text-[16px] font-medium leading-6"
                 [class.text-[#6453D9]]="activeTab() === tab.id"
@@ -470,8 +485,12 @@ interface AdminUserActivityYearGroup {
 
             <div class="mt-5">
               <p class="text-[14px] font-semibold leading-6 text-[#0D0D0D]/40">Total sold items</p>
-              <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">{{ user().totalSoldItems }}</p>
-              <span class="mt-2 inline-flex h-6 items-center gap-1 rounded-full bg-[#27A551]/[0.06] px-2 text-[12px] font-normal leading-4 text-[#27A551]">
+              <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">
+                {{ user().totalSoldItems }}
+              </p>
+              <span
+                class="mt-2 inline-flex h-6 items-center gap-1 rounded-full bg-[#27A551]/[0.06] px-2 text-[12px] font-normal leading-4 text-[#27A551]"
+              >
                 <img
                   ngSrc="/assets/icons/admin-user-details/arrow-up.svg"
                   width="12"
@@ -486,8 +505,12 @@ interface AdminUserActivityYearGroup {
 
             <div class="mt-8 overflow-hidden">
               <div class="relative h-[172px] min-w-[520px]">
-                <div class="absolute left-0 top-0 text-[10px] text-[#0D0D0D]/40">{{ overviewChartScaleMax() }}</div>
-                <div class="absolute left-0 top-[76px] text-[10px] text-[#0D0D0D]/40">{{ overviewChartScaleMid() }}</div>
+                <div class="absolute left-0 top-0 text-[10px] text-[#0D0D0D]/40">
+                  {{ overviewChartScaleMax() }}
+                </div>
+                <div class="absolute left-0 top-[76px] text-[10px] text-[#0D0D0D]/40">
+                  {{ overviewChartScaleMid() }}
+                </div>
                 <div class="absolute bottom-[25px] left-0 text-[10px] text-[#0D0D0D]/40">0</div>
                 <div class="absolute bottom-[42px] left-[34px] flex h-[139px] items-end gap-[22px]">
                   @for (month of mobileMonths(); track month.date) {
@@ -503,13 +526,17 @@ interface AdminUserActivityYearGroup {
                     ></div>
                   }
                 </div>
-                <div class="absolute bottom-0 left-[34px] flex gap-[19px] text-[10px] text-[#0D0D0D]/40">
+                <div
+                  class="absolute bottom-0 left-[34px] flex gap-[19px] text-[10px] text-[#0D0D0D]/40"
+                >
                   @for (month of mobileMonths(); track month.date) {
                     <span class="w-5 text-center">{{ month.label }}</span>
                   }
                 </div>
                 @if (overviewChartHighlight(); as chartHighlight) {
-                  <div class="absolute left-[151px] top-[49px] flex h-8 items-center gap-2 rounded-[10px] bg-black px-2 text-[12px] text-white">
+                  <div
+                    class="absolute left-[151px] top-[49px] flex h-8 items-center gap-2 rounded-[10px] bg-black px-2 text-[12px] text-white"
+                  >
                     <span class="h-1.5 w-1.5 rounded-full bg-[#6453D9]"></span>
                     <span>{{ chartHighlight.label }}</span>
                     <span>{{ chartHighlight.value }}</span>
@@ -521,7 +548,9 @@ interface AdminUserActivityYearGroup {
 
           <section class="rounded-[24px] border border-[#EFEFEF] bg-white p-[15px] text-center">
             <p class="text-left text-[14px] font-medium text-[#0D0D0D]/50">Most viewed listing</p>
-            <div class="mx-auto mt-[18px] w-[100px] rounded-[10px] border border-[#EAEAEA] bg-white p-0.5 shadow-[0_4.7px_4.7px_rgba(192,192,192,0.25)]">
+            <div
+              class="mx-auto mt-[18px] w-[100px] rounded-[10px] border border-[#EAEAEA] bg-white p-0.5 shadow-[0_4.7px_4.7px_rgba(192,192,192,0.25)]"
+            >
               <div class="rounded-[8px] border border-[#EAEAEA] bg-[#EFEFEF] p-2">
                 @if (user().mostViewedListingImage) {
                   <img
@@ -536,12 +565,17 @@ interface AdminUserActivityYearGroup {
               </div>
               <div class="px-0.5 py-1 text-left">
                 <div class="flex items-center justify-between gap-1">
-                  <p class="truncate text-[6px] leading-[8.7px] text-[#1F1F1F]">{{ user().mostViewedListingTitle }}</p>
+                  <p class="truncate text-[6px] leading-[8.7px] text-[#1F1F1F]">
+                    {{ user().mostViewedListingTitle }}
+                  </p>
                 </div>
               </div>
             </div>
-            <p class="mx-auto mt-5 max-w-[246px] text-[17px] font-medium leading-[1.3] text-[#0D0D0D]/50">
-              This item has been viewed <span class="text-[#0D0D0D]">{{ user().mostViewedListingCount }}</span> times
+            <p
+              class="mx-auto mt-5 max-w-[246px] text-[17px] font-medium leading-[1.3] text-[#0D0D0D]/50"
+            >
+              This item has been viewed
+              <span class="text-[#0D0D0D]">{{ user().mostViewedListingCount }}</span> times
             </p>
           </section>
 
@@ -563,7 +597,10 @@ interface AdminUserActivityYearGroup {
                 </div>
               }
             </div>
-            <button type="button" class="mt-6 text-[14px] font-medium leading-5 text-[#6453D9] underline underline-offset-2">
+            <button
+              type="button"
+              class="mt-6 text-[14px] font-medium leading-5 text-[#6453D9] underline underline-offset-2"
+            >
               View more
             </button>
           </section>
@@ -622,7 +659,7 @@ interface AdminUserActivityYearGroup {
                 (input)="updateListingsSearchQuery($any($event.target).value)"
                 placeholder="Search"
                 class="h-10 w-full rounded-full bg-[#FAFAFA] py-2 pl-10 pr-4 text-[14px] text-[#1A1B1D] outline-none placeholder:text-[#777777] focus:ring-2 focus:ring-[#6453D9]/10"
-              >
+              />
             </label>
 
             <button
@@ -646,7 +683,9 @@ interface AdminUserActivityYearGroup {
               <article class="border-b border-[#EBEBEB] py-3 first:pt-0">
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex min-w-0 items-center gap-3">
-                    <div class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[6.6px] border border-[#F0F0F0] bg-[#EFEFEF]">
+                    <div
+                      class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[6.6px] border border-[#F0F0F0] bg-[#EFEFEF]"
+                    >
                       @if (listing.thumbnail) {
                         <img
                           [ngSrc]="listing.thumbnail"
@@ -660,9 +699,13 @@ interface AdminUserActivityYearGroup {
                     </div>
 
                     <div class="min-w-0">
-                      <h2 class="truncate text-[16px] font-medium leading-6 text-[#0D0D0D]/80">{{ listing.name }}</h2>
+                      <h2 class="truncate text-[16px] font-medium leading-6 text-[#0D0D0D]/80">
+                        {{ listing.name }}
+                      </h2>
                       @if (listing.promoted) {
-                        <span class="mt-1 inline-flex items-center gap-1 text-[12px] leading-4 text-[#7F8081]">
+                        <span
+                          class="mt-1 inline-flex items-center gap-1 text-[12px] leading-4 text-[#7F8081]"
+                        >
                           <span aria-hidden="true">🚀</span>
                           Promoted
                         </span>
@@ -682,9 +725,23 @@ interface AdminUserActivityYearGroup {
                     [class.text-[#FF2524]]="listing.status === 'suspended'"
                   >
                     @if (listing.status === 'available') {
-                      <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                        <path d="M7 12.8333C10.2217 12.8333 12.8333 10.2217 12.8333 7C12.8333 3.77834 10.2217 1.16667 7 1.16667C3.77834 1.16667 1.16667 3.77834 1.16667 7C1.16667 10.2217 3.77834 12.8333 7 12.8333Z" fill="currentColor"/>
-                        <path d="M7 3.79166V7L8.75 8.75" stroke="white" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+                      <svg
+                        class="h-3.5 w-3.5 shrink-0"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M7 12.8333C10.2217 12.8333 12.8333 10.2217 12.8333 7C12.8333 3.77834 10.2217 1.16667 7 1.16667C3.77834 1.16667 1.16667 3.77834 1.16667 7C1.16667 10.2217 3.77834 12.8333 7 12.8333Z"
+                          fill="currentColor"
+                        />
+                        <path
+                          d="M7 3.79166V7L8.75 8.75"
+                          stroke="white"
+                          stroke-width="1.1"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
                       </svg>
                     } @else if (listing.status === 'sold') {
                       <img
@@ -696,11 +753,38 @@ interface AdminUserActivityYearGroup {
                         aria-hidden="true"
                       />
                     } @else if (listing.status === 'draft') {
-                      <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                        <rect x="1.16667" y="1.16667" width="11.6667" height="11.6667" rx="2.33333" fill="currentColor"/>
-                        <path d="M4.08334 4.66667H9.91667" stroke="white" stroke-width="1.1" stroke-linecap="round"/>
-                        <path d="M4.08334 6.99999H9.91667" stroke="white" stroke-width="1.1" stroke-linecap="round"/>
-                        <path d="M4.08334 9.33333H7.58334" stroke="white" stroke-width="1.1" stroke-linecap="round"/>
+                      <svg
+                        class="h-3.5 w-3.5 shrink-0"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <rect
+                          x="1.16667"
+                          y="1.16667"
+                          width="11.6667"
+                          height="11.6667"
+                          rx="2.33333"
+                          fill="currentColor"
+                        />
+                        <path
+                          d="M4.08334 4.66667H9.91667"
+                          stroke="white"
+                          stroke-width="1.1"
+                          stroke-linecap="round"
+                        />
+                        <path
+                          d="M4.08334 6.99999H9.91667"
+                          stroke="white"
+                          stroke-width="1.1"
+                          stroke-linecap="round"
+                        />
+                        <path
+                          d="M4.08334 9.33333H7.58334"
+                          stroke="white"
+                          stroke-width="1.1"
+                          stroke-linecap="round"
+                        />
                       </svg>
                     } @else {
                       <img
@@ -716,7 +800,9 @@ interface AdminUserActivityYearGroup {
                   </span>
                 </div>
 
-                <dl class="mt-4 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-3 text-[14px] leading-5">
+                <dl
+                  class="mt-4 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-3 text-[14px] leading-5"
+                >
                   <dt class="text-[#1A1B1D]/50">Store</dt>
                   <dd class="text-right font-medium text-[#1A1B1D]">{{ listing.storeName }}</dd>
 
@@ -763,26 +849,32 @@ interface AdminUserActivityYearGroup {
                       class="h-full w-full object-cover"
                     />
                   } @else {
-                    <span class="text-[11px] font-semibold text-[#1F1F1F]">{{ storeInitials(store.name) }}</span>
+                    <span class="text-[11px] font-semibold text-[#1F1F1F]">{{
+                      storeInitials(store.name)
+                    }}</span>
                   }
                 </div>
 
                 <div class="mt-2">
                   <div class="flex items-center gap-[2.3px]">
-                    <h2 class="truncate text-[12px] font-medium leading-[13.746px] text-[#1F1F1F]">{{ store.name }}</h2>
-                      @if (store.isVerified ?? true) {
-                        <img
-                          ngSrc="/assets/icons/admin-user-details/stores/verify.svg"
-                          width="12"
-                          height="12"
-                          alt=""
-                          class="h-3 w-3 shrink-0"
+                    <h2 class="truncate text-[12px] font-medium leading-[13.746px] text-[#1F1F1F]">
+                      {{ store.name }}
+                    </h2>
+                    @if (store.isVerified ?? true) {
+                      <img
+                        ngSrc="/assets/icons/admin-user-details/stores/verify.svg"
+                        width="12"
+                        height="12"
+                        alt=""
+                        class="h-3 w-3 shrink-0"
                         aria-hidden="true"
                       />
                     }
                   </div>
 
-                  <div class="mt-[2px] flex items-center gap-[2.24px] text-[10px] leading-[8.968px] text-[#959595]">
+                  <div
+                    class="mt-[2px] flex items-center gap-[2.24px] text-[10px] leading-[8.968px] text-[#959595]"
+                  >
                     <img
                       ngSrc="/assets/icons/admin-user-details/stores/location.svg"
                       width="10"
@@ -803,12 +895,18 @@ interface AdminUserActivityYearGroup {
           <section class="relative overflow-hidden rounded-[24px] bg-[#F3F1FF] px-4 pb-4 pt-4">
             <div class="relative z-10 flex items-start justify-between gap-4">
               <div>
-                  <p class="text-[14px] leading-5 text-[#1F1F1F]">{{ subscriptionSummary()?.planName ?? 'No active plan' }}</p>
-                  <p class="mt-3 text-[0px] leading-none text-[#1F1F1F]">
-                    <span class="text-[32px] font-medium leading-8 tracking-[-0.04em]">{{ subscriptionSummary()?.price ?? '₦0' }}</span>
-                  </p>
-                  <p class="mt-2 text-[12px] leading-4 text-[#0D0D0D]/70">Expires on: {{ subscriptionSummary()?.activeUntil ?? '—' }}</p>
-                </div>
+                <p class="text-[14px] leading-5 text-[#1F1F1F]">
+                  {{ subscriptionSummary()?.planName ?? 'No active plan' }}
+                </p>
+                <p class="mt-3 text-[0px] leading-none text-[#1F1F1F]">
+                  <span class="text-[32px] font-medium leading-8 tracking-[-0.04em]">{{
+                    subscriptionSummary()?.price ?? '₦0'
+                  }}</span>
+                </p>
+                <p class="mt-2 text-[12px] leading-4 text-[#0D0D0D]/70">
+                  Expires on: {{ subscriptionSummary()?.activeUntil ?? '—' }}
+                </p>
+              </div>
 
               <span
                 class="inline-flex h-7 shrink-0 items-center rounded-full bg-white px-2 text-[12px] font-medium leading-5 text-[#6453D9] shadow-[0_4px_8px_rgba(188,188,188,0.25)]"
@@ -827,7 +925,9 @@ interface AdminUserActivityYearGroup {
             />
           </section>
 
-          <div class="-mx-3 overflow-x-auto px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            class="-mx-3 overflow-x-auto px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             <div class="flex w-max items-center gap-5">
               @for (placement of adPlacementTabs; track placement.value) {
                 <button
@@ -868,7 +968,10 @@ interface AdminUserActivityYearGroup {
           } @else if (activeAdsPlacement() === 'banner ads') {
             <div class="flex flex-col gap-[17.199px]">
               @for (banner of visibleBannerAds(); track banner.id) {
-                <app-banner-promotion-card [card]="banner" [compact]="true"></app-banner-promotion-card>
+                <app-banner-promotion-card
+                  [card]="banner"
+                  [compact]="true"
+                ></app-banner-promotion-card>
               }
             </div>
           } @else if (activeAdsPlacement() === 'promoted listings') {
@@ -880,7 +983,10 @@ interface AdminUserActivityYearGroup {
                       {{ section.label }}
                     </h2>
 
-                    <button type="button" class="inline-flex items-center gap-1 text-[12px] leading-6 text-[#1F1F1F]">
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-1 text-[12px] leading-6 text-[#1F1F1F]"
+                    >
                       View all (3,341)
                       <ng-icon name="heroChevronRight" class="text-[14px]"></ng-icon>
                     </button>
@@ -888,7 +994,9 @@ interface AdminUserActivityYearGroup {
 
                   <div class="grid grid-cols-2 gap-x-2 gap-y-4">
                     @for (ad of section.items; track ad.id) {
-                      <article class="overflow-hidden rounded-[13.451px] border-[0.561px] border-[#EAEAEA] bg-white p-[2.242px]">
+                      <article
+                        class="overflow-hidden rounded-[13.451px] border-[0.561px] border-[#EAEAEA] bg-white p-[2.242px]"
+                      >
                         <div
                           class="relative h-[159px] overflow-hidden rounded-[11.21px]"
                           [class.bg-[#BEBEBE]]="!ad.imageBackground"
@@ -914,19 +1022,25 @@ interface AdminUserActivityYearGroup {
                             ></div>
                           }
 
-                          <span class="absolute left-[6.73px] top-[6.73px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]">
+                          <span
+                            class="absolute left-[6.73px] top-[6.73px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]"
+                          >
                             Active until: {{ ad.expiresOn }}
                           </span>
 
                           @if (ad.discountLabel) {
-                            <span class="absolute left-[6.73px] top-[28px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[10px] font-medium leading-3 text-[#4E3E07]">
+                            <span
+                              class="absolute left-[6.73px] top-[28px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[10px] font-medium leading-3 text-[#4E3E07]"
+                            >
                               {{ ad.discountLabel }}
                             </span>
                           }
                         </div>
 
                         <div class="flex flex-col gap-2 px-[2.242px] pb-[8.407px] pt-[6.726px]">
-                          <h3 class="truncate text-[13px] leading-[11.21px] text-[#1F1F1F]">{{ ad.title }}</h3>
+                          <h3 class="truncate text-[13px] leading-[11.21px] text-[#1F1F1F]">
+                            {{ ad.title }}
+                          </h3>
 
                           <div class="text-[14px] font-medium leading-[13.451px] text-[#1F1F1F]">
                             @if ((ad.priceDisplay ?? 'strikethrough-n') === 'strikethrough-n') {
@@ -934,14 +1048,18 @@ interface AdminUserActivityYearGroup {
                             } @else if ((ad.priceDisplay ?? 'strikethrough-n') === 'naira-icon') {
                               <span>₦</span>{{ ad.price }}
                               @if (ad.oldPrice) {
-                                <span class="ml-1 text-[12px] text-[#959595] line-through">₦{{ ad.oldPrice }}</span>
+                                <span class="ml-1 text-[12px] text-[#959595] line-through"
+                                  >₦{{ ad.oldPrice }}</span
+                                >
                               }
                             } @else {
                               {{ ad.price }}
                             }
                           </div>
 
-                          <div class="flex items-center gap-[10px] text-[12px] leading-4 text-[#959595]">
+                          <div
+                            class="flex items-center gap-[10px] text-[12px] leading-4 text-[#959595]"
+                          >
                             <span class="inline-flex items-center gap-[2px]">
                               <img
                                 ngSrc="/assets/icons/admin-user-details/ads/eye.svg"
@@ -995,16 +1113,20 @@ interface AdminUserActivityYearGroup {
               }
             </div>
           } @else {
-          <div class="rounded-[20px] border border-dashed border-[#EAEAEA] p-8 text-center">
+            <div class="rounded-[20px] border border-dashed border-[#EAEAEA] p-8 text-center">
               <h2 class="text-[18px] font-semibold text-[#1A1B1D]">{{ activeAdsPlacement() }}</h2>
-              <p class="mt-2 text-[14px] text-[#959595]">This Ads placement is ready for the next pass.</p>
+              <p class="mt-2 text-[14px] text-[#959595]">
+                This Ads placement is ready for the next pass.
+              </p>
             </div>
           }
         </div>
       } @else if (activeTab() === 'transactions') {
         <div class="mt-8 flex flex-col gap-6">
           <section>
-            <h2 class="max-w-[350px] text-[32px] font-medium leading-[1.3] tracking-[-0.04em] text-[#414141]">
+            <h2
+              class="max-w-[350px] text-[32px] font-medium leading-[1.3] tracking-[-0.04em] text-[#414141]"
+            >
               They currently have
               <span class="font-bold text-[#959595]">
                 <span class="line-through">N</span>0.00
@@ -1016,11 +1138,16 @@ interface AdminUserActivityYearGroup {
           <section class="flex flex-col gap-6">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <h3 class="text-[16px] font-medium leading-5 text-[#4D4845]">Transaction history</h3>
+                <h3 class="text-[16px] font-medium leading-5 text-[#4D4845]">
+                  Transaction history
+                </h3>
                 <p class="mt-1 text-[12px] leading-4 text-[#928F8B]">23 total</p>
               </div>
 
-              <button type="button" class="text-[16px] font-medium leading-6 text-[#357FF6] underline underline-offset-[3px]">
+              <button
+                type="button"
+                class="text-[16px] font-medium leading-6 text-[#357FF6] underline underline-offset-[3px]"
+              >
                 See all
               </button>
             </div>
@@ -1028,7 +1155,9 @@ interface AdminUserActivityYearGroup {
             <div class="flex flex-col gap-6">
               @for (transaction of recentMobileTransactions(); track transaction.id) {
                 <article class="flex items-center gap-3">
-                  <div class="relative h-10 w-10 shrink-0 rounded-full border border-[#F4F4F2] bg-white">
+                  <div
+                    class="relative h-10 w-10 shrink-0 rounded-full border border-[#F4F4F2] bg-white"
+                  >
                     <img
                       [ngSrc]="transaction.icon"
                       [alt]="transaction.type"
@@ -1036,7 +1165,9 @@ interface AdminUserActivityYearGroup {
                       height="24"
                       class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
                     />
-                    <span class="absolute bottom-0 right-0 flex h-[19px] w-[19px] items-center justify-center rounded-full bg-white shadow-[0_3px_9px_rgba(172,172,172,0.25)]">
+                    <span
+                      class="absolute bottom-0 right-0 flex h-[19px] w-[19px] items-center justify-center rounded-full bg-white shadow-[0_3px_9px_rgba(172,172,172,0.25)]"
+                    >
                       <img
                         ngSrc="/assets/icons/admin-user-details/transactions/transaction-direction-down.svg"
                         width="14"
@@ -1050,12 +1181,18 @@ interface AdminUserActivityYearGroup {
 
                   <div class="flex min-w-0 flex-1 items-start justify-between gap-4">
                     <div class="min-w-0">
-                      <h4 class="truncate text-[14px] font-medium leading-5 text-[#4D4845]">{{ transaction.type }}</h4>
-                      <p class="mt-1 truncate text-[12px] leading-4 text-[#928F8B]">{{ transaction.dateLabel }}</p>
+                      <h4 class="truncate text-[14px] font-medium leading-5 text-[#4D4845]">
+                        {{ transaction.type }}
+                      </h4>
+                      <p class="mt-1 truncate text-[12px] leading-4 text-[#928F8B]">
+                        {{ transaction.dateLabel }}
+                      </p>
                     </div>
 
                     <div class="text-right">
-                      <p class="text-[14px] font-medium leading-5 text-[#215B44]">{{ transaction.amount }}</p>
+                      <p class="text-[14px] font-medium leading-5 text-[#215B44]">
+                        {{ transaction.amount }}
+                      </p>
                       <p
                         class="mt-1 text-[12px] leading-4"
                         [class.text-[#50BD5A]]="transaction.status === 'successful'"
@@ -1076,11 +1213,16 @@ interface AdminUserActivityYearGroup {
             <div class="flex items-start justify-center gap-8">
               <div class="flex flex-col items-center gap-0.5">
                 <p class="text-center text-[0px] leading-none text-[#2D2D2D]">
-                  <span class="text-[40px] font-semibold leading-[48px] tracking-[-0.04em]">{{ reviewAverage() }}</span>
+                  <span class="text-[40px] font-semibold leading-[48px] tracking-[-0.04em]">{{
+                    reviewAverage()
+                  }}</span>
                   <span class="text-[20px] font-medium leading-6 text-[#BFBFBF]">/5</span>
                 </p>
 
-                <div class="flex items-center gap-1 text-[20px] leading-5 text-[#D3DC35]" aria-label="5 out of 5 stars">
+                <div
+                  class="flex items-center gap-1 text-[20px] leading-5 text-[#D3DC35]"
+                  aria-label="5 out of 5 stars"
+                >
                   @for (star of reviewStarsScale; track star) {
                     <span>★</span>
                   }
@@ -1093,13 +1235,20 @@ interface AdminUserActivityYearGroup {
                 <div class="mt-1 flex flex-col gap-2">
                   @for (bar of ratingBreakdown(); track bar.stars) {
                     <div class="flex items-center gap-3">
-                      <span class="inline-flex min-w-[23px] items-center gap-0.5 text-[14px] leading-5 text-[#2D2D2D]">
+                      <span
+                        class="inline-flex min-w-[23px] items-center gap-0.5 text-[14px] leading-5 text-[#2D2D2D]"
+                      >
                         {{ bar.stars }} <span class="text-[12px] text-[#D3DC35]">★</span>
                       </span>
                       <div class="h-[7px] w-[84px] overflow-hidden rounded-[16px] bg-[#EAEAEA]">
-                        <div class="h-full rounded-[16px] bg-[#2D2D2D]" [style.width.%]="bar.percentage"></div>
+                        <div
+                          class="h-full rounded-[16px] bg-[#2D2D2D]"
+                          [style.width.%]="bar.percentage"
+                        ></div>
                       </div>
-                      <span class="w-[31px] text-center text-[14px] leading-5 text-[#959595]">{{ bar.percentage }}%</span>
+                      <span class="w-[31px] text-center text-[14px] leading-5 text-[#959595]"
+                        >{{ bar.percentage }}%</span
+                      >
                     </div>
                   }
                 </div>
@@ -1109,7 +1258,9 @@ interface AdminUserActivityYearGroup {
 
           <section class="flex flex-col gap-7">
             <div class="flex items-center justify-between gap-4">
-              <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">{{ reviewTotal() }} reviews</h2>
+              <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">
+                {{ reviewTotal() }} reviews
+              </h2>
 
               <app-custom-dropdown
                 [options]="reviewSortOptions"
@@ -1126,11 +1277,15 @@ interface AdminUserActivityYearGroup {
             </div>
 
             <div>
-              <h3 class="text-[16px] font-medium leading-6 text-[#1F1F1F]">This listing is great at..</h3>
+              <h3 class="text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                This listing is great at..
+              </h3>
 
               <div class="mt-3 flex flex-wrap gap-x-[7px] gap-y-[13px]">
                 @for (tag of mobileReviewTags(); track tag.label) {
-                  <span class="inline-flex items-center rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-3 py-2 text-[16px] font-medium leading-6 text-[#5A5A5A]">
+                  <span
+                    class="inline-flex items-center rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-3 py-2 text-[16px] font-medium leading-6 text-[#5A5A5A]"
+                  >
                     {{ tag.label }} ({{ tag.count }})
                   </span>
                 }
@@ -1144,7 +1299,14 @@ interface AdminUserActivityYearGroup {
                     <div class="flex items-center gap-2">
                       <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
                         @if (review.avatar) {
-                          <img [ngSrc]="review.avatar" [alt]="review.author" width="44" height="44" loading="lazy" class="h-11 w-11 object-cover" />
+                          <img
+                            [ngSrc]="review.avatar"
+                            [alt]="review.author"
+                            width="44"
+                            height="44"
+                            loading="lazy"
+                            class="h-11 w-11 object-cover"
+                          />
                         } @else {
                           <span
                             class="flex h-11 w-11 items-center justify-center rounded-full text-[12px] font-semibold text-[#1A1C21]"
@@ -1154,13 +1316,20 @@ interface AdminUserActivityYearGroup {
                           </span>
                         }
                       </div>
-                      <h4 class="text-[16px] font-medium leading-6 text-[#0D0D0D]">{{ review.author }}</h4>
+                      <h4 class="text-[16px] font-medium leading-6 text-[#0D0D0D]">
+                        {{ review.author }}
+                      </h4>
                     </div>
 
                     <div class="flex items-center gap-2">
                       <div class="flex items-center gap-0.5">
                         @for (filled of reviewStars(review.rating); track $index) {
-                          <span class="text-[12px] leading-3" [class.text-[#2D2D2D]]="filled" [class.text-[#D9D9D9]]="!filled">★</span>
+                          <span
+                            class="text-[12px] leading-3"
+                            [class.text-[#2D2D2D]]="filled"
+                            [class.text-[#D9D9D9]]="!filled"
+                            >★</span
+                          >
                         }
                       </div>
                       <span class="text-[3px] leading-none text-[#8C8C8C]">●</span>
@@ -1171,13 +1340,26 @@ interface AdminUserActivityYearGroup {
                   <p class="text-[16px] leading-6 text-[#1F1F1F]">{{ review.text }}</p>
 
                   @if (review.images?.length) {
-                    <div class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div
+                      class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    >
                       @for (image of review.images!; track $index) {
-                        <div class="relative h-[77.898px] w-[77.898px] shrink-0 overflow-hidden rounded-[10.653px] bg-[#E9E9E9]">
-                          <img [ngSrc]="image" alt="" width="78" height="78" loading="lazy" class="h-full w-full object-cover" />
+                        <div
+                          class="relative h-[77.898px] w-[77.898px] shrink-0 overflow-hidden rounded-[10.653px] bg-[#E9E9E9]"
+                        >
+                          <img
+                            [ngSrc]="image"
+                            alt=""
+                            width="78"
+                            height="78"
+                            loading="lazy"
+                            class="h-full w-full object-cover"
+                          />
 
                           @if ($last && review.moreImagesLabel) {
-                            <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[11.984px] font-medium leading-4 text-white">
+                            <div
+                              class="absolute inset-0 flex items-center justify-center bg-black/50 text-[11.984px] font-medium leading-4 text-white"
+                            >
                               {{ review.moreImagesLabel }}
                             </div>
                           }
@@ -1228,7 +1410,7 @@ interface AdminUserActivityYearGroup {
               (input)="updateReportSearchQuery($any($event.target).value)"
               placeholder="Search"
               class="h-10 w-full rounded-full bg-[#FAFAFA] py-2 pl-11 pr-4 text-[14px] text-[#1A1B1D] outline-none placeholder:text-[#777777] focus:ring-2 focus:ring-[#6453D9]/10"
-            >
+            />
           </label>
 
           <div class="flex flex-col gap-4">
@@ -1237,7 +1419,9 @@ interface AdminUserActivityYearGroup {
                 <article class="border-b border-[#EBEBEB] py-3 first:pt-0">
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-2">
-                      <div class="flex h-[42px] w-[42px] items-center justify-center overflow-hidden rounded-full bg-white">
+                      <div
+                        class="flex h-[42px] w-[42px] items-center justify-center overflow-hidden rounded-full bg-white"
+                      >
                         @if (report.storeLogo) {
                           <img
                             [ngSrc]="report.storeLogo"
@@ -1248,17 +1432,23 @@ interface AdminUserActivityYearGroup {
                             class="h-[42px] w-[42px] object-cover"
                           />
                         } @else {
-                          <span class="text-[12px] font-semibold text-[#1A1C21]">{{ storeInitials(report.storeName) }}</span>
+                          <span class="text-[12px] font-semibold text-[#1A1C21]">{{
+                            storeInitials(report.storeName)
+                          }}</span>
                         }
                       </div>
-                      <h2 class="text-[16px] font-medium leading-5 text-[#1A1B1D]">{{ report.storeName }}</h2>
+                      <h2 class="text-[16px] font-medium leading-5 text-[#1A1B1D]">
+                        {{ report.storeName }}
+                      </h2>
                     </div>
                   </div>
 
                   <dl class="mt-4 flex flex-col gap-3">
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Reported by</dt>
-                      <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                      <dd
+                        class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#1A1B1D]"
+                      >
                         @if (report.reporterAvatar) {
                           <img
                             [ngSrc]="report.reporterAvatar"
@@ -1282,12 +1472,16 @@ interface AdminUserActivityYearGroup {
 
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Reason</dt>
-                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">{{ report.reason }}</dd>
+                      <dd class="text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                        {{ report.reason }}
+                      </dd>
                     </div>
 
                     <div class="flex items-start justify-between gap-4">
                       <dt class="pt-px text-[14px] leading-5 text-[#1A1B1D]/50">Description</dt>
-                      <dd class="max-w-[215px] text-right text-[12px] leading-4 text-[#0D0D0D]/40">{{ report.description }}</dd>
+                      <dd class="max-w-[215px] text-right text-[12px] leading-4 text-[#0D0D0D]/40">
+                        {{ report.description }}
+                      </dd>
                     </div>
                   </dl>
                 </article>
@@ -1296,27 +1490,33 @@ interface AdminUserActivityYearGroup {
               @for (report of visibleListingReports(); track report.id) {
                 <article class="border-b border-[#EBEBEB] py-3 first:pt-0">
                   <div class="flex items-start gap-2">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[8px] border border-[#EAEAEA] bg-white">
-                        @if (report.listingImage) {
-                          <img
-                            [ngSrc]="report.listingImage"
-                            [alt]="report.listingName"
-                            width="40"
-                            height="40"
-                            loading="lazy"
-                            class="h-10 w-10 object-cover"
-                          />
-                        }
+                    <div
+                      class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[8px] border border-[#EAEAEA] bg-white"
+                    >
+                      @if (report.listingImage) {
+                        <img
+                          [ngSrc]="report.listingImage"
+                          [alt]="report.listingName"
+                          width="40"
+                          height="40"
+                          loading="lazy"
+                          class="h-10 w-10 object-cover"
+                        />
+                      }
                     </div>
                     <div class="min-w-0 flex-1 pt-0.5">
-                      <h2 class="truncate text-[16px] font-medium leading-5 text-[#1A1B1D]">{{ report.listingName }}</h2>
+                      <h2 class="truncate text-[16px] font-medium leading-5 text-[#1A1B1D]">
+                        {{ report.listingName }}
+                      </h2>
                     </div>
                   </div>
 
                   <dl class="mt-4 flex flex-col gap-3">
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Reported by</dt>
-                      <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                      <dd
+                        class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#1A1B1D]"
+                      >
                         @if (report.reporterAvatar) {
                           <img
                             [ngSrc]="report.reporterAvatar"
@@ -1340,7 +1540,9 @@ interface AdminUserActivityYearGroup {
 
                     <div class="flex items-center justify-between gap-4">
                       <dt class="text-[14px] leading-5 text-[#1A1B1D]/50">Store</dt>
-                      <dd class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#1A1B1D]">
+                      <dd
+                        class="flex items-center gap-2 text-right text-[14px] font-medium leading-5 text-[#1A1B1D]"
+                      >
                         @if (report.storeIcon) {
                           <img
                             [ngSrc]="report.storeIcon"
@@ -1351,7 +1553,9 @@ interface AdminUserActivityYearGroup {
                             class="h-6 w-6 rounded-full object-cover"
                           />
                         } @else {
-                          <span class="text-[12px] font-semibold text-[#1A1C21]">{{ storeInitials(report.storeName) }}</span>
+                          <span class="text-[12px] font-semibold text-[#1A1C21]">{{
+                            storeInitials(report.storeName)
+                          }}</span>
                         }
                         {{ report.storeName }}
                       </dd>
@@ -1359,7 +1563,9 @@ interface AdminUserActivityYearGroup {
 
                     <div class="flex items-start justify-between gap-4">
                       <dt class="pt-px text-[14px] leading-5 text-[#1A1B1D]/50">Description</dt>
-                      <dd class="max-w-[215px] text-right text-[12px] leading-4 text-[#0D0D0D]/40">{{ report.description }}</dd>
+                      <dd class="max-w-[215px] text-right text-[12px] leading-4 text-[#0D0D0D]/40">
+                        {{ report.description }}
+                      </dd>
                     </div>
                   </dl>
                 </article>
@@ -1371,13 +1577,19 @@ interface AdminUserActivityYearGroup {
         <div class="mt-6 flex flex-col gap-[15px]">
           @for (yearGroup of visibleActivityTimeline(); track yearGroup.year) {
             <section class="flex flex-col gap-4">
-              <h2 class="text-[16px] font-medium leading-[1.2] tracking-[-0.02em] text-[#0D0D0D]/40">{{ yearGroup.year }}</h2>
+              <h2
+                class="text-[16px] font-medium leading-[1.2] tracking-[-0.02em] text-[#0D0D0D]/40"
+              >
+                {{ yearGroup.year }}
+              </h2>
 
               <div class="flex flex-col gap-8">
                 @for (group of yearGroup.groups; track group.label) {
                   <div class="flex flex-col gap-5">
                     <div class="flex items-center gap-2">
-                      <span class="inline-flex h-9 items-center rounded-full bg-[#FAFAFA] px-3 text-[16px] font-medium leading-6 text-[#1A1B1D]/50">
+                      <span
+                        class="inline-flex h-9 items-center rounded-full bg-[#FAFAFA] px-3 text-[16px] font-medium leading-6 text-[#1A1B1D]/50"
+                      >
                         {{ group.label }}
                       </span>
                       <div class="flex min-w-0 flex-1 items-center gap-2">
@@ -1397,7 +1609,9 @@ interface AdminUserActivityYearGroup {
                       @for (activity of group.items; track activity.id) {
                         <article class="grid grid-cols-[40px_minmax(0,1fr)] gap-3">
                           <div class="flex flex-col items-center">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#EBEBEB] bg-white">
+                            <div
+                              class="flex h-10 w-10 items-center justify-center rounded-full border border-[#EBEBEB] bg-white"
+                            >
                               <img
                                 [ngSrc]="activityIcon(activity.kind)"
                                 alt=""
@@ -1414,18 +1628,27 @@ interface AdminUserActivityYearGroup {
                           </div>
 
                           <div class="pb-8 last:pb-0">
-                            <h3 class="text-[16px] leading-6 tracking-[-0.02em] text-[#0C0C0C]">{{ activity.title }}</h3>
+                            <h3 class="text-[16px] leading-6 tracking-[-0.02em] text-[#0C0C0C]">
+                              {{ activity.title }}
+                            </h3>
 
                             @if (activity.detail) {
-                              <div class="mt-2 inline-flex max-w-full rounded-full bg-[#FAFAFA] px-3 py-1.5 text-[14px] font-medium leading-5 text-[#1A1B1D]/70">
+                              <div
+                                class="mt-2 inline-flex max-w-full rounded-full bg-[#FAFAFA] px-3 py-1.5 text-[14px] font-medium leading-5 text-[#1A1B1D]/70"
+                              >
                                 {{ activity.detail }}
                               </div>
                             }
 
-                            <div class="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[14px] leading-5 text-[#0D0D0D]/40">
+                            <div
+                              class="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[14px] leading-5 text-[#0D0D0D]/40"
+                            >
                               <span>by</span>
                               <span class="inline-flex items-center gap-1">
-                                @if (activity.mobileActorAvatar ?? activity.actorAvatar; as mobileActorAvatar) {
+                                @if (
+                                  activity.mobileActorAvatar ?? activity.actorAvatar;
+                                  as mobileActorAvatar
+                                ) {
                                   <img
                                     [ngSrc]="mobileActorAvatar"
                                     [alt]="activity.actorName"
@@ -1464,7 +1687,9 @@ interface AdminUserActivityYearGroup {
       }
     </section>
 
-    <div class="hidden h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] lg:flex">
+    <div
+      class="hidden h-full flex-col rounded-[32px] border border-gray-100/60 bg-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] lg:flex"
+    >
       <div class="px-6 py-6 sm:px-8">
         <div class="flex flex-wrap items-center gap-2 text-[14px] font-medium text-[#A5A7AE]">
           <a routerLink="/admin/users" class="transition hover:text-[#6B5CF0]">Users</a>
@@ -1472,7 +1697,9 @@ interface AdminUserActivityYearGroup {
           <span class="text-[#6A6D75]">User details</span>
         </div>
 
-        <div class="mt-6 flex flex-col gap-5 border-b border-[#EEF0F4] pb-6 xl:flex-row xl:items-start xl:justify-between">
+        <div
+          class="mt-6 flex flex-col gap-5 border-b border-[#EEF0F4] pb-6 xl:flex-row xl:items-start xl:justify-between"
+        >
           <div class="flex min-w-0 items-start gap-4">
             <span
               class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[18px] font-semibold text-[#1A1C21]"
@@ -1483,7 +1710,9 @@ interface AdminUserActivityYearGroup {
 
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-3">
-                <h1 class="text-[22px] font-semibold tracking-[-0.04em] text-[#1A1C21]">{{ user().name }}</h1>
+                <h1 class="text-[22px] font-semibold tracking-[-0.04em] text-[#1A1C21]">
+                  {{ user().name }}
+                </h1>
                 <span
                   class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-semibold"
                   [class.bg-[#EDF9EF]]="user().status === 'active'"
@@ -1501,7 +1730,13 @@ interface AdminUserActivityYearGroup {
                   >
                     {{ user().status === 'active' ? '✓' : '!' }}
                   </span>
-                  {{ user().status === 'active' ? 'Active' : user().status === 'banned' ? 'Banned' : 'Suspended' }}
+                  {{
+                    user().status === 'active'
+                      ? 'Active'
+                      : user().status === 'banned'
+                        ? 'Banned'
+                        : 'Suspended'
+                  }}
                 </span>
               </div>
               <p class="mt-1 text-[16px] font-medium text-[#8E9199]">{{ user().email }}</p>
@@ -1520,12 +1755,25 @@ interface AdminUserActivityYearGroup {
 
             <button
               type="button"
+              (click)="downloadUserData()"
+              [disabled]="isDownloadingUserData()"
               class="inline-flex items-center gap-2 rounded-full border border-[#E7EAF0] bg-white px-5 py-3 text-[14px] font-medium text-[#2A2D34] transition hover:bg-[#FAFAFC]"
+              [class.cursor-wait]="isDownloadingUserData()"
+              [class.opacity-60]="isDownloadingUserData()"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#555A64]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path d="M10.75 3.5a.75.75 0 00-1.5 0v7.19L6.53 7.97a.75.75 0 10-1.06 1.06l4 4a.75.75 0 001.06 0l4-4a.75.75 0 10-1.06-1.06l-2.72 2.72V3.5z"/><path d="M4.75 14a.75.75 0 000 1.5h10.5a.75.75 0 000-1.5H4.75z"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 text-[#555A64]"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M10.75 3.5a.75.75 0 00-1.5 0v7.19L6.53 7.97a.75.75 0 10-1.06 1.06l4 4a.75.75 0 001.06 0l4-4a.75.75 0 10-1.06-1.06l-2.72 2.72V3.5z"
+                />
+                <path d="M4.75 14a.75.75 0 000 1.5h10.5a.75.75 0 000-1.5H4.75z" />
               </svg>
-              Download data
+              {{ isDownloadingUserData() ? 'Preparing…' : 'Download data' }}
             </button>
 
             <button
@@ -1609,12 +1857,18 @@ interface AdminUserActivityYearGroup {
         @if (activeTab() === 'overview') {
           <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div class="space-y-4">
-              <section class="rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6">
+              <section
+                class="rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6"
+              >
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <p class="text-[13px] font-semibold text-[#A2A7B0]">Total sold items</p>
-                    <h2 class="mt-1 text-[24px] font-semibold tracking-tight text-[#1A1C21]">{{ user().totalSoldItems }}</h2>
-                    <span class="mt-3 inline-flex rounded-full bg-[#EBF8EF] px-3 py-1 text-[12px] font-semibold text-[#2FB04A]">
+                    <h2 class="mt-1 text-[24px] font-semibold tracking-tight text-[#1A1C21]">
+                      {{ user().totalSoldItems }}
+                    </h2>
+                    <span
+                      class="mt-3 inline-flex rounded-full bg-[#EBF8EF] px-3 py-1 text-[12px] font-semibold text-[#2FB04A]"
+                    >
                       {{ user().growthLabel }}
                     </span>
                   </div>
@@ -1668,8 +1922,12 @@ interface AdminUserActivityYearGroup {
                       <g transform="translate(286,78)">
                         <rect width="180" height="32" rx="10" fill="#090909"></rect>
                         <circle cx="14" cy="16" r="3" fill="#7A6AE6"></circle>
-                        <text x="22" y="20" fill="#FFFFFF" font-size="12">{{ chartHighlight.label }}</text>
-                        <text x="148" y="20" fill="#FFFFFF" font-size="12">{{ chartHighlight.value }}</text>
+                        <text x="22" y="20" fill="#FFFFFF" font-size="12">
+                          {{ chartHighlight.label }}
+                        </text>
+                        <text x="148" y="20" fill="#FFFFFF" font-size="12">
+                          {{ chartHighlight.value }}
+                        </text>
                       </g>
                     }
                   </svg>
@@ -1677,11 +1935,15 @@ interface AdminUserActivityYearGroup {
               </section>
 
               <div class="grid gap-4 lg:grid-cols-2">
-                <section class="rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6">
+                <section
+                  class="rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6"
+                >
                   <p class="text-[13px] font-semibold text-[#A2A7B0]">Most viewed listing</p>
 
                   <div class="mt-6 flex flex-col items-center text-center">
-                    <div class="overflow-hidden rounded-[18px] border border-[#ECEEF3] bg-white shadow-[0_14px_28px_-22px_rgba(17,24,39,0.35)]">
+                    <div
+                      class="overflow-hidden rounded-[18px] border border-[#ECEEF3] bg-white shadow-[0_14px_28px_-22px_rgba(17,24,39,0.35)]"
+                    >
                       <img
                         [ngSrc]="user().mostViewedListingImage"
                         [alt]="user().mostViewedListingTitle"
@@ -1689,21 +1951,31 @@ interface AdminUserActivityYearGroup {
                         height="112"
                         loading="lazy"
                         class="h-[112px] w-[82px] object-cover"
-                      >
+                      />
                     </div>
 
-                    <p class="mt-6 text-[16px] font-medium leading-7 text-[#6C717B]">This item has been viewed</p>
-                    <p class="text-[20px] font-semibold text-[#1A1C21]">{{ user().mostViewedListingCount }} times</p>
+                    <p class="mt-6 text-[16px] font-medium leading-7 text-[#6C717B]">
+                      This item has been viewed
+                    </p>
+                    <p class="text-[20px] font-semibold text-[#1A1C21]">
+                      {{ user().mostViewedListingCount }} times
+                    </p>
                   </div>
                 </section>
 
-                <section class="rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6">
+                <section
+                  class="rounded-[28px] border border-[#ECEEF3] bg-white p-4 shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)] sm:p-6"
+                >
                   <p class="text-[13px] font-semibold text-[#A2A7B0]">Listings distribution</p>
 
                   <div class="mt-5 overflow-hidden rounded-full bg-[#F2F4F8]">
                     <div class="flex h-1.5 w-full">
                       @for (item of user().distribution; track item.label) {
-                        <span class="h-full" [style.background]="item.color" [style.width.%]="distributionWidth(item.value)"></span>
+                        <span
+                          class="h-full"
+                          [style.background]="item.color"
+                          [style.width.%]="distributionWidth(item.value)"
+                        ></span>
                       }
                     </div>
                   </div>
@@ -1713,14 +1985,21 @@ interface AdminUserActivityYearGroup {
                       <div class="flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
                           <span class="h-3 w-3 rounded-full" [style.background]="item.color"></span>
-                          <span class="text-[14px] font-medium text-[#7A808A]">{{ item.label }}</span>
+                          <span class="text-[14px] font-medium text-[#7A808A]">{{
+                            item.label
+                          }}</span>
                         </div>
-                        <span class="text-[14px] font-semibold text-[#454A53]">{{ item.value }}</span>
+                        <span class="text-[14px] font-semibold text-[#454A53]">{{
+                          item.value
+                        }}</span>
                       </div>
                     }
                   </div>
 
-                  <button type="button" class="mt-7 text-[15px] font-semibold text-[#6B5CF0] underline underline-offset-2">
+                  <button
+                    type="button"
+                    class="mt-7 text-[15px] font-semibold text-[#6B5CF0] underline underline-offset-2"
+                  >
                     View more
                   </button>
                 </section>
@@ -1730,8 +2009,16 @@ interface AdminUserActivityYearGroup {
             <aside class="border-t border-[#EEF0F4] pt-4 xl:border-l xl:border-t-0 xl:pt-0 xl:pl-8">
               <div class="border-b border-[#EEF0F4] pb-4">
                 <h2 class="flex items-center gap-2 text-[16px] font-semibold text-[#1A1C21]">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#555A64]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path d="M10 3.5a3 3 0 110 6 3 3 0 010-6zM4.75 15a5.25 5.25 0 1110.5 0 .75.75 0 01-1.5 0 3.75 3.75 0 10-7.5 0 .75.75 0 01-1.5 0z"/>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-[#555A64]"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M10 3.5a3 3 0 110 6 3 3 0 010-6zM4.75 15a5.25 5.25 0 1110.5 0 .75.75 0 01-1.5 0 3.75 3.75 0 10-7.5 0 .75.75 0 01-1.5 0z"
+                    />
                   </svg>
                   Details
                 </h2>
@@ -1756,8 +2043,12 @@ interface AdminUserActivityYearGroup {
             </aside>
           </div>
         } @else if (activeTab() === 'listings') {
-          <div class="flex flex-col overflow-hidden rounded-[28px] border border-[#ECEEF3] bg-white shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)]">
-            <div class="flex flex-col gap-4 border-b border-[#F1F2F4] px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+          <div
+            class="flex flex-col overflow-hidden rounded-[28px] border border-[#ECEEF3] bg-white shadow-[0_8px_30px_-28px_rgba(17,24,39,0.45)]"
+          >
+            <div
+              class="flex flex-col gap-4 border-b border-[#F1F2F4] px-4 py-4 lg:flex-row lg:items-center lg:justify-between"
+            >
               <div class="flex flex-wrap gap-3">
                 <app-custom-dropdown
                   [options]="listingsCategoryOptions()"
@@ -1801,7 +2092,7 @@ interface AdminUserActivityYearGroup {
                   (input)="updateListingsSearchQuery($any($event.target).value)"
                   placeholder="Search"
                   class="w-full rounded-full bg-[#FAFAFB] py-3 pl-11 pr-4 text-[14px] font-medium text-[#2A2D34] outline-none placeholder:text-[#B5BAC4] focus:ring-2 focus:ring-[#6B5CF0]/10"
-                >
+                />
               </label>
             </div>
 
@@ -1819,7 +2110,9 @@ interface AdminUserActivityYearGroup {
                 </thead>
                 <tbody>
                   @for (listing of visibleListings(); track listing.id) {
-                    <tr class="border-b border-[#F4F5F7] transition hover:bg-[#FAFAFC] last:border-b-0">
+                    <tr
+                      class="border-b border-[#F4F5F7] transition hover:bg-[#FAFAFC] last:border-b-0"
+                    >
                       <td class="px-8 py-5">
                         <div class="flex items-center gap-3">
                           <img
@@ -1829,12 +2122,16 @@ interface AdminUserActivityYearGroup {
                             height="40"
                             loading="lazy"
                             class="h-10 w-10 rounded-[10px] border border-[#ECEEF3] object-cover"
-                          >
+                          />
                           <p class="text-[14px] font-semibold text-[#2A2D34]">{{ listing.name }}</p>
                         </div>
                       </td>
-                      <td class="px-4 py-5 text-[14px] font-medium text-[#555A64]">{{ listing.categoryLabel }}</td>
-                      <td class="px-4 py-5 text-[14px] font-semibold text-[#2A2D34]">₦{{ listing.price }}</td>
+                      <td class="px-4 py-5 text-[14px] font-medium text-[#555A64]">
+                        {{ listing.categoryLabel }}
+                      </td>
+                      <td class="px-4 py-5 text-[14px] font-semibold text-[#2A2D34]">
+                        ₦{{ listing.price }}
+                      </td>
                       <td class="px-4 py-5">
                         <div class="flex items-center gap-3">
                           <span
@@ -1843,7 +2140,9 @@ interface AdminUserActivityYearGroup {
                           >
                             {{ storeInitials(listing.storeName) }}
                           </span>
-                          <span class="text-[14px] font-medium text-[#3F444C]">{{ listing.storeName }}</span>
+                          <span class="text-[14px] font-medium text-[#3F444C]">{{
+                            listing.storeName
+                          }}</span>
                         </div>
                       </td>
                       <td class="px-4 py-5">
@@ -1890,7 +2189,9 @@ interface AdminUserActivityYearGroup {
             </div>
 
             <div class="mt-auto flex items-center justify-between px-4 py-6 sm:px-8">
-              <p class="text-[14px] font-semibold text-[#646A73]">{{ visibleListings().length }} results</p>
+              <p class="text-[14px] font-semibold text-[#646A73]">
+                {{ visibleListings().length }} results
+              </p>
 
               <div class="flex items-center gap-2 text-[14px] font-medium text-[#B2B7C0]">
                 <button
@@ -1899,7 +2200,9 @@ interface AdminUserActivityYearGroup {
                 >
                   <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
                 </button>
-                <span class="flex h-8 min-w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white px-3 text-[#7A808A]">
+                <span
+                  class="flex h-8 min-w-8 items-center justify-center rounded-[10px] border border-[#ECEEF3] bg-white px-3 text-[#7A808A]"
+                >
                   1
                 </span>
                 <button
@@ -1959,13 +2262,17 @@ interface AdminUserActivityYearGroup {
                         class="h-full w-full object-cover"
                       />
                     } @else {
-                      <span class="text-[18px] font-semibold text-[#1F1F1F]">{{ storeInitials(store.name) }}</span>
+                      <span class="text-[18px] font-semibold text-[#1F1F1F]">{{
+                        storeInitials(store.name)
+                      }}</span>
                     }
                   </div>
 
                   <div class="mt-[7px]">
                     <div class="flex items-center gap-1">
-                      <h2 class="truncate text-[16px] font-medium leading-6 text-[#1F1F1F]">{{ store.name }}</h2>
+                      <h2 class="truncate text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                        {{ store.name }}
+                      </h2>
                       @if (store.isVerified ?? true) {
                         <img
                           ngSrc="/assets/icons/admin-user-details/stores/verify.svg"
@@ -1996,14 +2303,22 @@ interface AdminUserActivityYearGroup {
           </div>
         } @else if (activeTab() === 'ads') {
           <div>
-            <section class="relative overflow-hidden rounded-[24px] bg-[#F3F1FF] px-[27px] pb-[25px] pt-[25px]">
+            <section
+              class="relative overflow-hidden rounded-[24px] bg-[#F3F1FF] px-[27px] pb-[25px] pt-[25px]"
+            >
               <div class="relative z-10 flex items-start justify-between gap-6">
                 <div>
-                  <p class="text-[15px] leading-[19px] text-[#1F1F1F]">{{ subscriptionSummary()?.planName ?? 'No active plan' }}</p>
-                  <p class="mt-[16px] text-[0px] leading-none text-[#1F1F1F]">
-                    <span class="text-[34px] font-medium leading-[34px] tracking-[-0.04em]">{{ subscriptionSummary()?.price ?? '₦0' }}</span>
+                  <p class="text-[15px] leading-[19px] text-[#1F1F1F]">
+                    {{ subscriptionSummary()?.planName ?? 'No active plan' }}
                   </p>
-                  <p class="mt-1 text-[14px] leading-[17px] text-[#0D0D0D]/70">Expires on: {{ subscriptionSummary()?.activeUntil ?? '—' }}</p>
+                  <p class="mt-[16px] text-[0px] leading-none text-[#1F1F1F]">
+                    <span class="text-[34px] font-medium leading-[34px] tracking-[-0.04em]">{{
+                      subscriptionSummary()?.price ?? '₦0'
+                    }}</span>
+                  </p>
+                  <p class="mt-1 text-[14px] leading-[17px] text-[#0D0D0D]/70">
+                    Expires on: {{ subscriptionSummary()?.activeUntil ?? '—' }}
+                  </p>
                 </div>
 
                 <span
@@ -2065,18 +2380,40 @@ interface AdminUserActivityYearGroup {
               <section class="mt-8">
                 <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                   @for (store of visiblePromotedStores(); track store.id) {
-                    <article class="overflow-hidden rounded-[22px] border border-[#ECEEF3] bg-white shadow-[0_12px_24px_-24px_rgba(17,24,39,0.55)]">
+                    <article
+                      class="overflow-hidden rounded-[22px] border border-[#ECEEF3] bg-white shadow-[0_12px_24px_-24px_rgba(17,24,39,0.55)]"
+                    >
                       <div class="relative m-1.5 overflow-hidden rounded-[20px]">
-                        <img [ngSrc]="store.banner" [alt]="store.name" width="407" height="170" loading="lazy" class="h-[170px] w-full object-cover">
+                        <img
+                          [ngSrc]="store.banner"
+                          [alt]="store.name"
+                          width="407"
+                          height="170"
+                          loading="lazy"
+                          class="h-[170px] w-full object-cover"
+                        />
 
-                        <div class="absolute left-3 top-3 rounded-full bg-[#F2F5A7] px-2.5 py-1 text-[10px] font-bold text-[#6A6B1F]">
+                        <div
+                          class="absolute left-3 top-3 rounded-full bg-[#F2F5A7] px-2.5 py-1 text-[10px] font-bold text-[#6A6B1F]"
+                        >
                           Active until: {{ store.expiresOn }}
                         </div>
 
-                        <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/90 to-transparent"></div>
+                        <div
+                          class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/90 to-transparent"
+                        ></div>
 
-                        <div class="absolute bottom-4 left-4 flex h-[74px] w-[74px] items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white shadow-[0_14px_26px_-18px_rgba(17,24,39,0.45)]">
-                          <img [ngSrc]="store.logo" [alt]="store.name" width="74" height="74" loading="lazy" class="h-full w-full object-cover">
+                        <div
+                          class="absolute bottom-4 left-4 flex h-[74px] w-[74px] items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white shadow-[0_14px_26px_-18px_rgba(17,24,39,0.45)]"
+                        >
+                          <img
+                            [ngSrc]="store.logo"
+                            [alt]="store.name"
+                            width="74"
+                            height="74"
+                            loading="lazy"
+                            class="h-full w-full object-cover"
+                          />
                         </div>
                       </div>
 
@@ -2087,11 +2424,15 @@ interface AdminUserActivityYearGroup {
                               {{ store.name }}
                               <span class="ml-1 text-[#5F55E8]">✦</span>
                             </h3>
-                            <p class="mt-1 text-[13px] font-medium text-[#8E9199]">{{ store.location }}</p>
+                            <p class="mt-1 text-[13px] font-medium text-[#8E9199]">
+                              {{ store.location }}
+                            </p>
                           </div>
                         </div>
 
-                        <div class="mt-4 flex items-center gap-4 border-t border-[#F1F2F4] pt-3 text-[12px] font-medium text-[#A1A6AF]">
+                        <div
+                          class="mt-4 flex items-center gap-4 border-t border-[#F1F2F4] pt-3 text-[12px] font-medium text-[#A1A6AF]"
+                        >
                           <span class="inline-flex items-center gap-1.5">
                             <span class="h-2 w-2 rounded-full bg-[#C7CBD3]"></span>
                             {{ store.impressions }}
@@ -2114,10 +2455,15 @@ interface AdminUserActivityYearGroup {
               @for (section of visiblePromotedListingSections(); track section.category) {
                 <section class="mt-8">
                   <div class="mb-4 flex items-center justify-between gap-6">
-                    <h2 class="text-[18px] font-medium leading-6 tracking-[-0.03em] text-[#1F1F1F]">{{ section.label }}</h2>
+                    <h2 class="text-[18px] font-medium leading-6 tracking-[-0.03em] text-[#1F1F1F]">
+                      {{ section.label }}
+                    </h2>
 
                     <div class="flex items-center gap-3">
-                      <button type="button" class="inline-flex items-center gap-1 text-[16px] leading-6 text-[#1F1F1F]">
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-1 text-[16px] leading-6 text-[#1F1F1F]"
+                      >
                         View all (3,341)
                         <ng-icon name="heroChevronRight" class="text-[18px]"></ng-icon>
                       </button>
@@ -2163,8 +2509,190 @@ interface AdminUserActivityYearGroup {
                         #promotedSectionScroller
                         class="flex gap-4 overflow-x-auto pr-12 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                       >
+                        @for (ad of section.items; track ad.id) {
+                          <article
+                            class="w-[196.2px] shrink-0 overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white p-1"
+                          >
+                            <div
+                              class="relative h-[224px] overflow-hidden rounded-[20px]"
+                              [class.bg-[#BEBEBE]]="!ad.imageBackground"
+                              [style.background]="ad.imageBackground ?? null"
+                            >
+                              @if (ad.image) {
+                                <img
+                                  [ngSrc]="ad.image"
+                                  [alt]="ad.title"
+                                  width="188"
+                                  height="224"
+                                  loading="lazy"
+                                  class="h-full w-full"
+                                  [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
+                                  [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
+                                />
+                              }
+
+                              @if (ad.showImageGradient) {
+                                <div
+                                  class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_62.75%,rgba(0,0,0,0.5)_100%)]"
+                                  aria-hidden="true"
+                                ></div>
+                              }
+
+                              <div
+                                class="absolute left-[7px] top-[7px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]"
+                              >
+                                Active until: {{ ad.expiresOn }}
+                              </div>
+
+                              @if (ad.showImageDots) {
+                                <div
+                                  class="absolute bottom-[10px] left-1/2 flex -translate-x-1/2 items-center gap-[3px]"
+                                >
+                                  @for (dot of promotionCarouselDots; track dot) {
+                                    <span
+                                      class="block h-1 w-1 rounded-full"
+                                      [class.bg-[#1F1F1F]]="dot === 1"
+                                      [class.bg-[#D7D7D7]]="dot !== 1"
+                                    ></span>
+                                  }
+                                </div>
+                              }
+
+                              @if (ad.imageControlMode === 'both') {
+                                <div
+                                  class="absolute inset-x-[11px] top-1/2 flex -translate-y-1/2 items-center justify-between"
+                                >
+                                  <button
+                                    type="button"
+                                    class="flex h-6 w-6 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
+                                    aria-label="Previous image"
+                                  >
+                                    <img
+                                      ngSrc="/assets/icons/admin-user-details/ads/arrow-left.svg"
+                                      width="12"
+                                      height="12"
+                                      alt=""
+                                      class="h-3 w-3"
+                                      aria-hidden="true"
+                                    />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    class="flex h-6 w-6 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
+                                    aria-label="Next image"
+                                  >
+                                    <img
+                                      ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg"
+                                      width="12"
+                                      height="12"
+                                      alt=""
+                                      class="h-3 w-3"
+                                      aria-hidden="true"
+                                    />
+                                  </button>
+                                </div>
+                              }
+                            </div>
+
+                            <div class="flex flex-col gap-1 px-2 pb-3 pt-3">
+                              <h3 class="truncate text-[14px] leading-5 text-[#1F1F1F]">
+                                {{ ad.title }}
+                              </h3>
+
+                              <div
+                                class="flex items-center text-[16px] font-medium leading-6 text-[#1F1F1F]"
+                              >
+                                @if ((ad.priceDisplay ?? 'strikethrough-n') === 'naira-icon') {
+                                  <span class="mr-px">₦</span>{{ ad.price }}
+                                } @else if (
+                                  (ad.priceDisplay ?? 'strikethrough-n') === 'strikethrough-n'
+                                ) {
+                                  <span class="line-through">N</span>{{ ad.price }}
+                                } @else {
+                                  {{ ad.price }}
+                                }
+                              </div>
+
+                              <div
+                                class="mt-1 flex flex-wrap items-center gap-[10px] text-[12px] leading-4 text-[#959595]"
+                              >
+                                <span class="inline-flex items-center gap-[2px]">
+                                  <img
+                                    ngSrc="/assets/icons/admin-user-details/ads/eye.svg"
+                                    width="12"
+                                    height="12"
+                                    alt=""
+                                    class="h-3 w-3 shrink-0"
+                                    aria-hidden="true"
+                                  />
+                                  {{ ad.views }}
+                                </span>
+                                <span class="inline-flex items-center gap-[2px]">
+                                  <img
+                                    ngSrc="/assets/icons/admin-user-details/ads/click.svg"
+                                    width="12"
+                                    height="12"
+                                    alt=""
+                                    class="h-3 w-3 shrink-0"
+                                    aria-hidden="true"
+                                  />
+                                  {{ ad.clicks }}
+                                </span>
+                                <span class="inline-flex items-center gap-[2px]">
+                                  <img
+                                    ngSrc="/assets/icons/admin-user-details/ads/messages.svg"
+                                    width="12"
+                                    height="12"
+                                    alt=""
+                                    class="h-3 w-3 shrink-0"
+                                    aria-hidden="true"
+                                  />
+                                  {{ ad.messages }}
+                                </span>
+                                <span class="inline-flex items-center gap-[2px]">
+                                  <img
+                                    ngSrc="/assets/icons/admin-user-details/ads/call.svg"
+                                    width="12"
+                                    height="12"
+                                    alt=""
+                                    class="h-3 w-3 shrink-0"
+                                    aria-hidden="true"
+                                  />
+                                  {{ ad.calls }}
+                                </span>
+                              </div>
+                            </div>
+                          </article>
+                        }
+                      </div>
+
+                      @if (section.items.length > 1) {
+                        <div
+                          class="pointer-events-none absolute inset-y-0 right-0 w-[72px] bg-[linear-gradient(270deg,#FFFFFF_34.75%,rgba(255,255,255,0)_100%)]"
+                        ></div>
+                        <button
+                          type="button"
+                          (click)="scrollPromotedListings(promotedSectionScroller, 212)"
+                          class="absolute right-[-11px] top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
+                          aria-label="Scroll other listings"
+                        >
+                          <img
+                            ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg"
+                            width="12"
+                            height="12"
+                            alt=""
+                            class="h-3 w-3"
+                            aria-hidden="true"
+                          />
+                        </button>
+                      }
+                    </div>
+                  } @else {
+                    <div class="grid gap-4 xl:grid-cols-5">
                       @for (ad of section.items; track ad.id) {
-                        <article class="w-[196.2px] shrink-0 overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white p-1">
+                        <article
+                          class="overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white p-1"
+                        >
                           <div
                             class="relative h-[224px] overflow-hidden rounded-[20px]"
                             [class.bg-[#BEBEBE]]="!ad.imageBackground"
@@ -2190,12 +2718,16 @@ interface AdminUserActivityYearGroup {
                               ></div>
                             }
 
-                            <div class="absolute left-[7px] top-[7px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]">
+                            <div
+                              class="absolute left-[7px] top-[7px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]"
+                            >
                               Active until: {{ ad.expiresOn }}
                             </div>
 
                             @if (ad.showImageDots) {
-                              <div class="absolute bottom-[10px] left-1/2 flex -translate-x-1/2 items-center gap-[3px]">
+                              <div
+                                class="absolute bottom-[10px] left-1/2 flex -translate-x-1/2 items-center gap-[3px]"
+                              >
                                 @for (dot of promotionCarouselDots; track dot) {
                                   <span
                                     class="block h-1 w-1 rounded-full"
@@ -2207,7 +2739,9 @@ interface AdminUserActivityYearGroup {
                             }
 
                             @if (ad.imageControlMode === 'both') {
-                              <div class="absolute inset-x-[11px] top-1/2 flex -translate-y-1/2 items-center justify-between">
+                              <div
+                                class="absolute inset-x-[11px] top-1/2 flex -translate-y-1/2 items-center justify-between"
+                              >
                                 <button
                                   type="button"
                                   class="flex h-6 w-6 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
@@ -2241,19 +2775,27 @@ interface AdminUserActivityYearGroup {
                           </div>
 
                           <div class="flex flex-col gap-1 px-2 pb-3 pt-3">
-                            <h3 class="truncate text-[14px] leading-5 text-[#1F1F1F]">{{ ad.title }}</h3>
+                            <h3 class="truncate text-[14px] leading-5 text-[#1F1F1F]">
+                              {{ ad.title }}
+                            </h3>
 
-                            <div class="flex items-center text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                            <div
+                              class="flex items-center text-[16px] font-medium leading-6 text-[#1F1F1F]"
+                            >
                               @if ((ad.priceDisplay ?? 'strikethrough-n') === 'naira-icon') {
                                 <span class="mr-px">₦</span>{{ ad.price }}
-                              } @else if ((ad.priceDisplay ?? 'strikethrough-n') === 'strikethrough-n') {
+                              } @else if (
+                                (ad.priceDisplay ?? 'strikethrough-n') === 'strikethrough-n'
+                              ) {
                                 <span class="line-through">N</span>{{ ad.price }}
                               } @else {
                                 {{ ad.price }}
                               }
                             </div>
 
-                            <div class="mt-1 flex flex-wrap items-center gap-[10px] text-[12px] leading-4 text-[#959595]">
+                            <div
+                              class="mt-1 flex flex-wrap items-center gap-[10px] text-[12px] leading-4 text-[#959595]"
+                            >
                               <span class="inline-flex items-center gap-[2px]">
                                 <img
                                   ngSrc="/assets/icons/admin-user-details/ads/eye.svg"
@@ -2302,178 +2844,18 @@ interface AdminUserActivityYearGroup {
                           </div>
                         </article>
                       }
-                      </div>
-
-                      @if (section.items.length > 1) {
-                        <div class="pointer-events-none absolute inset-y-0 right-0 w-[72px] bg-[linear-gradient(270deg,#FFFFFF_34.75%,rgba(255,255,255,0)_100%)]"></div>
-                        <button
-                          type="button"
-                          (click)="scrollPromotedListings(promotedSectionScroller, 212)"
-                          class="absolute right-[-11px] top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
-                          aria-label="Scroll other listings"
-                        >
-                          <img
-                            ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg"
-                            width="12"
-                            height="12"
-                            alt=""
-                            class="h-3 w-3"
-                            aria-hidden="true"
-                          />
-                        </button>
-                      }
-                    </div>
-                  } @else {
-                    <div class="grid gap-4 xl:grid-cols-5">
-                    @for (ad of section.items; track ad.id) {
-                      <article class="overflow-hidden rounded-[24px] border border-[#EAEAEA] bg-white p-1">
-                        <div
-                          class="relative h-[224px] overflow-hidden rounded-[20px]"
-                          [class.bg-[#BEBEBE]]="!ad.imageBackground"
-                          [style.background]="ad.imageBackground ?? null"
-                        >
-                          @if (ad.image) {
-                            <img
-                              [ngSrc]="ad.image"
-                              [alt]="ad.title"
-                              width="188"
-                              height="224"
-                              loading="lazy"
-                              class="h-full w-full"
-                              [class.object-cover]="(ad.imageFit ?? 'cover') === 'cover'"
-                              [class.object-contain]="(ad.imageFit ?? 'cover') === 'contain'"
-                            />
-                          }
-
-                          @if (ad.showImageGradient) {
-                            <div
-                              class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_62.75%,rgba(0,0,0,0.5)_100%)]"
-                              aria-hidden="true"
-                            ></div>
-                          }
-
-                          <div class="absolute left-[7px] top-[7px] rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]">
-                            Active until: {{ ad.expiresOn }}
-                          </div>
-
-                          @if (ad.showImageDots) {
-                            <div class="absolute bottom-[10px] left-1/2 flex -translate-x-1/2 items-center gap-[3px]">
-                              @for (dot of promotionCarouselDots; track dot) {
-                                <span
-                                  class="block h-1 w-1 rounded-full"
-                                  [class.bg-[#1F1F1F]]="dot === 1"
-                                  [class.bg-[#D7D7D7]]="dot !== 1"
-                                ></span>
-                              }
-                            </div>
-                          }
-
-                          @if (ad.imageControlMode === 'both') {
-                            <div class="absolute inset-x-[11px] top-1/2 flex -translate-y-1/2 items-center justify-between">
-                              <button
-                                type="button"
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
-                                aria-label="Previous image"
-                              >
-                                <img
-                                  ngSrc="/assets/icons/admin-user-details/ads/arrow-left.svg"
-                                  width="12"
-                                  height="12"
-                                  alt=""
-                                  class="h-3 w-3"
-                                  aria-hidden="true"
-                                />
-                              </button>
-                              <button
-                                type="button"
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2.4px_4.8px_rgba(202,202,202,0.25)]"
-                                aria-label="Next image"
-                              >
-                                <img
-                                  ngSrc="/assets/icons/admin-user-details/ads/arrow-right.svg"
-                                  width="12"
-                                  height="12"
-                                  alt=""
-                                  class="h-3 w-3"
-                                  aria-hidden="true"
-                                />
-                              </button>
-                            </div>
-                          } 
-                        </div>
-
-                        <div class="flex flex-col gap-1 px-2 pb-3 pt-3">
-                          <h3 class="truncate text-[14px] leading-5 text-[#1F1F1F]">{{ ad.title }}</h3>
-
-                          <div class="flex items-center text-[16px] font-medium leading-6 text-[#1F1F1F]">
-                            @if ((ad.priceDisplay ?? 'strikethrough-n') === 'naira-icon') {
-                              <span class="mr-px">₦</span>{{ ad.price }}
-                            } @else if ((ad.priceDisplay ?? 'strikethrough-n') === 'strikethrough-n') {
-                              <span class="line-through">N</span>{{ ad.price }}
-                            } @else {
-                              {{ ad.price }}
-                            }
-                          </div>
-
-                          <div class="mt-1 flex flex-wrap items-center gap-[10px] text-[12px] leading-4 text-[#959595]">
-                            <span class="inline-flex items-center gap-[2px]">
-                              <img
-                                ngSrc="/assets/icons/admin-user-details/ads/eye.svg"
-                                width="12"
-                                height="12"
-                                alt=""
-                                class="h-3 w-3 shrink-0"
-                                aria-hidden="true"
-                              />
-                              {{ ad.views }}
-                            </span>
-                            <span class="inline-flex items-center gap-[2px]">
-                              <img
-                                ngSrc="/assets/icons/admin-user-details/ads/click.svg"
-                                width="12"
-                                height="12"
-                                alt=""
-                                class="h-3 w-3 shrink-0"
-                                aria-hidden="true"
-                              />
-                              {{ ad.clicks }}
-                            </span>
-                            <span class="inline-flex items-center gap-[2px]">
-                              <img
-                                ngSrc="/assets/icons/admin-user-details/ads/messages.svg"
-                                width="12"
-                                height="12"
-                                alt=""
-                                class="h-3 w-3 shrink-0"
-                                aria-hidden="true"
-                              />
-                              {{ ad.messages }}
-                            </span>
-                            <span class="inline-flex items-center gap-[2px]">
-                              <img
-                                ngSrc="/assets/icons/admin-user-details/ads/call.svg"
-                                width="12"
-                                height="12"
-                                alt=""
-                                class="h-3 w-3 shrink-0"
-                                aria-hidden="true"
-                              />
-                              {{ ad.calls }}
-                            </span>
-                          </div>
-                        </div>
-                      </article>
-                    }
                     </div>
                   }
                 </section>
               }
             }
-            </div>
+          </div>
         } @else if (activeTab() === 'transactions') {
           <div>
             <section>
-              <h2 class="max-w-[468px] text-[40px] font-medium leading-[1.3] tracking-[-0.04em] text-[#414141]">
+              <h2
+                class="max-w-[468px] text-[40px] font-medium leading-[1.3] tracking-[-0.04em] text-[#414141]"
+              >
                 They currently have
                 <span class="font-bold text-[#959595]">
                   <span class="line-through">N</span>0.00
@@ -2533,9 +2915,15 @@ interface AdminUserActivityYearGroup {
                     <tbody>
                       @for (transaction of visibleTransactions(); track transaction.id) {
                         <tr class="border-b border-[#F0F0F0] last:border-b-0">
-                          <td class="px-[35px] py-5 text-[14px] font-medium text-[#1F1F1F]">{{ transaction.amount }}</td>
-                          <td class="px-4 py-5 text-[14px] font-normal capitalize text-[#1A1B1D]">{{ transaction.type }}</td>
-                          <td class="px-4 py-5 text-[14px] font-normal text-[#1A1B1D]">{{ transaction.date }}</td>
+                          <td class="px-[35px] py-5 text-[14px] font-medium text-[#1F1F1F]">
+                            {{ transaction.amount }}
+                          </td>
+                          <td class="px-4 py-5 text-[14px] font-normal capitalize text-[#1A1B1D]">
+                            {{ transaction.type }}
+                          </td>
+                          <td class="px-4 py-5 text-[14px] font-normal text-[#1A1B1D]">
+                            {{ transaction.date }}
+                          </td>
                           <td class="px-4 py-5">
                             <span
                               class="inline-flex h-6 items-center gap-1 rounded-lg px-2 text-[12px] font-semibold leading-4"
@@ -2586,7 +2974,9 @@ interface AdminUserActivityYearGroup {
                   >
                     <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
                   </button>
-                  <span class="flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-3 text-[14px] font-medium text-[#1A1B1D] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">
+                  <span
+                    class="flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-3 text-[14px] font-medium text-[#1A1B1D] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                  >
                     1
                   </span>
                   <button
@@ -2607,23 +2997,32 @@ interface AdminUserActivityYearGroup {
                 <div class="rounded-[16px] bg-[#FAFAFA] px-6 py-[23px]">
                   <div class="mb-8 flex flex-col items-center gap-0.5">
                     <p class="text-center text-[0px] leading-none text-[#2D2D2D]">
-                      <span class="text-[56px] font-semibold leading-[64px] tracking-[-0.04em]">{{ reviewAverage() }}</span>
+                      <span class="text-[56px] font-semibold leading-[64px] tracking-[-0.04em]">{{
+                        reviewAverage()
+                      }}</span>
                       <span class="text-[28px] font-medium leading-10 text-[#BFBFBF]">/5</span>
                     </p>
 
-                    <div class="flex items-center gap-1 text-[23px] leading-[23px] text-[#D3DC35]" aria-label="5 out of 5 stars">
+                    <div
+                      class="flex items-center gap-1 text-[23px] leading-[23px] text-[#D3DC35]"
+                      aria-label="5 out of 5 stars"
+                    >
                       @for (star of reviewStarsScale; track star) {
                         <span>★</span>
                       }
                     </div>
                   </div>
 
-                  <p class="mb-1 text-[16px] font-semibold leading-6 text-[#2D2D2D]">Overall rating</p>
+                  <p class="mb-1 text-[16px] font-semibold leading-6 text-[#2D2D2D]">
+                    Overall rating
+                  </p>
 
                   <div class="space-y-3">
                     @for (bar of ratingBreakdown(); track bar.stars) {
                       <div class="flex items-center gap-3">
-                        <span class="inline-flex w-[21px] items-center gap-0.5 text-[14px] leading-5 text-[#2D2D2D]">
+                        <span
+                          class="inline-flex w-[21px] items-center gap-0.5 text-[14px] leading-5 text-[#2D2D2D]"
+                        >
                           {{ bar.stars }} <span class="text-[12px] text-[#2D2D2D]">★</span>
                         </span>
                         <div class="h-[7px] w-[132px] overflow-hidden rounded-[16px] bg-[#EAEAEA]">
@@ -2632,7 +3031,9 @@ interface AdminUserActivityYearGroup {
                             [style.width.%]="bar.percentage"
                           ></div>
                         </div>
-                        <span class="flex-1 text-right text-[14px] leading-5 text-[#959595]">{{ bar.percentage }}%</span>
+                        <span class="flex-1 text-right text-[14px] leading-5 text-[#959595]"
+                          >{{ bar.percentage }}%</span
+                        >
                       </div>
                     }
                   </div>
@@ -2642,12 +3043,18 @@ interface AdminUserActivityYearGroup {
               <div>
                 <div class="mb-8 flex flex-col gap-7 md:flex-row md:items-start md:justify-between">
                   <div>
-                    <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">{{ reviewTotal() }} reviews</h2>
-                    <p class="mt-7 text-[16px] font-medium leading-6 text-[#1F1F1F]">This seller is great at..</p>
+                    <h2 class="text-[20px] font-semibold leading-6 text-[#1F1F1F]">
+                      {{ reviewTotal() }} reviews
+                    </h2>
+                    <p class="mt-7 text-[16px] font-medium leading-6 text-[#1F1F1F]">
+                      This seller is great at..
+                    </p>
 
                     <div class="mt-3 flex flex-wrap gap-3">
                       @for (tag of visibleReviewTags(); track tag.label) {
-                        <div class="rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-4 py-2 text-[16px] font-medium leading-6 text-[#5A5A5A]">
+                        <div
+                          class="rounded-full border border-[#EAEAEA] bg-[#F9F9F9] px-4 py-2 text-[16px] font-medium leading-6 text-[#5A5A5A]"
+                        >
                           {{ tag.label }} ({{ tag.count }})
                         </div>
                       }
@@ -2674,7 +3081,14 @@ interface AdminUserActivityYearGroup {
                       <div class="flex gap-4">
                         <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6]">
                           @if (review.avatar) {
-                            <img [ngSrc]="review.avatar" [alt]="review.author" width="40" height="40" loading="lazy" class="h-10 w-10 object-cover" />
+                            <img
+                              [ngSrc]="review.avatar"
+                              [alt]="review.author"
+                              width="40"
+                              height="40"
+                              loading="lazy"
+                              class="h-10 w-10 object-cover"
+                            />
                           } @else {
                             <span
                               class="flex h-10 w-10 items-center justify-center rounded-full text-[11px] font-semibold text-[#1A1C21]"
@@ -2686,16 +3100,25 @@ interface AdminUserActivityYearGroup {
                         </div>
 
                         <div class="min-w-0 flex-1">
-                          <h3 class="text-[16px] font-medium leading-6 text-[#0D0D0D]">{{ review.author }}</h3>
+                          <h3 class="text-[16px] font-medium leading-6 text-[#0D0D0D]">
+                            {{ review.author }}
+                          </h3>
 
                           <div class="mt-2 flex items-center gap-2">
                             <div class="flex items-center gap-0.5">
                               @for (filled of reviewStars(review.rating); track $index) {
-                                <span class="text-[12px] leading-3" [class.text-[#2D2D2D]]="filled" [class.text-[#D9D9D9]]="!filled">★</span>
+                                <span
+                                  class="text-[12px] leading-3"
+                                  [class.text-[#2D2D2D]]="filled"
+                                  [class.text-[#D9D9D9]]="!filled"
+                                  >★</span
+                                >
                               }
                             </div>
                             <span class="text-[3px] leading-none text-[#8C8C8C]">●</span>
-                            <span class="text-[14px] leading-5 text-[#8C8C8C]">{{ review.date }}</span>
+                            <span class="text-[14px] leading-5 text-[#8C8C8C]">{{
+                              review.date
+                            }}</span>
                           </div>
 
                           <p class="mt-3 text-[16px] leading-6 text-[#1F1F1F]">{{ review.text }}</p>
@@ -2703,11 +3126,22 @@ interface AdminUserActivityYearGroup {
                           @if (review.images?.length) {
                             <div class="mt-4 flex flex-wrap gap-3">
                               @for (image of review.images!; track $index) {
-                                <div class="relative h-[117px] w-[117px] overflow-hidden rounded-[16px] bg-[#E9E9E9]">
-                                  <img [ngSrc]="image" alt="" width="117" height="117" loading="lazy" class="h-full w-full object-cover" />
+                                <div
+                                  class="relative h-[117px] w-[117px] overflow-hidden rounded-[16px] bg-[#E9E9E9]"
+                                >
+                                  <img
+                                    [ngSrc]="image"
+                                    alt=""
+                                    width="117"
+                                    height="117"
+                                    loading="lazy"
+                                    class="h-full w-full object-cover"
+                                  />
 
                                   @if ($last && review.moreImagesLabel) {
-                                    <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-[18px] font-medium leading-6 text-white">
+                                    <div
+                                      class="absolute inset-0 flex items-center justify-center bg-black/50 text-[18px] font-medium leading-6 text-white"
+                                    >
                                       {{ review.moreImagesLabel }}
                                     </div>
                                   }
@@ -2807,7 +3241,7 @@ interface AdminUserActivityYearGroup {
                       (input)="updateReportSearchQuery($any($event.target).value)"
                       placeholder="Search"
                       class="h-10 w-full rounded-full bg-[#FAFAFA] py-2 pl-11 pr-4 text-[14px] text-[#1A1B1D] outline-none placeholder:text-[#777777] focus:ring-2 focus:ring-[#6453D9]/10"
-                    >
+                    />
                   </label>
                 </div>
               </div>
@@ -2830,19 +3264,37 @@ interface AdminUserActivityYearGroup {
                             <div class="flex items-center gap-3">
                               <div class="h-8 w-8 overflow-hidden rounded-full bg-[#F3F4F6]">
                                 @if (report.storeLogo) {
-                                  <img [ngSrc]="report.storeLogo" [alt]="report.storeName" width="32" height="32" loading="lazy" class="h-8 w-8 object-cover" />
+                                  <img
+                                    [ngSrc]="report.storeLogo"
+                                    [alt]="report.storeName"
+                                    width="32"
+                                    height="32"
+                                    loading="lazy"
+                                    class="h-8 w-8 object-cover"
+                                  />
                                 } @else {
-                                  <span class="text-[12px] font-semibold text-[#1A1C21]">{{ storeInitials(report.storeName) }}</span>
+                                  <span class="text-[12px] font-semibold text-[#1A1C21]">{{
+                                    storeInitials(report.storeName)
+                                  }}</span>
                                 }
                               </div>
-                              <span class="text-[14px] font-normal text-[#1A1B1D]">{{ report.storeName }}</span>
+                              <span class="text-[14px] font-normal text-[#1A1B1D]">{{
+                                report.storeName
+                              }}</span>
                             </div>
                           </td>
                           <td class="px-4 py-5">
                             <div class="flex items-center gap-3">
                               <div class="h-9 w-9 overflow-hidden rounded-full bg-[#F3F4F6]">
                                 @if (report.reporterAvatar) {
-                                  <img [ngSrc]="report.reporterAvatar" [alt]="report.reporterName" width="36" height="36" loading="lazy" class="h-9 w-9 object-cover" />
+                                  <img
+                                    [ngSrc]="report.reporterAvatar"
+                                    [alt]="report.reporterName"
+                                    width="36"
+                                    height="36"
+                                    loading="lazy"
+                                    class="h-9 w-9 object-cover"
+                                  />
                                 } @else {
                                   <span
                                     class="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold text-[#1A1C21]"
@@ -2853,13 +3305,21 @@ interface AdminUserActivityYearGroup {
                                 }
                               </div>
                               <div>
-                                <p class="text-[14px] font-medium leading-5 text-[#0D0D0D]">{{ report.reporterName }}</p>
-                                <p class="text-[12px] leading-4 text-[#8C8C8C]">{{ report.reporterEmail }}</p>
+                                <p class="text-[14px] font-medium leading-5 text-[#0D0D0D]">
+                                  {{ report.reporterName }}
+                                </p>
+                                <p class="text-[12px] leading-4 text-[#8C8C8C]">
+                                  {{ report.reporterEmail }}
+                                </p>
                               </div>
                             </div>
                           </td>
-                          <td class="px-4 py-5 text-[14px] font-normal text-[#1A1B1D]">{{ report.reason }}</td>
-                          <td class="px-4 py-5 text-[14px] leading-[1.2] text-[#0D0D0D]/70">{{ report.description }}</td>
+                          <td class="px-4 py-5 text-[14px] font-normal text-[#1A1B1D]">
+                            {{ report.reason }}
+                          </td>
+                          <td class="px-4 py-5 text-[14px] leading-[1.2] text-[#0D0D0D]/70">
+                            {{ report.description }}
+                          </td>
                         </tr>
                       }
                     </tbody>
@@ -2882,28 +3342,55 @@ interface AdminUserActivityYearGroup {
                           <td class="px-4 py-[18px]">
                             <div class="flex items-center gap-3">
                               @if (report.listingImage) {
-                                <img [ngSrc]="report.listingImage" [alt]="report.listingName" width="40" height="40" loading="lazy" class="h-10 w-10 rounded-[8px] border border-[#EAEAEA] object-cover" />
+                                <img
+                                  [ngSrc]="report.listingImage"
+                                  [alt]="report.listingName"
+                                  width="40"
+                                  height="40"
+                                  loading="lazy"
+                                  class="h-10 w-10 rounded-[8px] border border-[#EAEAEA] object-cover"
+                                />
                               }
-                              <span class="text-[14px] font-normal leading-5 text-[#1A1B1D]">{{ report.listingName }}</span>
+                              <span class="text-[14px] font-normal leading-5 text-[#1A1B1D]">{{
+                                report.listingName
+                              }}</span>
                             </div>
                           </td>
                           <td class="px-4 py-[18px]">
                             <div class="flex items-center gap-3">
                               <div class="h-8 w-8 overflow-hidden rounded-full bg-[#F3F4F6]">
                                 @if (report.storeIcon) {
-                                  <img [ngSrc]="report.storeIcon" [alt]="report.storeName" width="32" height="32" loading="lazy" class="h-8 w-8 object-cover" />
+                                  <img
+                                    [ngSrc]="report.storeIcon"
+                                    [alt]="report.storeName"
+                                    width="32"
+                                    height="32"
+                                    loading="lazy"
+                                    class="h-8 w-8 object-cover"
+                                  />
                                 } @else {
-                                  <span class="text-[12px] font-semibold text-[#1A1C21]">{{ storeInitials(report.storeName) }}</span>
+                                  <span class="text-[12px] font-semibold text-[#1A1C21]">{{
+                                    storeInitials(report.storeName)
+                                  }}</span>
                                 }
                               </div>
-                              <span class="text-[14px] font-normal leading-5 text-[#1A1B1D]">{{ report.storeName }}</span>
+                              <span class="text-[14px] font-normal leading-5 text-[#1A1B1D]">{{
+                                report.storeName
+                              }}</span>
                             </div>
                           </td>
                           <td class="px-4 py-[18px]">
                             <div class="flex items-center gap-3">
                               <div class="h-9 w-9 overflow-hidden rounded-full bg-[#F3F4F6]">
                                 @if (report.reporterAvatar) {
-                                  <img [ngSrc]="report.reporterAvatar" [alt]="report.reporterName" width="36" height="36" loading="lazy" class="h-9 w-9 object-cover" />
+                                  <img
+                                    [ngSrc]="report.reporterAvatar"
+                                    [alt]="report.reporterName"
+                                    width="36"
+                                    height="36"
+                                    loading="lazy"
+                                    class="h-9 w-9 object-cover"
+                                  />
                                 } @else {
                                   <span
                                     class="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold text-[#1A1C21]"
@@ -2914,12 +3401,18 @@ interface AdminUserActivityYearGroup {
                                 }
                               </div>
                               <div>
-                                <p class="text-[14px] font-medium leading-5 text-[#0D0D0D]">{{ report.reporterName }}</p>
-                                <p class="text-[12px] leading-4 text-[#8C8C8C]">{{ report.reporterEmail }}</p>
+                                <p class="text-[14px] font-medium leading-5 text-[#0D0D0D]">
+                                  {{ report.reporterName }}
+                                </p>
+                                <p class="text-[12px] leading-4 text-[#8C8C8C]">
+                                  {{ report.reporterEmail }}
+                                </p>
                               </div>
                             </div>
                           </td>
-                          <td class="px-4 py-[18px] text-[14px] leading-[1.2] text-[#0D0D0D]/70">{{ report.description }}</td>
+                          <td class="px-4 py-[18px] text-[14px] leading-[1.2] text-[#0D0D0D]/70">
+                            {{ report.description }}
+                          </td>
                         </tr>
                       }
                     </tbody>
@@ -2930,7 +3423,11 @@ interface AdminUserActivityYearGroup {
 
             <div class="mt-6 flex items-center justify-between">
               <p class="text-[16px] font-medium text-[#1A1B1D]">
-                {{ activeReportTab() === 'profile' ? visibleProfileReports().length : visibleListingReports().length }}
+                {{
+                  activeReportTab() === 'profile'
+                    ? visibleProfileReports().length
+                    : visibleListingReports().length
+                }}
                 <span class="text-[#1A1B1D]/50"> results</span>
               </p>
 
@@ -2941,7 +3438,9 @@ interface AdminUserActivityYearGroup {
                 >
                   <ng-icon name="heroChevronLeft" class="text-sm"></ng-icon>
                 </button>
-                <span class="flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-3 text-[14px] font-medium text-[#1A1B1D] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]">
+                <span
+                  class="flex h-8 min-w-8 items-center justify-center rounded-[8px] bg-white px-3 text-[14px] font-medium text-[#1A1B1D] shadow-[0_1px_2px_rgba(42,59,81,0.12),0_0_0_1px_rgba(18,55,105,0.08)]"
+                >
                   1
                 </span>
                 <button
@@ -2958,13 +3457,19 @@ interface AdminUserActivityYearGroup {
           <div class="pt-6">
             @for (yearGroup of visibleActivityTimeline(); track yearGroup.year) {
               <section class="mb-10">
-                <h2 class="text-[16px] font-medium leading-[1.2] tracking-[-0.02em] text-[#0D0D0D]/40">{{ yearGroup.year }}</h2>
+                <h2
+                  class="text-[16px] font-medium leading-[1.2] tracking-[-0.02em] text-[#0D0D0D]/40"
+                >
+                  {{ yearGroup.year }}
+                </h2>
 
                 <div class="mt-[15px] space-y-8">
                   @for (group of yearGroup.groups; track group.label) {
                     <div>
                       <div class="mb-5 flex items-center gap-2">
-                        <span class="inline-flex h-8 items-center rounded-full bg-[#FAFAFA] px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50">
+                        <span
+                          class="inline-flex h-8 items-center rounded-full bg-[#FAFAFA] px-3 text-[14px] font-medium leading-5 text-[#1A1B1D]/50"
+                        >
                           {{ group.label }}
                         </span>
                         <div class="flex min-w-0 flex-1 items-center gap-2">
@@ -2984,7 +3489,9 @@ interface AdminUserActivityYearGroup {
                         @for (activity of group.items; track activity.id) {
                           <div class="grid grid-cols-[44px_minmax(0,1fr)] gap-[14px]">
                             <div class="flex flex-col items-center">
-                              <span class="flex h-11 w-11 items-center justify-center rounded-full border border-[#EBEBEB] bg-white">
+                              <span
+                                class="flex h-11 w-11 items-center justify-center rounded-full border border-[#EBEBEB] bg-white"
+                              >
                                 <img
                                   [ngSrc]="activityIcon(activity.kind)"
                                   alt=""
@@ -3002,7 +3509,11 @@ interface AdminUserActivityYearGroup {
                             <div class="pb-[34px] pt-[2px] last:pb-0">
                               <div>
                                 <div class="flex items-start justify-between gap-4">
-                                  <h3 class="text-[14px] leading-[1.2] tracking-[-0.02em] text-[#0C0C0C]">{{ activity.title }}</h3>
+                                  <h3
+                                    class="text-[14px] leading-[1.2] tracking-[-0.02em] text-[#0C0C0C]"
+                                  >
+                                    {{ activity.title }}
+                                  </h3>
                                   <img
                                     ngSrc="/assets/icons/admin-user-details/activities/menu-dots.svg"
                                     width="16"
@@ -3014,12 +3525,16 @@ interface AdminUserActivityYearGroup {
                                 </div>
 
                                 @if (activity.detail) {
-                                  <div class="mt-[10px] inline-flex max-w-full rounded-full bg-[#FAFAFA] px-3 py-1 text-[12px] font-medium leading-5 text-[#1A1B1D]/70">
+                                  <div
+                                    class="mt-[10px] inline-flex max-w-full rounded-full bg-[#FAFAFA] px-3 py-1 text-[12px] font-medium leading-5 text-[#1A1B1D]/70"
+                                  >
                                     {{ activity.detail }}
                                   </div>
                                 }
 
-                                <div class="mt-[10px] flex flex-wrap items-center gap-x-[5px] gap-y-1 text-[12px] leading-5 text-[#0D0D0D]/40">
+                                <div
+                                  class="mt-[10px] flex flex-wrap items-center gap-x-[5px] gap-y-1 text-[12px] leading-5 text-[#0D0D0D]/40"
+                                >
                                   <span>by</span>
                                   <span class="inline-flex items-center gap-1">
                                     @if (activity.actorAvatar) {
@@ -3055,7 +3570,9 @@ interface AdminUserActivityYearGroup {
             }
           </div>
         } @else {
-          <div class="flex min-h-[420px] items-center justify-center rounded-[28px] border border-dashed border-[#E2E5EC] bg-[#FAFAFB] text-center">
+          <div
+            class="flex min-h-[420px] items-center justify-center rounded-[28px] border border-dashed border-[#E2E5EC] bg-[#FAFAFB] text-center"
+          >
             <div>
               <h2 class="text-[18px] font-semibold text-[#1A1C21]">{{ activeTabLabel() }}</h2>
               <p class="mt-2 text-[14px] font-medium text-[#8E9199]">
@@ -3073,6 +3590,7 @@ interface AdminUserActivityYearGroup {
 export class AdminUserDetailsPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
   private readonly adminUserDetailsService = inject(AdminUserDetailsService);
   private readonly toast = inject(AppToastService);
 
@@ -3090,6 +3608,7 @@ export class AdminUserDetailsPageComponent {
   readonly activeTab = signal<AdminUserDetailsTab>('overview');
   readonly isMobileUserActionsOpen = signal(false);
   readonly isUserActionsOpen = signal(false);
+  readonly isDownloadingUserData = signal(false);
   readonly userStatusOverride = signal<AdminUserDetailStatus | null>(null);
   readonly activeAdsPlacement = signal<AdminManagedAdPlacement>('promoted listings');
   readonly activeAdsStatus = signal<AdminManagedAdsFilterStatus>('active');
@@ -3121,7 +3640,11 @@ export class AdminUserDetailsPageComponent {
     'store promotions': {},
     'banner ads': {},
   });
-  readonly subscriptionSummary = signal<{ planName: string; activeUntil: string; price: string } | null>(null);
+  readonly subscriptionSummary = signal<{
+    planName: string;
+    activeUntil: string;
+    price: string;
+  } | null>(null);
   readonly walletBalance = signal('₦0');
   readonly transactionRecords = signal<AdminUserTransaction[]>([]);
 
@@ -3164,7 +3687,8 @@ export class AdminUserDetailsPageComponent {
 
     return this.userListings().filter((listing) => {
       const categoryMatches =
-        this.listingsCategoryFilter() === 'all' || listing.categoryKey === this.listingsCategoryFilter();
+        this.listingsCategoryFilter() === 'all' ||
+        listing.categoryKey === this.listingsCategoryFilter();
       const storeMatches =
         this.listingsStoreFilter() === 'all' || listing.storeKey === this.listingsStoreFilter();
       const statusMatches =
@@ -3187,10 +3711,11 @@ export class AdminUserDetailsPageComponent {
     const query = this.listingsSearchQuery().trim().toLowerCase();
     const listings = this.mobileListings();
 
-    return listings.filter((listing) =>
-      query === ''
-      || listing.name.toLowerCase().includes(query)
-      || listing.storeName.toLowerCase().includes(query),
+    return listings.filter(
+      (listing) =>
+        query === '' ||
+        listing.name.toLowerCase().includes(query) ||
+        listing.storeName.toLowerCase().includes(query),
     );
   });
 
@@ -3199,9 +3724,21 @@ export class AdminUserDetailsPageComponent {
     const filtered = listings.filter((listing) => listing.status === this.activeAdsStatus());
 
     return [
-      { category: 'other listings' as const, label: 'Other listings', items: filtered.filter((item) => item.category === 'other listings') },
-      { category: 'automobile listings' as const, label: 'Automobile listings', items: filtered.filter((item) => item.category === 'automobile listings') },
-      { category: 'property listings' as const, label: 'Property listings', items: filtered.filter((item) => item.category === 'property listings') },
+      {
+        category: 'other listings' as const,
+        label: 'Other listings',
+        items: filtered.filter((item) => item.category === 'other listings'),
+      },
+      {
+        category: 'automobile listings' as const,
+        label: 'Automobile listings',
+        items: filtered.filter((item) => item.category === 'automobile listings'),
+      },
+      {
+        category: 'property listings' as const,
+        label: 'Property listings',
+        items: filtered.filter((item) => item.category === 'property listings'),
+      },
     ].filter((section) => section.items.length > 0);
   });
 
@@ -3214,9 +3751,21 @@ export class AdminUserDetailsPageComponent {
     const filtered = listings.filter((listing) => listing.status === this.activeAdsStatus());
 
     return [
-      { category: 'phones & laptops' as const, label: 'Phones & Laptops', items: filtered.filter((item) => item.category === 'phones & laptops') },
-      { category: 'automobile listings' as const, label: 'Automobile listings', items: filtered.filter((item) => item.category === 'automobile listings') },
-      { category: 'property listings' as const, label: 'Property listings', items: filtered.filter((item) => item.category === 'property listings') },
+      {
+        category: 'phones & laptops' as const,
+        label: 'Phones & Laptops',
+        items: filtered.filter((item) => item.category === 'phones & laptops'),
+      },
+      {
+        category: 'automobile listings' as const,
+        label: 'Automobile listings',
+        items: filtered.filter((item) => item.category === 'automobile listings'),
+      },
+      {
+        category: 'property listings' as const,
+        label: 'Property listings',
+        items: filtered.filter((item) => item.category === 'property listings'),
+      },
     ].filter((section) => section.items.length > 0);
   });
 
@@ -3247,9 +3796,11 @@ export class AdminUserDetailsPageComponent {
       const matchesType =
         this.transactionTypeFilter() === 'all' || transaction.type === this.transactionTypeFilter();
       const matchesDate =
-        this.transactionDateFilter() === 'all' || transaction.dateKey === this.transactionDateFilter();
+        this.transactionDateFilter() === 'all' ||
+        transaction.dateKey === this.transactionDateFilter();
       const matchesStatus =
-        this.transactionStatusFilter() === 'all' || transaction.status === this.transactionStatusFilter();
+        this.transactionStatusFilter() === 'all' ||
+        transaction.status === this.transactionStatusFilter();
 
       return matchesType && matchesDate && matchesStatus;
     }),
@@ -3283,12 +3834,13 @@ export class AdminUserDetailsPageComponent {
     const query = this.reportSearchQuery().trim().toLowerCase();
     const reports = this.mobileProfileReportRecords();
 
-    return reports.filter((report) =>
-      query === ''
-      || report.storeName.toLowerCase().includes(query)
-      || report.reporterName.toLowerCase().includes(query)
-      || report.reason.toLowerCase().includes(query)
-      || report.description.toLowerCase().includes(query),
+    return reports.filter(
+      (report) =>
+        query === '' ||
+        report.storeName.toLowerCase().includes(query) ||
+        report.reporterName.toLowerCase().includes(query) ||
+        report.reason.toLowerCase().includes(query) ||
+        report.description.toLowerCase().includes(query),
     );
   });
 
@@ -3296,12 +3848,13 @@ export class AdminUserDetailsPageComponent {
     const query = this.reportSearchQuery().trim().toLowerCase();
     const reports = this.profileReportRecords();
 
-    return reports.filter((report) =>
-      query === ''
-      || report.storeName.toLowerCase().includes(query)
-      || report.reporterName.toLowerCase().includes(query)
-      || report.reason.toLowerCase().includes(query)
-      || report.description.toLowerCase().includes(query),
+    return reports.filter(
+      (report) =>
+        query === '' ||
+        report.storeName.toLowerCase().includes(query) ||
+        report.reporterName.toLowerCase().includes(query) ||
+        report.reason.toLowerCase().includes(query) ||
+        report.description.toLowerCase().includes(query),
     );
   });
 
@@ -3309,43 +3862,75 @@ export class AdminUserDetailsPageComponent {
     const query = this.reportSearchQuery().trim().toLowerCase();
     const reports = this.listingReportRecords();
 
-    return reports.filter((report) =>
-      (this.listingReportCategoryFilter() === 'all' || report.categoryKey === this.listingReportCategoryFilter())
-      && (this.listingReportStoreFilter() === 'all' || report.storeKey === this.listingReportStoreFilter())
-      && (this.listingReportStatusFilter() === 'all' || report.status === this.listingReportStatusFilter())
-      && (
-        query === ''
-        || report.listingName.toLowerCase().includes(query)
-        || report.storeName.toLowerCase().includes(query)
-        || report.reporterName.toLowerCase().includes(query)
-        || report.description.toLowerCase().includes(query)
-      ),
+    return reports.filter(
+      (report) =>
+        (this.listingReportCategoryFilter() === 'all' ||
+          report.categoryKey === this.listingReportCategoryFilter()) &&
+        (this.listingReportStoreFilter() === 'all' ||
+          report.storeKey === this.listingReportStoreFilter()) &&
+        (this.listingReportStatusFilter() === 'all' ||
+          report.status === this.listingReportStatusFilter()) &&
+        (query === '' ||
+          report.listingName.toLowerCase().includes(query) ||
+          report.storeName.toLowerCase().includes(query) ||
+          report.reporterName.toLowerCase().includes(query) ||
+          report.description.toLowerCase().includes(query)),
     );
   });
 
-  readonly visibleActivityTimeline = computed(() =>
-    this.activityTimelineRecords(),
-  );
+  readonly visibleActivityTimeline = computed(() => this.activityTimelineRecords());
 
   readonly tabs = [
-    { id: 'overview' as const, label: 'Overview', icon: '/assets/icons/admin-user-details/info-circle.svg' },
-    { id: 'listings' as const, label: 'Listings', icon: '/assets/icons/admin-user-details/box.svg' },
+    {
+      id: 'overview' as const,
+      label: 'Overview',
+      icon: '/assets/icons/admin-user-details/info-circle.svg',
+    },
+    {
+      id: 'listings' as const,
+      label: 'Listings',
+      icon: '/assets/icons/admin-user-details/box.svg',
+    },
     { id: 'stores' as const, label: 'Stores', icon: '/assets/icons/admin-user-details/shop.svg' },
     { id: 'ads' as const, label: 'Ads', icon: '/assets/icons/admin-user-details/award.svg' },
-    { id: 'transactions' as const, label: 'Transactions', icon: '/assets/icons/admin-user-details/moneys.svg' },
+    {
+      id: 'transactions' as const,
+      label: 'Transactions',
+      icon: '/assets/icons/admin-user-details/moneys.svg',
+    },
     { id: 'reviews' as const, label: 'Reviews', icon: '/assets/icons/admin-user-details/star.svg' },
     { id: 'reports' as const, label: 'Reports', icon: '/assets/icons/admin-user-details/flag.svg' },
-    { id: 'activities' as const, label: 'Activities', icon: '/assets/icons/admin-user-details/document.svg' },
+    {
+      id: 'activities' as const,
+      label: 'Activities',
+      icon: '/assets/icons/admin-user-details/document.svg',
+    },
   ];
   readonly mobileTabs = [
-    { id: 'overview' as const, label: 'Overview', icon: '/assets/icons/admin-user-details/info-circle.svg' },
-    { id: 'listings' as const, label: 'Listings', icon: '/assets/icons/admin-user-details/box.svg' },
+    {
+      id: 'overview' as const,
+      label: 'Overview',
+      icon: '/assets/icons/admin-user-details/info-circle.svg',
+    },
+    {
+      id: 'listings' as const,
+      label: 'Listings',
+      icon: '/assets/icons/admin-user-details/box.svg',
+    },
     { id: 'stores' as const, label: 'Stores', icon: '/assets/icons/admin-user-details/shop.svg' },
     { id: 'ads' as const, label: 'Ads', icon: '/assets/icons/admin-user-details/award.svg' },
-    { id: 'transactions' as const, label: 'Transactions', icon: '/assets/icons/admin-user-details/moneys.svg' },
+    {
+      id: 'transactions' as const,
+      label: 'Transactions',
+      icon: '/assets/icons/admin-user-details/moneys.svg',
+    },
     { id: 'reviews' as const, label: 'Reviews', icon: '/assets/icons/admin-user-details/star.svg' },
     { id: 'reports' as const, label: 'Reports', icon: '/assets/icons/admin-user-details/flag.svg' },
-    { id: 'activities' as const, label: 'Activities', icon: '/assets/icons/admin-user-details/document.svg' },
+    {
+      id: 'activities' as const,
+      label: 'Activities',
+      icon: '/assets/icons/admin-user-details/document.svg',
+    },
   ];
 
   readonly adPlacementTabs = [
@@ -3395,7 +3980,9 @@ export class AdminUserDetailsPageComponent {
       : this.formatDateLabel(this.transactionDateFilter());
   });
 
-  readonly transactionDateOptions = computed<readonly CustomDropdownOption<AdminUserTransactionDate>[]>(() => {
+  readonly transactionDateOptions = computed<
+    readonly CustomDropdownOption<AdminUserTransactionDate>[]
+  >(() => {
     const uniqueDates = Array.from(
       new Set(this.transactionRecords().map((transaction) => transaction.date)),
     ).slice(0, 12);
@@ -3420,7 +4007,9 @@ export class AdminUserDetailsPageComponent {
     }
   });
 
-  readonly transactionStatusOptions: readonly CustomDropdownOption<'all' | AdminUserTransactionStatus>[] = [
+  readonly transactionStatusOptions: readonly CustomDropdownOption<
+    'all' | AdminUserTransactionStatus
+  >[] = [
     { value: 'all', label: 'All statuses' },
     { value: 'successful', label: 'Successful' },
     { value: 'failed', label: 'Failed' },
@@ -3439,18 +4028,25 @@ export class AdminUserDetailsPageComponent {
     { value: 'highest-rated', label: 'Highest rated' },
   ];
 
-  readonly listingReportCategoryOptions = computed<readonly CustomDropdownOption<AdminUserListingReportCategory>[]>(() => [
+  readonly listingReportCategoryOptions = computed<
+    readonly CustomDropdownOption<AdminUserListingReportCategory>[]
+  >(() => [
     { value: 'all', label: 'All categories' },
     ...Array.from(
       new Map(
         this.listingReportRecords()
           .filter((report) => report.categoryKey.trim().length > 0)
-          .map((report) => [report.categoryKey, { value: report.categoryKey, label: this.categorySlugToLabel(report.categoryKey) }]),
+          .map((report) => [
+            report.categoryKey,
+            { value: report.categoryKey, label: this.categorySlugToLabel(report.categoryKey) },
+          ]),
       ).values(),
     ),
   ]);
 
-  readonly listingReportStoreOptions = computed<readonly CustomDropdownOption<AdminUserListingReportStore>[]>(() => [
+  readonly listingReportStoreOptions = computed<
+    readonly CustomDropdownOption<AdminUserListingReportStore>[]
+  >(() => [
     { value: 'all', label: 'All stores' },
     ...Array.from(
       new Map(
@@ -3461,13 +4057,18 @@ export class AdminUserDetailsPageComponent {
     ),
   ]);
 
-  readonly listingReportStatusOptions = computed<readonly CustomDropdownOption<AdminUserListingReportStatus>[]>(() => [
+  readonly listingReportStatusOptions = computed<
+    readonly CustomDropdownOption<AdminUserListingReportStatus>[]
+  >(() => [
     { value: 'all', label: 'All statuses' },
     ...Array.from(
       new Map(
         this.listingReportRecords()
           .filter((report) => report.status.trim().length > 0)
-          .map((report) => [report.status, { value: report.status, label: this.formatReportStatus(report.status) }]),
+          .map((report) => [
+            report.status,
+            { value: report.status, label: this.formatReportStatus(report.status) },
+          ]),
       ).values(),
     ),
   ]);
@@ -3482,25 +4083,29 @@ export class AdminUserDetailsPageComponent {
       return [];
     }
 
-    const sliceSize = this.overviewRange() === 'last-7-days'
-      ? 7
-      : this.overviewRange() === 'last-30-days'
-        ? 30
-        : 90;
+    const sliceSize =
+      this.overviewRange() === 'last-7-days'
+        ? 7
+        : this.overviewRange() === 'last-30-days'
+          ? 30
+          : 90;
 
     return allPoints.slice(-sliceSize);
   });
 
   readonly months = computed(() => {
     const chartPoints = this.filteredOverviewChartPoints();
-    const desktopPoints = chartPoints.length <= 12
-      ? chartPoints
-      : chartPoints.filter((_, index) => index % Math.ceil(chartPoints.length / 12) === 0).slice(-12);
+    const desktopPoints =
+      chartPoints.length <= 12
+        ? chartPoints
+        : chartPoints
+            .filter((_, index) => index % Math.ceil(chartPoints.length / 12) === 0)
+            .slice(-12);
     const maxCount = Math.max(...desktopPoints.map((point) => point.count), 1);
 
     return desktopPoints.map((point, index) => ({
       label: this.shortDateLabel(point.date),
-      x: 34 + (index * 74),
+      x: 34 + index * 74,
       height: Math.max(16, Math.round((point.count / maxCount) * 142)),
       highlight: index === desktopPoints.length - 1,
       value: point.count,
@@ -3510,9 +4115,12 @@ export class AdminUserDetailsPageComponent {
 
   readonly mobileMonths = computed(() => {
     const chartPoints = this.filteredOverviewChartPoints();
-    const mobilePoints = chartPoints.length <= 9
-      ? chartPoints
-      : chartPoints.filter((_, index) => index % Math.ceil(chartPoints.length / 9) === 0).slice(-9);
+    const mobilePoints =
+      chartPoints.length <= 9
+        ? chartPoints
+        : chartPoints
+            .filter((_, index) => index % Math.ceil(chartPoints.length / 9) === 0)
+            .slice(-9);
     const maxCount = Math.max(...mobilePoints.map((point) => point.count), 1);
 
     return mobilePoints.map((point, index) => ({
@@ -3582,7 +4190,8 @@ export class AdminUserDetailsPageComponent {
       totalSoldItems: '100,500',
       growthLabel: '↑ 28% vs last month',
       mostViewedListingTitle: 'iPhone 17 pro max',
-      mostViewedListingImage: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=220&h=260&fit=crop',
+      mostViewedListingImage:
+        'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=220&h=260&fit=crop',
       mostViewedListingCount: '34,002',
       distribution: [
         { label: 'Sold', value: '2,000,000', color: '#34B54A' },
@@ -3603,7 +4212,8 @@ export class AdminUserDetailsPageComponent {
       totalSoldItems: '84,320',
       growthLabel: '↑ 14% vs last month',
       mostViewedListingTitle: 'Logitech ergonomic mouse',
-      mostViewedListingImage: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=220&h=260&fit=crop',
+      mostViewedListingImage:
+        'https://images.unsplash.com/photo-1527814050087-3793815479db?w=220&h=260&fit=crop',
       mostViewedListingCount: '19,482',
       distribution: [
         { label: 'Sold', value: '1,500,000', color: '#34B54A' },
@@ -3624,7 +4234,8 @@ export class AdminUserDetailsPageComponent {
       totalSoldItems: '57,240',
       growthLabel: '↑ 9% vs last month',
       mostViewedListingTitle: 'RGB keyboard',
-      mostViewedListingImage: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=220&h=260&fit=crop',
+      mostViewedListingImage:
+        'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=220&h=260&fit=crop',
       mostViewedListingCount: '22,610',
       distribution: [
         { label: 'Sold', value: '800,000', color: '#34B54A' },
@@ -4240,8 +4851,10 @@ export class AdminUserDetailsPageComponent {
       {
         id: 'mobile-store-promo-vine',
         name: 'The Vine Collections',
-        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/vine-cover.png',
-        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/vine-logo.png',
+        mobileCoverImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/vine-cover.png',
+        mobileLogoImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/vine-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
         route: ['/admin/users'],
@@ -4250,8 +4863,10 @@ export class AdminUserDetailsPageComponent {
       {
         id: 'mobile-store-promo-eden',
         name: 'Eden Organics',
-        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-cover.png',
-        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-logo.png',
+        mobileCoverImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-cover.png',
+        mobileLogoImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
         route: ['/admin/users'],
@@ -4260,8 +4875,10 @@ export class AdminUserDetailsPageComponent {
       {
         id: 'mobile-store-promo-snap',
         name: 'Snap Thrifts',
-        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/snap-cover.png',
-        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/snap-logo.png',
+        mobileCoverImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/snap-cover.png',
+        mobileLogoImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/snap-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
         route: ['/admin/users'],
@@ -4270,8 +4887,10 @@ export class AdminUserDetailsPageComponent {
       {
         id: 'mobile-store-promo-gomelon',
         name: 'goMelon',
-        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-cover.png',
-        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-logo.png',
+        mobileCoverImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-cover.png',
+        mobileLogoImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
         route: ['/admin/users'],
@@ -4280,8 +4899,10 @@ export class AdminUserDetailsPageComponent {
       {
         id: 'mobile-store-promo-paused',
         name: 'Paused Store',
-        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-cover.png',
-        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-logo.png',
+        mobileCoverImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-cover.png',
+        mobileLogoImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/eden-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
         route: ['/admin/users'],
@@ -4290,8 +4911,10 @@ export class AdminUserDetailsPageComponent {
       {
         id: 'mobile-store-promo-expired',
         name: 'Expired Store',
-        mobileCoverImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-cover.png',
-        mobileLogoImage: '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-logo.png',
+        mobileCoverImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-cover.png',
+        mobileLogoImage:
+          '/assets/images/admin-user-details/ads/mobile-store-promotions/gomelon-logo.png',
         location: 'Ikeja, Lagos',
         activeUntil: '24 May, 2025',
         route: ['/admin/users'],
@@ -4530,7 +5153,8 @@ export class AdminUserDetailsPageComponent {
         textTone: '#FFFFFF',
         accentTone: '#1E4CFF',
         badgeTone: '#F2F5A7',
-        imagePreview: '/assets/images/admin-user-details/ads/mobile-banner-ads/super-shopping-day.png',
+        imagePreview:
+          '/assets/images/admin-user-details/ads/mobile-banner-ads/super-shopping-day.png',
         placement: 'banner ads',
         status: 'active',
         showSponsorBadge: false,
@@ -4549,7 +5173,8 @@ export class AdminUserDetailsPageComponent {
         textTone: '#FFFFFF',
         accentTone: '#FFD44D',
         badgeTone: '#F2F5A7',
-        imagePreview: '/assets/images/admin-user-details/ads/mobile-banner-ads/super-shopping-day.png',
+        imagePreview:
+          '/assets/images/admin-user-details/ads/mobile-banner-ads/super-shopping-day.png',
         placement: 'banner ads',
         status: 'active',
         showSponsorBadge: true,
@@ -4817,7 +5442,8 @@ export class AdminUserDetailsPageComponent {
         reporterEmail: 'mark@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/reporter-avatar.png',
         reason: 'Suspected scam or fraud',
-        description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description.Descri.',
+        description:
+          'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description.Descri.',
       },
       {
         id: 'profile-report-2',
@@ -4827,7 +5453,8 @@ export class AdminUserDetailsPageComponent {
         reporterEmail: 'mark@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/reporter-avatar.png',
         reason: 'Seller is unresponsive after payment',
-        description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description.Descri.',
+        description:
+          'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description.Descri.',
       },
       {
         id: 'profile-report-3',
@@ -4837,7 +5464,8 @@ export class AdminUserDetailsPageComponent {
         reporterEmail: 'mark@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/reporter-avatar.png',
         reason: 'Selling prohibited or illegal items',
-        description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description.Descri.',
+        description:
+          'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description.Descri.',
       },
     ],
     'mark-anthony': [],
@@ -4854,7 +5482,8 @@ export class AdminUserDetailsPageComponent {
         reporterEmail: 'mark@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/mobile/reporter-avatar.png',
         reason: 'Suspected scam or fraud',
-        description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description',
+        description:
+          'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description',
       },
       {
         id: 'mobile-profile-report-2',
@@ -4864,7 +5493,8 @@ export class AdminUserDetailsPageComponent {
         reporterEmail: 'mark@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/mobile/reporter-avatar.png',
         reason: 'Suspected scam or fraud',
-        description: 'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description',
+        description:
+          'Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description. Description',
       },
     ],
     'mark-anthony': [],
@@ -4885,7 +5515,8 @@ export class AdminUserDetailsPageComponent {
         reporterEmail: 'uche@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/reporter-avatar.png',
         status: 'pending',
-        description: 'This item is no longer available for sale but still appears in active search results.',
+        description:
+          'This item is no longer available for sale but still appears in active search results.',
       },
       {
         id: 'listing-report-2',
@@ -4899,7 +5530,8 @@ export class AdminUserDetailsPageComponent {
         reporterEmail: 'mark@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/reporter-avatar.png',
         status: 'under-review',
-        description: 'The listing information does not match the product details shown after purchase.',
+        description:
+          'The listing information does not match the product details shown after purchase.',
       },
       {
         id: 'listing-report-3',
@@ -4913,7 +5545,8 @@ export class AdminUserDetailsPageComponent {
         reporterEmail: 'elle@email.com',
         reporterAvatar: '/assets/images/admin-user-details/reports/personal-account-avatar.png',
         status: 'resolved',
-        description: 'This listing was reported for remaining live after the seller marked the item as sold.',
+        description:
+          'This listing was reported for remaining live after the seller marked the item as sold.',
       },
     ],
     'mark-anthony': [],
@@ -4934,8 +5567,10 @@ export class AdminUserDetailsPageComponent {
                 title: 'Message received',
                 detail: '“I’m interested. Can we negotiate on price?”',
                 actorName: 'Sharon Idemudia',
-                actorAvatar: '/assets/images/admin-user-details/activities/desktop/sharon-idemudia.png',
-                mobileActorAvatar: '/assets/images/admin-user-details/activities/mobile/sharon-idemudia.png',
+                actorAvatar:
+                  '/assets/images/admin-user-details/activities/desktop/sharon-idemudia.png',
+                mobileActorAvatar:
+                  '/assets/images/admin-user-details/activities/mobile/sharon-idemudia.png',
                 actorInitials: 'SI',
                 actorBackground: 'linear-gradient(135deg, #F4B38A 0%, #E75E43 100%)',
                 timestamp: '24 February 2025, 02:45 pm',
@@ -4946,8 +5581,10 @@ export class AdminUserDetailsPageComponent {
                 title: 'Message received',
                 detail: '“Hello is the item still available”',
                 actorName: 'Joseph Olamide',
-                actorAvatar: '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
-                mobileActorAvatar: '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
+                actorAvatar:
+                  '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
+                mobileActorAvatar:
+                  '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
                 actorInitials: 'JO',
                 actorBackground: 'linear-gradient(135deg, #6AA7D8 0%, #2E4F78 100%)',
                 timestamp: '24 February 2025, 02:45 pm',
@@ -4958,8 +5595,10 @@ export class AdminUserDetailsPageComponent {
                 title: 'Offer received',
                 detail: 'They sent an offer of ₦2,000,000',
                 actorName: 'Joseph Olamide',
-                actorAvatar: '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
-                mobileActorAvatar: '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
+                actorAvatar:
+                  '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
+                mobileActorAvatar:
+                  '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
                 actorInitials: 'JO',
                 actorBackground: 'linear-gradient(135deg, #6AA7D8 0%, #2E4F78 100%)',
                 timestamp: '24 February 2025, 02:45 pm',
@@ -4970,8 +5609,10 @@ export class AdminUserDetailsPageComponent {
                 title: 'Call back request',
                 detail: 'They requested you call them back on 0816 939 7454',
                 actorName: 'Joseph Olamide',
-                actorAvatar: '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
-                mobileActorAvatar: '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
+                actorAvatar:
+                  '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
+                mobileActorAvatar:
+                  '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
                 actorInitials: 'JO',
                 actorBackground: 'linear-gradient(135deg, #6AA7D8 0%, #2E4F78 100%)',
                 timestamp: '24 February 2025, 02:45 pm',
@@ -4981,8 +5622,10 @@ export class AdminUserDetailsPageComponent {
                 kind: 'call',
                 title: 'Called you',
                 actorName: 'Joseph Olamide',
-                actorAvatar: '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
-                mobileActorAvatar: '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
+                actorAvatar:
+                  '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
+                mobileActorAvatar:
+                  '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
                 actorInitials: 'JO',
                 actorBackground: 'linear-gradient(135deg, #6AA7D8 0%, #2E4F78 100%)',
                 timestamp: '24 February 2025, 02:45 pm',
@@ -4997,8 +5640,10 @@ export class AdminUserDetailsPageComponent {
                 kind: 'wishlist',
                 title: 'Added to wishlist',
                 actorName: 'Joseph Olamide',
-                actorAvatar: '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
-                mobileActorAvatar: '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
+                actorAvatar:
+                  '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
+                mobileActorAvatar:
+                  '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
                 actorInitials: 'JO',
                 actorBackground: 'linear-gradient(135deg, #6AA7D8 0%, #2E4F78 100%)',
                 timestamp: '24 January 2025, 02:45 pm',
@@ -5008,8 +5653,10 @@ export class AdminUserDetailsPageComponent {
                 kind: 'view',
                 title: 'Viewed your listing',
                 actorName: 'Joseph Olamide',
-                actorAvatar: '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
-                mobileActorAvatar: '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
+                actorAvatar:
+                  '/assets/images/admin-user-details/activities/desktop/joseph-olamide.png',
+                mobileActorAvatar:
+                  '/assets/images/admin-user-details/activities/mobile/joseph-olamide.png',
                 actorInitials: 'JO',
                 actorBackground: 'linear-gradient(135deg, #6AA7D8 0%, #2E4F78 100%)',
                 timestamp: '24 January 2025, 02:45 pm',
@@ -5020,7 +5667,8 @@ export class AdminUserDetailsPageComponent {
                 title: 'Product published',
                 actorName: 'You',
                 actorAvatar: '/assets/images/admin-user-details/activities/desktop/you-avatar.png',
-                mobileActorAvatar: '/assets/images/admin-user-details/activities/mobile/you-avatar.png',
+                mobileActorAvatar:
+                  '/assets/images/admin-user-details/activities/mobile/you-avatar.png',
                 actorInitials: 'YO',
                 actorBackground: 'linear-gradient(135deg, #F6B14B 0%, #F28D28 100%)',
                 timestamp: '24 January 2025, 02:45 pm',
@@ -5039,16 +5687,25 @@ export class AdminUserDetailsPageComponent {
       return 'Category';
     }
 
-    return this.listingsCategoryOptions().find((option) => option.value === this.listingsCategoryFilter())?.label ?? 'Category';
+    return (
+      this.listingsCategoryOptions().find(
+        (option) => option.value === this.listingsCategoryFilter(),
+      )?.label ?? 'Category'
+    );
   });
 
-  readonly listingsCategoryOptions = computed<readonly CustomDropdownOption<AdminManagedListingCategory>[]>(() => [
+  readonly listingsCategoryOptions = computed<
+    readonly CustomDropdownOption<AdminManagedListingCategory>[]
+  >(() => [
     { value: 'all', label: 'All categories' },
     ...Array.from(
       new Map(
         this.allListingRecords()
           .filter((listing) => listing.categoryKey.trim().length > 0)
-          .map((listing) => [listing.categoryKey, { value: listing.categoryKey, label: listing.categoryLabel }]),
+          .map((listing) => [
+            listing.categoryKey,
+            { value: listing.categoryKey, label: listing.categoryLabel },
+          ]),
       ).values(),
     ),
   ]);
@@ -5058,10 +5715,15 @@ export class AdminUserDetailsPageComponent {
       return 'Store';
     }
 
-    return this.listingsStoreOptions().find((option) => option.value === this.listingsStoreFilter())?.label ?? 'Store';
+    return (
+      this.listingsStoreOptions().find((option) => option.value === this.listingsStoreFilter())
+        ?.label ?? 'Store'
+    );
   });
 
-  readonly listingsStoreOptions = computed<readonly CustomDropdownOption<AdminManagedListingStore>[]>(() => [
+  readonly listingsStoreOptions = computed<
+    readonly CustomDropdownOption<AdminManagedListingStore>[]
+  >(() => [
     { value: 'all', label: 'All stores' },
     ...this.storeRecords().map((store) => ({
       value: store.id,
@@ -5084,7 +5746,9 @@ export class AdminUserDetailsPageComponent {
     }
   });
 
-  readonly listingsStatusOptions: readonly CustomDropdownOption<'all' | AdminManagedListingStatus>[] = [
+  readonly listingsStatusOptions: readonly CustomDropdownOption<
+    'all' | AdminManagedListingStatus
+  >[] = [
     { value: 'all', label: 'All statuses' },
     { value: 'available', label: 'Available' },
     { value: 'sold', label: 'Sold' },
@@ -5107,229 +5771,283 @@ export class AdminUserDetailsPageComponent {
       { allowSignalWrites: true },
     );
 
-    effect((onCleanup) => {
-      const userId = this.userId();
-      if (!userId) {
-        return;
-      }
+    effect(
+      (onCleanup) => {
+        const userId = this.userId();
+        if (!userId) {
+          return;
+        }
 
-      this.isLoading.set(true);
-      const sub = this.adminUserDetailsService.getUser(userId).subscribe({
-        next: (user) => {
-          this.userDetailResponse.set(user);
-          this.userStatusOverride.set(null);
-          this.overviewChartPoints.set(user.sold_items_chart ?? []);
-          this.isLoading.set(false);
-        },
-        error: (error: unknown) => {
-          this.isLoading.set(false);
-          this.resetBackendState();
+        this.isLoading.set(true);
+        const sub = this.adminUserDetailsService.getUser(userId).subscribe({
+          next: (user) => {
+            this.userDetailResponse.set(user);
+            this.userStatusOverride.set(null);
+            this.overviewChartPoints.set(user.sold_items_chart ?? []);
+            this.isLoading.set(false);
+          },
+          error: (error: unknown) => {
+            this.isLoading.set(false);
+            this.resetBackendState();
 
-          if (error instanceof HttpErrorResponse && error.status === 404) {
-            this.toast.show({ message: 'That user could not be found.' });
-            void this.router.navigate(['/admin/users']);
-            return;
-          }
+            if (error instanceof HttpErrorResponse && error.status === 404) {
+              this.toast.show({ message: 'That user could not be found.' });
+              void this.router.navigate(['/admin/users']);
+              return;
+            }
 
-          this.toast.show({ message: 'That user isn’t available right now. Please try again shortly.' });
-        },
-      });
+            this.toast.show({
+              message: 'That user isn’t available right now. Please try again shortly.',
+            });
+          },
+        });
 
-      onCleanup(() => sub.unsubscribe());
-    }, { allowSignalWrites: true });
+        onCleanup(() => sub.unsubscribe());
+      },
+      { allowSignalWrites: true },
+    );
 
-    effect((onCleanup) => {
-      const userId = this.userId();
-      if (!userId || this.activeTab() !== 'listings') {
-        return;
-      }
+    effect(
+      (onCleanup) => {
+        const userId = this.userId();
+        if (!userId || this.activeTab() !== 'listings') {
+          return;
+        }
 
-      const sub = this.adminUserDetailsService.getUserListings(userId, {
-        category: this.listingsCategoryFilter(),
-        store: this.listingsStoreFilter(),
-        status: this.listingsStatusFilter(),
-        search: this.listingsSearchQuery(),
-      }).subscribe({
-        next: (response) => {
-          this.listingRecords.set((response.results ?? []).map((listing) => this.mapListingRecord(listing)));
-        },
-        error: () => {
-          this.listingRecords.set([]);
-        },
-      });
-
-      onCleanup(() => sub.unsubscribe());
-    }, { allowSignalWrites: true });
-
-    effect((onCleanup) => {
-      const userId = this.userId();
-      if (!userId || this.activeTab() !== 'transactions') {
-        return;
-      }
-
-      const sub = this.adminUserDetailsService.getUserTransactions(userId, {
-        transactionType: this.transactionTypeFilter(),
-        status: this.transactionStatusFilter(),
-        date: this.transactionDateFilter(),
-      }).subscribe({
-        next: (response) => {
-          this.walletBalance.set(this.formatCurrency(response.wallet_balance));
-          const transactions = (response.results ?? []).map((transaction) => this.mapTransactionRecord(transaction));
-          this.transactionRecords.set(transactions);
-          this.mobileTransactionRecords.set(
-            (response.results ?? []).map((transaction) => this.mapMobileTransactionRecord(transaction)),
-          );
-        },
-        error: () => {
-          this.transactionRecords.set([]);
-          this.mobileTransactionRecords.set([]);
-        },
-      });
-
-      onCleanup(() => sub.unsubscribe());
-    }, { allowSignalWrites: true });
-
-    effect((onCleanup) => {
-      const userId = this.userId();
-      if (!userId || this.activeTab() !== 'reviews') {
-        return;
-      }
-
-      const ordering = this.reviewSort() === 'highest-rated' ? 'highest' : 'most_recent';
-      const sub = this.adminUserDetailsService.getUserReviews(userId, ordering).subscribe({
-        next: (response) => {
-          this.reviewTagRecords.set(
-            response.tags_summary.map((tag) => ({ label: tag.name, count: tag.usage_count })),
-          );
-          this.mobileReviewTagRecords.set(
-            response.tags_summary.map((tag) => ({ label: tag.name, count: tag.usage_count })),
-          );
-          this.reviewAverage.set(response.average_rating.toFixed(2));
-          this.reviewTotal.set(response.total);
-          const reviews = (response.results ?? []).map((review) => this.mapReviewRecord(review));
-          this.reviewRecords.set(reviews);
-          this.mobileReviewRecords.set(reviews);
-          this.ratingBreakdown.set(this.mapRatingBreakdown(response));
-        },
-        error: () => {
-          this.reviewTagRecords.set([]);
-          this.mobileReviewTagRecords.set([]);
-          this.reviewRecords.set([]);
-          this.mobileReviewRecords.set([]);
-          this.reviewAverage.set('0.00');
-          this.reviewTotal.set(0);
-          this.ratingBreakdown.set([
-            { stars: 5, percentage: 0 },
-            { stars: 4, percentage: 0 },
-            { stars: 3, percentage: 0 },
-            { stars: 2, percentage: 0 },
-            { stars: 1, percentage: 0 },
-          ]);
-        },
-      });
-
-      onCleanup(() => sub.unsubscribe());
-    }, { allowSignalWrites: true });
-
-    effect((onCleanup) => {
-      const userId = this.userId();
-      if (!userId || this.activeTab() !== 'reports') {
-        return;
-      }
-
-      const sub = forkJoin({
-        profile: this.adminUserDetailsService.getUserReports(userId, 'profile', this.reportSearchQuery()),
-        listing: this.adminUserDetailsService.getUserReports(userId, 'listing', this.reportSearchQuery()),
-      }).subscribe({
-        next: ({ profile, listing }) => {
-          const profileReports = (profile.results ?? []).map((report) => this.mapProfileReport(report));
-          this.profileReportRecords.set(profileReports);
-          this.mobileProfileReportRecords.set(profileReports);
-          this.listingReportRecords.set((listing.results ?? []).map((report) => this.mapListingReport(report)));
-        },
-        error: () => {
-          this.profileReportRecords.set([]);
-          this.mobileProfileReportRecords.set([]);
-          this.listingReportRecords.set([]);
-        },
-      });
-
-      onCleanup(() => sub.unsubscribe());
-    }, { allowSignalWrites: true });
-
-    effect((onCleanup) => {
-      const userId = this.userId();
-      if (!userId || this.activeTab() !== 'stores') {
-        return;
-      }
-
-      const sub = this.adminUserDetailsService.getUserStores(userId).subscribe({
-        next: (response) => {
-          this.storeRecords.set((response.results ?? []).map((store) => this.mapStoreRecord(store)));
-          this.mobileStoreRecords.set(
-            (response.results ?? []).map((store) => this.mapStoreRecord(store, true)),
-          );
-        },
-        error: () => {
-          this.storeRecords.set([]);
-          this.mobileStoreRecords.set([]);
-        },
-      });
-
-      onCleanup(() => sub.unsubscribe());
-    }, { allowSignalWrites: true });
-
-    effect((onCleanup) => {
-      const userId = this.userId();
-      if (!userId || this.activeTab() !== 'ads') {
-        return;
-      }
-
-      const sub = this.adminUserDetailsService.getUserAds(userId).subscribe({
-        next: (response) => {
-          this.subscriptionSummary.set(this.mapSubscriptionSummary(response));
-          this.promotedListingRecords.set(this.mapPromotedListingAds(response.promoted_listings.items));
-          this.promotedStoreRecords.set(this.mapStorePromotionAds(response.store_promotions.items));
-          this.bannerAdRecords.set(this.mapBannerAds(response.banner_ads.items));
-          this.adStatusCounts.set({
-            'promoted listings': response.promoted_listings.counts,
-            'store promotions': response.store_promotions.counts,
-            'banner ads': response.banner_ads.counts,
+        const sub = this.adminUserDetailsService
+          .getUserListings(userId, {
+            category: this.listingsCategoryFilter(),
+            store: this.listingsStoreFilter(),
+            status: this.listingsStatusFilter(),
+            search: this.listingsSearchQuery(),
+          })
+          .subscribe({
+            next: (response) => {
+              this.listingRecords.set(
+                (response.results ?? []).map((listing) => this.mapListingRecord(listing)),
+              );
+            },
+            error: () => {
+              this.listingRecords.set([]);
+            },
           });
-        },
-        error: () => {
-          this.subscriptionSummary.set(null);
-          this.promotedListingRecords.set([]);
-          this.promotedStoreRecords.set([]);
-          this.bannerAdRecords.set([]);
-          this.adStatusCounts.set({
-            'promoted listings': {},
-            'store promotions': {},
-            'banner ads': {},
+
+        onCleanup(() => sub.unsubscribe());
+      },
+      { allowSignalWrites: true },
+    );
+
+    effect(
+      (onCleanup) => {
+        const userId = this.userId();
+        if (!userId || this.activeTab() !== 'transactions') {
+          return;
+        }
+
+        const sub = this.adminUserDetailsService
+          .getUserTransactions(userId, {
+            transactionType: this.transactionTypeFilter(),
+            status: this.transactionStatusFilter(),
+            date: this.transactionDateFilter(),
+          })
+          .subscribe({
+            next: (response) => {
+              this.walletBalance.set(this.formatCurrency(response.wallet_balance));
+              const transactions = (response.results ?? []).map((transaction) =>
+                this.mapTransactionRecord(transaction),
+              );
+              this.transactionRecords.set(transactions);
+              this.mobileTransactionRecords.set(
+                (response.results ?? []).map((transaction) =>
+                  this.mapMobileTransactionRecord(transaction),
+                ),
+              );
+            },
+            error: () => {
+              this.transactionRecords.set([]);
+              this.mobileTransactionRecords.set([]);
+            },
           });
-        },
-      });
 
-      onCleanup(() => sub.unsubscribe());
-    }, { allowSignalWrites: true });
+        onCleanup(() => sub.unsubscribe());
+      },
+      { allowSignalWrites: true },
+    );
 
-    effect((onCleanup) => {
-      const userId = this.userId();
-      if (!userId || this.activeTab() !== 'activities') {
-        return;
-      }
+    effect(
+      (onCleanup) => {
+        const userId = this.userId();
+        if (!userId || this.activeTab() !== 'reviews') {
+          return;
+        }
 
-      const sub = this.adminUserDetailsService.getUserActivities(userId, 'all').subscribe({
-        next: (response) => {
-          this.activityTimelineRecords.set(this.mapActivitiesTimeline(response));
-        },
-        error: () => {
-          this.activityTimelineRecords.set([]);
-        },
-      });
+        const ordering = this.reviewSort() === 'highest-rated' ? 'highest' : 'most_recent';
+        const sub = this.adminUserDetailsService.getUserReviews(userId, ordering).subscribe({
+          next: (response) => {
+            this.reviewTagRecords.set(
+              response.tags_summary.map((tag) => ({ label: tag.name, count: tag.usage_count })),
+            );
+            this.mobileReviewTagRecords.set(
+              response.tags_summary.map((tag) => ({ label: tag.name, count: tag.usage_count })),
+            );
+            this.reviewAverage.set(response.average_rating.toFixed(2));
+            this.reviewTotal.set(response.total);
+            const reviews = (response.results ?? []).map((review) => this.mapReviewRecord(review));
+            this.reviewRecords.set(reviews);
+            this.mobileReviewRecords.set(reviews);
+            this.ratingBreakdown.set(this.mapRatingBreakdown(response));
+          },
+          error: () => {
+            this.reviewTagRecords.set([]);
+            this.mobileReviewTagRecords.set([]);
+            this.reviewRecords.set([]);
+            this.mobileReviewRecords.set([]);
+            this.reviewAverage.set('0.00');
+            this.reviewTotal.set(0);
+            this.ratingBreakdown.set([
+              { stars: 5, percentage: 0 },
+              { stars: 4, percentage: 0 },
+              { stars: 3, percentage: 0 },
+              { stars: 2, percentage: 0 },
+              { stars: 1, percentage: 0 },
+            ]);
+          },
+        });
 
-      onCleanup(() => sub.unsubscribe());
-    }, { allowSignalWrites: true });
+        onCleanup(() => sub.unsubscribe());
+      },
+      { allowSignalWrites: true },
+    );
+
+    effect(
+      (onCleanup) => {
+        const userId = this.userId();
+        if (!userId || this.activeTab() !== 'reports') {
+          return;
+        }
+
+        const sub = forkJoin({
+          profile: this.adminUserDetailsService.getUserReports(
+            userId,
+            'profile',
+            this.reportSearchQuery(),
+          ),
+          listing: this.adminUserDetailsService.getUserReports(
+            userId,
+            'listing',
+            this.reportSearchQuery(),
+          ),
+        }).subscribe({
+          next: ({ profile, listing }) => {
+            const profileReports = (profile.results ?? []).map((report) =>
+              this.mapProfileReport(report),
+            );
+            this.profileReportRecords.set(profileReports);
+            this.mobileProfileReportRecords.set(profileReports);
+            this.listingReportRecords.set(
+              (listing.results ?? []).map((report) => this.mapListingReport(report)),
+            );
+          },
+          error: () => {
+            this.profileReportRecords.set([]);
+            this.mobileProfileReportRecords.set([]);
+            this.listingReportRecords.set([]);
+          },
+        });
+
+        onCleanup(() => sub.unsubscribe());
+      },
+      { allowSignalWrites: true },
+    );
+
+    effect(
+      (onCleanup) => {
+        const userId = this.userId();
+        if (!userId || this.activeTab() !== 'stores') {
+          return;
+        }
+
+        const sub = this.adminUserDetailsService.getUserStores(userId).subscribe({
+          next: (response) => {
+            this.storeRecords.set(
+              (response.results ?? []).map((store) => this.mapStoreRecord(store)),
+            );
+            this.mobileStoreRecords.set(
+              (response.results ?? []).map((store) => this.mapStoreRecord(store, true)),
+            );
+          },
+          error: () => {
+            this.storeRecords.set([]);
+            this.mobileStoreRecords.set([]);
+          },
+        });
+
+        onCleanup(() => sub.unsubscribe());
+      },
+      { allowSignalWrites: true },
+    );
+
+    effect(
+      (onCleanup) => {
+        const userId = this.userId();
+        if (!userId || this.activeTab() !== 'ads') {
+          return;
+        }
+
+        const sub = this.adminUserDetailsService.getUserAds(userId).subscribe({
+          next: (response) => {
+            this.subscriptionSummary.set(this.mapSubscriptionSummary(response));
+            this.promotedListingRecords.set(
+              this.mapPromotedListingAds(response.promoted_listings.items),
+            );
+            this.promotedStoreRecords.set(
+              this.mapStorePromotionAds(response.store_promotions.items),
+            );
+            this.bannerAdRecords.set(this.mapBannerAds(response.banner_ads.items));
+            this.adStatusCounts.set({
+              'promoted listings': response.promoted_listings.counts,
+              'store promotions': response.store_promotions.counts,
+              'banner ads': response.banner_ads.counts,
+            });
+          },
+          error: () => {
+            this.subscriptionSummary.set(null);
+            this.promotedListingRecords.set([]);
+            this.promotedStoreRecords.set([]);
+            this.bannerAdRecords.set([]);
+            this.adStatusCounts.set({
+              'promoted listings': {},
+              'store promotions': {},
+              'banner ads': {},
+            });
+          },
+        });
+
+        onCleanup(() => sub.unsubscribe());
+      },
+      { allowSignalWrites: true },
+    );
+
+    effect(
+      (onCleanup) => {
+        const userId = this.userId();
+        if (!userId || this.activeTab() !== 'activities') {
+          return;
+        }
+
+        const sub = this.adminUserDetailsService.getUserActivities(userId, 'all').subscribe({
+          next: (response) => {
+            this.activityTimelineRecords.set(this.mapActivitiesTimeline(response));
+          },
+          error: () => {
+            this.activityTimelineRecords.set([]);
+          },
+        });
+
+        onCleanup(() => sub.unsubscribe());
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   activeTabLabel(): string {
@@ -5491,9 +6209,9 @@ export class AdminUserDetailsPageComponent {
       route: ['/admin/stores', record.id],
       location: record.location,
       coverImage: record.cover_image ?? undefined,
-      mobileCoverImage: mobile ? record.cover_image ?? undefined : undefined,
+      mobileCoverImage: mobile ? (record.cover_image ?? undefined) : undefined,
       logoImage: record.profile_photo ?? undefined,
-      mobileLogoImage: mobile ? record.profile_photo ?? undefined : undefined,
+      mobileLogoImage: mobile ? (record.profile_photo ?? undefined) : undefined,
       followers: this.formatInteger(record.followers_count),
       isVerified: record.user?.is_verified ?? false,
       callNumber: record.call_number ?? undefined,
@@ -5503,7 +6221,9 @@ export class AdminUserDetailsPageComponent {
     return base;
   }
 
-  private mapSubscriptionSummary(response: AdminUserAdsResponse): { planName: string; activeUntil: string; price: string } | null {
+  private mapSubscriptionSummary(
+    response: AdminUserAdsResponse,
+  ): { planName: string; activeUntil: string; price: string } | null {
     const subscription = response.subscription;
     if (!subscription) {
       return null;
@@ -5533,7 +6253,9 @@ export class AdminUserDetailsPageComponent {
     }));
   }
 
-  private mapMobilePromotedListing(listing: AdminManagedPromotionListing): AdminManagedPromotedListingCard {
+  private mapMobilePromotedListing(
+    listing: AdminManagedPromotionListing,
+  ): AdminManagedPromotedListingCard {
     return {
       id: listing.id,
       title: listing.title,
@@ -5611,7 +6333,9 @@ export class AdminUserDetailsPageComponent {
     };
   }
 
-  private mapMobileTransactionRecord(record: AdminUserTransactionRecord): AdminUserMobileTransaction {
+  private mapMobileTransactionRecord(
+    record: AdminUserTransactionRecord,
+  ): AdminUserMobileTransaction {
     const transactionType = this.mapTransactionType(record);
     return {
       id: String(record.id),
@@ -5619,9 +6343,10 @@ export class AdminUserDetailsPageComponent {
       type: transactionType === 'wallet funding' ? 'Wallet funding' : 'Subscription payment',
       dateLabel: this.formatDateTimeLabel(record.date),
       status: record.status === 'failed' ? 'failed' : 'successful',
-      icon: transactionType === 'wallet funding'
-        ? '/assets/images/admin-user-details/transactions/wallet-funding-icon.png'
-        : '/assets/images/admin-user-details/transactions/subscription-payment-icon.png',
+      icon:
+        transactionType === 'wallet funding'
+          ? '/assets/images/admin-user-details/transactions/wallet-funding-icon.png'
+          : '/assets/images/admin-user-details/transactions/subscription-payment-icon.png',
     };
   }
 
@@ -5636,7 +6361,9 @@ export class AdminUserDetailsPageComponent {
     };
   }
 
-  private mapRatingBreakdown(response: AdminUserReviewsResponse): Array<{ stars: number; percentage: number }> {
+  private mapRatingBreakdown(
+    response: AdminUserReviewsResponse,
+  ): Array<{ stars: number; percentage: number }> {
     return [5, 4, 3, 2, 1].map((stars) => ({
       stars,
       percentage: Number(response.star_breakdown[String(stars)]?.percent ?? 0),
@@ -5673,7 +6400,9 @@ export class AdminUserDetailsPageComponent {
     };
   }
 
-  private mapActivitiesTimeline(response: AdminUserActivitiesResponse): AdminUserActivityYearGroup[] {
+  private mapActivitiesTimeline(
+    response: AdminUserActivitiesResponse,
+  ): AdminUserActivityYearGroup[] {
     const groupedByYear = new Map<string, Map<string, AdminUserActivity[]>>();
 
     for (const dayGroup of response.timeline ?? []) {
@@ -5711,7 +6440,9 @@ export class AdminUserDetailsPageComponent {
       }));
   }
 
-  private mapTransactionType(record: AdminUserTransactionRecord): Exclude<AdminUserTransactionType, 'all'> {
+  private mapTransactionType(
+    record: AdminUserTransactionRecord,
+  ): Exclude<AdminUserTransactionType, 'all'> {
     const description = record.description.toLowerCase();
     return description.includes('subscription') ? 'subscription payment' : 'wallet funding';
   }
@@ -5852,7 +6583,11 @@ export class AdminUserDetailsPageComponent {
       return 'U';
     }
 
-    return parts.slice(0, 2).map((part) => part.charAt(0)).join('').toUpperCase();
+    return parts
+      .slice(0, 2)
+      .map((part) => part.charAt(0))
+      .join('')
+      .toUpperCase();
   }
 
   protected avatarGradientForLabel(value: string): string {
@@ -5873,7 +6608,9 @@ export class AdminUserDetailsPageComponent {
 
   cycleListingsCategoryFilter(): void {
     const options = this.listingsCategoryOptions();
-    const currentIndex = options.findIndex((option) => option.value === this.listingsCategoryFilter());
+    const currentIndex = options.findIndex(
+      (option) => option.value === this.listingsCategoryFilter(),
+    );
     const nextOption = options[(currentIndex + 1 + options.length) % options.length];
     this.listingsCategoryFilter.set(nextOption?.value ?? 'all');
   }
@@ -5917,7 +6654,9 @@ export class AdminUserDetailsPageComponent {
 
   cycleTransactionDateFilter(): void {
     const options = this.transactionDateOptions();
-    const currentIndex = options.findIndex((option) => option.value === this.transactionDateFilter());
+    const currentIndex = options.findIndex(
+      (option) => option.value === this.transactionDateFilter(),
+    );
     const nextOption = options[(currentIndex + 1 + options.length) % options.length];
     this.transactionDateFilter.set(nextOption?.value ?? 'all');
   }
@@ -5936,7 +6675,7 @@ export class AdminUserDetailsPageComponent {
   }
 
   toggleReviewSort(): void {
-    this.reviewSort.update((value) => value === 'most-recent' ? 'highest-rated' : 'most-recent');
+    this.reviewSort.update((value) => (value === 'most-recent' ? 'highest-rated' : 'most-recent'));
   }
 
   updateListingsSearchQuery(value: string): void {
@@ -5951,11 +6690,30 @@ export class AdminUserDetailsPageComponent {
     this.isMobileUserActionsOpen.set(false);
     this.isUserActionsOpen.set(false);
     const userId = this.userId();
-    if (!userId) {
+    if (!userId || this.isDownloadingUserData()) {
       return;
     }
 
-    window.open(this.adminUserDetailsService.downloadUserDataUrl(userId), '_blank', 'noopener');
+    this.isDownloadingUserData.set(true);
+    this.adminUserDetailsService.downloadUserData(userId).subscribe({
+      next: (response) => {
+        const objectUrl = URL.createObjectURL(response.body ?? new Blob([], { type: 'text/html' }));
+        const downloadLink = this.document.createElement('a');
+        downloadLink.href = objectUrl;
+        downloadLink.download = `duduzili-user-${userId}-data.html`;
+        downloadLink.style.display = 'none';
+        this.document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.remove();
+        URL.revokeObjectURL(objectUrl);
+        this.toast.show({ message: 'User data downloaded successfully.' });
+        this.isDownloadingUserData.set(false);
+      },
+      error: () => {
+        this.toast.show({ message: 'We couldn’t download this user’s data. Please try again.' });
+        this.isDownloadingUserData.set(false);
+      },
+    });
   }
 
   deactivateUser(): void {
@@ -5969,11 +6727,15 @@ export class AdminUserDetailsPageComponent {
     this.adminUserDetailsService.suspendUser(userId).subscribe({
       next: () => {
         this.userStatusOverride.set('suspended');
-        this.userDetailResponse.update((current) => current ? { ...current, is_active: false } : current);
+        this.userDetailResponse.update((current) =>
+          current ? { ...current, is_active: false } : current,
+        );
         this.toast.show({ message: 'User suspended successfully.' });
       },
       error: () => {
-        this.toast.show({ message: 'That user couldn’t be deactivated right now. Please try again.' });
+        this.toast.show({
+          message: 'That user couldn’t be deactivated right now. Please try again.',
+        });
       },
     });
   }
@@ -5995,7 +6757,9 @@ export class AdminUserDetailsPageComponent {
         this.toast.show({ message: 'User activated successfully.' });
       },
       error: () => {
-        this.toast.show({ message: 'That user couldn’t be activated right now. Please try again.' });
+        this.toast.show({
+          message: 'That user couldn’t be activated right now. Please try again.',
+        });
       },
     });
   }
