@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
@@ -8,7 +15,11 @@ import { HomeFooterComponent } from '../../components/layout/home-footer.compone
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
-import { ListingsApiItem, ListingsSearchResponse, ListingsService } from '../../services/listings.service';
+import {
+  ListingsApiItem,
+  ListingsSearchResponse,
+  ListingsService,
+} from '../../services/listings.service';
 import { environment } from '../../../environments/environment';
 
 interface CategoryFilterChip {
@@ -32,6 +43,39 @@ interface CategoryListingView extends Listing {
     ListingCardComponent,
   ],
   templateUrl: './category-page.component.html',
+  styles: `
+    .category-skeleton {
+      position: relative;
+      overflow: hidden;
+      background: #eceef3;
+    }
+
+    .category-skeleton::after {
+      position: absolute;
+      inset: 0;
+      content: '';
+      transform: translateX(-100%);
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.76) 50%,
+        transparent 100%
+      );
+      animation: category-skeleton-shimmer 1.4s ease-in-out infinite;
+    }
+
+    @keyframes category-skeleton-shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .category-skeleton::after {
+        animation: none;
+      }
+    }
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'block h-full overflow-auto bg-white',
@@ -54,9 +98,13 @@ export class CategoryPageComponent {
   readonly listings = signal<CategoryListingView[]>([]);
   readonly desktopListingLimit = signal(15);
   readonly mobileListingLimit = signal(8);
+  readonly desktopSkeletonItems = Array.from({ length: 15 }, (_, index) => index);
+  readonly mobileSkeletonItems = Array.from({ length: 8 }, (_, index) => index);
 
   readonly categoryId = computed(() => this.queryParamMap().get('category')?.trim() || '1');
-  readonly categoryName = computed(() => this.queryParamMap().get('name')?.trim() || 'Phone & Tablet');
+  readonly categoryName = computed(
+    () => this.queryParamMap().get('name')?.trim() || 'Phone & Tablet',
+  );
   readonly totalResults = computed(() => new Intl.NumberFormat('en-NG').format(this.resultCount()));
 
   readonly desktopFilters: readonly CategoryFilterChip[] = [
@@ -75,9 +123,13 @@ export class CategoryPageComponent {
     { id: 'sort', label: 'Sort by', trailingIcon: 'chevron' },
   ];
 
-  readonly visibleDesktopListings = computed(() => this.listings().slice(0, this.desktopListingLimit()));
+  readonly visibleDesktopListings = computed(() =>
+    this.listings().slice(0, this.desktopListingLimit()),
+  );
 
-  readonly visibleMobileListings = computed(() => this.listings().slice(0, this.mobileListingLimit()));
+  readonly visibleMobileListings = computed(() =>
+    this.listings().slice(0, this.mobileListingLimit()),
+  );
 
   readonly canShowMoreDesktop = computed(() => this.desktopListingLimit() < this.listings().length);
   readonly canShowMoreMobile = computed(() => this.mobileListingLimit() < this.listings().length);
@@ -116,7 +168,9 @@ export class CategoryPageComponent {
     this.categoryError.set(null);
 
     try {
-      const response = await firstValueFrom(this.listingsService.getCategoryListings(normalizedCategoryId));
+      const response = await firstValueFrom(
+        this.listingsService.getCategoryListings(normalizedCategoryId),
+      );
       if (requestId !== this.currentCategoryRequestId) {
         return;
       }
@@ -176,7 +230,9 @@ export class CategoryPageComponent {
   private toListing(item: ListingsApiItem, index: number): CategoryListingView | null {
     const id = this.readId(item, index);
     const title = this.readString(item, ['title', 'name', 'listing_name']);
-    const priceValue = this.formatPriceValue(item['price'] ?? item['amount'] ?? item['price_display']);
+    const priceValue = this.formatPriceValue(
+      item['price'] ?? item['amount'] ?? item['price_display'],
+    );
     const images = this.extractImageList(item);
 
     if (!title || !priceValue) {
@@ -190,7 +246,9 @@ export class CategoryPageComponent {
       originalPrice: this.formatPriceOptional(item['original_price'] ?? item['originalPrice']),
       discountBadge: this.formatDiscountBadge(item['discount_percentage']),
       location: this.buildLocationLabel(item),
-      timeAgo: this.relativeTimeFromDate(this.readString(item, ['created_at', 'published_at', 'date_created'])),
+      timeAgo: this.relativeTimeFromDate(
+        this.readString(item, ['created_at', 'published_at', 'date_created']),
+      ),
       isVerified: this.readBoolean(item, ['is_verified', 'verified']) || false,
       favoriteFilled: this.readBoolean(item, ['is_saved']) || false,
       images,
@@ -209,7 +267,12 @@ export class CategoryPageComponent {
             }
 
             if (entry && typeof entry === 'object') {
-              const candidate = this.readString(entry as Record<string, unknown>, ['image', 'url', 'photo', 'src']);
+              const candidate = this.readString(entry as Record<string, unknown>, [
+                'image',
+                'url',
+                'photo',
+                'src',
+              ]);
               return candidate ? this.resolveMediaUrl(candidate) : null;
             }
 
@@ -222,7 +285,13 @@ export class CategoryPageComponent {
       }
     }
 
-    const singleImage = this.readString(item, ['image', 'thumbnail', 'photo', 'featured_image', 'cover_image']);
+    const singleImage = this.readString(item, [
+      'image',
+      'thumbnail',
+      'photo',
+      'featured_image',
+      'cover_image',
+    ]);
     if (singleImage) {
       return [this.resolveMediaUrl(singleImage)];
     }
@@ -291,7 +360,9 @@ export class CategoryPageComponent {
 
   private formatPriceOptional(value: unknown): string | undefined {
     const normalized = this.normalizePriceValue(value);
-    return normalized === null ? undefined : `₦${new Intl.NumberFormat('en-NG').format(normalized)}`;
+    return normalized === null
+      ? undefined
+      : `₦${new Intl.NumberFormat('en-NG').format(normalized)}`;
   }
 
   private normalizePriceValue(value: unknown): number | null {
@@ -358,7 +429,7 @@ export class CategoryPageComponent {
   }
 
   private extractErrorMessage(error: unknown): string {
-    if ((error as any).status===500 || (error as any).status ===0){
+    if ((error as any).status === 500 || (error as any).status === 0) {
       return 'Something went wrong, try again.';
     }
     if (error && typeof error === 'object') {
