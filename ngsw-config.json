@@ -3,22 +3,68 @@
   "index": "/index.html",
   "assetGroups": [
     {
-      "name": "app",
+      "name": "app-shell",
       "installMode": "prefetch",
+      "updateMode": "prefetch",
       "resources": {
         "files": [
           "/index.html",
-          "/*.css",
-          "/*.js",
           "/manifest.webmanifest",
-          "/favicon.ico"
+          "/favicon.ico",
+          "/icons/icon-192x192.png",
+          "/icons/icon-512x512.png",
+          "/*.css",
+          "/main-*.js",
+          "/polyfills-*.js"
         ]
       }
     },
     {
-      "name": "assets",
+      "name": "application-chunks",
       "installMode": "lazy",
+      "updateMode": "lazy",
+      "resources": {
+        "files": [
+          "/*.js"
+        ]
+      }
+    },
+    {
+      "name": "homepage-hero",
+      "installMode": "prefetch",
       "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/assets/images/home-hero-bg.png",
+          "/assets/images/home-hero-card-left-top.png",
+          "/assets/images/home-hero-card-left-bottom.png",
+          "/assets/images/home-hero-card-right-top.png",
+          "/assets/images/home-hero-card-right-bottom.png",
+          "/assets/images/listing-nike-sneaker-figma.png",
+          "/assets/images/listing-bone-straight-wig-figma.png",
+          "/assets/images/listing-iphone-17-pro-max-figma.png",
+          "/assets/images/listing-logitech-mouse-figma.png",
+          "/assets/images/listing-rgb-keyboard-figma.png",
+          "/assets/images/listing-sweatshirt-figma.png",
+          "/assets/images/store-vine-cover-mobile.png",
+          "/assets/images/store-eden-cover-mobile.png",
+          "/assets/images/store-snap-cover-mobile.png",
+          "/assets/images/store-gomelon-cover-mobile.png",
+          "/assets/images/home-promo-2.png",
+          "/assets/images/home-promo-3.png",
+          "/assets/images/store-newage-cover-desktop.png",
+          "/assets/images/store-amazing-cover-desktop.png",
+          "/assets/images/store-none-cover-desktop.png",
+          "/assets/images/store-swift-cover-desktop.png",
+          "/assets/icons/home-hero-rotator/*.svg",
+          "/assets/icons/home-search.svg"
+        ]
+      }
+    },
+    {
+      "name": "static-assets",
+      "installMode": "lazy",
+      "updateMode": "lazy",
       "resources": {
         "files": [
           "/assets/**",
@@ -27,5 +73,52 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "marketplace-media",
+      "urls": [
+        "/media/**",
+        "https://ddb.sft.org.ng/media/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 160,
+        "maxAge": "7d",
+        "timeout": "3s",
+        "refreshAhead": "1d"
+      }
+    },
+    {
+      "name": "google-font-styles",
+      "urls": [
+        "https://fonts.googleapis.com/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 8,
+        "maxAge": "7d",
+        "timeout": "2s"
+      }
+    },
+    {
+      "name": "google-font-files",
+      "urls": [
+        "https://fonts.gstatic.com/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 16,
+        "maxAge": "365d"
+      }
+    }
+  ],
+  "navigationUrls": [
+    "/**",
+    "!/**/*.*",
+    "!/**/*__*",
+    "!/**/*__*/**",
+    "!/api/**",
+    "!/media/**"
   ]
 }

@@ -532,7 +532,7 @@ export class BuyerDashboardNavbarComponent implements OnInit {
 
   switchToSellerMode(): void {
     this.closeAccountMenu();
-    void this.router.navigateByUrl(this.buyerRoutes.seller);
+    void this.router.navigateByUrl(this.buyerRoutes.sellerHome);
   }
 
   async logOut(): Promise<void> {

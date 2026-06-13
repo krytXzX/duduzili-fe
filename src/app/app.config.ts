@@ -4,6 +4,7 @@ import { provideRouter, TitleStrategy, withPreloading, PreloadAllModules } from 
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideServiceWorker } from '@angular/service-worker';
 import { AppTitleStrategy } from './app-title.strategy';
 import { apiAuthInterceptor } from './interceptors/api-auth.interceptor';
 import { authErrorInterceptor } from './interceptors/auth-error.interceptor';
@@ -25,6 +26,10 @@ export const appConfig: ApplicationConfig = {
     ),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideClientHydration(withEventReplay()),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: environment.production,
+      registrationStrategy: 'registerWhenStable:5000',
+    }),
     {
       provide: TitleStrategy,
       useClass: AppTitleStrategy,
