@@ -11,7 +11,7 @@ export const serverRoutes: ServerRoute[] = [
   },
   // Dashboard routes (CSR only)
   {
-    path: 'home',
+    path: 'en',
     renderMode: RenderMode.Client,
   },
   {

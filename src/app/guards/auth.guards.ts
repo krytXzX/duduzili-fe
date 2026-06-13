@@ -7,10 +7,12 @@ function signedInRedirectTarget(authSession: AuthSessionService): string[] {
     return ['/admin'];
   }
 
-  return ['/home'];
+  return ['/en'];
 }
 
-async function redirectAuthenticatedUsers(): Promise<boolean | ReturnType<Router['createUrlTree']>> {
+async function redirectAuthenticatedUsers(): Promise<
+  boolean | ReturnType<Router['createUrlTree']>
+> {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
 
