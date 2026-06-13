@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -18,6 +27,10 @@ import {
   heroChatBubbleLeftRight,
   heroPhone,
   heroChatBubbleOvalLeftEllipsis,
+  heroArrowLeft,
+  heroArrowUpTray,
+  heroTrash,
+  heroXMark,
 } from '@ng-icons/heroicons/outline';
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
 import { AuthSessionService } from '../../services/auth-session.service';
@@ -35,6 +48,7 @@ import {
   VendorListingRecord,
   VendorRecord,
   VendorReviewRecord,
+  VendorReviewTagRecord,
   VendorListingsResponse,
   VendorReviewsResponse,
   VendorsService,
@@ -116,9 +130,16 @@ type VendorTagSummary = {
       heroChatBubbleLeftRight,
       heroPhone,
       heroChatBubbleOvalLeftEllipsis,
+      heroArrowLeft,
+      heroArrowUpTray,
+      heroTrash,
+      heroXMark,
     }),
   ],
-  host: { class: 'block h-full overflow-auto bg-white' },
+  host: {
+    class: 'block h-full overflow-auto bg-white',
+    '(document:keydown.escape)': 'closeLeaveReviewModal()',
+  },
   styles: [
     `
       .skeleton-shimmer {
@@ -182,904 +203,453 @@ type VendorTagSummary = {
       }
 
       <ng-template #storeDetailsContent>
-      <section class="bg-white pb-[32px] md:hidden">
-        <div class="h-[54px] px-5">
-          <div class="flex h-full items-center">
-            <a
-              [routerLink]="backRoute()"
-              aria-label="Back"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f3f3f3]"
-            >
-              <ng-icon name="heroChevronLeft" class="text-[18px] text-[#2d2d2d]"></ng-icon>
-            </a>
-          </div>
-        </div>
-
-        <div class="px-5">
-          <div class="relative h-[91px] overflow-hidden rounded-t-[11px]">
-            @if (hasStoreBanner(); as hasBanner) {
-              @if (hasBanner) {
-                <img
-                  [ngSrc]="store().banner"
-                  [alt]="store().name + ' banner'"
-                  width="350"
-                  height="91"
-                  loading="lazy"
-                  class="h-full w-full object-cover"
-                />
-              } @else {
-                <div class="h-full w-full animate-pulse bg-[#EEF2FF]"></div>
-              }
-            }
-            <div
-              class="pointer-events-none absolute inset-x-0 bottom-0 h-[56px] bg-[linear-gradient(180deg,rgba(255,255,255,0)_0.5%,#fff_93%)]"
-            ></div>
-          </div>
-
-          <div class="relative -mt-2 flex flex-col items-center">
-            <div
-              class="h-[74px] w-[74px] overflow-hidden rounded-full border-4 border-white bg-[#3d785f]"
-            >
-              @if (hasStoreLogo()) {
-                <img
-                  [ngSrc]="store().logo"
-                  [alt]="store().name + ' logo'"
-                  width="74"
-                  height="74"
-                  loading="lazy"
-                  class="h-full w-full object-cover"
-                />
-              } @else {
-                <div class="h-full w-full animate-pulse bg-[#E5E7EB]"></div>
-              }
-            </div>
-            <h1
-              class="mt-2 flex items-center gap-1 text-[18px] font-medium leading-[1.1] text-[#1f1f1f]"
-            >
-              {{ store().name }}
-              @if (store().isVerified) {
-                <img
-                  ngSrc="/assets/icons/home-store-verified.svg"
-                  alt=""
-                  width="16"
-                  height="16"
-                  class="h-4 w-4"
-                  aria-hidden="true"
-                />
-              }
-            </h1>
-            <p class="mt-1 flex items-center gap-1 text-[14px] text-[#959595]">
-              <img
-                ngSrc="/assets/icons/home-store-location.svg"
-                alt=""
-                width="14"
-                height="14"
-                class="h-[14px] w-[14px]"
-                aria-hidden="true"
-              />
-              {{ store().location }}
-            </p>
-          </div>
-
-          <div class="mt-4 flex items-center justify-between rounded-[16px]">
-            <div class="text-left">
-              <p class="text-[12px] text-[#777]">Followers</p>
-              <p class="text-[14px] font-medium text-[#1f1f1f]">{{ store().stats.followers }}</p>
-            </div>
-            <div class="h-9 w-px bg-[#eaeaea]"></div>
-            <div class="text-left">
-              <p class="text-[12px] text-[#777]">Products</p>
-              <p class="text-[14px] font-medium text-[#1f1f1f]">{{ store().stats.products }}</p>
-            </div>
-            <div class="h-9 w-px bg-[#eaeaea]"></div>
-            <div class="text-left">
-              <p class="text-[12px] text-[#777]">Rating</p>
-              <p class="flex items-center gap-0.5 text-[14px] font-medium text-[#1f1f1f]">
-                {{ store().stats.rating }} <span class="text-[#E0C419]">★</span>
-              </p>
-            </div>
-            <div class="h-9 w-px bg-[#eaeaea]"></div>
-            <div class="text-left">
-              <p class="text-[12px] text-[#777]">Date joined</p>
-              <p class="text-[14px] font-medium text-[#1f1f1f]">
-                {{ store().stats.dateJoined }}
-              </p>
-            </div>
-          </div>
-
-          <div class="mt-4 flex items-center justify-center gap-2">
-            <button
-              type="button"
-              (click)="toggleVendorFollow()"
-              class="h-10 w-[122px] rounded-full bg-[#6453d9] text-[14px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4)]"
-            >
-              {{ store().isFollowed ? 'Unfollow' : 'Follow' }}
-            </button>
-            <button
-              type="button"
-              class="flex h-10 w-[122px] items-center justify-center gap-1 rounded-full bg-[#f4f4f4] text-[14px] font-medium text-[#2d2d2d]"
-            >
-              Contact
-              <ng-icon name="heroChevronDown" class="text-[14px] text-[#777]"></ng-icon>
-            </button>
-          </div>
-
-          <p class="mt-4 text-center text-[16px] leading-[1.2] text-[#1f1f1f]">
-            {{ store().description }}
-          </p>
-        </div>
-
-        <div class="mt-6 border-b border-[#eaeaea] px-5">
-          <div class="flex items-center gap-8">
-            <button
-              type="button"
-              (click)="activeTab.set('products')"
-              class="border-b-2 pb-2 text-[16px] font-medium"
-              [class.border-[#6453d9]]="activeTab() === 'products'"
-              [class.text-[#6453d9]]="activeTab() === 'products'"
-              [class.border-transparent]="activeTab() !== 'products'"
-              [class.text-[#959595]]="activeTab() !== 'products'"
-            >
-              Products
-            </button>
-            <button
-              type="button"
-              (click)="activeTab.set('reviews')"
-              class="border-b-2 pb-2 text-[16px] font-medium"
-              [class.border-[#6453d9]]="activeTab() === 'reviews'"
-              [class.text-[#6453d9]]="activeTab() === 'reviews'"
-              [class.border-transparent]="activeTab() !== 'reviews'"
-              [class.text-[#959595]]="activeTab() !== 'reviews'"
-            >
-              Reviews
-            </button>
-          </div>
-        </div>
-
-        @if (activeTab() === 'products') {
-          <div class="mt-4 overflow-x-auto px-5 pb-1">
-            <div class="flex min-w-max gap-[10px]">
-              @for (chip of mobileCategoryChips(); track chip) {
-                <button
-                  type="button"
-                  (click)="activeCategory.set(chip)"
-                  class="h-10 rounded-[16px] px-4 text-[14px] font-medium"
-                  [class.bg-[#1a1a1a]]="activeCategory() === chip"
-                  [class.text-white]="activeCategory() === chip"
-                  [class.bg-[#f4f4f4]]="activeCategory() !== chip"
-                  [class.text-black]="activeCategory() !== chip"
-                >
-                  {{ chip }}
-                </button>
-              }
-            </div>
-          </div>
-
-          <div class="mt-4 space-y-8 px-5">
-            @if (isListingsLoading()) {
-              @for (card of [1, 2, 3, 4]; track card) {
-                <div class="space-y-3">
-                  <div class="h-6 w-40 rounded-full skeleton-shimmer"></div>
-                  <div class="grid grid-cols-2 gap-[8px]">
-                    @for (tile of [1, 2]; track tile) {
-                      <div class="overflow-hidden rounded-[18px] border border-[#F1F3F7] bg-white">
-                        <div class="aspect-[0.84] skeleton-shimmer"></div>
-                        <div class="space-y-2 p-3">
-                          <div class="h-4 w-3/4 rounded-full skeleton-shimmer"></div>
-                          <div class="h-4 w-1/2 rounded-full skeleton-shimmer"></div>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-            } @else if (mobileSections().length) {
-              @for (section of mobileSections(); track section.title) {
-                <section>
-                  <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-[20px] font-medium text-[#1f1f1f]">{{ section.title }}</h2>
-                    <button type="button" class="flex items-center gap-1 text-[16px] text-[#1f1f1f]">
-                      View all ({{ section.items.length }})
-                      <ng-icon name="heroChevronRightOutline" class="text-[16px]"></ng-icon>
-                    </button>
-                  </div>
-                  <div class="grid grid-cols-2 gap-[8px]">
-                    @for (item of section.items; track item.id) {
-                      <app-listing-card [listing]="item" [favoriteFilled]="true" />
-                    }
-                  </div>
-                </section>
-              }
-            } @else {
-              <div class="rounded-[20px] border border-[#EEF0F4] bg-[#FCFCFD] px-4 py-6 text-center text-[14px] text-[#6B7280]">
-                This store hasn’t added any listings yet.
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="mt-4 px-5">
-            <div class="rounded-[16px] bg-white p-4 shadow-[0_2px_14px_rgba(17,24,39,0.06)]">
-              <div class="mb-3 flex items-end gap-1">
-                <span class="text-[40px] font-semibold leading-none text-[#1A1C21]">
-                  {{ store().stats.rating }}
-                </span>
-                <span class="pb-1 text-[18px] font-semibold text-[#C8CBD4]">/5</span>
-              </div>
-              <div class="mb-4 flex items-center gap-1 text-[#D3DC35]">
-                @for (star of [1, 2, 3, 4, 5]; track star) {
-                  <ng-icon name="heroStarSolid" class="text-[16px]"></ng-icon>
-                }
-              </div>
-              <p class="mb-3 text-[14px] font-semibold text-[#1A1C21]">Overall rating</p>
-              <div class="space-y-2.5">
-                @for (bar of ratingBreakdown(); track bar.stars) {
-                  <div class="flex items-center gap-2">
-                    <span class="w-6 text-[12px] font-medium text-[#1A1C21]"
-                      >{{ bar.stars }} ★</span
-                    >
-                    <div class="h-[5px] flex-1 overflow-hidden rounded-full bg-[#ECEEF4]">
-                      <div
-                        class="h-full rounded-full bg-[#3A3C43]"
-                        [style.width.%]="bar.percentage"
-                      ></div>
-                    </div>
-                    <span class="w-8 text-right text-[12px] text-[#8C8C92]"
-                      >{{ bar.percentage }}%</span
-                    >
-                  </div>
-                }
-              </div>
-            </div>
-            <button
-              type="button"
-              (click)="void openLeaveReviewModal()"
-              class="mt-4 w-full rounded-full bg-[#5932EA] px-6 py-3 text-[14px] font-medium text-white"
-            >
-              Leave a review
-            </button>
-          </div>
-
-          <div class="mt-6 px-5">
-            <div class="mb-5 flex items-center justify-between gap-4">
-                <h2 class="text-[18px] font-semibold text-[#1A1C21]">
-                  {{ reviewCountLabel() }} reviews
-                </h2>
-              <button
-                type="button"
-                class="flex items-center gap-1 rounded-full border border-[#E6E8EF] px-3 py-1.5 text-[13px] text-[#1A1C21]"
+        <section class="bg-white pb-[32px] md:hidden">
+          <div class="h-[54px] px-5">
+            <div class="flex h-full items-center">
+              <a
+                [routerLink]="backRoute()"
+                aria-label="Back"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f3f3f3]"
               >
-                Most recent
-                <ng-icon name="heroChevronDown" class="text-[14px] text-[#8C8C92]"></ng-icon>
-              </button>
-            </div>
-
-            @if (vendorTags().length) {
-              <p class="text-[16px] font-medium text-[#1A1C21]">This vendor is great at..</p>
-              <div class="mt-3 flex flex-wrap gap-2">
-                @for (tag of vendorTags(); track tag.label) {
-                  <div
-                    class="rounded-full border border-[#E6E8EF] px-3 py-1.5 text-[12px] text-[#4B5563]"
-                  >
-                    {{ tag.label }} ({{ tag.count }})
-                  </div>
-                }
-              </div>
-            }
-
-            <div class="mt-5 space-y-6">
-              @if (isReviewsLoading()) {
-                @for (item of [1, 2, 3]; track item) {
-                  <div class="flex gap-3 border-b border-[#F0F1F4] pb-5">
-                    <div class="h-9 w-9 rounded-full skeleton-shimmer"></div>
-                    <div class="flex-1 space-y-2">
-                      <div class="h-4 w-32 rounded-full skeleton-shimmer"></div>
-                      <div class="h-3 w-24 rounded-full skeleton-shimmer"></div>
-                      <div class="h-3 w-full rounded-full skeleton-shimmer"></div>
-                      <div class="h-3 w-5/6 rounded-full skeleton-shimmer"></div>
-                    </div>
-                  </div>
-                }
-              } @else if (reviews().length) {
-                @for (review of reviews(); track review.author + review.date) {
-                  <article class="border-b border-[#F0F1F4] pb-5 last:border-b-0 last:pb-0">
-                    <div class="flex gap-3">
-                      <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#F3F4F6]">
-                        @if (review.avatar; as avatar) {
-                          <img
-                            [ngSrc]="avatar"
-                            [alt]="review.author"
-                            width="36"
-                            height="36"
-                            loading="lazy"
-                            class="h-full w-full object-cover"
-                          />
-                        } @else {
-                          <span class="text-[12px] font-semibold text-[#6B7280]">{{ initialsFromName(review.author) }}</span>
-                        }
-                      </div>
-                      <div class="min-w-0 flex-1">
-                        <h3 class="text-[14px] font-medium text-[#1A1C21]">{{ review.author }}</h3>
-                        <div class="mt-1 flex items-center gap-1.5">
-                          <div class="flex items-center gap-0.5 text-[#3A3C43]">
-                            @for (filled of reviewStars(review.rating); track $index) {
-                              <ng-icon
-                                name="heroStarSolid"
-                                class="text-[11px]"
-                                [class.text-[#3A3C43]]="filled"
-                                [class.text-[#E5E7EB]]="!filled"
-                              ></ng-icon>
-                            }
-                          </div>
-                          <span class="text-[10px] text-[#D1D5DB]">•</span>
-                          <span class="text-[12px] text-[#8C8C92]">{{ review.date }}</span>
-                        </div>
-                        <p class="mt-2 text-[13px] leading-6 text-[#2F3138]">{{ review.text }}</p>
-                        @if (review.images?.length) {
-                          <div class="mt-3 flex flex-wrap gap-2">
-                            @for (image of review.images!.slice(0, 4); track $index) {
-                              <div
-                                class="h-[68px] w-[68px] overflow-hidden rounded-[10px] bg-[#F3F4F6]"
-                              >
-                                <img [ngSrc]="image" alt="" width="68" height="68" loading="lazy" class="h-full w-full object-cover" />
-                              </div>
-                            }
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  </article>
-                }
-              } @else {
-                <div class="rounded-[20px] border border-[#EEF0F4] bg-[#FCFCFD] px-4 py-6 text-center text-[14px] text-[#6B7280]">
-                  This store doesn’t have any reviews yet.
-                </div>
-              }
+                <ng-icon name="heroChevronLeft" class="text-[18px] text-[#2d2d2d]"></ng-icon>
+              </a>
             </div>
           </div>
-        }
-      </section>
 
-      <section class="hidden min-h-full px-6 py-6 md:block md:px-8">
-        <nav class="mb-6 flex items-center gap-3 text-sm text-[#8C8C92]">
-          <a [routerLink]="backRoute()" class="transition-colors hover:text-[#5932EA]">
-            {{ breadcrumbRootLabel() }}
-          </a>
-          <span>/</span>
-          <span class="font-medium text-[#1A1C21]">Vendor information</span>
-        </nav>
-
-        <div class="overflow-hidden rounded-[36px] border border-[#EEF0F4] bg-white">
-          <div class="px-6 pb-8 pt-6 md:px-8 md:pb-10">
-            <div
-              class="relative h-[184px] overflow-hidden rounded-[32px] bg-[#F4F6FB] md:h-[220px]"
-            >
-              @if (hasStoreBanner()) {
-                <img [ngSrc]="store().banner" [alt]="store().name" width="1200" height="220" loading="lazy" sizes="100vw" class="h-full w-full object-cover" />
-              } @else {
-                <div class="h-full w-full animate-pulse bg-[#EEF2FF]"></div>
+          <div class="px-5">
+            <div class="relative h-[91px] overflow-hidden rounded-t-[11px]">
+              @if (hasStoreBanner(); as hasBanner) {
+                @if (hasBanner) {
+                  <img
+                    [ngSrc]="store().banner"
+                    [alt]="store().name + ' banner'"
+                    width="350"
+                    height="91"
+                    loading="lazy"
+                    class="h-full w-full object-cover"
+                  />
+                } @else {
+                  <div class="h-full w-full animate-pulse bg-[#EEF2FF]"></div>
+                }
               }
               <div
-                class="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-white via-white/85 to-transparent"
+                class="pointer-events-none absolute inset-x-0 bottom-0 h-[56px] bg-[linear-gradient(180deg,rgba(255,255,255,0)_0.5%,#fff_93%)]"
               ></div>
             </div>
 
-            <div
-              class="relative z-10 -mt-14 flex flex-col gap-6 md:-mt-16 md:flex-row md:items-end md:justify-between"
-            >
-              <div class="flex flex-1 flex-col gap-5">
-                <div class="flex items-end gap-5 w-full">
-                  <div
-                    class="h-24 w-24 shrink-0 aspect-square overflow-hidden rounded-full border-[6px] border-white bg-white shadow-md md:h-28 md:w-28"
-                  >
-                    @if (hasStoreLogo()) {
-                      <img
-                        [ngSrc]="store().logo"
-                        [alt]="store().name"
-                        width="112"
-                        height="112"
-                        loading="lazy"
-                        class="h-full w-full rounded-full object-cover"
-                      />
-                    } @else {
-                      <div class="h-full w-full animate-pulse rounded-full bg-[#E5E7EB]"></div>
-                    }
-                  </div>
-
-                  <div class="pb-2">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <h1
-                        class="text-[24px] font-semibold tracking-tight text-[#1A1C21] md:text-[28px]"
-                      >
-                        {{ store().name }}
-                      </h1>
-                      @if (store().isVerified) {
-                        <ng-icon name="heroCheckBadge" class="text-[18px] text-[#5932EA]"></ng-icon>
-                      }
-                    </div>
-
-                    <div class="mt-1 flex items-center gap-1.5 text-[#7B7D88]">
-                      <ng-icon name="heroMapPin" class="text-[14px]"></ng-icon>
-                      <span class="text-sm">{{ store().location }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="flex flex-wrap items-stretch gap-5 md:gap-0">
-                  <div class="pr-5 md:border-r md:border-[#EEF0F4] md:pr-8">
-                    <p class="text-[13px] text-[#8C8C92]">Followers</p>
-                    <p class="mt-1 text-[16px] font-semibold text-[#1A1C21]">
-                      {{ store().stats.followers }}
-                    </p>
-                  </div>
-                  <div class="md:border-r md:border-[#EEF0F4] md:px-8">
-                    <p class="text-[13px] text-[#8C8C92]">Products</p>
-                    <p class="mt-1 text-[16px] font-semibold text-[#1A1C21]">
-                      {{ store().stats.products }}
-                    </p>
-                  </div>
-                  <div class="md:border-r md:border-[#EEF0F4] md:px-8">
-                    <p class="text-[13px] text-[#8C8C92]">Rating</p>
-                    <div class="mt-1 flex items-center gap-1">
-                      <span class="text-[16px] font-semibold text-[#1A1C21]">
-                        {{ store().stats.rating }}
-                      </span>
-                      <ng-icon name="heroStarSolid" class="text-[14px] text-[#E0C419]"></ng-icon>
-                    </div>
-                  </div>
-                  <div class="md:pl-8">
-                    <p class="text-[13px] text-[#8C8C92]">Date joined</p>
-                    <p class="mt-1 text-[16px] font-semibold text-[#1A1C21]">
-                      {{ store().stats.dateJoined }}
-                    </p>
-                  </div>
-                </div>
+            <div class="relative -mt-2 flex flex-col items-center">
+              <div
+                class="h-[74px] w-[74px] overflow-hidden rounded-full border-4 border-white bg-[#3d785f]"
+              >
+                @if (hasStoreLogo()) {
+                  <img
+                    [ngSrc]="store().logo"
+                    [alt]="store().name + ' logo'"
+                    width="74"
+                    height="74"
+                    loading="lazy"
+                    class="h-full w-full object-cover"
+                  />
+                } @else {
+                  <div class="h-full w-full animate-pulse bg-[#E5E7EB]"></div>
+                }
               </div>
+              <h1
+                class="mt-2 flex items-center gap-1 text-[18px] font-medium leading-[1.1] text-[#1f1f1f]"
+              >
+                {{ store().name }}
+                @if (store().isVerified) {
+                  <img
+                    ngSrc="/assets/icons/home-store-verified.svg"
+                    alt=""
+                    width="16"
+                    height="16"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                  />
+                }
+              </h1>
+              <p class="mt-1 flex items-center gap-1 text-[14px] text-[#959595]">
+                <img
+                  ngSrc="/assets/icons/home-store-location.svg"
+                  alt=""
+                  width="14"
+                  height="14"
+                  class="h-[14px] w-[14px]"
+                  aria-hidden="true"
+                />
+                {{ store().location }}
+              </p>
+            </div>
 
-              <div class="flex flex-wrap items-center gap-3 self-end">
-                <button
-                  type="button"
-                  (click)="toggleVendorFollow()"
-                  class="rounded-full bg-[#F3F4F6] px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#EDEEF2]"
-                >
-                  {{ store().isFollowed ? 'Unfollow seller' : 'Follow seller' }}
-                </button>
-
-                <div class="relative">
-                  <button
-                    type="button"
-                    (click)="showContactMenu.update((value) => !value)"
-                    class="flex items-center gap-2 rounded-full bg-[#5932EA] px-6 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-12px_rgba(89,50,234,0.7)] transition hover:bg-[#4E27DD]"
-                  >
-                    Contact seller
-                    <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
-                  </button>
-
-                  @if (showContactMenu()) {
-                    <div
-                      class="absolute right-0 top-[calc(100%+12px)] z-20 min-w-[320px] overflow-hidden rounded-[24px] border border-[#EEF0F4] bg-white p-2 shadow-xl"
-                    >
-                      <button
-                        type="button"
-                        (click)="openInAppChat()"
-                        [disabled]="isOwnStore()"
-                        class="flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA]"
-                        [class.cursor-not-allowed]="isOwnStore()"
-                        [class.opacity-55]="isOwnStore()"
-                      >
-                        <ng-icon
-                          name="heroChatBubbleOvalLeftEllipsis"
-                          class="text-[18px] text-[#6B7280]"
-                        ></ng-icon>
-                        {{ isOwnStore() ? 'You own this store' : 'Message in-app' }}
-                      </button>
-                      <button
-                        type="button"
-                        (click)="openWhatsApp()"
-                        class="flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA]"
-                      >
-                        <span
-                          class="flex h-[18px] w-[18px] items-center justify-center text-[#6B7280]"
-                          >⌾</span
-                        >
-                        Message on WhatsApp ({{ store().whatsappNumber || store().callNumber }})
-                      </button>
-                      <button
-                        type="button"
-                        (click)="callSeller()"
-                        class="flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA]"
-                      >
-                        <ng-icon name="heroPhone" class="text-[18px] text-[#6B7280]"></ng-icon>
-                        Call phone number ({{ store().callNumber || store().whatsappNumber }})
-                      </button>
-                    </div>
-                    <button
-                      type="button"
-                      class="fixed inset-0 z-10 cursor-default"
-                      aria-label="Close contact menu"
-                      (click)="showContactMenu.set(false)"
-                    ></button>
-                  }
-                </div>
+            <div class="mt-4 flex items-center justify-between rounded-[16px]">
+              <div class="text-left">
+                <p class="text-[12px] text-[#777]">Followers</p>
+                <p class="text-[14px] font-medium text-[#1f1f1f]">{{ store().stats.followers }}</p>
+              </div>
+              <div class="h-9 w-px bg-[#eaeaea]"></div>
+              <div class="text-left">
+                <p class="text-[12px] text-[#777]">Products</p>
+                <p class="text-[14px] font-medium text-[#1f1f1f]">{{ store().stats.products }}</p>
+              </div>
+              <div class="h-9 w-px bg-[#eaeaea]"></div>
+              <div class="text-left">
+                <p class="text-[12px] text-[#777]">Rating</p>
+                <p class="flex items-center gap-0.5 text-[14px] font-medium text-[#1f1f1f]">
+                  {{ store().stats.rating }} <span class="text-[#E0C419]">★</span>
+                </p>
+              </div>
+              <div class="h-9 w-px bg-[#eaeaea]"></div>
+              <div class="text-left">
+                <p class="text-[12px] text-[#777]">Date joined</p>
+                <p class="text-[14px] font-medium text-[#1f1f1f]">
+                  {{ store().stats.dateJoined }}
+                </p>
               </div>
             </div>
 
-            @if (store().description) {
-              <div class="mb-8 max-w-[860px]">
-                <p class="text-[16px] leading-7 text-[#1F1F1F]">
-                  {{ store().description }}
-                </p>
-              </div>
-            }
+            <div class="mt-4 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                (click)="toggleVendorFollow()"
+                class="h-10 w-[122px] rounded-full bg-[#6453d9] text-[14px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4)]"
+              >
+                {{ store().isFollowed ? 'Unfollow' : 'Follow' }}
+              </button>
+              <button
+                type="button"
+                class="flex h-10 w-[122px] items-center justify-center gap-1 rounded-full bg-[#f4f4f4] text-[14px] font-medium text-[#2d2d2d]"
+              >
+                Contact
+                <ng-icon name="heroChevronDown" class="text-[14px] text-[#777]"></ng-icon>
+              </button>
+            </div>
 
-            <div class="flex items-center gap-8 border-b border-[#EEF0F4]">
+            <p class="mt-4 text-center text-[16px] leading-[1.2] text-[#1f1f1f]">
+              {{ store().description }}
+            </p>
+          </div>
+
+          <div class="mt-6 border-b border-[#eaeaea] px-5">
+            <div class="flex items-center gap-8">
               <button
                 type="button"
                 (click)="activeTab.set('products')"
-                class="flex items-center gap-2 border-b-2 px-1 pb-4 pt-1 text-[15px] font-medium transition"
-                [class.border-[#5932EA]]="activeTab() === 'products'"
-                [class.text-[#5932EA]]="activeTab() === 'products'"
+                class="border-b-2 pb-2 text-[16px] font-medium"
+                [class.border-[#6453d9]]="activeTab() === 'products'"
+                [class.text-[#6453d9]]="activeTab() === 'products'"
                 [class.border-transparent]="activeTab() !== 'products'"
-                [class.text-[#8C8C92]]="activeTab() !== 'products'"
+                [class.text-[#959595]]="activeTab() !== 'products'"
               >
-                <ng-icon name="heroCube" class="text-[16px]"></ng-icon>
                 Products
               </button>
-
               <button
                 type="button"
                 (click)="activeTab.set('reviews')"
-                class="flex items-center gap-2 border-b-2 px-1 pb-4 pt-1 text-[15px] font-medium transition"
-                [class.border-[#5932EA]]="activeTab() === 'reviews'"
-                [class.text-[#5932EA]]="activeTab() === 'reviews'"
+                class="border-b-2 pb-2 text-[16px] font-medium"
+                [class.border-[#6453d9]]="activeTab() === 'reviews'"
+                [class.text-[#6453d9]]="activeTab() === 'reviews'"
                 [class.border-transparent]="activeTab() !== 'reviews'"
-                [class.text-[#8C8C92]]="activeTab() !== 'reviews'"
+                [class.text-[#959595]]="activeTab() !== 'reviews'"
               >
-                <ng-icon name="heroStar" class="text-[16px]"></ng-icon>
                 Reviews
               </button>
             </div>
+          </div>
 
-            @if (activeTab() === 'products') {
-              <div class="pt-8">
-                <div class="mb-8 overflow-x-auto pb-2">
-                  <div class="flex min-w-max items-center gap-3">
-                    @for (chip of categoryChips(); track chip) {
-                      <button
-                        type="button"
-                        (click)="activeCategory.set(chip)"
-                        class="rounded-full px-5 py-3 text-[15px] font-medium transition"
-                        [class.bg-[#1A1C21]]="activeCategory() === chip"
-                        [class.text-white]="activeCategory() === chip"
-                        [class.bg-[#F5F6FA]]="activeCategory() !== chip"
-                        [class.text-[#1A1C21]]="activeCategory() !== chip"
-                      >
-                        {{ chip }}
-                      </button>
-                    }
-                  </div>
-                </div>
+          @if (activeTab() === 'products') {
+            <div class="mt-4 overflow-x-auto px-5 pb-1">
+              <div class="flex min-w-max gap-[10px]">
+                @for (chip of mobileCategoryChips(); track chip) {
+                  <button
+                    type="button"
+                    (click)="activeCategory.set(chip)"
+                    class="h-10 rounded-[16px] px-4 text-[14px] font-medium"
+                    [class.bg-[#1a1a1a]]="activeCategory() === chip"
+                    [class.text-white]="activeCategory() === chip"
+                    [class.bg-[#f4f4f4]]="activeCategory() !== chip"
+                    [class.text-black]="activeCategory() !== chip"
+                  >
+                    {{ chip }}
+                  </button>
+                }
+              </div>
+            </div>
 
-                <div class="space-y-10">
-                  @if (isListingsLoading()) {
-                    @for (section of [1, 2]; track section) {
-                      <div class="space-y-6">
-                        <div class="h-7 w-44 rounded-full skeleton-shimmer"></div>
-                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
-                          @for (card of [1, 2, 3, 4, 5]; track card) {
-                            <div class="overflow-hidden rounded-[24px] border border-[#F1F3F7] bg-white">
-                              <div class="aspect-[0.82] skeleton-shimmer"></div>
-                              <div class="space-y-3 p-4">
-                                <div class="h-4 w-3/4 rounded-full skeleton-shimmer"></div>
-                                <div class="h-4 w-1/2 rounded-full skeleton-shimmer"></div>
-                              </div>
-                            </div>
-                          }
-                        </div>
-                      </div>
-                    }
-                  } @else if (filteredSections().length) {
-                    @for (section of filteredSections(); track section.id) {
-                      <section>
-                        <div class="mb-6 flex items-center justify-between gap-4">
-                          <h2 class="text-[20px] font-medium text-[#1A1C21]">{{ section.title }}</h2>
-
-                          <div class="flex items-center gap-3">
-                            <button
-                              type="button"
-                              class="flex items-center gap-2 text-[15px] font-medium text-[#1A1C21]"
-                            >
-                              View all ({{ section.countLabel }})
-                              <ng-icon name="heroChevronRightOutline" class="text-[16px]"></ng-icon>
-                            </button>
-
-                            <div class="flex items-center gap-2">
-                              <button
-                                type="button"
-                                class="flex h-10 w-10 items-center justify-center rounded-full border border-[#E6E8EF] bg-white text-[#9CA3AF] transition hover:text-[#1A1C21]"
-                              >
-                                <ng-icon name="heroChevronLeft" class="text-[18px]"></ng-icon>
-                              </button>
-                              <button
-                                type="button"
-                                class="flex h-10 w-10 items-center justify-center rounded-full border border-[#E6E8EF] bg-white text-[#1A1C21] transition hover:bg-[#F7F7FA]"
-                              >
-                                <ng-icon name="heroChevronRightOutline" class="text-[18px]"></ng-icon>
-                              </button>
-                            </div>
+            <div class="mt-4 space-y-8 px-5">
+              @if (isListingsLoading()) {
+                @for (card of [1, 2, 3, 4]; track card) {
+                  <div class="space-y-3">
+                    <div class="h-6 w-40 rounded-full skeleton-shimmer"></div>
+                    <div class="grid grid-cols-2 gap-[8px]">
+                      @for (tile of [1, 2]; track tile) {
+                        <div
+                          class="overflow-hidden rounded-[18px] border border-[#F1F3F7] bg-white"
+                        >
+                          <div class="aspect-[0.84] skeleton-shimmer"></div>
+                          <div class="space-y-2 p-3">
+                            <div class="h-4 w-3/4 rounded-full skeleton-shimmer"></div>
+                            <div class="h-4 w-1/2 rounded-full skeleton-shimmer"></div>
                           </div>
                         </div>
-
-                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
-                          @for (item of section.items; track item.id) {
-                            <app-listing-card [listing]="item" />
-                          }
-                        </div>
-                      </section>
-                    }
-                  } @else {
-                    <div class="rounded-[24px] border border-[#EEF0F4] bg-[#FCFCFD] px-6 py-10 text-center text-[15px] text-[#6B7280]">
-                      This store hasn’t added any listings yet.
+                      }
+                    </div>
+                  </div>
+                }
+              } @else if (mobileSections().length) {
+                @for (section of mobileSections(); track section.title) {
+                  <section>
+                    <div class="mb-4 flex items-center justify-between">
+                      <h2 class="text-[20px] font-medium text-[#1f1f1f]">{{ section.title }}</h2>
+                      <button
+                        type="button"
+                        class="flex items-center gap-1 text-[16px] text-[#1f1f1f]"
+                      >
+                        View all ({{ section.items.length }})
+                        <ng-icon name="heroChevronRightOutline" class="text-[16px]"></ng-icon>
+                      </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-[8px]">
+                      @for (item of section.items; track item.id) {
+                        <app-listing-card [listing]="item" [favoriteFilled]="true" />
+                      }
+                    </div>
+                  </section>
+                }
+              } @else {
+                <div
+                  class="rounded-[20px] border border-[#EEF0F4] bg-[#FCFCFD] px-4 py-6 text-center text-[14px] text-[#6B7280]"
+                >
+                  This store hasn’t added any listings yet.
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="mt-4 px-5">
+              <div class="rounded-[16px] bg-white p-4 shadow-[0_2px_14px_rgba(17,24,39,0.06)]">
+                <div class="mb-3 flex items-end gap-1">
+                  <span class="text-[40px] font-semibold leading-none text-[#1A1C21]">
+                    {{ store().stats.rating }}
+                  </span>
+                  <span class="pb-1 text-[18px] font-semibold text-[#C8CBD4]">/5</span>
+                </div>
+                <div class="mb-4 flex items-center gap-1 text-[#D3DC35]">
+                  @for (star of [1, 2, 3, 4, 5]; track star) {
+                    <ng-icon name="heroStarSolid" class="text-[16px]"></ng-icon>
+                  }
+                </div>
+                <p class="mb-3 text-[14px] font-semibold text-[#1A1C21]">Overall rating</p>
+                <div class="space-y-2.5">
+                  @for (bar of ratingBreakdown(); track bar.stars) {
+                    <div class="flex items-center gap-2">
+                      <span class="w-6 text-[12px] font-medium text-[#1A1C21]"
+                        >{{ bar.stars }} ★</span
+                      >
+                      <div class="h-[5px] flex-1 overflow-hidden rounded-full bg-[#ECEEF4]">
+                        <div
+                          class="h-full rounded-full bg-[#3A3C43]"
+                          [style.width.%]="bar.percentage"
+                        ></div>
+                      </div>
+                      <span class="w-8 text-right text-[12px] text-[#8C8C92]"
+                        >{{ bar.percentage }}%</span
+                      >
                     </div>
                   }
                 </div>
               </div>
-            } @else {
-              <div class="pt-8">
-                <div class="grid gap-8 xl:grid-cols-[260px_minmax(0,1fr)]">
-                  <div class="space-y-5">
-                    <div class="rounded-[28px] bg-[#FCFCFD] p-6">
-                      <div class="mb-4 flex items-end gap-2">
-                        <span class="text-[58px] font-semibold leading-none text-[#1A1C21]">
-                          {{ store().stats.rating }}
-                        </span>
-                        <span class="mb-1 text-[22px] font-semibold text-[#C8CBD4]">/5</span>
-                      </div>
+              <button
+                type="button"
+                (click)="void openLeaveReviewModal()"
+                class="mt-4 w-full rounded-full bg-[#5932EA] px-6 py-3 text-[14px] font-medium text-white"
+              >
+                Leave a review
+              </button>
+            </div>
 
-                      <div class="mb-6 flex items-center gap-2 text-[#D3DC35]">
-                        @for (star of [1, 2, 3, 4, 5]; track star) {
-                          <ng-icon name="heroStarSolid" class="text-[20px]"></ng-icon>
-                        }
-                      </div>
+            <div class="mt-6 px-5">
+              <div class="mb-5 flex items-center justify-between gap-4">
+                <h2 class="text-[18px] font-semibold text-[#1A1C21]">
+                  {{ reviewCountLabel() }} reviews
+                </h2>
+                <button
+                  type="button"
+                  class="flex items-center gap-1 rounded-full border border-[#E6E8EF] px-3 py-1.5 text-[13px] text-[#1A1C21]"
+                >
+                  Most recent
+                  <ng-icon name="heroChevronDown" class="text-[14px] text-[#8C8C92]"></ng-icon>
+                </button>
+              </div>
 
-                      <p class="mb-4 text-[16px] font-semibold text-[#1A1C21]">Overall rating</p>
-
-                      <div class="space-y-3">
-                        @for (bar of ratingBreakdown(); track bar.stars) {
-                          <div class="flex items-center gap-3">
-                            <span class="w-7 text-[15px] font-medium text-[#1A1C21]"
-                              >{{ bar.stars }} ★</span
-                            >
-                            <div class="h-[6px] flex-1 overflow-hidden rounded-full bg-[#ECEEF4]">
-                              <div
-                                class="h-full rounded-full bg-[#3A3C43]"
-                                [style.width.%]="bar.percentage"
-                              ></div>
-                            </div>
-                            <span class="w-9 text-right text-[15px] text-[#8C8C92]"
-                              >{{ bar.percentage }}%</span
-                            >
-                          </div>
-                        }
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      (click)="void openLeaveReviewModal()"
-                      class="w-full rounded-full bg-[#5932EA] px-6 py-3.5 text-sm font-medium text-white shadow-[0_10px_24px_-12px_rgba(89,50,234,0.7)] transition hover:bg-[#4E27DD]"
-                    >
-                      Leave a review
-                    </button>
-                  </div>
-
-                  <div>
+              @if (vendorTags().length) {
+                <p class="text-[16px] font-medium text-[#1A1C21]">This vendor is great at..</p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  @for (tag of vendorTags(); track tag.label) {
                     <div
-                      class="mb-7 flex flex-col gap-5 md:flex-row md:items-start md:justify-between"
+                      class="rounded-full border border-[#E6E8EF] px-3 py-1.5 text-[12px] text-[#4B5563]"
                     >
-                      <div>
-                        <h2 class="text-[18px] font-semibold text-[#1A1C21]">
-                          {{ reviewCountLabel() }} reviews
-                        </h2>
-                        @if (vendorTags().length) {
-                          <p class="mt-8 text-[18px] font-medium text-[#1A1C21]">
-                            This vendor is great at..
-                          </p>
-
-                          <div class="mt-4 flex flex-wrap gap-3">
-                            @for (tag of vendorTags(); track tag.label) {
-                              <div
-                                class="rounded-full border border-[#E6E8EF] px-4 py-2 text-[15px] text-[#4B5563]"
-                              >
-                                {{ tag.label }} ({{ tag.count }})
-                              </div>
-                            }
-                          </div>
-                        }
-                      </div>
-
-                      <button
-                        type="button"
-                        class="flex items-center gap-2 self-start rounded-full border border-[#E6E8EF] bg-white px-4 py-2.5 text-[15px] font-medium text-[#1A1C21]"
-                      >
-                        Most recent
-                        <ng-icon
-                          name="heroChevronDown"
-                          class="text-[16px] text-[#8C8C92]"
-                        ></ng-icon>
-                      </button>
+                      {{ tag.label }} ({{ tag.count }})
                     </div>
+                  }
+                </div>
+              }
 
-                    <div class="space-y-8">
-                      @if (isReviewsLoading()) {
-                        @for (item of [1, 2, 3]; track item) {
-                          <div class="flex gap-4 rounded-[24px] bg-white">
-                            <div class="h-10 w-10 rounded-full skeleton-shimmer"></div>
-                            <div class="flex-1 space-y-3">
-                              <div class="h-4 w-32 rounded-full skeleton-shimmer"></div>
-                              <div class="h-3 w-24 rounded-full skeleton-shimmer"></div>
-                              <div class="h-3 w-full rounded-full skeleton-shimmer"></div>
-                              <div class="h-3 w-5/6 rounded-full skeleton-shimmer"></div>
+              <div class="mt-5 space-y-6">
+                @if (isReviewsLoading()) {
+                  @for (item of [1, 2, 3]; track item) {
+                    <div class="flex gap-3 border-b border-[#F0F1F4] pb-5">
+                      <div class="h-9 w-9 rounded-full skeleton-shimmer"></div>
+                      <div class="flex-1 space-y-2">
+                        <div class="h-4 w-32 rounded-full skeleton-shimmer"></div>
+                        <div class="h-3 w-24 rounded-full skeleton-shimmer"></div>
+                        <div class="h-3 w-full rounded-full skeleton-shimmer"></div>
+                        <div class="h-3 w-5/6 rounded-full skeleton-shimmer"></div>
+                      </div>
+                    </div>
+                  }
+                } @else if (reviews().length) {
+                  @for (review of reviews(); track review.author + review.date) {
+                    <article class="border-b border-[#F0F1F4] pb-5 last:border-b-0 last:pb-0">
+                      <div class="flex gap-3">
+                        <div
+                          class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#F3F4F6]"
+                        >
+                          @if (review.avatar; as avatar) {
+                            <img
+                              [ngSrc]="avatar"
+                              [alt]="review.author"
+                              width="36"
+                              height="36"
+                              loading="lazy"
+                              class="h-full w-full object-cover"
+                            />
+                          } @else {
+                            <span class="text-[12px] font-semibold text-[#6B7280]">{{
+                              initialsFromName(review.author)
+                            }}</span>
+                          }
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <h3 class="text-[14px] font-medium text-[#1A1C21]">
+                            {{ review.author }}
+                          </h3>
+                          <div class="mt-1 flex items-center gap-1.5">
+                            <div class="flex items-center gap-0.5 text-[#3A3C43]">
+                              @for (filled of reviewStars(review.rating); track $index) {
+                                <ng-icon
+                                  name="heroStarSolid"
+                                  class="text-[11px]"
+                                  [class.text-[#3A3C43]]="filled"
+                                  [class.text-[#E5E7EB]]="!filled"
+                                ></ng-icon>
+                              }
                             </div>
+                            <span class="text-[10px] text-[#D1D5DB]">•</span>
+                            <span class="text-[12px] text-[#8C8C92]">{{ review.date }}</span>
                           </div>
-                        }
-                      } @else if (reviews().length) {
-                        @for (review of reviews(); track review.author + review.date) {
-                          <article class="rounded-[24px] bg-white">
-                            <div class="flex gap-4">
-                              <div
-                                class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#F3F4F6]"
-                              >
-                                @if (review.avatar; as avatar) {
+                          <p class="mt-2 text-[13px] leading-6 text-[#2F3138]">{{ review.text }}</p>
+                          @if (review.images?.length) {
+                            <div class="mt-3 flex flex-wrap gap-2">
+                              @for (image of review.images!.slice(0, 4); track $index) {
+                                <div
+                                  class="h-[68px] w-[68px] overflow-hidden rounded-[10px] bg-[#F3F4F6]"
+                                >
                                   <img
-                                    [ngSrc]="avatar"
-                                    [alt]="review.author"
-                                    width="40"
-                                    height="40"
+                                    [ngSrc]="image"
+                                    alt=""
+                                    width="68"
+                                    height="68"
                                     loading="lazy"
                                     class="h-full w-full object-cover"
                                   />
-                                } @else {
-                                  <span class="text-[13px] font-semibold text-[#6B7280]">{{ initialsFromName(review.author) }}</span>
-                                }
-                              </div>
-
-                              <div class="min-w-0 flex-1">
-                                <h3 class="text-[16px] font-medium text-[#1A1C21]">
-                                  {{ review.author }}
-                                </h3>
-
-                              <div class="mt-2 flex items-center gap-2">
-                                <div class="flex items-center gap-1 text-[#3A3C43]">
-                                  @for (filled of reviewStars(review.rating); track $index) {
-                                    <ng-icon
-                                      name="heroStarSolid"
-                                      class="text-[13px]"
-                                      [class.text-[#3A3C43]]="filled"
-                                      [class.text-[#E5E7EB]]="!filled"
-                                    ></ng-icon>
-                                  }
-                                </div>
-                                <span class="text-[11px] text-[#D1D5DB]">•</span>
-                                <span class="text-[14px] text-[#8C8C92]">{{ review.date }}</span>
-                              </div>
-
-                              <p class="mt-3 text-[15px] leading-8 text-[#2F3138]">
-                                {{ review.text }}
-                              </p>
-
-                              @if (review.images?.length) {
-                                <div class="mt-4 flex flex-wrap gap-3">
-                                  @for (image of review.images!.slice(0, 6); track $index) {
-                                    <div
-                                      class="relative h-28 w-28 overflow-hidden rounded-[18px] bg-[#F3F4F6]"
-                                    >
-                                      <img
-                                        [ngSrc]="image"
-                                        alt=""
-                                        width="112"
-                                        height="112"
-                                        loading="lazy"
-                                        class="h-full w-full object-cover"
-                                      />
-
-                                      @if ($index === 5 && review.images!.length > 6) {
-                                        <div
-                                          class="absolute inset-0 flex items-center justify-center bg-black/45 text-[28px] font-semibold text-white"
-                                        >
-                                          +{{ review.images!.length - 5 }}
-                                        </div>
-                                      }
-                                    </div>
-                                  }
                                 </div>
                               }
-                              </div>
                             </div>
-                          </article>
-                        }
-                      } @else {
-                        <div class="rounded-[24px] border border-[#EEF0F4] bg-[#FCFCFD] px-6 py-10 text-center text-[15px] text-[#6B7280]">
-                          This store doesn’t have any reviews yet.
+                          }
                         </div>
-                      }
-                    </div>
+                      </div>
+                    </article>
+                  }
+                } @else {
+                  <div
+                    class="rounded-[20px] border border-[#EEF0F4] bg-[#FCFCFD] px-4 py-6 text-center text-[14px] text-[#6B7280]"
+                  >
+                    This store doesn’t have any reviews yet.
                   </div>
-                </div>
+                }
               </div>
-            }
-          </div>
-        </div>
+            </div>
+          }
+        </section>
 
-        @if (showLeaveReviewModal()) {
-          <div
-            class="fixed inset-0 z-50 flex items-end justify-center bg-black/35 px-0 pt-8 backdrop-blur-sm md:items-center md:p-4"
-          >
-            <div
-              class="relative max-h-[92dvh] w-full overflow-y-auto rounded-t-[32px] bg-white px-5 pb-7 pt-6 shadow-2xl md:max-h-[calc(100dvh-2rem)] md:max-w-6xl md:rounded-[36px] md:p-8"
-            >
-              <button
-                type="button"
-                (click)="closeLeaveReviewModal()"
-                class="absolute right-5 top-5 flex h-12 w-12 items-center justify-center rounded-full border border-[#E6E8EF] bg-white text-[#6B7280] transition hover:bg-[#F7F7FA] md:right-6 md:top-6"
-                aria-label="Close leave review modal"
+        <section class="hidden min-h-full px-6 py-6 md:block md:px-8">
+          <nav class="mb-6 flex items-center gap-3 text-sm text-[#8C8C92]">
+            <a [routerLink]="backRoute()" class="transition-colors hover:text-[#5932EA]">
+              {{ breadcrumbRootLabel() }}
+            </a>
+            <span>/</span>
+            <span class="font-medium text-[#1A1C21]">Vendor information</span>
+          </nav>
+
+          <div class="overflow-hidden rounded-[36px] border border-[#EEF0F4] bg-white">
+            <div class="px-6 pb-8 pt-6 md:px-8 md:pb-10">
+              <div
+                class="relative h-[184px] overflow-hidden rounded-[32px] bg-[#F4F6FB] md:h-[220px]"
               >
-                <span class="text-[28px] leading-none">&times;</span>
-              </button>
-
-              <div class="mb-4 flex justify-center md:hidden">
-                <div class="h-1.5 w-14 rounded-full bg-[#D7DAE2]"></div>
+                @if (hasStoreBanner()) {
+                  <img
+                    [ngSrc]="store().banner"
+                    [alt]="store().name"
+                    width="1200"
+                    height="220"
+                    loading="lazy"
+                    sizes="100vw"
+                    class="h-full w-full object-cover"
+                  />
+                } @else {
+                  <div class="h-full w-full animate-pulse bg-[#EEF2FF]"></div>
+                }
+                <div
+                  class="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-white via-white/85 to-transparent"
+                ></div>
               </div>
 
-              <div class="grid gap-7 md:gap-8 md:grid-cols-[260px_minmax(0,1fr)] md:gap-10">
-                <div
-                  class="border-b border-[#EEF0F4] pb-6 md:border-b-0 md:border-r md:pb-0 md:pr-10"
-                >
-                  <h2 class="max-w-[260px] pr-14 text-[24px] font-semibold leading-tight text-[#1A1C21] md:max-w-[220px] md:pr-0 md:text-[28px]">
-                    Leave a review for this seller
-                  </h2>
-
-                  <div class="mt-6 overflow-hidden rounded-[24px] border border-[#EEF0F4] bg-white md:mt-8 md:rounded-[28px]">
-                    <div class="h-24 overflow-hidden bg-[#F4F6FB]">
-                      @if (hasStoreBanner()) {
+              <div
+                class="relative z-10 -mt-14 flex flex-col gap-6 md:-mt-16 md:flex-row md:items-end md:justify-between"
+              >
+                <div class="flex flex-1 flex-col gap-5">
+                  <div class="flex items-end gap-5 w-full">
+                    <div
+                      class="h-24 w-24 shrink-0 aspect-square overflow-hidden rounded-full border-[6px] border-white bg-white shadow-md md:h-28 md:w-28"
+                    >
+                      @if (hasStoreLogo()) {
                         <img
-                          [ngSrc]="store().banner"
+                          [ngSrc]="store().logo"
                           [alt]="store().name"
-                          width="320"
-                          height="96"
+                          width="112"
+                          height="112"
                           loading="lazy"
-                          class="h-full w-full object-cover"
+                          class="h-full w-full rounded-full object-cover"
                         />
                       } @else {
-                        <div class="h-full w-full animate-pulse bg-[#EEF2FF]"></div>
+                        <div class="h-full w-full animate-pulse rounded-full bg-[#E5E7EB]"></div>
                       }
                     </div>
-                    <div class="relative px-5 pb-5 pt-10">
-                      <div
-                        class="absolute -top-8 left-5 h-16 w-16 overflow-hidden rounded-full border-4 border-white bg-white shadow-sm"
-                      >
-                        @if (hasStoreLogo()) {
-                          <img
-                            [ngSrc]="store().logo"
-                            [alt]="store().name"
-                            width="64"
-                            height="64"
-                            loading="lazy"
-                            class="h-full w-full object-cover"
-                          />
-                        } @else {
-                          <div class="h-full w-full animate-pulse bg-[#E5E7EB]"></div>
-                        }
-                      </div>
 
-                      <h3 class="flex items-center gap-1 text-[16px] font-medium text-[#1A1C21]">
-                        {{ store().name }}
+                    <div class="pb-2">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <h1
+                          class="text-[24px] font-semibold tracking-tight text-[#1A1C21] md:text-[28px]"
+                        >
+                          {{ store().name }}
+                        </h1>
                         @if (store().isVerified) {
                           <ng-icon
                             name="heroCheckBadge"
-                            class="text-[16px] text-[#5932EA]"
+                            class="text-[18px] text-[#5932EA]"
                           ></ng-icon>
                         }
-                      </h3>
+                      </div>
 
                       <div class="mt-1 flex items-center gap-1.5 text-[#7B7D88]">
                         <ng-icon name="heroMapPin" class="text-[14px]"></ng-icon>
@@ -1087,143 +657,728 @@ type VendorTagSummary = {
                       </div>
                     </div>
                   </div>
+
+                  <div class="flex flex-wrap items-stretch gap-5 md:gap-0">
+                    <div class="pr-5 md:border-r md:border-[#EEF0F4] md:pr-8">
+                      <p class="text-[13px] text-[#8C8C92]">Followers</p>
+                      <p class="mt-1 text-[16px] font-semibold text-[#1A1C21]">
+                        {{ store().stats.followers }}
+                      </p>
+                    </div>
+                    <div class="md:border-r md:border-[#EEF0F4] md:px-8">
+                      <p class="text-[13px] text-[#8C8C92]">Products</p>
+                      <p class="mt-1 text-[16px] font-semibold text-[#1A1C21]">
+                        {{ store().stats.products }}
+                      </p>
+                    </div>
+                    <div class="md:border-r md:border-[#EEF0F4] md:px-8">
+                      <p class="text-[13px] text-[#8C8C92]">Rating</p>
+                      <div class="mt-1 flex items-center gap-1">
+                        <span class="text-[16px] font-semibold text-[#1A1C21]">
+                          {{ store().stats.rating }}
+                        </span>
+                        <ng-icon name="heroStarSolid" class="text-[14px] text-[#E0C419]"></ng-icon>
+                      </div>
+                    </div>
+                    <div class="md:pl-8">
+                      <p class="text-[13px] text-[#8C8C92]">Date joined</p>
+                      <p class="mt-1 text-[16px] font-semibold text-[#1A1C21]">
+                        {{ store().stats.dateJoined }}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <div>
-                    <h3 class="text-[17px] font-semibold text-[#1A1C21] md:text-[18px]">
-                      How would you rate your experience with this seller?
-                    </h3>
+                <div class="flex flex-wrap items-center gap-3 self-end">
+                  <button
+                    type="button"
+                    (click)="toggleVendorFollow()"
+                    class="rounded-full bg-[#F3F4F6] px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#EDEEF2]"
+                  >
+                    {{ store().isFollowed ? 'Unfollow seller' : 'Follow seller' }}
+                  </button>
 
-                    <div class="mt-5 flex flex-wrap items-center gap-3 md:gap-4">
-                      <div class="flex items-center gap-2.5 md:gap-3">
-                        @for (star of [1, 2, 3, 4, 5]; track star) {
-                          <button
-                            type="button"
-                            (click)="reviewRating.set(star)"
-                            class="transition hover:scale-105"
-                            [attr.aria-label]="'Rate ' + star + ' stars'"
+                  <div class="relative">
+                    <button
+                      type="button"
+                      (click)="showContactMenu.update((value) => !value)"
+                      class="flex items-center gap-2 rounded-full bg-[#5932EA] px-6 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-12px_rgba(89,50,234,0.7)] transition hover:bg-[#4E27DD]"
+                    >
+                      Contact seller
+                      <ng-icon name="heroChevronDown" class="text-[16px]"></ng-icon>
+                    </button>
+
+                    @if (showContactMenu()) {
+                      <div
+                        class="absolute right-0 top-[calc(100%+12px)] z-20 min-w-[320px] overflow-hidden rounded-[24px] border border-[#EEF0F4] bg-white p-2 shadow-xl"
+                      >
+                        <button
+                          type="button"
+                          (click)="openInAppChat()"
+                          [disabled]="isOwnStore()"
+                          class="flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA]"
+                          [class.cursor-not-allowed]="isOwnStore()"
+                          [class.opacity-55]="isOwnStore()"
+                        >
+                          <ng-icon
+                            name="heroChatBubbleOvalLeftEllipsis"
+                            class="text-[18px] text-[#6B7280]"
+                          ></ng-icon>
+                          {{ isOwnStore() ? 'You own this store' : 'Message in-app' }}
+                        </button>
+                        <button
+                          type="button"
+                          (click)="openWhatsApp()"
+                          class="flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA]"
+                        >
+                          <span
+                            class="flex h-[18px] w-[18px] items-center justify-center text-[#6B7280]"
+                            >⌾</span
                           >
-                            <span
-                              class="text-[42px] leading-none md:text-[52px]"
-                              [class.text-[#D3DC35]]="star <= reviewRating()"
-                              [class.text-[#E5E7EB]]="star > reviewRating()"
-                            >
-                              ★
-                            </span>
-                          </button>
-                        }
-                      </div>
-
-                      <span class="text-[16px] text-[#6B7280]">{{ ratingLabel() }}</span>
-                    </div>
-                  </div>
-
-                  <div class="mt-8 md:mt-10">
-                    <h3 class="text-[17px] font-semibold text-[#1A1C21] md:text-[18px]">
-                      What stood out about this seller?
-                      <span class="font-normal text-[#6B7280]">(optional)</span>
-                    </h3>
-
-                    <div class="mt-5 flex flex-wrap gap-3">
-                      @for (tag of vendorTags(); track tag.label) {
+                          Message on WhatsApp ({{ store().whatsappNumber || store().callNumber }})
+                        </button>
                         <button
                           type="button"
-                          (click)="toggleReviewTag(tag.label)"
-                          class="rounded-full px-4 py-2 text-[15px] transition"
-                          [class.border]="!selectedReviewTags().includes(tag.label)"
-                          [class.border-[#E6E8EF]]="!selectedReviewTags().includes(tag.label)"
-                          [class.bg-[#F7F7FA]]="!selectedReviewTags().includes(tag.label)"
-                          [class.text-[#4B5563]]="!selectedReviewTags().includes(tag.label)"
-                          [class.border-[#7C6AF2]]="selectedReviewTags().includes(tag.label)"
-                          [class.bg-white]="selectedReviewTags().includes(tag.label)"
-                          [class.text-[#5932EA]]="selectedReviewTags().includes(tag.label)"
+                          (click)="callSeller()"
+                          class="flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA]"
                         >
-                          {{ tag.label }}
+                          <ng-icon name="heroPhone" class="text-[18px] text-[#6B7280]"></ng-icon>
+                          Call phone number ({{ store().callNumber || store().whatsappNumber }})
                         </button>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="mt-8 md:mt-10">
-                    <h3 class="text-[17px] font-semibold text-[#1A1C21] md:text-[18px]">Share more details</h3>
-                    <label class="mt-4 block text-[15px] text-[#4B5563]">
-                      What should others know about this seller?
-                    </label>
-                    <textarea
-                      [value]="reviewText()"
-                      #reviewTextInput
-                      (input)="reviewText.set(reviewTextInput.value)"
-                      rows="5"
-                      class="mt-3 w-full rounded-[18px] border border-[#E6E8EF] px-5 py-4 text-[15px] text-[#1A1C21] outline-none transition placeholder:text-[#9CA3AF] focus:border-[#CFC7FF]"
-                    ></textarea>
-                  </div>
-
-                  <div class="mt-8 md:mt-10">
-                    <h3 class="text-[17px] font-semibold text-[#1A1C21] md:text-[18px]">
-                      Attach some pictures
-                      <span class="font-normal text-[#6B7280]">(optional)</span>
-                    </h3>
-
-                    <div
-                      class="mt-5 rounded-[24px] border border-dashed border-[#D6DAE4] bg-[#FCFCFD] p-6"
-                    >
-                      <input
-                        #reviewImageInput
-                        type="file"
-                        multiple
-                        accept="image/png,image/jpeg"
-                        class="hidden"
-                        (change)="onReviewImagesSelected(reviewImageInput)"
-                      />
-
-                      <div class="flex flex-col items-center justify-center gap-3 text-center">
-                        <button
-                          type="button"
-                          (click)="reviewImageInput.click()"
-                          class="rounded-full border border-[#E6E8EF] bg-white px-6 py-3 text-[15px] font-medium text-[#1A1C21]"
-                        >
-                          Add file
-                        </button>
-                        <p class="text-sm text-[#8C8C92]">PNG, JPEG under 2MB</p>
                       </div>
-
-                      @if (reviewImagePreviews().length) {
-                        <div class="mt-6 flex flex-wrap gap-3">
-                          @for (preview of reviewImagePreviews(); track preview) {
-                            <div class="h-20 w-20 overflow-hidden rounded-[16px] bg-[#F3F4F6]">
-                              <img [src]="preview" alt="" class="h-full w-full object-cover" />
-                            </div>
-                          }
-                        </div>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="mt-8 flex flex-col-reverse gap-3 md:mt-10 md:flex-row md:items-center md:justify-end">
-                    <button
-                      type="button"
-                      (click)="closeLeaveReviewModal()"
-                      class="w-full rounded-full bg-[#F3F4F6] px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#EDEEF2] md:w-auto"
-                    >
-                      Back
-                    </button>
-                    <button
-                      type="button"
-                      (click)="submitReview()"
-                      [disabled]="isSubmittingReview()"
-                      class="w-full rounded-full bg-[#5932EA] px-6 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-12px_rgba(89,50,234,0.7)] transition hover:bg-[#4E27DD] md:w-auto"
-                      [class.opacity-70]="isSubmittingReview()"
-                    >
-                      {{ isSubmittingReview() ? 'Submitting...' : 'Submit review' }}
-                    </button>
+                      <button
+                        type="button"
+                        class="fixed inset-0 z-10 cursor-default"
+                        aria-label="Close contact menu"
+                        (click)="showContactMenu.set(false)"
+                      ></button>
+                    }
                   </div>
                 </div>
               </div>
+
+              @if (store().description) {
+                <div class="mb-8 max-w-[860px]">
+                  <p class="text-[16px] leading-7 text-[#1F1F1F]">
+                    {{ store().description }}
+                  </p>
+                </div>
+              }
+
+              <div class="flex items-center gap-8 border-b border-[#EEF0F4]">
+                <button
+                  type="button"
+                  (click)="activeTab.set('products')"
+                  class="flex items-center gap-2 border-b-2 px-1 pb-4 pt-1 text-[15px] font-medium transition"
+                  [class.border-[#5932EA]]="activeTab() === 'products'"
+                  [class.text-[#5932EA]]="activeTab() === 'products'"
+                  [class.border-transparent]="activeTab() !== 'products'"
+                  [class.text-[#8C8C92]]="activeTab() !== 'products'"
+                >
+                  <ng-icon name="heroCube" class="text-[16px]"></ng-icon>
+                  Products
+                </button>
+
+                <button
+                  type="button"
+                  (click)="activeTab.set('reviews')"
+                  class="flex items-center gap-2 border-b-2 px-1 pb-4 pt-1 text-[15px] font-medium transition"
+                  [class.border-[#5932EA]]="activeTab() === 'reviews'"
+                  [class.text-[#5932EA]]="activeTab() === 'reviews'"
+                  [class.border-transparent]="activeTab() !== 'reviews'"
+                  [class.text-[#8C8C92]]="activeTab() !== 'reviews'"
+                >
+                  <ng-icon name="heroStar" class="text-[16px]"></ng-icon>
+                  Reviews
+                </button>
+              </div>
+
+              @if (activeTab() === 'products') {
+                <div class="pt-8">
+                  <div class="mb-8 overflow-x-auto pb-2">
+                    <div class="flex min-w-max items-center gap-3">
+                      @for (chip of categoryChips(); track chip) {
+                        <button
+                          type="button"
+                          (click)="activeCategory.set(chip)"
+                          class="rounded-full px-5 py-3 text-[15px] font-medium transition"
+                          [class.bg-[#1A1C21]]="activeCategory() === chip"
+                          [class.text-white]="activeCategory() === chip"
+                          [class.bg-[#F5F6FA]]="activeCategory() !== chip"
+                          [class.text-[#1A1C21]]="activeCategory() !== chip"
+                        >
+                          {{ chip }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="space-y-10">
+                    @if (isListingsLoading()) {
+                      @for (section of [1, 2]; track section) {
+                        <div class="space-y-6">
+                          <div class="h-7 w-44 rounded-full skeleton-shimmer"></div>
+                          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
+                            @for (card of [1, 2, 3, 4, 5]; track card) {
+                              <div
+                                class="overflow-hidden rounded-[24px] border border-[#F1F3F7] bg-white"
+                              >
+                                <div class="aspect-[0.82] skeleton-shimmer"></div>
+                                <div class="space-y-3 p-4">
+                                  <div class="h-4 w-3/4 rounded-full skeleton-shimmer"></div>
+                                  <div class="h-4 w-1/2 rounded-full skeleton-shimmer"></div>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    } @else if (filteredSections().length) {
+                      @for (section of filteredSections(); track section.id) {
+                        <section>
+                          <div class="mb-6 flex items-center justify-between gap-4">
+                            <h2 class="text-[20px] font-medium text-[#1A1C21]">
+                              {{ section.title }}
+                            </h2>
+
+                            <div class="flex items-center gap-3">
+                              <button
+                                type="button"
+                                class="flex items-center gap-2 text-[15px] font-medium text-[#1A1C21]"
+                              >
+                                View all ({{ section.countLabel }})
+                                <ng-icon
+                                  name="heroChevronRightOutline"
+                                  class="text-[16px]"
+                                ></ng-icon>
+                              </button>
+
+                              <div class="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  class="flex h-10 w-10 items-center justify-center rounded-full border border-[#E6E8EF] bg-white text-[#9CA3AF] transition hover:text-[#1A1C21]"
+                                >
+                                  <ng-icon name="heroChevronLeft" class="text-[18px]"></ng-icon>
+                                </button>
+                                <button
+                                  type="button"
+                                  class="flex h-10 w-10 items-center justify-center rounded-full border border-[#E6E8EF] bg-white text-[#1A1C21] transition hover:bg-[#F7F7FA]"
+                                >
+                                  <ng-icon
+                                    name="heroChevronRightOutline"
+                                    class="text-[18px]"
+                                  ></ng-icon>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
+                            @for (item of section.items; track item.id) {
+                              <app-listing-card [listing]="item" />
+                            }
+                          </div>
+                        </section>
+                      }
+                    } @else {
+                      <div
+                        class="rounded-[24px] border border-[#EEF0F4] bg-[#FCFCFD] px-6 py-10 text-center text-[15px] text-[#6B7280]"
+                      >
+                        This store hasn’t added any listings yet.
+                      </div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="pt-8">
+                  <div class="grid gap-8 xl:grid-cols-[260px_minmax(0,1fr)]">
+                    <div class="space-y-5">
+                      <div class="rounded-[28px] bg-[#FCFCFD] p-6">
+                        <div class="mb-4 flex items-end gap-2">
+                          <span class="text-[58px] font-semibold leading-none text-[#1A1C21]">
+                            {{ store().stats.rating }}
+                          </span>
+                          <span class="mb-1 text-[22px] font-semibold text-[#C8CBD4]">/5</span>
+                        </div>
+
+                        <div class="mb-6 flex items-center gap-2 text-[#D3DC35]">
+                          @for (star of [1, 2, 3, 4, 5]; track star) {
+                            <ng-icon name="heroStarSolid" class="text-[20px]"></ng-icon>
+                          }
+                        </div>
+
+                        <p class="mb-4 text-[16px] font-semibold text-[#1A1C21]">Overall rating</p>
+
+                        <div class="space-y-3">
+                          @for (bar of ratingBreakdown(); track bar.stars) {
+                            <div class="flex items-center gap-3">
+                              <span class="w-7 text-[15px] font-medium text-[#1A1C21]"
+                                >{{ bar.stars }} ★</span
+                              >
+                              <div class="h-[6px] flex-1 overflow-hidden rounded-full bg-[#ECEEF4]">
+                                <div
+                                  class="h-full rounded-full bg-[#3A3C43]"
+                                  [style.width.%]="bar.percentage"
+                                ></div>
+                              </div>
+                              <span class="w-9 text-right text-[15px] text-[#8C8C92]"
+                                >{{ bar.percentage }}%</span
+                              >
+                            </div>
+                          }
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        (click)="void openLeaveReviewModal()"
+                        class="w-full rounded-full bg-[#5932EA] px-6 py-3.5 text-sm font-medium text-white shadow-[0_10px_24px_-12px_rgba(89,50,234,0.7)] transition hover:bg-[#4E27DD]"
+                      >
+                        Leave a review
+                      </button>
+                    </div>
+
+                    <div>
+                      <div
+                        class="mb-7 flex flex-col gap-5 md:flex-row md:items-start md:justify-between"
+                      >
+                        <div>
+                          <h2 class="text-[18px] font-semibold text-[#1A1C21]">
+                            {{ reviewCountLabel() }} reviews
+                          </h2>
+                          @if (vendorTags().length) {
+                            <p class="mt-8 text-[18px] font-medium text-[#1A1C21]">
+                              This vendor is great at..
+                            </p>
+
+                            <div class="mt-4 flex flex-wrap gap-3">
+                              @for (tag of vendorTags(); track tag.label) {
+                                <div
+                                  class="rounded-full border border-[#E6E8EF] px-4 py-2 text-[15px] text-[#4B5563]"
+                                >
+                                  {{ tag.label }} ({{ tag.count }})
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+
+                        <button
+                          type="button"
+                          class="flex items-center gap-2 self-start rounded-full border border-[#E6E8EF] bg-white px-4 py-2.5 text-[15px] font-medium text-[#1A1C21]"
+                        >
+                          Most recent
+                          <ng-icon
+                            name="heroChevronDown"
+                            class="text-[16px] text-[#8C8C92]"
+                          ></ng-icon>
+                        </button>
+                      </div>
+
+                      <div class="space-y-8">
+                        @if (isReviewsLoading()) {
+                          @for (item of [1, 2, 3]; track item) {
+                            <div class="flex gap-4 rounded-[24px] bg-white">
+                              <div class="h-10 w-10 rounded-full skeleton-shimmer"></div>
+                              <div class="flex-1 space-y-3">
+                                <div class="h-4 w-32 rounded-full skeleton-shimmer"></div>
+                                <div class="h-3 w-24 rounded-full skeleton-shimmer"></div>
+                                <div class="h-3 w-full rounded-full skeleton-shimmer"></div>
+                                <div class="h-3 w-5/6 rounded-full skeleton-shimmer"></div>
+                              </div>
+                            </div>
+                          }
+                        } @else if (reviews().length) {
+                          @for (review of reviews(); track review.author + review.date) {
+                            <article class="rounded-[24px] bg-white">
+                              <div class="flex gap-4">
+                                <div
+                                  class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#F3F4F6]"
+                                >
+                                  @if (review.avatar; as avatar) {
+                                    <img
+                                      [ngSrc]="avatar"
+                                      [alt]="review.author"
+                                      width="40"
+                                      height="40"
+                                      loading="lazy"
+                                      class="h-full w-full object-cover"
+                                    />
+                                  } @else {
+                                    <span class="text-[13px] font-semibold text-[#6B7280]">{{
+                                      initialsFromName(review.author)
+                                    }}</span>
+                                  }
+                                </div>
+
+                                <div class="min-w-0 flex-1">
+                                  <h3 class="text-[16px] font-medium text-[#1A1C21]">
+                                    {{ review.author }}
+                                  </h3>
+
+                                  <div class="mt-2 flex items-center gap-2">
+                                    <div class="flex items-center gap-1 text-[#3A3C43]">
+                                      @for (filled of reviewStars(review.rating); track $index) {
+                                        <ng-icon
+                                          name="heroStarSolid"
+                                          class="text-[13px]"
+                                          [class.text-[#3A3C43]]="filled"
+                                          [class.text-[#E5E7EB]]="!filled"
+                                        ></ng-icon>
+                                      }
+                                    </div>
+                                    <span class="text-[11px] text-[#D1D5DB]">•</span>
+                                    <span class="text-[14px] text-[#8C8C92]">{{
+                                      review.date
+                                    }}</span>
+                                  </div>
+
+                                  <p class="mt-3 text-[15px] leading-8 text-[#2F3138]">
+                                    {{ review.text }}
+                                  </p>
+
+                                  @if (review.images?.length) {
+                                    <div class="mt-4 flex flex-wrap gap-3">
+                                      @for (image of review.images!.slice(0, 6); track $index) {
+                                        <div
+                                          class="relative h-28 w-28 overflow-hidden rounded-[18px] bg-[#F3F4F6]"
+                                        >
+                                          <img
+                                            [ngSrc]="image"
+                                            alt=""
+                                            width="112"
+                                            height="112"
+                                            loading="lazy"
+                                            class="h-full w-full object-cover"
+                                          />
+
+                                          @if ($index === 5 && review.images!.length > 6) {
+                                            <div
+                                              class="absolute inset-0 flex items-center justify-center bg-black/45 text-[28px] font-semibold text-white"
+                                            >
+                                              +{{ review.images!.length - 5 }}
+                                            </div>
+                                          }
+                                        </div>
+                                      }
+                                    </div>
+                                  }
+                                </div>
+                              </div>
+                            </article>
+                          }
+                        } @else {
+                          <div
+                            class="rounded-[24px] border border-[#EEF0F4] bg-[#FCFCFD] px-6 py-10 text-center text-[15px] text-[#6B7280]"
+                          >
+                            This store doesn’t have any reviews yet.
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
             </div>
           </div>
-        }
-      </section>
+
+          @if (showLeaveReviewModal()) {
+            <div
+              class="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 md:items-center md:p-5"
+              role="presentation"
+            >
+              <div
+                class="relative flex max-h-[94dvh] w-full flex-col overflow-hidden rounded-t-[36px] bg-white shadow-[0_-16px_50px_rgba(18,18,20,0.16)] md:h-[min(955px,calc(100dvh-40px))] md:max-w-[1150px] md:rounded-[24px] md:shadow-[0_24px_80px_rgba(18,18,20,0.18)]"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="leave-review-title"
+              >
+                <div class="relative h-[64px] shrink-0 md:h-[84px]">
+                  <div
+                    class="absolute left-1/2 top-3 h-1 w-12 -translate-x-1/2 rounded-full bg-[#D8D8DC] md:hidden"
+                    aria-hidden="true"
+                  ></div>
+
+                  <button
+                    type="button"
+                    (click)="closeLeaveReviewModal()"
+                    class="absolute left-8 top-6 hidden items-center gap-2 rounded-full px-2 py-1.5 text-[14px] font-medium text-[#19191B] transition hover:bg-[#F5F5F7] active:scale-95 md:flex"
+                  >
+                    <ng-icon name="heroArrowLeft" class="text-[18px]"></ng-icon>
+                    Back
+                  </button>
+
+                  <button
+                    #reviewCloseButton
+                    type="button"
+                    (click)="closeLeaveReviewModal()"
+                    [disabled]="isSubmittingReview()"
+                    class="absolute right-4 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F6] text-[#27272A] transition hover:bg-[#EDEDEF] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 md:right-8 md:top-5 md:h-11 md:w-11"
+                    aria-label="Close review form"
+                  >
+                    <ng-icon name="heroXMark" class="text-[22px]"></ng-icon>
+                  </button>
+                </div>
+
+                <div
+                  class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-7 md:px-8 md:pb-10"
+                >
+                  <div
+                    class="mx-auto grid max-w-[1086px] gap-8 md:grid-cols-[253px_1px_minmax(0,1fr)] md:gap-8"
+                  >
+                    <section>
+                      <h2
+                        id="leave-review-title"
+                        class="max-w-[315px] text-[24px] font-semibold leading-[1.3] tracking-[-0.48px] text-[#171719] md:text-[32px] md:leading-[1.25] md:tracking-[-0.96px]"
+                      >
+                        Leave a review for this seller
+                      </h2>
+
+                      <article
+                        class="mt-6 w-[154px] overflow-hidden rounded-[16px] border border-[#ECECEF] bg-white md:mt-8 md:w-full md:rounded-[20px]"
+                      >
+                        <div class="h-[72px] overflow-hidden bg-[#F2F3F6] md:h-[118px]">
+                          @if (hasStoreBanner()) {
+                            <img
+                              [ngSrc]="store().banner"
+                              [alt]="store().name + ' cover'"
+                              width="253"
+                              height="118"
+                              loading="lazy"
+                              class="h-full w-full object-cover"
+                            />
+                          } @else {
+                            <div class="skeleton-shimmer h-full w-full"></div>
+                          }
+                        </div>
+
+                        <div class="relative px-3 pb-3 pt-8 md:px-4 md:pb-5 md:pt-10">
+                          <div
+                            class="absolute -top-6 left-3 h-12 w-12 overflow-hidden rounded-full border-[3px] border-white bg-[#F1F2F5] md:-top-8 md:left-4 md:h-16 md:w-16 md:border-4"
+                          >
+                            @if (hasStoreLogo()) {
+                              <img
+                                [ngSrc]="store().logo"
+                                [alt]="store().name + ' logo'"
+                                width="64"
+                                height="64"
+                                loading="lazy"
+                                class="h-full w-full object-cover"
+                              />
+                            } @else {
+                              <div class="skeleton-shimmer h-full w-full"></div>
+                            }
+                          </div>
+
+                          <h3
+                            class="flex min-w-0 items-center gap-1 text-[12px] font-semibold text-[#171719] md:text-[15px]"
+                          >
+                            <span class="truncate">{{ store().name }}</span>
+                            @if (store().isVerified) {
+                              <ng-icon
+                                name="heroCheckBadge"
+                                class="shrink-0 text-[14px] text-[#5D45E8] md:text-[17px]"
+                              ></ng-icon>
+                            }
+                          </h3>
+
+                          @if (store().location) {
+                            <div class="mt-1 flex min-w-0 items-center gap-1 text-[#77777E]">
+                              <ng-icon
+                                name="heroMapPin"
+                                class="shrink-0 text-[11px] md:text-[14px]"
+                              ></ng-icon>
+                              <span class="truncate text-[10px] md:text-[13px]">{{
+                                store().location
+                              }}</span>
+                            </div>
+                          }
+                        </div>
+                      </article>
+                    </section>
+
+                    <div class="hidden w-px bg-[#EBEBEE] md:block" aria-hidden="true"></div>
+
+                    <div class="border-t border-[#EBEBEE] pt-7 md:border-t-0 md:pt-0">
+                      <section>
+                        <h3
+                          class="max-w-[650px] text-[18px] font-semibold leading-[1.35] tracking-[-0.18px] text-[#171719] md:text-[20px]"
+                        >
+                          How would you rate your experience with this seller?
+                        </h3>
+
+                        <div class="mt-4 md:mt-6">
+                          <div class="flex items-center gap-2 md:gap-3">
+                            @for (star of [1, 2, 3, 4, 5]; track star) {
+                              <button
+                                type="button"
+                                (click)="reviewRating.set(star)"
+                                class="rounded-lg transition duration-150 hover:-translate-y-0.5 hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5D45E8] active:scale-95"
+                                [attr.aria-label]="'Rate ' + star + ' out of 5 stars'"
+                                [attr.aria-pressed]="star <= reviewRating()"
+                              >
+                                <ng-icon
+                                  name="heroStarSolid"
+                                  class="text-[44px] md:text-[52px]"
+                                  [class.text-[#D1DB31]]="star <= reviewRating()"
+                                  [class.text-[#E6E6E9]]="star > reviewRating()"
+                                ></ng-icon>
+                              </button>
+                            }
+                          </div>
+                          <p class="mt-2 text-[14px] text-[#73737A] md:text-[15px]">
+                            {{ ratingLabel() }}
+                          </p>
+                        </div>
+                      </section>
+
+                      <section class="mt-7 md:mt-9">
+                        <h3 class="text-[17px] font-semibold text-[#171719] md:text-[20px]">
+                          What stood out about this seller?
+                          <span class="font-normal text-[#77777E]">(optional)</span>
+                        </h3>
+
+                        <div class="mt-4 flex flex-wrap gap-2.5 md:mt-5 md:gap-3">
+                          @if (isReviewTagsLoading()) {
+                            @for (item of [1, 2, 3, 4]; track item) {
+                              <span
+                                class="skeleton-shimmer h-10 w-32 rounded-full"
+                                aria-hidden="true"
+                              ></span>
+                            }
+                          } @else {
+                            @for (tag of reviewTagOptions(); track tag.id) {
+                              <button
+                                type="button"
+                                (click)="toggleReviewTag(tag.label)"
+                                class="rounded-full border px-4 py-2 text-[14px] transition duration-150 hover:-translate-y-0.5 active:scale-95 md:px-5 md:py-2.5 md:text-[15px]"
+                                [class.border-[#E2E2E6]]="!selectedReviewTags().includes(tag.label)"
+                                [class.bg-[#F7F7F8]]="!selectedReviewTags().includes(tag.label)"
+                                [class.text-[#45454A]]="!selectedReviewTags().includes(tag.label)"
+                                [class.border-[#5D45E8]]="selectedReviewTags().includes(tag.label)"
+                                [class.bg-[#F0EDFF]]="selectedReviewTags().includes(tag.label)"
+                                [class.text-[#4E35D8]]="selectedReviewTags().includes(tag.label)"
+                                [attr.aria-pressed]="selectedReviewTags().includes(tag.label)"
+                              >
+                                {{ tag.label }}
+                              </button>
+                            }
+                          }
+                        </div>
+                      </section>
+
+                      <section class="mt-7 md:mt-9">
+                        <h3 class="text-[17px] font-semibold text-[#171719] md:text-[20px]">
+                          Share more details
+                          <span class="font-normal text-[#77777E]">(optional)</span>
+                        </h3>
+                        <label
+                          for="review-details"
+                          class="mt-3 block text-[14px] text-[#55555B] md:text-[15px]"
+                        >
+                          What should others know about this seller?
+                        </label>
+                        <textarea
+                          id="review-details"
+                          [value]="reviewText()"
+                          #reviewTextInput
+                          (input)="reviewText.set(reviewTextInput.value)"
+                          rows="5"
+                          maxlength="1000"
+                          placeholder="Share details about your experience"
+                          class="mt-3 min-h-[132px] w-full resize-y rounded-[12px] border border-[#DCDCE1] bg-white px-4 py-3 text-[15px] text-[#171719] outline-none transition placeholder:text-[#A2A2A8] hover:border-[#C8C8CF] focus:border-[#6B55E9] focus:ring-2 focus:ring-[#6B55E9]/15 md:min-h-[148px]"
+                        ></textarea>
+                      </section>
+
+                      <section class="mt-7 md:mt-9">
+                        <h3 class="text-[17px] font-semibold text-[#171719] md:text-[20px]">
+                          Attach some pictures
+                          <span class="font-normal text-[#77777E]">(optional)</span>
+                        </h3>
+
+                        <input
+                          #reviewImageInput
+                          type="file"
+                          multiple
+                          accept="image/png,image/jpeg"
+                          class="sr-only"
+                          (change)="onReviewImagesSelected(reviewImageInput)"
+                        />
+
+                        <button
+                          type="button"
+                          (click)="reviewImageInput.click()"
+                          class="mt-4 flex min-h-[138px] w-full flex-col items-center justify-center rounded-[12px] border border-dashed border-[#CFCFD5] bg-[#FCFCFC] px-5 text-center transition hover:border-[#8A78EE] hover:bg-[#FAF9FF] active:scale-[0.995]"
+                        >
+                          <span
+                            class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F0EDFF] text-[#5D45E8]"
+                          >
+                            <ng-icon name="heroArrowUpTray" class="text-[20px]"></ng-icon>
+                          </span>
+                          <span class="mt-3 text-[14px] font-medium text-[#29292D]"
+                            >Choose pictures</span
+                          >
+                          <span class="mt-1 text-[12px] text-[#85858C]"
+                            >PNG or JPEG, up to 2MB each</span
+                          >
+                        </button>
+
+                        @if (reviewImagePreviews().length) {
+                          <div class="mt-4 flex flex-wrap gap-3">
+                            @for (
+                              preview of reviewImagePreviews();
+                              track preview;
+                              let index = $index
+                            ) {
+                              <div
+                                class="group relative h-20 w-20 overflow-hidden rounded-[12px] bg-[#F2F2F4]"
+                              >
+                                <img
+                                  [src]="preview"
+                                  alt="Selected review attachment"
+                                  class="h-full w-full object-cover"
+                                />
+                                <button
+                                  type="button"
+                                  (click)="removeReviewImage(index)"
+                                  class="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/65 text-white opacity-100 transition hover:bg-black active:scale-90 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+                                  [attr.aria-label]="'Remove attachment ' + (index + 1)"
+                                >
+                                  <ng-icon name="heroTrash" class="text-[14px]"></ng-icon>
+                                </button>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </section>
+                    </div>
+                  </div>
+                </div>
+
+                <footer
+                  class="shrink-0 border-t border-[#ECECEF] bg-white px-4 py-4 md:flex md:h-20 md:items-center md:justify-end md:gap-3 md:px-8 md:py-0"
+                >
+                  <button
+                    type="button"
+                    (click)="closeLeaveReviewModal()"
+                    [disabled]="isSubmittingReview()"
+                    class="hidden min-w-[112px] rounded-full bg-[#F2F2F4] px-6 py-3 text-[14px] font-semibold text-[#232327] transition hover:bg-[#E8E8EB] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 md:block"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    (click)="submitReview()"
+                    [disabled]="isSubmittingReview()"
+                    class="w-full rounded-full bg-[#5D45E8] px-7 py-3.5 text-[14px] font-semibold text-white shadow-[0_8px_22px_rgba(93,69,232,0.25)] transition hover:bg-[#4F38D8] active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 md:w-auto md:min-w-[154px] md:py-3"
+                  >
+                    {{ isSubmittingReview() ? 'Submitting...' : 'Submit review' }}
+                  </button>
+                </footer>
+              </div>
+            </div>
+          }
+        </section>
       </ng-template>
     </div>
 
@@ -1231,7 +1386,7 @@ type VendorTagSummary = {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BuyerFollowedStoreDetailsPageComponent {
+export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
@@ -1240,6 +1395,9 @@ export class BuyerFollowedStoreDetailsPageComponent {
   private readonly messagesService = inject(MessagesService);
   private readonly vendorsService = inject(VendorsService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
+  private readonly reviewCloseButton =
+    viewChild<ElementRef<HTMLButtonElement>>('reviewCloseButton');
+  private reviewTriggerElement: HTMLElement | null = null;
 
   readonly activeTab = signal<BuyerStoreTab>('products');
   readonly activeCategory = signal('All');
@@ -1248,6 +1406,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   readonly isFollowPending = signal(false);
   readonly isStartingConversation = signal(false);
   readonly isSubmittingReview = signal(false);
+  readonly isReviewTagsLoading = signal(false);
   readonly isProfileLoading = signal(true);
   readonly isListingsLoading = signal(true);
   readonly isReviewsLoading = signal(true);
@@ -1256,7 +1415,9 @@ export class BuyerFollowedStoreDetailsPageComponent {
     const currentUserId = this.authSession.user()?.id;
     const ownerUserId = this.store().ownerUserId;
 
-    return currentUserId !== undefined && ownerUserId !== null && String(currentUserId) === ownerUserId;
+    return (
+      currentUserId !== undefined && ownerUserId !== null && String(currentUserId) === ownerUserId
+    );
   });
   readonly reviewRating = signal(2);
   readonly selectedReviewTags = signal<string[]>([]);
@@ -1264,6 +1425,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   readonly reviewImagePreviews = signal<string[]>([]);
   readonly reviewImageFiles = signal<readonly File[]>([]);
   readonly reviewTagSummaries = signal<VendorTagSummary[]>([]);
+  readonly reviewTagOptions = signal<readonly VendorTagSummary[]>([]);
   private readonly storeId = this.route.snapshot.paramMap.get('id') ?? 'bf1';
 
   readonly store = signal<BuyerStoreProfile>({
@@ -1291,6 +1453,11 @@ export class BuyerFollowedStoreDetailsPageComponent {
     void this.loadVendorListings();
     void this.loadVendorReviews();
     this.applyInitialReviewIntent();
+  }
+
+  ngOnDestroy(): void {
+    this.revokeReviewPreviewUrls();
+    this.setReviewModalScrollLock(false);
   }
 
   readonly categoryChips = computed(() => [
@@ -1372,7 +1539,9 @@ export class BuyerFollowedStoreDetailsPageComponent {
     });
   });
 
-  readonly reviewCountLabel = computed(() => new Intl.NumberFormat('en-NG').format(this.reviews().length));
+  readonly reviewCountLabel = computed(() =>
+    new Intl.NumberFormat('en-NG').format(this.reviews().length),
+  );
 
   readonly ratingLabel = computed(() => {
     switch (this.reviewRating()) {
@@ -1411,7 +1580,19 @@ export class BuyerFollowedStoreDetailsPageComponent {
       return;
     }
 
+    if (this.isOwnStore()) {
+      this.appToastService.show({
+        message: 'You cannot review your own store.',
+      });
+      return;
+    }
+
+    this.reviewTriggerElement =
+      this.document.activeElement instanceof HTMLElement ? this.document.activeElement : null;
     this.showLeaveReviewModal.set(true);
+    this.setReviewModalScrollLock(true);
+    queueMicrotask(() => this.reviewCloseButton()?.nativeElement.focus());
+    await this.loadReviewTagOptions();
   }
 
   async openInAppChat(): Promise<void> {
@@ -1450,7 +1631,9 @@ export class BuyerFollowedStoreDetailsPageComponent {
       });
     } catch (error) {
       this.appToastService.show({
-        message: this.extractErrorMessage(error) ?? 'We couldn’t open this chat right now. Please try again.',
+        message:
+          this.extractErrorMessage(error) ??
+          'We couldn’t open this chat right now. Please try again.',
       });
     } finally {
       this.isStartingConversation.set(false);
@@ -1487,7 +1670,22 @@ export class BuyerFollowedStoreDetailsPageComponent {
 
   onReviewImagesSelected(input: HTMLInputElement) {
     const files = Array.from(input.files ?? []);
-    const limitedFiles = files.slice(0, 6);
+    const validFiles = files.filter(
+      (file) =>
+        (file.type === 'image/jpeg' || file.type === 'image/png') && file.size <= 2 * 1024 * 1024,
+    );
+    const limitedFiles = validFiles.slice(0, 6);
+
+    if (validFiles.length !== files.length) {
+      this.appToastService.show({
+        message: 'Choose PNG or JPEG images smaller than 2MB.',
+      });
+    } else if (validFiles.length > 6) {
+      this.appToastService.show({
+        message: 'You can attach up to 6 pictures.',
+      });
+    }
+
     const previews = limitedFiles.map((file) => URL.createObjectURL(file));
     this.revokeReviewPreviewUrls();
     this.reviewImageFiles.set(limitedFiles);
@@ -1495,9 +1693,26 @@ export class BuyerFollowedStoreDetailsPageComponent {
     input.value = '';
   }
 
+  removeReviewImage(index: number): void {
+    const preview = this.reviewImagePreviews()[index];
+    if (preview?.startsWith('blob:')) {
+      URL.revokeObjectURL(preview);
+    }
+    this.reviewImagePreviews.update((previews) =>
+      previews.filter((_, previewIndex) => previewIndex !== index),
+    );
+    this.reviewImageFiles.update((files) => files.filter((_, fileIndex) => fileIndex !== index));
+  }
+
   closeLeaveReviewModal() {
+    if (!this.showLeaveReviewModal() || this.isSubmittingReview()) {
+      return;
+    }
+
     this.showLeaveReviewModal.set(false);
+    this.setReviewModalScrollLock(false);
     this.resetReviewDraft();
+    queueMicrotask(() => this.reviewTriggerElement?.focus());
   }
 
   async submitReview(): Promise<void> {
@@ -1526,9 +1741,10 @@ export class BuyerFollowedStoreDetailsPageComponent {
       await firstValueFrom(this.vendorsService.createVendorReview(vendorId, payload));
       await this.loadVendorReviews();
       this.showLeaveReviewModal.set(false);
+      this.setReviewModalScrollLock(false);
       this.resetReviewDraft();
       this.appToastService.show({
-        message: 'Review submitted.',
+        message: 'Your review has been saved.',
       });
     } catch (error: unknown) {
       this.appToastService.show({
@@ -1648,6 +1864,26 @@ export class BuyerFollowedStoreDetailsPageComponent {
     }
   }
 
+  private async loadReviewTagOptions(): Promise<void> {
+    if (this.reviewTagOptions().length > 0 || this.isReviewTagsLoading()) {
+      return;
+    }
+
+    this.isReviewTagsLoading.set(true);
+    try {
+      const tags = await firstValueFrom(this.vendorsService.getReviewTags());
+      this.reviewTagOptions.set(
+        tags
+          .map((tag) => this.toReviewTagOption(tag))
+          .filter((tag): tag is VendorTagSummary => tag !== null),
+      );
+    } catch {
+      this.reviewTagOptions.set([]);
+    } finally {
+      this.isReviewTagsLoading.set(false);
+    }
+  }
+
   private resetReviewDraft(): void {
     this.reviewRating.set(2);
     this.selectedReviewTags.set([]);
@@ -1660,7 +1896,7 @@ export class BuyerFollowedStoreDetailsPageComponent {
   private buildReviewPayload(): CreateVendorReviewPayload {
     const vendorId = this.store().id;
     const tagIds = this.selectedReviewTags()
-      .map((label) => this.reviewTagSummaries().find((tag) => tag.label === label)?.id)
+      .map((label) => this.reviewTagOptions().find((tag) => tag.label === label)?.id)
       .filter((tagId): tagId is number => typeof tagId === 'number');
 
     return {
@@ -1678,6 +1914,23 @@ export class BuyerFollowedStoreDetailsPageComponent {
         URL.revokeObjectURL(preview);
       }
     }
+  }
+
+  private toReviewTagOption(tag: VendorReviewTagRecord): VendorTagSummary | null {
+    const label = tag.name.trim();
+    if (!label || !Number.isFinite(tag.id)) {
+      return null;
+    }
+
+    return {
+      id: tag.id,
+      label,
+      count: tag.count,
+    };
+  }
+
+  private setReviewModalScrollLock(isLocked: boolean): void {
+    this.document.body.style.overflow = isLocked ? 'hidden' : '';
   }
 
   private applyVendorProfile(record: VendorRecord): void {
@@ -1713,7 +1966,9 @@ export class BuyerFollowedStoreDetailsPageComponent {
       this.readString(record['whatsapp_number']) ?? this.store().whatsappNumber;
     const callNumber = this.readString(record['call_number']) ?? this.store().callNumber;
     const ownerUserId =
-      this.readString(userRecord?.['id']) ?? this.readString(record['user_id']) ?? this.store().ownerUserId;
+      this.readString(userRecord?.['id']) ??
+      this.readString(record['user_id']) ??
+      this.store().ownerUserId;
 
     this.store.update((store) => ({
       ...store,

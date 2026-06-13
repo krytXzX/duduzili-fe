@@ -7,6 +7,11 @@ export type VendorFollowResponse = Record<string, unknown>;
 export type VendorRecord = Record<string, unknown>;
 export type VendorListingRecord = Record<string, unknown>;
 export type VendorReviewRecord = Record<string, unknown>;
+export type VendorReviewTagRecord = {
+  id: number;
+  name: string;
+  count: number;
+};
 export type VendorAnalyticsRecord = Record<string, unknown>;
 export type UpdateVendorPayload = {
   store_name?: string;
@@ -91,9 +96,11 @@ export class VendorsService {
       if (payload.store_name !== undefined) formData.append('store_name', payload.store_name);
       if (payload.store_bio !== undefined) formData.append('store_bio', payload.store_bio);
       if (payload.location !== undefined) formData.append('location', payload.location);
-      if (payload.whatsapp_number !== undefined) formData.append('whatsapp_number', payload.whatsapp_number);
+      if (payload.whatsapp_number !== undefined)
+        formData.append('whatsapp_number', payload.whatsapp_number);
       if (payload.call_number !== undefined) formData.append('call_number', payload.call_number);
-      if (payload.call_number_2 !== undefined) formData.append('call_number_2', payload.call_number_2);
+      if (payload.call_number_2 !== undefined)
+        formData.append('call_number_2', payload.call_number_2);
       if (payload.profile_photo) formData.append('profile_photo', payload.profile_photo);
       if (payload.cover_image) formData.append('cover_image', payload.cover_image);
       return this.http.patch<VendorRecord>(`${this.apiUrl}/vendors/${id}/`, formData);
@@ -109,7 +116,14 @@ export class VendorsService {
     return this.http.get<VendorReviewsResponse>(`${this.apiUrl}/vendors/${id}/reviews/`);
   }
 
-  createVendorReview(id: string, payload: CreateVendorReviewPayload): Observable<VendorReviewRecord> {
+  getReviewTags(): Observable<readonly VendorReviewTagRecord[]> {
+    return this.http.get<readonly VendorReviewTagRecord[]>(`${this.apiUrl}/review-tags/`);
+  }
+
+  createVendorReview(
+    id: string,
+    payload: CreateVendorReviewPayload,
+  ): Observable<VendorReviewRecord> {
     const formData = new FormData();
     formData.append('vendor', payload.vendor);
     formData.append('rating', String(payload.rating));
@@ -126,7 +140,10 @@ export class VendorsService {
       formData.append('photo_files', file);
     }
 
-    return this.http.post<VendorReviewRecord>(`${this.apiUrl}/vendors/${id}/reviews/create/`, formData);
+    return this.http.post<VendorReviewRecord>(
+      `${this.apiUrl}/vendors/${id}/reviews/create/`,
+      formData,
+    );
   }
 
   getVendorAnalytics(id: string): Observable<VendorAnalyticsRecord> {
