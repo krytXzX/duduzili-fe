@@ -165,11 +165,11 @@ export class SearchPageComponent {
     'Nearest to me',
   ];
 
-  readonly selectedCategories = signal<string[]>([]);
-  readonly selectedLocations = signal<string[]>([]);
-  readonly selectedCondition = signal<string[]>([]);
-  readonly selectedVerification = signal<string[]>([]);
-  readonly selectedFollowing = signal<string[]>([]);
+  readonly selectedCategory = signal<string | null>(null);
+  readonly selectedLocation = signal<string | null>(null);
+  readonly selectedCondition = signal<string | null>(null);
+  readonly selectedVerification = signal<string | null>(null);
+  readonly selectedFollowing = signal<string | null>(null);
   readonly selectedSort = signal('Recommended (default)');
   readonly vendorSearch = signal('');
   readonly minPrice = signal(2000);
@@ -177,10 +177,11 @@ export class SearchPageComponent {
   readonly activeSearchParams = computed<SearchListingsParams>(() => {
     const params: SearchListingsParams = {};
     const search = this.searchTerm();
-    const selectedCategory = this.lastSelected(this.selectedCategories());
-    const selectedLocation = this.lastSelected(this.selectedLocations());
-    const selectedCondition = this.lastSelected(this.selectedCondition());
-    const selectedVerification = this.lastSelected(this.selectedVerification());
+    const selectedCategory = this.selectedCategory();
+    const selectedLocation = this.selectedLocation();
+    const selectedCondition = this.selectedCondition();
+    const selectedVerification = this.selectedVerification();
+    const selectedFoll = this.selectedFollowing();
     const ordering = ORDERING_PARAM_BY_LABEL[this.selectedSort()];
 
     if (search) {
@@ -192,7 +193,7 @@ export class SearchPageComponent {
     }
 
     if (selectedLocation) {
-      params.location = selectedLocation;
+      params.state = selectedLocation;
     }
 
     if (selectedCondition) {
@@ -201,6 +202,10 @@ export class SearchPageComponent {
 
     if (selectedVerification) {
       params.is_verified = VERIFICATION_PARAM_BY_LABEL[selectedVerification];
+    }
+
+    if (selectedFoll) {
+      params.following = 'true';
     }
 
     params.min_price = String(this.minPrice());
@@ -250,12 +255,13 @@ export class SearchPageComponent {
   });
 
   readonly categoryLabel = computed(() => {
-    const count = this.selectedCategories().length;
-    return count ? `Category (${count})` : 'Category';
+    const cat = this.selectedCategory();
+    return cat ? cat : 'Category';
   });
 
   readonly locationLabel = computed(() => {
-    return this.selectedLocations().length ? `Location (${this.selectedLocations().length})` : 'Location';
+    const loc = this.selectedLocation();
+    return loc ? loc : 'Location';
   });
 
   protected storeInitials(name: string): string {
@@ -268,8 +274,14 @@ export class SearchPageComponent {
       .join('') || 'S';
   }
 
-  readonly conditionLabel = computed(() => 'Condition');
-  readonly verificationLabel = computed(() => 'Verification status');
+  readonly conditionLabel = computed(() => {
+    const cond = this.selectedCondition();
+    return cond ? cond : 'Condition';
+  });
+  readonly verificationLabel = computed(() => {
+    const ver = this.selectedVerification();
+    return ver ? ver : 'Verification status';
+  });
 
   constructor() {
     effect(() => {
@@ -301,33 +313,23 @@ export class SearchPageComponent {
   }
 
   toggleCategory(category: string): void {
-    this.selectedCategories.update((current) =>
-      current.includes(category) ? current.filter((item) => item !== category) : [...current, category],
-    );
+    this.selectedCategory.update((current) => (current === category ? null : category));
   }
 
   toggleLocation(location: string): void {
-    this.selectedLocations.update((current) =>
-      current.includes(location) ? current.filter((item) => item !== location) : [...current, location],
-    );
+    this.selectedLocation.update((current) => (current === location ? null : location));
   }
 
   toggleCondition(condition: string): void {
-    this.selectedCondition.update((current) =>
-      current.includes(condition) ? current.filter((item) => item !== condition) : [...current, condition],
-    );
+    this.selectedCondition.update((current) => (current === condition ? null : condition));
   }
 
   toggleVerification(status: string): void {
-    this.selectedVerification.update((current) =>
-      current.includes(status) ? current.filter((item) => item !== status) : [...current, status],
-    );
+    this.selectedVerification.update((current) => (current === status ? null : status));
   }
 
   toggleFollowing(storeName: string): void {
-    this.selectedFollowing.update((current) =>
-      current.includes(storeName) ? current.filter((item) => item !== storeName) : [...current, storeName],
-    );
+    this.selectedFollowing.update((current) => (current === storeName ? null : storeName));
   }
 
   selectSort(option: string): void {
@@ -353,23 +355,23 @@ export class SearchPageComponent {
   resetActiveFilter(): void {
     switch (this.activeFilter()) {
       case 'category':
-        this.selectedCategories.set([]);
+        this.selectedCategory.set(null);
         break;
       case 'location':
-        this.selectedLocations.set([]);
+        this.selectedLocation.set(null);
         break;
       case 'price':
         this.minPrice.set(2000);
         this.maxPrice.set(700000000);
         break;
       case 'condition':
-        this.selectedCondition.set([]);
+        this.selectedCondition.set(null);
         break;
       case 'verification':
-        this.selectedVerification.set([]);
+        this.selectedVerification.set(null);
         break;
       case 'following':
-        this.selectedFollowing.set([]);
+        this.selectedFollowing.set(null);
         this.vendorSearch.set('');
         break;
       case 'sort':
@@ -381,13 +383,13 @@ export class SearchPageComponent {
   }
 
   resetAllFilters(): void {
-    this.selectedCategories.set([]);
-    this.selectedLocations.set([]);
+    this.selectedCategory.set(null);
+    this.selectedLocation.set(null);
     this.minPrice.set(2000);
     this.maxPrice.set(700000000);
-    this.selectedCondition.set([]);
-    this.selectedVerification.set([]);
-    this.selectedFollowing.set([]);
+    this.selectedCondition.set(null);
+    this.selectedVerification.set(null);
+    this.selectedFollowing.set(null);
     this.selectedSort.set('Recommended (default)');
     this.vendorSearch.set('');
     this.closeFilters();

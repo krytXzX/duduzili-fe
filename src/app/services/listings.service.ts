@@ -53,6 +53,8 @@ export interface SearchListingsParams {
   category?: string;
   is_sponsored?: 'true' | 'false';
   location?: string;
+  state?: string;
+  following?: 'true' | 'false';
   min_price?: string;
   max_price?: string;
   ordering?: string;

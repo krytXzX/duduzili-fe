@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
@@ -19,22 +20,28 @@ import {
   ListingsApiItem,
   ListingsSearchResponse,
   ListingsService,
+  SearchListingsParams,
 } from '../../services/listings.service';
 import { environment } from '../../../environments/environment';
-
-interface CategoryFilterChip {
-  id: string;
-  label: string;
-  trailingIcon?: 'chevron' | 'close';
-}
 
 interface CategoryListingView extends Listing {
   favoriteFilled?: boolean;
 }
 
+const ORDERING_PARAM_BY_LABEL: Record<string, string | undefined> = {
+  'Recommended (default)': undefined,
+  'Newest listings': '-created_at',
+  'Price: Low to High': 'price',
+  'Price: High to Low': '-price',
+  'Most viewed': '-views_count',
+  Trending: '-views_count',
+  'Nearest to me': undefined,
+};
+
 @Component({
   selector: 'app-category-page',
   imports: [
+    CommonModule,
     RouterLink,
     BuyerDashboardNavbarComponent,
     PublicHomeNavbarComponent,
@@ -75,6 +82,33 @@ interface CategoryListingView extends Listing {
         animation: none;
       }
     }
+
+    .price-range-input {
+      pointer-events: none;
+    }
+
+    .price-range-input::-webkit-slider-thumb {
+      pointer-events: auto;
+      appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 9999px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      box-shadow: 0 10px 24px -18px rgba(17, 24, 39, 0.45);
+      cursor: pointer;
+    }
+
+    .price-range-input::-moz-range-thumb {
+      pointer-events: auto;
+      width: 28px;
+      height: 28px;
+      border-radius: 9999px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      box-shadow: 0 10px 24px -18px rgba(17, 24, 39, 0.45);
+      cursor: pointer;
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -107,21 +141,108 @@ export class CategoryPageComponent {
   );
   readonly totalResults = computed(() => new Intl.NumberFormat('en-NG').format(this.resultCount()));
 
-  readonly desktopFilters: readonly CategoryFilterChip[] = [
-    { id: 'location', label: 'Location', trailingIcon: 'chevron' },
-    { id: 'price', label: 'Price', trailingIcon: 'chevron' },
-    { id: 'condition', label: 'Condition', trailingIcon: 'chevron' },
-    { id: 'verification', label: 'Verification status', trailingIcon: 'chevron' },
-    { id: 'following', label: 'Following', trailingIcon: 'close' },
-    { id: 'sort', label: 'Sort by: Recommended', trailingIcon: 'chevron' },
+  // Filter signals
+  readonly selectedLocation = signal<string | null>(null);
+  readonly minPrice = signal<number>(2000);
+  readonly maxPrice = signal<number>(700000000);
+  readonly selectedCondition = signal<string | null>(null);
+  readonly selectedVerification = signal<string | null>(null);
+  readonly selectedFollowing = signal<boolean>(false);
+  readonly selectedSort = signal<string>('Recommended (default)');
+  readonly activeFilter = signal<string | null>(null);
+
+  readonly locationOptions = [
+    'Abuja', 'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue',
+    'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'Gombe',
+    'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara',
+    'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau',
+    'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara',
+  ];
+  readonly conditionOptions = ['New', 'Fairly used'];
+  readonly verificationOptions = ['Verified', 'Unverified'];
+  readonly sortOptions = [
+    'Recommended (default)',
+    'Newest listings',
+    'Price: Low to High',
+    'Price: High to Low',
+    'Most viewed',
+    'Trending',
+    'Nearest to me',
   ];
 
-  readonly mobileFilters: readonly CategoryFilterChip[] = [
-    { id: 'location', label: 'Location', trailingIcon: 'chevron' },
-    { id: 'price', label: 'Price', trailingIcon: 'chevron' },
-    { id: 'condition', label: 'Condition', trailingIcon: 'chevron' },
-    { id: 'sort', label: 'Sort by', trailingIcon: 'chevron' },
-  ];
+  // Dynamic filter chip labels
+  readonly locationLabel = computed(() => {
+    const loc = this.selectedLocation();
+    return loc ? loc : 'Location';
+  });
+
+  readonly priceLabel = computed(() => {
+    const min = this.minPrice();
+    const max = this.maxPrice();
+    if (min === 2000 && max === 700000000) {
+      return 'Price';
+    }
+    return `Price: ${this.formatPriceShort(min)} - ${this.formatPriceShort(max)}`;
+  });
+
+  readonly conditionLabel = computed(() => {
+    const cond = this.selectedCondition();
+    return cond ? cond : 'Condition';
+  });
+
+  readonly verificationLabel = computed(() => {
+    const ver = this.selectedVerification();
+    return ver ? ver : 'Verification status';
+  });
+
+  readonly followingLabel = computed(() => {
+    return this.selectedFollowing() ? 'Following: Yes' : 'Following';
+  });
+
+  readonly sortLabel = computed(() => {
+    const sort = this.selectedSort();
+    return sort === 'Recommended (default)' ? 'Sort by' : `Sort by: ${sort}`;
+  });
+
+  readonly activeSearchParams = computed<SearchListingsParams>(() => {
+    const params: SearchListingsParams = {
+      category: this.categoryId(),
+    };
+
+    const selectedLoc = this.selectedLocation();
+    if (selectedLoc) {
+      params.state = selectedLoc;
+    }
+
+    const selectedCond = this.selectedCondition();
+    if (selectedCond) {
+      params.condition = selectedCond === 'New' ? 'new' : 'used';
+    }
+
+    const selectedVer = this.selectedVerification();
+    if (selectedVer) {
+      params.is_verified = selectedVer === 'Verified' ? 'true' : 'false';
+    }
+
+    if (this.selectedFollowing()) {
+      params.following = 'true';
+    }
+
+    if (this.minPrice() !== 2000) {
+      params.min_price = String(this.minPrice());
+    }
+    if (this.maxPrice() !== 700000000) {
+      params.max_price = String(this.maxPrice());
+    }
+
+    const sort = this.selectedSort();
+    const ordering = ORDERING_PARAM_BY_LABEL[sort];
+    if (ordering) {
+      params.ordering = ordering;
+    }
+
+    return params;
+  });
 
   readonly visibleDesktopListings = computed(() =>
     this.listings().slice(0, this.desktopListingLimit()),
@@ -136,9 +257,103 @@ export class CategoryPageComponent {
 
   constructor() {
     effect(() => {
-      const categoryId = this.categoryId();
-      void this.loadCategoryListings(categoryId);
+      const params = this.activeSearchParams();
+      void this.loadCategoryListings(params);
     });
+  }
+
+  toggleFilter(key: string): void {
+    this.activeFilter.update((current) => (current === key ? null : key));
+  }
+
+  closeFilters(): void {
+    this.activeFilter.set(null);
+  }
+
+  toggleLocation(location: string): void {
+    this.selectedLocation.update((current) => (current === location ? null : location));
+  }
+
+  toggleCondition(condition: string): void {
+    this.selectedCondition.update((current) => (current === condition ? null : condition));
+  }
+
+  toggleVerification(status: string): void {
+    this.selectedVerification.update((current) => (current === status ? null : status));
+  }
+
+  toggleFollowing(): void {
+    this.selectedFollowing.update((current) => !current);
+  }
+
+  selectSort(option: string): void {
+    this.selectedSort.set(option);
+  }
+
+  updateMinPrice(value: string): void {
+    const parsed = Number(value);
+    const nextValue = Number.isNaN(parsed) ? this.minPrice() : Math.min(parsed, this.maxPrice());
+    this.minPrice.set(nextValue);
+  }
+
+  updateMaxPrice(value: string): void {
+    const parsed = Number(value);
+    const nextValue = Number.isNaN(parsed) ? this.maxPrice() : Math.max(parsed, this.minPrice());
+    this.maxPrice.set(nextValue);
+  }
+
+  resetActiveFilter(): void {
+    switch (this.activeFilter()) {
+      case 'location':
+        this.selectedLocation.set(null);
+        break;
+      case 'price':
+        this.minPrice.set(2000);
+        this.maxPrice.set(700000000);
+        break;
+      case 'condition':
+        this.selectedCondition.set(null);
+        break;
+      case 'verification':
+        this.selectedVerification.set(null);
+        break;
+      case 'following':
+        this.selectedFollowing.set(false);
+        break;
+      case 'sort':
+        this.selectedSort.set('Recommended (default)');
+        break;
+      default:
+        break;
+    }
+  }
+
+  resetAllFilters(): void {
+    this.selectedLocation.set(null);
+    this.minPrice.set(2000);
+    this.maxPrice.set(700000000);
+    this.selectedCondition.set(null);
+    this.selectedVerification.set(null);
+    this.selectedFollowing.set(false);
+    this.selectedSort.set('Recommended (default)');
+    this.closeFilters();
+  }
+
+  formatPrice(value: number): string {
+    return `₦${new Intl.NumberFormat('en-NG').format(value)}`;
+  }
+
+  private formatPriceShort(value: number): string {
+    if (value >= 1_000_000_000) {
+      return `${(value / 1_000_000_000).toFixed(1)}B`;
+    }
+    if (value >= 1_000_000) {
+      return `${(value / 1_000_000).toFixed(1)}M`;
+    }
+    if (value >= 1_000) {
+      return `${(value / 1_000).toFixed(0)}k`;
+    }
+    return String(value);
   }
 
   showMoreDesktopListings(): void {
@@ -149,14 +364,13 @@ export class CategoryPageComponent {
     this.mobileListingLimit.update((limit) => Math.min(limit + 8, this.listings().length));
   }
 
-  private async loadCategoryListings(categoryId: string): Promise<void> {
-    const normalizedCategoryId = categoryId.trim();
+  private async loadCategoryListings(params: SearchListingsParams): Promise<void> {
     const requestId = ++this.currentCategoryRequestId;
 
     this.desktopListingLimit.set(15);
     this.mobileListingLimit.set(8);
 
-    if (!normalizedCategoryId) {
+    if (!params.category) {
       this.listings.set([]);
       this.resultCount.set(0);
       this.categoryError.set(null);
@@ -169,7 +383,7 @@ export class CategoryPageComponent {
 
     try {
       const response = await firstValueFrom(
-        this.listingsService.getCategoryListings(normalizedCategoryId),
+        this.listingsService.searchListings(params),
       );
       if (requestId !== this.currentCategoryRequestId) {
         return;

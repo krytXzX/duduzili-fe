@@ -45,7 +45,7 @@
         @if (activeFilter() === 'category') {
         <div class="flex flex-wrap gap-4">
           @for (category of categoryOptions; track category) {
-          <button type="button" (click)="toggleCategory(category)" [class]="selectedCategories().includes(category)
+          <button type="button" (click)="toggleCategory(category)" [class]="selectedCategory() === category
               ? 'rounded-full border border-[#1A1C21] bg-[#1A1C21] px-4 py-2.5 text-[14px] font-medium text-white transition'
               : 'rounded-full border border-[#C9CDD5] px-4 py-2.5 text-[14px] font-medium text-[#1A1C21] transition'">
             {{ category }}
@@ -57,11 +57,11 @@
         @if (activeFilter() === 'location') {
         <div class="flex flex-wrap gap-4">
           @for (location of locationOptions; track location) {
-          <button type="button" (click)="toggleLocation(location)" [class]="selectedLocations().includes(location)
+          <button type="button" (click)="toggleLocation(location)" [class]="selectedLocation() === location
               ? 'rounded-full border border-[#1A1C21] bg-[#1A1C21] px-4 py-2.5 text-[14px] font-medium text-white transition'
               : 'rounded-full border border-[#C9CDD5] px-4 py-2.5 text-[14px] font-medium text-[#1A1C21] transition'">
             {{ location }}
-            @if (selectedLocations().includes(location)) {
+            @if (selectedLocation() === location) {
             <span class="ml-2">×</span>
             }
           </button>
@@ -74,8 +74,8 @@
           <div class="relative h-8">
             <div class="absolute left-0 right-0 top-3 h-1 rounded-full bg-[#E5E7EB]"></div>
             <div class="absolute top-3 h-1 rounded-full bg-[#6558F5]" [style.left.%]="(minPrice() / 700000000) * 100" [style.right.%]="100 - ((maxPrice() / 700000000) * 100)"></div>
-            <input type="range" min="2000" max="700000000" step="1000" [value]="minPrice()" (input)="updateMinPrice(minRange.value)" #minRange class="price-range-input absolute left-0 top-0 z-10 h-8 w-full appearance-none bg-transparent">
-            <input type="range" min="2000" max="700000000" step="1000" [value]="maxPrice()" (input)="updateMaxPrice(maxRange.value)" #maxRange class="price-range-input absolute left-0 top-0 z-20 h-8 w-full appearance-none bg-transparent">
+            <input type="range" min="2000" max="700000000" step="1000" [value]="minPrice()" (input)="updateMinPrice(minRange.value)" #minRange class="price-range-input absolute left-0 top-0 h-8 w-full appearance-none bg-transparent" [style.zIndex]="minPrice() > 350000000 ? '20' : '10'">
+            <input type="range" min="2000" max="700000000" step="1000" [value]="maxPrice()" (input)="updateMaxPrice(maxRange.value)" #maxRange class="price-range-input absolute left-0 top-0 h-8 w-full appearance-none bg-transparent" [style.zIndex]="minPrice() > 350000000 ? '10' : '20'">
           </div>
 
           <div class="mt-7 flex items-center justify-between">
@@ -88,11 +88,11 @@
         @if (activeFilter() === 'condition') {
         <div class="flex flex-wrap gap-4">
           @for (condition of conditionOptions; track condition) {
-          <button type="button" (click)="toggleCondition(condition)" [class]="selectedCondition().includes(condition)
+          <button type="button" (click)="toggleCondition(condition)" [class]="selectedCondition() === condition
               ? 'rounded-full border border-[#1A1C21] bg-[#1A1C21] px-4 py-2.5 text-[14px] font-medium text-white transition'
               : 'rounded-full border border-[#C9CDD5] px-4 py-2.5 text-[14px] font-medium text-[#1A1C21] transition'">
             {{ condition }}
-            @if (selectedCondition().includes(condition)) {
+            @if (selectedCondition() === condition) {
             <span class="ml-2">×</span>
             }
           </button>
@@ -103,11 +103,11 @@
         @if (activeFilter() === 'verification') {
         <div class="flex flex-wrap gap-4">
           @for (status of verificationOptions; track status) {
-          <button type="button" (click)="toggleVerification(status)" [class]="selectedVerification().includes(status)
+          <button type="button" (click)="toggleVerification(status)" [class]="selectedVerification() === status
               ? 'rounded-full border border-[#1A1C21] bg-[#1A1C21] px-4 py-2.5 text-[14px] font-medium text-white transition'
               : 'rounded-full border border-[#C9CDD5] px-4 py-2.5 text-[14px] font-medium text-[#1A1C21] transition'">
             {{ status }}
-            @if (selectedVerification().includes(status)) {
+            @if (selectedVerification() === status) {
             <span class="ml-2">×</span>
             }
           </button>
@@ -123,7 +123,7 @@
 
           <div class="flex flex-wrap gap-4">
             @for (store of filteredStores(); track store.id) {
-            <button type="button" (click)="toggleFollowing(store.name)" [class]="selectedFollowing().includes(store.name)
+            <button type="button" (click)="toggleFollowing(store.name)" [class]="selectedFollowing() === store.name
                 ? 'inline-flex items-center gap-3 rounded-full border border-[#1A1C21] bg-[#1A1C21] px-3 py-2 text-[14px] font-medium text-white transition'
                 : 'inline-flex items-center gap-3 rounded-full border border-[#C9CDD5] px-3 py-2 text-[14px] font-medium text-[#1A1C21] transition'">
               @if (store.logo; as storeLogo) {
@@ -134,7 +134,7 @@
               </span>
               }
               {{ store.name }}
-              @if (selectedFollowing().includes(store.name)) {
+              @if (selectedFollowing() === store.name) {
               <span>×</span>
               }
             </button>
