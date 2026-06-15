@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, input, output, signal, PLATFORM_ID } from '@angular/core';
+import { NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
@@ -169,38 +169,21 @@ type NavItem = {
         </div>
 
         @if (variant() === 'buyer') {
-          @if (searchOpensOverlay()) {
-            <button
-              type="button"
-              (click)="handleSearchAction()"
-              [attr.aria-label]="searchButtonAriaLabel()"
-              class="ml-1 inline-flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
-            >
-              <img
-                ngSrc="/assets/icons/buyer-bottom-nav/search.svg"
-                alt=""
-                width="24"
-                height="24"
-                class="h-6 w-6"
-                aria-hidden="true"
-              />
-            </button>
-          } @else {
-            <a
-              [routerLink]="searchRoute()"
-              [attr.aria-label]="searchButtonAriaLabel()"
-              class="ml-1 inline-flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
-            >
-              <img
-                ngSrc="/assets/icons/buyer-bottom-nav/search.svg"
-                alt=""
-                width="24"
-                height="24"
-                class="h-6 w-6"
-                aria-hidden="true"
-              />
-            </a>
-          }
+          <button
+            type="button"
+            (click)="handleSearchAction()"
+            [attr.aria-label]="searchButtonAriaLabel()"
+            class="ml-1 inline-flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
+          >
+            <img
+              ngSrc="/assets/icons/buyer-bottom-nav/search.svg"
+              alt=""
+              width="24"
+              height="24"
+              class="h-6 w-6"
+              aria-hidden="true"
+            />
+          </button>
         } @else {
           <button
             type="button"
@@ -220,12 +203,70 @@ type NavItem = {
         }
       </div>
     </nav>
+
+    @if (isSearchOverlayOpen()) {
+    <section class="fixed inset-0 z-[300] bg-white lg:hidden" aria-label="Search" role="dialog" aria-modal="true">
+      <button type="button" (click)="closeMobileSearchOverlay()" class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]" aria-label="Close search">
+        <img [ngSrc]="closeIconUrl" alt="" width="24" height="24" class="h-6 w-6" aria-hidden="true" />
+      </button>
+
+      <div class="h-full overflow-y-auto px-5 pb-[220px] pt-[76px]">
+        <div class="space-y-8 text-left">
+          @if (recentSearches().length) {
+          <section>
+            <div class="mb-3 flex items-center justify-between">
+              <h2 class="text-[20px] font-medium leading-[1.2] text-[#1A1B1D]">Recent searches</h2>
+              <button type="button" (click)="clearRecentSearchHistory()" class="text-[14px] font-medium leading-5 text-[#01A204] underline">
+                Clear history
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              @for (term of recentSearches(); track term) {
+              <button type="button" (click)="applySearchTerm(term)" class="inline-flex h-11 items-center gap-[10px] rounded-full bg-[#F9F9F9] px-4 text-[14px] font-medium text-[#1A1B1D]">
+                {{ term }}
+                <span (click)="removeRecentSearch(term); $event.stopPropagation()" class="inline-flex h-3 w-[11.7px] items-center justify-center">
+                  <img [ngSrc]="chipRemoveIconUrl" alt="" width="12" height="12" class="h-3 w-[11.7px]" aria-hidden="true" />
+                </span>
+              </button>
+              }
+            </div>
+          </section>
+          }
+
+          @if (popularSearches.length) {
+          <section>
+            <h2 class="mb-3 text-[18px] font-medium leading-[1.2] text-[#1A1B1D]">Popular right now</h2>
+            <div class="flex flex-wrap gap-2">
+              @for (term of popularSearches; track term) {
+              <button type="button" (click)="applySearchTerm(term)" class="inline-flex h-11 items-center rounded-full bg-[#F9F9F9] px-4 text-[14px] font-medium text-[#1A1B1D]">
+                {{ term }}
+              </button>
+              }
+            </div>
+          </section>
+          }
+        </div>
+      </div>
+
+      <div class="pointer-events-auto fixed inset-x-5 bottom-[max(41px,env(safe-area-inset-bottom))] z-[301]">
+        <div class="h-[126px] rounded-[28px] border border-[#EDEDED] bg-white px-[15px] pt-[13px] shadow-[0_12px_30px_rgba(151,150,196,0.25)]">
+          <form class="relative h-full w-full" (submit)="submitHomeSearch($event)" autocomplete="off">
+            <input type="text" [value]="mobileSearchQuery()" (input)="updateMobileSearchQuery($event)" class="h-full w-full bg-transparent pr-[74px] text-[24px] leading-[1.3] text-[#1F1F1F] outline-none" placeholder=" " autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <button type="submit" class="absolute bottom-[15px] right-0 flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full border border-white bg-[#6453D9] shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]" aria-label="Search">
+              <img [ngSrc]="searchIconUrl" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MobileBottomNavComponent {
   private readonly router = inject(Router);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   readonly variant = input<'buyer' | 'seller'>('buyer');
   readonly exploreRoute = input('/en');
@@ -344,7 +385,141 @@ export class MobileBottomNavComponent {
     void this.router.navigateByUrl(this.variant() === 'seller' ? '/seller/listings' : '/listings');
   }
 
+  readonly isSearchOverlayOpen = signal(false);
+  readonly recentSearches = signal<string[]>([]);
+  readonly mobileSearchQuery = signal('');
+
+  protected readonly closeIconUrl = '/assets/icons/home-search-overlay/close.svg';
+  protected readonly chipRemoveIconUrl = '/assets/icons/home-search-overlay/chip-remove.svg';
+  protected readonly searchIconUrl = '/assets/icons/home-search-overlay/search.svg';
+
+  protected readonly popularSearches = [
+    'bags for men',
+    'watch for men',
+    'male accessories',
+    'necklaces for men',
+    'Toyota camry 2016 model',
+    'Miniflat in Lagos',
+    'shirt for men',
+  ];
+
+  private readonly HOME_RECENT_SEARCHES_KEY = 'duduzili.home.recent-searches';
+  private readonly HOME_RECENT_SEARCHES_LIMIT = 8;
+
+  openMobileSearchOverlay(): void {
+    this.restoreRecentSearches();
+    this.isSearchOverlayOpen.set(true);
+  }
+
+  closeMobileSearchOverlay(): void {
+    this.isSearchOverlayOpen.set(false);
+  }
+
+  updateMobileSearchQuery(event: Event): void {
+    const input = event.target;
+    if (input instanceof HTMLInputElement) {
+      this.mobileSearchQuery.set(input.value);
+    }
+  }
+
+  applySearchTerm(term: string): void {
+    this.mobileSearchQuery.set(term);
+    this.runSearchQuery(term);
+  }
+
+  submitHomeSearch(event: Event): void {
+    event.preventDefault();
+    const query = this.mobileSearchQuery().trim() || 'iPhone';
+    this.runSearchQuery(query);
+  }
+
+  private runSearchQuery(query: string): void {
+    this.pushRecentSearch(query);
+    this.closeMobileSearchOverlay();
+    void this.router.navigate(['/search'], { queryParams: { q: query } });
+  }
+
+  private restoreRecentSearches(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      const rawValue = localStorage.getItem(this.HOME_RECENT_SEARCHES_KEY);
+      if (!rawValue) {
+        return;
+      }
+
+      const parsedValue: unknown = JSON.parse(rawValue);
+      if (!Array.isArray(parsedValue)) {
+        localStorage.removeItem(this.HOME_RECENT_SEARCHES_KEY);
+        return;
+      }
+
+      const searches = parsedValue
+        .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+        .filter((entry) => entry.length > 0)
+        .slice(0, this.HOME_RECENT_SEARCHES_LIMIT);
+
+      this.recentSearches.set(searches);
+    } catch {
+      localStorage.removeItem(this.HOME_RECENT_SEARCHES_KEY);
+    }
+  }
+
+  private pushRecentSearch(term: string): void {
+    const normalizedTerm = term.trim();
+    if (!normalizedTerm) {
+      return;
+    }
+
+    this.recentSearches.update((current) => {
+      const next = [
+        normalizedTerm,
+        ...current.filter((item) => item.toLowerCase() !== normalizedTerm.toLowerCase()),
+      ].slice(0, this.HOME_RECENT_SEARCHES_LIMIT);
+
+      this.persistRecentSearches(next);
+      return next;
+    });
+  }
+
+  private persistRecentSearches(searches: readonly string[]): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      localStorage.setItem(this.HOME_RECENT_SEARCHES_KEY, JSON.stringify(searches));
+    } catch {
+      // Ignore
+    }
+  }
+
+  removeRecentSearch(term: string): void {
+    this.recentSearches.update((current) => {
+      const next = current.filter((item) => item !== term);
+      this.persistRecentSearches(next);
+      return next;
+    });
+  }
+
+  clearRecentSearchHistory(): void {
+    this.recentSearches.set([]);
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        localStorage.removeItem(this.HOME_RECENT_SEARCHES_KEY);
+      } catch {
+        // Ignore
+      }
+    }
+  }
+
   handleSearchAction(): void {
-    this.searchPressed.emit();
+    if (this.searchOpensOverlay()) {
+      this.searchPressed.emit();
+    } else {
+      this.openMobileSearchOverlay();
+    }
   }
 }
