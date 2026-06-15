@@ -23,6 +23,7 @@ import {
   MessagesResponse,
   MessagesService,
   SellerStoreApiItem,
+  SendMessageRequest,
 } from '../../services/messages.service';
 import { environment } from '../../../environments/environment';
 
@@ -83,7 +84,8 @@ type ChatTextMessage = {
   id: string;
   kind: 'text';
   author: string;
-  text: string;
+  text?: string;
+  image?: string;
   outgoing: boolean;
   variant?: 'normal' | 'faded';
   replyLabel?: string;
@@ -624,7 +626,10 @@ type ChatDay = {
                               }
 
                               <div
-                                class="relative rounded-[24px] px-[18px] py-3"
+                                class="relative rounded-[24px]"
+                                [class.px-[18px]]="!!message.text"
+                                [class.py-3]="!!message.text"
+                                [class.p-1.5]="!message.text"
                                 [class.bg-[#6453D9]]="message.outgoing"
                                 [class.text-white]="message.outgoing"
                                 [class.bg-[#F8F8F8]]="!message.outgoing"
@@ -641,10 +646,10 @@ type ChatDay = {
                                 [class.shadow-[0_0_0_2px_rgba(100,83,217,0.18)]]="
                                   isMessageSelected(message.id)
                                 "
-                                (pointerdown)="onMessageLongPressStart($event, message.id, message.author, message.text)"
+                                (pointerdown)="onMessageLongPressStart($event, message.id, message.author, message.text || '')"
                                 (pointerup)="onMessageLongPressEnd($event)"
                                 (pointercancel)="onMessageLongPressCancel($event)"
-                                (contextmenu)="openMessageMenuFromContext($event, message.id, message.author, message.text)"
+                                (contextmenu)="openMessageMenuFromContext($event, message.id, message.author, message.text || '')"
                                 (click)="toggleMessageSelection(message.id)"
                               >
                                 @if (isMessageSelected(message.id)) {
@@ -655,9 +660,18 @@ type ChatDay = {
                                     ✓
                                   </span>
                                 }
-                                <p class="text-[16px] leading-6">
-                                  {{ message.text }}
-                                </p>
+                                @if (message.image) {
+                                  <div class="overflow-hidden rounded-[18px]" [class.mb-2]="!!message.text">
+                                    <a [href]="message.image" target="_blank" rel="noopener noreferrer">
+                                      <img [src]="message.image" alt="Shared image" class="max-h-[260px] max-w-full rounded-[18px] object-cover transition hover:opacity-90" />
+                                    </a>
+                                  </div>
+                                }
+                                @if (message.text) {
+                                  <p class="text-[16px] leading-6">
+                                    {{ message.text }}
+                                  </p>
+                                }
                               </div>
 
                               @if (message.reaction) {
@@ -806,10 +820,26 @@ type ChatDay = {
                 </div>
               }
 
+              @if (selectedImagePreview(); as previewUrl) {
+                <div class="flex items-center justify-between border-b border-[#EEEEEE] px-[15px] py-[8px]">
+                  <div class="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-[#EEEEEE] bg-[#F8F8F8]">
+                    <img [src]="previewUrl" alt="Selected preview" class="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      (click)="clearSelectedImage()"
+                      aria-label="Remove image"
+                      class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              }
+
               <div class="px-[15px] py-[8px]">
               <div class="flex min-h-[45px] items-center gap-5">
                 <div class="flex items-center gap-3">
-                  <button type="button">
+                  <button type="button" (click)="triggerImageUpload()" aria-label="Upload image">
                     <img
                       [ngSrc]="assets.galleryDesktop"
                       width="24"
@@ -1203,7 +1233,10 @@ type ChatDay = {
                           }
 
                           <div
-                            class="relative rounded-[24px] px-[14px] py-3"
+                            class="relative rounded-[24px]"
+                            [class.px-[14px]]="!!message.text"
+                            [class.py-3]="!!message.text"
+                            [class.p-1.5]="!message.text"
                             [class.bg-[#6453D9]]="message.outgoing"
                             [class.text-white]="message.outgoing"
                             [class.bg-[#F8F8F8]]="!message.outgoing"
@@ -1220,10 +1253,10 @@ type ChatDay = {
                             [class.shadow-[0_0_0_2px_rgba(100,83,217,0.18)]]="
                               isMessageSelected(message.id)
                             "
-                            (pointerdown)="onMessageLongPressStart($event, message.id, message.author, message.text)"
+                            (pointerdown)="onMessageLongPressStart($event, message.id, message.author, message.text || '')"
                             (pointerup)="onMessageLongPressEnd($event)"
                             (pointercancel)="onMessageLongPressCancel($event)"
-                            (contextmenu)="openMessageMenuFromContext($event, message.id, message.author, message.text)"
+                            (contextmenu)="openMessageMenuFromContext($event, message.id, message.author, message.text || '')"
                             (click)="toggleMessageSelection(message.id)"
                           >
                             @if (isMessageSelected(message.id)) {
@@ -1234,9 +1267,18 @@ type ChatDay = {
                                 ✓
                               </span>
                             }
-                            <p class="text-[16px] leading-5">
-                              {{ message.text }}
-                            </p>
+                            @if (message.image) {
+                              <div class="overflow-hidden rounded-[18px]" [class.mb-2]="!!message.text">
+                                <a [href]="message.image" target="_blank" rel="noopener noreferrer">
+                                  <img [src]="message.image" alt="Shared image" class="max-h-[220px] max-w-full rounded-[18px] object-cover" />
+                                </a>
+                              </div>
+                            }
+                            @if (message.text) {
+                              <p class="text-[16px] leading-5">
+                                {{ message.text }}
+                              </p>
+                            }
                           </div>
 
                           @if (message.reaction) {
@@ -1315,11 +1357,28 @@ type ChatDay = {
               </div>
             }
 
+            @if (selectedImagePreview(); as previewUrl) {
+              <div class="flex items-center justify-between border-b border-[#EEEEEE] px-3 py-[6px]">
+                <div class="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-[#EEEEEE] bg-[#F8F8F8]">
+                  <img [src]="previewUrl" alt="Selected preview" class="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    (click)="clearSelectedImage()"
+                    aria-label="Remove image"
+                    class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            }
+
             <div class="px-3 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2">
             <div class="flex min-h-[46px] items-end gap-2">
                 <button
                   type="button"
-                  aria-label="Open gallery"
+                  (click)="triggerImageUpload()"
+                  aria-label="Upload image"
                   class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
                 >
                   <img
@@ -1814,6 +1873,14 @@ type ChatDay = {
       </section>
     }
 
+    <input
+      type="file"
+      #imageInput
+      class="hidden"
+      accept="image/*"
+      (change)="onImageSelected($event)"
+    />
+
     <app-seller-report-modal
       [open]="isSellerReportModalOpen()"
       [step]="sellerReportStep()"
@@ -2032,13 +2099,18 @@ export class MessagesPageComponent implements OnDestroy {
   readonly clearChatConfirmActionLabel = computed(() =>
     this.deleteIntent() === 'messages' ? 'Delete' : 'Remove',
   );
-  readonly hasDraftMessage = computed(() => this.draftMessage().trim().length > 0);
+  readonly hasDraftMessage = computed(() => this.draftMessage().trim().length > 0 || this.selectedImageFile() !== null);
   readonly sellerReportStep = signal<1 | 2>(1);
   readonly selectedSellerReportReason = signal<string | null>(null);
   private longPressTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly mobileMessagesScroller =
     viewChild<ElementRef<HTMLDivElement>>('mobileMessagesScroller');
+  private readonly imageInput =
+    viewChild<ElementRef<HTMLInputElement>>('imageInput');
   private readonly browserWindow = this.document.defaultView;
+
+  readonly selectedImageFile = signal<File | null>(null);
+  readonly selectedImagePreview = signal<string | null>(null);
   private readonly updateMobileViewportHeight = (): void => {
     const viewportHeight =
       this.browserWindow?.visualViewport?.height ?? this.browserWindow?.innerHeight ?? null;
@@ -2140,6 +2212,7 @@ export class MessagesPageComponent implements OnDestroy {
     this.activeReplyTarget.set(null);
     this.isStoreSelectorOpen.set(false);
     this.selectedMessageIds.set([]);
+    this.clearSelectedImage();
     this.isMobileConversationOpen.set(true);
 
     if (!this.mobileConversationOverlayOpen) {
@@ -2506,8 +2579,9 @@ export class MessagesPageComponent implements OnDestroy {
       const label = this.formatConversationDayLabel(createdAt);
       const sender = this.readString(record['sender']) ?? this.readString(record['author']) ?? 'Unknown';
       const body = this.readString(record['body']) ?? this.readString(record['text']) ?? this.readString(record['message']);
+      const imageUrl = this.resolveMediaUrl(this.readString(record['image']));
 
-      if (!body) {
+      if (!body && !imageUrl) {
         continue;
       }
 
@@ -2515,7 +2589,8 @@ export class MessagesPageComponent implements OnDestroy {
         id: this.readId(record['id']) ?? `${label}-${daysByLabel.get(label)?.length ?? 0}`,
         kind: 'text',
         author: sender,
-        text: body,
+        text: body ?? undefined,
+        image: imageUrl ?? undefined,
         outgoing: this.isOutgoingMessage(record, sender),
       };
 
@@ -2714,6 +2789,7 @@ export class MessagesPageComponent implements OnDestroy {
     this.activeReplyTarget.set(null);
     this.isStoreSelectorOpen.set(false);
     this.selectedMessageIds.set([]);
+    this.clearSelectedImage();
     void this.loadConversationDetails(chatId);
   }
 
@@ -2755,17 +2831,36 @@ export class MessagesPageComponent implements OnDestroy {
   protected async sendDraftMessage(): Promise<void> {
     const chatId = this.activeChatId();
     const body = this.draftMessage().trim();
+    const imageFile = this.selectedImageFile();
 
-    if (!chatId || !body || this.isSendingMessage()) {
+    if (!chatId || (!body && !imageFile) || this.isSendingMessage()) {
       return;
     }
 
     this.isSendingMessage.set(true);
 
+    let payload: SendMessageRequest | FormData;
+    if (imageFile) {
+      const formData = new FormData();
+      if (body) {
+        formData.append('body', body);
+      }
+      formData.append('image', imageFile);
+      payload = formData;
+    } else {
+      payload = { body };
+    }
+
     try {
-      await firstValueFrom(this.messagesService.sendMessage(chatId, { body }));
-      this.appendOutgoingMessage(chatId, body);
+      const response = await firstValueFrom(this.messagesService.sendMessage(chatId, payload));
+      const responseId = this.readId(response['id']) || `local-${Date.now()}`;
+      const responseImage = this.readString(response['image']);
+      const imageUrl = responseImage ? this.resolveMediaUrl(responseImage) : undefined;
+      const responseBody = this.readString(response['body']) || '';
+
+      this.appendOutgoingMessage(chatId, responseBody, imageUrl || undefined, responseId);
       this.draftMessage.set('');
+      this.clearSelectedImage();
       this.activeReplyTarget.set(null);
       this.resetDraftComposerHeights();
       this.scrollMobileMessagesToBottom();
@@ -2793,6 +2888,42 @@ export class MessagesPageComponent implements OnDestroy {
     draftFields.forEach((field) => {
       field.style.height = 'auto';
     });
+  }
+
+  protected triggerImageUpload(): void {
+    this.imageInput()?.nativeElement.click();
+  }
+
+  protected onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      this.appToastService.show({ message: 'Please select an image file.' });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      this.appToastService.show({ message: 'Image size should not exceed 10MB.' });
+      return;
+    }
+
+    this.selectedImageFile.set(file);
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.selectedImagePreview.set(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    
+    input.value = '';
+  }
+
+  protected clearSelectedImage(): void {
+    this.selectedImageFile.set(null);
+    this.selectedImagePreview.set(null);
   }
 
   private focusDraftComposer(): void {
@@ -2834,12 +2965,13 @@ export class MessagesPageComponent implements OnDestroy {
     this.isStoreSelectorOpen.set(true);
   }
 
-  private appendOutgoingMessage(chatId: string, body: string): void {
+  private appendOutgoingMessage(chatId: string, body: string, imageUrl?: string, messageId?: string): void {
     const nextMessage: ChatTextMessage = {
-      id: `local-${Date.now()}`,
+      id: messageId || `local-${Date.now()}`,
       kind: 'text',
       author: 'You',
-      text: body,
+      text: body || undefined,
+      image: imageUrl || undefined,
       outgoing: true,
     };
 
@@ -2877,7 +3009,7 @@ export class MessagesPageComponent implements OnDestroy {
         conversation.id === chatId
           ? {
               ...conversation,
-              preview: body,
+              preview: body || 'Sent an image',
               time: 'Just now',
             }
           : conversation,
@@ -3354,6 +3486,7 @@ export class MessagesPageComponent implements OnDestroy {
     this.selectedMessageIds.set([]);
     this.activeReplyTarget.set(null);
     this.draftMessage.set('');
+    this.clearSelectedImage();
 
     if (this.isSeller()) {
       if (storeId === 'all') {

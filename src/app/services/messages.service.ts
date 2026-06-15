@@ -57,7 +57,7 @@ export class MessagesService {
     return this.http.get<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/`);
   }
 
-  sendMessage(id: string, payload: SendMessageRequest): Observable<Record<string, unknown>> {
+  sendMessage(id: string, payload: SendMessageRequest | FormData): Observable<Record<string, unknown>> {
     return this.http.post<Record<string, unknown>>(`${this.apiUrl}/messages/${id}/send/`, payload);
   }
 
