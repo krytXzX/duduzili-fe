@@ -149,8 +149,11 @@
         @for (image of product().images; track image.src; let index = $index) {
           <button
             type="button"
-            (click)="openGalleryPreview(index)"
+            (click)="setGalleryIndex(index)"
             class="relative aspect-square overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-20px_rgba(17,24,39,0.35)] active:translate-y-0 active:scale-[0.97]"
+            [class.ring-2]="currentGalleryIndex() === index"
+            [class.ring-[#6453D9]]="currentGalleryIndex() === index"
+            [class.ring-offset-2]="currentGalleryIndex() === index"
             [attr.aria-label]="'View gallery image ' + (index + 1)"
           >
             <img
