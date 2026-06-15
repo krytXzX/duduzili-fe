@@ -372,7 +372,19 @@ interface ReviewTagCount {
           @if (s.description) {
             <div class="mt-6">
               <p class="text-[16px] leading-7 text-[#1F1F1F]">
-                {{ s.description }}
+                @if (s.description.length <= 30) {
+                  {{ s.description }}
+                } @else {
+                  {{ isDescriptionExpanded() ? s.description : (s.description.slice(0, 30) + '...') }}
+                  <button
+                    type="button"
+                    class="ml-1 text-[#6453d9] font-semibold hover:underline text-[14px]"
+                    [attr.aria-expanded]="isDescriptionExpanded()"
+                    (click)="isDescriptionExpanded.set(!isDescriptionExpanded())"
+                  >
+                    {{ isDescriptionExpanded() ? 'Show less' : 'Show more' }}
+                  </button>
+                }
               </p>
             </div>
           }
@@ -738,7 +750,19 @@ interface ReviewTagCount {
             @if (s.description) {
               <div class="mt-8 max-w-[860px] px-2">
                 <p class="text-[16px] leading-7 text-[#1F1F1F]">
-                  {{ s.description }}
+                  @if (s.description.length <= 30) {
+                    {{ s.description }}
+                  } @else {
+                    {{ isDescriptionExpanded() ? s.description : (s.description.slice(0, 30) + '...') }}
+                    <button
+                      type="button"
+                      class="ml-1 text-[#6453d9] font-semibold hover:underline text-[14px]"
+                      [attr.aria-expanded]="isDescriptionExpanded()"
+                      (click)="isDescriptionExpanded.set(!isDescriptionExpanded())"
+                    >
+                      {{ isDescriptionExpanded() ? 'Show less' : 'Show more' }}
+                    </button>
+                  }
                 </p>
               </div>
             }
@@ -1085,6 +1109,7 @@ export class StoreDetailsDashboardComponent {
   readonly showPromoteStoreModal = signal(false);
   readonly isStoreActionsMenuOpen = signal(false);
   readonly isSavingStore = signal(false);
+  readonly isDescriptionExpanded = signal(false);
 
   readonly store = signal<StoreProfile | null>(null);
   readonly desktopSections = signal<ProductSection[]>([]);

@@ -129,17 +129,23 @@ export interface AddStoreFormValue {
                   </div>
 
                   <div class="space-y-2">
-                    <label
-                      class="block text-[14px] leading-[1.2] font-medium text-[#5a5a5a]"
-                      for="store-description"
-                    >
-                      Description
-                    </label>
+                    <div class="flex items-center justify-between">
+                      <label
+                        class="block text-[14px] leading-[1.2] font-medium text-[#5a5a5a]"
+                        for="store-description"
+                      >
+                        Description
+                      </label>
+                      <span class="text-[12px] text-[rgba(13,13,13,0.4)]" aria-live="polite">
+                        {{ storeForm.controls.description.value.length }}/150
+                      </span>
+                    </div>
                     <textarea
                       id="store-description"
                       formControlName="description"
                       rows="4"
-                      class="min-h-[112px] w-full resize-none rounded-[8px] border border-[#eaeaea] px-3 py-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:min-h-[96px]"
+                      maxlength="150"
+                      class="min-h-[112px] w-full resize-none rounded-[8px] border border-[#ebeaea] px-3 py-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:min-h-[96px]"
                       placeholder="Tell buyers a little about this store"
                     ></textarea>
                   </div>
@@ -156,7 +162,7 @@ export interface AddStoreFormValue {
                         id="store-whatsapp"
                         type="tel"
                         formControlName="whatsappNumber"
-                        class="h-12 w-full rounded-[8px] border border-[#eaeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
+                        class="h-12 w-full rounded-[8px] border border-[#ebeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
                       />
                     </div>
 
@@ -171,7 +177,7 @@ export interface AddStoreFormValue {
                         id="store-call-primary"
                         type="tel"
                         formControlName="callNumber"
-                        class="h-12 w-full rounded-[8px] border border-[#eaeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
+                        class="h-12 w-full rounded-[8px] border border-[#ebeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
                       />
                     </div>
                   </div>
@@ -187,7 +193,7 @@ export interface AddStoreFormValue {
                       id="store-call-secondary"
                       type="tel"
                       formControlName="alternateCallNumber"
-                      class="h-12 w-full rounded-[8px] border border-[#eaeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
+                      class="h-12 w-full rounded-[8px] border border-[#ebeaea] px-3 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none placeholder:text-[rgba(13,13,13,0.4)] md:h-10"
                       placeholder="Optional"
                     />
                   </div>
@@ -394,7 +400,7 @@ export class AddStoreModalComponent implements OnDestroy {
 
   protected readonly storeForm = this.fb.group({
     name: ['', [Validators.required]],
-    description: ['', [Validators.required]],
+    description: ['', [Validators.required, Validators.maxLength(150)]],
     location: ['', Validators.required],
     whatsappNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],
     callNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],

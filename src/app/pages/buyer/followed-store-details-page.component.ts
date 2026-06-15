@@ -326,7 +326,19 @@ type VendorTagSummary = {
             </div>
 
             <p class="mt-4 text-center text-[16px] leading-[1.2] text-[#1f1f1f]">
-              {{ store().description }}
+              @if (store().description.length <= 30) {
+                {{ store().description }}
+              } @else {
+                {{ isDescriptionExpanded() ? store().description : (store().description.slice(0, 30) + '...') }}
+                <button
+                  type="button"
+                  class="ml-1 text-[#6453d9] font-semibold hover:underline text-[14px]"
+                  [attr.aria-expanded]="isDescriptionExpanded()"
+                  (click)="isDescriptionExpanded.set(!isDescriptionExpanded())"
+                >
+                  {{ isDescriptionExpanded() ? 'Show less' : 'Show more' }}
+                </button>
+              }
             </p>
           </div>
 
@@ -760,7 +772,19 @@ type VendorTagSummary = {
               @if (store().description) {
                 <div class="mb-8 max-w-[860px]">
                   <p class="text-[16px] leading-7 text-[#1F1F1F]">
-                    {{ store().description }}
+                    @if (store().description.length <= 30) {
+                      {{ store().description }}
+                    } @else {
+                      {{ isDescriptionExpanded() ? store().description : (store().description.slice(0, 30) + '...') }}
+                      <button
+                        type="button"
+                        class="ml-1 text-[#6453d9] font-semibold hover:underline text-[14px]"
+                        [attr.aria-expanded]="isDescriptionExpanded()"
+                        (click)="isDescriptionExpanded.set(!isDescriptionExpanded())"
+                      >
+                        {{ isDescriptionExpanded() ? 'Show less' : 'Show more' }}
+                      </button>
+                    }
                   </p>
                 </div>
               }
@@ -1406,6 +1430,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   readonly isFollowPending = signal(false);
   readonly isStartingConversation = signal(false);
   readonly isSubmittingReview = signal(false);
+  readonly isDescriptionExpanded = signal(false);
   readonly isReviewTagsLoading = signal(false);
   readonly isProfileLoading = signal(true);
   readonly isListingsLoading = signal(true);
