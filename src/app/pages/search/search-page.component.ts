@@ -103,6 +103,38 @@ const VERIFICATION_PARAM_BY_LABEL: Record<string, 'true' | 'false'> = {
       box-shadow: 0 10px 24px -18px rgba(17, 24, 39, 0.45);
       cursor: pointer;
     }
+
+    .search-skeleton {
+      position: relative;
+      overflow: hidden;
+      background: #eceef3;
+    }
+
+    .search-skeleton::after {
+      position: absolute;
+      inset: 0;
+      content: '';
+      transform: translateX(-100%);
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.76) 50%,
+        transparent 100%
+      );
+      animation: search-skeleton-shimmer 1.4s ease-in-out infinite;
+    }
+
+    @keyframes search-skeleton-shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .search-skeleton::after {
+        animation: none;
+      }
+    }
   `,
   host: { class: 'block h-full overflow-auto' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -127,6 +159,7 @@ export class SearchPageComponent {
   readonly searchError = signal<string | null>(null);
   readonly resultCount = signal(0);
   readonly searchListings = signal<Listing[]>([]);
+  readonly skeletonItems = Array.from({ length: 10 }, (_, index) => index);
 
   readonly categoryOptions = [
     'Phones & Laptops',

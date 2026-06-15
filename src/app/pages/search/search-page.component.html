@@ -175,9 +175,22 @@
     </section>
 
     @if (isSearchLoading()) {
-    <section class="rounded-[28px] border border-[#ECEEF3] bg-white px-6 py-16 text-center shadow-[0_24px_60px_-30px_rgba(17,24,39,0.18)]">
-      <p class="text-[16px] font-medium text-[#1A1C21]">Loading search results...</p>
-    </section>
+    <div class="grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-5" role="status" aria-label="Loading search results" aria-live="polite">
+      @for (item of skeletonItems; track item) {
+      <article class="overflow-hidden rounded-[18px] border border-[#ECEEF3] bg-white shadow-sm md:rounded-[24px]" aria-hidden="true">
+        <div class="search-skeleton aspect-square w-full"></div>
+        <div class="space-y-2.5 p-2.5 md:space-y-3 md:p-4">
+          <div class="search-skeleton h-3 w-[78%] rounded-full md:h-4"></div>
+          <div class="search-skeleton h-4 w-[52%] rounded-full md:h-5"></div>
+          <div class="flex items-center gap-1.5 pt-0.5 md:gap-2 md:pt-1">
+            <div class="search-skeleton h-3 w-3 rounded-full md:h-3.5 md:w-3.5"></div>
+            <div class="search-skeleton h-2.5 w-[60%] rounded-full md:h-3"></div>
+          </div>
+        </div>
+      </article>
+      }
+      <span class="sr-only">Loading search results</span>
+    </div>
     } @else if (searchError()) {
     <section class="rounded-[28px] border border-[#F1D7D7] bg-[#FFF7F7] px-6 py-16 text-center shadow-[0_24px_60px_-30px_rgba(17,24,39,0.12)]">
       <p class="text-[16px] font-medium text-[#B42318]">{{ searchError() }}</p>
