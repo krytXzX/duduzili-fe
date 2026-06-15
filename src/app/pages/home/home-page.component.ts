@@ -135,6 +135,7 @@ export class HomePageComponent {
   readonly isLoadingMoreNearbyListings = signal(false);
   readonly homeError = signal<string | null>(null);
   readonly homeResponse = signal<HomeResponse | null>(null);
+  private readonly cachedCategories = signal<HomeCategoryResponse[]>([]);
   readonly extraNearbyListingRecords = signal<readonly HomeListingResponse[]>([]);
   readonly nearbyListingsPage = signal(1);
   readonly hasMoreNearbyListings = signal(true);
@@ -181,7 +182,11 @@ export class HomePageComponent {
 
   readonly categories = computed(() => {
     const response = this.homeResponse();
-    return (response?.categories ?? []).map((category) => this.toHomeCategory(category));
+    const loadedCategories = (response?.categories ?? []).map((category) => this.toHomeCategory(category));
+    if (loadedCategories.length > 0) {
+      return loadedCategories;
+    }
+    return this.cachedCategories().map((category) => this.toHomeCategory(category));
   });
 
   readonly sponsoredListingCards = computed(() => {
@@ -239,6 +244,14 @@ export class HomePageComponent {
     if (isPlatformBrowser(this.platformId)) {
       this.restoreRecentSearches();
       this.startHeroCarousel();
+      try {
+        const stored = localStorage.getItem('duduzili.home.categories');
+        if (stored) {
+          this.cachedCategories.set(JSON.parse(stored));
+        }
+      } catch {
+        // Ignore
+      }
     }
 
     void this.loadHome();
@@ -409,6 +422,13 @@ export class HomePageComponent {
       }
 
       this.homeResponse.set(response);
+      if (isPlatformBrowser(this.platformId) && response.categories && response.categories.length > 0) {
+        try {
+          localStorage.setItem('duduzili.home.categories', JSON.stringify(response.categories));
+        } catch {
+          // Ignore
+        }
+      }
       this.extraNearbyListingRecords.set([]);
       this.nearbyListingsPage.set(1);
       this.hasMoreNearbyListings.set((response.nearby_listings?.length ?? 0) >= HOME_NEARBY_LISTINGS_PAGE_SIZE);

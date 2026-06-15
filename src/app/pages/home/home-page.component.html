@@ -185,19 +185,7 @@
           </button>
         </div>
 
-        @if (isHomeLoading() && !homeResponse()) {
-        <div class="no-scrollbar w-full overflow-x-auto scroll-smooth pr-2 lg:w-full lg:pr-0">
-          <div class="flex min-w-max gap-3 pr-8 lg:gap-6 lg:pr-0">
-            @for (item of categorySkeletonItems; track item) {
-            <div class="flex w-[76px] shrink-0 animate-pulse flex-col items-center gap-2 text-center lg:w-[130px]">
-              <span class="h-[38px] w-[38px] rounded-full bg-[#F3F4F6] lg:h-16 lg:w-16"></span>
-              <span class="h-3 w-full rounded-full bg-[#F3F4F6] lg:h-4"></span>
-              <span class="h-3 w-3/4 rounded-full bg-[#F3F4F6] lg:h-4"></span>
-            </div>
-            }
-          </div>
-        </div>
-        } @else if (categories().length) {
+        @if (categories().length) {
         <div #categoryRail class="no-scrollbar w-full overflow-x-auto scroll-smooth pr-2 lg:w-full lg:pr-0">
           <div class="flex min-w-max gap-3 pr-8 lg:gap-6 lg:pr-0">
             @for (category of categories(); track category.id) {
@@ -209,6 +197,18 @@
                 {{ category.label }}
               </span>
             </button>
+            }
+          </div>
+        </div>
+        } @else if (isHomeLoading() && !homeResponse()) {
+        <div class="no-scrollbar w-full overflow-x-auto scroll-smooth pr-2 lg:w-full lg:pr-0">
+          <div class="flex min-w-max gap-3 pr-8 lg:gap-6 lg:pr-0">
+            @for (item of categorySkeletonItems; track item) {
+            <div class="flex w-[76px] shrink-0 animate-pulse flex-col items-center gap-2 text-center lg:w-[130px]">
+              <span class="h-[38px] w-[38px] rounded-full bg-[#F3F4F6] lg:h-16 lg:w-16"></span>
+              <span class="h-3 w-full rounded-full bg-[#F3F4F6] lg:h-4"></span>
+              <span class="h-3 w-3/4 rounded-full bg-[#F3F4F6] lg:h-4"></span>
+            </div>
             }
           </div>
         </div>
