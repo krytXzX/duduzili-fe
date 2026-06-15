@@ -57,7 +57,25 @@
           "/assets/images/store-none-cover-desktop.png",
           "/assets/images/store-swift-cover-desktop.png",
           "/assets/icons/home-hero-rotator/*.svg",
-          "/assets/icons/home-search.svg"
+          "/assets/icons/home-search.svg",
+          "/assets/icons/category-*.svg",
+          "/assets/images/category-*.png",
+          "/assets/images/logo-*.svg",
+          "/assets/images/footer-*.svg",
+          "/assets/images/home-*.png",
+          "/assets/images/home-*.svg",
+          "/assets/icons/home-*.svg",
+          "/assets/icons/home-logo-*.svg",
+          "/assets/icons/home-search-overlay/*.svg",
+          "/assets/icons/home-mobile-menu/*.svg",
+          "/assets/icons/buyer-header/*.svg",
+          "/assets/icons/buyer-menu/*.svg",
+          "/assets/images/auth-avatar-fallback.svg",
+          "/assets/images/image-*-*.jpg",
+          "/assets/icons/buyer-bottom-nav/*.svg",
+          "/assets/icons/home-nav-*.svg",
+          "/assets/images/hero-*.png",
+          "/assets/images/product_*.png"
         ]
       }
     },
