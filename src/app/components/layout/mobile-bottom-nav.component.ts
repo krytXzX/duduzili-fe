@@ -234,7 +234,7 @@ export class MobileBottomNavComponent {
   readonly wishlistActivePaths = input<readonly string[]>(['/wishlist']);
   readonly chatsRoute = input('/chats');
   readonly chatsActivePaths = input<readonly string[]>(['/chats', '/messages']);
-  readonly searchRoute = input('/category');
+  readonly searchRoute = input('/search');
   readonly searchButtonAriaLabel = input('Search');
   readonly searchOpensOverlay = input(false);
   readonly searchPressed = output<void>();
