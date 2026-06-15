@@ -103,7 +103,7 @@ export class TwoFactorPageComponent implements OnInit {
   }
 
   private resolvePostLoginRoute(role: string | undefined): string[] {
-    return role === 'admin' ? ['/admin'] : ['/home'];
+    return role === 'admin' ? ['/admin'] : ['/en'];
   }
 
   private async stabilizeAuthenticatedSession(): Promise<boolean> {

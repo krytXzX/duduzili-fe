@@ -192,7 +192,7 @@ export class SignInPageComponent {
   private resolvePostLoginRoute(loginResponse: { user?: { role?: string } }): string[] {
     console.log('Login response:', loginResponse);
     console.log(loginResponse.user?.role === 'admin');
-    return loginResponse.user?.role === 'admin' ? ['/admin'] : ['/home'];
+    return loginResponse.user?.role === 'admin' ? ['/admin'] : ['/en'];
   }
 
   private readBackendMessage(payload: unknown): string | null {

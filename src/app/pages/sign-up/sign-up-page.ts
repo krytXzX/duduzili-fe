@@ -283,7 +283,7 @@ export class SignUpPageComponent {
         }),
       );
       this.authSessionService.saveLoginSession(response, null);
-      await this.router.navigate(['/home']);
+      await this.router.navigate(['/en']);
     } catch (error: unknown) {
       this.passwordErrorMessage.set(this.resolveBackendMessage(error) ?? 'We couldn’t create your account right now. Please try again.');
     } finally {
