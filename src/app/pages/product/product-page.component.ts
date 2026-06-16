@@ -208,6 +208,8 @@ export class ProductPageComponent {
   readonly isProductLoading = signal(true);
   readonly productLoadError = signal<string | null>(null);
   readonly reviewSort = signal<ProductReviewSort>('most-recent');
+  private touchStartX = 0;
+  private touchStartY = 0;
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
   readonly reviewAverageValue = computed(() => {
     const reviews = this.reviews();
@@ -436,6 +438,30 @@ export class ProductPageComponent {
       (currentIndex) =>
         (currentIndex - 1 + imageCount) % imageCount,
     );
+  }
+
+  onTouchStart(event: TouchEvent): void {
+    this.touchStartX = event.touches[0].clientX;
+    this.touchStartY = event.touches[0].clientY;
+  }
+
+  onTouchEnd(event: TouchEvent): void {
+    const touchEndX = event.changedTouches[0].clientX;
+    const touchEndY = event.changedTouches[0].clientY;
+    this.handleSwipe(this.touchStartX, this.touchStartY, touchEndX, touchEndY);
+  }
+
+  private handleSwipe(startX: number, startY: number, endX: number, endY: number): void {
+    const diffX = endX - startX;
+    const diffY = endY - startY;
+
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+      if (diffX > 0) {
+        this.prevImage();
+      } else {
+        this.nextImage();
+      }
+    }
   }
 
   galleryImageCountLabel(): string {
