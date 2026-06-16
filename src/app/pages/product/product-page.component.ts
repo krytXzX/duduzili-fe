@@ -161,6 +161,21 @@ type SellerReportStep = 1 | 2;
       :host button:not(:disabled):active {
         filter: brightness(0.94);
       }
+
+      @keyframes slideInFromRight {
+        from { transform: translateX(100%); opacity: 0.5; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideInFromLeft {
+        from { transform: translateX(-100%); opacity: 0.5; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      .animate-slide-in-right {
+        animation: slideInFromRight 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
+      .animate-slide-in-left {
+        animation: slideInFromLeft 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -208,6 +223,7 @@ export class ProductPageComponent {
   readonly isProductLoading = signal(true);
   readonly productLoadError = signal<string | null>(null);
   readonly reviewSort = signal<ProductReviewSort>('most-recent');
+  readonly slideDirection = signal<'animate-slide-in-left' | 'animate-slide-in-right' | ''>('');
   private touchStartX = 0;
   private touchStartY = 0;
   readonly compactReviews = computed(() => this.reviews().slice(0, 2));
@@ -403,7 +419,8 @@ export class ProductPageComponent {
   }
 
   openGalleryPreview(index = this.currentGalleryIndex()): void {
-    this.setGalleryIndex(index);
+    this.slideDirection.set('');
+    this.currentGalleryIndex.set(index);
     this.isGalleryPreviewOpen.set(true);
     this.setBodyScrollLocked(true);
   }
@@ -414,6 +431,14 @@ export class ProductPageComponent {
   }
 
   setGalleryIndex(index: number): void {
+    const currentIndex = this.currentGalleryIndex();
+    if (index > currentIndex) {
+      this.slideDirection.set('animate-slide-in-right');
+    } else if (index < currentIndex) {
+      this.slideDirection.set('animate-slide-in-left');
+    } else {
+      this.slideDirection.set('');
+    }
     this.currentGalleryIndex.set(index);
   }
 
@@ -423,6 +448,7 @@ export class ProductPageComponent {
       return;
     }
 
+    this.slideDirection.set('animate-slide-in-right');
     this.currentGalleryIndex.update(
       (currentIndex) => (currentIndex + 1) % imageCount,
     );
@@ -434,6 +460,7 @@ export class ProductPageComponent {
       return;
     }
 
+    this.slideDirection.set('animate-slide-in-left');
     this.currentGalleryIndex.update(
       (currentIndex) =>
         (currentIndex - 1 + imageCount) % imageCount,
