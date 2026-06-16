@@ -61,11 +61,18 @@
   <!-- Resources Column -->
   <div class="space-y-6">
     <h4 class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#15162B]/30">Resources</h4>
-    <ul class="space-y-4">
+    <ul class="hidden md:block space-y-4">
       <li><a routerLink="/terms-of-service" class="text-[15px] font-medium text-[#777777] hover:text-[#6453D9] transition-all">Terms of Service</a></li>
       <li><a routerLink="/privacy-policy" class="text-[15px] font-medium text-[#777777] hover:text-[#6453D9] transition-all">Privacy Policy</a></li>
       <li><a href="#" class="text-[15px] font-medium text-[#777777] hover:text-[#6453D9] transition-all">Contact us</a></li>
     </ul>
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] font-medium text-[#777777] md:hidden">
+      <a routerLink="/terms-of-service" class="hover:text-[#6453D9] transition-all">Terms of Service</a>
+      <span class="text-xs text-[#15162B]/20" aria-hidden="true">&bull;</span>
+      <a routerLink="/privacy-policy" class="hover:text-[#6453D9] transition-all">Privacy Policy</a>
+      <span class="text-xs text-[#15162B]/20" aria-hidden="true">&bull;</span>
+      <a href="#" class="hover:text-[#6453D9] transition-all">Contact us</a>
+    </div>
   </div>
 
   <!-- Newsletter Column -->

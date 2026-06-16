@@ -21,9 +21,13 @@
       </div>
       <div class="flex flex-col gap-3 md:hidden">
         <h4 class="text-[16px] font-semibold text-[#36394A]">Resources</h4>
-        <a routerLink="/terms-of-service" class="text-sm text-gray-500 transition-colors hover:text-indigo-600">Terms of Service</a>
-        <a routerLink="/privacy-policy" class="text-sm text-gray-500 transition-colors hover:text-indigo-600">Privacy Policy</a>
-        <a href="#" class="text-sm text-gray-500 transition-colors hover:text-indigo-600">Contact us</a>
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
+          <a routerLink="/terms-of-service" class="transition-colors hover:text-indigo-600">Terms of Service</a>
+          <span class="text-xs text-gray-300" aria-hidden="true">&bull;</span>
+          <a routerLink="/privacy-policy" class="transition-colors hover:text-indigo-600">Privacy Policy</a>
+          <span class="text-xs text-gray-300" aria-hidden="true">&bull;</span>
+          <a href="#" class="transition-colors hover:text-indigo-600">Contact us</a>
+        </div>
       </div>
       <div class="md:hidden">
         <h4 class="mb-3 text-[16px] font-semibold text-[#36394A]">Subscribe to our newsletter</h4>
