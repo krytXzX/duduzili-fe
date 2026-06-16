@@ -26,7 +26,7 @@ export class ForgotPasswordPageComponent {
 
   protected readonly inputEyeUrl = '/assets/icons/forgot-password-password-eye.svg';
   protected readonly successIllustrationUrl =
-    '/assets/images/forgot-password-success-illustration.png';
+    '/assets/images/forgot-password-success-illustration.webp';
 
   protected readonly forgotPasswordForm = new FormGroup({
     email: new FormControl('', {

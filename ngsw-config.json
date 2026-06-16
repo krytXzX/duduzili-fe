@@ -80,6 +80,22 @@
       }
     },
     {
+      "name": "auth-pages",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/assets/images/auth-shell-*.webp",
+          "/assets/images/auth-shell-*.svg",
+          "/assets/images/forgot-password-success-illustration.webp",
+          "/assets/icons/signin-*.svg",
+          "/assets/icons/signup-*.svg",
+          "/assets/icons/forgot-password-*.svg",
+          "/assets/icons/auth-*.svg"
+        ]
+      }
+    },
+    {
       "name": "static-assets",
       "installMode": "lazy",
       "updateMode": "lazy",

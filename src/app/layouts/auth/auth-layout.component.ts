@@ -48,10 +48,10 @@ export class AuthLayoutComponent {
   protected readonly fullLogoUrl = iconAsset('auth-shell-logo-full.svg');
   protected readonly iconLogoUrl = iconAsset('auth-shell-logo-mark.svg');
   protected readonly markUrl = imageAsset('auth-shell-mark.svg');
-  protected readonly heroSkyUrl = imageAsset('auth-shell-hero-sky.png');
-  protected readonly phoneImageUrl = imageAsset('auth-shell-hero-phone.png');
-  protected readonly storeCoverUrl = imageAsset('auth-shell-store-cover.png');
-  protected readonly heroImageUrl = imageAsset('auth-shell-hero-couple.png');
+  protected readonly heroSkyUrl = imageAsset('auth-shell-hero-sky.webp');
+  protected readonly phoneImageUrl = imageAsset('auth-shell-hero-phone.webp');
+  protected readonly storeCoverUrl = imageAsset('auth-shell-store-cover.webp');
+  protected readonly heroImageUrl = imageAsset('auth-shell-hero-couple.webp');
   protected readonly productLikeUrl = iconAsset('auth-shell-card-heart.svg');
   protected readonly verifiedBadgeIconUrl = iconAsset('auth-shell-card-verified.svg');
   protected readonly arrowLeftUrl = iconAsset('auth-shell-card-arrow-left.svg');
@@ -59,7 +59,7 @@ export class AuthLayoutComponent {
   protected readonly carouselDotsUrl = iconAsset('auth-shell-carousel-dots.svg');
   protected readonly nairaIconUrl = iconAsset('auth-shell-card-naira.svg');
   protected readonly locationIconUrl = iconAsset('auth-shell-card-location.svg');
-  protected readonly storeAvatarUrl = imageAsset('auth-shell-store-avatar.png');
+  protected readonly storeAvatarUrl = imageAsset('auth-shell-store-avatar.webp');
   protected readonly storeVerifyUrl = iconAsset('auth-shell-store-verify.svg');
   protected readonly storeLocationUrl = iconAsset('auth-shell-store-location.svg');
 }
