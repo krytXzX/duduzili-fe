@@ -12,6 +12,8 @@ import {
 } from '@angular/core';
 import { NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { faBrandInstagram, faBrandXTwitter } from '@ng-icons/font-awesome/brands';
 import { firstValueFrom } from 'rxjs';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
@@ -94,6 +96,13 @@ const CATEGORY_ICON_BY_SLUG: Record<string, string> = {
     StoreCardComponent,
     ListingCardComponent,
     PublicHomeNavbarComponent,
+    NgIcon,
+  ],
+  providers: [
+    provideIcons({
+      faBrandInstagram,
+      faBrandXTwitter,
+    }),
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.css',

@@ -4,6 +4,8 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { faBrandInstagram, faBrandXTwitter } from '@ng-icons/font-awesome/brands';
 import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 import { AuthSessionService } from '../../services/auth-session.service';
@@ -64,7 +66,6 @@ const VERIFICATION_PARAM_BY_LABEL: Record<string, 'true' | 'false'> = {
 
 @Component({
   selector: 'app-search-page',
-  standalone: true,
   imports: [
     CommonModule,
     NgOptimizedImage,
@@ -74,6 +75,13 @@ const VERIFICATION_PARAM_BY_LABEL: Record<string, 'true' | 'false'> = {
     ListingCardComponent,
     StoreCardComponent,
     AppToastComponent,
+    NgIcon,
+  ],
+  providers: [
+    provideIcons({
+      faBrandInstagram,
+      faBrandXTwitter,
+    }),
   ],
   templateUrl: './search-page.component.html',
   styles: `

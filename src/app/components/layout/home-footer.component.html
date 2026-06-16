@@ -120,8 +120,14 @@
       <div class="flex flex-col gap-8 text-[#36394a]">
         <div class="space-y-4">
           <h3 class="text-[20px] font-medium leading-none">Social</h3>
-          <a routerLink="/" class="block text-base leading-5">Instagram</a>
-          <a routerLink="/" class="block text-base leading-5">X (Twitter)</a>
+          <div class="flex items-center gap-4">
+            <a routerLink="/" class="text-[#36394a] hover:text-[#6453D9] transition-colors" aria-label="Instagram">
+              <ng-icon name="faBrandInstagram" class="text-2xl"></ng-icon>
+            </a>
+            <a routerLink="/" class="text-[#36394a] hover:text-[#6453D9] transition-colors" aria-label="X (Twitter)">
+              <ng-icon name="faBrandXTwitter" class="text-[20px]"></ng-icon>
+            </a>
+          </div>
         </div>
 
         <div class="space-y-4">

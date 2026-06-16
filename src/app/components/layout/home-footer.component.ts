@@ -1,11 +1,18 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { faBrandInstagram, faBrandXTwitter } from '@ng-icons/font-awesome/brands';
 
 @Component({
   selector: 'app-home-footer',
-  standalone: true,
-  imports: [CommonModule, RouterLink, NgOptimizedImage],
+  imports: [CommonModule, RouterLink, NgOptimizedImage, NgIcon],
+  providers: [
+    provideIcons({
+      faBrandInstagram,
+      faBrandXTwitter,
+    }),
+  ],
   templateUrl: './home-footer.component.html',
   styles: `
     :host {

@@ -2,11 +2,18 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { faBrandInstagram, faBrandXTwitter } from '@ng-icons/font-awesome/brands';
 
 @Component({
   selector: 'app-premium-footer',
-  standalone: true,
-  imports: [CommonModule, RouterLink, NgOptimizedImage, FormsModule],
+  imports: [CommonModule, RouterLink, NgOptimizedImage, FormsModule, NgIcon],
+  providers: [
+    provideIcons({
+      faBrandInstagram,
+      faBrandXTwitter,
+    }),
+  ],
   templateUrl: './premium-footer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 
