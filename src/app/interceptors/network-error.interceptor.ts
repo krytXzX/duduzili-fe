@@ -6,7 +6,7 @@ const NETWORK_FAILURE_MESSAGE = 'Something went wrong, try again later';
 export const networkErrorInterceptor: HttpInterceptorFn = (request, next) =>
   next(request).pipe(
     catchError((error: unknown) => {
-      if (error instanceof HttpErrorResponse && error.status === 0) {
+      if (error instanceof HttpErrorResponse && (error.status === 0 || error.status >= 500)) {
         const normalizedError = new HttpErrorResponse({
           error: {
             detail: NETWORK_FAILURE_MESSAGE,
@@ -14,7 +14,7 @@ export const networkErrorInterceptor: HttpInterceptorFn = (request, next) =>
           },
           headers: error.headers,
           status: error.status,
-          statusText: 'Network Error',
+          statusText: error.status === 0 ? 'Network Error' : 'Server Error',
           url: error.url ?? request.urlWithParams,
         });
 
