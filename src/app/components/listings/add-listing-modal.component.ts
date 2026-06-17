@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -417,19 +417,7 @@ type PickerOption = {
                       </button>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-5">
-                      <div class="space-y-2 relative">
-                        <label class="text-[12px] font-medium text-[#3F4452]">Condition</label>
-                        <button
-                          type="button"
-                          (click)="openPicker('condition')"
-                          class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none transition-all hover:border-[#6F56F6]/50 active:scale-[0.99] duration-200"
-                        >
-                          <span>{{ selectedConditionLabel() || 'Select condition' }}</span>
-                          <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
-                        </button>
-                      </div>
-
+                    @if (isRealEstateSelected()) {
                       <div class="space-y-2 relative">
                         <label class="text-[12px] font-medium text-[#3F4452]">Store</label>
                         <button
@@ -441,7 +429,33 @@ type PickerOption = {
                           <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
                         </button>
                       </div>
-                    </div>
+                    } @else {
+                      <div class="grid grid-cols-2 gap-5">
+                        <div class="space-y-2 relative">
+                          <label class="text-[12px] font-medium text-[#3F4452]">Condition</label>
+                          <button
+                            type="button"
+                            (click)="openPicker('condition')"
+                            class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none transition-all hover:border-[#6F56F6]/50 active:scale-[0.99] duration-200"
+                          >
+                            <span>{{ selectedConditionLabel() || 'Select condition' }}</span>
+                            <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
+                          </button>
+                        </div>
+
+                        <div class="space-y-2 relative">
+                          <label class="text-[12px] font-medium text-[#3F4452]">Store</label>
+                          <button
+                            type="button"
+                            (click)="openPicker('store')"
+                            class="flex w-full items-center justify-between rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-left text-[12px] font-medium text-[#202335] outline-none transition-all hover:border-[#6F56F6]/50 active:scale-[0.99] duration-200"
+                          >
+                            <span class="truncate">{{ selectedStoreLabel() || 'Select store' }}</span>
+                            <ng-icon name="heroChevronDown" class="text-[14px]"></ng-icon>
+                          </button>
+                        </div>
+                      </div>
+                    }
 
                     <div class="pt-3">
                       <h3 class="text-[18px] font-semibold leading-10 tracking-[-0.03em] text-[#202335]">Add description</h3>
@@ -485,17 +499,19 @@ type PickerOption = {
                       </button>
                     </div>
 
-                    <div class="space-y-2 relative">
-                      <label class="text-[13px] font-medium text-gray-700">Condition</label>
-                      <button
-                        type="button"
-                        (click)="openPicker('condition')"
-                        class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all hover:border-[#6F56F6]/40 active:scale-[0.99] duration-200"
-                      >
-                        <span>{{ selectedConditionLabel() || 'Select condition' }}</span>
-                        <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
-                      </button>
-                    </div>
+                    @if (!isRealEstateSelected()) {
+                      <div class="space-y-2 relative">
+                        <label class="text-[13px] font-medium text-gray-700">Condition</label>
+                        <button
+                          type="button"
+                          (click)="openPicker('condition')"
+                          class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3.5 text-[15px] font-medium text-[#1A1C21] shadow-sm transition-all hover:border-[#6F56F6]/40 active:scale-[0.99] duration-200"
+                        >
+                          <span>{{ selectedConditionLabel() || 'Select condition' }}</span>
+                          <ng-icon name="heroChevronDown" class="text-[14px] stroke-[2] text-gray-400"></ng-icon>
+                        </button>
+                      </div>
+                    }
 
                     <div class="space-y-2 relative">
                       <label class="text-[13px] font-medium text-gray-700">Store</label>
@@ -1003,8 +1019,10 @@ type PickerOption = {
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Category</span>
                             <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ selectedCategoryLabel() || '---' }}</span>
 
-                            <span class="text-[12px] font-medium text-[#8A8F9A]">Condition</span>
-                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ selectedConditionLabel() || '---' }}</span>
+                            @if (!isRealEstateSelected()) {
+                              <span class="text-[12px] font-medium text-[#8A8F9A]">Condition</span>
+                              <span class="text-right text-[12px] font-medium text-[#202335]">{{ selectedConditionLabel() || '---' }}</span>
+                            }
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Store</span>
                             <span class="text-right text-[12px] font-medium text-[#202335]">{{ selectedStoreLabel() || '---' }}</span>
@@ -1107,10 +1125,12 @@ type PickerOption = {
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Category</span>
                                 <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ selectedCategoryLabel() || '---' }}</span>
                              </div>
-                             <div class="flex items-start">
-                                <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Condition</span>
-                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ selectedConditionLabel() || '---' }}</span>
-                             </div>
+                             @if (!isRealEstateSelected()) {
+                               <div class="flex items-start">
+                                  <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Condition</span>
+                                  <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ selectedConditionLabel() || '---' }}</span>
+                               </div>
+                             }
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Store</span>
                                 <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ selectedStoreLabel() || '---' }}</span>
@@ -1611,6 +1631,11 @@ export class AddListingModalComponent implements OnDestroy {
   ]);
 
   readonly categoryOptions = computed(() => this.categoryOptionsInput());
+  readonly isRealEstateSelected = computed(() => {
+    const currentValue = this.formValues()?.category as string | null;
+    const option = this.categoryOptions().find((opt) => opt.value === currentValue);
+    return option?.label.trim().toLowerCase() === 'real estate & properties';
+  });
   readonly storeOptions = computed(() => this.storeOptionsInput());
   readonly availableDeliveryOptions = computed(() => this.deliveryOptionsInput());
 
@@ -1644,6 +1669,22 @@ export class AddListingModalComponent implements OnDestroy {
     });
 
     this.formValues = toSignal(this.listingForm.valueChanges, { initialValue: this.listingForm.value });
+
+    effect(() => {
+      const isRealEstate = this.isRealEstateSelected();
+      const conditionControl = this.listingForm.get('condition');
+      if (conditionControl) {
+        if (isRealEstate) {
+          conditionControl.clearValidators();
+          if (conditionControl.value !== '') {
+            conditionControl.setValue('', { emitEvent: false });
+          }
+        } else {
+          conditionControl.setValidators(Validators.required);
+        }
+        conditionControl.updateValueAndValidity({ emitEvent: false });
+      }
+    });
   }
 
   imageSlots = computed(() =>
@@ -2206,7 +2247,8 @@ export class AddListingModalComponent implements OnDestroy {
     const payload = new FormData();
     this.appendFormDataValue(payload, 'title', formValue.name, { optional: isDraft });
     this.appendFormDataValue(payload, 'category', formValue.category, { optional: isDraft });
-    this.appendFormDataValue(payload, 'condition', formValue.condition, { optional: isDraft });
+    const isRealEstate = this.isRealEstateSelected();
+    this.appendFormDataValue(payload, 'condition', formValue.condition, { optional: isDraft || isRealEstate });
     this.appendFormDataValue(payload, 'store', formValue.store);
     this.appendFormDataValue(payload, 'description', formValue.description, { optional: isDraft });
     this.appendFormDataValue(payload, 'location', formValue.location, { optional: isDraft });
