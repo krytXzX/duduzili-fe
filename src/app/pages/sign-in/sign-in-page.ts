@@ -242,8 +242,6 @@ export class SignInPageComponent {
   }
 
   private resolvePostLoginRoute(loginResponse: { user?: { role?: string } }): string[] {
-    console.log('Login response:', loginResponse);
-    console.log(loginResponse.user?.role === 'admin');
     return loginResponse.user?.role === 'admin' ? ['/admin'] : ['/en'];
   }
 
