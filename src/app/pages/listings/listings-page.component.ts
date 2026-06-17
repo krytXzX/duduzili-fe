@@ -16,6 +16,7 @@ import {
   ManageListingsStore,
 } from '../../services/listings.service';
 import { environment } from '../../../environments/environment';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 type ListingStatus = 'Available' | 'Sold' | 'Draft' | 'Paused' | 'Suspended';
 type ListingFilter = 'All' | ListingStatus;
@@ -96,193 +97,195 @@ type AddListingPickerOption = {
           </button>
         </div>
 
-        @if (showRejectedVerificationBanner()) {
-          <div
-            class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#eeeefd] bg-[#fff5f5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(171.22deg,rgba(255,161,161,0)_49.825%,rgba(255,161,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,245,245,0.44)_0%,rgba(255,245,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:border-[#f5e5e5] lg:px-[17px] lg:py-[18px]"
-          >
-            <div class="absolute left-[154px] top-[70px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(255,177,177,0.24)_0%,rgba(255,177,177,0.1)_35%,rgba(255,177,177,0)_72%)] lg:left-[234px]"></div>
-            <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(255,208,208,0.22)_0%,rgba(255,208,208,0)_72%)]"></div>
-
-            <div class="relative z-10 w-full lg:max-w-[355px]">
-              <div class="flex max-w-[255px] flex-col items-start gap-3 lg:max-w-[355px]">
-                <div class="w-full">
-                  <h2 class="text-[18px] font-medium leading-[24px] text-[#1f1f1f]">Verification failed</h2>
-                  <p class="mt-0.5 text-[14px] font-normal leading-[20px] text-[#7b7979] lg:min-w-[495px] lg:max-w-[495px] lg:text-[#636363]">
-                    Your documents are invalid. Kindly provide a valid documentation
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  (click)="openVerificationFlow()"
-                  class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#eaeaea] bg-white px-5 text-[14px] font-medium leading-[20px] text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)]"
-                >
-                  Verify my account
-                  <img
-                    src="/assets/icons/listings-verification-failed-arrow-right.svg"
-                    alt=""
-                    aria-hidden="true"
-                    class="h-4 w-4"
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div class="absolute right-[-6px] top-[53px] h-[80px] w-[80px] rotate-[21.22deg] lg:hidden">
-              <img
-                src="/assets/images/listings-verification-failed-mobile-base.png"
-                alt=""
-                aria-hidden="true"
-                class="absolute inset-0 h-full w-full object-contain"
-              />
-              <img
-                src="/assets/images/listings-verification-failed-mobile-badge.png"
-                alt=""
-                aria-hidden="true"
-                class="absolute left-[3.5px] top-[18px] h-[35px] w-[36px]"
-              />
-            </div>
-
-            <div class="absolute right-[34px] top-[4px] hidden h-[149px] w-[149px] rotate-[21.22deg] lg:block">
-              <img
-                src="/assets/images/listings-verification-failed-desktop-base.png"
-                alt=""
-                aria-hidden="true"
-                class="absolute inset-0 h-[115px] w-[115px] object-contain"
-              />
-              <img
-                src="/assets/images/listings-verification-failed-desktop-badge.png"
-                alt=""
-                aria-hidden="true"
-                class="absolute left-[5px] top-[26px] h-[51px] w-[52px]"
-              />
-            </div>
-          </div>
-        } @else if (showApprovedVerificationBanner()) {
-          <div
-            class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#e9f5e5] bg-[#fbfff8] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(174.53deg,rgba(177,255,161,0)_49.825%,rgba(168,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(245,255,245,0.44)_0%,rgba(255,250,250,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:px-[17px] lg:py-[18px]"
-          >
-            <div class="absolute left-[74px] top-[50px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(177,255,161,0.3)_0%,rgba(177,255,161,0.1)_35%,rgba(177,255,161,0)_72%)] lg:left-[234px] lg:top-[70px]"></div>
-            <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(209,255,184,0.24)_0%,rgba(209,255,184,0)_72%)]"></div>
-
-            <div class="relative z-10 w-full lg:max-w-[355px]">
-              <div class="w-full max-w-[255px]">
-                <h2 class="inline-flex items-center gap-1 whitespace-nowrap text-[18px] font-medium leading-[24px] text-[#1f1f1f] lg:text-[20px]">
-                  <span>You’re now a verified seller!</span>
-                  <span aria-hidden="true">🎉</span>
-                </h2>
-                <p class="mt-0.5 max-w-[289px] text-[14px] font-normal leading-[20px] text-[#7b7979] lg:min-w-[495px] lg:max-w-[495px] lg:text-[16px] lg:text-[#636363]">
-                  Your listings now show a verified badge.
-                </p>
-              </div>
-            </div>
-
-            <img
-              src="/assets/images/listings-verification-approved-mobile-illustration-clean.png"
-              alt=""
-              aria-hidden="true"
-              class="absolute right-[-6px] top-[7px] h-[98px] w-[98px] rotate-[11.29deg] object-contain drop-shadow-[4.448px_4.448px_13.345px_rgba(55,55,55,0.25)] lg:hidden"
-            />
-            <img
-              src="/assets/images/listings-verification-approved-desktop-illustration-clean.png"
-              alt=""
-              aria-hidden="true"
-              class="absolute right-[10px] top-[-2px] hidden h-[169px] w-[169px] rotate-[11.29deg] object-contain drop-shadow-[4.448px_4.448px_13.345px_rgba(55,55,55,0.25)] lg:block"
-            />
-
-            <button
-              type="button"
-              (click)="dismissApprovedVerificationBanner()"
-              class="absolute right-[5px] top-[5px] hidden h-8 w-8 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_2.909px_5.818px_rgba(202,202,202,0.25)] lg:inline-flex"
-              aria-label="Dismiss verified seller banner"
+        @if (kycRequired()) {
+          @if (showRejectedVerificationBanner()) {
+            <div
+              class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#eeeefd] bg-[#fff5f5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(171.22deg,rgba(255,161,161,0)_49.825%,rgba(255,161,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,245,245,0.44)_0%,rgba(255,245,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:border-[#f5e5e5] lg:px-[17px] lg:py-[18px]"
             >
-              <img
-                ngSrc="/assets/icons/listings-verification-approved-close.svg"
-                width="18"
-                height="18"
-                alt=""
-                aria-hidden="true"
-                class="h-[18px] w-[18px]"
-              />
-            </button>
-          </div>
-        } @else if (isVerificationPendingReview()) {
-          <div
-            class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#f5f5e5] bg-[#fffff5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(171.22deg,rgba(252,255,161,0)_49.825%,rgba(252,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,255,245,0.44)_0%,rgba(255,255,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:px-[17px] lg:py-[18px]"
-          >
-            <div class="absolute left-[154px] top-[70px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(255,240,128,0.34)_0%,rgba(255,240,128,0.12)_35%,rgba(255,240,128,0)_72%)] lg:left-[234px]"></div>
-            <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(183,234,109,0.24)_0%,rgba(183,234,109,0)_72%)]"></div>
+              <div class="absolute left-[154px] top-[70px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(255,177,177,0.24)_0%,rgba(255,177,177,0.1)_35%,rgba(255,177,177,0)_72%)] lg:left-[234px]"></div>
+              <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(255,208,208,0.22)_0%,rgba(255,208,208,0)_72%)]"></div>
 
-            <div class="relative z-10 w-full lg:max-w-[355px]">
-              <div class="flex max-w-[255px] flex-col items-start gap-3 lg:max-w-[355px]">
-                <div class="w-full">
-                  <h2 class="text-[18px] font-medium leading-[24px] text-[#1f1f1f]">Verification under review</h2>
-                  <p class="mt-0.5 text-[14px] font-normal leading-[20px] text-[#7b7979] lg:min-w-[495px] lg:max-w-[495px]">
-                    Our team is reviewing your documents. You’ll be notified within 24–48 hours.
+              <div class="relative z-10 w-full lg:max-w-[355px]">
+                <div class="flex max-w-[255px] flex-col items-start gap-3 lg:max-w-[355px]">
+                  <div class="w-full">
+                    <h2 class="text-[18px] font-medium leading-[24px] text-[#1f1f1f]">Verification failed</h2>
+                    <p class="mt-0.5 text-[14px] font-normal leading-[20px] text-[#7b7979] lg:min-w-[495px] lg:max-w-[495px] lg:text-[#636363]">
+                      Your documents are invalid. Kindly provide a valid documentation
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    (click)="openVerificationFlow()"
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#eaeaea] bg-white px-5 text-[14px] font-medium leading-[20px] text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)]"
+                  >
+                    Verify my account
+                    <img
+                      src="/assets/icons/listings-verification-failed-arrow-right.svg"
+                      alt=""
+                      aria-hidden="true"
+                      class="h-4 w-4"
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div class="absolute right-[-6px] top-[53px] h-[80px] w-[80px] rotate-[21.22deg] lg:hidden">
+                <img
+                  src="/assets/images/listings-verification-failed-mobile-base.png"
+                  alt=""
+                  aria-hidden="true"
+                  class="absolute inset-0 h-full w-full object-contain"
+                />
+                <img
+                  src="/assets/images/listings-verification-failed-mobile-badge.png"
+                  alt=""
+                  aria-hidden="true"
+                  class="absolute left-[3.5px] top-[18px] h-[35px] w-[36px]"
+                />
+              </div>
+
+              <div class="absolute right-[34px] top-[4px] hidden h-[149px] w-[149px] rotate-[21.22deg] lg:block">
+                <img
+                  src="/assets/images/listings-verification-failed-desktop-base.png"
+                  alt=""
+                  aria-hidden="true"
+                  class="absolute inset-0 h-[115px] w-[115px] object-contain"
+                />
+                <img
+                  src="/assets/images/listings-verification-failed-desktop-badge.png"
+                  alt=""
+                  aria-hidden="true"
+                  class="absolute left-[5px] top-[26px] h-[51px] w-[52px]"
+                />
+              </div>
+            </div>
+          } @else if (showApprovedVerificationBanner()) {
+            <div
+              class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#e9f5e5] bg-[#fbfff8] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(174.53deg,rgba(177,255,161,0)_49.825%,rgba(168,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(245,255,245,0.44)_0%,rgba(255,250,250,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:px-[17px] lg:py-[18px]"
+            >
+              <div class="absolute left-[74px] top-[50px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(177,255,161,0.3)_0%,rgba(177,255,161,0.1)_35%,rgba(177,255,161,0)_72%)] lg:left-[234px] lg:top-[70px]"></div>
+              <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(209,255,184,0.24)_0%,rgba(209,255,184,0)_72%)]"></div>
+
+              <div class="relative z-10 w-full lg:max-w-[355px]">
+                <div class="w-full max-w-[255px]">
+                  <h2 class="inline-flex items-center gap-1 whitespace-nowrap text-[18px] font-medium leading-[24px] text-[#1f1f1f] lg:text-[20px]">
+                    <span>You’re now a verified seller!</span>
+                    <span aria-hidden="true">🎉</span>
+                  </h2>
+                  <p class="mt-0.5 max-w-[289px] text-[14px] font-normal leading-[20px] text-[#7b7979] lg:min-w-[495px] lg:max-w-[495px] lg:text-[16px] lg:text-[#636363]">
+                    Your listings now show a verified badge.
                   </p>
                 </div>
-
-                <button
-                  type="button"
-                  (click)="openVerificationFlow()"
-                  class="inline-flex h-10 items-center justify-center rounded-full border border-[#eaeaea] bg-white px-5 text-[14px] font-medium leading-[20px] text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)]"
-                >
-                  View submission
-                </button>
-              </div>
-            </div>
-
-            <img
-              ngSrc="/assets/images/listings-verification-under-review-mobile-illustration.png"
-              width="74"
-              height="74"
-              alt=""
-              aria-hidden="true"
-              class="absolute right-[12px] top-[67px] h-[74px] w-[74px] rotate-[8.21deg] object-contain drop-shadow-[5px_4px_8px_rgba(60,60,60,0.25)] lg:hidden"
-            />
-            <img
-              ngSrc="/assets/images/listings-verification-under-review-desktop-illustration.png"
-              width="116"
-              height="116"
-              alt=""
-              aria-hidden="true"
-              class="absolute right-[53px] top-[17px] hidden h-[116px] w-[116px] rotate-[8.21deg] object-contain drop-shadow-[5px_4px_8px_rgba(60,60,60,0.25)] lg:block"
-            />
-          </div>
-        } @else {
-          <div
-            class="relative mt-6 overflow-hidden rounded-2xl border border-[#eeeefd] bg-[rgba(246,245,255,0.44)] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] lg:mx-4 lg:mt-7 lg:px-[17px] lg:py-[18px]"
-          >
-            <div class="absolute left-[154px] top-[70px] h-[188px] w-[690px] rounded-full bg-[radial-gradient(circle,rgba(133,121,255,0.12)_0%,rgba(133,121,255,0.04)_35%,rgba(133,121,255,0)_70%)]"></div>
-            <div class="absolute right-[-12px] top-[38px] h-[126px] w-[126px] rounded-full bg-[radial-gradient(circle,rgba(180,171,255,0.22)_0%,rgba(180,171,255,0)_70%)] lg:right-[-18px] lg:top-[35px]"></div>
-
-            <div class="relative z-10 flex items-center justify-between gap-3 lg:gap-6">
-              <div class="min-w-0 lg:max-w-[355px]">
-                <h2 class="text-[18px] font-medium leading-6 text-[#1f1f1f]">Build trust. Get more buyers</h2>
-                <p class="mt-0.5 max-w-[240px] text-sm leading-7 text-[#7b7979] lg:max-w-none lg:leading-5">
-                  Verified sellers rank higher and attract more inquiries.
-                </p>
-
-                <button
-                  type="button"
-                  (click)="openVerificationFlow()"
-                  class="mt-3 inline-flex h-10 items-center gap-2 rounded-full border border-[#eaeaea] bg-white px-5 text-sm font-medium text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)] lg:mt-4"
-                >
-                  {{ isVerificationSubmitted() ? 'View submission' : 'Verify my account' }}
-                  <span aria-hidden="true">→</span>
-                </button>
               </div>
 
               <img
-                [ngSrc]="verificationIllustration()"
-                width="152"
-                height="152"
+                src="/assets/images/listings-verification-approved-mobile-illustration-clean.png"
                 alt=""
                 aria-hidden="true"
-                class="h-[116px] w-[116px] shrink-0 object-contain lg:h-[152px] lg:w-[152px]"
+                class="absolute right-[-6px] top-[7px] h-[98px] w-[98px] rotate-[11.29deg] object-contain drop-shadow-[4.448px_4.448px_13.345px_rgba(55,55,55,0.25)] lg:hidden"
+              />
+              <img
+                src="/assets/images/listings-verification-approved-desktop-illustration-clean.png"
+                alt=""
+                aria-hidden="true"
+                class="absolute right-[10px] top-[-2px] hidden h-[169px] w-[169px] rotate-[11.29deg] object-contain drop-shadow-[4.448px_4.448px_13.345px_rgba(55,55,55,0.25)] lg:block"
+              />
+
+              <button
+                type="button"
+                (click)="dismissApprovedVerificationBanner()"
+                class="absolute right-[5px] top-[5px] hidden h-8 w-8 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_2.909px_5.818px_rgba(202,202,202,0.25)] lg:inline-flex"
+                aria-label="Dismiss verified seller banner"
+              >
+                <img
+                  ngSrc="/assets/icons/listings-verification-approved-close.svg"
+                  width="18"
+                  height="18"
+                  alt=""
+                  aria-hidden="true"
+                  class="h-[18px] w-[18px]"
+                />
+              </button>
+            </div>
+          } @else if (isVerificationPendingReview()) {
+            <div
+              class="relative mt-6 min-h-[146px] overflow-hidden rounded-2xl border border-[#f5f5e5] bg-[#fffff5] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] [background-image:linear-gradient(171.22deg,rgba(252,255,161,0)_49.825%,rgba(252,255,161,0.2)_133.16%),linear-gradient(90deg,rgba(255,255,245,0.44)_0%,rgba(255,255,245,0.44)_100%)] lg:mx-4 lg:mt-7 lg:min-h-[122px] lg:px-[17px] lg:py-[18px]"
+            >
+              <div class="absolute left-[154px] top-[70px] h-[188px] w-[549px] rounded-full bg-[radial-gradient(circle,rgba(255,240,128,0.34)_0%,rgba(255,240,128,0.12)_35%,rgba(255,240,128,0)_72%)] lg:left-[234px]"></div>
+              <div class="absolute right-[-18px] top-[35px] h-[123px] w-[193px] rounded-full bg-[radial-gradient(circle,rgba(183,234,109,0.24)_0%,rgba(183,234,109,0)_72%)]"></div>
+
+              <div class="relative z-10 w-full lg:max-w-[355px]">
+                <div class="flex max-w-[255px] flex-col items-start gap-3 lg:max-w-[355px]">
+                  <div class="w-full">
+                    <h2 class="text-[18px] font-medium leading-[24px] text-[#1f1f1f]">Verification under review</h2>
+                    <p class="mt-0.5 text-[14px] font-normal leading-[20px] text-[#7b7979] lg:min-w-[495px] lg:max-w-[495px]">
+                      Our team is reviewing your documents. You’ll be notified within 24–48 hours.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    (click)="openVerificationFlow()"
+                    class="inline-flex h-10 items-center justify-center rounded-full border border-[#eaeaea] bg-white px-5 text-[14px] font-medium leading-[20px] text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)]"
+                  >
+                    View submission
+                  </button>
+                </div>
+              </div>
+
+              <img
+                ngSrc="/assets/images/listings-verification-under-review-mobile-illustration.png"
+                width="74"
+                height="74"
+                alt=""
+                aria-hidden="true"
+                class="absolute right-[12px] top-[67px] h-[74px] w-[74px] rotate-[8.21deg] object-contain drop-shadow-[5px_4px_8px_rgba(60,60,60,0.25)] lg:hidden"
+              />
+              <img
+                ngSrc="/assets/images/listings-verification-under-review-desktop-illustration.png"
+                width="116"
+                height="116"
+                alt=""
+                aria-hidden="true"
+                class="absolute right-[53px] top-[17px] hidden h-[116px] w-[116px] rotate-[8.21deg] object-contain drop-shadow-[5px_4px_8px_rgba(60,60,60,0.25)] lg:block"
               />
             </div>
-          </div>
+          } @else {
+            <div
+              class="relative mt-6 overflow-hidden rounded-2xl border border-[#eeeefd] bg-[rgba(246,245,255,0.44)] px-[15px] py-4 shadow-[0_6px_12px_rgba(218,216,228,0.25)] lg:mx-4 lg:mt-7 lg:px-[17px] lg:py-[18px]"
+            >
+              <div class="absolute left-[154px] top-[70px] h-[188px] w-[690px] rounded-full bg-[radial-gradient(circle,rgba(133,121,255,0.12)_0%,rgba(133,121,255,0.04)_35%,rgba(133,121,255,0)_70%)]"></div>
+              <div class="absolute right-[-12px] top-[38px] h-[126px] w-[126px] rounded-full bg-[radial-gradient(circle,rgba(180,171,255,0.22)_0%,rgba(180,171,255,0)_72%)] lg:right-[-18px] lg:top-[35px]"></div>
+
+              <div class="relative z-10 flex items-center justify-between gap-3 lg:gap-6">
+                <div class="min-w-0 lg:max-w-[355px]">
+                  <h2 class="text-[18px] font-medium leading-6 text-[#1f1f1f]">Build trust. Get more buyers</h2>
+                  <p class="mt-0.5 max-w-[240px] text-sm leading-7 text-[#7b7979] lg:max-w-none lg:leading-5">
+                    Verified sellers rank higher and attract more inquiries.
+                  </p>
+
+                  <button
+                    type="button"
+                    (click)="openVerificationFlow()"
+                    class="mt-3 inline-flex h-10 items-center gap-2 rounded-full border border-[#eaeaea] bg-white px-5 text-sm font-medium text-black shadow-[0_2px_6px_rgba(0,0,0,0.03)] lg:mt-4"
+                  >
+                    {{ isVerificationSubmitted() ? 'View submission' : 'Verify my account' }}
+                    <span aria-hidden="true">→</span>
+                  </button>
+                </div>
+
+                <img
+                  [ngSrc]="verificationIllustration()"
+                  width="152"
+                  height="152"
+                  alt=""
+                  aria-hidden="true"
+                  class="h-[116px] w-[116px] shrink-0 object-contain lg:h-[152px] lg:w-[152px]"
+                />
+              </div>
+            </div>
+          }
         }
 
         @if (hasListings()) {
@@ -783,7 +786,10 @@ type AddListingPickerOption = {
 export class ListingsPageComponent {
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly listingsService = inject(ListingsService);
+  private readonly authSession = inject(AuthSessionService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
+
+  protected readonly kycRequired = computed(() => this.authSession.kycRequired());
 
   protected readonly showAddListingModal = signal(false);
   protected readonly showIdentityModal = signal(false);

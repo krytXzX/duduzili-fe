@@ -91,3 +91,10 @@ export const sellerChildGuard: CanActivateChildFn = () => requireSellerAccess();
 export const adminGuard: CanActivateFn = () => requireAdminAccess();
 export const adminChildGuard: CanActivateChildFn = () => requireAdminAccess();
 export const guestGuard: CanActivateFn = () => redirectAuthenticatedUsers();
+
+export const subscriptionsEnabledGuard: CanActivateFn = async () => {
+  const authSession = inject(AuthSessionService);
+  const router = inject(Router);
+  await authSession.waitForBootstrap();
+  return authSession.subscriptionsEnabled() ? true : router.createUrlTree(['/seller/listings']);
+};

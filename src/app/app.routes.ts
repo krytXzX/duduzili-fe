@@ -12,6 +12,7 @@ import {
   guestGuard,
   sellerChildGuard,
   sellerGuard,
+  subscriptionsEnabledGuard,
 } from './guards/auth.guards';
 export const routes: Routes = [
   // Home (Specific match for empty path)
@@ -344,6 +345,7 @@ export const routes: Routes = [
       {
         path: 'promotions',
         title: 'Banner Promotions',
+        canActivate: [subscriptionsEnabledGuard],
         loadComponent: () =>
           import('./pages/promotions/banner-promotions-page.component').then(
             (m) => m.BannerPromotionsPageComponent,
@@ -352,30 +354,35 @@ export const routes: Routes = [
       {
         path: 'ads',
         title: 'Ads',
+        canActivate: [subscriptionsEnabledGuard],
         loadComponent: () =>
           import('./pages/ads/ads-page.component').then((m) => m.AdsPageComponent),
       },
       {
         path: 'ads/plans',
         title: 'Plans',
+        canActivate: [subscriptionsEnabledGuard],
         loadComponent: () =>
           import('./pages/ads/plans-page.component').then((m) => m.AdsPlansPageComponent),
       },
       {
         path: 'ads/running',
         title: 'Running Ads',
+        canActivate: [subscriptionsEnabledGuard],
         loadComponent: () =>
           import('./pages/ads/running-ads-page.component').then((m) => m.RunningAdsPageComponent),
       },
       {
         path: 'ads/running/:id',
         title: 'Ad Details',
+        canActivate: [subscriptionsEnabledGuard],
         loadComponent: () =>
           import('./pages/ads/ad-details-page.component').then((m) => m.AdDetailsPageComponent),
       },
       {
         path: 'ads/billing-history',
         title: 'Billing History',
+        canActivate: [subscriptionsEnabledGuard],
         loadComponent: () =>
           import('./pages/ads/billing-history-page.component').then(
             (m) => m.BillingHistoryPageComponent,
@@ -392,6 +399,7 @@ export const routes: Routes = [
       {
         path: 'wallet',
         title: 'Wallet',
+        canActivate: [subscriptionsEnabledGuard],
         loadComponent: () =>
           import('./pages/wallet/wallet-page.component').then((m) => m.WalletPageComponent),
       },

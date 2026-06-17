@@ -29,6 +29,12 @@ export class AuthSessionService {
     this.bootstrapResolver = resolve;
   });
 
+  private readonly kycRequiredState = signal(true);
+  private readonly subscriptionsEnabledState = signal(true);
+
+  readonly kycRequired = computed(() => this.kycRequiredState());
+  readonly subscriptionsEnabled = computed(() => this.subscriptionsEnabledState());
+
   readonly user = computed(() => this.session()?.loginResponse.user ?? null);
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
   readonly refreshToken = computed(() => this.session()?.refreshToken ?? null);
@@ -70,6 +76,14 @@ export class AuthSessionService {
     }
     const resolvedProfile = profile ?? this.toCheckEmailProfile(resolvedUser);
 
+    const responseWithConfig = loginResponse as unknown as { kyc_required?: boolean; subscriptions_enabled?: boolean };
+    if (responseWithConfig.kyc_required !== undefined) {
+      this.kycRequiredState.set(responseWithConfig.kyc_required);
+    }
+    if (responseWithConfig.subscriptions_enabled !== undefined) {
+      this.subscriptionsEnabledState.set(responseWithConfig.subscriptions_enabled);
+    }
+
     this.session.set({
       accessToken: tokens?.accessToken ?? null,
       refreshToken: tokens?.refreshToken ?? null,
@@ -84,6 +98,13 @@ export class AuthSessionService {
     if (!user) {
       this.clearSession();
       return;
+    }
+
+    if (profileResponse.kyc_required !== undefined) {
+      this.kycRequiredState.set(profileResponse.kyc_required);
+    }
+    if (profileResponse.subscriptions_enabled !== undefined) {
+      this.subscriptionsEnabledState.set(profileResponse.subscriptions_enabled);
     }
 
     this.session.set({

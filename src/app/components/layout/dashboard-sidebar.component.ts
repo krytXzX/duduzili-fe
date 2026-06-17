@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 type SidebarLink = {
   readonly label: string;
@@ -105,101 +106,103 @@ type SidebarLink = {
             Performance
           </p>
           <nav class="mt-2 space-y-2">
-            <a
-              routerLink="/seller/promotions"
-              routerLinkActive="bg-white text-[#1F1F1F]"
-              class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
-            >
-              <span class="flex items-center gap-2 px-1">
-                <img
-                  ngSrc="/assets/icons/seller-sidebar-promotions.svg"
-                  alt=""
-                  width="16"
-                  height="16"
-                  class="h-4 w-4 shrink-0"
-                />
-                <span class="text-[14px] font-medium">Banner promotions</span>
-              </span>
-            </a>
-
-            <div class="space-y-2">
-              <button
-                type="button"
-                (click)="isAdsExpanded.set(!isAdsExpanded())"
-                class="flex h-10 w-full items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
-                [class.bg-white]="isAdsRouteActive()"
-                [class.text-[#1F1F1F]]="isAdsRouteActive()"
+            @if (subscriptionsEnabled()) {
+              <a
+                routerLink="/seller/promotions"
+                routerLinkActive="bg-white text-[#1F1F1F]"
+                class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
               >
                 <span class="flex items-center gap-2 px-1">
                   <img
-                    ngSrc="/assets/icons/seller-sidebar-ads.svg"
+                    ngSrc="/assets/icons/seller-sidebar-promotions.svg"
                     alt=""
                     width="16"
                     height="16"
                     class="h-4 w-4 shrink-0"
                   />
-                  <span class="text-[14px] font-medium">Ads</span>
+                  <span class="text-[14px] font-medium">Banner promotions</span>
                 </span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4 text-[#777777]"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
+              </a>
+
+              <div class="space-y-2">
+                <button
+                  type="button"
+                  (click)="isAdsExpanded.set(!isAdsExpanded())"
+                  class="flex h-10 w-full items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
+                  [class.bg-white]="isAdsRouteActive()"
+                  [class.text-[#1F1F1F]]="isAdsRouteActive()"
                 >
-                  @if (isAdsExpanded()) {
-                    <path
-                      fill-rule="evenodd"
-                      d="M5.22 12.28a.75.75 0 001.06 0L10 8.56l3.72 3.72a.75.75 0 001.06-1.06l-4.25-4.25a.75.75 0 00-1.06 0L5.22 11.22a.75.75 0 000 1.06z"
-                      clip-rule="evenodd"
+                  <span class="flex items-center gap-2 px-1">
+                    <img
+                      ngSrc="/assets/icons/seller-sidebar-ads.svg"
+                      alt=""
+                      width="16"
+                      height="16"
+                      class="h-4 w-4 shrink-0"
                     />
-                  } @else {
-                    <path
-                      fill-rule="evenodd"
-                      d="M14.78 7.72a.75.75 0 00-1.06 0L10 11.44 6.28 7.72a.75.75 0 10-1.06 1.06l4.25 4.25a.75.75 0 001.06 0l4.25-4.25a.75.75 0 000-1.06z"
-                      clip-rule="evenodd"
-                    />
-                  }
-                </svg>
-              </button>
+                    <span class="text-[14px] font-medium">Ads</span>
+                  </span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-[#777777]"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    @if (isAdsExpanded()) {
+                      <path
+                        fill-rule="evenodd"
+                        d="M5.22 12.28a.75.75 0 001.06 0L10 8.56l3.72 3.72a.75.75 0 001.06-1.06l-4.25-4.25a.75.75 0 00-1.06 0L5.22 11.22a.75.75 0 000 1.06z"
+                        clip-rule="evenodd"
+                      />
+                    } @else {
+                      <path
+                        fill-rule="evenodd"
+                        d="M14.78 7.72a.75.75 0 00-1.06 0L10 11.44 6.28 7.72a.75.75 0 10-1.06 1.06l4.25 4.25a.75.75 0 001.06 0l4.25-4.25a.75.75 0 000-1.06z"
+                        clip-rule="evenodd"
+                      />
+                    }
+                  </svg>
+                </button>
 
-              @if (isAdsExpanded()) {
-                <div class="ml-[19px] space-y-2 border-l border-[#E5E5E5] pl-0">
-                  <a
-                    routerLink="/seller/ads/plans"
-                    routerLinkActive="text-[#1F1F1F] bg-white"
-                    class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
-                  >
-                    <span
-                      class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
-                    ></span>
-                    Plans
-                  </a>
-                  <a
-                    routerLink="/seller/ads/running"
-                    routerLinkActive="text-[#1F1F1F] bg-white"
-                    class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
-                  >
-                    <span
-                      class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
-                    ></span>
-                    Running Ads
-                  </a>
-                  <a
-                    routerLink="/seller/ads/billing-history"
-                    routerLinkActive="text-[#1F1F1F] bg-white"
-                    class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
-                  >
-                    <span
-                      class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
-                    ></span>
-                    Billing history
-                  </a>
-                </div>
-              }
-            </div>
+                @if (isAdsExpanded()) {
+                  <div class="ml-[19px] space-y-2 border-l border-[#E5E5E5] pl-0">
+                    <a
+                      routerLink="/seller/ads/plans"
+                      routerLinkActive="text-[#1F1F1F] bg-white"
+                      class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
+                    >
+                      <span
+                        class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
+                      ></span>
+                      Plans
+                    </a>
+                    <a
+                      routerLink="/seller/ads/running"
+                      routerLinkActive="text-[#1F1F1F] bg-white"
+                      class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
+                    >
+                      <span
+                        class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
+                      ></span>
+                      Running Ads
+                    </a>
+                    <a
+                      routerLink="/seller/ads/billing-history"
+                      routerLinkActive="text-[#1F1F1F] bg-white"
+                      class="relative flex h-10 items-center rounded-full pl-[27px] pr-3 text-[14px] font-medium text-[#777777] transition hover:bg-white/70"
+                    >
+                      <span
+                        class="absolute left-0 top-1/2 h-5 w-[1px] -translate-y-1/2 bg-[#E5E5E5]"
+                      ></span>
+                      Billing history
+                    </a>
+                  </div>
+                }
+              </div>
+            }
 
-            @for (item of performanceLinks; track item.label) {
+            @for (item of performanceLinks(); track item.label) {
               <a
                 [routerLink]="item.route"
                 routerLinkActive="bg-white text-[#1F1F1F]"
@@ -275,10 +278,12 @@ type SidebarLink = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardSidebarComponent {
+  private readonly authSession = inject(AuthSessionService);
   private readonly router = inject(Router);
 
   readonly isRequestsExpanded = signal(true);
   readonly isAdsExpanded = signal(this.router.url.startsWith('/seller/ads'));
+  readonly subscriptionsEnabled = computed(() => this.authSession.subscriptionsEnabled());
 
   readonly sellingLinks: readonly SidebarLink[] = [
     { label: 'Listings', route: '/seller/listings', icon: '/assets/icons/seller-sidebar-listings.svg' },
@@ -286,10 +291,15 @@ export class DashboardSidebarComponent {
     { label: 'Chats', route: '/seller/messages', icon: '/assets/icons/seller-sidebar-messages.svg' },
   ];
 
-  readonly performanceLinks: readonly SidebarLink[] = [
-    { label: 'Analytics', route: '/seller/analytics', icon: '/assets/icons/seller-sidebar-analytics.svg' },
-    { label: 'Wallet', route: '/seller/wallet', icon: '/assets/icons/seller-sidebar-wallet.svg' },
-  ];
+  readonly performanceLinks = computed(() => {
+    const list: SidebarLink[] = [
+      { label: 'Analytics', route: '/seller/analytics', icon: '/assets/icons/seller-sidebar-analytics.svg' },
+    ];
+    if (this.subscriptionsEnabled()) {
+      list.push({ label: 'Wallet', route: '/seller/wallet', icon: '/assets/icons/seller-sidebar-wallet.svg' });
+    }
+    return list;
+  });
 
   readonly accountLinks: readonly SidebarLink[] = [
     {

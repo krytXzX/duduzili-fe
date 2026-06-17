@@ -23,6 +23,7 @@ import {
   PublicHomeLocationSelection,
   PublicHomeNavbarComponent,
 } from '../../components/layout/public-home-navbar.component';
+import { AuthSessionService } from '../../services/auth-session.service';
 import { HOME_HERO_CARD_SETS, HOME_HERO_HEADLINE_ITEMS } from './home-hero.config';
 import {
   HomeAdvertisementResponse,
@@ -121,6 +122,7 @@ export class HomePageComponent {
   private readonly listingsService = inject(ListingsService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly authSession = inject(AuthSessionService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private heroCarouselIntervalId: number | null = null;
   private heroCarouselAdvanceTimeoutId: number | null = null;
@@ -201,6 +203,9 @@ export class HomePageComponent {
   });
 
   readonly sponsoredListingCards = computed(() => {
+    if (!this.authSession.subscriptionsEnabled()) {
+      return [];
+    }
     const response = this.homeResponse();
     return (response?.sponsored_listings ?? [])
       .map((listing, index) => this.toListingCard(listing, `sponsored-${index}`))
@@ -224,7 +229,7 @@ export class HomePageComponent {
     }
 
     return [
-      ...(response.sponsored_listings ?? []),
+      ...(this.authSession.subscriptionsEnabled() ? (response.sponsored_listings ?? []) : []),
       ...(response.nearby_listings ?? []),
       ...this.extraNearbyListingRecords(),
     ]
@@ -233,6 +238,9 @@ export class HomePageComponent {
   });
 
   readonly promotions = computed(() => {
+    if (!this.authSession.subscriptionsEnabled()) {
+      return [];
+    }
     const response = this.homeResponse();
     return (response?.advertisements ?? [])
       .map((advertisement, index) => this.toPromotion(advertisement, index))
@@ -633,7 +641,7 @@ export class HomePageComponent {
     }
 
     const derivedSuggestions = [
-      ...(response.sponsored_listings ?? [])
+      ...(this.authSession.subscriptionsEnabled() ? (response.sponsored_listings ?? []) : [])
         .map((listing) => this.extractSearchLabelFromListing(listing))
         .filter((label): label is string => label !== null),
       ...(response.nearby_listings ?? [])

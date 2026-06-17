@@ -132,7 +132,7 @@ type SellerMenuEntry = {
 
                     <div class="flex flex-col gap-3">
                       <div class="flex flex-col gap-2">
-                        @for (item of sellerMenuEntries; track item.label) {
+                        @for (item of sellerMenuEntries(); track item.label) {
                           <button
                             type="button"
                             (click)="goToSellerRoute(item.route)"
@@ -334,7 +334,7 @@ type SellerMenuEntry = {
 
                     <div class="flex flex-col gap-3">
                       <div class="flex flex-col gap-2">
-                        @for (item of sellerMenuEntries; track item.label) {
+                        @for (item of sellerMenuEntries(); track item.label) {
                           <button
                             type="button"
                             (click)="goToSellerRoute(item.route)"
@@ -555,50 +555,68 @@ export class DashboardNavbarComponent {
   private readonly authSession = inject(AuthSessionService);
   private readonly authFlow = inject(AuthFlowService);
 
-  readonly sellerMenuEntries: SellerMenuEntry[] = [
-    {
-      label: 'Listings',
-      iconSrc: 'assets/icons/seller-menu-listings.svg',
-      route: '/seller/listings',
-    },
-    {
-      label: 'My Stores',
-      iconSrc: 'assets/icons/seller-menu-stores.svg',
-      route: '/seller/my-stores',
-    },
-    {
-      label: 'Messages',
-      iconSrc: 'assets/icons/seller-menu-messages.svg',
-      route: '/seller/messages',
-    },
-    {
-      label: 'Requests',
-      iconSrc: 'assets/icons/seller-menu-requests.svg',
-      route: '/seller/requests/offers',
-    },
-    {
-      label: 'Banner promotions',
-      iconSrc: 'assets/icons/seller-menu-promotions.svg',
-      route: '/seller/promotions',
-    },
-    { label: 'Ads', iconSrc: 'assets/icons/seller-menu-ads.svg', route: '/seller/ads/plans' },
-    {
+  readonly subscriptionsEnabled = computed(() => this.authSession.subscriptionsEnabled());
+
+  readonly sellerMenuEntries = computed<SellerMenuEntry[]>(() => {
+    const list: SellerMenuEntry[] = [
+      {
+        label: 'Listings',
+        iconSrc: 'assets/icons/seller-menu-listings.svg',
+        route: '/seller/listings',
+      },
+      {
+        label: 'My Stores',
+        iconSrc: 'assets/icons/seller-menu-stores.svg',
+        route: '/seller/my-stores',
+      },
+      {
+        label: 'Messages',
+        iconSrc: 'assets/icons/seller-menu-messages.svg',
+        route: '/seller/messages',
+      },
+      {
+        label: 'Requests',
+        iconSrc: 'assets/icons/seller-menu-requests.svg',
+        route: '/seller/requests/offers',
+      },
+    ];
+
+    if (this.subscriptionsEnabled()) {
+      list.push(
+        {
+          label: 'Banner promotions',
+          iconSrc: 'assets/icons/seller-menu-promotions.svg',
+          route: '/seller/promotions',
+        },
+        { label: 'Ads', iconSrc: 'assets/icons/seller-menu-ads.svg', route: '/seller/ads/plans' }
+      );
+    }
+
+    list.push({
       label: 'Analytics',
       iconSrc: 'assets/icons/seller-menu-analytics.svg',
       route: '/seller/analytics',
-    },
-    { label: 'Wallet', iconSrc: 'assets/icons/seller-menu-wallet.svg', route: '/seller/wallet' },
-    {
-      label: 'Account settings',
-      iconSrc: 'assets/icons/seller-menu-settings.svg',
-      route: '/seller/settings',
-    },
-    {
-      label: 'Notifications',
-      iconSrc: 'assets/icons/seller-menu-notifications.svg',
-      route: '/seller/notifications',
-    },
-  ];
+    });
+
+    if (this.subscriptionsEnabled()) {
+      list.push({ label: 'Wallet', iconSrc: 'assets/icons/seller-menu-wallet.svg', route: '/seller/wallet' });
+    }
+
+    list.push(
+      {
+        label: 'Account settings',
+        iconSrc: 'assets/icons/seller-menu-settings.svg',
+        route: '/seller/settings',
+      },
+      {
+        label: 'Notifications',
+        iconSrc: 'assets/icons/seller-menu-notifications.svg',
+        route: '/seller/notifications',
+      }
+    );
+
+    return list;
+  });
 
   readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
