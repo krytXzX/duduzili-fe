@@ -1281,7 +1281,8 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                       <button
                         type="button"
                         (click)="openEditImagePicker()"
-                        class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
+                        [disabled]="isGalleryFull()"
+                        class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
                         aria-label="Add third listing photo"
                       >
                         <img
@@ -1332,7 +1333,8 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                       <button
                         type="button"
                         (click)="openEditImagePicker()"
-                        class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
+                        [disabled]="isGalleryFull()"
+                        class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
                         [attr.aria-label]="'Add listing photo ' + slot"
                       >
                         <img
@@ -1823,7 +1825,8 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                             <button
                               type="button"
                               (click)="openEditImagePicker()"
-                              class="relative flex-1 overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
+                              [disabled]="isGalleryFull()"
+                              class="relative flex-1 overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
                               aria-label="Add third listing photo"
                             >
                               <img
@@ -1875,7 +1878,8 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                             <button
                               type="button"
                               (click)="openEditImagePicker()"
-                              class="relative h-[175px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
+                              [disabled]="isGalleryFull()"
+                              class="relative h-[175px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
                               [attr.aria-label]="'Add listing photo ' + slot"
                             >
                               <img
@@ -2920,6 +2924,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   protected readonly isUpdatingStatus = signal(false);
   protected readonly isDeletingListing = signal(false);
   protected readonly isPromotingListing = signal(false);
+  protected readonly maxGalleryImages = 6;
   protected readonly selectedDeliveryMethods = signal<string[]>([]);
   protected readonly selectedDeliveryRanges = signal<string[]>([]);
   protected readonly editMediaPlaceholderSlots = [4, 5, 6] as const;
@@ -2975,9 +2980,10 @@ export class ListingDetailsPageComponent implements OnDestroy {
   protected readonly editSecondaryGalleryImage = computed(
     () => this.editableGalleryImages()[1] ?? this.editableGalleryImages()[0] ?? null,
   );
-  protected readonly editRemainingGalleryImages = computed(() => this.editableGalleryImages().slice(2, 6));
+  protected readonly editRemainingGalleryImages = computed(() => this.editableGalleryImages().slice(2, this.maxGalleryImages));
+  protected readonly isGalleryFull = computed(() => this.editableGalleryImages().length >= this.maxGalleryImages);
   protected readonly editRemainingPlaceholderSlots = computed(() => {
-    const count = Math.max(0, 4 - this.editRemainingGalleryImages().length);
+    const count = Math.max(0, (this.maxGalleryImages - 2) - this.editRemainingGalleryImages().length);
     return Array.from({ length: count }, (_, index) => index + this.editRemainingGalleryImages().length + 3);
   });
   protected readonly editListingForm = this.formBuilder.nonNullable.group({
@@ -3324,7 +3330,16 @@ export class ListingDetailsPageComponent implements OnDestroy {
       return;
     }
 
-    const nextImages = files.map((file, index) => {
+    const currentCount = this.editableGalleryImages().length;
+    const slotsRemaining = Math.max(0, this.maxGalleryImages - currentCount);
+    const filesToAdd = files.slice(0, slotsRemaining);
+
+    if (filesToAdd.length === 0) {
+      if (input) input.value = '';
+      return;
+    }
+
+    const nextImages = filesToAdd.map((file, index) => {
       const previewUrl = URL.createObjectURL(file);
       const token =
         typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -3338,7 +3353,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
         file,
         previewUrl,
         src: previewUrl,
-        alt: `${this.listing().name} new image ${this.editableGalleryImages().length + index + 1}`,
+        alt: `${this.listing().name} new image ${currentCount + index + 1}`,
       };
     });
 
