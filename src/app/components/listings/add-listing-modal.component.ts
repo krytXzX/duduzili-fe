@@ -210,6 +210,7 @@ type PickerOption = {
                       #mobileMainImageInput
                       type="file"
                       accept="image/*"
+                      multiple
                       class="hidden"
                       (change)="onMainImageSelected($event)"
                     >
@@ -246,6 +247,7 @@ type PickerOption = {
                         #mobileSlotInput
                         type="file"
                         accept="image/*"
+                        multiple
                         class="hidden"
                         (change)="onAdditionalImageSelected(slot.index, $event)"
                       >
@@ -303,6 +305,7 @@ type PickerOption = {
                       #mainImageInput
                       type="file"
                       accept="image/*"
+                      multiple
                       class="hidden"
                       (change)="onMainImageSelected($event)"
                     >
@@ -340,6 +343,7 @@ type PickerOption = {
                         #slotInput
                         type="file"
                         accept="image/*"
+                        multiple
                         class="hidden"
                         (change)="onAdditionalImageSelected(slot.index, $event)"
                       >
@@ -2141,46 +2145,73 @@ export class AddListingModalComponent implements OnDestroy {
   }
 
   onMainImageSelected(event: Event) {
-    const file = this.getSelectedFile(event);
-    if (!file) {
+    const files = this.getSelectedFiles(event);
+    if (files.length === 0) {
       return;
     }
 
-    const nextUrl = this.createObjectUrl(file);
-    const previousUrl = this.mainImage();
-    if (previousUrl) {
-      this.revokeObjectUrl(previousUrl);
+    const mainFile = files[0];
+    const nextMainUrl = this.createObjectUrl(mainFile);
+    const previousMainUrl = this.mainImage();
+    if (previousMainUrl) {
+      this.revokeObjectUrl(previousMainUrl);
+    }
+    this.mainImage.set(nextMainUrl);
+    this.mainImageFile = mainFile;
+
+    if (files.length > 1) {
+      const remainingFiles = files.slice(1);
+      this.additionalImages.update((images) => {
+        const nextImages = [...images];
+        remainingFiles.forEach((file, i) => {
+          if (i < nextImages.length) {
+            const nextUrl = this.createObjectUrl(file);
+            const prevUrl = nextImages[i];
+            if (prevUrl) {
+              this.revokeObjectUrl(prevUrl);
+            }
+            nextImages[i] = nextUrl;
+            this.additionalImageFiles[i] = file;
+          }
+        });
+        return nextImages;
+      });
     }
 
-    this.mainImage.set(nextUrl);
-    this.mainImageFile = file;
     this.syncImagesToForm();
     this.resetFileInput(event);
   }
 
   onAdditionalImageSelected(index: number, event: Event) {
-    const file = this.getSelectedFile(event);
-    if (!file) {
+    const files = this.getSelectedFiles(event);
+    if (files.length === 0) {
       return;
     }
 
-    const nextUrl = this.createObjectUrl(file);
-    const previousUrl = this.additionalImages()[index];
-    if (previousUrl) {
-      this.revokeObjectUrl(previousUrl);
-    }
+    this.additionalImages.update((images) => {
+      const nextImages = [...images];
+      files.forEach((file, offset) => {
+        const currentIndex = index + offset;
+        if (currentIndex < nextImages.length) {
+          const nextUrl = this.createObjectUrl(file);
+          const prevUrl = nextImages[currentIndex];
+          if (prevUrl) {
+            this.revokeObjectUrl(prevUrl);
+          }
+          nextImages[currentIndex] = nextUrl;
+          this.additionalImageFiles[currentIndex] = file;
+        }
+      });
+      return nextImages;
+    });
 
-    this.additionalImages.update((images) =>
-      images.map((image, currentIndex) => currentIndex === index ? nextUrl : image),
-    );
-    this.additionalImageFiles[index] = file;
     this.syncImagesToForm();
     this.resetFileInput(event);
   }
 
-  private getSelectedFile(event: Event): File | null {
+  private getSelectedFiles(event: Event): File[] {
     const input = event.target as HTMLInputElement | null;
-    return input?.files?.[0] ?? null;
+    return input?.files ? Array.from(input.files) : [];
   }
 
   private resetFileInput(event: Event) {
