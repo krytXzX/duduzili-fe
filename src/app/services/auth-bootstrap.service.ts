@@ -15,6 +15,10 @@ export class AuthBootstrapService {
     try {
       const profileResponse = await firstValueFrom(this.authService.getProfile());
       this.authSession.initializeFromProfile(profileResponse);
+      // The profile endpoint now returns an `access` token in the body so the
+      // frontend can store it in memory for WebSocket authentication (the
+      // access_token cookie is HttpOnly and cannot be read by JS).
+      this.authSession.updateTokens(profileResponse);
     } catch (error: unknown) {
       if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
         const didRefreshSucceed = await this.tryRefreshAndRestoreSession();
