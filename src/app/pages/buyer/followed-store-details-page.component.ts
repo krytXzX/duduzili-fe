@@ -318,6 +318,7 @@ type VendorTagSummary = {
               </button>
               <button
                 type="button"
+                (click)="showContactBottomSheet.set(true)"
                 class="flex h-10 w-[122px] items-center justify-center gap-1 rounded-full bg-[#f4f4f4] text-[14px] font-medium text-[#2d2d2d]"
               >
                 Contact
@@ -593,6 +594,77 @@ type VendorTagSummary = {
             </div>
           }
         </section>
+
+        <!-- Mobile Contact Bottom Sheet -->
+        @if (showContactBottomSheet()) {
+          <!-- Backdrop -->
+          <div
+            class="fixed inset-0 z-40 bg-black/40 md:hidden"
+            aria-hidden="true"
+            (click)="showContactBottomSheet.set(false)"
+          ></div>
+
+          <!-- Sheet panel -->
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Contact seller"
+            class="fixed inset-x-0 bottom-0 z-50 md:hidden rounded-t-[24px] bg-white px-4 pb-[env(safe-area-inset-bottom,16px)] pt-5 shadow-2xl"
+          >
+            <!-- Drag handle -->
+            <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-[#e0e0e0]"></div>
+
+            <h2 class="mb-4 text-[16px] font-semibold text-[#1a1a1a]">Contact seller</h2>
+
+            <div class="space-y-1 pb-2">
+              <button
+                type="button"
+                (click)="openInAppChat(); showContactBottomSheet.set(false)"
+                [disabled]="isOwnStore()"
+                class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left text-[15px] font-medium text-[#1a1a1a] transition active:bg-[#f4f4f4]"
+                [class.cursor-not-allowed]="isOwnStore()"
+                [class.opacity-50]="isOwnStore()"
+              >
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EEF2FF]">
+                  <ng-icon name="heroChatBubbleOvalLeftEllipsis" class="text-[18px] text-[#6453d9]"></ng-icon>
+                </span>
+                <span>
+                  {{ isOwnStore() ? 'You own this store' : 'Message in-app' }}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                (click)="openWhatsApp(); showContactBottomSheet.set(false)"
+                class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left text-[15px] font-medium text-[#1a1a1a] transition active:bg-[#f4f4f4]"
+              >
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E6F9EE]">
+                  <ng-icon name="heroChatBubbleLeftRight" class="text-[18px] text-[#25D366]"></ng-icon>
+                </span>
+                <span>WhatsApp ({{ store().whatsappNumber || store().callNumber || '—' }})</span>
+              </button>
+
+              <button
+                type="button"
+                (click)="callSeller(); showContactBottomSheet.set(false)"
+                class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left text-[15px] font-medium text-[#1a1a1a] transition active:bg-[#f4f4f4]"
+              >
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF3E8]">
+                  <ng-icon name="heroPhone" class="text-[18px] text-[#F97316]"></ng-icon>
+                </span>
+                <span>Call ({{ store().callNumber || store().whatsappNumber || '—' }})</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              (click)="showContactBottomSheet.set(false)"
+              class="mt-2 w-full rounded-full bg-[#f4f4f4] py-3 text-[15px] font-medium text-[#1a1a1a] transition active:bg-[#e8e8e8]"
+            >
+              Cancel
+            </button>
+          </div>
+        }
 
         <section class="hidden min-h-full px-6 py-6 md:block md:px-8">
           <nav class="mb-6 flex items-center gap-3 text-sm text-[#8C8C92]">
@@ -1426,6 +1498,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   readonly activeTab = signal<BuyerStoreTab>('products');
   readonly activeCategory = signal('All');
   readonly showContactMenu = signal(false);
+  readonly showContactBottomSheet = signal(false);
   readonly showLeaveReviewModal = signal(false);
   readonly isFollowPending = signal(false);
   readonly isStartingConversation = signal(false);
