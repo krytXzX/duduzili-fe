@@ -503,6 +503,21 @@ interface MobileWalletTransaction {
                   <span class="h-px w-[100px] bg-[#E1E1E1]"></span>
                 </div>
 
+                <div class="flex flex-col gap-2 text-left">
+                  <label class="text-[14px] font-medium text-[rgba(26,27,29,0.7)]" for="fund-amount-desktop">
+                    Amount to fund (₦)
+                  </label>
+                  <input
+                    id="fund-amount-desktop"
+                    type="number"
+                    [value]="fundAmount()"
+                    (input)="onFundAmountChange($event)"
+                    min="100"
+                    placeholder="Enter amount (e.g. 5000)"
+                    class="h-[44px] w-full rounded-[12px] border border-[#efefef] bg-white px-3 text-[14px] text-[#1A1B1D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+                  />
+                </div>
+
                 <button
                   type="button"
                   (click)="payOnline()"
@@ -690,6 +705,21 @@ interface MobileWalletTransaction {
                   <span class="h-px w-[100px] bg-[#E1E1E1]"></span>
                 </div>
 
+                <div class="flex flex-col gap-2 text-left">
+                  <label class="text-[14px] font-medium text-[rgba(26,27,29,0.7)]" for="fund-amount-mobile">
+                    Amount to fund (₦)
+                  </label>
+                  <input
+                    id="fund-amount-mobile"
+                    type="number"
+                    [value]="fundAmount()"
+                    (input)="onFundAmountChange($event)"
+                    min="100"
+                    placeholder="Enter amount (e.g. 5000)"
+                    class="h-[44px] w-full rounded-[12px] border border-[#efefef] bg-white px-3 text-[14px] text-[#1A1B1D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+                  />
+                </div>
+
                 <button
                   type="button"
                   (click)="payOnline()"
@@ -767,6 +797,7 @@ export class WalletPageComponent {
     bankName: '',
     accountName: '',
   });
+  readonly fundAmount = signal<number>(5000);
   readonly walletBalance = signal('0.00');
   readonly transactions = signal<WalletTransaction[]>([]);
 
@@ -939,21 +970,51 @@ export class WalletPageComponent {
   }
 
   payOnline(): void {
+    const amount = this.fundAmount();
+    if (!amount || amount < 100) {
+      this.appToastService.show({ message: 'Please enter a valid amount (minimum ₦100)' });
+      return;
+    }
+
     if (this.isFundingOnline()) {
       return;
     }
 
     this.isFundingOnline.set(true);
     this.sellerMonetizationService
-      .fundWallet({ mode: 'paystack', amount: 1000, payment_type: 'wallet_funding' })
+      .fundWallet({ mode: 'paystack', amount, payment_type: 'wallet_funding' })
       .subscribe({
         next: (response) => {
-          this.isFundingOnline.set(false);
+          const accessCode = response.data?.access_code;
+          const reference = response.data?.reference;
           const paymentUrl = response.data?.authorization_url;
+
+          if (accessCode) {
+            this.loadPaystackScript().then(() => {
+              this.isFundingOnline.set(false);
+              this.closeFundWallet();
+              this.openPaystackPopup(accessCode);
+            }).catch((err) => {
+              console.error(err);
+              if (paymentUrl) {
+                globalThis.location?.assign(paymentUrl);
+              } else {
+                this.isFundingOnline.set(false);
+                this.appToastService.show({
+                  message: 'Online funding isn’t available right now. Please try again.',
+                });
+              }
+            });
+            return;
+          }
+
           if (paymentUrl) {
+            this.isFundingOnline.set(false);
             globalThis.location?.assign(paymentUrl);
             return;
           }
+
+          this.isFundingOnline.set(false);
           this.appToastService.show({
             message: 'Online funding isn’t available right now. Please try again.',
           });
@@ -965,6 +1026,48 @@ export class WalletPageComponent {
           });
         },
       });
+  }
+
+  onFundAmountChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const val = Number(input.value);
+    this.fundAmount.set(val);
+  }
+
+  private loadPaystackScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if ((window as any).PaystackPop) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://js.paystack.co/v1/inline.js';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Paystack Inline SDK'));
+      document.body.appendChild(script);
+    });
+  }
+
+  private openPaystackPopup(accessCode: string): void {
+    const handler = (window as any).PaystackPop.setup({
+      access_code: accessCode,
+      callback: (response: any) => {
+        console.log('Paystack callback response:', response);
+        this.appToastService.show({
+          message: 'Payment successful! Wallet balance will update shortly.',
+          durationMs: 3500,
+        });
+        setTimeout(() => {
+          this.currentPage.set(1);
+          this.loadWalletTransactions();
+        }, 2000);
+      },
+      onClose: () => {
+        this.appToastService.show({ message: 'Payment cancelled' });
+      },
+    });
+    handler.openIframe();
   }
 
   private loadWalletTransactions(): void {

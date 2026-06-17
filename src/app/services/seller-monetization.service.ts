@@ -37,6 +37,8 @@ export type FundWalletResponse = {
   status?: boolean;
   data?: {
     authorization_url?: string;
+    access_code?: string;
+    reference?: string;
   };
   error?: string;
 };
