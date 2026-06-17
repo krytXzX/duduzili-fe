@@ -291,6 +291,24 @@ export class SignUpPageComponent {
     }
   }
 
+  private getGoogleRedirectUri(): string {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://127.0.0.1:8000/api/auth/google/';
+    }
+    return 'https://ddz.sft.org.ng';
+  }
+
+  protected loginWithGoogle(): void {
+    const clientId = '407408718192.apps.googleusercontent.com';
+    const redirectUri = encodeURIComponent(this.getGoogleRedirectUri());
+    const scope = encodeURIComponent('profile email');
+    const responseType = 'code';
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
+    window.location.href = authUrl;
+  }
+
+
   protected togglePasswordVisibility(): void {
     this.showPassword.update((value) => !value);
   }

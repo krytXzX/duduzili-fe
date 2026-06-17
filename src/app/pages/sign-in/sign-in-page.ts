@@ -2,7 +2,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -24,6 +24,7 @@ import { AuthSessionService } from '../../services/auth-session.service';
 })
 export class SignInPageComponent {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
   private readonly authSessionService = inject(AuthSessionService);
 
@@ -80,6 +81,11 @@ export class SignInPageComponent {
       this.passwordValue();
       this.passwordErrorMessage.set(null);
     });
+
+    const code = this.route.snapshot.queryParams['code'];
+    if (code) {
+      void this.handleGoogleCallback(code);
+    }
   }
 
   protected async continueWithEmail(): Promise<void> {
@@ -154,6 +160,52 @@ export class SignInPageComponent {
       this.emailErrorMessage.set(this.resolveCheckEmailErrorMessage(error));
     } finally {
       this.isCheckingEmail.set(false);
+    }
+  }
+
+  private getGoogleRedirectUri(): string {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://127.0.0.1:8000/api/auth/google/';
+    }
+    return 'https://ddz.sft.org.ng';
+  }
+
+  protected loginWithGoogle(): void {
+    const clientId = '407408718192.apps.googleusercontent.com';
+    const redirectUri = encodeURIComponent(this.getGoogleRedirectUri());
+    const scope = encodeURIComponent('profile email');
+    const responseType = 'code';
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
+    window.location.href = authUrl;
+  }
+
+  private async handleGoogleCallback(code: string): Promise<void> {
+    this.isSigningIn.set(true);
+    this.emailErrorMessage.set(null);
+    this.passwordErrorMessage.set(null);
+
+    try {
+      const loginResponse = await firstValueFrom(
+        this.authService.loginWithGoogle(code)
+      );
+
+      this.authSessionService.saveLoginSession(loginResponse, null);
+      
+      await this.router.navigate([], {
+        queryParams: { code: null, state: null, scope: null, authuser: null, prompt: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true
+      });
+
+      await this.router.navigate(this.resolvePostLoginRoute(loginResponse));
+    } catch (error: unknown) {
+      console.error('Google login error:', error);
+      this.emailErrorMessage.set(
+        this.resolveLoginErrorMessage(error) ?? 'Google authentication failed. Please try again.'
+      );
+    } finally {
+      this.isSigningIn.set(false);
     }
   }
 

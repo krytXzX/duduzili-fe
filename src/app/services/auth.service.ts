@@ -149,6 +149,10 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/`, payload);
   }
 
+  loginWithGoogle(code: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/google/`, { code });
+  }
+
   verifyTwoFactorLogin(payload: { user_id: string; code: string }): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/verify-2fa/`, payload);
   }

@@ -11,7 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgOptimizedImage, isPlatformBrowser } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { faBrandInstagram, faBrandXTwitter } from '@ng-icons/font-awesome/brands';
 import { firstValueFrom } from 'rxjs';
@@ -119,6 +119,7 @@ export class HomePageComponent {
   private readonly homeService = inject(HomeService);
   private readonly listingsService = inject(ListingsService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private heroCarouselIntervalId: number | null = null;
   private heroCarouselAdvanceTimeoutId: number | null = null;
@@ -251,6 +252,11 @@ export class HomePageComponent {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
+      const code = this.route.snapshot.queryParams['code'];
+      if (code) {
+        void this.router.navigate(['/sign-in'], { queryParams: this.route.snapshot.queryParams });
+        return;
+      }
       this.restoreRecentSearches();
       this.startHeroCarousel();
       try {
