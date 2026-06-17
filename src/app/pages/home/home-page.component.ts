@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   ElementRef,
   OnDestroy,
   PLATFORM_ID,
@@ -268,6 +269,18 @@ export class HomePageComponent {
         // Ignore
       }
     }
+
+    effect(() => {
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+      const currentPromotions = this.promotions();
+      if (currentPromotions.length > 0) {
+        currentPromotions.forEach((promo) => {
+          this.trackAdView(promo.id);
+        });
+      }
+    });
 
     void this.loadHome();
   }
@@ -836,7 +849,25 @@ export class HomePageComponent {
     };
   }
 
+  private readonly trackedAdViews = new Set<string>();
+
+  private trackAdView(adId: string): void {
+    if (this.trackedAdViews.has(adId)) {
+      return;
+    }
+    this.trackedAdViews.add(adId);
+    this.homeService.trackAd(adId, 'view').subscribe({
+      error: (err) => console.error(`[HomePage] Error tracking ad view for ID ${adId}:`, err),
+    });
+  }
+
   openPromotion(promotion: HomePromotion): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.homeService.trackAd(promotion.id, 'click').subscribe({
+        error: (err) => console.error(`[HomePage] Error tracking ad click for ID ${promotion.id}:`, err),
+      });
+    }
+
     if (!promotion.link) {
       return;
     }

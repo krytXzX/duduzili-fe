@@ -71,4 +71,8 @@ export class HomeService {
 
     return this.http.get<HomeResponse>(`${this.apiUrl}/home/`, { params });
   }
+
+  trackAd(adId: number | string, eventType: 'view' | 'click'): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/ads/${adId}/track/`, { type: eventType });
+  }
 }
