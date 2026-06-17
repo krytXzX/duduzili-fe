@@ -969,21 +969,25 @@ export class ListingsPageComponent {
     })),
   );
   protected readonly addListingStoreOptions = computed<readonly AddListingPickerOption[]>(() =>
-    this.manageListingStores().map((store, index) => ({
-      value: this.readString(store['id']) ?? this.readString(store['store_id']) ?? `store-${index + 1}`,
-      label:
-        this.readString(store['store_name']) ??
-        this.readString(store['name']) ??
-        this.readString(store['vendor_name']) ??
-        `Store ${index + 1}`,
-      image:
-        this.resolveMediaUrl(
-          this.readString(store['profile_photo']) ??
-            this.readString(store['logo']) ??
-            this.readString(store['avatar']) ??
-            this.readNestedString(store['user'], 'avatar'),
-        ) ?? '/assets/images/dashboard-avatar-mobile.png',
-    })),
+    this.manageListingStores().map((store, index) => {
+      const isPersonal = store['is_personal'] === true;
+      return {
+        value: this.readString(store['id']) ?? this.readString(store['store_id']) ?? `store-${index + 1}`,
+        label: isPersonal
+          ? 'Personal Profile'
+          : (this.readString(store['store_name']) ??
+             this.readString(store['name']) ??
+             this.readString(store['vendor_name']) ??
+             `Store ${index + 1}`),
+        image:
+          this.resolveMediaUrl(
+            this.readString(store['profile_photo']) ??
+              this.readString(store['logo']) ??
+              this.readString(store['avatar']) ??
+              this.readNestedString(store['user'], 'avatar'),
+          ) ?? '/assets/images/dashboard-avatar-mobile.png',
+      };
+    }),
   );
   protected readonly addListingDeliveryOptions = computed<readonly AddListingPickerOption[]>(() =>
     this.manageListingDeliveryOptions().map((option) => ({
