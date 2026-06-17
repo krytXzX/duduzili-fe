@@ -11,6 +11,7 @@ import {
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroEllipsisHorizontal } from '@ng-icons/heroicons/outline';
@@ -1411,30 +1412,32 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                     </div>
                   </label>
 
-                  <div class="grid grid-cols-[112px_minmax(0,1fr)] gap-6">
-                    <label class="block space-y-1">
-                      <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
-                        Condition
-                      </span>
-                      <div class="relative">
-                        <select
-                          formControlName="condition"
-                          class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
-                        >
-                          @for (condition of editConditions(); track condition) {
-                            <option [value]="condition">{{ condition }}</option>
-                          }
-                        </select>
-                        <img
-                          ngSrc="/assets/icons/listing-details-arrow-down.svg"
-                          alt=""
-                          width="14"
-                          height="14"
-                          class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
-                          aria-hidden="true"
-                        />
-                      </div>
-                    </label>
+                  <div [class]="isRealEstateCategory() ? 'block' : 'grid grid-cols-[112px_minmax(0,1fr)] gap-6'">
+                    @if (!isRealEstateCategory()) {
+                      <label class="block space-y-1">
+                        <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                          Condition
+                        </span>
+                        <div class="relative">
+                          <select
+                            formControlName="condition"
+                            class="h-12 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[12px] text-[#0D0D0D] outline-none"
+                          >
+                            @for (condition of editConditions(); track condition) {
+                              <option [value]="condition">{{ condition }}</option>
+                            }
+                          </select>
+                          <img
+                            ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                            alt=""
+                            width="14"
+                            height="14"
+                            class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                            aria-hidden="true"
+                          />
+                        </div>
+                      </label>
+                    }
 
                     <label class="block space-y-1">
                       <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">Store</span>
@@ -1974,53 +1977,55 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           </div>
                         </label>
 
-                        <label class="block space-y-1">
-                          <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
-                            Condition
-                          </span>
-                          <div class="relative">
-                            <select
-                              formControlName="condition"
-                              class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
-                            >
-                              @for (condition of editConditions(); track condition) {
-                                <option [value]="condition">{{ condition }}</option>
-                              }
-                            </select>
-                            <img
-                              ngSrc="/assets/icons/listing-details-arrow-down.svg"
-                              alt=""
-                              width="14"
-                              height="14"
-                              class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
-                              aria-hidden="true"
-                            />
-                          </div>
-                        </label>
+                        <div [class]="isRealEstateCategory() ? 'block' : 'grid grid-cols-[112px_minmax(0,1fr)] gap-6'">
+                          @if (!isRealEstateCategory()) {
+                            <label class="block space-y-1">
+                              <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
+                                Condition
+                              </span>
+                              <div class="relative">
+                                <select
+                                  formControlName="condition"
+                                  class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
+                                >
+                                  @for (condition of editConditions(); track condition) {
+                                    <option [value]="condition">{{ condition }}</option>
+                                  }
+                                </select>
+                                <img
+                                  ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                                  alt=""
+                                  width="14"
+                                  height="14"
+                                  class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                                  aria-hidden="true"
+                                />
+                              </div>
+                            </label>
+                          }
 
-                        <label class="block space-y-1">
-                          <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">
-                            Store
-                          </span>
-                          <div class="relative">
-                            <select
-                              formControlName="store"
-                              class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
-                            >
-                              @for (store of editStores(); track store) {
-                                <option [value]="store">{{ store }}</option>
-                              }
-                            </select>
-                            <img
-                              ngSrc="/assets/icons/listing-details-arrow-down.svg"
-                              alt=""
-                              width="14"
-                              height="14"
-                              class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
-                              aria-hidden="true"
-                            />
-                          </div>
-                        </label>
+                          <label class="block space-y-1">
+                            <span class="text-[14px] font-medium leading-5 text-[#5A5A5A]">Store</span>
+                            <div class="relative">
+                              <select
+                                formControlName="store"
+                                class="h-10 w-full appearance-none rounded-[12px] border border-[#EFEFEF] bg-white px-3 pr-10 text-[14px] text-[#0D0D0D] outline-none"
+                              >
+                                @for (store of editStores(); track store) {
+                                  <option [value]="store">{{ store }}</option>
+                                }
+                              </select>
+                              <img
+                                ngSrc="/assets/icons/listing-details-arrow-down.svg"
+                                alt=""
+                                width="14"
+                                height="14"
+                                class="pointer-events-none absolute right-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2"
+                                aria-hidden="true"
+                              />
+                            </div>
+                          </label>
+                        </div>
                       </div>
 
                       <div class="space-y-5">
@@ -2934,6 +2939,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
         .filter((name) => name.length > 0) ?? [];
     return conditions.length > 0 ? conditions : this.fallbackEditConditions;
   });
+
   protected readonly editStores = computed(() => {
     const stores =
       this.manageListingsMetadata()
@@ -2988,6 +2994,20 @@ export class ListingDetailsPageComponent implements OnDestroy {
     discountPrice: '2,000,000',
     discountStartDate: '',
     discountEndDate: '',
+  });
+  protected readonly selectedCategoryValue = toSignal(
+    this.editListingForm.controls.category.valueChanges,
+    { initialValue: this.editListingForm.controls.category.getRawValue() },
+  );
+  protected readonly isRealEstateCategory = computed(() => {
+    const name = this.selectedCategoryValue().toLowerCase();
+    return (
+      name.includes('real estate') ||
+      name.includes('real-estate') ||
+      name.includes('properties') ||
+      name.includes('property') ||
+      name.includes('land')
+    );
   });
 
   protected readonly listing = signal<ListingDetails>({
