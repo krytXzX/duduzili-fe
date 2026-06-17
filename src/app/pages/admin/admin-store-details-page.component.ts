@@ -206,10 +206,10 @@ type AdminStoreReviewSort = 'most-recent' | 'highest-rated';
         @if (store().description) {
           <div class="mt-8 max-w-[860px]">
             <p class="text-[16px] leading-7 text-[#1A1C21]">
-              @if (store().description.length <= 30) {
+              @if (!isLongDescription()) {
                 {{ store().description }}
               } @else {
-                {{ isDescriptionExpanded() ? store().description : (store().description.slice(0, 30) + '...') }}
+                {{ isDescriptionExpanded() ? store().description : truncatedDescription() }}
                 <button
                   type="button"
                   class="ml-1 text-[#6453d9] font-semibold hover:underline text-[14px]"
@@ -627,6 +627,18 @@ export class AdminStoreDetailsPageComponent {
   readonly suspensionReason = signal('');
   readonly isActionPending = signal(false);
   readonly isDescriptionExpanded = signal(false);
+  readonly isLongDescription = computed(() => {
+    const desc = this.store().description || '';
+    return desc.trim().split(/\s+/).filter(Boolean).length > 30;
+  });
+  readonly truncatedDescription = computed(() => {
+    const desc = this.store().description || '';
+    const words = desc.trim().split(/\s+/).filter(Boolean);
+    if (words.length <= 30) {
+      return desc;
+    }
+    return words.slice(0, 30).join(' ') + '...';
+  });
   readonly canConfirmSuspendStore = computed(() => this.suspensionReason().trim().length > 0);
   private readonly storeId = signal('');
   private readonly storeState = signal<AdminStoreDetailsRecord>({

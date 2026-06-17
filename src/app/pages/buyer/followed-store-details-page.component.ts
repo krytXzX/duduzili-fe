@@ -326,10 +326,10 @@ type VendorTagSummary = {
             </div>
 
             <p class="mt-4 text-center text-[16px] leading-[1.2] text-[#1f1f1f]">
-              @if (store().description.length <= 30) {
+              @if (!isLongDescription()) {
                 {{ store().description }}
               } @else {
-                {{ isDescriptionExpanded() ? store().description : (store().description.slice(0, 30) + '...') }}
+                {{ isDescriptionExpanded() ? store().description : truncatedDescription() }}
                 <button
                   type="button"
                   class="ml-1 text-[#6453d9] font-semibold hover:underline text-[14px]"
@@ -772,10 +772,10 @@ type VendorTagSummary = {
               @if (store().description) {
                 <div class="mb-8 max-w-[860px]">
                   <p class="text-[16px] leading-7 text-[#1F1F1F]">
-                    @if (store().description.length <= 30) {
+                    @if (!isLongDescription()) {
                       {{ store().description }}
                     } @else {
-                      {{ isDescriptionExpanded() ? store().description : (store().description.slice(0, 30) + '...') }}
+                      {{ isDescriptionExpanded() ? store().description : truncatedDescription() }}
                       <button
                         type="button"
                         class="ml-1 text-[#6453d9] font-semibold hover:underline text-[14px]"
@@ -1443,6 +1443,18 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
     return (
       currentUserId !== undefined && ownerUserId !== null && String(currentUserId) === ownerUserId
     );
+  });
+  readonly isLongDescription = computed(() => {
+    const desc = this.store().description || '';
+    return desc.trim().split(/\s+/).filter(Boolean).length > 30;
+  });
+  readonly truncatedDescription = computed(() => {
+    const desc = this.store().description || '';
+    const words = desc.trim().split(/\s+/).filter(Boolean);
+    if (words.length <= 30) {
+      return desc;
+    }
+    return words.slice(0, 30).join(' ') + '...';
   });
   readonly reviewRating = signal(2);
   readonly selectedReviewTags = signal<string[]>([]);

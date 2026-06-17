@@ -372,10 +372,10 @@ interface ReviewTagCount {
           @if (s.description) {
             <div class="mt-6">
               <p class="text-[16px] leading-7 text-[#1F1F1F]">
-                @if (s.description.length <= 30) {
+                @if (!isLongDescription()) {
                   {{ s.description }}
                 } @else {
-                  {{ isDescriptionExpanded() ? s.description : (s.description.slice(0, 30) + '...') }}
+                  {{ isDescriptionExpanded() ? s.description : truncatedDescription() }}
                   <button
                     type="button"
                     class="ml-1 text-[#6453d9] font-semibold hover:underline text-[14px]"
@@ -750,10 +750,10 @@ interface ReviewTagCount {
             @if (s.description) {
               <div class="mt-8 max-w-[860px] px-2">
                 <p class="text-[16px] leading-7 text-[#1F1F1F]">
-                  @if (s.description.length <= 30) {
+                  @if (!isLongDescription()) {
                     {{ s.description }}
                   } @else {
-                    {{ isDescriptionExpanded() ? s.description : (s.description.slice(0, 30) + '...') }}
+                    {{ isDescriptionExpanded() ? s.description : truncatedDescription() }}
                     <button
                       type="button"
                       class="ml-1 text-[#6453d9] font-semibold hover:underline text-[14px]"
@@ -1110,6 +1110,18 @@ export class StoreDetailsDashboardComponent {
   readonly isStoreActionsMenuOpen = signal(false);
   readonly isSavingStore = signal(false);
   readonly isDescriptionExpanded = signal(false);
+  readonly isLongDescription = computed(() => {
+    const desc = this.store()?.description || '';
+    return desc.trim().split(/\s+/).filter(Boolean).length > 30;
+  });
+  readonly truncatedDescription = computed(() => {
+    const desc = this.store()?.description || '';
+    const words = desc.trim().split(/\s+/).filter(Boolean);
+    if (words.length <= 30) {
+      return desc;
+    }
+    return words.slice(0, 30).join(' ') + '...';
+  });
 
   readonly store = signal<StoreProfile | null>(null);
   readonly desktopSections = signal<ProductSection[]>([]);
