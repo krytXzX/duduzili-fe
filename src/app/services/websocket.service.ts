@@ -29,8 +29,16 @@ export class WebsocketService {
     let socket: WebSocket | null = null;
     let isClosed = false;
 
-    const connect = () => {
+    const connect = async () => {
       if (isClosed) return;
+
+      // Wait for auth bootstrap to complete before attempting connection.
+      // This prevents a race condition where the component mounts before
+      // the background auth initialization has finished.
+      await this.authSession.waitForBootstrap();
+
+      if (isClosed) return;
+
       const token = this.authSession.accessToken();
       if (!token) {
         messagesSubject.error(new Error('No access token available.'));
@@ -111,8 +119,14 @@ export class WebsocketService {
     let socket: WebSocket | null = null;
     let isClosed = false;
 
-    const connect = () => {
+    const connect = async () => {
       if (isClosed) return;
+
+      // Wait for auth bootstrap to complete before attempting connection.
+      await this.authSession.waitForBootstrap();
+
+      if (isClosed) return;
+
       const token = this.authSession.accessToken();
       if (!token) {
         messagesSubject.error(new Error('No access token available.'));
