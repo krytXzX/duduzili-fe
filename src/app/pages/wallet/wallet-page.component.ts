@@ -513,15 +513,17 @@ interface MobileWalletTransaction {
                     [value]="fundAmount()"
                     (input)="onFundAmountChange($event)"
                     min="100"
+                    [disabled]="isFundingOnline()"
                     placeholder="Enter amount (e.g. 5000)"
-                    class="h-[44px] w-full rounded-[12px] border border-[#efefef] bg-white px-3 text-[14px] text-[#1A1B1D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+                    class="h-[44px] w-full rounded-[12px] border border-[#efefef] bg-white px-3 text-[14px] text-[#1A1B1D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 <button
                   type="button"
                   (click)="payOnline()"
-                  class="flex h-[67px] w-full items-center justify-between rounded-[16px] bg-white px-[6px] py-[6px] text-left"
+                  [disabled]="isFundingOnline()"
+                  class="flex h-[67px] w-full items-center justify-between rounded-[16px] bg-white px-[6px] py-[6px] text-left disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span class="flex items-center gap-3">
                     <span
@@ -538,21 +540,28 @@ interface MobileWalletTransaction {
 
                     <span class="block">
                       <span class="block text-[16px] font-medium leading-6 text-[#1A1B1D]">
-                        Pay online
+                        {{ isFundingOnline() ? 'Processing...' : 'Pay online' }}
                       </span>
                       <span class="block text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">
-                        Fund your wallet via Paystack
+                        {{ isFundingOnline() ? 'Please wait while we initialize...' : 'Fund your wallet via Paystack' }}
                       </span>
                     </span>
                   </span>
 
-                  <img
-                    [ngSrc]="assets.fundWalletArrowRightIcon"
-                    width="20"
-                    height="20"
-                    alt=""
-                    class="mr-4 h-5 w-5"
-                  />
+                  @if (isFundingOnline()) {
+                    <svg class="animate-spin mr-4 h-5 w-5 text-[#6453D9]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  } @else {
+                    <img
+                      [ngSrc]="assets.fundWalletArrowRightIcon"
+                      width="20"
+                      height="20"
+                      alt=""
+                      class="mr-4 h-5 w-5"
+                    />
+                  }
                 </button>
               </div>
             </div>
@@ -715,15 +724,17 @@ interface MobileWalletTransaction {
                     [value]="fundAmount()"
                     (input)="onFundAmountChange($event)"
                     min="100"
+                    [disabled]="isFundingOnline()"
                     placeholder="Enter amount (e.g. 5000)"
-                    class="h-[44px] w-full rounded-[12px] border border-[#efefef] bg-white px-3 text-[14px] text-[#1A1B1D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+                    class="h-[44px] w-full rounded-[12px] border border-[#efefef] bg-white px-3 text-[14px] text-[#1A1B1D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9] disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 <button
                   type="button"
                   (click)="payOnline()"
-                  class="flex h-[67px] w-full items-center justify-between rounded-[16px] bg-white px-[6px] py-[6px] text-left"
+                  [disabled]="isFundingOnline()"
+                  class="flex h-[67px] w-full items-center justify-between rounded-[16px] bg-white px-[6px] py-[6px] text-left disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span class="flex items-center gap-3">
                     <span
@@ -740,21 +751,28 @@ interface MobileWalletTransaction {
 
                     <span class="block">
                       <span class="block text-[16px] font-medium leading-6 text-[#1A1B1D]">
-                        Pay online
+                        {{ isFundingOnline() ? 'Processing...' : 'Pay online' }}
                       </span>
                       <span class="block text-[14px] leading-5 text-[rgba(26,27,29,0.5)]">
-                        Fund your wallet via Paystack
+                        {{ isFundingOnline() ? 'Please wait while we initialize...' : 'Fund your wallet via Paystack' }}
                       </span>
                     </span>
                   </span>
 
-                  <img
-                    [ngSrc]="assets.fundWalletArrowRightIcon"
-                    width="16"
-                    height="16"
-                    alt=""
-                    class="mr-2 h-4 w-4"
-                  />
+                  @if (isFundingOnline()) {
+                    <svg class="animate-spin mr-2 h-4 w-4 text-[#6453D9]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  } @else {
+                    <img
+                      [ngSrc]="assets.fundWalletArrowRightIcon"
+                      width="16"
+                      height="16"
+                      alt=""
+                      class="mr-2 h-4 w-4"
+                    />
+                  }
                 </button>
               </div>
             </div>
