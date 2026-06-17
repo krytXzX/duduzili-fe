@@ -26,6 +26,7 @@ import {
   SendMessageRequest,
 } from '../../services/messages.service';
 import { environment } from '../../../environments/environment';
+import { WebsocketService, ChatWebsocketConnection } from '../../services/websocket.service';
 
 interface Conversation {
   id: string;
@@ -72,6 +73,7 @@ interface StoreOption {
 interface ReplyTarget {
   author: string;
   text: string;
+  messageId?: string;
 }
 
 interface MessageMenuTarget extends ReplyTarget {
@@ -1999,6 +2001,8 @@ export class MessagesPageComponent implements OnDestroy {
   private readonly appToastService = inject(AppToastService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly authSession = inject(AuthSessionService);
+  private readonly websocketService = inject(WebsocketService);
+  private activeChatConnection: ChatWebsocketConnection | null = null;
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
@@ -2526,6 +2530,11 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   private async loadConversationDetails(chatId: string): Promise<void> {
+    if (this.activeChatConnection) {
+      this.activeChatConnection.close();
+      this.activeChatConnection = null;
+    }
+
     this.isLoadingConversationDetails.set(true);
     this.conversationDetailsError.set(null);
 
@@ -2557,12 +2566,92 @@ export class MessagesPageComponent implements OnDestroy {
         ),
       );
       this.scrollMobileMessagesToBottom();
+
+      this.activeChatConnection = this.websocketService.connectChat(chatId);
+      this.activeChatConnection.messages$.subscribe({
+        next: (data) => this.handleWebsocketMessage(chatId, data),
+        error: (err) => console.error('Chat WebSocket error:', err),
+      });
+
+      this.activeChatConnection.read();
     } catch {
       this.conversationDetailsError.set(
         'This conversation could not be loaded right now. Please try again.',
       );
     } finally {
       this.isLoadingConversationDetails.set(false);
+    }
+  }
+
+  private handleWebsocketMessage(chatId: string, data: any): void {
+    if (chatId !== this.activeChatId()) {
+      return;
+    }
+
+    if (data.type === 'message') {
+      const sender = data.sender || 'Unknown';
+      const body = data.body || '';
+      const messageId = data.message_id ? String(data.message_id) : `ws-${Date.now()}`;
+      const senderId = this.readId(data.sender_id);
+      const currentUserId = this.authSession.user()?.id;
+      const outgoing = currentUserId !== undefined && senderId !== null ? String(currentUserId) === senderId : false;
+
+      const currentDays = this.conversationDays()[chatId] ?? [];
+      const messageExists = currentDays.some((day) =>
+        day.messages.some((msg) => msg.id === messageId),
+      );
+
+      if (messageExists) {
+        return;
+      }
+
+      const nextMessage: ChatTextMessage = {
+        id: messageId,
+        kind: 'text',
+        author: outgoing ? 'You' : sender,
+        text: body || undefined,
+        outgoing,
+      };
+
+      if (currentDays.length === 0) {
+        this.conversationDays.update((current) => ({
+          ...current,
+          [chatId]: [
+            {
+              id: `day-${Date.now()}`,
+              label: 'Today',
+              messages: [nextMessage],
+            },
+          ],
+        }));
+      } else {
+        const lastDay = currentDays[currentDays.length - 1];
+        const updatedDays = [
+          ...currentDays.slice(0, -1),
+          {
+            ...lastDay,
+            messages: [...lastDay.messages, nextMessage],
+          },
+        ];
+
+        this.conversationDays.update((current) => ({
+          ...current,
+          [chatId]: updatedDays,
+        }));
+      }
+
+      this.conversations.update((items) =>
+        items.map((conversation) =>
+          conversation.id === chatId
+            ? {
+                ...conversation,
+                preview: body || 'Sent an image',
+                time: 'Just now',
+              }
+            : conversation,
+        ),
+      );
+      this.scrollMobileMessagesToBottom();
     }
   }
 
@@ -2835,6 +2924,25 @@ export class MessagesPageComponent implements OnDestroy {
 
     if (!chatId || (!body && !imageFile) || this.isSendingMessage()) {
       return;
+    }
+
+    if (this.activeChatConnection && !imageFile) {
+      try {
+        const replyTargetId = this.activeReplyTarget()?.messageId ?? null;
+        this.activeChatConnection.send(body, replyTargetId);
+
+        const tempId = `ws-local-${Date.now()}`;
+        this.appendOutgoingMessage(chatId, body, undefined, tempId);
+
+        this.draftMessage.set('');
+        this.clearSelectedImage();
+        this.activeReplyTarget.set(null);
+        this.resetDraftComposerHeights();
+        this.scrollMobileMessagesToBottom();
+        return;
+      } catch (err) {
+        console.error('Failed to send via WebSocket, falling back to HTTP:', err);
+      }
     }
 
     this.isSendingMessage.set(true);
@@ -3298,7 +3406,7 @@ export class MessagesPageComponent implements OnDestroy {
       return;
     }
 
-    this.activeReplyTarget.set({ author: target.author, text: target.text });
+    this.activeReplyTarget.set({ author: target.author, text: target.text, messageId: target.messageId });
     this.closeMessageMenu();
     this.focusDraftComposer();
   }
@@ -3504,6 +3612,10 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.activeChatConnection) {
+      this.activeChatConnection.close();
+      this.activeChatConnection = null;
+    }
     this.clearLongPressTimer();
     this.browserWindow?.visualViewport?.removeEventListener(
       'resize',

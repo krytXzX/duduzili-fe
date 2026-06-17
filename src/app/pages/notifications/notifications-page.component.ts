@@ -1,11 +1,12 @@
 import { Location, NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
   NotificationApiItem,
   NotificationsResponse,
   NotificationsService,
 } from '../../services/notifications.service';
+import { WebsocketService, NotificationsWebsocketConnection } from '../../services/websocket.service';
 
 type NotificationFilter = 'all' | 'unread' | 'read';
 type NotificationKind = 'warning' | 'message' | 'listing' | 'followers' | 'offer' | 'subscription';
@@ -434,9 +435,11 @@ interface AppNotification {
   host: { class: 'block h-full' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NotificationsPageComponent {
+export class NotificationsPageComponent implements OnDestroy {
   private readonly location = inject(Location);
   private readonly notificationsService = inject(NotificationsService);
+  private readonly websocketService = inject(WebsocketService);
+  private notificationsConnection: NotificationsWebsocketConnection | null = null;
 
   readonly activeFilter = signal<NotificationFilter>('unread');
   readonly notifications = signal<AppNotification[]>([]);
@@ -469,6 +472,35 @@ export class NotificationsPageComponent {
 
   constructor() {
     void this.loadNotifications();
+    this.setupNotificationsWebSocket();
+  }
+
+  ngOnDestroy(): void {
+    if (this.notificationsConnection) {
+      this.notificationsConnection.close();
+      this.notificationsConnection = null;
+    }
+  }
+
+  private setupNotificationsWebSocket(): void {
+    try {
+      this.notificationsConnection = this.websocketService.connectNotifications();
+      this.notificationsConnection.messages$.subscribe({
+        next: (data) => this.handleWebsocketNotification(data),
+        error: (err) => console.error('Notifications WebSocket error:', err),
+      });
+    } catch (e) {
+      console.error('Failed to setup notifications WebSocket:', e);
+    }
+  }
+
+  private handleWebsocketNotification(data: any): void {
+    if (data.type === 'notification') {
+      const mapped = this.toNotification(data, this.notifications().length);
+      if (mapped) {
+        this.notifications.update((current) => [mapped, ...current]);
+      }
+    }
   }
 
   goBack(): void {
@@ -490,6 +522,10 @@ export class NotificationsPageComponent {
       this.notifications.update((items) =>
         items.map((item) => (item.id === detailedNotification.id ? detailedNotification : item)),
       );
+
+      if (this.notificationsConnection) {
+        this.notificationsConnection.markRead(notification.id);
+      }
     } catch {
       // Keep the list payload visible if the detail endpoint fails.
     } finally {
