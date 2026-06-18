@@ -2367,6 +2367,20 @@ export class MessagesPageComponent implements OnDestroy {
         ? currentActiveChatId
         : mappedConversations[0].id;
     this.activeChatId.set(nextActiveChatId);
+
+    const isSpecificChatRequested =
+      (requestedConversationId.length > 0 && mappedConversations.some((conversation) => conversation.id === requestedConversationId)) ||
+      (requestedContextConversationId.length > 0 && mappedConversations.some((conversation) => conversation.id === requestedContextConversationId));
+
+    if (isSpecificChatRequested) {
+      this.isMobileConversationOpen.set(true);
+      if (!this.mobileConversationOverlayOpen) {
+        this.mobileOverlayService.openMobileModal();
+        this.mobileConversationOverlayOpen = true;
+      }
+      this.scrollMobileMessagesToBottom();
+    }
+
     await this.loadConversationDetails(nextActiveChatId);
   }
 
