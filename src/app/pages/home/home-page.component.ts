@@ -735,6 +735,12 @@ export class HomePageComponent {
   }
 
   private toListingCard(record: HomeListingResponse, fallbackId: string): Listing | null {
+    const status = this.readString(record['status'])?.toLowerCase();
+    const isActive = this.readBoolean(record['is_active']) ?? true;
+    if ((status && status !== 'published') || !isActive) {
+      return null;
+    }
+
     const images = this.extractImageList(record);
     const title =
       this.readString(record['title']) ??
