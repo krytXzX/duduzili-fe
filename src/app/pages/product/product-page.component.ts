@@ -1638,7 +1638,24 @@ export class ProductPageComponent {
   private extractDeliveryOptions(record: ListingsApiItem): readonly string[] | null {
     const candidate = record['delivery_options'];
     if (Array.isArray(candidate)) {
-      const options = candidate.filter((option): option is string => typeof option === 'string');
+      const options: string[] = [];
+      for (const item of candidate) {
+        if (typeof item === 'string') {
+          const trimmed = item.trim();
+          if (trimmed) {
+            options.push(trimmed);
+          }
+        } else if (item && typeof item === 'object') {
+          const recordItem = item as Record<string, unknown>;
+          const name =
+            this.readString(recordItem['name']) ??
+            this.readString(recordItem['label']) ??
+            this.readString(recordItem['title']);
+          if (name) {
+            options.push(name);
+          }
+        }
+      }
       return options.length > 0 ? options : null;
     }
 

@@ -3887,9 +3887,26 @@ export class ListingDetailsPageComponent implements OnDestroy {
 
     const options = record['delivery_options'];
     if (Array.isArray(options)) {
-      const labels = options.filter((option): option is string => typeof option === 'string');
-      if (labels.length > 0) {
-        return labels.join(', ');
+      const parsedLabels: string[] = [];
+      for (const item of options) {
+        if (typeof item === 'string') {
+          const trimmed = item.trim();
+          if (trimmed) {
+            parsedLabels.push(trimmed);
+          }
+        } else if (item && typeof item === 'object') {
+          const recordItem = item as Record<string, unknown>;
+          const name =
+            this.readString(recordItem['name']) ??
+            this.readString(recordItem['label']) ??
+            this.readString(recordItem['title']);
+          if (name) {
+            parsedLabels.push(name);
+          }
+        }
+      }
+      if (parsedLabels.length > 0) {
+        return parsedLabels.join(', ');
       }
     }
 
