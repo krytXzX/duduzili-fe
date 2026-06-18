@@ -172,6 +172,7 @@ type NotificationPreferenceSettings = Record<
             [profile]="profile()"
             mode="details-only"
             (action)="openModal($event)"
+            (avatarChange)="onAvatarChange($event)"
           ></app-profile-settings-panel>
         </div>
       } @else if (mobileSettingsStep() === 'security') {
@@ -713,6 +714,7 @@ type NotificationPreferenceSettings = Record<
               <app-profile-settings-panel
                 [profile]="profile()"
                 (action)="openModal($event)"
+                (avatarChange)="onAvatarChange($event)"
                 (deleteRequest)="isDeleteAccountConfirmOpen.set(true)"
               ></app-profile-settings-panel>
             } @else if (activeTab() === 'security') {
@@ -1637,6 +1639,7 @@ export class SettingsPageComponent {
     callNumber: '',
     whatsappNumber: '',
     fullName: '',
+    avatar: null,
   });
 
   readonly modalMode = signal<ModalMode>(null);
@@ -2346,6 +2349,7 @@ export class SettingsPageComponent {
       callNumber: phoneNumber,
       whatsappNumber,
       fullName,
+      avatar: user.avatar,
     });
     this.notificationSettings.set(this.normalizeNotificationChannels(user.notification_channels));
     this.notificationPreferences.set(
@@ -2353,7 +2357,7 @@ export class SettingsPageComponent {
     );
   }
 
-  private async persistProfileChanges(payload: UpdateProfileRequest): Promise<boolean> {
+  private async persistProfileChanges(payload: UpdateProfileRequest | FormData): Promise<boolean> {
     try {
       const response = await firstValueFrom(this.authService.updateProfile(payload));
       this.authSession.initializeFromProfile(response);
@@ -2362,6 +2366,16 @@ export class SettingsPageComponent {
     } catch {
       this.showToast('Your profile couldn’t be updated right now. Please try again.');
       return false;
+    }
+  }
+
+  async onAvatarChange(file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const success = await this.persistProfileChanges(formData);
+    if (success) {
+      this.showToast('Profile photo updated successfully.');
     }
   }
 

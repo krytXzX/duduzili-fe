@@ -6,6 +6,7 @@ export interface ProfileSettingsData {
   callNumber: string;
   whatsappNumber: string;
   fullName: string;
+  avatar?: string | null;
 }
 
 type ProfileAction = 'edit-name' | 'edit-email' | 'edit-call' | 'edit-whatsapp';
@@ -28,22 +29,33 @@ type ProfilePanelMode = 'full' | 'details-only';
       }
 
       <div class="mt-8 md:mt-10">
+        <input
+          #avatarInput
+          type="file"
+          accept="image/*"
+          class="hidden"
+          (change)="onAvatarSelected($event)"
+        >
         <button
           type="button"
+          (click)="avatarInput.click()"
           class="relative block h-[100px] w-[104px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D] focus-visible:ring-offset-4"
           aria-label="Update profile photo"
         >
-          <span class="hidden h-[100px] w-[100px] overflow-hidden rounded-full border-2 border-white bg-[#F3F3F3] md:block">
-            <img
-              ngSrc="/assets/images/settings/profile-avatar.png"
-              width="100"
-              height="100"
-              alt="Profile avatar"
-              class="h-full w-full object-cover"
-            >
-          </span>
-          <span class="flex h-[100px] w-[100px] items-center justify-center rounded-full bg-[#FFA72B] text-[54px] font-semibold leading-[1.2] text-white md:hidden">
-            B
+          <span class="block h-[100px] w-[100px] overflow-hidden rounded-full border-2 border-white bg-[#F3F3F3]">
+            @if (profile().avatar) {
+              <img
+                [ngSrc]="profile().avatar!"
+                width="100"
+                height="100"
+                alt="Profile avatar"
+                class="h-full w-full object-cover"
+              >
+            } @else {
+              <span class="flex h-full w-full items-center justify-center bg-[#FFA72B] text-[40px] font-semibold leading-none text-white">
+                {{ getAvatarInitials() }}
+              </span>
+            }
           </span>
           <span class="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#252B16] text-white">
             <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -133,6 +145,7 @@ export class ProfileSettingsPanelComponent {
   readonly profile = input.required<ProfileSettingsData>();
   readonly mode = input<ProfilePanelMode>('full');
   readonly action = output<ProfileAction>();
+  readonly avatarChange = output<File>();
   readonly deleteRequest = output<void>();
 
   protected detailRows(): Array<{
@@ -152,5 +165,19 @@ export class ProfileSettingsPanelComponent {
       },
       { label: 'Full name', value: this.profile().fullName, action: 'edit-name' },
     ];
+  }
+
+  onAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.avatarChange.emit(file);
+    }
+    input.value = '';
+  }
+
+  getAvatarInitials(): string {
+    const name = this.profile().fullName || '';
+    return name.trim().charAt(0).toUpperCase() || 'U';
   }
 }

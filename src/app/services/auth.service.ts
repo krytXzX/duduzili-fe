@@ -184,7 +184,7 @@ export class AuthService {
     return this.http.get<ProfileResponse>(`${this.apiUrl}/auth/profile/`);
   }
 
-  updateProfile(payload: UpdateProfileRequest): Observable<ProfileResponse> {
+  updateProfile(payload: UpdateProfileRequest | FormData): Observable<ProfileResponse> {
     return this.http.patch<ProfileResponse>(`${this.apiUrl}/auth/profile/`, payload);
   }
 
