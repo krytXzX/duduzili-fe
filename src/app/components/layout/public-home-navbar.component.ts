@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 export type PublicHomeLocationValue =
   | 'all-nigeria'
@@ -86,7 +87,7 @@ export type PublicHomeLocationSelection = {
           >
             <div class="flex items-center gap-6">
               <a
-                routerLink="/"
+                [routerLink]="homeRoute()"
                 class="flex items-center transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]"
                 aria-label="Go to Duduzili homepage"
               >
@@ -165,7 +166,7 @@ export type PublicHomeLocationSelection = {
       "
     >
       <div class="flex items-center justify-between px-5 py-[18px]">
-        <a routerLink="/" class="block" aria-label="Duduzili home">
+        <a [routerLink]="homeRoute()" class="block" aria-label="Duduzili home">
           <img
             ngSrc="/assets/icons/home-header-logo-mobile.svg"
             alt="Duduzili"
@@ -243,7 +244,7 @@ export type PublicHomeLocationSelection = {
 
         <div class="absolute inset-x-0 top-0 z-20 rounded-b-2xl bg-white">
           <div class="flex items-center justify-between px-5 py-[18px]">
-            <a routerLink="/" class="block" aria-label="Duduzili home">
+            <a [routerLink]="homeRoute()" class="block" aria-label="Duduzili home">
               <img
                 ngSrc="/assets/icons/home-header-logo-mobile.svg"
                 alt="Duduzili"
@@ -538,6 +539,14 @@ export type PublicHomeLocationSelection = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicHomeNavbarComponent {
+  private readonly authSession = inject(AuthSessionService);
+
+  readonly homeRoute = computed(() => {
+    if (!this.authSession.isAuthenticated()) {
+      return '/';
+    }
+    return this.authSession.isSuperuser() ? '/admin' : '/en';
+  });
   readonly locationChange = output<PublicHomeLocationSelection>();
   readonly showAppDownloadBanner = signal(true);
   readonly showMobileMenu = signal(false);

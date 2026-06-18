@@ -9,7 +9,7 @@ import { AuthSessionService } from '../../services/auth-session.service';
   template: `
     <div class="flex h-[72px] items-center justify-between gap-4 px-5 lg:hidden">
       <a
-        routerLink="/"
+        [routerLink]="homeRoute()"
         aria-label="Go to Duduzili home"
         class="block"
       >
@@ -35,6 +35,13 @@ import { AuthSessionService } from '../../services/auth-session.service';
 })
 export class SellerMobileHeaderComponent {
   private readonly authSession = inject(AuthSessionService);
+
+  readonly homeRoute = computed(() => {
+    if (!this.authSession.isAuthenticated()) {
+      return '/';
+    }
+    return this.authSession.isSuperuser() ? '/admin' : '/en';
+  });
 
   protected readonly fallbackAvatarSrc = '/assets/images/auth-avatar-fallback.svg';
   protected readonly currentUser = this.authSession.user;

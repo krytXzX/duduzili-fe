@@ -39,7 +39,7 @@ type BuyerMenuEntry = {
       >
         <div class="flex h-[72px] items-center justify-between gap-3 px-5 lg:hidden">
           <a
-            routerLink="/"
+            [routerLink]="homeRoute()"
             class="flex shrink-0 items-center transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]"
             aria-label="Duduzili home"
           >
@@ -218,7 +218,7 @@ type BuyerMenuEntry = {
 
         <div class="hidden h-16 items-center justify-between lg:flex">
           <a
-            routerLink="/"
+            [routerLink]="homeRoute()"
             class="group flex items-center transition-opacity hover:opacity-90"
             aria-label="Duduzili home"
           >
@@ -429,6 +429,13 @@ export class BuyerDashboardNavbarComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly authSession = inject(AuthSessionService);
   private readonly authFlow = inject(AuthFlowService);
+
+  readonly homeRoute = computed(() => {
+    if (!this.authSession.isAuthenticated()) {
+      return '/';
+    }
+    return this.authSession.isSuperuser() ? '/admin' : '/en';
+  });
   private hasRequestedBuyerMode = false;
 
   readonly searchQuery = signal('');

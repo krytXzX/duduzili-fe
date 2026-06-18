@@ -34,7 +34,7 @@ import { AuthFlowService } from '../../services/auth-flow.service';
           <ng-icon name="heroBars3" class="text-lg"></ng-icon>
         </button>
 
-        <a routerLink="/" class="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-90">
+        <a [routerLink]="homeRoute()" class="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-90">
           <div class="flex h-8 w-8 items-center justify-center">
             <img
               ngSrc="assets/images/logo-light-fill.svg"
@@ -172,6 +172,13 @@ export class AdminDashboardNavbarComponent {
   private readonly router = inject(Router);
   private readonly authSession = inject(AuthSessionService);
   private readonly authFlow = inject(AuthFlowService);
+
+  readonly homeRoute = computed(() => {
+    if (!this.authSession.isAuthenticated()) {
+      return '/';
+    }
+    return this.authSession.isSuperuser() ? '/admin' : '/en';
+  });
 
   readonly menuRequested = output<void>();
   readonly searchQuery = signal('');

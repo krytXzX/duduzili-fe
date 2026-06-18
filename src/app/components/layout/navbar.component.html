@@ -3,7 +3,7 @@
 
   <!-- Logo Section -->
   <div class="flex items-center gap-6">
-    <a routerLink="/" class="flex items-center gap-2 transition-opacity hover:opacity-90">
+    <a [routerLink]="homeRoute()" class="flex items-center gap-2 transition-opacity hover:opacity-90">
       <img ngSrc="assets/images/logo-light-fill.svg" alt="Duduzili" class="h-6 w-6 fill-white!" width="24" height="24" />
       <span class="text-xl font-bold tracking-tight">Duduzili</span>
     </a>
@@ -97,7 +97,7 @@
 
 <nav class="bg-white px-4 py-4 md:hidden" aria-label="Primary">
   <div class="flex items-center justify-between gap-3">
-    <a routerLink="/" class="flex items-center transition-opacity hover:opacity-90">
+    <a [routerLink]="homeRoute()" class="flex items-center transition-opacity hover:opacity-90">
       <img ngSrc="assets/images/logo-dark-fill.svg" alt="Duduzili" class="h-8 w-auto" width="121" height="28" />
     </a>
 
@@ -138,7 +138,7 @@
     aria-label="Mobile menu"
   >
     <div class="flex items-center justify-between gap-3">
-      <a routerLink="/" (click)="closeMobileMenu()" class="flex items-center gap-2 transition-opacity hover:opacity-90">
+      <a [routerLink]="homeRoute()" (click)="closeMobileMenu()" class="flex items-center gap-2 transition-opacity hover:opacity-90">
         <img ngSrc="assets/images/logo-dark-fill.svg" alt="Duduzili" class="h-8 w-auto" width="121" height="28" />
       </a>
 
