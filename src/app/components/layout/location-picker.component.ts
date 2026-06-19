@@ -80,25 +80,27 @@ import { LocationService } from '../../services/location.service';
                           </span>
                         </button>
 
-                        <button
-                          type="button"
-                          (click)="locationService.openLocationCities(group.value)"
-                          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F7] text-[#5B5B66] transition lg:h-12 lg:w-12"
-                          [attr.aria-label]="
-                            'View cities under ' + (group.desktopLabel ?? group.label)
-                          "
-                        >
-                          <svg aria-hidden="true" viewBox="0 0 20 20" class="h-5 w-5">
-                            <path
-                              d="M7.5 5 12.5 10l-5 5"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.7"
-                            />
-                          </svg>
-                        </button>
+                        @if (group.value !== 'all-nigeria') {
+                          <button
+                            type="button"
+                            (click)="locationService.openLocationCities(group.value)"
+                            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F7] text-[#5B5B66] transition lg:h-12 lg:w-12"
+                            [attr.aria-label]="
+                              'View cities under ' + (group.desktopLabel ?? group.label)
+                            "
+                          >
+                            <svg aria-hidden="true" viewBox="0 0 20 20" class="h-5 w-5">
+                              <path
+                                d="M7.5 5 12.5 10l-5 5"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.7"
+                              />
+                            </svg>
+                          </button>
+                        }
                       </div>
                     </section>
                   }
