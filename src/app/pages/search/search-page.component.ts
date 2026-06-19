@@ -9,6 +9,7 @@ import { faBrandInstagram, faBrandXTwitter } from '@ng-icons/font-awesome/brands
 import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
 import { Store, StoreCardComponent } from '../../components/stores/store-card.component';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { LocationService } from '../../services/location.service';
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -152,6 +153,7 @@ export class SearchPageComponent {
   private readonly router = inject(Router);
   private readonly authSession = inject(AuthSessionService);
   private readonly listingsService = inject(ListingsService);
+  private readonly locationService = inject(LocationService);
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
   });
@@ -330,6 +332,26 @@ export class SearchPageComponent {
       this.floatingSearchQuery.set(params.search ?? '');
       void this.loadSearchResults(params);
     });
+
+    effect(() => {
+      const loc = this.locationService.selectedLocationOption();
+      if (loc.value === 'all-nigeria') {
+        const currentLoc = this.selectedLocation();
+        const hasMatchingGroup = currentLoc && this.locationService.locationGroups.some(
+          (g) => g.label.toLowerCase() === currentLoc.toLowerCase()
+        );
+        if (hasMatchingGroup || !currentLoc) {
+          this.selectedLocation.set(null);
+        }
+      } else {
+        const match = this.locationOptions.find(
+          (opt) => opt.toLowerCase() === loc.label.toLowerCase()
+        );
+        if (match) {
+          this.selectedLocation.set(match);
+        }
+      }
+    });
   }
 
   updateFloatingSearchQuery(value: string): void {
@@ -358,7 +380,20 @@ export class SearchPageComponent {
   }
 
   toggleLocation(location: string): void {
-    this.selectedLocation.update((current) => (current === location ? null : location));
+    const isCurrentlySelected = this.selectedLocation() === location;
+    if (isCurrentlySelected) {
+      this.locationService.selectLocationGroup('all-nigeria');
+    } else {
+      const match = this.locationService.locationGroups.find(
+        (g) => g.label.toLowerCase() === location.toLowerCase()
+      );
+      if (match) {
+        this.locationService.selectLocationGroup(match.value);
+      } else {
+        this.locationService.selectLocationGroup('all-nigeria');
+        this.selectedLocation.set(location);
+      }
+    }
   }
 
   toggleCondition(condition: string): void {

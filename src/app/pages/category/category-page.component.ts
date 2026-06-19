@@ -15,6 +15,7 @@ import { PublicHomeNavbarComponent } from '../../components/layout/public-home-n
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { LocationService } from '../../services/location.service';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import {
   ListingsApiItem,
@@ -119,6 +120,7 @@ export class CategoryPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly authSession = inject(AuthSessionService);
   private readonly listingsService = inject(ListingsService);
+  private readonly locationService = inject(LocationService);
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
   });
@@ -260,6 +262,26 @@ export class CategoryPageComponent {
       const params = this.activeSearchParams();
       void this.loadCategoryListings(params);
     });
+
+    effect(() => {
+      const loc = this.locationService.selectedLocationOption();
+      if (loc.value === 'all-nigeria') {
+        const currentLoc = this.selectedLocation();
+        const hasMatchingGroup = currentLoc && this.locationService.locationGroups.some(
+          (g) => g.label.toLowerCase() === currentLoc.toLowerCase()
+        );
+        if (hasMatchingGroup || !currentLoc) {
+          this.selectedLocation.set(null);
+        }
+      } else {
+        const match = this.locationOptions.find(
+          (opt) => opt.toLowerCase() === loc.label.toLowerCase()
+        );
+        if (match) {
+          this.selectedLocation.set(match);
+        }
+      }
+    });
   }
 
   toggleFilter(key: string): void {
@@ -271,7 +293,20 @@ export class CategoryPageComponent {
   }
 
   toggleLocation(location: string): void {
-    this.selectedLocation.update((current) => (current === location ? null : location));
+    const isCurrentlySelected = this.selectedLocation() === location;
+    if (isCurrentlySelected) {
+      this.locationService.selectLocationGroup('all-nigeria');
+    } else {
+      const match = this.locationService.locationGroups.find(
+        (g) => g.label.toLowerCase() === location.toLowerCase()
+      );
+      if (match) {
+        this.locationService.selectLocationGroup(match.value);
+      } else {
+        this.locationService.selectLocationGroup('all-nigeria');
+        this.selectedLocation.set(location);
+      }
+    }
   }
 
   toggleCondition(condition: string): void {

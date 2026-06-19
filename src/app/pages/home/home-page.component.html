@@ -1,7 +1,8 @@
+@if (showPublicChrome()) {
+<app-public-home-navbar (locationChange)="onLocationChange($event)" />
+}
+
 <div class="overflow-x-clip bg-white">
-  @if (showPublicChrome()) {
-  <app-public-home-navbar (locationChange)="onLocationChange($event)" />
-  }
 
   <main>
     <section class="hidden px-2 pt-6 lg:block" [class.lg:pt-[96px]]="showPublicChrome()" [class.lg:pt-8]="!showPublicChrome()">

@@ -24,6 +24,7 @@ import {
   PublicHomeNavbarComponent,
 } from '../../components/layout/public-home-navbar.component';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { LocationService } from '../../services/location.service';
 import { HOME_HERO_CARD_SETS, HOME_HERO_HEADLINE_ITEMS } from './home-hero.config';
 import {
   HomeAdvertisementResponse,
@@ -123,6 +124,7 @@ export class HomePageComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly authSession = inject(AuthSessionService);
+  private readonly locationService = inject(LocationService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private heroCarouselIntervalId: number | null = null;
   private heroCarouselAdvanceTimeoutId: number | null = null;
@@ -133,7 +135,6 @@ export class HomePageComponent {
   readonly isCategoriesSheetOpen = signal(false);
   readonly isMobileSearchOverlayOpen = signal(false);
   readonly isDesktopSearchOverlayOpen = signal(false);
-  readonly selectedLocationQueryValue = signal<string>('All Nigeria');
   readonly activeHeroCardSetIndex = signal(0);
   readonly enteringHeroCardSetIndex = signal(1);
   readonly isHeroCarouselAnimating = signal(false);
@@ -290,12 +291,14 @@ export class HomePageComponent {
       }
     });
 
-    void this.loadHome();
+    effect(() => {
+      const query = this.locationService.selectedLocationQuery();
+      void this.loadHome();
+    });
   }
 
   onLocationChange(selection: PublicHomeLocationSelection): void {
-    this.selectedLocationQueryValue.set(selection.query);
-    void this.loadHome();
+    // Handled reactively via LocationService selectedLocationQuery effect
   }
 
   openCategoriesSheet(): void {
@@ -527,7 +530,7 @@ export class HomePageComponent {
   }
 
   private selectedLocationQuery(): string | undefined {
-    return this.selectedLocationQueryValue();
+    return this.locationService.selectedLocationQuery();
   }
 
   private restoreRecentSearches(): void {

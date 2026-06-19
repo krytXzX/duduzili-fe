@@ -5,6 +5,7 @@ import { heroMagnifyingGlass, heroBars3, heroChevronRight } from '@ng-icons/hero
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AuthFlowService } from '../../services/auth-flow.service';
+import { LocationService } from '../../services/location.service';
 
 type SellerMenuEntry = {
   readonly label: string;
@@ -43,9 +44,13 @@ type SellerMenuEntry = {
           </a>
 
           <div class="ml-auto flex items-center gap-2">
-            <div
+            <button
+              type="button"
               class="flex h-9 items-center justify-between gap-2 rounded-full border border-white bg-[#F3F3F3] py-1 pl-3 pr-1 shadow-[0_0_0_1px_rgba(255,255,255,0.65)]"
-              aria-label="Current location: All Nigeria"
+              aria-label="Select location"
+              aria-haspopup="dialog"
+              [attr.aria-expanded]="locationService.isLocationPickerOpen()"
+              (click)="locationService.openLocationPicker()"
             >
               <div class="flex items-center gap-1">
                 <img
@@ -58,13 +63,12 @@ type SellerMenuEntry = {
                 <span
                   class="font-['Mona_Sans'] text-[14px] font-medium leading-[1.2] tracking-[0.14px] text-[#373737]"
                 >
-                  All Nigeria
+                  {{ locationService.selectedLocationDisplay().mobile }}
                 </span>
               </div>
 
               <span
                 class="flex h-7 w-7 items-center justify-center rounded-full bg-white"
-                aria-hidden="true"
               >
                 <img
                   ngSrc="/assets/icons/buyer-header/arrow-down.svg"
@@ -74,7 +78,7 @@ type SellerMenuEntry = {
                   class="h-[14px] w-[14px]"
                 />
               </span>
-            </div>
+            </button>
 
             <div class="relative">
               @if (isAccountMenuOpen()) {
@@ -554,6 +558,7 @@ export class DashboardNavbarComponent {
   private readonly router = inject(Router);
   private readonly authSession = inject(AuthSessionService);
   private readonly authFlow = inject(AuthFlowService);
+  protected readonly locationService = inject(LocationService);
 
   readonly homeRoute = computed(() => {
     if (!this.authSession.isAuthenticated()) {
