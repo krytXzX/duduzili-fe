@@ -4,7 +4,6 @@ import {
   OnDestroy,
   computed,
   inject,
-  input,
   output,
   signal,
 } from '@angular/core';
@@ -24,6 +23,8 @@ import {
   heroXMark,
 } from '@ng-icons/heroicons/outline';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
+import { SellerMonetizationService } from '../../../services/seller-monetization.service';
+import { AppToastService } from '../../../services/app-toast.service';
 
 export interface CreateBannerAdPayload {
   title: string;
@@ -1407,11 +1408,14 @@ interface BoostingPlan {
 })
 export class CreateBannerAdModalComponent implements OnDestroy {
   readonly close = output<void>();
-  readonly submit = output<CreateBannerAdPayload>();
-  readonly isSubmitting = input(false);
+  readonly success = output<void>();
+  readonly isSubmitting = signal(false);
+  readonly hasCreated = signal(false);
 
   private readonly fb = inject(FormBuilder);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly sellerMonetizationService = inject(SellerMonetizationService);
+  private readonly appToastService = inject(AppToastService);
 
   readonly bannerTypeOptions = [
     { value: 'image', label: 'Image Ad (1 left)' },
@@ -1565,7 +1569,7 @@ export class CreateBannerAdModalComponent implements OnDestroy {
       return;
     }
     if (typeof window !== 'undefined' && window.innerWidth >= 768) {
-      this.close.emit();
+      this.finishAndClose();
     }
   }
 
@@ -1614,25 +1618,41 @@ export class CreateBannerAdModalComponent implements OnDestroy {
   }
 
   completePayment(): void {
-    this.step.set(5);
-  }
-
-  finishAndClose(): void {
-    if (this.bannerForm.invalid) {
+    if (this.bannerForm.invalid || !this.selectedMediaFile()) {
       this.step.set(1);
       this.bannerForm.markAllAsTouched();
       return;
     }
 
-    this.submit.emit({
-      title: this.bannerForm.controls.title.value.trim(),
-      destinationUrl: this.bannerForm.controls.destinationUrl.value.trim(),
-      bannerType: this.bannerForm.controls.bannerType.value,
-      imagePreview: this.imagePreview(),
-      mediaFile: this.selectedMediaFile(),
-      paymentMethod: this.selectedPaymentId(),
-      planId: this.selectedPlanId(),
-    });
+    this.isSubmitting.set(true);
+    this.sellerMonetizationService
+      .createBannerAd({
+        title: this.bannerForm.controls.title.value.trim(),
+        destinationUrl: this.bannerForm.controls.destinationUrl.value.trim(),
+        bannerType: this.bannerForm.controls.bannerType.value,
+        mediaFile: this.selectedMediaFile()!,
+      })
+      .subscribe({
+        next: () => {
+          this.isSubmitting.set(false);
+          this.hasCreated.set(true);
+          this.step.set(5);
+          this.appToastService.show({ message: 'Banner ad submitted for review.' });
+        },
+        error: () => {
+          this.isSubmitting.set(false);
+          this.appToastService.show({
+            message: 'That banner ad couldn’t be created right now. Please try again.',
+          });
+        },
+      });
+  }
+
+  finishAndClose(): void {
+    if (this.hasCreated()) {
+      this.success.emit();
+    }
+    this.close.emit();
   }
 
   resetFlow(): void {
@@ -1648,6 +1668,7 @@ export class CreateBannerAdModalComponent implements OnDestroy {
     this.selectedPlanId.set(this.defaultPlanIdForViewport());
     this.selectedPaymentId.set('wallet');
     this.isRecurring.set(false);
+    this.hasCreated.set(false);
     this.step.set(1);
   }
 

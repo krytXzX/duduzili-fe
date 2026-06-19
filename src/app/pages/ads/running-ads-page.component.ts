@@ -608,9 +608,8 @@ interface ListingSection {
 
     @if (isCreateBannerModalOpen()) {
       <app-create-banner-ad-modal
-        [isSubmitting]="isSubmittingBanner()"
-        (close)="isCreateBannerModalOpen.set(false)"
-        (submit)="handleCreateBannerAd($event)"
+        (close)="handleCloseCreateBannerAd()"
+        (success)="handleCreateBannerAdSuccess()"
       ></app-create-banner-ad-modal>
     }
   `,
@@ -662,8 +661,7 @@ export class RunningAdsPageComponent {
   readonly activeStatus = signal<AdStatus>(this.readStatusFromQuery());
   readonly isCreateAdTypeModalOpen = signal(false);
   readonly isCreateBannerModalOpen = signal(false);
-  readonly isSubmittingBanner = signal(false);
-  readonly bannerModal = viewChild(CreateBannerAdModalComponent);
+  private hasCreatedBanner = false;
   readonly backendAds = signal<SellerAdRecord[]>([]);
   readonly subscription = signal<SubscriptionStatusData | null>(null);
   readonly backendCounts = signal<
@@ -1388,6 +1386,7 @@ export class RunningAdsPageComponent {
     switch (type) {
       case 'banner':
         this.activePlacement.set('banner ads');
+        this.hasCreatedBanner = false;
         this.isCreateBannerModalOpen.set(true);
         break;
       case 'store':
@@ -1409,37 +1408,18 @@ export class RunningAdsPageComponent {
     this.currentPage.set(1);
   }
 
-  handleCreateBannerAd(payload: CreateBannerAdPayload): void {
-    if (!payload.mediaFile) {
-      this.appToastService.show({ message: 'Please choose a banner image or video first.' });
-      return;
+  handleCreateBannerAdSuccess(): void {
+    this.hasCreatedBanner = true;
+  }
+
+  handleCloseCreateBannerAd(): void {
+    this.isCreateBannerModalOpen.set(false);
+    if (this.hasCreatedBanner) {
+      this.activePlacement.set('banner ads');
+      this.activeStatus.set('active');
+      this.currentPage.set(1);
+      this.loadAdsData();
     }
-
-    this.isSubmittingBanner.set(true);
-
-    this.sellerMonetizationService
-      .createBannerAd({
-        title: payload.title,
-        destinationUrl: payload.destinationUrl,
-        bannerType: payload.bannerType,
-        mediaFile: payload.mediaFile,
-      })
-      .subscribe({
-        next: () => {
-          this.isSubmittingBanner.set(false);
-          this.activePlacement.set('banner ads');
-          this.activeStatus.set('active');
-          this.currentPage.set(1);
-          this.appToastService.show({ message: 'Banner ad submitted for review.' });
-          this.loadAdsData();
-        },
-        error: () => {
-          this.isSubmittingBanner.set(false);
-          this.appToastService.show({
-            message: 'That banner ad couldn’t be created right now. Please try again.',
-          });
-        },
-      });
   }
 
   handleCreateStorePromotion(vendorId: string): void {
