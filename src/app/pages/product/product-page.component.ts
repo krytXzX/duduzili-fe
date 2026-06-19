@@ -8,6 +8,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -186,6 +187,7 @@ export class ProductPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly titleService = inject(Title);
   private readonly listingsService = inject(ListingsService);
   private readonly vendorsService = inject(VendorsService);
   private readonly appToastService = inject(AppToastService);
@@ -1263,6 +1265,8 @@ export class ProductPageComponent {
       deliveryOptions,
       images: galleryImages,
     });
+    // Update browser tab title with the product name
+    this.titleService.setTitle(`${productName} | Duduzili`);
     this.store.set({
       id:
         this.readString(storeInfo?.['id']) ??

@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -2893,6 +2894,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly listingsService = inject(ListingsService);
   private readonly appToastService = inject(AppToastService);
+  private readonly titleService = inject(Title);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private readonly fallbackEditCategories = [
     'Electronics/Phones & Tablets',
@@ -3682,6 +3684,11 @@ export class ListingDetailsPageComponent implements OnDestroy {
           this.listing().store.logo,
       },
     });
+    // Update browser tab title with the listing name
+    const listingName = this.readString(record['title']);
+    if (listingName) {
+      this.titleService.setTitle(`${listingName} | Duduzili`);
+    }
 
     this.editAcceptOffersEnabled.set(acceptsOffers ?? true);
     this.editFreeListingEnabled.set(isFree ?? false);
