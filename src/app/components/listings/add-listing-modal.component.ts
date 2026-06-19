@@ -25,6 +25,7 @@ import { Listing, ListingCardComponent } from './listing-card.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 import { ListingsApiItem, ListingsService } from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
+import { AuthSessionService } from '../../services/auth-session.service';
 import { environment } from '../../../environments/environment';
 
 export interface ListingData {
@@ -570,6 +571,7 @@ type PickerOption = {
                             <input
                               type="text"
                               formControlName="whatsappNumber"
+                              (input)="sanitizePhoneNumber($event, 'whatsappNumber')"
                               class="w-full rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-[12px] font-medium text-[#202335] outline-none"
                             >
                           </div>
@@ -579,43 +581,46 @@ type PickerOption = {
                             <input
                               type="text"
                               formControlName="callNumber"
+                              (input)="sanitizePhoneNumber($event, 'callNumber')"
                               class="w-full rounded-[14px] border border-[#DCDDE3] bg-white px-4 py-3.5 text-[12px] font-medium text-[#202335] outline-none"
                             >
                           </div>
                         </div>
                       </div>
 
-                      <div class="space-y-3">
-                        <label class="block text-[12px] font-medium text-[#3F4452]">Delivery options</label>
-                        <div class="grid grid-cols-2 gap-3">
-                          @for (opt of availableDeliveryOptions(); track opt.value) {
-                            <button
-                              type="button"
-                              (click)="toggleDeliveryOption(opt.value)"
-                              class="flex items-center gap-2 rounded-[14px] border px-3 py-3 text-left transition-colors"
-                              [class.border-[#6F56F6]]="isDeliveryOptionSelected(opt.value)"
-                              [class.bg-[#F8F7FF]]="isDeliveryOptionSelected(opt.value)"
-                              [class.text-[#2A2D34]]="isDeliveryOptionSelected(opt.value)"
-                              [class.border-[#E1E3E8]]="!isDeliveryOptionSelected(opt.value)"
-                              [class.bg-white]="!isDeliveryOptionSelected(opt.value)"
-                              [class.text-[#2A2D34]]="!isDeliveryOptionSelected(opt.value)"
-                            >
-                              <span
-                                class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border"
+                      @if (!isRealEstateSelected()) {
+                        <div class="space-y-3">
+                          <label class="block text-[12px] font-medium text-[#3F4452]">Delivery options</label>
+                          <div class="grid grid-cols-2 gap-3">
+                            @for (opt of availableDeliveryOptions(); track opt.value) {
+                              <button
+                                type="button"
+                                (click)="toggleDeliveryOption(opt.value)"
+                                class="flex items-center gap-2 rounded-[14px] border px-3 py-3 text-left transition-colors"
                                 [class.border-[#6F56F6]]="isDeliveryOptionSelected(opt.value)"
-                                [class.bg-[#6F56F6]]="isDeliveryOptionSelected(opt.value)"
-                                [class.border-[#D4D7DE]]="!isDeliveryOptionSelected(opt.value)"
+                                [class.bg-[#F8F7FF]]="isDeliveryOptionSelected(opt.value)"
+                                [class.text-[#2A2D34]]="isDeliveryOptionSelected(opt.value)"
+                                [class.border-[#E1E3E8]]="!isDeliveryOptionSelected(opt.value)"
                                 [class.bg-white]="!isDeliveryOptionSelected(opt.value)"
+                                [class.text-[#2A2D34]]="!isDeliveryOptionSelected(opt.value)"
                               >
-                                @if (isDeliveryOptionSelected(opt.value)) {
-                                  <ng-icon name="heroCheck" class="text-[10px] text-white"></ng-icon>
-                                }
-                              </span>
-                              <span class="text-[12px] font-medium">{{ opt.label }}</span>
-                            </button>
-                          }
+                                <span
+                                  class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border"
+                                  [class.border-[#6F56F6]]="isDeliveryOptionSelected(opt.value)"
+                                  [class.bg-[#6F56F6]]="isDeliveryOptionSelected(opt.value)"
+                                  [class.border-[#D4D7DE]]="!isDeliveryOptionSelected(opt.value)"
+                                  [class.bg-white]="!isDeliveryOptionSelected(opt.value)"
+                                >
+                                  @if (isDeliveryOptionSelected(opt.value)) {
+                                    <ng-icon name="heroCheck" class="text-[10px] text-white"></ng-icon>
+                                  }
+                                </span>
+                                <span class="text-[12px] font-medium">{{ opt.label }}</span>
+                              </button>
+                            }
+                          </div>
                         </div>
-                      </div>
+                      }
 
                       <div class="pt-4">
                         <h3 class="text-[18px] font-semibold leading-10 tracking-[-0.03em] text-[#202335]">How much are you selling for?</h3>
@@ -780,6 +785,7 @@ type PickerOption = {
                             <input 
                               type="text" 
                               formControlName="whatsappNumber"
+                              (input)="sanitizePhoneNumber($event, 'whatsappNumber')"
                               class="w-full bg-white border border-gray-100 rounded-xl p-3.5 text-[15px] focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all font-medium text-[#1A1C21] shadow-sm"
                             >
                           </div>
@@ -788,6 +794,7 @@ type PickerOption = {
                             <input 
                               type="text" 
                               formControlName="callNumber"
+                              (input)="sanitizePhoneNumber($event, 'callNumber')"
                               class="w-full bg-white border border-gray-100 rounded-xl p-3.5 text-[15px] focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all font-medium text-[#1A1C21] shadow-sm"
                             >
                           </div>
@@ -795,35 +802,37 @@ type PickerOption = {
                       </div>
 
                       <!-- Delivery block -->
-                      <div class="space-y-3">
-                        <label class="text-[13px] font-medium text-gray-700 block">Delivery options</label>
-                        <div class="grid grid-cols-3 gap-3">
-                        @for (opt of availableDeliveryOptions(); track opt.value) {
-                          <div 
-                             class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors"
-                             [class.border-purple-600]="isDeliveryOptionSelected(opt.value)"
-                             [class.bg-purple-50]="isDeliveryOptionSelected(opt.value)"
-                             [class.border-gray-100]="!isDeliveryOptionSelected(opt.value)"
-                             (click)="toggleDeliveryOption(opt.value)"
-                          >
-                             <div 
-                                class="w-4 h-4 rounded-[4px] border flex items-center justify-center transition-colors"
-                                [class.bg-purple-600]="isDeliveryOptionSelected(opt.value)"
-                                [class.border-purple-600]="isDeliveryOptionSelected(opt.value)"
-                                [class.border-gray-300]="!isDeliveryOptionSelected(opt.value)"
-                             >
-                                @if (isDeliveryOptionSelected(opt.value)) {
-                                   <ng-icon name="heroCheck" class="text-[10px] text-white stroke-[3]"></ng-icon>
-                                }
-                             </div>
-                             <span class="text-[13px] font-medium"
-                               [class.text-purple-600]="isDeliveryOptionSelected(opt.value)"
-                               [class.text-gray-500]="!isDeliveryOptionSelected(opt.value)"
-                             >{{ opt.label }}</span>
+                      @if (!isRealEstateSelected()) {
+                        <div class="space-y-3">
+                          <label class="text-[13px] font-medium text-gray-700 block">Delivery options</label>
+                          <div class="grid grid-cols-3 gap-3">
+                          @for (opt of availableDeliveryOptions(); track opt.value) {
+                            <div 
+                               class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors"
+                               [class.border-purple-600]="isDeliveryOptionSelected(opt.value)"
+                               [class.bg-purple-50]="isDeliveryOptionSelected(opt.value)"
+                               [class.border-gray-100]="!isDeliveryOptionSelected(opt.value)"
+                               (click)="toggleDeliveryOption(opt.value)"
+                            >
+                               <div 
+                                  class="w-4 h-4 rounded-[4px] border flex items-center justify-center transition-colors"
+                                  [class.bg-purple-600]="isDeliveryOptionSelected(opt.value)"
+                                  [class.border-purple-600]="isDeliveryOptionSelected(opt.value)"
+                                  [class.border-gray-300]="!isDeliveryOptionSelected(opt.value)"
+                               >
+                                  @if (isDeliveryOptionSelected(opt.value)) {
+                                     <ng-icon name="heroCheck" class="text-[10px] text-white stroke-[3]"></ng-icon>
+                                  }
+                               </div>
+                               <span class="text-[13px] font-medium"
+                                 [class.text-purple-600]="isDeliveryOptionSelected(opt.value)"
+                                 [class.text-gray-500]="!isDeliveryOptionSelected(opt.value)"
+                               >{{ opt.label }}</span>
+                            </div>
+                          }
                           </div>
-                        }
                         </div>
-                      </div>
+                      }
                       
                       <div class="pt-6">
                         <h3 class="text-[22px] font-black text-[#1A1C21] tracking-tight mb-6">How much are you selling for?</h3>
@@ -1048,8 +1057,10 @@ type PickerOption = {
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Location</span>
                             <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.location || '---' }}</span>
 
-                            <span class="text-[12px] font-medium text-[#8A8F9A]">Delivery options</span>
-                            <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ getSelectedDeliveryOptionNames() }}</span>
+                            @if (!isRealEstateSelected()) {
+                              <span class="text-[12px] font-medium text-[#8A8F9A]">Delivery options</span>
+                              <span class="text-right text-[12px] font-medium leading-6 text-[#202335]">{{ getSelectedDeliveryOptionNames() }}</span>
+                            }
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">WhatsApp number</span>
                             <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.whatsappNumber || '---' }}</span>
@@ -1159,12 +1170,14 @@ type PickerOption = {
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Location</span>
                                 <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ listingForm.value.location || '---' }}</span>
                              </div>
-                             <div class="flex items-start">
-                                <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Delivery options</span>
-                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">
-                                   {{ getSelectedDeliveryOptionNames() }}
-                                </span>
-                             </div>
+                             @if (!isRealEstateSelected()) {
+                               <div class="flex items-start">
+                                  <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Delivery options</span>
+                                  <span class="text-[15px] font-medium text-[#1A1C21] flex-1">
+                                     {{ getSelectedDeliveryOptionNames() }}
+                                  </span>
+                               </div>
+                             }
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">WhatsApp number</span>
                                 <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ listingForm.value.whatsappNumber || '---' }}</span>
@@ -1579,6 +1592,7 @@ export class AddListingModalComponent implements OnDestroy {
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly listingsService = inject(ListingsService);
   private readonly appToastService = inject(AppToastService);
+  private readonly authSessionService = inject(AuthSessionService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   
   close = output<void>();
@@ -1650,6 +1664,7 @@ export class AddListingModalComponent implements OnDestroy {
 
   constructor() {
     this.mobileOverlayService.setAddListingOpen(true);
+    const user = this.authSessionService.user();
     this.listingForm = this.fb.group({
       name: ['', Validators.required],
       category: ['', Validators.required],
@@ -1658,8 +1673,8 @@ export class AddListingModalComponent implements OnDestroy {
       description: [''],
       youtubeLink: [''],
       location: ['', Validators.required],
-      whatsappNumber: [''],
-      callNumber: [''],
+      whatsappNumber: [user?.whatsapp_number || user?.phone_number || '', Validators.pattern(/^[0-9+() -]*$/)],
+      callNumber: [user?.phone_number || '', Validators.pattern(/^[0-9+() -]*$/)],
       deliveryOptions: [[] as string[], Validators.required],
       price: [null],
       addDiscount: [false],
@@ -1676,6 +1691,7 @@ export class AddListingModalComponent implements OnDestroy {
 
     effect(() => {
       const isRealEstate = this.isRealEstateSelected();
+      
       const conditionControl = this.listingForm.get('condition');
       if (conditionControl) {
         if (isRealEstate) {
@@ -1687,6 +1703,19 @@ export class AddListingModalComponent implements OnDestroy {
           conditionControl.setValidators(Validators.required);
         }
         conditionControl.updateValueAndValidity({ emitEvent: false });
+      }
+
+      const deliveryControl = this.listingForm.get('deliveryOptions');
+      if (deliveryControl) {
+        if (isRealEstate) {
+          deliveryControl.clearValidators();
+          if (deliveryControl.value && deliveryControl.value.length > 0) {
+            deliveryControl.setValue([], { emitEvent: false });
+          }
+        } else {
+          deliveryControl.setValidators(Validators.required);
+        }
+        deliveryControl.updateValueAndValidity({ emitEvent: false });
       }
     });
   }
@@ -1942,6 +1971,15 @@ export class AddListingModalComponent implements OnDestroy {
     }
   }
 
+  sanitizePhoneNumber(event: Event, controlName: string): void {
+    const input = event.target as HTMLInputElement;
+    const sanitized = input.value.replace(/[^0-9+() -]/g, '');
+    if (sanitized !== input.value) {
+      input.value = sanitized;
+      this.listingForm.get(controlName)?.setValue(sanitized, { emitEvent: false });
+    }
+  }
+
   toggleBool(field: string) {
     const nextValue = !this.listingForm.value[field];
     this.listingForm.patchValue({ [field]: nextValue });
@@ -2058,6 +2096,7 @@ export class AddListingModalComponent implements OnDestroy {
   resetForm() {
      this.revokeAllObjectUrls();
      this.listingForm.reset();
+     const user = this.authSessionService.user();
      this.listingForm.patchValue({
        name: '',
        category: '',
@@ -2066,8 +2105,8 @@ export class AddListingModalComponent implements OnDestroy {
        description: '',
        youtubeLink: '',
        location: '',
-       whatsappNumber: '',
-       callNumber: '',
+       whatsappNumber: user?.whatsapp_number || user?.phone_number || '',
+       callNumber: user?.phone_number || '',
        deliveryOptions: [],
        price: null,
        addDiscount: false,
