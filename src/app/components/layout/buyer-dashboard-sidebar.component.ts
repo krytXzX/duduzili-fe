@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -10,6 +10,7 @@ import {
   heroQrCode,
   heroShoppingBag,
 } from '@ng-icons/heroicons/outline';
+import { NotificationsService } from '../../services/notifications.service';
 
 @Component({
   selector: 'app-buyer-dashboard-sidebar',
@@ -77,7 +78,9 @@ import {
             <ng-icon name="heroBell" class="text-lg text-gray-400"></ng-icon>
             Notifications
           </span>
-          <span class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">20+</span>
+          @if (notificationBadge()) {
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">{{ notificationBadge() }}</span>
+          }
         </a>
       </nav>
 
@@ -102,4 +105,12 @@ import {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BuyerDashboardSidebarComponent {}
+export class BuyerDashboardSidebarComponent {
+  private readonly notificationsService = inject(NotificationsService);
+
+  readonly notificationBadge = this.notificationsService.unreadBadge;
+
+  constructor() {
+    this.notificationsService.refreshUnreadCount();
+  }
+}

@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { NotificationsService } from '../../services/notifications.service';
 
 type SidebarLink = {
   readonly label: string;
   readonly route: string;
   readonly icon: string;
-  readonly notificationCount?: string;
 };
 
 @Component({
@@ -232,11 +232,11 @@ type SidebarLink = {
                   <img [ngSrc]="item.icon" alt="" width="16" height="16" class="h-4 w-4 shrink-0" />
                   <span class="text-[14px] font-medium">{{ item.label }}</span>
                 </span>
-                @if (item.notificationCount) {
+                @if (item.label === 'Notifications' && notificationBadge()) {
                   <span
                     class="inline-flex min-w-5 items-center justify-center rounded-full bg-[#EE0D0D] px-1 text-[8px] font-semibold leading-[14px] text-white"
                   >
-                    {{ item.notificationCount }}
+                    {{ notificationBadge() }}
                   </span>
                 }
               </a>
@@ -280,6 +280,7 @@ type SidebarLink = {
 export class DashboardSidebarComponent {
   private readonly authSession = inject(AuthSessionService);
   private readonly router = inject(Router);
+  private readonly notificationsService = inject(NotificationsService);
 
   readonly isRequestsExpanded = signal(true);
   readonly isAdsExpanded = signal(this.router.url.startsWith('/seller/ads'));
@@ -301,6 +302,8 @@ export class DashboardSidebarComponent {
     return list;
   });
 
+  readonly notificationBadge = this.notificationsService.unreadBadge;
+
   readonly accountLinks: readonly SidebarLink[] = [
     {
       label: 'Account settings',
@@ -311,9 +314,12 @@ export class DashboardSidebarComponent {
       label: 'Notifications',
       route: '/seller/notifications',
       icon: '/assets/icons/seller-sidebar-notifications.svg',
-      notificationCount: '20+',
     },
   ];
+
+  constructor() {
+    this.notificationsService.refreshUnreadCount();
+  }
 
   isAdsRouteActive(): boolean {
     return this.router.url.startsWith('/seller/ads');

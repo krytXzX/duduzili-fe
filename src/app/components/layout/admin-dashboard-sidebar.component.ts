@@ -17,6 +17,7 @@ import {
   heroUserCircle,
 } from '@ng-icons/heroicons/outline';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { NotificationsService } from '../../services/notifications.service';
 
 @Component({
   selector: 'app-admin-dashboard-sidebar',
@@ -236,9 +237,11 @@ import { AuthSessionService } from '../../services/auth-session.service';
               <ng-icon name="heroBell" class="text-lg text-gray-400"></ng-icon>
               Notifications
             </span>
-            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
-              20+
-            </span>
+            @if (notificationBadge()) {
+              <span class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
+                {{ notificationBadge() }}
+              </span>
+            }
           </a>
         </nav>
       </div>
@@ -249,6 +252,9 @@ import { AuthSessionService } from '../../services/auth-session.service';
 export class AdminDashboardSidebarComponent {
   private readonly router = inject(Router);
   private readonly authSession = inject(AuthSessionService);
+  private readonly notificationsService = inject(NotificationsService);
+
+  readonly notificationBadge = this.notificationsService.unreadBadge;
 
   readonly isAdsExpanded = signal(true);
   readonly canManageCategories = computed(() => this.authSession.canManageCategories());
@@ -278,6 +284,10 @@ export class AdminDashboardSidebarComponent {
     }
 
     return this.activeAdsItem() === itemId;
+  }
+
+  constructor() {
+    this.notificationsService.refreshUnreadCount();
   }
 }
 
