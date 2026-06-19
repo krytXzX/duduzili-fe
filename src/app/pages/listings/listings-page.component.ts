@@ -1179,19 +1179,22 @@ export class ListingsPageComponent {
   }
 
   private toListingRow(item: ListingsApiItem, index: number): ListingRow | null {
+    const status = this.normalizeStatus(item['status']);
     const name =
       this.readString(item['title']) ??
       this.readString(item['name']) ??
-      this.readString(item['listing_name']);
+      this.readString(item['listing_name']) ??
+      (status === 'Draft' ? 'Untitled Draft' : null);
     const category = this.readString(item['category']) ?? 'Uncategorized';
     const price = this.readNumber(item['price']);
     const store = this.readString(item['store_name']) ?? this.readString(item['vendor_name']) ?? 'My store';
 
-    if (!name || price === null) {
+    if (!name || (price === null && status !== 'Draft')) {
       return null;
     }
 
-    const [priceWhole, priceFraction] = this.formatPriceParts(price);
+    const displayPrice = price ?? 0;
+    const [priceWhole, priceFraction] = this.formatPriceParts(displayPrice);
     const storeKey = this.slugify(store || `store-${index + 1}`);
 
     return {
