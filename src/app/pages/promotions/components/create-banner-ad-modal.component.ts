@@ -296,7 +296,7 @@ interface BoostingPlan {
                       <button
                         type="button"
                         (click)="submitForm()"
-                        [disabled]="bannerForm.invalid || isSubmitting()"
+                        [disabled]="bannerForm.invalid || !selectedMediaFile() || isSubmitting()"
                         class="h-[52px] w-[205px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5341C6] hover:shadow-[0_6px_16px_0_rgba(81,35,173,0.45),0_0_0_1px_#6B5BD5] active:scale-95 duration-200 disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
                       >
                         @if (isSubmitting()) {
@@ -668,8 +668,15 @@ interface BoostingPlan {
                     <button
                       type="button"
                       (click)="completePayment()"
-                      class="mt-7 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] active:scale-95 duration-200"
+                      [disabled]="isSubmitting()"
+                      class="mt-7 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
                     >
+                      @if (isSubmitting()) {
+                        <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      }
                       Confirm and pay
                     </button>
 
@@ -1104,7 +1111,7 @@ interface BoostingPlan {
                   <button
                     type="button"
                     (click)="submitForm()"
-                    [disabled]="bannerForm.invalid || isSubmitting()"
+                    [disabled]="bannerForm.invalid || !selectedMediaFile() || isSubmitting()"
                     class="h-10 rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5F50DE] hover:shadow-[0_6px_16px_0_rgba(81,35,173,0.45),0_0_0_1px_#6B5BD5] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6B5BE7]/20 disabled:cursor-not-allowed disabled:bg-[#D7D1FB] disabled:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
                   >
                     @if (isSubmitting()) {
@@ -1319,8 +1326,15 @@ interface BoostingPlan {
                   <button
                     type="button"
                     (click)="completePayment()"
-                    class="mt-16 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] hover:shadow-[0_18px_36px_-14px_rgba(102,83,228,1.0)] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
+                    [disabled]="isSubmitting()"
+                    class="mt-16 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] hover:shadow-[0_18px_36px_-14px_rgba(102,83,228,1.0)] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20 disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
                   >
+                    @if (isSubmitting()) {
+                      <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    }
                     Confirm and pay
                   </button>
 
@@ -1587,7 +1601,7 @@ export class CreateBannerAdModalComponent implements OnDestroy {
   }
 
   submitForm(): void {
-    if (this.bannerForm.invalid) {
+    if (this.bannerForm.invalid || !this.selectedMediaFile()) {
       this.bannerForm.markAllAsTouched();
       return;
     }

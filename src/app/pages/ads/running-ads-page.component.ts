@@ -1,5 +1,13 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   CreateBannerAdModalComponent,
@@ -74,7 +82,7 @@ interface ListingSection {
       <div class="flex items-center justify-between gap-4">
         <div class="flex items-center gap-2">
           <a
-          routerLink="/seller/ads"
+            routerLink="/seller/ads"
             aria-label="Back to Ads"
             class="inline-flex h-9 w-9 items-center justify-center rounded-[100px] bg-[#F3F3F3]"
           >
@@ -369,7 +377,7 @@ interface ListingSection {
           }
         </div>
 
-      @if (desktopSections().length) {
+        @if (desktopSections().length) {
           <div class="mt-10 space-y-[37px]">
             @for (section of desktopSections(); track section.id) {
               <section>
@@ -561,7 +569,9 @@ interface ListingSection {
           </div>
         }
 
-        <div class="mt-auto flex items-center justify-between px-2 pb-2 pt-8 text-[16px] leading-6 text-[#1A1B1D]">
+        <div
+          class="mt-auto flex items-center justify-between px-2 pb-2 pt-8 text-[16px] leading-6 text-[#1A1B1D]"
+        >
           <p>{{ totalResults() }} <span class="text-[rgba(26,27,29,0.5)]">results</span></p>
           <div class="flex items-center gap-3">
             <button
@@ -598,6 +608,7 @@ interface ListingSection {
 
     @if (isCreateBannerModalOpen()) {
       <app-create-banner-ad-modal
+        [isSubmitting]="isSubmittingBanner()"
         (close)="isCreateBannerModalOpen.set(false)"
         (submit)="handleCreateBannerAd($event)"
       ></app-create-banner-ad-modal>
@@ -651,9 +662,16 @@ export class RunningAdsPageComponent {
   readonly activeStatus = signal<AdStatus>(this.readStatusFromQuery());
   readonly isCreateAdTypeModalOpen = signal(false);
   readonly isCreateBannerModalOpen = signal(false);
+  readonly isSubmittingBanner = signal(false);
+  readonly bannerModal = viewChild(CreateBannerAdModalComponent);
   readonly backendAds = signal<SellerAdRecord[]>([]);
   readonly subscription = signal<SubscriptionStatusData | null>(null);
-  readonly backendCounts = signal<Record<'banner' | 'listing' | 'store', Record<'active' | 'paused' | 'expired' | 'pending' | 'rejected', number>>>({
+  readonly backendCounts = signal<
+    Record<
+      'banner' | 'listing' | 'store',
+      Record<'active' | 'paused' | 'expired' | 'pending' | 'rejected', number>
+    >
+  >({
     banner: { active: 0, paused: 0, expired: 0, pending: 0, rejected: 0 },
     listing: { active: 0, paused: 0, expired: 0, pending: 0, rejected: 0 },
     store: { active: 0, paused: 0, expired: 0, pending: 0, rejected: 0 },
@@ -673,136 +691,136 @@ export class RunningAdsPageComponent {
     Record<AdStatus, readonly ListingSection[]>
   > = {
     'promoted listings': {
-    active: [
-      {
-        id: 'phones-laptops',
-        title: 'Phones & Laptops',
-        viewAllCount: '3,341',
-        cards: [
-          {
-            id: 'mobile-1',
-            title: 'Nike sneaker',
-            imageSrc: '/assets/images/running-ads-mobile-sneaker.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-          {
-            id: 'mobile-2',
-            title: 'Bone straight wig',
-            imageSrc: '/assets/images/running-ads-mobile-wig.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-          {
-            id: 'other-4',
-            title: 'Iphone X (64 gig)',
-            imageSrc: '/assets/images/running-ads-mobile-iphone.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            oldPrice: '₦35,000',
-            discount: '-22%',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-          {
-            id: 'other-5',
-            title: 'Ergonomic chair',
-            imageSrc: '/assets/images/running-ads-mobile-chair.png',
-            expiresOn: '24 May, 2025',
-            price: 'Free',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-        ],
-      },
-      {
-        id: 'automobile',
-        title: 'Automobile listings',
-        cards: [
-          {
-            id: 'auto-1',
-            title: 'Nike sneaker',
-            imageSrc: '/assets/images/running-ads-mobile-sneaker.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-        ],
-      },
-      {
-        id: 'property',
-        title: 'Property listings',
-        cards: [
-          {
-            id: 'property-1',
-            title: 'Ergonomic chair',
-            imageSrc: '/assets/images/running-ads-mobile-chair.png',
-            expiresOn: '24 May, 2025',
-            price: 'Free',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-        ],
-      },
-    ],
-    paused: [
-      {
-        id: 'paused',
-        title: 'Phones & Laptops',
-        cards: [
-          {
-            id: 'other-paused',
-            title: 'Ergonomic chair',
-            imageSrc: '/assets/images/running-ads-mobile-chair.png',
-            expiresOn: '24 May, 2025',
-            price: 'Free',
-            tag: 'Used',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-        ],
-      },
-    ],
-    expired: [
-      {
-        id: 'expired',
-        title: 'Phones & Laptops',
-        cards: [
-          {
-            id: 'other-expired',
-            title: 'Iphone X (64 gig)',
-            imageSrc: '/assets/images/running-ads-mobile-iphone.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            oldPrice: '₦35,000',
-            discount: '-22%',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-        ],
-      },
-    ],
+      active: [
+        {
+          id: 'phones-laptops',
+          title: 'Phones & Laptops',
+          viewAllCount: '3,341',
+          cards: [
+            {
+              id: 'mobile-1',
+              title: 'Nike sneaker',
+              imageSrc: '/assets/images/running-ads-mobile-sneaker.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+            {
+              id: 'mobile-2',
+              title: 'Bone straight wig',
+              imageSrc: '/assets/images/running-ads-mobile-wig.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+            {
+              id: 'other-4',
+              title: 'Iphone X (64 gig)',
+              imageSrc: '/assets/images/running-ads-mobile-iphone.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              oldPrice: '₦35,000',
+              discount: '-22%',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+            {
+              id: 'other-5',
+              title: 'Ergonomic chair',
+              imageSrc: '/assets/images/running-ads-mobile-chair.png',
+              expiresOn: '24 May, 2025',
+              price: 'Free',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+          ],
+        },
+        {
+          id: 'automobile',
+          title: 'Automobile listings',
+          cards: [
+            {
+              id: 'auto-1',
+              title: 'Nike sneaker',
+              imageSrc: '/assets/images/running-ads-mobile-sneaker.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+          ],
+        },
+        {
+          id: 'property',
+          title: 'Property listings',
+          cards: [
+            {
+              id: 'property-1',
+              title: 'Ergonomic chair',
+              imageSrc: '/assets/images/running-ads-mobile-chair.png',
+              expiresOn: '24 May, 2025',
+              price: 'Free',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+          ],
+        },
+      ],
+      paused: [
+        {
+          id: 'paused',
+          title: 'Phones & Laptops',
+          cards: [
+            {
+              id: 'other-paused',
+              title: 'Ergonomic chair',
+              imageSrc: '/assets/images/running-ads-mobile-chair.png',
+              expiresOn: '24 May, 2025',
+              price: 'Free',
+              tag: 'Used',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+          ],
+        },
+      ],
+      expired: [
+        {
+          id: 'expired',
+          title: 'Phones & Laptops',
+          cards: [
+            {
+              id: 'other-expired',
+              title: 'Iphone X (64 gig)',
+              imageSrc: '/assets/images/running-ads-mobile-iphone.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              oldPrice: '₦35,000',
+              discount: '-22%',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+          ],
+        },
+      ],
     },
     'store promotions': {
       active: [
@@ -955,145 +973,145 @@ export class RunningAdsPageComponent {
     Record<AdStatus, readonly ListingSection[]>
   > = {
     'promoted listings': {
-    active: [
-      {
-        id: 'other',
-        title: 'Other listings',
-        viewAllCount: '3,341',
-        cards: [
-          {
-            id: 'other-1',
-            title: 'Iphone 17 pro max',
-            imageSrc: '/assets/images/running-ads-desktop-iphone17.png',
-            expiresOn: '24 May, 2025',
-            price: '₦2,500,000',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-          {
-            id: 'other-2',
-            title: 'Logitech ergonomic mouse',
-            imageSrc: '/assets/images/running-ads-desktop-mouse.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-          {
-            id: 'other-3',
-            title: 'RGB keyboard',
-            imageSrc: '/assets/images/running-ads-desktop-keyboard.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-          {
-            id: 'other-4',
-            title: 'Iphone X (64 gig)',
-            imageSrc: '/assets/images/running-ads-desktop-iphonex.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-          {
-            id: 'other-5',
-            title: 'Ergonomic chair',
-            imageSrc: '/assets/images/running-ads-desktop-chair.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-        ],
-      },
-      {
-        id: 'automobile',
-        title: 'Automobile listings',
-        cards: [
-          {
-            id: 'auto-1',
-            title: 'Maserati',
-            imageSrc: '/assets/images/running-ads-desktop-car.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-        ],
-      },
-      {
-        id: 'property',
-        title: 'Property listings',
-        cards: [
-          {
-            id: 'property-1',
-            title: 'Nike sneaker',
-            imageSrc: '/assets/images/running-ads-desktop-sneaker.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-        ],
-      },
-    ],
-    paused: [
-      {
-        id: 'paused',
-        title: 'Other listings',
-        cards: [
-          {
-            id: 'other-paused',
-            title: 'Ergonomic chair',
-            imageSrc: '/assets/images/running-ads-desktop-chair.png',
-            expiresOn: '24 May, 2025',
-            price: 'Free',
-            tag: 'Used',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-        ],
-      },
-    ],
-    expired: [
-      {
-        id: 'expired',
-        title: 'Other listings',
-        cards: [
-          {
-            id: 'other-expired',
-            title: 'Iphone X (64 gig)',
-            imageSrc: '/assets/images/running-ads-desktop-iphonex.png',
-            expiresOn: '24 May, 2025',
-            price: '₦35,000',
-            oldPrice: '₦35,000',
-            discount: '-22%',
-            views: '1K',
-            clicks: '500',
-            messages: '41',
-            calls: '8',
-          },
-        ],
-      },
-    ],
+      active: [
+        {
+          id: 'other',
+          title: 'Other listings',
+          viewAllCount: '3,341',
+          cards: [
+            {
+              id: 'other-1',
+              title: 'Iphone 17 pro max',
+              imageSrc: '/assets/images/running-ads-desktop-iphone17.png',
+              expiresOn: '24 May, 2025',
+              price: '₦2,500,000',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+            {
+              id: 'other-2',
+              title: 'Logitech ergonomic mouse',
+              imageSrc: '/assets/images/running-ads-desktop-mouse.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+            {
+              id: 'other-3',
+              title: 'RGB keyboard',
+              imageSrc: '/assets/images/running-ads-desktop-keyboard.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+            {
+              id: 'other-4',
+              title: 'Iphone X (64 gig)',
+              imageSrc: '/assets/images/running-ads-desktop-iphonex.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+            {
+              id: 'other-5',
+              title: 'Ergonomic chair',
+              imageSrc: '/assets/images/running-ads-desktop-chair.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+          ],
+        },
+        {
+          id: 'automobile',
+          title: 'Automobile listings',
+          cards: [
+            {
+              id: 'auto-1',
+              title: 'Maserati',
+              imageSrc: '/assets/images/running-ads-desktop-car.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+          ],
+        },
+        {
+          id: 'property',
+          title: 'Property listings',
+          cards: [
+            {
+              id: 'property-1',
+              title: 'Nike sneaker',
+              imageSrc: '/assets/images/running-ads-desktop-sneaker.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+          ],
+        },
+      ],
+      paused: [
+        {
+          id: 'paused',
+          title: 'Other listings',
+          cards: [
+            {
+              id: 'other-paused',
+              title: 'Ergonomic chair',
+              imageSrc: '/assets/images/running-ads-desktop-chair.png',
+              expiresOn: '24 May, 2025',
+              price: 'Free',
+              tag: 'Used',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+          ],
+        },
+      ],
+      expired: [
+        {
+          id: 'expired',
+          title: 'Other listings',
+          cards: [
+            {
+              id: 'other-expired',
+              title: 'Iphone X (64 gig)',
+              imageSrc: '/assets/images/running-ads-desktop-iphonex.png',
+              expiresOn: '24 May, 2025',
+              price: '₦35,000',
+              oldPrice: '₦35,000',
+              discount: '-22%',
+              views: '1K',
+              clicks: '500',
+              messages: '41',
+              calls: '8',
+            },
+          ],
+        },
+      ],
     },
     'store promotions': {
       active: [
@@ -1397,6 +1415,8 @@ export class RunningAdsPageComponent {
       return;
     }
 
+    this.isSubmittingBanner.set(true);
+
     this.sellerMonetizationService
       .createBannerAd({
         title: payload.title,
@@ -1406,15 +1426,18 @@ export class RunningAdsPageComponent {
       })
       .subscribe({
         next: () => {
+          this.isSubmittingBanner.set(false);
           this.activePlacement.set('banner ads');
           this.activeStatus.set('active');
           this.currentPage.set(1);
-          this.isCreateBannerModalOpen.set(false);
           this.appToastService.show({ message: 'Banner ad submitted for review.' });
           this.loadAdsData();
         },
         error: () => {
-          this.appToastService.show({ message: 'That banner ad couldn’t be created right now. Please try again.' });
+          this.isSubmittingBanner.set(false);
+          this.appToastService.show({
+            message: 'That banner ad couldn’t be created right now. Please try again.',
+          });
         },
       });
   }
@@ -1430,7 +1453,9 @@ export class RunningAdsPageComponent {
         this.loadAdsData();
       },
       error: () => {
-        this.appToastService.show({ message: 'That store promotion couldn’t be created right now. Please try again.' });
+        this.appToastService.show({
+          message: 'That store promotion couldn’t be created right now. Please try again.',
+        });
       },
     });
   }
@@ -1447,44 +1472,46 @@ export class RunningAdsPageComponent {
         status: this.mapStatusToApiStatus(this.activeStatus()),
       })
       .subscribe({
-      next: (response) => {
-        this.backendAds.set(Array.isArray(response.results) ? response.results : []);
-        this.subscription.set(response.subscription ?? null);
-        this.totalResults.set(typeof response.count === 'number' ? response.count : (response.results?.length ?? 0));
-        this.hasNextPage.set(Boolean(response.next));
-        this.hasPreviousPage.set(Boolean(response.previous));
-        this.backendCounts.set({
-          banner: {
-            active: response.counts?.banner?.active ?? 0,
-            paused: response.counts?.banner?.paused ?? 0,
-            expired: response.counts?.banner?.expired ?? 0,
-            pending: response.counts?.banner?.pending ?? 0,
-            rejected: response.counts?.banner?.rejected ?? 0,
-          },
-          listing: {
-            active: response.counts?.listing?.active ?? 0,
-            paused: response.counts?.listing?.paused ?? 0,
-            expired: response.counts?.listing?.expired ?? 0,
-            pending: response.counts?.listing?.pending ?? 0,
-            rejected: response.counts?.listing?.rejected ?? 0,
-          },
-          store: {
-            active: response.counts?.store?.active ?? 0,
-            paused: response.counts?.store?.paused ?? 0,
-            expired: response.counts?.store?.expired ?? 0,
-            pending: response.counts?.store?.pending ?? 0,
-            rejected: response.counts?.store?.rejected ?? 0,
-          },
-        });
-      },
-      error: () => {
-        this.backendAds.set([]);
-        this.subscription.set(null);
-        this.totalResults.set(0);
-        this.hasNextPage.set(false);
-        this.hasPreviousPage.set(false);
-      },
-    });
+        next: (response) => {
+          this.backendAds.set(Array.isArray(response.results) ? response.results : []);
+          this.subscription.set(response.subscription ?? null);
+          this.totalResults.set(
+            typeof response.count === 'number' ? response.count : (response.results?.length ?? 0),
+          );
+          this.hasNextPage.set(Boolean(response.next));
+          this.hasPreviousPage.set(Boolean(response.previous));
+          this.backendCounts.set({
+            banner: {
+              active: response.counts?.banner?.active ?? 0,
+              paused: response.counts?.banner?.paused ?? 0,
+              expired: response.counts?.banner?.expired ?? 0,
+              pending: response.counts?.banner?.pending ?? 0,
+              rejected: response.counts?.banner?.rejected ?? 0,
+            },
+            listing: {
+              active: response.counts?.listing?.active ?? 0,
+              paused: response.counts?.listing?.paused ?? 0,
+              expired: response.counts?.listing?.expired ?? 0,
+              pending: response.counts?.listing?.pending ?? 0,
+              rejected: response.counts?.listing?.rejected ?? 0,
+            },
+            store: {
+              active: response.counts?.store?.active ?? 0,
+              paused: response.counts?.store?.paused ?? 0,
+              expired: response.counts?.store?.expired ?? 0,
+              pending: response.counts?.store?.pending ?? 0,
+              rejected: response.counts?.store?.rejected ?? 0,
+            },
+          });
+        },
+        error: () => {
+          this.backendAds.set([]);
+          this.subscription.set(null);
+          this.totalResults.set(0);
+          this.hasNextPage.set(false);
+          this.hasPreviousPage.set(false);
+        },
+      });
   }
 
   private buildSections(mode: 'mobile' | 'desktop'): readonly ListingSection[] {
@@ -1617,7 +1644,9 @@ export class RunningAdsPageComponent {
   }
 
   private formatCompactNumber(value: number): string {
-    return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+    return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(
+      value,
+    );
   }
 
   private readBannerSubtitle(link: string): string {

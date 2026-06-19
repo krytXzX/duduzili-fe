@@ -8,7 +8,7 @@ import { AppToastService } from '../../services/app-toast.service';
   template: `
     @if (toast(); as activeToast) {
       <div
-        class="pointer-events-none fixed inset-x-0 bottom-6 z-[120] flex justify-center px-4"
+        class="pointer-events-none fixed inset-x-0 bottom-6 z-[300] flex justify-center px-4"
         aria-live="polite"
         aria-atomic="true"
       >
