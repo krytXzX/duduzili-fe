@@ -1339,10 +1339,11 @@ type VendorTagSummary = {
                                 [attr.aria-pressed]="star <= reviewRating()"
                               >
                                 <ng-icon
-                                  name="heroStarSolid"
+                                  [name]="star <= reviewRating() ? 'heroStarSolid' : 'heroStar'"
                                   class="text-[44px] md:text-[52px]"
                                   [class.text-[#D1DB31]]="star <= reviewRating()"
-                                  [class.text-[#E6E6E9]]="star > reviewRating()"
+                                  [class.text-[#D0D2D9]]="star > reviewRating()"
+                                  aria-hidden="true"
                                 ></ng-icon>
                               </button>
                             }
