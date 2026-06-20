@@ -2618,6 +2618,9 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   }
 
   private readString(value: unknown): string | null {
+    if (typeof value === 'number') {
+      return String(value);
+    }
     return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
   }
 
