@@ -547,13 +547,17 @@ type VendorTagSummary = {
                             {{ review.author }}
                           </h3>
                           <div class="mt-1 flex items-center gap-1.5">
-                            <div class="flex items-center gap-0.5 text-[#3A3C43]">
+                            <div
+                              class="flex items-center gap-0.5 text-[#3A3C43]"
+                              [attr.aria-label]="review.rating + ' out of 5 stars'"
+                            >
                               @for (filled of reviewStars(review.rating); track $index) {
                                 <ng-icon
-                                  name="heroStarSolid"
+                                  [name]="filled ? 'heroStarSolid' : 'heroStar'"
                                   class="text-[11px]"
                                   [class.text-[#3A3C43]]="filled"
-                                  [class.text-[#E5E7EB]]="!filled"
+                                  [class.text-[#D6D8DE]]="!filled"
+                                  aria-hidden="true"
                                 ></ng-icon>
                               }
                             </div>
@@ -625,8 +629,13 @@ type VendorTagSummary = {
                 [class.cursor-not-allowed]="isOwnStore()"
                 [class.opacity-50]="isOwnStore()"
               >
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EEF2FF]">
-                  <ng-icon name="heroChatBubbleOvalLeftEllipsis" class="text-[18px] text-[#6453d9]"></ng-icon>
+                <span
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EEF2FF]"
+                >
+                  <ng-icon
+                    name="heroChatBubbleOvalLeftEllipsis"
+                    class="text-[18px] text-[#6453d9]"
+                  ></ng-icon>
                 </span>
                 <span>
                   {{ isOwnStore() ? 'You own this store' : 'Message in-app' }}
@@ -638,8 +647,13 @@ type VendorTagSummary = {
                 (click)="openWhatsApp(); showContactBottomSheet.set(false)"
                 class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left text-[15px] font-medium text-[#1a1a1a] transition active:bg-[#f4f4f4]"
               >
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E6F9EE]">
-                  <ng-icon name="heroChatBubbleLeftRight" class="text-[18px] text-[#25D366]"></ng-icon>
+                <span
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E6F9EE]"
+                >
+                  <ng-icon
+                    name="heroChatBubbleLeftRight"
+                    class="text-[18px] text-[#25D366]"
+                  ></ng-icon>
                 </span>
                 <span>WhatsApp ({{ store().whatsappNumber || store().callNumber || '—' }})</span>
               </button>
@@ -649,7 +663,9 @@ type VendorTagSummary = {
                 (click)="callSeller(); showContactBottomSheet.set(false)"
                 class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left text-[15px] font-medium text-[#1a1a1a] transition active:bg-[#f4f4f4]"
               >
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF3E8]">
+                <span
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF3E8]"
+                >
                   <ng-icon name="heroPhone" class="text-[18px] text-[#F97316]"></ng-icon>
                 </span>
                 <span>Call ({{ store().callNumber || store().whatsappNumber || '—' }})</span>
@@ -1118,13 +1134,17 @@ type VendorTagSummary = {
                                   </h3>
 
                                   <div class="mt-2 flex items-center gap-2">
-                                    <div class="flex items-center gap-1 text-[#3A3C43]">
+                                    <div
+                                      class="flex items-center gap-1 text-[#3A3C43]"
+                                      [attr.aria-label]="review.rating + ' out of 5 stars'"
+                                    >
                                       @for (filled of reviewStars(review.rating); track $index) {
                                         <ng-icon
-                                          name="heroStarSolid"
+                                          [name]="filled ? 'heroStarSolid' : 'heroStar'"
                                           class="text-[13px]"
                                           [class.text-[#3A3C43]]="filled"
-                                          [class.text-[#E5E7EB]]="!filled"
+                                          [class.text-[#D6D8DE]]="!filled"
+                                          aria-hidden="true"
                                         ></ng-icon>
                                       }
                                     </div>
