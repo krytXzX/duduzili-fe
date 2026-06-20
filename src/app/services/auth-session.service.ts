@@ -1,4 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { environment } from '../../environments/environment';
 import type {
   AuthResponse,
   AuthUser,
@@ -204,16 +205,37 @@ export class AuthSessionService {
 
   private resolveUser(payload: ProfileResponse | LoginResponse): AuthUser | null {
     const directUser = this.isAuthUser(payload) ? payload : null;
+    let user: AuthUser | null = null;
+    
     if (directUser) {
-      return directUser;
+      user = directUser;
+    } else {
+      const nestedUser =
+        payload && typeof payload === 'object' && 'user' in payload
+          ? (payload as { user?: unknown }).user
+          : undefined;
+      if (this.isAuthUser(nestedUser)) {
+        user = nestedUser;
+      }
     }
 
-    const nestedUser =
-      payload && typeof payload === 'object' && 'user' in payload
-        ? (payload as { user?: unknown }).user
-        : undefined;
+    if (user) {
+      // Clone the user object to avoid mutating frozen/original response objects
+      const clonedUser = { ...user };
+      if (clonedUser.avatar && !clonedUser.avatar.startsWith('http') && !clonedUser.avatar.startsWith('data:')) {
+        try {
+          const origin = new URL(environment.apiUrl).origin;
+          clonedUser.avatar = clonedUser.avatar.startsWith('/')
+            ? `${origin}${clonedUser.avatar}`
+            : `${origin}/${clonedUser.avatar}`;
+        } catch {
+          // Fallback if URL parsing fails
+        }
+      }
+      return clonedUser;
+    }
 
-    return this.isAuthUser(nestedUser) ? nestedUser : null;
+    return null;
   }
 
   private toCheckEmailProfile(user: AuthUser | null): CheckEmailResponse | null {
