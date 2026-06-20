@@ -341,12 +341,10 @@
 
     <section class="mx-auto max-w-[1440px] px-5 pb-8 lg:px-[100px] lg:pb-[72px]">
       @if (isHomeLoading() && !homeResponse()) {
-      <div class="hidden items-center gap-5 lg:flex">
-        @for (item of promotionSkeletonItems; track item) {
-        <div class="h-[225px] flex-1 animate-pulse rounded-[24px] bg-[#F3F4F6]"></div>
-        }
+      <div class="flex overflow-x-auto gap-4 snap-x snap-mandatory no-scrollbar -mx-5 px-5 pb-4 lg:hidden">
+        <div class="h-[224px] w-[85vw] shrink-0 snap-center animate-pulse rounded-[18px] bg-[#F3F4F6]"></div>
+        <div class="h-[224px] w-[85vw] shrink-0 snap-center animate-pulse rounded-[18px] bg-[#F3F4F6]"></div>
       </div>
-      <div class="h-[224px] animate-pulse rounded-[18px] bg-[#F3F4F6] lg:hidden"></div>
       } @else if (promotions().length) {
       <div class="hidden items-center gap-5 lg:flex">
         @for (promotion of promotions(); track promotion.id) {
@@ -359,10 +357,10 @@
         }
       </div>
 
-      <div class="lg:hidden">
-        @if (mobilePromotion(); as promotion) {
-        <button type="button" class="relative overflow-hidden rounded-[18px] text-left" [class.cursor-pointer]="!!promotion.link" [class.cursor-default]="!promotion.link" (click)="openPromotion(promotion)" [attr.aria-label]="promotion.link ? 'Open sponsored promotion' : null">
-          <img [ngSrc]="promotion.image" alt="Sponsored promotion" width="399" height="224" loading="lazy" class="h-auto w-full object-cover" />
+      <div class="flex overflow-x-auto gap-4 snap-x snap-mandatory no-scrollbar -mx-5 px-5 pb-4 lg:hidden">
+        @for (promotion of promotions(); track promotion.id) {
+        <button type="button" class="relative w-[85vw] shrink-0 snap-center overflow-hidden rounded-[18px] text-left" [class.cursor-pointer]="!!promotion.link" [class.cursor-default]="!promotion.link" (click)="openPromotion(promotion)" [attr.aria-label]="promotion.link ? 'Open sponsored promotion' : null">
+          <img [ngSrc]="promotion.image" alt="Sponsored promotion" width="399" height="224" loading="lazy" class="h-[224px] w-full object-cover" />
           <span class="absolute bottom-3 left-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
             Sponsored
           </span>
