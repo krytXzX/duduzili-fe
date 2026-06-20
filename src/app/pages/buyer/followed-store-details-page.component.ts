@@ -777,9 +777,14 @@ type VendorTagSummary = {
                   <button
                     type="button"
                     (click)="toggleVendorFollow()"
-                    class="rounded-full bg-[#F3F4F6] px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#EDEEF2]"
+                    [disabled]="isFollowPending()"
+                    class="rounded-full bg-[#F3F4F6] px-6 py-3 text-sm font-medium text-[#1A1C21] transition hover:bg-[#EDEEF2] disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {{ store().isFollowed ? 'Unfollow seller' : 'Follow seller' }}
+                    @if (isFollowPending()) {
+                      <span>Loading...</span>
+                    } @else {
+                      {{ store().isFollowed ? 'Unfollow seller' : 'Follow seller' }}
+                    }
                   </button>
 
                   <div class="relative">

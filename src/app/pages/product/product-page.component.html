@@ -711,9 +711,14 @@
                 <button
                   type="button"
                   (click)="toggleVendorFollow()"
-                  class="h-10 rounded-full bg-[#F4F4F4] px-4 text-[14px] font-medium text-[#2D2D2D] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ECECEC] hover:shadow-[0_12px_24px_-20px_rgba(17,24,39,0.28)] active:translate-y-0 active:scale-[0.97]"
+                  [disabled]="isFollowPending()"
+                  class="h-10 rounded-full bg-[#F4F4F4] px-4 text-[14px] font-medium text-[#2D2D2D] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ECECEC] hover:shadow-[0_12px_24px_-20px_rgba(17,24,39,0.28)] active:translate-y-0 active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {{ store().isFollowed ? 'Unfollow vendor' : 'Follow vendor' }}
+                  @if (isFollowPending()) {
+                    <span>Loading...</span>
+                  } @else {
+                    {{ store().isFollowed ? 'Unfollow vendor' : 'Follow vendor' }}
+                  }
                 </button>
               </div>
             </div>
