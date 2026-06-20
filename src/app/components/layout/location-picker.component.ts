@@ -13,11 +13,12 @@ import { LocationService } from '../../services/location.service';
         aria-label="Choose location"
         role="dialog"
         aria-modal="true"
-        style="touch-action: none; overscroll-behavior: contain;"
+        style="overscroll-behavior: contain;"
       >
         <button
           type="button"
           class="absolute inset-0 cursor-default"
+          style="touch-action: none;"
           aria-label="Close location picker"
           (click)="locationService.closeLocationPicker()"
         ></button>
@@ -45,7 +46,8 @@ import { LocationService } from '../../services/location.service';
           </button>
 
           <div
-            class="relative flex min-h-0 flex-1 flex-col overflow-hidden px-5 pt-8 lg:px-8 lg:pt-10"
+            class="relative flex min-h-0 flex-1 flex-col px-5 pt-8 lg:px-8 lg:pt-10"
+            style="overflow: hidden;"
           >
             <h2
               class="text-[24px] font-semibold leading-8 tracking-[-0.03em] text-[#1A1B1D] lg:text-[32px] lg:leading-9"
@@ -53,9 +55,13 @@ import { LocationService } from '../../services/location.service';
               Choose location
             </h2>
 
-            <div class="relative mt-6 min-h-0 flex-1 overflow-hidden lg:mt-8">
+            <div
+              class="relative mt-6 min-h-0 flex-1 lg:mt-8"
+              style="overflow-x: hidden; overflow-y:auto"
+            >
               <div
                 class="no-scrollbar h-full overflow-y-auto pr-1 transition-transform duration-300 ease-out lg:pr-2"
+                style="touch-action: pan-y; -webkit-overflow-scrolling: touch;"
                 [class.-translate-x-[8%]]="locationService.activeLocationPanel() !== null"
                 [class.opacity-0]="locationService.activeLocationPanel() !== null"
                 [class.pointer-events-none]="locationService.activeLocationPanel() !== null"
@@ -143,7 +149,10 @@ import { LocationService } from '../../services/location.service';
                       </div>
                     </div>
 
-                    <div class="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-2 pr-1 pt-4 lg:pr-2">
+                    <div
+                      class="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-2 pr-1 pt-4 lg:pr-2"
+                      style="touch-action: pan-y; -webkit-overflow-scrolling: touch;"
+                    >
                       <div class="flex flex-wrap gap-2 lg:gap-3">
                         @for (city of panel.cities; track city) {
                           <button
@@ -151,16 +160,24 @@ import { LocationService } from '../../services/location.service';
                             (click)="locationService.selectLocationCity(panel.value, city)"
                             class="rounded-full px-4 py-2 text-[13px] font-medium leading-4 transition lg:px-5 lg:py-3 lg:text-[14px] lg:leading-4"
                             [class.bg-[#F3F1FF]]="
-                              panel.value === locationService.selectedLocation() && city === locationService.selectedCity()
+                              panel.value === locationService.selectedLocation() &&
+                              city === locationService.selectedCity()
                             "
                             [class.text-[#6453D9]]="
-                              panel.value === locationService.selectedLocation() && city === locationService.selectedCity()
+                              panel.value === locationService.selectedLocation() &&
+                              city === locationService.selectedCity()
                             "
                             [class.bg-[#F5F5F5]]="
-                              !(panel.value === locationService.selectedLocation() && city === locationService.selectedCity())
+                              !(
+                                panel.value === locationService.selectedLocation() &&
+                                city === locationService.selectedCity()
+                              )
                             "
                             [class.text-[#1A1B1D]]="
-                              !(panel.value === locationService.selectedLocation() && city === locationService.selectedCity())
+                              !(
+                                panel.value === locationService.selectedLocation() &&
+                                city === locationService.selectedCity()
+                              )
                             "
                           >
                             {{ city }}
