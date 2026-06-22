@@ -2584,13 +2584,7 @@ export class MessagesPageComponent implements OnDestroy {
       );
       this.scrollMessagesToBottom();
 
-      this.activeChatConnection = this.websocketService.connectChat(chatId);
-      this.activeChatConnection.messages$.subscribe({
-        next: (data) => this.handleWebsocketMessage(chatId, data),
-        error: (err) => console.error('Chat WebSocket error:', err),
-      });
-
-      this.activeChatConnection.read();
+      this.connectRealtimeChat(chatId);
     } catch {
       this.conversationDetailsError.set(
         'This conversation could not be loaded right now. Please try again.',
@@ -2598,6 +2592,27 @@ export class MessagesPageComponent implements OnDestroy {
     } finally {
       this.isLoadingConversationDetails.set(false);
     }
+  }
+
+  private connectRealtimeChat(chatId: string): void {
+    if (!this.authSession.accessToken()) {
+      this.activeChatConnection = null;
+      return;
+    }
+
+    const connection = this.websocketService.connectChat(chatId);
+    this.activeChatConnection = connection;
+
+    connection.messages$.subscribe({
+      next: (data) => this.handleWebsocketMessage(chatId, data),
+      error: () => {
+        if (this.activeChatConnection === connection) {
+          this.activeChatConnection = null;
+        }
+      },
+    });
+
+    connection.read();
   }
 
   private handleWebsocketMessage(chatId: string, data: any): void {

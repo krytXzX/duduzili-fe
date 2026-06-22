@@ -40,7 +40,7 @@ export class WebsocketService {
 
       const token = this.authSession.accessToken();
       if (!token) {
-        messagesSubject.error(new Error('No access token available.'));
+        messagesSubject.complete();
         return;
       }
 
@@ -121,7 +121,7 @@ export class WebsocketService {
 
       const token = this.authSession.accessToken();
       if (!token) {
-        messagesSubject.error(new Error('No access token available.'));
+        messagesSubject.complete();
         return;
       }
 
