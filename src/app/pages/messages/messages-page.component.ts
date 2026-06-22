@@ -2948,14 +2948,10 @@ export class MessagesPageComponent implements OnDestroy {
         const didSend = this.activeChatConnection.send(body, replyTargetId);
 
         if (didSend) {
-          const tempId = `ws-local-${Date.now()}`;
-          this.appendOutgoingMessage(chatId, body, undefined, tempId);
-
           this.draftMessage.set('');
           this.clearSelectedImage();
           this.activeReplyTarget.set(null);
           this.resetDraftComposerHeights();
-          this.scrollMobileMessagesToBottom();
           this.isSendingMessage.set(false);
           return;
         }
@@ -3091,16 +3087,24 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   private appendOutgoingMessage(chatId: string, body: string, imageUrl?: string, messageId?: string): void {
+    const resolvedMessageId = messageId || `local-${Date.now()}`;
+    const currentDays = this.conversationDays()[chatId] ?? [];
+    const messageExists = currentDays.some((day) =>
+      day.messages.some((message) => message.id === resolvedMessageId),
+    );
+
+    if (messageExists) {
+      return;
+    }
+
     const nextMessage: ChatTextMessage = {
-      id: messageId || `local-${Date.now()}`,
+      id: resolvedMessageId,
       kind: 'text',
       author: 'You',
       text: body || undefined,
       image: imageUrl || undefined,
       outgoing: true,
     };
-
-    const currentDays = this.conversationDays()[chatId] ?? [];
 
     if (currentDays.length === 0) {
       this.conversationDays.update((current) => ({
