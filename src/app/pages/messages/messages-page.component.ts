@@ -2940,26 +2940,29 @@ export class MessagesPageComponent implements OnDestroy {
       return;
     }
 
+    this.isSendingMessage.set(true);
+
     if (this.activeChatConnection && !imageFile) {
       try {
         const replyTargetId = this.activeReplyTarget()?.messageId ?? null;
-        this.activeChatConnection.send(body, replyTargetId);
+        const didSend = this.activeChatConnection.send(body, replyTargetId);
 
-        const tempId = `ws-local-${Date.now()}`;
-        this.appendOutgoingMessage(chatId, body, undefined, tempId);
+        if (didSend) {
+          const tempId = `ws-local-${Date.now()}`;
+          this.appendOutgoingMessage(chatId, body, undefined, tempId);
 
-        this.draftMessage.set('');
-        this.clearSelectedImage();
-        this.activeReplyTarget.set(null);
-        this.resetDraftComposerHeights();
-        this.scrollMobileMessagesToBottom();
-        return;
+          this.draftMessage.set('');
+          this.clearSelectedImage();
+          this.activeReplyTarget.set(null);
+          this.resetDraftComposerHeights();
+          this.scrollMobileMessagesToBottom();
+          this.isSendingMessage.set(false);
+          return;
+        }
       } catch (err) {
         console.error('Failed to send via WebSocket, falling back to HTTP:', err);
       }
     }
-
-    this.isSendingMessage.set(true);
 
     let payload: SendMessageRequest | FormData;
     if (imageFile) {
