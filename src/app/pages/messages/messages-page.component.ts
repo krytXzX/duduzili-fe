@@ -602,6 +602,7 @@ type ChatDay = {
             </header>
 
             <div
+              #desktopMessagesScroller
               class="min-h-0 overflow-y-auto px-[23px] py-6 chats-scrollbar"
               (contextmenu)="suppressNativeContextMenu($event)"
             >
@@ -2109,6 +2110,8 @@ export class MessagesPageComponent implements OnDestroy {
   private longPressTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly mobileMessagesScroller =
     viewChild<ElementRef<HTMLDivElement>>('mobileMessagesScroller');
+  private readonly desktopMessagesScroller =
+    viewChild<ElementRef<HTMLDivElement>>('desktopMessagesScroller');
   private readonly imageInput =
     viewChild<ElementRef<HTMLInputElement>>('imageInput');
   private readonly browserWindow = this.document.defaultView;
@@ -2224,7 +2227,7 @@ export class MessagesPageComponent implements OnDestroy {
       this.mobileConversationOverlayOpen = true;
     }
 
-    this.scrollMobileMessagesToBottom();
+    this.scrollMessagesToBottom();
     void this.loadConversationDetails(chatId);
   }
 
@@ -2378,7 +2381,7 @@ export class MessagesPageComponent implements OnDestroy {
         this.mobileOverlayService.openMobileModal();
         this.mobileConversationOverlayOpen = true;
       }
-      this.scrollMobileMessagesToBottom();
+      this.scrollMessagesToBottom();
     }
 
     await this.loadConversationDetails(nextActiveChatId);
@@ -2579,7 +2582,7 @@ export class MessagesPageComponent implements OnDestroy {
             : conversation,
         ),
       );
-      this.scrollMobileMessagesToBottom();
+      this.scrollMessagesToBottom();
 
       this.activeChatConnection = this.websocketService.connectChat(chatId);
       this.activeChatConnection.messages$.subscribe({
@@ -2614,6 +2617,7 @@ export class MessagesPageComponent implements OnDestroy {
       const messageExists = currentDays.some((day) =>
         day.messages.some((msg) => msg.id === messageId),
       );
+      const shouldScrollAfterMessage = outgoing || this.isActiveConversationNearBottom();
 
       if (messageExists) {
         return;
@@ -2665,7 +2669,9 @@ export class MessagesPageComponent implements OnDestroy {
             : conversation,
         ),
       );
-      this.scrollMobileMessagesToBottom();
+      if (shouldScrollAfterMessage) {
+        this.scrollMessagesToBottom();
+      }
     }
   }
 
@@ -2984,7 +2990,7 @@ export class MessagesPageComponent implements OnDestroy {
       this.clearSelectedImage();
       this.activeReplyTarget.set(null);
       this.resetDraftComposerHeights();
-      this.scrollMobileMessagesToBottom();
+      this.scrollMessagesToBottom();
     } catch {
       this.appToastService.show({
         message: 'Your message could not be sent. Please try again.',
@@ -3063,19 +3069,41 @@ export class MessagesPageComponent implements OnDestroy {
       const length = activeField.value.length;
       activeField.setSelectionRange(length, length);
       this.resizeDraftComposer(activeField);
-      this.scrollMobileMessagesToBottom();
+      this.scrollMessagesToBottom();
     }, 0);
   }
 
-  private scrollMobileMessagesToBottom(): void {
+  private scrollMessagesToBottom(): void {
     this.browserWindow?.requestAnimationFrame(() => {
       this.browserWindow?.requestAnimationFrame(() => {
-        const scroller = this.mobileMessagesScroller()?.nativeElement;
-        if (scroller) {
-          scroller.scrollTop = scroller.scrollHeight;
-        }
+        this.scrollElementToBottom(this.desktopMessagesScroller()?.nativeElement ?? null);
+        this.scrollElementToBottom(this.mobileMessagesScroller()?.nativeElement ?? null);
       });
     });
+  }
+
+  private scrollElementToBottom(element: HTMLElement | null): void {
+    if (!element) {
+      return;
+    }
+
+    element.scrollTop = element.scrollHeight;
+  }
+
+  private isActiveConversationNearBottom(): boolean {
+    const scrollers: readonly (HTMLElement | null)[] = [
+      this.desktopMessagesScroller()?.nativeElement ?? null,
+      this.mobileMessagesScroller()?.nativeElement ?? null,
+    ];
+
+    return scrollers
+      .filter((element): element is HTMLElement => element !== null)
+      .some((element) => this.isElementNearBottom(element));
+  }
+
+  private isElementNearBottom(element: HTMLElement): boolean {
+    const remainingScroll = element.scrollHeight - element.scrollTop - element.clientHeight;
+    return remainingScroll <= 120;
   }
 
   protected openStoreSelector(): void {
