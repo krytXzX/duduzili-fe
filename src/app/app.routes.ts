@@ -21,7 +21,6 @@ export const routes: Routes = [
     component: HomePageComponent,
     pathMatch: 'full',
     title: 'Home',
-    canActivate: [guestGuard],
   },
   {
     path: 'stores/:id',

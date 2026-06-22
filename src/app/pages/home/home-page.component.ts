@@ -280,6 +280,22 @@ export class HomePageComponent {
     }
 
     effect(() => {
+      if (
+        !isPlatformBrowser(this.platformId) ||
+        !this.showPublicChrome() ||
+        !this.authSession.isBootstrapComplete() ||
+        !this.authSession.isAuthenticated()
+      ) {
+        return;
+      }
+
+      const redirectTarget = this.authSession.isSuperuser() ? '/admin' : '/en';
+      if (this.router.url !== redirectTarget) {
+        void this.router.navigate([redirectTarget]);
+      }
+    });
+
+    effect(() => {
       if (!isPlatformBrowser(this.platformId)) {
         return;
       }
