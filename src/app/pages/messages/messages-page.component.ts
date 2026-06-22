@@ -82,6 +82,12 @@ interface MessageMenuTarget extends ReplyTarget {
 
 type DeleteIntent = 'chat' | 'messages';
 
+type ConversationDetailsLoadOptions = {
+  reconnectRealtime?: boolean;
+  showLoading?: boolean;
+  scrollToBottom?: boolean;
+};
+
 type ChatTextMessage = {
   id: string;
   kind: 'text';
@@ -2004,6 +2010,7 @@ export class MessagesPageComponent implements OnDestroy {
   private readonly authSession = inject(AuthSessionService);
   private readonly websocketService = inject(WebsocketService);
   private activeChatConnection: ChatWebsocketConnection | null = null;
+  private activeConversationFallbackRefreshTimer: ReturnType<typeof setInterval> | null = null;
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
@@ -2546,14 +2553,26 @@ export class MessagesPageComponent implements OnDestroy {
     };
   }
 
-  private async loadConversationDetails(chatId: string): Promise<void> {
-    if (this.activeChatConnection) {
-      this.activeChatConnection.close();
-      this.activeChatConnection = null;
+  private async loadConversationDetails(
+    chatId: string,
+    options: ConversationDetailsLoadOptions = {},
+  ): Promise<void> {
+    const reconnectRealtime = options.reconnectRealtime ?? true;
+    const showLoading = options.showLoading ?? true;
+    const scrollToBottom = options.scrollToBottom ?? true;
+
+    if (reconnectRealtime) {
+      this.clearActiveConversationFallbackRefresh();
+      if (this.activeChatConnection) {
+        this.activeChatConnection.close();
+        this.activeChatConnection = null;
+      }
     }
 
-    this.isLoadingConversationDetails.set(true);
-    this.conversationDetailsError.set(null);
+    if (showLoading) {
+      this.isLoadingConversationDetails.set(true);
+      this.conversationDetailsError.set(null);
+    }
 
     try {
       const response = await firstValueFrom(this.messagesService.getMessageDetails(chatId));
@@ -2582,24 +2601,27 @@ export class MessagesPageComponent implements OnDestroy {
             : conversation,
         ),
       );
-      this.scrollMessagesToBottom();
+      if (scrollToBottom) {
+        this.scrollMessagesToBottom();
+      }
 
-      this.connectRealtimeChat(chatId);
+      if (reconnectRealtime) {
+        this.connectRealtimeChat(chatId);
+      }
     } catch {
-      this.conversationDetailsError.set(
-        'This conversation could not be loaded right now. Please try again.',
-      );
+      if (showLoading) {
+        this.conversationDetailsError.set(
+          'This conversation could not be loaded right now. Please try again.',
+        );
+      }
     } finally {
-      this.isLoadingConversationDetails.set(false);
+      if (showLoading) {
+        this.isLoadingConversationDetails.set(false);
+      }
     }
   }
 
   private connectRealtimeChat(chatId: string): void {
-    if (!this.authSession.accessToken()) {
-      this.activeChatConnection = null;
-      return;
-    }
-
     const connection = this.websocketService.connectChat(chatId);
     this.activeChatConnection = connection;
 
@@ -2608,11 +2630,46 @@ export class MessagesPageComponent implements OnDestroy {
       error: () => {
         if (this.activeChatConnection === connection) {
           this.activeChatConnection = null;
+          this.startActiveConversationFallbackRefresh(chatId);
+        }
+      },
+      complete: () => {
+        if (this.activeChatConnection === connection) {
+          this.activeChatConnection = null;
+          this.startActiveConversationFallbackRefresh(chatId);
         }
       },
     });
 
     connection.read();
+  }
+
+  private startActiveConversationFallbackRefresh(chatId: string): void {
+    if (this.activeConversationFallbackRefreshTimer) {
+      return;
+    }
+
+    this.activeConversationFallbackRefreshTimer = setInterval(() => {
+      if (this.activeChatId() !== chatId) {
+        this.clearActiveConversationFallbackRefresh();
+        return;
+      }
+
+      void this.loadConversationDetails(chatId, {
+        reconnectRealtime: false,
+        showLoading: false,
+        scrollToBottom: this.isActiveConversationNearBottom(),
+      });
+    }, 5000);
+  }
+
+  private clearActiveConversationFallbackRefresh(): void {
+    if (!this.activeConversationFallbackRefreshTimer) {
+      return;
+    }
+
+    clearInterval(this.activeConversationFallbackRefreshTimer);
+    this.activeConversationFallbackRefreshTimer = null;
   }
 
   private handleWebsocketMessage(chatId: string, data: any): void {
@@ -3635,6 +3692,11 @@ export class MessagesPageComponent implements OnDestroy {
   protected async selectStore(storeId: string): Promise<void> {
     this.selectedStoreId.set(storeId);
     this.closeStoreSelector();
+    this.clearActiveConversationFallbackRefresh();
+    if (this.activeChatConnection) {
+      this.activeChatConnection.close();
+      this.activeChatConnection = null;
+    }
     this.conversationDays.set({});
     this.deletedMessageIds.set([]);
     this.selectedMessageIds.set([]);
@@ -3658,6 +3720,7 @@ export class MessagesPageComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.clearActiveConversationFallbackRefresh();
     if (this.activeChatConnection) {
       this.activeChatConnection.close();
       this.activeChatConnection = null;

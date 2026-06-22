@@ -38,7 +38,7 @@ export class WebsocketService {
 
       if (isClosed) return;
 
-      const token = this.authSession.accessToken();
+      const token = await this.resolveAccessToken();
       if (!token) {
         messagesSubject.complete();
         return;
@@ -119,7 +119,7 @@ export class WebsocketService {
 
       if (isClosed) return;
 
-      const token = this.authSession.accessToken();
+      const token = await this.resolveAccessToken();
       if (!token) {
         messagesSubject.complete();
         return;
@@ -185,5 +185,19 @@ export class WebsocketService {
         messagesSubject.complete();
       }
     };
+  }
+
+  private async resolveAccessToken(): Promise<string | null> {
+    const existingToken = this.authSession.accessToken();
+    if (existingToken) {
+      return existingToken;
+    }
+
+    try {
+      const refreshed = await this.authRefresh.refreshAccessToken();
+      return refreshed ? this.authSession.accessToken() : null;
+    } catch {
+      return null;
+    }
   }
 }
