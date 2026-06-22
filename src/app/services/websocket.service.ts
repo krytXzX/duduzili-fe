@@ -6,7 +6,6 @@ import { AuthRefreshService } from './auth-refresh.service';
 
 export interface ChatWebsocketConnection {
   messages$: Observable<any>;
-  send(body: string, replyTo?: string | null): boolean;
   typing(): void;
   read(): void;
   close(): void;
@@ -87,15 +86,6 @@ export class WebsocketService {
 
     return {
       messages$: messagesSubject.asObservable(),
-      send: (body: string, replyTo: string | null = null) => {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify({ type: 'message', body, reply_to: replyTo }));
-          return true;
-        }
-
-        console.warn('Socket is not open. Falling back to HTTP message send.');
-        return false;
-      },
       typing: () => {
         if (socket && socket.readyState === WebSocket.OPEN) {
           socket.send(JSON.stringify({ type: 'typing' }));

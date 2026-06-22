@@ -2948,24 +2948,6 @@ export class MessagesPageComponent implements OnDestroy {
 
     this.isSendingMessage.set(true);
 
-    if (this.activeChatConnection && !imageFile) {
-      try {
-        const replyTargetId = this.activeReplyTarget()?.messageId ?? null;
-        const didSend = this.activeChatConnection.send(body, replyTargetId);
-
-        if (didSend) {
-          this.draftMessage.set('');
-          this.clearSelectedImage();
-          this.activeReplyTarget.set(null);
-          this.resetDraftComposerHeights();
-          this.isSendingMessage.set(false);
-          return;
-        }
-      } catch (err) {
-        console.error('Failed to send via WebSocket, falling back to HTTP:', err);
-      }
-    }
-
     let payload: SendMessageRequest | FormData;
     if (imageFile) {
       const formData = new FormData();
