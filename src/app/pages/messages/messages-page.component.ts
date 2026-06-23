@@ -857,15 +857,6 @@ type ChatDay = {
                       class="h-6 w-6"
                     />
                   </button>
-                  <button type="button">
-                    <img
-                      [ngSrc]="assets.emojiDesktop"
-                      width="24"
-                      height="24"
-                      alt=""
-                      class="h-6 w-6"
-                    />
-                  </button>
                 </div>
 
                 <div
@@ -2033,7 +2024,6 @@ export class MessagesPageComponent implements OnDestroy {
     chevronDown: '/assets/icons/chats-chevron-down.svg',
     ediriAvatarDesktop: '/assets/images/chats-ediri-avatar-desktop.png',
     ediriAvatarMobile: '/assets/images/chats-ediri-avatar-mobile.png',
-    emojiDesktop: '/assets/icons/chats-emoji-desktop.svg',
     galleryDesktop: '/assets/icons/chats-gallery-desktop.svg',
     galleryMobile: '/assets/icons/chats-gallery-mobile.svg',
     clearChatClose: '/assets/icons/chats-clear-chat-close.svg',
