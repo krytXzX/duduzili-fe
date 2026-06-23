@@ -494,11 +494,43 @@ export class NotificationsPageComponent implements OnDestroy {
     }
   }
 
-  private handleWebsocketNotification(data: any): void {
-    if (data.type === 'notification') {
-      const mapped = this.toNotification(data, this.notifications().length);
+  private handleWebsocketNotification(data: unknown): void {
+    const event = this.readRecord(data);
+    if (!event) {
+      return;
+    }
+
+    if (event['type'] === 'unread_count') {
+      const count = this.readNumber(event['count']) ?? this.readNumber(event['unread_count']);
+      if (count !== null) {
+        this.notificationsService.setUnreadCount(count);
+      }
+      return;
+    }
+
+    if (event['type'] === 'notification_history') {
+      const history = this.readNotificationArray(event['notifications']);
+      if (!history.length) {
+        return;
+      }
+
+      const mappedHistory = history
+        .map((item, index) => this.toNotification(item, index))
+        .filter((item): item is AppNotification => item !== null);
+
+      if (mappedHistory.length) {
+        this.notifications.update((current) => this.mergeNotifications(mappedHistory, current));
+      }
+      return;
+    }
+
+    if (event['type'] === 'notification') {
+      const mapped = this.toNotification(event, this.notifications().length);
       if (mapped) {
         this.notifications.update((current) => [mapped, ...current]);
+        if (!mapped.read) {
+          this.notificationsService.incrementUnreadCount();
+        }
       }
     }
   }
@@ -508,6 +540,7 @@ export class NotificationsPageComponent implements OnDestroy {
   }
 
   async openNotification(notification: AppNotification): Promise<void> {
+    const wasUnread = !notification.read;
     this.selectedNotification.set(notification);
     this.isNotificationDetailsLoading.set(true);
 
@@ -522,6 +555,10 @@ export class NotificationsPageComponent implements OnDestroy {
       this.notifications.update((items) =>
         items.map((item) => (item.id === detailedNotification.id ? detailedNotification : item)),
       );
+
+      if (wasUnread && detailedNotification.read) {
+        this.notificationsService.decrementUnreadCount();
+      }
 
       if (this.notificationsConnection) {
         this.notificationsConnection.markRead(notification.id);
@@ -543,11 +580,15 @@ export class NotificationsPageComponent implements OnDestroy {
       return;
     }
 
+    const notification = this.notifications().find((item) => item.id === id) ?? null;
     this.deletingNotificationIds.update((ids) => [...ids, id]);
 
     try {
       await firstValueFrom(this.notificationsService.deleteNotification(id));
       this.notifications.update((items) => items.filter((item) => item.id !== id));
+      if (notification && !notification.read) {
+        this.notificationsService.decrementUnreadCount();
+      }
       if (this.selectedNotification()?.id === id) {
         this.closeNotification();
       }
@@ -587,6 +628,7 @@ export class NotificationsPageComponent implements OnDestroy {
         .filter((item): item is AppNotification => item !== null);
 
       this.notifications.set(notifications);
+      this.notificationsService.refreshUnreadCount();
     } catch {
       this.notifications.set([]);
       this.errorMessage.set('Your notifications aren’t available right now. Please try again shortly.');
@@ -648,6 +690,21 @@ export class NotificationsPageComponent implements OnDestroy {
     };
   }
 
+  private mergeNotifications(incoming: readonly AppNotification[], current: readonly AppNotification[]): AppNotification[] {
+    const seen = new Set<string>();
+    const merged: AppNotification[] = [];
+
+    for (const notification of [...incoming, ...current]) {
+      if (seen.has(notification.id)) {
+        continue;
+      }
+      seen.add(notification.id);
+      merged.push(notification);
+    }
+
+    return merged;
+  }
+
   private resolveKind(item: NotificationApiItem): NotificationKind {
     const rawType =
       (this.readString(item['notification_type']) ??
@@ -699,10 +756,29 @@ export class NotificationsPageComponent implements OnDestroy {
     return typeof value === 'boolean' ? value : null;
   }
 
+  private readNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string' && value.trim()) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
   private readRecord(value: unknown): Record<string, unknown> | null {
     return value && typeof value === 'object' && !Array.isArray(value)
       ? (value as Record<string, unknown>)
       : null;
+  }
+
+  private readNotificationArray(value: unknown): NotificationApiItem[] {
+    return Array.isArray(value)
+      ? value.filter((item): item is NotificationApiItem => this.readRecord(item) !== null)
+      : [];
   }
 
   private relativeTimeFromDate(value: string | null): string | null {

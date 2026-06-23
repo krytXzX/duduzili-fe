@@ -47,6 +47,24 @@ export class NotificationsService {
     return this.http.delete(`${this.apiUrl}/notifications/${id}/delete/`);
   }
 
+  markNotificationsRead(ids: readonly string[]): Observable<{ marked_read?: number }> {
+    return this.http
+      .post<{ marked_read?: number }>(`${this.apiUrl}/notifications/read/`, { ids })
+      .pipe(tap((response) => this.decrementUnreadCountBy(response.marked_read ?? ids.length)));
+  }
+
+  markAllNotificationsRead(): Observable<{ marked_read?: number }> {
+    return this.http
+      .post<{ marked_read?: number }>(`${this.apiUrl}/notifications/read-all/`, {})
+      .pipe(tap(() => this.clearUnreadCount()));
+  }
+
+  clearAllNotifications(): Observable<unknown> {
+    return this.http
+      .delete(`${this.apiUrl}/notifications/clear-all/`)
+      .pipe(tap(() => this.clearUnreadCount()));
+  }
+
   /** Fetches the unread count from the backend and updates the reactive signal. */
   refreshUnreadCount(): void {
     this.http
@@ -57,9 +75,21 @@ export class NotificationsService {
       });
   }
 
+  setUnreadCount(count: number): void {
+    this._unreadCount.set(Math.max(0, count));
+  }
+
+  incrementUnreadCount(amount = 1): void {
+    this._unreadCount.update((current) => Math.max(0, current + amount));
+  }
+
   /** Decrements the unread count by one (e.g. after reading a notification). */
   decrementUnreadCount(): void {
-    this._unreadCount.update((current) => Math.max(0, current - 1));
+    this.decrementUnreadCountBy(1);
+  }
+
+  decrementUnreadCountBy(amount: number): void {
+    this._unreadCount.update((current) => Math.max(0, current - Math.max(0, amount)));
   }
 
   /** Resets the unread count to zero (e.g. after "mark all as read"). */
