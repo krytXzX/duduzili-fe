@@ -2328,23 +2328,27 @@ export class MessagesPageComponent implements OnDestroy {
       this.readRecord(item['other_user']) ??
       this.readRecord(item['user']);
     const lastMessage = this.readRecord(item['last_message']);
-    const buyerName =
-      this.readString(buyer?.['full_name']) ??
-      this.readString(buyer?.['username']);
-    const vendorUserName =
-      this.readString(vendorUser?.['full_name']) ??
-      this.readString(vendorUser?.['username']);
+    const currentUserId = this.readId(this.authSession.user()?.id);
+    const buyerId = this.readId(buyer?.['id']);
+    const vendorUserId = this.readId(vendorUser?.['id']);
+    const buyerName = this.displayNameFromUserRecord(buyer);
+    const vendorUserName = this.displayNameFromUserRecord(vendorUser);
     const fallbackUserName =
-      this.readString(otherUser?.['full_name']) ??
-      this.readString(otherUser?.['username']) ??
-      this.readString(item['other_user_name']);
+      this.displayNameFromUserRecord(otherUser) ??
+      this.readDisplayName(item['other_user_name']);
     const vendorName =
-      this.readString(item['vendor_name']) ??
-      this.readString(item['name']) ??
-      this.readString(item['title']);
-    const name = this.isSeller()
-      ? buyerName ?? fallbackUserName ?? vendorName
-      : vendorUserName ?? fallbackUserName ?? vendorName ?? buyerName;
+      this.readDisplayName(item['vendor_name']) ??
+      this.readDisplayName(item['name']) ??
+      this.readDisplayName(item['title']);
+    const isCurrentBuyer = currentUserId !== null && currentUserId === buyerId;
+    const isCurrentVendor = currentUserId !== null && currentUserId === vendorUserId;
+    const name = isCurrentBuyer
+      ? vendorUserName ?? fallbackUserName ?? vendorName ?? buyerName
+      : isCurrentVendor
+        ? buyerName ?? fallbackUserName ?? vendorUserName ?? vendorName
+        : this.isSeller()
+          ? buyerName ?? fallbackUserName ?? vendorName
+          : vendorUserName ?? fallbackUserName ?? vendorName ?? buyerName;
     const preview =
       this.readString(this.readRecord(item['last_message'])?.['body']) ??
       this.readString(item['preview']) ??
@@ -2367,9 +2371,13 @@ export class MessagesPageComponent implements OnDestroy {
         this.readString(vendorUser?.['avatar']) ??
           this.readString(otherUser?.['avatar']),
       ) ?? undefined;
-    const displayAvatar = this.isSeller()
-      ? buyerAvatar
-      : vendorUserAvatar;
+    const displayAvatar = isCurrentBuyer
+      ? vendorUserAvatar
+      : isCurrentVendor
+        ? buyerAvatar
+        : this.isSeller()
+          ? buyerAvatar
+          : vendorUserAvatar;
 
     return {
       id,
@@ -2385,7 +2393,7 @@ export class MessagesPageComponent implements OnDestroy {
       unreadCount: this.readNumber(item['unread_count']) ?? undefined,
       avatar: displayAvatar,
       mobileAvatar: displayAvatar,
-      buyerId: this.readId(buyer?.['id']) ?? undefined,
+      buyerId: buyerId ?? undefined,
       vendorId: this.readId(item['vendor']) ?? undefined,
       listingId: this.readId(item['listing']) ?? undefined,
     };
@@ -2601,7 +2609,7 @@ export class MessagesPageComponent implements OnDestroy {
     }
 
     if (data.type === 'message') {
-      const sender = data.sender || 'Unknown';
+      const sender = this.readDisplayName(data.sender) ?? 'Unknown';
       const body = data.body || '';
       const imageUrl = this.resolveMediaUrl(this.readString(data.image));
       const messageId = data.message_id ? String(data.message_id) : `ws-${Date.now()}`;
@@ -2683,7 +2691,11 @@ export class MessagesPageComponent implements OnDestroy {
     for (const record of records) {
       const createdAt = this.readString(record['created_at']) ?? this.readString(record['timestamp']);
       const label = this.formatConversationDayLabel(createdAt);
-      const sender = this.readString(record['sender']) ?? this.readString(record['author']) ?? 'Unknown';
+      const sender =
+        this.displayNameFromUserRecord(this.readRecord(record['sender'])) ??
+        this.readDisplayName(record['sender']) ??
+        this.readDisplayName(record['author']) ??
+        'Unknown';
       const body = this.readString(record['body']) ?? this.readString(record['text']) ?? this.readString(record['message']);
       const imageUrl = this.resolveMediaUrl(this.readString(record['image']));
 
@@ -2782,6 +2794,60 @@ export class MessagesPageComponent implements OnDestroy {
 
   private readString(value: unknown): string | null {
     return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  private readDisplayName(value: unknown): string | null {
+    const rawValue = this.readString(value);
+    if (!rawValue) {
+      return null;
+    }
+
+    return this.toSafeDisplayName(rawValue);
+  }
+
+  private displayNameFromUserRecord(record: Record<string, unknown> | null): string | null {
+    if (!record) {
+      return null;
+    }
+
+    const fullName = this.readDisplayName(record['full_name']);
+    if (fullName) {
+      return fullName;
+    }
+
+    const firstName = this.readString(record['first_name']);
+    const lastName = this.readString(record['last_name']);
+    const combinedName = this.readDisplayName([firstName, lastName].filter(Boolean).join(' '));
+    if (combinedName) {
+      return combinedName;
+    }
+
+    return (
+      this.readDisplayName(record['display_name']) ??
+      this.readDisplayName(record['name']) ??
+      this.readDisplayName(record['username']) ??
+      this.readDisplayName(record['email'])
+    );
+  }
+
+  private toSafeDisplayName(value: string): string {
+    if (!this.isEmailAddress(value)) {
+      return value;
+    }
+
+    const localPart = value.split('@', 1)[0] ?? '';
+    const humanized = localPart
+      .replace(/[._-]+/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+      .join(' ');
+
+    return humanized || 'Duduzili user';
+  }
+
+  private isEmailAddress(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
   }
 
   private readId(value: unknown): string | null {
