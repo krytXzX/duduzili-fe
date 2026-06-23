@@ -2680,6 +2680,7 @@ export class MessagesPageComponent implements OnDestroy {
     if (data.type === 'message') {
       const sender = data.sender || 'Unknown';
       const body = data.body || '';
+      const imageUrl = this.resolveMediaUrl(this.readString(data.image));
       const messageId = data.message_id ? String(data.message_id) : `ws-${Date.now()}`;
       const senderId = this.readId(data.sender_id);
       const currentUserId = this.authSession.user()?.id;
@@ -2700,6 +2701,7 @@ export class MessagesPageComponent implements OnDestroy {
         kind: 'text',
         author: outgoing ? 'You' : sender,
         text: body || undefined,
+        image: imageUrl ?? undefined,
         outgoing,
       };
 
@@ -3013,6 +3015,8 @@ export class MessagesPageComponent implements OnDestroy {
     const chatId = this.activeChatId();
     const body = this.draftMessage().trim();
     const imageFile = this.selectedImageFile();
+    const localImagePreview = imageFile ? this.selectedImagePreview() : null;
+    const optimisticMessageId = imageFile ? `local-${Date.now()}` : null;
 
     if (!chatId || (!body && !imageFile) || this.isSendingMessage()) {
       return;
@@ -3032,6 +3036,22 @@ export class MessagesPageComponent implements OnDestroy {
       payload = { body };
     }
 
+    if (imageFile && optimisticMessageId) {
+      this.appendOutgoingMessage(
+        chatId,
+        body,
+        localImagePreview ?? undefined,
+        optimisticMessageId,
+        'faded',
+      );
+      this.draftMessage.set('');
+      this.selectedImageFile.set(null);
+      this.selectedImagePreview.set(null);
+      this.activeReplyTarget.set(null);
+      this.resetDraftComposerHeights();
+      this.scrollMessagesToBottom();
+    }
+
     try {
       const response = await firstValueFrom(this.messagesService.sendMessage(chatId, payload));
       const responseId = this.readId(response['id']) || `local-${Date.now()}`;
@@ -3039,13 +3059,35 @@ export class MessagesPageComponent implements OnDestroy {
       const imageUrl = responseImage ? this.resolveMediaUrl(responseImage) : undefined;
       const responseBody = this.readString(response['body']) || '';
 
-      this.appendOutgoingMessage(chatId, responseBody, imageUrl || undefined, responseId);
-      this.draftMessage.set('');
-      this.clearSelectedImage();
+      if (optimisticMessageId) {
+        if (this.messageExists(chatId, responseId)) {
+          this.removeMessage(chatId, optimisticMessageId);
+        } else {
+          this.replaceMessage(chatId, optimisticMessageId, {
+            id: responseId,
+            text: responseBody || undefined,
+            image: imageUrl || localImagePreview || undefined,
+            variant: undefined,
+          });
+        }
+      } else {
+        this.appendOutgoingMessage(chatId, responseBody, imageUrl || undefined, responseId);
+        this.draftMessage.set('');
+        this.clearSelectedImage();
+      }
+      if (localImagePreview?.startsWith('blob:') && imageUrl) {
+        URL.revokeObjectURL(localImagePreview);
+      }
       this.activeReplyTarget.set(null);
       this.resetDraftComposerHeights();
       this.scrollMessagesToBottom();
     } catch {
+      if (optimisticMessageId) {
+        this.removeMessage(chatId, optimisticMessageId);
+      }
+      if (localImagePreview?.startsWith('blob:')) {
+        URL.revokeObjectURL(localImagePreview);
+      }
       this.appToastService.show({
         message: 'Your message could not be sent. Please try again.',
       });
@@ -3092,17 +3134,23 @@ export class MessagesPageComponent implements OnDestroy {
       return;
     }
 
+    const currentPreview = this.selectedImagePreview();
+    if (currentPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(currentPreview);
+    }
+
     this.selectedImageFile.set(file);
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.selectedImagePreview.set(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    this.selectedImagePreview.set(URL.createObjectURL(file));
     
     input.value = '';
   }
 
   protected clearSelectedImage(): void {
+    const currentPreview = this.selectedImagePreview();
+    if (currentPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(currentPreview);
+    }
+
     this.selectedImageFile.set(null);
     this.selectedImagePreview.set(null);
   }
@@ -3168,14 +3216,17 @@ export class MessagesPageComponent implements OnDestroy {
     this.isStoreSelectorOpen.set(true);
   }
 
-  private appendOutgoingMessage(chatId: string, body: string, imageUrl?: string, messageId?: string): void {
+  private appendOutgoingMessage(
+    chatId: string,
+    body: string,
+    imageUrl?: string,
+    messageId?: string,
+    variant?: ChatTextMessage['variant'],
+  ): void {
     const resolvedMessageId = messageId || `local-${Date.now()}`;
     const currentDays = this.conversationDays()[chatId] ?? [];
-    const messageExists = currentDays.some((day) =>
-      day.messages.some((message) => message.id === resolvedMessageId),
-    );
 
-    if (messageExists) {
+    if (this.messageExists(chatId, resolvedMessageId)) {
       return;
     }
 
@@ -3186,6 +3237,7 @@ export class MessagesPageComponent implements OnDestroy {
       text: body || undefined,
       image: imageUrl || undefined,
       outgoing: true,
+      variant,
     };
 
     if (currentDays.length === 0) {
@@ -3226,6 +3278,52 @@ export class MessagesPageComponent implements OnDestroy {
           : conversation,
       ),
     );
+  }
+
+  private messageExists(chatId: string, messageId: string): boolean {
+    const currentDays = this.conversationDays()[chatId] ?? [];
+    return currentDays.some((day) =>
+      day.messages.some((message) => message.id === messageId),
+    );
+  }
+
+  private replaceMessage(
+    chatId: string,
+    messageId: string,
+    replacement: Partial<ChatTextMessage> & Pick<ChatTextMessage, 'id'>,
+  ): void {
+    const currentDays = this.conversationDays()[chatId] ?? [];
+
+    this.conversationDays.update((current) => ({
+      ...current,
+      [chatId]: currentDays.map((day) => ({
+        ...day,
+        messages: day.messages.map((message) => {
+          if (message.id !== messageId || message.kind !== 'text') {
+            return message;
+          }
+
+          return {
+            ...message,
+            ...replacement,
+          };
+        }),
+      })),
+    }));
+  }
+
+  private removeMessage(chatId: string, messageId: string): void {
+    const currentDays = this.conversationDays()[chatId] ?? [];
+
+    this.conversationDays.update((current) => ({
+      ...current,
+      [chatId]: currentDays
+        .map((day) => ({
+          ...day,
+          messages: day.messages.filter((message) => message.id !== messageId),
+        }))
+        .filter((day) => day.messages.length > 0),
+    }));
   }
 
   protected openProfileMenu(): void {
