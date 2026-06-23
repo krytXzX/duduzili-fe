@@ -34,10 +34,8 @@ interface Conversation {
   preview: string;
   time: string;
   unreadCount?: number;
-  avatar: string;
+  avatar?: string;
   mobileAvatar?: string;
-  storeBadge: string;
-  mobileStoreBadge?: string;
   buyerId?: string;
   vendorId?: string;
   listingId?: string;
@@ -48,10 +46,6 @@ const EMPTY_CONVERSATION: Conversation = {
   name: '',
   preview: '',
   time: '',
-  avatar: '/assets/images/chats-store-selector-personal.png',
-  mobileAvatar: '/assets/images/chats-store-selector-personal.png',
-  storeBadge: '/assets/images/chats-store-badge-desktop.png',
-  mobileStoreBadge: '/assets/images/chats-store-badge-mobile.png',
 };
 
 interface MessageDetailsResponse extends Record<string, unknown> {
@@ -146,29 +140,19 @@ type ChatDay = {
                 <span class="flex items-center gap-2">
                   <span class="relative h-8 w-[68px] shrink-0">
                     @if (selectedStore().variant === 'all') {
-                      <img
-                        [ngSrc]="assets.selectorAvatarOne"
-                        width="32"
-                        height="32"
-                        alt=""
-                        class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                      />
-                      <img
-                        [ngSrc]="assets.selectorAvatarTwo"
-                        width="32"
-                        height="32"
-                        alt=""
-                        class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                      />
-                      <img
-                        [ngSrc]="assets.selectorAvatarThree"
-                        width="32"
-                        height="32"
-                        alt=""
-                        class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                      />
+                      @for (store of allStoreAvatarPreviews(); track store.id; let index = $index) {
+                        <img
+                          [ngSrc]="store.avatar"
+                          width="32"
+                          height="32"
+                          [alt]="store.label"
+                          class="absolute top-0 h-8 w-8 rounded-full border border-white object-cover"
+                          [style.left.px]="index * 12"
+                        />
+                      }
                       <span
-                        class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                        class="absolute top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                        [style.left.px]="allStoreAvatarPreviews().length * 12"
                       >
                         <img
                           [ngSrc]="assets.selectorStoreIconDesktop"
@@ -178,26 +162,21 @@ type ChatDay = {
                           class="h-4 w-[21px]"
                         />
                       </span>
-                    } @else if (selectedStore().variant === 'store') {
-                      <span
-                        class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
-                      >
-                        <img
-                          [ngSrc]="assets.selectorStoreIconDesktop"
-                          width="21"
-                          height="16"
-                          alt=""
-                          class="h-4 w-[21px]"
-                        />
-                      </span>
-                    } @else {
+                    } @else if (selectedStore().avatar; as storeAvatar) {
                       <img
-                        [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
+                        [ngSrc]="storeAvatar"
                         width="32"
                         height="32"
-                        alt=""
+                        [alt]="selectedStore().label"
                         class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
                       />
+                    } @else {
+                      <span
+                        class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold text-white"
+                        [style.background]="avatarGradientForLabel(selectedStore().label)"
+                      >
+                        {{ initialsFromLabel(selectedStore().label) }}
+                      </span>
                     }
                   </span>
 
@@ -248,29 +227,19 @@ type ChatDay = {
                         <span class="flex min-w-0 items-center gap-2">
                           @if (store.variant === 'all') {
                             <span class="relative h-[19px] w-10 shrink-0">
-                              <img
-                                [ngSrc]="assets.selectorAvatarOne"
-                                width="19"
-                                height="19"
-                                alt=""
-                                class="absolute left-0 top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                              />
-                              <img
-                                [ngSrc]="assets.selectorAvatarTwo"
-                                width="19"
-                                height="19"
-                                alt=""
-                                class="absolute left-[7px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                              />
-                              <img
-                                [ngSrc]="assets.selectorAvatarThree"
-                                width="19"
-                                height="19"
-                                alt=""
-                                class="absolute left-[14px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                              />
+                              @for (preview of allStoreAvatarPreviews(); track preview.id; let index = $index) {
+                                <img
+                                  [ngSrc]="preview.avatar"
+                                  width="19"
+                                  height="19"
+                                  [alt]="preview.label"
+                                  class="absolute top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
+                                  [style.left.px]="index * 7"
+                                />
+                              }
                               <span
-                                class="absolute left-[21px] top-0 flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                                class="absolute top-0 flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                                [style.left.px]="allStoreAvatarPreviews().length * 7"
                               >
                                 <img
                                   [ngSrc]="assets.selectorStoreIconMobile"
@@ -287,27 +256,19 @@ type ChatDay = {
                             </span>
                           } @else {
                             <span
-                              class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
-                              [class.bg-[#3D785F]]="store.id === 'vine'"
-                              [class.bg-white]="store.id === 'eden'"
-                              [class.bg-[#F3F3F3]]="store.id === 'personal'"
+                              class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-[14px] font-semibold text-white"
+                              [style.background]="store.avatar ? null : avatarGradientForLabel(store.label)"
                             >
-                              @if (store.id === 'vine') {
+                              @if (store.avatar; as storeAvatar) {
                                 <img
-                                  [ngSrc]="assets.selectorStoreIconMobile"
-                                  width="24"
-                                  height="18"
-                                  alt=""
-                                  class="h-[18px] w-6"
-                                />
-                              } @else {
-                                <img
-                                  [ngSrc]="store.avatar ?? assets.storeSelectorEden"
+                                  [ngSrc]="storeAvatar"
                                   width="40"
                                   height="40"
-                                  alt=""
+                                  [alt]="store.label"
                                   class="h-10 w-10 object-cover"
                                 />
+                              } @else {
+                                {{ initialsFromLabel(store.label) }}
                               }
                             </span>
 
@@ -376,25 +337,23 @@ type ChatDay = {
                       [class.bg-[#F6F6F6]]="activeChatId() === chat.id"
                     >
                       <div class="flex items-center gap-[9px]">
-                        <div class="relative h-12 w-12 shrink-0">
-                          <img
-                            [ngSrc]="chat.avatar"
-                            width="48"
-                            height="48"
-                            [alt]="chat.name"
-                            class="h-12 w-12 rounded-full object-cover"
-                          />
-                          <span
-                            class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
-                          >
+                        <div class="h-12 w-12 shrink-0">
+                          @if (chat.avatar; as chatAvatar) {
                             <img
-                              [ngSrc]="chat.storeBadge"
-                              width="20"
-                              height="20"
-                              alt=""
-                              class="h-5 w-5 object-cover"
+                              [ngSrc]="chatAvatar"
+                              width="48"
+                              height="48"
+                              [alt]="chat.name"
+                              class="h-12 w-12 rounded-full object-cover"
                             />
-                          </span>
+                          } @else {
+                            <span
+                              class="flex h-12 w-12 items-center justify-center rounded-full text-[15px] font-semibold text-white"
+                              [style.background]="avatarGradientForLabel(chat.name)"
+                            >
+                              {{ initialsFromLabel(chat.name) }}
+                            </span>
+                          }
                         </div>
 
                         <div class="min-w-0 flex-1">
@@ -478,25 +437,23 @@ type ChatDay = {
                     </div>
                   } @else {
                     <div class="flex items-center gap-2">
-                      <div class="relative h-[56px] w-[56px] shrink-0">
-                        <img
-                          [ngSrc]="activeDesktopConversation().avatar"
-                          width="56"
-                          height="56"
-                          [alt]="activeDesktopConversation().name"
-                          class="h-14 w-14 rounded-full object-cover"
-                        />
-                        <span
-                          class="absolute bottom-0 left-[32px] flex h-[23px] w-[23px] items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
-                        >
+                      <div class="h-[56px] w-[56px] shrink-0">
+                        @if (activeDesktopConversation().avatar; as activeAvatar) {
                           <img
-                            [ngSrc]="activeDesktopConversation().storeBadge"
-                            width="22"
-                            height="22"
-                            alt=""
-                            class="h-[22px] w-[22px] object-cover"
+                            [ngSrc]="activeAvatar"
+                            width="56"
+                            height="56"
+                            [alt]="activeDesktopConversation().name"
+                            class="h-14 w-14 rounded-full object-cover"
                           />
-                        </span>
+                        } @else {
+                          <span
+                            class="flex h-14 w-14 items-center justify-center rounded-full text-[17px] font-semibold text-white"
+                            [style.background]="avatarGradientForLabel(activeDesktopConversation().name)"
+                          >
+                            {{ initialsFromLabel(activeDesktopConversation().name) }}
+                          </span>
+                        }
                       </div>
 
                       <div>
@@ -932,29 +889,19 @@ type ChatDay = {
                 <span class="flex items-center gap-2">
                   <span class="relative h-8 w-[68px] shrink-0">
                     @if (selectedStore().variant === 'all') {
-                      <img
-                        [ngSrc]="assets.selectorAvatarOne"
-                        width="32"
-                        height="32"
-                        alt=""
-                        class="absolute left-0 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                      />
-                      <img
-                        [ngSrc]="assets.selectorAvatarTwo"
-                        width="32"
-                        height="32"
-                        alt=""
-                        class="absolute left-3 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                      />
-                      <img
-                        [ngSrc]="assets.selectorAvatarThree"
-                        width="32"
-                        height="32"
-                        alt=""
-                        class="absolute left-6 top-0 h-8 w-8 rounded-full border border-white object-cover"
-                      />
+                      @for (store of allStoreAvatarPreviews(); track store.id; let index = $index) {
+                        <img
+                          [ngSrc]="store.avatar"
+                          width="32"
+                          height="32"
+                          [alt]="store.label"
+                          class="absolute top-0 h-8 w-8 rounded-full border border-white object-cover"
+                          [style.left.px]="index * 12"
+                        />
+                      }
                       <span
-                        class="absolute left-9 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                        class="absolute top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                        [style.left.px]="allStoreAvatarPreviews().length * 12"
                       >
                         <img
                           [ngSrc]="assets.selectorStoreIconMobile"
@@ -964,26 +911,21 @@ type ChatDay = {
                           class="h-4 w-[21px]"
                         />
                       </span>
-                    } @else if (selectedStore().variant === 'store') {
-                      <span
-                        class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]"
-                      >
-                        <img
-                          [ngSrc]="assets.selectorStoreIconMobile"
-                          width="21"
-                          height="16"
-                          alt=""
-                          class="h-4 w-[21px]"
-                        />
-                      </span>
-                    } @else {
+                    } @else if (selectedStore().avatar; as storeAvatar) {
                       <img
-                        [ngSrc]="selectedStore().avatar ?? assets.storeSelectorPersonal"
+                        [ngSrc]="storeAvatar"
                         width="32"
                         height="32"
-                        alt=""
+                        [alt]="selectedStore().label"
                         class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
                       />
+                    } @else {
+                      <span
+                        class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold text-white"
+                        [style.background]="avatarGradientForLabel(selectedStore().label)"
+                      >
+                        {{ initialsFromLabel(selectedStore().label) }}
+                      </span>
                     }
                   </span>
 
@@ -1023,25 +965,23 @@ type ChatDay = {
                     class="w-full py-4 text-left"
                   >
                     <div class="flex items-center gap-[9px]">
-                      <div class="relative h-12 w-12 shrink-0">
-                        <img
-                          [ngSrc]="chat.mobileAvatar ?? chat.avatar"
-                          width="48"
-                          height="48"
-                          [alt]="chat.name"
-                          class="h-12 w-12 rounded-full object-cover"
-                        />
-                        <span
-                          class="absolute left-7 top-7 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
-                        >
+                      <div class="h-12 w-12 shrink-0">
+                        @if (chat.mobileAvatar ?? chat.avatar; as chatAvatar) {
                           <img
-                            [ngSrc]="chat.mobileStoreBadge ?? assets.storeBadgeMobile"
-                            width="20"
-                            height="20"
-                            alt=""
-                            class="h-5 w-5 object-cover"
+                            [ngSrc]="chatAvatar"
+                            width="48"
+                            height="48"
+                            [alt]="chat.name"
+                            class="h-12 w-12 rounded-full object-cover"
                           />
-                        </span>
+                        } @else {
+                          <span
+                            class="flex h-12 w-12 items-center justify-center rounded-full text-[15px] font-semibold text-white"
+                            [style.background]="avatarGradientForLabel(chat.name)"
+                          >
+                            {{ initialsFromLabel(chat.name) }}
+                          </span>
+                        }
                       </div>
 
                       <div class="min-w-0 flex-1">
@@ -1135,29 +1075,23 @@ type ChatDay = {
                 </button>
 
                 <div class="ml-1 flex min-w-0 items-center gap-2">
-                  <div class="relative h-[46px] w-[46px] shrink-0">
-                    <img
-                      [ngSrc]="
-                        activeMobileConversation().mobileAvatar ?? activeMobileConversation().avatar
-                      "
-                      width="46"
-                      height="46"
-                      [alt]="activeMobileConversation().name"
-                      class="h-[46px] w-[46px] rounded-full object-cover"
-                    />
-                    <span
-                      class="absolute bottom-0 left-[27px] flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[-1px_2px_4px_rgba(114,114,114,0.25)]"
-                    >
+                  <div class="h-[46px] w-[46px] shrink-0">
+                    @if (activeMobileConversation().mobileAvatar ?? activeMobileConversation().avatar; as activeAvatar) {
                       <img
-                        [ngSrc]="
-                          activeMobileConversation().mobileStoreBadge ?? assets.storeBadgeMobile
-                        "
-                        width="19"
-                        height="19"
-                        alt=""
-                        class="h-[19px] w-[19px] object-cover"
+                        [ngSrc]="activeAvatar"
+                        width="46"
+                        height="46"
+                        [alt]="activeMobileConversation().name"
+                        class="h-[46px] w-[46px] rounded-full object-cover"
                       />
-                    </span>
+                    } @else {
+                      <span
+                        class="flex h-[46px] w-[46px] items-center justify-center rounded-full text-[15px] font-semibold text-white"
+                        [style.background]="avatarGradientForLabel(activeMobileConversation().name)"
+                      >
+                        {{ initialsFromLabel(activeMobileConversation().name) }}
+                      </span>
+                    }
                   </div>
 
                   <div class="min-w-0">
@@ -1781,29 +1715,19 @@ type ChatDay = {
                 <span class="flex min-w-0 items-center gap-2">
                   @if (store.variant === 'all') {
                     <span class="relative h-[19px] w-10 shrink-0">
-                      <img
-                        [ngSrc]="assets.selectorAvatarOne"
-                        width="19"
-                        height="19"
-                        alt=""
-                        class="absolute left-0 top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                      />
-                      <img
-                        [ngSrc]="assets.selectorAvatarTwo"
-                        width="19"
-                        height="19"
-                        alt=""
-                        class="absolute left-[7px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                      />
-                      <img
-                        [ngSrc]="assets.selectorAvatarThree"
-                        width="19"
-                        height="19"
-                        alt=""
-                        class="absolute left-[14px] top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                      />
+                      @for (preview of allStoreAvatarPreviews(); track preview.id; let index = $index) {
+                        <img
+                          [ngSrc]="preview.avatar"
+                          width="19"
+                          height="19"
+                          [alt]="preview.label"
+                          class="absolute top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
+                          [style.left.px]="index * 7"
+                        />
+                      }
                       <span
-                        class="absolute left-[21px] top-0 flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                        class="absolute top-0 flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
+                        [style.left.px]="allStoreAvatarPreviews().length * 7"
                       >
                         <img
                           [ngSrc]="assets.selectorStoreIconMobile"
@@ -1820,27 +1744,19 @@ type ChatDay = {
                     </span>
                   } @else {
                     <span
-                      class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
-                      [class.bg-[#3D785F]]="store.id === 'vine'"
-                      [class.bg-white]="store.id === 'eden'"
-                      [class.bg-[#F3F3F3]]="store.id === 'personal'"
+                      class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-[14px] font-semibold text-white"
+                      [style.background]="store.avatar ? null : avatarGradientForLabel(store.label)"
                     >
-                      @if (store.id === 'vine') {
+                      @if (store.avatar; as storeAvatar) {
                         <img
-                          [ngSrc]="assets.selectorStoreIconMobile"
-                          width="24"
-                          height="18"
-                          alt=""
-                          class="h-[18px] w-6"
-                        />
-                      } @else {
-                        <img
-                          [ngSrc]="store.avatar ?? assets.storeSelectorEden"
+                          [ngSrc]="storeAvatar"
                           width="40"
                           height="40"
-                          alt=""
+                          [alt]="store.label"
                           class="h-10 w-10 object-cover"
                         />
+                      } @else {
+                        {{ initialsFromLabel(store.label) }}
                       }
                     </span>
 
@@ -2017,13 +1933,7 @@ export class MessagesPageComponent implements OnDestroy {
     attachmentTwoDesktop: '/assets/images/chats-attachment-2-desktop.png',
     attachmentTwoMobile: '/assets/images/chats-attachment-2-mobile.png',
     backMobile: '/assets/icons/chats-back-mobile.svg',
-    bryanAvatarDesktop: '/assets/images/chats-bryan-avatar-desktop.png',
-    bryanAvatarMobile: '/assets/images/chats-bryan-avatar-mobile.png',
-    chatsAvatarDesktop: '/assets/images/chats-angela-avatar-desktop.png',
-    chatsAvatarMobile: '/assets/images/chats-angela-avatar-mobile.png',
     chevronDown: '/assets/icons/chats-chevron-down.svg',
-    ediriAvatarDesktop: '/assets/images/chats-ediri-avatar-desktop.png',
-    ediriAvatarMobile: '/assets/images/chats-ediri-avatar-mobile.png',
     galleryDesktop: '/assets/icons/chats-gallery-desktop.svg',
     galleryMobile: '/assets/icons/chats-gallery-mobile.svg',
     clearChatClose: '/assets/icons/chats-clear-chat-close.svg',
@@ -2040,17 +1950,11 @@ export class MessagesPageComponent implements OnDestroy {
     bryanBadgeMobile: '/assets/icons/chats-bryan-badge-mobile.svg',
     searchDesktop: '/assets/icons/chats-search-desktop.svg',
     searchMobile: '/assets/icons/chats-search-mobile.svg',
-    selectorAvatarOne: '/assets/images/chats-store-selector-avatar-1.png',
-    selectorAvatarThree: '/assets/images/chats-store-selector-avatar-3.png',
-    selectorAvatarTwo: '/assets/images/chats-store-selector-avatar-2.png',
     storeSelectorCheck: '/assets/icons/chats-store-selector-check.svg',
     storeSelectorClose: '/assets/icons/chats-store-selector-close.svg',
-    storeSelectorEden: '/assets/images/chats-store-selector-eden.png',
-    storeSelectorPersonal: '/assets/images/chats-store-selector-personal.png',
     selectorStoreIconDesktop: '/assets/icons/chats-selector-store-icon-desktop.svg',
     selectorStoreIconMobile: '/assets/icons/chats-selector-store-icon-mobile.svg',
     sendMobile: '/assets/icons/chats-send-mobile.svg',
-    storeBadgeMobile: '/assets/images/chats-store-badge-mobile.png',
   } as const;
 
   readonly isMobileConversationOpen = signal(false);
@@ -2124,6 +2028,11 @@ export class MessagesPageComponent implements OnDestroy {
   };
 
   readonly storeOptions = signal<readonly StoreOption[]>([]);
+  readonly allStoreAvatarPreviews = computed(() =>
+    this.storeOptions()
+      .filter((store) => store.variant !== 'all' && Boolean(store.avatar))
+      .slice(0, 3) as readonly (StoreOption & { avatar: string })[],
+  );
 
   readonly conversations = signal<Conversation[]>([]);
   readonly conversationVendorIds = signal<Record<string, string>>({});
@@ -2412,20 +2321,30 @@ export class MessagesPageComponent implements OnDestroy {
   private toConversation(item: MessageConversationApiItem, index: number): Conversation | null {
     const id = this.readId(item['id']) ?? this.readId(item['chat_id']) ?? `conversation-${index + 1}`;
     const buyer = this.readRecord(item['buyer']);
+    const vendorUser =
+      this.readRecord(item['vendor_user']) ??
+      this.readRecord(this.readRecord(item['vendor'])?.['user']);
+    const otherUser =
+      this.readRecord(item['other_user']) ??
+      this.readRecord(item['user']);
     const lastMessage = this.readRecord(item['last_message']);
     const buyerName =
       this.readString(buyer?.['full_name']) ??
-      this.readString(buyer?.['username']) ??
-      this.readString(this.readRecord(item['other_user'])?.['full_name']) ??
-      this.readString(this.readRecord(item['other_user'])?.['username']) ??
-      this.readString(this.readRecord(item['user'])?.['full_name']) ??
-      this.readString(this.readRecord(item['user'])?.['username']);
+      this.readString(buyer?.['username']);
+    const vendorUserName =
+      this.readString(vendorUser?.['full_name']) ??
+      this.readString(vendorUser?.['username']);
+    const fallbackUserName =
+      this.readString(otherUser?.['full_name']) ??
+      this.readString(otherUser?.['username']) ??
+      this.readString(item['other_user_name']);
     const vendorName =
       this.readString(item['vendor_name']) ??
       this.readString(item['name']) ??
-      this.readString(item['title']) ??
-      this.readString(item['other_user_name']);
-    const name = this.isSeller() ? buyerName ?? vendorName : vendorName ?? buyerName;
+      this.readString(item['title']);
+    const name = this.isSeller()
+      ? buyerName ?? fallbackUserName ?? vendorName
+      : vendorUserName ?? fallbackUserName ?? vendorName ?? buyerName;
     const preview =
       this.readString(this.readRecord(item['last_message'])?.['body']) ??
       this.readString(item['preview']) ??
@@ -2441,15 +2360,16 @@ export class MessagesPageComponent implements OnDestroy {
     const buyerAvatar =
       this.resolveMediaUrl(
         this.readString(buyer?.['avatar']) ??
-          this.readString(this.readRecord(item['other_user'])?.['avatar']) ??
-          this.readString(this.readRecord(item['user'])?.['avatar']),
-      ) ?? '/assets/images/chats-store-selector-personal.png';
-    const vendorAvatar =
+          this.readString(otherUser?.['avatar']),
+      ) ?? undefined;
+    const vendorUserAvatar =
       this.resolveMediaUrl(
-        this.readString(item['vendor_photo']) ??
-          this.readString(item['avatar']) ??
-          this.readString(item['mobile_avatar']),
-      ) ?? buyerAvatar;
+        this.readString(vendorUser?.['avatar']) ??
+          this.readString(otherUser?.['avatar']),
+      ) ?? undefined;
+    const displayAvatar = this.isSeller()
+      ? buyerAvatar
+      : vendorUserAvatar;
 
     return {
       id,
@@ -2463,14 +2383,8 @@ export class MessagesPageComponent implements OnDestroy {
             this.readString(item['last_message_at']),
         ) ?? 'Recently',
       unreadCount: this.readNumber(item['unread_count']) ?? undefined,
-      avatar: this.isSeller() ? buyerAvatar : vendorAvatar,
-      mobileAvatar: this.isSeller() ? buyerAvatar : vendorAvatar,
-      storeBadge:
-        this.resolveMediaUrl(this.readString(item['store_badge'])) ??
-        '/assets/images/chats-store-badge-desktop.png',
-      mobileStoreBadge:
-        this.resolveMediaUrl(this.readString(item['mobile_store_badge']) ?? this.readString(item['store_badge'])) ??
-        '/assets/images/chats-store-badge-mobile.png',
+      avatar: displayAvatar,
+      mobileAvatar: displayAvatar,
       buyerId: this.readId(buyer?.['id']) ?? undefined,
       vendorId: this.readId(item['vendor']) ?? undefined,
       listingId: this.readId(item['listing']) ?? undefined,
@@ -3870,6 +3784,39 @@ export class MessagesPageComponent implements OnDestroy {
   protected updateStoreSearch(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     this.storeSearchTerm.set(input?.value ?? '');
+  }
+
+  protected initialsFromLabel(label: string | null | undefined): string {
+    const parts = (label ?? '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (parts.length === 0) {
+      return 'DU';
+    }
+
+    const first = parts[0]?.[0] ?? '';
+    const second = parts.length > 1 ? parts[1]?.[0] ?? '' : parts[0]?.[1] ?? '';
+    return `${first}${second}`.toUpperCase();
+  }
+
+  protected avatarGradientForLabel(label: string | null | undefined): string {
+    const palettes = [
+      ['#6453D9', '#8B7BFF'],
+      ['#0F766E', '#2DD4BF'],
+      ['#B45309', '#F59E0B'],
+      ['#7C2D12', '#FB7185'],
+      ['#1D4ED8', '#60A5FA'],
+      ['#166534', '#86EFAC'],
+    ] as const;
+    const input = label?.trim() || 'Duduzili';
+    const hash = Array.from(input).reduce((total, character) => {
+      return total + character.charCodeAt(0);
+    }, 0);
+    const [from, to] = palettes[hash % palettes.length] ?? palettes[0];
+
+    return `linear-gradient(135deg, ${from}, ${to})`;
   }
 
   ngOnDestroy(): void {
