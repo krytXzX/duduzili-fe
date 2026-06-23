@@ -2011,6 +2011,7 @@ export class MessagesPageComponent implements OnDestroy {
   private readonly websocketService = inject(WebsocketService);
   private activeChatConnection: ChatWebsocketConnection | null = null;
   private activeConversationFallbackRefreshTimer: ReturnType<typeof setInterval> | null = null;
+  private isActiveConversationRefreshInFlight = false;
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
@@ -2577,7 +2578,10 @@ export class MessagesPageComponent implements OnDestroy {
     try {
       const response = await firstValueFrom(this.messagesService.getMessageDetails(chatId));
       const vendorId = this.readId(response['vendor']);
-      const mappedDays = this.toConversationDays(response);
+      const mappedDays = this.mergePendingLocalMessages(
+        chatId,
+        this.toConversationDays(response),
+      );
 
       if (vendorId) {
         this.conversationVendorIds.update((current) => ({
@@ -2624,6 +2628,7 @@ export class MessagesPageComponent implements OnDestroy {
   private connectRealtimeChat(chatId: string): void {
     const connection = this.websocketService.connectChat(chatId);
     this.activeChatConnection = connection;
+    this.startActiveConversationFallbackRefresh(chatId);
 
     connection.messages$.subscribe({
       next: (data) => this.handleWebsocketMessage(chatId, data),
@@ -2655,12 +2660,25 @@ export class MessagesPageComponent implements OnDestroy {
         return;
       }
 
-      void this.loadConversationDetails(chatId, {
+      void this.refreshActiveConversation(chatId);
+    }, 3000);
+  }
+
+  private async refreshActiveConversation(chatId: string): Promise<void> {
+    if (this.isActiveConversationRefreshInFlight) {
+      return;
+    }
+
+    this.isActiveConversationRefreshInFlight = true;
+    try {
+      await this.loadConversationDetails(chatId, {
         reconnectRealtime: false,
         showLoading: false,
         scrollToBottom: this.isActiveConversationNearBottom(),
       });
-    }, 5000);
+    } finally {
+      this.isActiveConversationRefreshInFlight = false;
+    }
   }
 
   private clearActiveConversationFallbackRefresh(): void {
@@ -2670,6 +2688,7 @@ export class MessagesPageComponent implements OnDestroy {
 
     clearInterval(this.activeConversationFallbackRefreshTimer);
     this.activeConversationFallbackRefreshTimer = null;
+    this.isActiveConversationRefreshInFlight = false;
   }
 
   private handleWebsocketMessage(chatId: string, data: any): void {
@@ -2785,6 +2804,52 @@ export class MessagesPageComponent implements OnDestroy {
       label,
       messages,
     }));
+  }
+
+  private mergePendingLocalMessages(
+    chatId: string,
+    backendDays: readonly ChatDay[],
+  ): readonly ChatDay[] {
+    const pendingMessages = (this.conversationDays()[chatId] ?? [])
+      .flatMap((day) => day.messages)
+      .filter(
+        (message): message is ChatTextMessage =>
+          message.kind === 'text' && message.id.startsWith('local-'),
+      );
+
+    if (pendingMessages.length === 0) {
+      return backendDays;
+    }
+
+    const backendMessageIds = new Set(
+      backendDays.flatMap((day) => day.messages.map((message) => message.id)),
+    );
+    const missingPendingMessages = pendingMessages.filter(
+      (message) => !backendMessageIds.has(message.id),
+    );
+
+    if (missingPendingMessages.length === 0) {
+      return backendDays;
+    }
+
+    if (backendDays.length === 0) {
+      return [
+        {
+          id: `day-${Date.now()}`,
+          label: 'Today',
+          messages: missingPendingMessages,
+        },
+      ];
+    }
+
+    const lastDay = backendDays[backendDays.length - 1];
+    return [
+      ...backendDays.slice(0, -1),
+      {
+        ...lastDay,
+        messages: [...lastDay.messages, ...missingPendingMessages],
+      },
+    ];
   }
 
   private extractConversationDetailItems(response: MessageDetailsResponse): readonly Record<string, unknown>[] {
