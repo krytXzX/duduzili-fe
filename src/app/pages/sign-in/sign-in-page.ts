@@ -187,7 +187,7 @@ export class SignInPageComponent {
 
     try {
       const loginResponse = await firstValueFrom(
-        this.authService.loginWithGoogle(code)
+        this.authService.loginWithGoogle(code, this.getGoogleRedirectUri())
       );
 
       this.authSessionService.saveLoginSession(loginResponse, null);
