@@ -501,6 +501,14 @@ export const routes: Routes = [
         (m) => m.PrivacyPolicyPageComponent,
       ),
   },
+  {
+    path: 'contact-us',
+    title: 'Contact us',
+    loadComponent: () =>
+      import('./pages/contact-us/contact-us-page.component').then(
+        (m) => m.ContactUsPageComponent,
+      ),
+  },
   // Catch-all (Optional, but good for stability)
   {
     path: '**',
