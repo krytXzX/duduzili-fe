@@ -356,6 +356,7 @@ export class ProductPageComponent {
     deliveryOptions: [],
     images: [],
   });
+  readonly hasDeliveryOptions = computed(() => this.product().deliveryOptions.length > 0);
 
   readonly store = signal<StoreDetails>({
     id: '',
