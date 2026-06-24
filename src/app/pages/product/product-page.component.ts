@@ -4,9 +4,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -19,6 +21,16 @@ import { HomeFooterComponent } from '../../components/layout/home-footer.compone
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { Review } from '../../components/product/review-card.component';
 import { SellerReportModalComponent } from '../../components/product/seller-report-modal.component';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  heroArrowLeft,
+  heroArrowUpTray,
+  heroMapPin,
+  heroStar,
+  heroTrash,
+  heroXMark,
+} from '@ng-icons/heroicons/outline';
+import { heroStarSolid } from '@ng-icons/heroicons/solid';
 import {
   ListingsApiItem,
   ListingsSearchResponse,
@@ -30,12 +42,14 @@ import { AuthSessionService } from '../../services/auth-session.service';
 import { FavoritesStateService } from '../../services/favorites-state.service';
 import { MessagesService } from '../../services/messages.service';
 import {
+  CreateVendorReviewPayload,
   VendorsService,
   VendorFollowResponse,
   VendorListingRecord,
   VendorListingsResponse,
   VendorRecord,
   VendorReviewRecord,
+  VendorReviewTagRecord,
   VendorReviewsResponse,
 } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
@@ -84,6 +98,7 @@ interface StoreDetails {
 type ProductReviewSort = 'most-recent' | 'highest-rated';
 
 interface ReviewTagSummary {
+  readonly id?: number;
   readonly label: string;
   readonly count: number;
 }
@@ -109,6 +124,18 @@ type SellerReportStep = 1 | 2;
     HomeFooterComponent,
     AppToastComponent,
     SellerReportModalComponent,
+    NgIcon,
+  ],
+  providers: [
+    provideIcons({
+      heroArrowLeft,
+      heroArrowUpTray,
+      heroMapPin,
+      heroStar,
+      heroStarSolid,
+      heroTrash,
+      heroXMark,
+    }),
   ],
   templateUrl: './product-page.component.html',
   host: {
@@ -195,6 +222,9 @@ export class ProductPageComponent {
   private readonly favoritesStateService = inject(FavoritesStateService);
   private readonly messagesService = inject(MessagesService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
+  private readonly reviewCloseButton =
+    viewChild<ElementRef<HTMLButtonElement>>('reviewCloseButton');
+  private reviewTriggerElement: HTMLElement | null = null;
   private productLoadVersion = 0;
 
   readonly productId = signal(this.route.snapshot.paramMap.get('id') ?? '');
@@ -225,6 +255,35 @@ export class ProductPageComponent {
   readonly isProductLoading = signal(true);
   readonly productLoadError = signal<string | null>(null);
   readonly reviewSort = signal<ProductReviewSort>('most-recent');
+  readonly isLeaveReviewModalOpen = signal(false);
+  readonly productReviewRating = signal(2);
+  readonly selectedProductReviewTags = signal<string[]>([]);
+  readonly productReviewText = signal('');
+  readonly productReviewImagePreviews = signal<string[]>([]);
+  readonly productReviewImageFiles = signal<readonly File[]>([]);
+  readonly productReviewTagOptions = signal<readonly ReviewTagSummary[]>([]);
+  readonly isProductReviewTagsLoading = signal(false);
+  readonly isSubmittingProductReview = signal(false);
+  readonly productReviewRatingLabel = computed(() => {
+    switch (this.productReviewRating()) {
+      case 1:
+        return 'Very poor';
+      case 2:
+        return 'Needs improvement';
+      case 3:
+        return 'Average';
+      case 4:
+        return 'Good experience';
+      case 5:
+        return 'Excellent';
+      default:
+        return 'Needs improvement';
+    }
+  });
+  readonly canSubmitProductReview = computed(() => {
+    const rating = this.productReviewRating();
+    return rating >= 1 && rating <= 5 && !this.isSubmittingProductReview();
+  });
   readonly slideDirection = signal<'animate-slide-in-left' | 'animate-slide-in-right' | ''>('');
   private touchStartX = 0;
   private touchStartY = 0;
@@ -395,6 +454,7 @@ export class ProductPageComponent {
 
   constructor() {
     this.destroyRef.onDestroy(() => {
+      this.revokeProductReviewPreviewUrls();
       this.document.body.style.overflow = '';
     });
 
@@ -503,6 +563,11 @@ export class ProductPageComponent {
   }
 
   handleOverlayEscape(): void {
+    if (this.isLeaveReviewModalOpen()) {
+      this.closeLeaveReviewModal();
+      return;
+    }
+
     if (this.isReviewsModalOpen()) {
       this.closeReviewsModal();
       return;
@@ -593,10 +658,178 @@ export class ProductPageComponent {
       return;
     }
 
-    this.closeReviewsModal();
-    await this.router.navigate(['/stores', storeId], {
-      queryParams: { tab: 'reviews', review: '1' },
-    });
+    if (!this.authSession.isAuthenticated()) {
+      await this.router.navigate(['/sign-in'], {
+        queryParams: { returnUrl: this.document.defaultView?.location.pathname ?? `/product/${this.productId()}` },
+      });
+      return;
+    }
+
+    if (this.isOwnStore()) {
+      this.appToastService.show({
+        message: 'You can’t review your own store.',
+      });
+      return;
+    }
+
+    this.reviewTriggerElement =
+      this.document.activeElement instanceof HTMLElement ? this.document.activeElement : null;
+    this.isReviewsModalOpen.set(false);
+    this.resetProductReviewDraft();
+    this.isLeaveReviewModalOpen.set(true);
+    this.setBodyScrollLocked(true);
+    queueMicrotask(() => this.reviewCloseButton()?.nativeElement.focus());
+    await this.loadProductReviewTagOptions();
+  }
+
+  closeLeaveReviewModal(): void {
+    if (this.isSubmittingProductReview()) {
+      return;
+    }
+
+    this.isLeaveReviewModalOpen.set(false);
+    this.resetProductReviewDraft();
+    this.setBodyScrollLocked(false);
+    queueMicrotask(() => this.reviewTriggerElement?.focus());
+  }
+
+  async submitProductReview(): Promise<void> {
+    const storeId = this.store().id;
+    const rating = this.productReviewRating();
+
+    if (!storeId || !this.canSubmitProductReview()) {
+      return;
+    }
+
+    this.isSubmittingProductReview.set(true);
+
+    const payload = this.buildProductReviewPayload(storeId);
+
+    try {
+      await firstValueFrom(this.vendorsService.createVendorReview(storeId, payload));
+      await this.loadVendorReviews(storeId, this.productLoadVersion);
+      this.isLeaveReviewModalOpen.set(false);
+      this.resetProductReviewDraft();
+      this.setBodyScrollLocked(false);
+      this.appToastService.show({
+        message: 'Your review has been saved.',
+      });
+    } catch (error) {
+      this.appToastService.show({
+        message: this.extractErrorMessage(error) ?? 'We couldn’t save your review right now. Please try again.',
+      });
+    } finally {
+      this.isSubmittingProductReview.set(false);
+    }
+  }
+
+  private resetProductReviewDraft(): void {
+    this.productReviewRating.set(2);
+    this.selectedProductReviewTags.set([]);
+    this.productReviewText.set('');
+    this.productReviewImageFiles.set([]);
+    this.revokeProductReviewPreviewUrls();
+    this.productReviewImagePreviews.set([]);
+  }
+
+  toggleProductReviewTag(tag: string): void {
+    this.selectedProductReviewTags.update((current) =>
+      current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag],
+    );
+  }
+
+  onProductReviewImagesSelected(input: HTMLInputElement): void {
+    const files = Array.from(input.files ?? []);
+    const validFiles = files.filter(
+      (file) =>
+        (file.type === 'image/jpeg' || file.type === 'image/png') && file.size <= 2 * 1024 * 1024,
+    );
+    const limitedFiles = validFiles.slice(0, 6);
+
+    if (validFiles.length !== files.length) {
+      this.appToastService.show({
+        message: 'Choose PNG or JPEG images smaller than 2MB.',
+      });
+    } else if (validFiles.length > 6) {
+      this.appToastService.show({
+        message: 'You can attach up to 6 pictures.',
+      });
+    }
+
+    const previews = limitedFiles.map((file) => URL.createObjectURL(file));
+    this.revokeProductReviewPreviewUrls();
+    this.productReviewImageFiles.set(limitedFiles);
+    this.productReviewImagePreviews.set(previews);
+    input.value = '';
+  }
+
+  removeProductReviewImage(index: number): void {
+    const preview = this.productReviewImagePreviews()[index];
+    if (preview?.startsWith('blob:')) {
+      URL.revokeObjectURL(preview);
+    }
+    this.productReviewImagePreviews.update((previews) =>
+      previews.filter((_, previewIndex) => previewIndex !== index),
+    );
+    this.productReviewImageFiles.update((files) =>
+      files.filter((_, fileIndex) => fileIndex !== index),
+    );
+  }
+
+  private async loadProductReviewTagOptions(): Promise<void> {
+    if (this.productReviewTagOptions().length > 0 || this.isProductReviewTagsLoading()) {
+      return;
+    }
+
+    this.isProductReviewTagsLoading.set(true);
+
+    try {
+      const tags = await firstValueFrom(this.vendorsService.getReviewTags());
+      this.productReviewTagOptions.set(
+        tags
+          .map((tag) => this.toReviewTagOption(tag))
+          .filter((tag): tag is ReviewTagSummary => tag !== null),
+      );
+    } catch {
+      this.productReviewTagOptions.set([]);
+    } finally {
+      this.isProductReviewTagsLoading.set(false);
+    }
+  }
+
+  private buildProductReviewPayload(storeId: string): CreateVendorReviewPayload {
+    const tagIds = this.selectedProductReviewTags()
+      .map((label) => this.productReviewTagOptions().find((tag) => tag.label === label)?.id)
+      .filter((tagId): tagId is number => typeof tagId === 'number');
+
+    return {
+      vendor: storeId,
+      rating: this.productReviewRating(),
+      comment: this.productReviewText().trim(),
+      tag_ids: tagIds,
+      photo_files: this.productReviewImageFiles(),
+    };
+  }
+
+  private revokeProductReviewPreviewUrls(): void {
+    for (const preview of this.productReviewImagePreviews()) {
+      if (preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    }
+  }
+
+  private toReviewTagOption(tag: VendorReviewTagRecord): ReviewTagSummary | null {
+    const label = tag.name.trim();
+    if (!label || !Number.isFinite(tag.id)) {
+      return null;
+    }
+
+    return {
+      id: tag.id,
+      label,
+      count: tag.count,
+    };
   }
 
   reviewAuthorInitials(review: Review): string {
