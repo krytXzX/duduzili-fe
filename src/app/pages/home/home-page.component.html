@@ -260,6 +260,7 @@
     </section>
     }
 
+    @if (promotedContentEnabled()) {
     <section class="mx-auto max-w-[1440px] px-5 pb-10 pt-5 lg:px-[100px] lg:pb-[72px] lg:pt-[66px]">
       <div class="mb-5 flex items-center justify-between lg:mb-6">
         <h2 class="text-[22px] font-medium tracking-[-0.03em] text-[#2A2A2A] lg:text-[36px]">Sponsored listings</h2>
@@ -282,12 +283,9 @@
         <app-listing-card [listing]="listing" [favoriteFilled]="initialFavoritedListingIds().includes(listing.id)" [priority]="index < 4" [imageLoading]="index < 4 ? 'eager' : 'lazy'" />
         }
       </div>
-      } @else {
-      <div class="rounded-[24px] border border-dashed border-[#E5E7EB] px-5 py-10 text-center text-[14px] text-[#6B7280]">
-        No sponsored listings are available right now.
-      </div>
       }
     </section>
+    }
 
     <section class="mx-auto max-w-[1440px] px-5 pb-8 lg:px-[100px] lg:pb-[72px]">
       <div class="mb-5 flex items-center justify-between lg:mb-6">
@@ -339,6 +337,7 @@
       }
     </section>
 
+    @if (promotedContentEnabled()) {
     <section class="mx-auto max-w-[1440px] px-5 pb-8 lg:px-[100px] lg:pb-[72px]">
       @if (isHomeLoading() && !homeResponse()) {
       <div class="flex overflow-x-auto gap-4 snap-x snap-mandatory no-scrollbar -mx-5 px-5 pb-4 lg:hidden">
@@ -369,6 +368,7 @@
       </div>
       }
     </section>
+    }
 
     <section class="mx-auto max-w-[1440px] px-5 pb-12 lg:px-[100px] lg:pb-[88px]">
       <div class="mb-5 flex items-center justify-between lg:mb-6">

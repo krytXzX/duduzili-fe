@@ -162,6 +162,9 @@ export class HomePageComponent {
 
     return this.extractPopularSearches(response);
   });
+  readonly promotedContentEnabled = computed(
+    () => this.homeResponse()?.subscriptions_enabled ?? this.authSession.subscriptionsEnabled(),
+  );
   readonly categorySkeletonItems = [1, 2, 3, 4, 5, 6, 7, 8] as const;
   readonly listingSkeletonItems = [1, 2, 3, 4] as const;
   readonly nearbyListingSkeletonItems = [1, 2, 3, 4, 5] as const;
@@ -204,7 +207,7 @@ export class HomePageComponent {
   });
 
   readonly sponsoredListingCards = computed(() => {
-    if (!this.authSession.subscriptionsEnabled()) {
+    if (!this.promotedContentEnabled()) {
       return [];
     }
     const response = this.homeResponse();
@@ -230,7 +233,7 @@ export class HomePageComponent {
     }
 
     return [
-      ...(this.authSession.subscriptionsEnabled() ? (response.sponsored_listings ?? []) : []),
+      ...(this.promotedContentEnabled() ? (response.sponsored_listings ?? []) : []),
       ...(response.nearby_listings ?? []),
       ...this.extraNearbyListingRecords(),
     ]
@@ -239,7 +242,7 @@ export class HomePageComponent {
   });
 
   readonly promotions = computed(() => {
-    if (!this.authSession.subscriptionsEnabled()) {
+    if (!this.promotedContentEnabled()) {
       return [];
     }
     const response = this.homeResponse();
@@ -660,7 +663,7 @@ export class HomePageComponent {
     }
 
     const derivedSuggestions = [
-      ...(this.authSession.subscriptionsEnabled() ? (response.sponsored_listings ?? []) : [])
+      ...(this.promotedContentEnabled() ? (response.sponsored_listings ?? []) : [])
         .map((listing) => this.extractSearchLabelFromListing(listing))
         .filter((label): label is string => label !== null),
       ...(response.nearby_listings ?? [])

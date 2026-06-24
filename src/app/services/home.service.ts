@@ -57,6 +57,7 @@ export type HomeResponse = {
   popular_search_terms?: string[];
   search_suggestions?: string[];
   trending_searches?: string[];
+  subscriptions_enabled?: boolean;
 };
 
 @Injectable({ providedIn: 'root' })
