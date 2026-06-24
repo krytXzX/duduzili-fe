@@ -544,7 +544,7 @@ interface ReviewTagCount {
                 </div>
 
                 <div class="space-y-8">
-                  @for (review of visibleReviews(); track review.author) {
+                  @for (review of visibleReviews(); track review.id) {
                     <app-store-review-card
                       [review]="review"
                       mode="mobile"
@@ -1018,7 +1018,7 @@ interface ReviewTagCount {
                   </div>
 
                   <div class="space-y-8">
-                    @for (review of visibleReviews(); track review.author) {
+                    @for (review of visibleReviews(); track review.id) {
                       <app-store-review-card
                         [review]="review"
                         mode="desktop"
@@ -1136,9 +1136,15 @@ export class StoreDetailsDashboardComponent {
   ]);
   readonly visibleReviews = computed(() => {
     const reviews = [...this.reviews()];
-    return this.reviewSort() === 'highest-rated'
-      ? reviews.sort((a, b) => b.rating - a.rating)
-      : reviews;
+    if (this.reviewSort() === 'highest-rated') {
+      return reviews.sort(
+        (a, b) => b.rating - a.rating || b.createdAtMs - a.createdAtMs || a.author.localeCompare(b.author),
+      );
+    }
+
+    return reviews.sort(
+      (a, b) => b.createdAtMs - a.createdAtMs || b.rating - a.rating || a.author.localeCompare(b.author),
+    );
   });
   readonly reviewSortOptions: readonly CustomDropdownOption<StoreReviewSort>[] = [
     { value: 'most-recent', label: 'Most recent' },
@@ -1409,12 +1415,21 @@ export class StoreDetailsDashboardComponent {
   private mapReview(record: VendorReviewRecord): StoreReviewCardData {
     const reviewer = this.readRecord(record['reviewer']);
     const createdAt = this.readString(record['created_at']);
+    const createdAtMs = this.parseDateMs(createdAt);
     const photos = Array.isArray(record['photos']) ? record['photos'] : [];
     const galleryImages = photos
       .map((photo) => this.resolveMediaUrl(this.readString(this.readRecord(photo)?.['image'])))
       .filter((value): value is string => Boolean(value));
 
+    const fallbackId =
+      [
+        this.readId(reviewer?.['id']),
+        this.readString(record['comment']),
+        createdAt,
+      ].filter(Boolean).join('-') || `review-${createdAtMs}`;
+
     return {
+      id: this.readId(record['id']) ?? fallbackId,
       author:
         this.readString(reviewer?.['full_name']) ??
         this.readString(reviewer?.['username']) ??
@@ -1424,6 +1439,7 @@ export class StoreDetailsDashboardComponent {
         '/assets/images/store-reviews-avatar-mary.jpg',
       rating: this.readNumber(record['rating']) ?? 0,
       text: this.readString(record['comment']) ?? '',
+      createdAtMs,
       desktopDate: this.formatLongDate(createdAt) ?? '---',
       mobileDate: this.formatMonthDate(createdAt) ?? '---',
       galleryImages: galleryImages.length > 0 ? galleryImages.slice(0, 6) : undefined,
@@ -1579,6 +1595,15 @@ export class StoreDetailsDashboardComponent {
       day: 'numeric',
       year: 'numeric',
     }).format(parsed);
+  }
+
+  private parseDateMs(value: string | null): number {
+    if (!value) {
+      return 0;
+    }
+
+    const parsed = new Date(value).getTime();
+    return Number.isNaN(parsed) ? 0 : parsed;
   }
 
   private formatMonthDate(value: string | null): string | null {

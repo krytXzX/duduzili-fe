@@ -2,10 +2,12 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 export interface StoreReviewCardData {
+  id: string;
   author: string;
   avatar: string;
   rating: number;
   text: string;
+  createdAtMs: number;
   desktopDate: string;
   mobileDate: string;
   galleryImages?: string[];
