@@ -10,7 +10,7 @@ import { AppToastService } from '../../services/app-toast.service';
   selector: 'app-contact-us-page',
   imports: [NgOptimizedImage, ReactiveFormsModule, RouterLink, HomeFooterComponent, AppToastComponent],
   template: `
-    <main class="min-h-screen overflow-x-hidden bg-[#fcfcfc] text-[#252525]">
+    <main class="min-h-screen overflow-x-hidden overflow-y-auto bg-[#fcfcfc] text-[#252525]">
       <header class="relative z-40 hidden px-2 pt-4 lg:block">
         <div class="mx-auto flex max-w-[1440px] justify-center px-8">
           <div
@@ -209,7 +209,7 @@ import { AppToastService } from '../../services/app-toast.service';
     </main>
   `,
   host: {
-    class: 'block min-h-screen bg-[#fcfcfc]',
+    class: 'block h-dvh overflow-y-auto overflow-x-hidden bg-[#fcfcfc]',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
