@@ -626,7 +626,8 @@ type NotificationPreferenceSettings = Record<
               <div class="min-w-0 flex-1">
                 <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">Require KYC for posting</h2>
                 <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                  When enabled, users must complete identity verification before they can post listings.
+                  Turn this on when sellers must verify their identity before creating or publishing listings.
+                  Turn it off to let users post without KYC, while keeping existing verification badges and records intact.
                 </p>
               </div>
 
@@ -652,7 +653,11 @@ type NotificationPreferenceSettings = Record<
             <p class="mt-4 text-[12px] leading-[1.5] text-[rgba(26,27,29,0.55)]">
               Current status:
               <span class="font-medium text-[#1A1B1D]">
-                {{ isKycRequired() ? 'KYC is required before posting' : 'KYC is optional for posting' }}
+                {{
+                  isKycRequired()
+                    ? 'KYC is required before sellers can post listings.'
+                    : 'KYC is optional; sellers can post listings without verification.'
+                }}
               </span>
             </p>
           </div>
@@ -662,7 +667,8 @@ type NotificationPreferenceSettings = Record<
               <div class="min-w-0 flex-1">
                 <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">Enable subscriptions across the app</h2>
                 <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                  When enabled, users can subscribe to paid plans. When disabled, all subscription purchases are blocked.
+                  Turn this on to allow sellers to buy subscription plans and use paid promotion features.
+                  Turn it off to block plan purchases and hide promoted placements such as sponsored listings, store promotions, and banner ads.
                 </p>
               </div>
 
@@ -688,7 +694,11 @@ type NotificationPreferenceSettings = Record<
             <p class="mt-4 text-[12px] leading-[1.5] text-[rgba(26,27,29,0.55)]">
               Current status:
               <span class="font-medium text-[#1A1B1D]">
-                {{ isSubscriptionsEnabled() ? 'Users can subscribe to plans' : 'Subscriptions are disabled across the app' }}
+                {{
+                  isSubscriptionsEnabled()
+                    ? 'Subscriptions and paid promotions are available.'
+                    : 'Subscriptions are disabled; paid promotions are hidden and purchases are blocked.'
+                }}
               </span>
             </p>
           </div>
@@ -1145,7 +1155,8 @@ type NotificationPreferenceSettings = Record<
                     <div class="min-w-0 flex-1">
                       <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Require KYC for posting</h3>
                       <p class="mt-2 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                        When enabled, users must complete identity verification before they can publish listings.
+                        Turn this on when sellers must verify their identity before creating or publishing listings.
+                        Turn it off to let users post without KYC, while keeping existing verification badges and records intact.
                       </p>
                     </div>
 
@@ -1172,7 +1183,11 @@ type NotificationPreferenceSettings = Record<
                     <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
                       Current status:
                       <span class="font-medium text-[#1A1B1D]">
-                        {{ isKycRequired() ? 'KYC is required before posting' : 'KYC is optional for posting' }}
+                        {{
+                          isKycRequired()
+                            ? 'KYC is required before sellers can post listings.'
+                            : 'KYC is optional; sellers can post listings without verification.'
+                        }}
                       </span>
                     </p>
                   </div>
@@ -1183,7 +1198,8 @@ type NotificationPreferenceSettings = Record<
                     <div class="min-w-0 flex-1">
                       <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Enable subscriptions across the app</h3>
                       <p class="mt-2 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                        When enabled, users can subscribe to paid plans. When disabled, all subscription purchases are blocked.
+                        Turn this on to allow sellers to buy subscription plans and use paid promotion features.
+                        Turn it off to block plan purchases and hide promoted placements such as sponsored listings, store promotions, and banner ads.
                       </p>
                     </div>
 
@@ -1210,7 +1226,11 @@ type NotificationPreferenceSettings = Record<
                     <p class="text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
                       Current status:
                       <span class="font-medium text-[#1A1B1D]">
-                        {{ isSubscriptionsEnabled() ? 'Users can subscribe to plans' : 'Subscriptions are disabled across the app' }}
+                        {{
+                          isSubscriptionsEnabled()
+                            ? 'Subscriptions and paid promotions are available.'
+                            : 'Subscriptions are disabled; paid promotions are hidden and purchases are blocked.'
+                        }}
                       </span>
                     </p>
                   </div>
