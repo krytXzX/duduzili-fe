@@ -282,7 +282,7 @@ export class DashboardSidebarComponent {
   private readonly router = inject(Router);
   private readonly notificationsService = inject(NotificationsService);
 
-  readonly isRequestsExpanded = signal(true);
+  readonly isRequestsExpanded = signal(false);
   readonly isAdsExpanded = signal(this.router.url.startsWith('/seller/ads'));
   readonly subscriptionsEnabled = computed(() => this.authSession.subscriptionsEnabled());
 
