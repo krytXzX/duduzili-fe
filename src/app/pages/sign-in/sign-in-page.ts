@@ -12,6 +12,7 @@ import {
   LoginTwoFactorChallengeResponse,
 } from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-sign-in-page',
@@ -164,15 +165,11 @@ export class SignInPageComponent {
   }
 
   private getGoogleRedirectUri(): string {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://127.0.0.1:8000/api/auth/google/';
-    }
-    return 'https://ddz.sft.org.ng';
+    return environment.googleOAuthRedirectUri;
   }
 
   protected loginWithGoogle(): void {
-    const clientId = '407408718192.apps.googleusercontent.com';
+    const clientId = environment.googleOAuthClientId;
     const redirectUri = encodeURIComponent(this.getGoogleRedirectUri());
     const scope = encodeURIComponent('profile email');
     const responseType = 'code';
