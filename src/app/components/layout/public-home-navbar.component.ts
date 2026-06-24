@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, output, signal, effect } from '@angular/core';
-import { DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal, effect } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { LocationService } from '../../services/location.service';
@@ -11,53 +11,6 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
   selector: 'app-public-home-navbar',
   imports: [NgOptimizedImage, RouterLink],
   template: `
-    @if (showAppDownloadBanner() && !showMobileMenu()) {
-      <section class="border-b border-[#ececf2] bg-white px-4 py-3 lg:hidden">
-        <div class="flex items-center gap-3">
-          <button
-            type="button"
-            class="flex h-5 w-5 items-center justify-center text-[#8e8e98]"
-            (click)="dismissAppDownloadBanner()"
-            aria-label="Dismiss app download banner"
-          >
-            <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 fill-current">
-              <path
-                d="M5.28 4.22 10 8.94l4.72-4.72 1.06 1.06L11.06 10l4.72 4.72-1.06 1.06L10 11.06l-4.72 4.72-1.06-1.06L8.94 10 4.22 5.28Z"
-              />
-            </svg>
-          </button>
-
-          <div class="flex min-w-0 flex-1 items-center gap-2.5">
-            <div
-              class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#6453d9] shadow-[0_10px_18px_-14px_rgba(100,83,217,0.95)]"
-            >
-              <img
-                ngSrc="/assets/images/logo-light-fill.svg"
-                alt=""
-                width="20"
-                height="20"
-                class="h-5 w-5"
-                aria-hidden="true"
-              />
-            </div>
-            <div class="min-w-0">
-              <p class="text-[13px] font-semibold leading-4 text-[#373737]">Get the app</p>
-              <p class="truncate text-[11px] leading-4 text-[#99a2b1]">
-                The easiest way to use Duduzili
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            class="rounded-full bg-[#6453d9] px-3 py-2 text-[10px] font-semibold tracking-[0.06em] text-white shadow-[0_10px_18px_-14px_rgba(100,83,217,0.95)]"
-          >
-            DOWNLOAD
-          </button>
-        </div>
-      </section>
-    }
-
     <div class="fixed inset-x-0 top-0 z-50 hidden px-2 pt-4 lg:block">
       <header>
         <div class="pointer-events-none mx-auto flex max-w-[1440px] justify-center px-8">
@@ -81,7 +34,7 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
 
               <button
                 type="button"
-                class="flex h-10 items-center justify-between gap-3 rounded-full bg-[#2f2f2f] py-1 pl-3 pr-1 text-white"
+                class="flex h-10 items-center justify-between gap-3 rounded-full bg-[#2f2f2f] py-1 pl-3 pr-1 text-white transition hover:bg-[#3a3a3a] active:scale-[0.98]"
                 aria-label="Select location"
                 aria-haspopup="dialog"
                 [attr.aria-expanded]="locationService.isLocationPickerOpen()"
@@ -115,11 +68,11 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
               class="flex items-center gap-0.5 text-sm text-white"
               aria-label="Desktop navigation"
             >
-              <a routerLink="/" class="rounded-full px-3.5 py-2.5 font-medium">Sell item</a>
-              <a routerLink="/sign-in" class="rounded-full px-3.5 py-2.5 font-medium">Sign in</a>
+              <a routerLink="/" class="rounded-full px-3.5 py-2.5 font-medium transition hover:bg-white/10 active:scale-[0.98]">Sell item</a>
+              <a routerLink="/sign-in" class="rounded-full px-3.5 py-2.5 font-medium transition hover:bg-white/10 active:scale-[0.98]">Sign in</a>
               <a
                 routerLink="/sign-up"
-                class="flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[#1d1d1d]"
+                class="flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[#1d1d1d] transition hover:bg-[#f3f3f3] active:scale-[0.98]"
               >
                 <span
                   class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#dbe5ff]"
@@ -138,34 +91,43 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
       </header>
     </div>
 
-    <header
-      class="sticky top-0 z-30 bg-white lg:hidden"
-      [class]="
-        showMobileMenu() ? 'rounded-b-[24px] border-x border-b border-[#ededed] bg-white' : ''
-      "
-    >
-      <div class="flex items-center justify-between px-5 py-[18px]">
-        <a [routerLink]="homeRoute()" class="block" aria-label="Duduzili home">
-          <img
-            ngSrc="/assets/icons/home-header-logo-mobile.svg"
-            alt="Duduzili"
-            width="111"
-            height="24"
-            class="h-6 w-auto"
-          />
-        </a>
+    <header class="sticky top-0 z-50 bg-white lg:hidden">
+      @if (showMobileMenu()) {
+        <button
+          type="button"
+          class="fixed inset-0 z-10 bg-[rgba(26,27,29,0.55)] backdrop-blur-[3px]"
+          aria-label="Close menu"
+          (click)="closeMobileMenu()"
+        ></button>
+      }
 
-        <div class="flex items-center gap-2">
-          @if (!showMobileMenu()) {
+      <div
+        class="relative z-20 bg-white transition-[border-radius,box-shadow] duration-200"
+        [class.rounded-b-[24px]]="showMobileMenu()"
+        [class.shadow-[0_16px_40px_rgba(0,0,0,0.18)]]="showMobileMenu()"
+      >
+        <div class="mx-auto flex h-[72px] w-full max-w-[390px] items-center justify-between px-5">
+          <a [routerLink]="homeRoute()" class="block" aria-label="Duduzili home" (click)="closeMobileMenu()">
+            <img
+              ngSrc="/assets/icons/home-header-logo-mobile.svg"
+              alt="Duduzili"
+              width="111"
+              height="24"
+              class="h-6 w-auto"
+              priority
+            />
+          </a>
+
+          <div class="flex items-center gap-2">
             <button
               type="button"
-              class="flex h-9 items-center justify-between gap-1 rounded-full border border-white bg-[#f3f3f3] py-1 pl-3 pr-1 text-sm font-medium tracking-[0.01em] text-[#373737] shadow-[0_4px_12px_rgba(0,0,0,0.04)]"
+              class="flex h-9 items-center justify-between gap-1 rounded-full border border-white bg-[#f3f3f3] py-1 pl-3 pr-1 text-sm font-medium tracking-[0.01em] text-[#373737] shadow-[0_4px_12px_rgba(0,0,0,0.04)] transition hover:bg-[#ececec] active:scale-[0.98]"
               aria-label="Select location"
               aria-haspopup="dialog"
               [attr.aria-expanded]="locationService.isLocationPickerOpen()"
               (click)="locationService.openLocationPicker()"
             >
-              <span class="flex items-center gap-1">
+              <span class="flex items-center gap-1 whitespace-nowrap">
                 <img
                   ngSrc="/assets/icons/home-header-location-mobile.svg"
                   alt=""
@@ -187,96 +149,66 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
                 />
               </span>
             </button>
-          }
 
-          <button
-            type="button"
-            class="flex h-8 w-8 items-center justify-center rounded-lg"
-            [attr.aria-expanded]="showMobileMenu()"
-            aria-controls="public-home-mobile-menu"
-            [attr.aria-label]="showMobileMenu() ? 'Close menu' : 'Open menu'"
-            (click)="toggleMobileMenu()"
-          >
-            <img
-              [ngSrc]="
-                showMobileMenu()
-                  ? '/assets/icons/home-mobile-menu/close.svg'
-                  : '/assets/icons/home-header-menu-mobile.svg'
-              "
-              alt=""
-              width="20"
-              height="20"
-              class="h-5 w-5"
-              aria-hidden="true"
-            />
-          </button>
-        </div>
-      </div>
-
-      @if (showMobileMenu()) {
-        <button
-          type="button"
-          class="fixed inset-0 z-10 bg-[rgba(26,27,29,0.24)] backdrop-blur-[3px]"
-          aria-label="Close menu"
-          (click)="closeMobileMenu()"
-        ></button>
-
-        <div class="absolute inset-x-0 top-0 z-20 rounded-b-2xl bg-white">
-          <div class="flex items-center justify-between px-5 py-[18px]">
-            <a [routerLink]="homeRoute()" class="block" aria-label="Duduzili home">
-              <img
-                ngSrc="/assets/icons/home-header-logo-mobile.svg"
-                alt="Duduzili"
-                width="111"
-                height="24"
-                class="h-6 w-auto"
-              />
-            </a>
-
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                class="flex h-8 w-8 items-center justify-center rounded-lg"
-                [attr.aria-expanded]="showMobileMenu()"
-                aria-controls="public-home-mobile-menu"
-                [attr.aria-label]="showMobileMenu() ? 'Close menu' : 'Open menu'"
-                (click)="toggleMobileMenu()"
-              >
+            <button
+              type="button"
+              class="flex h-8 w-8 items-center justify-center rounded-full text-[#36394a] transition hover:bg-[#f3f3f3] active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453d9]"
+              [attr.aria-expanded]="showMobileMenu()"
+              aria-controls="public-home-mobile-menu"
+              [attr.aria-label]="showMobileMenu() ? 'Close menu' : 'Open menu'"
+              (click)="toggleMobileMenu()"
+            >
+              @if (showMobileMenu()) {
+                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 stroke-current" fill="none" stroke-width="2.2" stroke-linecap="round">
+                  <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              } @else {
                 <img
-                  [ngSrc]="
-                    showMobileMenu()
-                      ? '/assets/icons/home-mobile-menu/close.svg'
-                      : '/assets/icons/home-header-menu-mobile.svg'
-                  "
+                  ngSrc="/assets/icons/home-header-menu-mobile.svg"
                   alt=""
                   width="20"
                   height="20"
                   class="h-5 w-5"
                   aria-hidden="true"
                 />
-              </button>
-            </div>
+              }
+            </button>
           </div>
+        </div>
 
+        @if (showMobileMenu()) {
           <div
             id="public-home-mobile-menu"
-            class="mx-auto flex w-full max-w-[390px] flex-col gap-6 px-[19px] pb-[18px] pt-[5px]"
+            class="mx-auto flex w-full max-w-[390px] flex-col gap-[38px] px-5 pb-[18px] pt-0"
           >
             <nav
-              class="flex flex-col items-start gap-3 text-[16px] font-medium leading-[1.2] tracking-[0.01em] text-[#373737]"
+              class="flex flex-col items-start gap-4 text-[16px] font-medium leading-[1.2] tracking-[0.01em] text-[#373737]"
               aria-label="Mobile menu"
             >
-              <a routerLink="/sign-in" class="leading-[1.2]" (click)="closeMobileMenu()">Sign in</a>
-              <a routerLink="/sign-up" class="leading-[1.2]" (click)="closeMobileMenu()">Sign up</a>
-              <a routerLink="/" class="leading-[1.2]" (click)="closeMobileMenu()">Sell item</a>
+              <a routerLink="/sign-in" class="transition hover:text-[#6453d9] active:scale-[0.98]" (click)="closeMobileMenu()">Sign in</a>
+              <a routerLink="/sign-up" class="transition hover:text-[#6453d9] active:scale-[0.98]" (click)="closeMobileMenu()">Sign up</a>
+              <a routerLink="/" class="transition hover:text-[#6453d9] active:scale-[0.98]" (click)="closeMobileMenu()">Sell item</a>
             </nav>
 
-            <div class="w-full rounded-[20px] border border-[#ededed] bg-white px-4 pb-6 pt-5">
+            <div class="relative w-full overflow-hidden rounded-[20px] border border-[#ededed] bg-white px-5 pb-[28px] pt-[31px]">
+              <div class="pointer-events-none absolute inset-x-0 top-0 h-[168px] overflow-hidden" aria-hidden="true">
+                <img ngSrc="/assets/icons/home-hero-rotator/shoe.svg" alt="" width="24" height="24" class="absolute left-0 top-[20px] h-6 w-6 rotate-[24deg] opacity-95" />
+                <img ngSrc="/assets/icons/home-hero-rotator/electronics.svg" alt="" width="22" height="22" class="absolute left-[49px] top-[40px] h-[22px] w-[22px] opacity-80" />
+                <img ngSrc="/assets/icons/home-hero-rotator/heels.svg" alt="" width="25" height="25" class="absolute left-[73px] top-[3px] h-[25px] w-[25px] rotate-[16deg] opacity-90" />
+                <img ngSrc="/assets/icons/home-hero-rotator/phone.svg" alt="" width="22" height="22" class="absolute left-[30px] top-[76px] h-[22px] w-[22px] rotate-[-8deg] opacity-80" />
+                <img ngSrc="/assets/icons/home-hero-rotator/car.svg" alt="" width="22" height="22" class="absolute left-[103px] top-[18px] h-[22px] w-[22px] opacity-75" />
+                <img ngSrc="/assets/icons/home-hero-rotator/house.svg" alt="" width="25" height="25" class="absolute right-0 top-[18px] h-[25px] w-[25px] rotate-[-12deg] opacity-90" />
+                <img ngSrc="/assets/icons/home-hero-rotator/phone.svg" alt="" width="22" height="22" class="absolute right-[47px] top-[5px] h-[22px] w-[22px] rotate-[18deg] opacity-75" />
+                <img ngSrc="/assets/icons/home-hero-rotator/shoe.svg" alt="" width="24" height="24" class="absolute right-[13px] top-[65px] h-6 w-6 rotate-[-20deg] opacity-95" />
+                <img ngSrc="/assets/icons/home-hero-rotator/electronics.svg" alt="" width="22" height="22" class="absolute right-[84px] top-[76px] h-[22px] w-[22px] opacity-80" />
+                <img ngSrc="/assets/icons/home-hero-rotator/car.svg" alt="" width="22" height="22" class="absolute left-[82px] top-[116px] h-[22px] w-[22px] opacity-75" />
+              </div>
+
               <div
-                class="mx-auto w-fit rounded-[10px] border border-[#f0f0f0] bg-white p-[6px] shadow-[0_4.7px_12.6px_rgba(199,199,199,0.25)]"
+                class="relative z-10 mx-auto w-fit rounded-[10px] border border-[#f0f0f0] bg-white p-[6px] shadow-[0_4.7px_12.6px_rgba(199,199,199,0.25)]"
               >
                 <img
-                  ngSrc="/assets/images/home-qr-code.svg"
+                  ngSrc="/assets/images/home-qr-code.png"
                   alt="QR code to download the Duduzili app"
                   width="110"
                   height="110"
@@ -284,65 +216,53 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
                 />
               </div>
 
-              <p class="mt-3 text-center text-[14px] leading-[1.2] text-[#99a2b1]">
+              <div class="relative z-10 mt-3 flex items-center justify-center gap-5 text-[#99a2b1]" aria-hidden="true">
+                <img ngSrc="/assets/icons/home-hero-rotator/electronics.svg" alt="" width="18" height="18" class="h-[18px] w-[18px] grayscale" />
+                <span class="h-5 w-px bg-[#e1e1e5]"></span>
+                <img ngSrc="/assets/icons/signin-apple.svg" alt="" width="18" height="18" class="h-[18px] w-[18px] grayscale" />
+              </div>
+
+              <p class="relative z-10 mt-[19px] text-center text-[14px] leading-[1.2] text-[#99a2b1]">
                 Scan QR code to download mobile app
               </p>
 
-              <div class="mt-4 flex items-center justify-center gap-6">
+              <div class="relative z-10 mt-5 flex items-center justify-center gap-6">
                 <span class="h-px w-[70px] bg-[#dedee1]" aria-hidden="true"></span>
                 <span class="text-[14px] text-[rgba(26,27,29,0.7)]">OR</span>
                 <span class="h-px w-[70px] bg-[#dedee1]" aria-hidden="true"></span>
               </div>
 
-              <div class="mt-[38px] flex flex-wrap items-center justify-center gap-3">
-                <button
-                  type="button"
-                  class="flex h-10 w-[132px] items-center gap-2 rounded-[8px] border border-[#a6a6a6] bg-black px-[10px] text-white"
+              <div class="relative z-10 mt-[27px] flex items-center justify-center gap-5">
+                <a
+                  routerLink="/"
+                  class="flex h-[38px] w-[121px] items-center gap-2 rounded-[6px] border border-[#a6a6a6] bg-black px-[8px] text-white transition hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98]"
                   aria-label="Download on the App Store"
+                  (click)="closeMobileMenu()"
                 >
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 20 24"
-                    class="h-6 w-5 shrink-0 fill-white"
-                  >
-                    <path
-                      d="M16.7045 12.7631C16.7166 11.8432 16.9669 10.9413 17.4321 10.1412C17.8972 9.34108 18.5621 8.66885 19.3648 8.18702C18.8548 7.47597 18.1821 6.89081 17.4 6.478C16.6178 6.0652 15.7479 5.83613 14.8592 5.80898C12.9635 5.61471 11.1258 6.91644 10.1598 6.91644C9.17506 6.91644 7.68776 5.82827 6.08616 5.86044C5.05021 5.89311 4.04059 6.18722 3.15568 6.7141C2.27077 7.24099 1.54075 7.98268 1.03674 8.86691C-1.14648 12.5573 0.482005 17.9809 2.57338 20.964C3.61975 22.4247 4.84264 24.0564 6.44279 23.9985C8.00863 23.9351 8.59344 23.0237 10.4835 23.0237C12.3561 23.0237 12.9048 23.9985 14.5374 23.9617C16.2176 23.9351 17.2762 22.4945 18.2859 21.02C19.0377 19.9792 19.6162 18.8288 20 17.6116C19.0238 17.2085 18.1908 16.5338 17.6048 15.6716C17.0187 14.8094 16.7056 13.7979 16.7045 12.7631Z"
-                    />
-                    <path
-                      d="M13.6208 3.84713C14.5369 2.77343 14.9883 1.39335 14.879 0C13.4794 0.143519 12.1865 0.796596 11.258 1.82911C10.804 2.33351 10.4563 2.92033 10.2348 3.55601C10.0132 4.19168 9.92221 4.86375 9.96687 5.5338C10.6669 5.54084 11.3595 5.3927 11.9924 5.10054C12.6254 4.80838 13.1821 4.37982 13.6208 3.84713Z"
-                    />
-                  </svg>
+                  <img ngSrc="/assets/icons/home-apple.svg" alt="" width="24" height="24" class="h-6 w-6" aria-hidden="true" />
                   <span class="flex min-w-0 flex-col items-start text-left">
-                    <span class="text-[9px] font-medium leading-[1.05] text-white">Download on the</span>
-                    <span class="text-[17px] font-medium leading-none tracking-[-0.47px] text-white">App Store</span>
+                    <span class="text-[7px] font-semibold leading-[1.05] text-white">Download on the</span>
+                    <span class="text-[15px] font-semibold leading-none tracking-[-0.47px] text-white">App Store</span>
                   </span>
-                </button>
+                </a>
 
-                <button
-                  type="button"
-                  class="flex h-10 w-[132px] items-center gap-2 rounded-[8px] border border-[#a6a6a6] bg-black px-[10px] text-white"
+                <a
+                  routerLink="/"
+                  class="flex h-[38px] w-[121px] items-center gap-2 rounded-[6px] border border-[#a6a6a6] bg-black px-[8px] text-white transition hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98]"
                   aria-label="Get it on Google Play"
+                  (click)="closeMobileMenu()"
                 >
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 21 24"
-                    class="h-6 w-[21px] shrink-0"
-                  >
-                    <path d="M9.80482 11.4617L0.0896003 22.0059C0.0905128 22.0078 0.0905127 22.0106 0.0914252 22.0125C0.389807 23.1574 1.41179 24 2.62539 24C3.11083 24 3.56616 23.8656 3.95671 23.6305L3.98773 23.6118L14.9229 17.1593L9.80482 11.4617Z" fill="#EA4335"/>
-                    <path d="M19.6331 9.66619L19.624 9.65966L14.9028 6.86123L9.58391 11.7013L14.9219 17.1582L19.6176 14.3878C20.4406 13.9324 21 13.045 21 12.0223C21 11.0052 20.4489 10.1225 19.6331 9.66619Z" fill="#FBBC04"/>
-                    <path d="M0.0894234 1.99332C0.0310244 2.21353 0 2.44495 0 2.68382V21.3164C0 21.5552 0.0310245 21.7866 0.0903359 22.0059L10.1386 11.7313L0.0894234 1.99332Z" fill="#4285F4"/>
-                    <path d="M9.87657 11.9999L14.9044 6.85936L3.98192 0.383511C3.58499 0.139967 3.12145 1.42739e-07 2.62597 1.42739e-07C1.41237 1.42739e-07 0.38856 0.844472 0.0901781 1.99034C0.0901781 1.99128 0.0892662 1.99221 0.0892662 1.99314L9.87657 11.9999Z" fill="#34A853"/>
-                  </svg>
+                  <img ngSrc="/assets/icons/home-google-play.svg" alt="" width="24" height="24" class="h-6 w-6" aria-hidden="true" />
                   <span class="flex min-w-0 flex-col items-start text-left">
-                    <span class="text-[10px] font-medium uppercase leading-[1.05] tracking-[0.02em] text-white">Get it on</span>
-                    <span class="text-[15px] font-medium leading-none tracking-[-0.02em] text-white">Google Play</span>
+                    <span class="text-[8px] font-semibold uppercase leading-[1.05] tracking-[0.02em] text-white">Get it on</span>
+                    <span class="text-[13px] font-semibold leading-none tracking-[-0.02em] text-white">Google Play</span>
                   </span>
-                </button>
+                </a>
               </div>
             </div>
           </div>
-        </div>
-      }
+        }
+      </div>
     </header>
 
   `,
@@ -352,8 +272,6 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicHomeNavbarComponent {
-  private readonly document = inject(DOCUMENT);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly authSession = inject(AuthSessionService);
   readonly locationService = inject(LocationService);
 
@@ -364,14 +282,9 @@ export class PublicHomeNavbarComponent {
     return this.authSession.isSuperuser() ? '/admin' : '/en';
   });
   readonly locationChange = output<PublicHomeLocationSelection>();
-  readonly showAppDownloadBanner = signal(true);
   readonly showMobileMenu = signal(false);
 
   constructor() {
-    this.destroyRef.onDestroy(() => {
-      // No scroll lock cleanup needed
-    });
-
     effect(() => {
       const location = this.locationService.selectedLocation();
       const city = this.locationService.selectedCity();
@@ -383,10 +296,6 @@ export class PublicHomeNavbarComponent {
         query,
       });
     });
-  }
-
-  dismissAppDownloadBanner(): void {
-    this.showAppDownloadBanner.set(false);
   }
 
   toggleMobileMenu(): void {
