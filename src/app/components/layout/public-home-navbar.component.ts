@@ -439,7 +439,7 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
                       >Download on the</span
                     >
                     <span
-                      class="text-[15px] font-semibold leading-none tracking-[-0.47px] text-white"
+                      class="text-[13px] font-semibold leading-none tracking-[-0.47px] text-white"
                       >App Store</span
                     >
                   </span>
@@ -464,13 +464,17 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
                       class="text-[8px] font-semibold uppercase leading-none tracking-[0.02em] text-white"
                       >Get it on</span
                     >
-                    <img
+                    <!-- <img
                       ngSrc="/assets/images/public-mobile-nav/google-play-wordmark.svg"
                       alt="Google Play"
                       width="74"
                       height="15"
-                      class="h-[15px] w-[74px]"
-                    />
+                      class="h-[15px] w-[74px] rotate-180"
+                    /> -->
+                    <span
+                      class="text-[13px] font-semibold leading-none tracking-[-0.47px] text-white"
+                      >Google Play</span
+                    >
                   </span>
                 </a>
               </div>

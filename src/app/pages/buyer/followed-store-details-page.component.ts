@@ -43,6 +43,10 @@ import { HomeFooterComponent } from '../../components/layout/home-footer.compone
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
 import {
+  CustomDropdownComponent,
+  type CustomDropdownOption,
+} from '../../components/ui/custom-dropdown.component';
+import {
   CreateVendorReviewPayload,
   VendorFollowResponse,
   VendorListingRecord,
@@ -56,6 +60,7 @@ import {
 import { environment } from '../../../environments/environment';
 
 type BuyerStoreTab = 'products' | 'reviews';
+type StoreReviewSort = 'most-recent' | 'highest-rated' | 'lowest-rated';
 
 interface BuyerStoreStats {
   followers: string;
@@ -92,6 +97,7 @@ type MobileProductSection = {
 };
 
 type StoreReview = Review & {
+  createdAtMs: number;
   tags?: string[];
 };
 
@@ -115,6 +121,7 @@ type VendorTagSummary = {
     PublicHomeNavbarComponent,
     HomeFooterComponent,
     MobileBottomNavComponent,
+    CustomDropdownComponent,
   ],
   providers: [
     provideIcons({
@@ -485,13 +492,19 @@ type VendorTagSummary = {
                 <h2 class="text-[18px] font-semibold text-[#1A1C21]">
                   {{ reviewCountLabel() }} reviews
                 </h2>
-                <button
-                  type="button"
-                  class="flex items-center gap-1 rounded-full border border-[#E6E8EF] px-3 py-1.5 text-[13px] text-[#1A1C21]"
-                >
-                  Most recent
-                  <ng-icon name="heroChevronDown" class="text-[14px] text-[#8C8C92]"></ng-icon>
-                </button>
+                <app-custom-dropdown
+                  [options]="reviewSortOptions"
+                  [value]="reviewSort()"
+                  [ariaLabel]="'Sort store reviews'"
+                  [align]="'right'"
+                  [buttonClass]="'inline-flex h-8 items-center gap-1 rounded-full border border-[#E6E8EF] bg-white px-3 py-1.5 text-[13px] font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA] active:scale-95'"
+                  [labelClass]="'truncate'"
+                  [iconClass]="'text-[#8C8C92]'"
+                  [menuClass]="'min-w-[168px]'"
+                  [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                  [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                  (valueChange)="reviewSort.set($event)"
+                ></app-custom-dropdown>
               </div>
 
               @if (vendorTags().length) {
@@ -520,8 +533,8 @@ type VendorTagSummary = {
                       </div>
                     </div>
                   }
-                } @else if (reviews().length) {
-                  @for (review of reviews(); track review.author + review.date) {
+                } @else if (sortedReviews().length) {
+                  @for (review of sortedReviews(); track review.author + review.date) {
                     <article class="border-b border-[#F0F1F4] pb-5 last:border-b-0 last:pb-0">
                       <div class="flex gap-3">
                         <div
@@ -1080,16 +1093,19 @@ type VendorTagSummary = {
                           }
                         </div>
 
-                        <button
-                          type="button"
-                          class="flex items-center gap-2 self-start rounded-full border border-[#E6E8EF] bg-white px-4 py-2.5 text-[15px] font-medium text-[#1A1C21]"
-                        >
-                          Most recent
-                          <ng-icon
-                            name="heroChevronDown"
-                            class="text-[16px] text-[#8C8C92]"
-                          ></ng-icon>
-                        </button>
+                        <app-custom-dropdown
+                          [options]="reviewSortOptions"
+                          [value]="reviewSort()"
+                          [ariaLabel]="'Sort store reviews'"
+                          [align]="'right'"
+                          [buttonClass]="'inline-flex h-10 items-center gap-2 self-start rounded-full border border-[#E6E8EF] bg-white px-4 py-2.5 text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F7FA] active:scale-95'"
+                          [labelClass]="'truncate'"
+                          [iconClass]="'text-[#8C8C92]'"
+                          [menuClass]="'min-w-[180px]'"
+                          [optionClass]="'w-full rounded-[14px] px-4 py-3 text-left text-[14px] text-[#1A1B1D] transition hover:bg-[#F5F6FA]'"
+                          [activeOptionClass]="'bg-[#F5F1FF] text-[#5932EA]'"
+                          (valueChange)="reviewSort.set($event)"
+                        ></app-custom-dropdown>
                       </div>
 
                       <div class="space-y-8">
@@ -1105,8 +1121,8 @@ type VendorTagSummary = {
                               </div>
                             </div>
                           }
-                        } @else if (reviews().length) {
-                          @for (review of reviews(); track review.author + review.date) {
+                        } @else if (sortedReviews().length) {
+                          @for (review of sortedReviews(); track review.author + review.date) {
                             <article class="rounded-[24px] bg-white">
                               <div class="flex gap-4">
                                 <div
@@ -1562,6 +1578,12 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   readonly reviewImageFiles = signal<readonly File[]>([]);
   readonly reviewTagSummaries = signal<VendorTagSummary[]>([]);
   readonly reviewTagOptions = signal<readonly VendorTagSummary[]>([]);
+  readonly reviewSort = signal<StoreReviewSort>('most-recent');
+  readonly reviewSortOptions: readonly CustomDropdownOption<StoreReviewSort>[] = [
+    { value: 'most-recent', label: 'Most recent' },
+    { value: 'highest-rated', label: 'Highest rating' },
+    { value: 'lowest-rated', label: 'Lowest rating' },
+  ];
   private readonly storeId = this.route.snapshot.paramMap.get('id') ?? 'bf1';
 
   readonly store = signal<BuyerStoreProfile>({
@@ -1643,6 +1665,21 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   readonly productSections = signal<ProductSection[]>([]);
 
   readonly reviews = signal<StoreReview[]>([]);
+
+  readonly sortedReviews = computed(() => {
+    const sort = this.reviewSort();
+    return [...this.reviews()].sort((left, right) => {
+      if (sort === 'highest-rated') {
+        return right.rating - left.rating || right.createdAtMs - left.createdAtMs;
+      }
+
+      if (sort === 'lowest-rated') {
+        return left.rating - right.rating || right.createdAtMs - left.createdAtMs;
+      }
+
+      return right.createdAtMs - left.createdAtMs || right.rating - left.rating;
+    });
+  });
 
   readonly vendorTags = computed(() => {
     if (this.reviewTagSummaries().length > 0) {
@@ -1989,7 +2026,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
       const items = this.extractVendorReviewItems(response);
       const reviews = items
         .map((review, index) => this.toReview(review, index))
-        .filter((review): review is Review => review !== null);
+        .filter((review): review is StoreReview => review !== null);
       this.reviewTagSummaries.set(this.extractVendorTagSummaries(items));
       this.reviews.set(reviews);
     } catch {
@@ -2249,6 +2286,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
       rating,
       text,
       date: this.formatReviewDate(record['created_at']) ?? 'Recently',
+      createdAtMs: this.parseDateMs(record['created_at']) ?? 0,
       images: this.extractReviewImages(record),
       tags:
         this.readStringArray(record['tags']).length > 0
@@ -2584,6 +2622,16 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
       month: 'long',
       year: 'numeric',
     }).format(parsed);
+  }
+
+  private parseDateMs(value: unknown): number | null {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    const time = parsed.getTime();
+    return Number.isNaN(time) ? null : time;
   }
 
   private slugify(value: string): string {
