@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   inject,
   input,
   OnDestroy,
@@ -11,6 +12,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AppToastService } from '../../../services/app-toast.service';
+import { AuthSessionService } from '../../../services/auth-session.service';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 
 export interface AddStoreFormValue {
@@ -396,6 +398,7 @@ export class AddStoreModalComponent implements OnDestroy {
 
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly appToastService = inject(AppToastService);
+  private readonly authSession = inject(AuthSessionService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
 
   protected readonly storeForm = this.fb.group({
@@ -405,6 +408,38 @@ export class AddStoreModalComponent implements OnDestroy {
     whatsappNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],
     callNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,}$/)]],
     alternateCallNumber: ['', Validators.pattern(/^[0-9+() -]{7,}$/)],
+  });
+
+  private readonly prefillContactDetails = effect(() => {
+    const user = this.authSession.user();
+    const whatsappNumber =
+      this.readString(user?.whatsapp_number) ?? this.readString(user?.phone_number);
+    const callNumber =
+      this.readString(user?.phone_number) ?? this.readString(user?.whatsapp_number);
+    const updates: Partial<{
+      whatsappNumber: string;
+      callNumber: string;
+    }> = {};
+
+    if (
+      whatsappNumber &&
+      !this.storeForm.controls.whatsappNumber.dirty &&
+      this.storeForm.controls.whatsappNumber.value.trim().length === 0
+    ) {
+      updates.whatsappNumber = whatsappNumber;
+    }
+
+    if (
+      callNumber &&
+      !this.storeForm.controls.callNumber.dirty &&
+      this.storeForm.controls.callNumber.value.trim().length === 0
+    ) {
+      updates.callNumber = callNumber;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      this.storeForm.patchValue(updates, { emitEvent: false });
+    }
   });
 
   constructor() {
@@ -473,5 +508,9 @@ export class AddStoreModalComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.mobileOverlayService.closeMobileModal();
+  }
+
+  private readString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
   }
 }
