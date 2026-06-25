@@ -1,0 +1,18 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="box-add">
+<path id="Vector" d="M19.1667 15C19.1667 15.625 18.9917 16.2167 18.6833 16.7167C18.5083 17.0167 18.2833 17.2833 18.025 17.5C17.4417 18.025 16.675 18.3333 15.8333 18.3333C14.8167 18.3333 13.9083 17.875 13.3083 17.1584C13.2917 17.1334 13.2667 17.1167 13.25 17.0917C13.15 16.975 13.0583 16.85 12.9833 16.7167C12.675 16.2167 12.5 15.625 12.5 15C12.5 13.95 12.9833 13.0083 13.75 12.4C14.325 11.9417 15.05 11.6667 15.8333 11.6667C16.6667 11.6667 17.4167 11.9666 18 12.475C18.1 12.55 18.1917 12.6417 18.275 12.7334C18.825 13.3334 19.1667 14.125 19.1667 15Z" stroke="var(--stroke-0, white)" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="Group">
+<path id="Vector_2" d="M17.075 14.9833H14.5917" stroke="var(--stroke-0, white)" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M15.8333 13.7667V16.2583" stroke="var(--stroke-0, white)" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="Group_2">
+<g id="Group_3">
+<path id="Vector_4" d="M2.64167 6.2L10 10.4583L17.3083 6.22498" stroke="var(--stroke-0, white)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_5" d="M10 18.0083V10.45" stroke="var(--stroke-0, white)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<path id="Vector_6" d="M18.0083 7.64167V12.3584C18.0083 12.4 18.0083 12.4333 18 12.475C17.4167 11.9667 16.6667 11.6667 15.8333 11.6667C15.05 11.6667 14.325 11.9417 13.75 12.4C12.9833 13.0084 12.5 13.95 12.5 15C12.5 15.625 12.675 16.2167 12.9833 16.7167C13.0583 16.85 13.15 16.975 13.25 17.0917L11.725 17.9334C10.775 18.4667 9.22499 18.4667 8.27499 17.9334L3.825 15.4667C2.81666 14.9083 1.99167 13.5084 1.99167 12.3584V7.64167C1.99167 6.49167 2.81666 5.09168 3.825 4.53335L8.27499 2.06667C9.22499 1.53333 10.775 1.53333 11.725 2.06667L16.175 4.53335C17.1833 5.09168 18.0083 6.49167 18.0083 7.64167Z" stroke="var(--stroke-0, white)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="Vector_7" opacity="0">
+</g>
+</g>
+</svg>

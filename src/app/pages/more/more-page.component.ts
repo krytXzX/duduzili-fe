@@ -65,17 +65,18 @@ type BuyerMoreItem = {
         <div class="fixed inset-x-0 bottom-[132px] z-30 flex justify-center px-5 md:static md:mt-16 md:px-0">
           <a
             routerLink="/seller/listings"
-            class="inline-flex h-[52px] w-full max-w-[277px] items-center justify-center gap-2 rounded-[64px] border border-white bg-[#6453d9] px-5 text-[16px] font-medium text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8]"
+            class="inline-flex h-[52px] w-full max-w-[277px] items-center justify-center gap-2 overflow-hidden rounded-[64px] border border-white bg-[#6453d9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8] transition hover:-translate-y-0.5 hover:bg-[#5c4ad0] active:translate-y-0 active:scale-[0.98]"
+            aria-label="Sell an item"
           >
             <img
-              ngSrc="/assets/icons/more-mobile-figma/repeat.svg"
+              ngSrc="/assets/icons/buyer-more/box-add.svg"
               alt=""
-              width="16"
-              height="16"
-              class="h-4 w-4"
+              width="20"
+              height="20"
+              class="h-5 w-5"
               aria-hidden="true"
             />
-            Switch to seller profile
+            Sell an item
           </a>
         </div>
       </div>
