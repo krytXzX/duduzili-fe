@@ -56,7 +56,7 @@ interface BannerPromotion {
       <div class="flex items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <a
-            routerLink="/more"
+            routerLink="/seller/more"
             aria-label="Back to More"
             class="flex h-8 w-8 items-center justify-center rounded-full bg-[#F3F3F3]"
           >
