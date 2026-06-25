@@ -1204,13 +1204,11 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                     @if (editPrimaryGalleryImage(); as primaryImage) {
                       <div
                         class="relative h-[230px] overflow-hidden rounded-[18px] bg-[#F4F4F4] col-span-2"
-                      >
+                        >
                         <img
-                          [ngSrc]="primaryImage.src"
+                          [src]="primaryImage.src"
                           [alt]="primaryImage.alt"
-                          fill
-                          sizes="58vw"
-                          class="object-cover"
+                          class="absolute inset-0 h-full w-full object-cover"
                         />
                         <div
                           class="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[12px] font-medium text-[#1A1B1D]"
@@ -1219,7 +1217,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         </div>
                         <button
                           type="button"
-                          (click)="openEditImagePicker()"
+                          (click)="openEditImagePicker(0)"
                           class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_4px_8px_rgba(15,23,42,0.08)]"
                           aria-label="Photo actions"
                         >
@@ -1241,21 +1239,40 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           </button>
                         </div>
                       </div>
+                    } @else {
+                      <button
+                        type="button"
+                        (click)="openEditImagePicker()"
+                        class="relative h-[230px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] col-span-2"
+                        aria-label="Add listing photo 1"
+                      >
+                        <img
+                          ngSrc="/assets/icons/edit-listing-add.svg"
+                          alt=""
+                          width="24"
+                          height="24"
+                          class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
+                          aria-hidden="true"
+                        />
+                        <span
+                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                        >
+                          1
+                        </span>
+                      </button>
                     }
 
                     <div class="flex h-[230px] flex-col gap-2 col-span-1">
                       @if (editSecondaryGalleryImage(); as secondaryImage) {
                         <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
                           <img
-                            [ngSrc]="secondaryImage.src"
+                            [src]="secondaryImage.src"
                             [alt]="secondaryImage.alt"
-                            fill
-                            sizes="30vw"
-                            class="object-cover"
+                            class="absolute inset-0 h-full w-full object-cover"
                           />
                           <button
                             type="button"
-                            (click)="openEditImagePicker()"
+                            (click)="openEditImagePicker(1)"
                             class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_4px_8px_rgba(15,23,42,0.08)]"
                             aria-label="Photo actions"
                           >
@@ -1279,39 +1296,39 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         </div>
                       }
 
-                      <button
-                        type="button"
-                        (click)="openEditImagePicker()"
-                        [disabled]="isGalleryFull()"
-                        class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
-                        aria-label="Add third listing photo"
-                      >
-                        <img
-                          ngSrc="/assets/icons/edit-listing-add.svg"
-                          alt=""
-                          width="24"
-                          height="24"
-                          class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
-                          aria-hidden="true"
-                        />
-                        <span
-                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                      @if (editSideAddSlot(); as sideSlot) {
+                        <button
+                          type="button"
+                          (click)="openEditImagePicker()"
+                          [disabled]="isGalleryFull()"
+                          class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
+                          [attr.aria-label]="'Add listing photo ' + sideSlot"
                         >
-                          3
-                        </span>
-                      </button>
+                          <img
+                            ngSrc="/assets/icons/edit-listing-add.svg"
+                            alt=""
+                            width="24"
+                            height="24"
+                            class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
+                            aria-hidden="true"
+                          />
+                          <span
+                            class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                          >
+                            {{ sideSlot }}
+                          </span>
+                        </button>
+                      }
                     </div>
                   </div>
 
                   <div class="grid grid-cols-3 gap-2">
-                    @for (image of editRemainingGalleryImages(); track image.alt; let index = $index) {
+                    @for (image of editRemainingGalleryImages(); track image.token; let index = $index) {
                       <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
                         <img
-                          [ngSrc]="image.src"
+                          [src]="image.src"
                           [alt]="image.alt"
-                          fill
-                          sizes="30vw"
-                          class="object-cover"
+                          class="absolute inset-0 h-full w-full object-cover"
                         />
                         <span
                           class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
@@ -1743,12 +1760,11 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           @if (editPrimaryGalleryImage(); as primaryImage) {
                             <div
                               class="relative h-[363px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
-                            >
+                              >
                               <img
-                                [ngSrc]="primaryImage.src"
+                                [src]="primaryImage.src"
                                 [alt]="primaryImage.alt"
-                                fill
-                                class="object-cover"
+                                class="absolute inset-0 h-full w-full object-cover"
                               />
 
                               <div
@@ -1759,7 +1775,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
                               <button
                                 type="button"
-                                (click)="openEditImagePicker()"
+                                (click)="openEditImagePicker(0)"
                                 class="absolute right-3 top-3 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_6px_14px_rgba(15,23,42,0.08)]"
                                 aria-label="Photo actions"
                               >
@@ -1782,23 +1798,43 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                                 </button>
                               </div>
                             </div>
+                          } @else {
+                            <button
+                              type="button"
+                              (click)="openEditImagePicker()"
+                              class="relative h-[363px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
+                              aria-label="Add listing photo 1"
+                            >
+                              <img
+                                ngSrc="/assets/icons/edit-listing-add.svg"
+                                alt=""
+                                width="37"
+                                height="37"
+                                class="absolute left-1/2 top-1/2 h-[37px] w-[37px] -translate-x-1/2 -translate-y-1/2"
+                                aria-hidden="true"
+                              />
+                              <span
+                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                              >
+                                1
+                              </span>
+                            </button>
                           }
 
                           <div class="flex h-[363px] flex-col gap-3">
                             @if (editSecondaryGalleryImage(); as secondaryImage) {
                               <div
                                 class="relative flex-1 overflow-hidden rounded-[18px] bg-[#F4F4F4]"
-                              >
+                                >
                                 <img
-                                  [ngSrc]="secondaryImage.src"
+                                  [src]="secondaryImage.src"
                                   [alt]="secondaryImage.alt"
-                                  fill
-                                  class="object-cover"
+                                  class="absolute inset-0 h-full w-full object-cover"
                                 />
 
                                 <button
                                   type="button"
-                                  (click)="openEditImagePicker()"
+                                  (click)="openEditImagePicker(1)"
                                   class="absolute right-3 top-3 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_6px_14px_rgba(15,23,42,0.08)]"
                                   aria-label="Photo actions"
                                 >
@@ -1823,40 +1859,41 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               </div>
                             }
 
-                            <button
-                              type="button"
-                              (click)="openEditImagePicker()"
-                              [disabled]="isGalleryFull()"
-                              class="relative flex-1 overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
-                              aria-label="Add third listing photo"
-                            >
-                              <img
-                                ngSrc="/assets/icons/edit-listing-add.svg"
-                                alt=""
-                                width="37"
-                                height="37"
-                                class="absolute left-1/2 top-1/2 h-[37px] w-[37px] -translate-x-1/2 -translate-y-1/2"
-                                aria-hidden="true"
-                              />
-                              <span
-                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                            @if (editSideAddSlot(); as sideSlot) {
+                              <button
+                                type="button"
+                                (click)="openEditImagePicker()"
+                                [disabled]="isGalleryFull()"
+                                class="relative flex-1 overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
+                                [attr.aria-label]="'Add listing photo ' + sideSlot"
                               >
-                                3
-                              </span>
-                            </button>
+                                <img
+                                  ngSrc="/assets/icons/edit-listing-add.svg"
+                                  alt=""
+                                  width="37"
+                                  height="37"
+                                  class="absolute left-1/2 top-1/2 h-[37px] w-[37px] -translate-x-1/2 -translate-y-1/2"
+                                  aria-hidden="true"
+                                />
+                                <span
+                                  class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                                >
+                                  {{ sideSlot }}
+                                </span>
+                              </button>
+                            }
                           </div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-3">
-                          @for (image of editRemainingGalleryImages(); track image.alt; let index = $index) {
+                          @for (image of editRemainingGalleryImages(); track image.token; let index = $index) {
                             <div
                               class="relative h-[175px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
-                            >
+                              >
                               <img
-                                [ngSrc]="image.src"
+                                [src]="image.src"
                                 [alt]="image.alt"
-                                fill
-                                class="object-cover"
+                                class="absolute inset-0 h-full w-full object-cover"
                               />
                               <span
                                 class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
@@ -2932,6 +2969,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   protected readonly editMediaPlaceholderSlots = [4, 5, 6] as const;
   private readonly editImageInput = viewChild<ElementRef<HTMLInputElement>>('editImageInput');
   private readonly editableGalleryImages = signal<EditableGalleryImage[]>([]);
+  private readonly editImageReplaceIndex = signal<number | null>(null);
   protected readonly editCategories = computed(() => {
     const categories =
       this.manageListingsMetadata()
@@ -2976,17 +3014,25 @@ export class ListingDetailsPageComponent implements OnDestroy {
     this.deliveryOptions().filter((option) => option.kind !== 'method'),
   );
   protected readonly mobileDeliveryOptions = computed(() => this.deliveryOptions());
-  protected readonly editPrimaryGalleryImage = computed(
-    () => this.editableGalleryImages()[0] ?? this.editableGalleryImages()[1] ?? null,
-  );
-  protected readonly editSecondaryGalleryImage = computed(
-    () => this.editableGalleryImages()[1] ?? this.editableGalleryImages()[0] ?? null,
-  );
+  protected readonly editPrimaryGalleryImage = computed(() => this.editableGalleryImages()[0] ?? null);
+  protected readonly editSecondaryGalleryImage = computed(() => this.editableGalleryImages()[1] ?? null);
   protected readonly editRemainingGalleryImages = computed(() => this.editableGalleryImages().slice(2, this.maxGalleryImages));
   protected readonly isGalleryFull = computed(() => this.editableGalleryImages().length >= this.maxGalleryImages);
+  protected readonly editSideAddSlot = computed(() => {
+    const visibleCount = this.editableGalleryImages().length;
+    if (visibleCount < 2) {
+      return 2;
+    }
+
+    return visibleCount < 3 ? 3 : null;
+  });
   protected readonly editRemainingPlaceholderSlots = computed(() => {
-    const count = Math.max(0, (this.maxGalleryImages - 2) - this.editRemainingGalleryImages().length);
-    return Array.from({ length: count }, (_, index) => index + this.editRemainingGalleryImages().length + 3);
+    const visibleCount = this.editableGalleryImages().length;
+    const startSlot = visibleCount < 2 ? 3 : Math.max(4, visibleCount + 1);
+    return Array.from(
+      { length: Math.max(0, this.maxGalleryImages - startSlot + 1) },
+      (_, index) => startSlot + index,
+    );
   });
   protected readonly editListingForm = this.formBuilder.nonNullable.group({
     name: 'Iphone 17 pro max',
@@ -3317,7 +3363,8 @@ export class ListingDetailsPageComponent implements OnDestroy {
     this.editSheetOpen.set(false);
   }
 
-  protected openEditImagePicker(): void {
+  protected openEditImagePicker(replaceIndex: number | null = null): void {
+    this.editImageReplaceIndex.set(replaceIndex);
     this.editImageInput()?.nativeElement.click();
   }
 
@@ -3326,17 +3373,21 @@ export class ListingDetailsPageComponent implements OnDestroy {
     const files = Array.from(input?.files ?? []).filter((file) => file.type.startsWith('image/'));
 
     if (files.length === 0) {
+      this.editImageReplaceIndex.set(null);
       if (input) {
         input.value = '';
       }
       return;
     }
 
+    const replaceIndex = this.editImageReplaceIndex();
     const currentCount = this.editableGalleryImages().length;
+    const isReplacing = replaceIndex !== null && replaceIndex >= 0 && replaceIndex < currentCount;
     const slotsRemaining = Math.max(0, this.maxGalleryImages - currentCount);
-    const filesToAdd = files.slice(0, slotsRemaining);
+    const filesToAdd = files.slice(0, isReplacing ? slotsRemaining + 1 : slotsRemaining);
 
     if (filesToAdd.length === 0) {
+      this.editImageReplaceIndex.set(null);
       if (input) input.value = '';
       return;
     }
@@ -3359,8 +3410,26 @@ export class ListingDetailsPageComponent implements OnDestroy {
       };
     });
 
-    this.editableGalleryImages.update((existing) => [...existing, ...nextImages]);
+    this.editableGalleryImages.update((existing) => {
+      if (!isReplacing || replaceIndex === null) {
+        return [...existing, ...nextImages];
+      }
 
+      const target = existing[replaceIndex];
+      if (target?.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+
+      const [replacement, ...remainingNewImages] = nextImages;
+      return [
+        ...existing.slice(0, replaceIndex),
+        replacement,
+        ...existing.slice(replaceIndex + 1),
+        ...remainingNewImages,
+      ].slice(0, this.maxGalleryImages);
+    });
+
+    this.editImageReplaceIndex.set(null);
     if (input) {
       input.value = '';
     }
@@ -3457,7 +3526,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
     void firstValueFrom(this.listingsService.updateListing(this.listingId(), payload))
       .then(async () => {
         const refreshed = await firstValueFrom(
-          this.listingsService.getListingDetails(this.listingId()),
+          this.listingsService.getListingDetails(this.listingId(), { forceRefresh: true }),
         );
         this.applyListingDetails(refreshed);
         this.resetEditableGalleryImages();
@@ -3843,7 +3912,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
           }
 
           return {
-            id: this.readString(entryRecord['id']),
+            id: this.readIdentifier(entryRecord['id']),
             src,
             alt:
               this.readString(entryRecord['alt']) ??
@@ -4093,7 +4162,24 @@ export class ListingDetailsPageComponent implements OnDestroy {
       }
     });
 
+    this.deletedEditableImageIds().forEach((imageId) => {
+      formData.append('deleted_image_ids', imageId);
+    });
+
     return formData;
+  }
+
+  private deletedEditableImageIds(): string[] {
+    const currentExistingIds = new Set(
+      this.editableGalleryImages()
+        .filter((image) => image.kind === 'existing' && image.imageId !== null)
+        .map((image) => String(image.imageId)),
+    );
+
+    return this.listing()
+      .gallery.map((image) => image.id)
+      .filter((imageId): imageId is string => imageId !== null)
+      .filter((imageId) => !currentExistingIds.has(String(imageId)));
   }
 
   private resetEditableGalleryImages(): void {
@@ -4115,6 +4201,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   }
 
   private clearEditableGalleryImages(): void {
+    this.editImageReplaceIndex.set(null);
     this.editableGalleryImages().forEach((image) => {
       if (image.previewUrl) {
         URL.revokeObjectURL(image.previewUrl);

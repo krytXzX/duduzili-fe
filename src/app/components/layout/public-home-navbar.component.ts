@@ -1,9 +1,20 @@
-import { ChangeDetectionStrategy, Component, computed, inject, output, signal, effect } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  output,
+  signal,
+  effect,
+} from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { LocationService } from '../../services/location.service';
-import type { PublicHomeLocationValue, PublicHomeLocationSelection } from '../../services/location.service';
+import type {
+  PublicHomeLocationValue,
+  PublicHomeLocationSelection,
+} from '../../services/location.service';
 
 export type { PublicHomeLocationValue, PublicHomeLocationSelection };
 
@@ -11,6 +22,53 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
   selector: 'app-public-home-navbar',
   imports: [NgOptimizedImage, RouterLink],
   template: `
+    @if (showAppDownloadBanner() && !showMobileMenu()) {
+      <section class="border-b border-[#ececf2] bg-white px-4 py-3 lg:hidden">
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            class="flex h-5 w-5 items-center justify-center text-[#8e8e98]"
+            (click)="dismissAppDownloadBanner()"
+            aria-label="Dismiss app download banner"
+          >
+            <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 fill-current">
+              <path
+                d="M5.28 4.22 10 8.94l4.72-4.72 1.06 1.06L11.06 10l4.72 4.72-1.06 1.06L10 11.06l-4.72 4.72-1.06-1.06L8.94 10 4.22 5.28Z"
+              />
+            </svg>
+          </button>
+
+          <div class="flex min-w-0 flex-1 items-center gap-2.5">
+            <div
+              class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#6453d9] shadow-[0_10px_18px_-14px_rgba(100,83,217,0.95)]"
+            >
+              <img
+                ngSrc="/assets/images/logo-light-fill.svg"
+                alt=""
+                width="20"
+                height="20"
+                class="h-5 w-5"
+                aria-hidden="true"
+              />
+            </div>
+            <div class="min-w-0">
+              <p class="text-[13px] font-semibold leading-4 text-[#373737]">Get the app</p>
+              <p class="truncate text-[11px] leading-4 text-[#99a2b1]">
+                The easiest way to use Duduzili
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="rounded-full bg-[#6453d9] px-3 py-2 text-[10px] font-semibold tracking-[0.06em] text-white shadow-[0_10px_18px_-14px_rgba(100,83,217,0.95)]"
+          >
+            DOWNLOAD
+          </button>
+        </div>
+      </section>
+    }
+
     <div class="fixed inset-x-0 top-0 z-50 hidden px-2 pt-4 lg:block">
       <header>
         <div class="pointer-events-none mx-auto flex max-w-[1440px] justify-center px-8">
@@ -68,8 +126,16 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
               class="flex items-center gap-0.5 text-sm text-white"
               aria-label="Desktop navigation"
             >
-              <a routerLink="/" class="rounded-full px-3.5 py-2.5 font-medium transition hover:bg-white/10 active:scale-[0.98]">Sell item</a>
-              <a routerLink="/sign-in" class="rounded-full px-3.5 py-2.5 font-medium transition hover:bg-white/10 active:scale-[0.98]">Sign in</a>
+              <a
+                routerLink="/"
+                class="rounded-full px-3.5 py-2.5 font-medium transition hover:bg-white/10 active:scale-[0.98]"
+                >Sell item</a
+              >
+              <a
+                routerLink="/sign-in"
+                class="rounded-full px-3.5 py-2.5 font-medium transition hover:bg-white/10 active:scale-[0.98]"
+                >Sign in</a
+              >
               <a
                 routerLink="/sign-up"
                 class="flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[#1d1d1d] transition hover:bg-[#f3f3f3] active:scale-[0.98]"
@@ -107,7 +173,12 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
         [class.shadow-[0_16px_40px_rgba(0,0,0,0.18)]]="showMobileMenu()"
       >
         <div class="mx-auto flex h-[72px] w-full max-w-[390px] items-center justify-between px-5">
-          <a [routerLink]="homeRoute()" class="block" aria-label="Duduzili home" (click)="closeMobileMenu()">
+          <a
+            [routerLink]="homeRoute()"
+            class="block"
+            aria-label="Duduzili home"
+            (click)="closeMobileMenu()"
+          >
             <img
               ngSrc="/assets/images/public-mobile-nav/logo.svg"
               alt="Duduzili"
@@ -190,25 +261,117 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
               class="flex flex-col items-start gap-4 text-[16px] font-medium leading-[1.2] tracking-[0.01em] text-[#373737]"
               aria-label="Mobile menu"
             >
-              <a routerLink="/sign-in" class="transition hover:text-[#6453d9] active:scale-[0.98]" (click)="closeMobileMenu()">Sign in</a>
-              <a routerLink="/sign-up" class="transition hover:text-[#6453d9] active:scale-[0.98]" (click)="closeMobileMenu()">Sign up</a>
-              <a routerLink="/" class="transition hover:text-[#6453d9] active:scale-[0.98]" (click)="closeMobileMenu()">Sell item</a>
+              <a
+                routerLink="/sign-in"
+                class="transition hover:text-[#6453d9] active:scale-[0.98]"
+                (click)="closeMobileMenu()"
+                >Sign in</a
+              >
+              <a
+                routerLink="/sign-up"
+                class="transition hover:text-[#6453d9] active:scale-[0.98]"
+                (click)="closeMobileMenu()"
+                >Sign up</a
+              >
+              <a
+                routerLink="/"
+                class="transition hover:text-[#6453d9] active:scale-[0.98]"
+                (click)="closeMobileMenu()"
+                >Sell item</a
+              >
             </nav>
 
-            <div class="relative h-[339px] w-full overflow-hidden rounded-[20px] border border-[#ededed] bg-white px-5 pt-6">
-              <div class="pointer-events-none absolute inset-x-0 top-0 h-[168px] overflow-hidden" aria-hidden="true">
-                <img ngSrc="/assets/images/public-mobile-nav/appstore-line-a.svg" alt="" width="31" height="31" class="absolute left-[9px] top-[27px] h-[31px] w-[31px] opacity-90" />
-                <img ngSrc="/assets/images/public-mobile-nav/apple-line-a.svg" alt="" width="36" height="36" class="absolute left-[76px] top-[14px] h-9 w-9 opacity-90" />
-                <img ngSrc="/assets/images/public-mobile-nav/google-play-line-a.svg" alt="" width="28" height="28" class="absolute right-[28px] top-[24px] h-7 w-7 opacity-90" />
-                <img ngSrc="/assets/images/public-mobile-nav/cellphone-line-a.svg" alt="" width="26" height="26" class="absolute left-[40px] top-[95px] h-[26px] w-[26px] opacity-80" />
-                <img ngSrc="/assets/images/public-mobile-nav/android-line-a.svg" alt="" width="32" height="32" class="absolute right-[82px] top-[84px] h-8 w-8 opacity-80" />
-                <img ngSrc="/assets/images/public-mobile-nav/device-line-a.svg" alt="" width="26" height="26" class="absolute right-[12px] top-[102px] h-[26px] w-[26px] opacity-80" />
-                <img ngSrc="/assets/images/public-mobile-nav/appstore-line-b.svg" alt="" width="31" height="31" class="absolute left-[123px] top-[118px] h-[31px] w-[31px] opacity-60" />
-                <img ngSrc="/assets/images/public-mobile-nav/apple-line-b.svg" alt="" width="36" height="36" class="absolute right-[126px] top-[18px] h-9 w-9 opacity-60" />
-                <img ngSrc="/assets/images/public-mobile-nav/google-play-line-b.svg" alt="" width="28" height="28" class="absolute right-[147px] top-[118px] h-7 w-7 opacity-60" />
-                <img ngSrc="/assets/images/public-mobile-nav/cellphone-line-b.svg" alt="" width="26" height="26" class="absolute left-[156px] top-[52px] h-[26px] w-[26px] opacity-60" />
-                <img ngSrc="/assets/images/public-mobile-nav/android-line-b.svg" alt="" width="32" height="32" class="absolute left-[115px] top-[74px] h-8 w-8 opacity-60" />
-                <img ngSrc="/assets/images/public-mobile-nav/device-line-b.svg" alt="" width="26" height="26" class="absolute right-[168px] top-[67px] h-[26px] w-[26px] opacity-60" />
+            <div
+              class="relative h-[339px] w-full overflow-hidden rounded-[20px] border border-[#ededed] bg-white px-5 pt-6"
+            >
+              <div
+                class="pointer-events-none absolute inset-x-0 top-0 h-[168px] overflow-hidden"
+                aria-hidden="true"
+              >
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/appstore-line-a.svg"
+                  alt=""
+                  width="31"
+                  height="31"
+                  class="absolute left-[9px] top-[27px] h-[31px] w-[31px] opacity-90"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/apple-line-a.svg"
+                  alt=""
+                  width="36"
+                  height="36"
+                  class="absolute left-[76px] top-[14px] h-9 w-9 opacity-90"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/google-play-line-a.svg"
+                  alt=""
+                  width="28"
+                  height="28"
+                  class="absolute right-[28px] top-[24px] h-7 w-7 opacity-90"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/cellphone-line-a.svg"
+                  alt=""
+                  width="26"
+                  height="26"
+                  class="absolute left-[40px] top-[95px] h-[26px] w-[26px] opacity-80"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/android-line-a.svg"
+                  alt=""
+                  width="32"
+                  height="32"
+                  class="absolute right-[82px] top-[84px] h-8 w-8 opacity-80"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/device-line-a.svg"
+                  alt=""
+                  width="26"
+                  height="26"
+                  class="absolute right-[12px] top-[102px] h-[26px] w-[26px] opacity-80"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/appstore-line-b.svg"
+                  alt=""
+                  width="31"
+                  height="31"
+                  class="absolute left-[123px] top-[118px] h-[31px] w-[31px] opacity-60"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/apple-line-b.svg"
+                  alt=""
+                  width="36"
+                  height="36"
+                  class="absolute right-[126px] top-[18px] h-9 w-9 opacity-60"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/google-play-line-b.svg"
+                  alt=""
+                  width="28"
+                  height="28"
+                  class="absolute right-[147px] top-[118px] h-7 w-7 opacity-60"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/cellphone-line-b.svg"
+                  alt=""
+                  width="26"
+                  height="26"
+                  class="absolute left-[156px] top-[52px] h-[26px] w-[26px] opacity-60"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/android-line-b.svg"
+                  alt=""
+                  width="32"
+                  height="32"
+                  class="absolute left-[115px] top-[74px] h-8 w-8 opacity-60"
+                />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/device-line-b.svg"
+                  alt=""
+                  width="26"
+                  height="26"
+                  class="absolute right-[168px] top-[67px] h-[26px] w-[26px] opacity-60"
+                />
               </div>
 
               <div
@@ -223,13 +386,30 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
                 />
               </div>
 
-              <div class="relative z-10 mt-3 flex items-center justify-center gap-5 text-[#99a2b1]" aria-hidden="true">
-                <img ngSrc="/assets/images/public-mobile-nav/android-small.svg" alt="" width="18" height="18" class="h-[18px] w-[18px]" />
+              <div
+                class="relative z-10 mt-3 flex items-center justify-center gap-5 text-[#99a2b1]"
+                aria-hidden="true"
+              >
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/android-small.svg"
+                  alt=""
+                  width="18"
+                  height="18"
+                  class="h-[18px] w-[18px]"
+                />
                 <span class="h-5 w-px bg-[#e1e1e5]"></span>
-                <img ngSrc="/assets/images/public-mobile-nav/apple-small.svg" alt="" width="18" height="18" class="h-[18px] w-[18px]" />
+                <img
+                  ngSrc="/assets/images/public-mobile-nav/apple-small.svg"
+                  alt=""
+                  width="18"
+                  height="18"
+                  class="h-[18px] w-[18px]"
+                />
               </div>
 
-              <p class="relative z-10 mt-[19px] text-center text-[14px] leading-[1.2] text-[#99a2b1]">
+              <p
+                class="relative z-10 mt-[19px] text-center text-[14px] leading-[1.2] text-[#99a2b1]"
+              >
                 Scan QR code to download mobile app
               </p>
 
@@ -246,10 +426,22 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
                   aria-label="Download on the App Store"
                   (click)="closeMobileMenu()"
                 >
-                  <img ngSrc="/assets/images/public-mobile-nav/app-store-icon.svg" alt="" width="24" height="24" class="h-6 w-6 shrink-0" aria-hidden="true" />
+                  <img
+                    ngSrc="/assets/images/public-mobile-nav/app-store-icon.svg"
+                    alt=""
+                    width="24"
+                    height="24"
+                    class="h-6 w-6 shrink-0"
+                    aria-hidden="true"
+                  />
                   <span class="flex min-w-0 flex-col items-start text-left">
-                    <span class="text-[7px] font-semibold leading-[1.05] text-white">Download on the</span>
-                    <span class="text-[15px] font-semibold leading-none tracking-[-0.47px] text-white">App Store</span>
+                    <span class="text-[7px] font-semibold leading-[1.05] text-white"
+                      >Download on the</span
+                    >
+                    <span
+                      class="text-[15px] font-semibold leading-none tracking-[-0.47px] text-white"
+                      >App Store</span
+                    >
                   </span>
                 </a>
 
@@ -259,9 +451,19 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
                   aria-label="Get it on Google Play"
                   (click)="closeMobileMenu()"
                 >
-                  <img ngSrc="/assets/images/public-mobile-nav/play-store-icon.svg" alt="" width="21" height="24" class="h-6 w-[21px] shrink-0" aria-hidden="true" />
+                  <img
+                    ngSrc="/assets/images/public-mobile-nav/play-store-icon.svg"
+                    alt=""
+                    width="21"
+                    height="24"
+                    class="h-6 w-[21px] shrink-0"
+                    aria-hidden="true"
+                  />
                   <span class="flex min-w-0 flex-col items-start gap-0.5 text-left">
-                    <span class="text-[8px] font-semibold uppercase leading-none tracking-[0.02em] text-white">Get it on</span>
+                    <span
+                      class="text-[8px] font-semibold uppercase leading-none tracking-[0.02em] text-white"
+                      >Get it on</span
+                    >
                     <img
                       ngSrc="/assets/images/public-mobile-nav/google-play-wordmark.svg"
                       alt="Google Play"
@@ -277,7 +479,6 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
         }
       </div>
     </header>
-
   `,
   host: {
     class: 'block',
@@ -285,6 +486,10 @@ export type { PublicHomeLocationValue, PublicHomeLocationSelection };
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicHomeNavbarComponent {
+  readonly showAppDownloadBanner = signal(true);
+  dismissAppDownloadBanner(): void {
+    this.showAppDownloadBanner.set(false);
+  }
   private readonly authSession = inject(AuthSessionService);
   readonly locationService = inject(LocationService);
 
