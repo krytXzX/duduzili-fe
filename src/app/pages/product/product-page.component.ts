@@ -1530,11 +1530,15 @@ export class ProductPageComponent {
         ) ?? currentStore.rating,
       joined,
       isVerified:
-        this.readBoolean(
-          storeInfo?.['is_verified'] ??
-            this.readRecord(record['user'])?.['is_verified'] ??
-            record['is_verified'],
-        ) ?? currentStore.isVerified,
+        this.readBoolean(storeInfo?.['is_verified']) ??
+        this.readBoolean(storeInfo?.['is_verified_seller']) ??
+        this.readBoolean(storeInfo?.['verified']) ??
+        this.readBoolean(this.readRecord(storeInfo?.['user'])?.['is_verified']) ??
+        this.readBoolean(this.readRecord(record['user'])?.['is_verified']) ??
+        this.readBoolean(record['is_verified']) ??
+        this.readBoolean(record['is_verified_seller']) ??
+        this.readBoolean(record['verified']) ??
+        false,
       isFollowed: this.readBoolean(record['is_followed']) ?? currentStore.isFollowed,
       initials: this.buildInitials(storeName),
       accentFrom: currentStore.accentFrom,
@@ -1649,9 +1653,11 @@ export class ProductPageComponent {
       rating: this.formatRating(record['average_rating']) ?? currentStore.rating,
       joined: this.formatDate(record['date_joined']) ?? currentStore.joined,
       isVerified:
-        this.readBoolean(record['is_verified']) ??
         this.readBoolean(user?.['is_verified']) ??
-        currentStore.isVerified,
+        this.readBoolean(record['is_verified']) ??
+        this.readBoolean(record['is_verified_seller']) ??
+        this.readBoolean(record['verified']) ??
+        false,
       isFollowed: this.readBoolean(record['is_followed']) ?? currentStore.isFollowed,
       initials: this.buildInitials(storeName),
       logoImage,
@@ -1933,9 +1939,14 @@ export class ProductPageComponent {
       location: this.composeLocation(record) ?? 'Nigeria',
       timeAgo: this.formatRelativeTime(record['created_at']) ?? 'Recently',
       isVerified:
-        this.readBoolean(
-          this.readRecord(record['user'])?.['is_verified'] ?? record['is_verified'],
-        ) ?? false,
+        this.readBoolean(this.readRecord(record['user'])?.['is_verified']) ??
+        this.readBoolean(this.readRecord(record['store_info'])?.['is_verified']) ??
+        this.readBoolean(this.readRecord(record['store_info'])?.['is_verified_seller']) ??
+        this.readBoolean(this.readRecord(record['store_info'])?.['verified']) ??
+        this.readBoolean(record['is_verified']) ??
+        this.readBoolean(record['is_verified_seller']) ??
+        this.readBoolean(record['verified']) ??
+        false,
       images: this.extractListingImages(record),
     };
   }
@@ -2280,7 +2291,32 @@ export class ProductPageComponent {
   }
 
   private readBoolean(value: unknown): boolean | null {
-    return typeof value === 'boolean' ? value : null;
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'number') {
+      if (value === 1) {
+        return true;
+      }
+
+      if (value === 0) {
+        return false;
+      }
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'verified'].includes(normalized)) {
+        return true;
+      }
+
+      if (['false', '0', 'no', 'unverified', 'pending', 'rejected'].includes(normalized)) {
+        return false;
+      }
+    }
+
+    return null;
   }
 
   private readRecord(value: unknown): Record<string, unknown> | null {

@@ -1776,7 +1776,7 @@ export class AddListingModalComponent implements OnDestroy {
         images: previewImages,
         location: form.location || 'Location',
         timeAgo: 'Just now',
-        isVerified: true
+        isVerified: false
      };
   });
 
@@ -1838,8 +1838,10 @@ export class AddListingModalComponent implements OnDestroy {
         'Just now',
       isVerified:
         this.readBoolean(publishedListing['is_verified']) ??
+        this.readBoolean(publishedListing['is_verified_seller']) ??
         this.readBoolean(publishedListing['verified']) ??
-        fallback.isVerified,
+        this.readBoolean(this.readRecord(publishedListing['user'])?.['is_verified']) ??
+        false,
     };
   });
 
@@ -2537,7 +2539,32 @@ export class AddListingModalComponent implements OnDestroy {
   }
 
   private readBoolean(value: unknown): boolean | null {
-    return typeof value === 'boolean' ? value : null;
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'number') {
+      if (value === 1) {
+        return true;
+      }
+
+      if (value === 0) {
+        return false;
+      }
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'verified'].includes(normalized)) {
+        return true;
+      }
+
+      if (['false', '0', 'no', 'unverified', 'pending', 'rejected'].includes(normalized)) {
+        return false;
+      }
+    }
+
+    return null;
   }
 
   private readRecord(value: unknown): Record<string, unknown> | null {

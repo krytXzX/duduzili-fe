@@ -97,6 +97,7 @@ interface ListingDetails {
     id: string;
     name: string;
     logo: string;
+    isVerified: boolean;
   };
 }
 
@@ -402,16 +403,20 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         <span class="truncate text-[14px] font-semibold text-[#202335]">{{
                           listing().store.name
                         }}</span>
-                        <img
-                          ngSrc="/assets/icons/listing-details-verify.svg"
-                          alt=""
-                          width="14"
-                          height="14"
-                          class="h-[14px] w-[14px]"
-                          aria-hidden="true"
-                        />
+                        @if (listing().store.isVerified) {
+                          <img
+                            ngSrc="/assets/icons/listing-details-verify.svg"
+                            alt=""
+                            width="14"
+                            height="14"
+                            class="h-[14px] w-[14px]"
+                            aria-hidden="true"
+                          />
+                        }
                       </div>
-                      <p class="mt-1 text-[11px] text-[#8A8F9A]">Verified store</p>
+                      @if (listing().store.isVerified) {
+                        <p class="mt-1 text-[11px] text-[#8A8F9A]">Verified store</p>
+                      }
                     </div>
                   </button>
 
@@ -953,16 +958,20 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                               <span class="truncate text-[15px] font-semibold text-[#202335]">{{
                                 listing().store.name
                               }}</span>
-                              <img
-                                ngSrc="/assets/icons/listing-details-verify.svg"
-                                alt=""
-                                width="14"
-                                height="14"
-                                class="h-[14px] w-[14px]"
-                                aria-hidden="true"
-                              />
+                              @if (listing().store.isVerified) {
+                                <img
+                                  ngSrc="/assets/icons/listing-details-verify.svg"
+                                  alt=""
+                                  width="14"
+                                  height="14"
+                                  class="h-[14px] w-[14px]"
+                                  aria-hidden="true"
+                                />
+                              }
                             </div>
-                            <p class="mt-1 text-[12px] text-[#8A8F9A]">Verified store</p>
+                            @if (listing().store.isVerified) {
+                              <p class="mt-1 text-[12px] text-[#8A8F9A]">Verified store</p>
+                            }
                           </div>
                         </button>
 
@@ -3083,6 +3092,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
       id: '',
       name: 'Store details',
       logo: '',
+      isVerified: false,
     },
   });
 
@@ -3751,6 +3761,16 @@ export class ListingDetailsPageComponent implements OnDestroy {
           this.resolveMediaUrl(this.readString(record['store_profile_photo'])) ??
           this.resolveMediaUrl(this.readString(this.readRecord(record['user'])?.['avatar'])) ??
           this.listing().store.logo,
+        isVerified:
+          this.readBoolean(storeInfo?.['is_verified']) ??
+          this.readBoolean(storeInfo?.['is_verified_seller']) ??
+          this.readBoolean(storeInfo?.['verified']) ??
+          this.readBoolean(this.readRecord(storeInfo?.['user'])?.['is_verified']) ??
+          this.readBoolean(this.readRecord(record['user'])?.['is_verified']) ??
+          this.readBoolean(record['is_verified']) ??
+          this.readBoolean(record['is_verified_seller']) ??
+          this.readBoolean(record['verified']) ??
+          false,
       },
     });
     // Update browser tab title with the listing name
@@ -4496,7 +4516,32 @@ export class ListingDetailsPageComponent implements OnDestroy {
   }
 
   private readBoolean(value: unknown): boolean | null {
-    return typeof value === 'boolean' ? value : null;
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'number') {
+      if (value === 1) {
+        return true;
+      }
+
+      if (value === 0) {
+        return false;
+      }
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'verified'].includes(normalized)) {
+        return true;
+      }
+
+      if (['false', '0', 'no', 'unverified', 'pending', 'rejected'].includes(normalized)) {
+        return false;
+      }
+    }
+
+    return null;
   }
 
   private readRecord(value: unknown): Record<string, unknown> | null {
