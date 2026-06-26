@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { AuthSessionService } from '../../services/auth-session.service';
 
 type SellerMoreItem = {
   readonly label: string;
@@ -15,38 +14,6 @@ type SellerMoreItem = {
   imports: [NgOptimizedImage, RouterLink],
   template: `
     <section class="min-h-full bg-[#F4F4F4] px-5 pb-[190px] lg:bg-white lg:px-8 lg:pt-8">
-      <div class="flex h-[72px] items-center justify-between lg:hidden">
-        <a
-          routerLink="/seller/listings"
-          class="inline-flex items-center transition active:scale-[0.98]"
-          aria-label="Go to seller listings"
-        >
-          <img
-            ngSrc="/assets/icons/seller-mobile-header-logo.svg"
-            width="120"
-            height="29"
-            alt="Duduzili"
-            class="h-[29px] w-[120px]"
-            priority
-          />
-        </a>
-
-        <a
-          routerLink="/seller/settings"
-          class="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)] transition hover:scale-105 active:scale-95"
-          aria-label="Account settings"
-        >
-          <img
-            [src]="accountAvatarSrc()"
-            width="36"
-            height="36"
-            alt=""
-            class="h-9 w-9 rounded-full object-cover"
-            aria-hidden="true"
-          />
-        </a>
-      </div>
-
       <div class="flex h-[54px] items-center justify-between lg:hidden">
         <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">More</h1>
 
@@ -135,13 +102,7 @@ type SellerMoreItem = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SellerMorePageComponent {
-  private readonly authSession = inject(AuthSessionService);
   private readonly router = inject(Router);
-
-  protected readonly fallbackAvatarSrc = '/assets/images/auth-avatar-fallback.svg';
-  protected readonly accountAvatarSrc = computed(
-    () => this.authSession.user()?.avatar?.trim() || this.fallbackAvatarSrc,
-  );
 
   protected readonly menuGroups: ReadonlyArray<ReadonlyArray<SellerMoreItem>> = [
     [
