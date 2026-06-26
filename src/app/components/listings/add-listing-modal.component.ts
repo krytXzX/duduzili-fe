@@ -19,7 +19,8 @@ import {
   heroCheck,
   heroChevronDown,
   heroDocumentDuplicate,
-  heroMagnifyingGlass
+  heroMagnifyingGlass,
+  heroPlayCircle
 } from '@ng-icons/heroicons/outline';
 import { Listing, ListingCardComponent } from './listing-card.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
@@ -51,6 +52,13 @@ type PickerOption = {
   readonly image?: string;
 };
 
+type YoutubePreview = {
+  readonly url: string;
+  readonly videoId: string | null;
+  readonly thumbnailUrl: string | null;
+  readonly displayUrl: string;
+};
+
 @Component({
   selector: 'app-add-listing-modal',
   imports: [CommonModule, ReactiveFormsModule, NgIcon, ListingCardComponent],
@@ -69,7 +77,8 @@ type PickerOption = {
       heroCheck,
       heroChevronDown,
       heroDocumentDuplicate,
-      heroMagnifyingGlass
+      heroMagnifyingGlass,
+      heroPlayCircle
     })
   ],
   template: `
@@ -284,6 +293,7 @@ type PickerOption = {
                     <label class="text-[12px] font-medium text-[#5F6470]">Embedded YouTube link (optional)</label>
                     <input
                       type="text"
+                      formControlName="youtubeLink"
                       placeholder="Enter link to YouTube video"
                       class="w-full rounded-[14px] border border-[#DCDDE3] px-4 py-3.5 text-[12px] font-medium text-[#2A2D34] outline-none placeholder:text-[#B1B5BF]"
                     >
@@ -387,6 +397,7 @@ type PickerOption = {
                     <label class="text-xs font-bold text-[#1A1C21]">Embedded YouTube link (optional)</label>
                     <input 
                       type="text" 
+                      formControlName="youtubeLink"
                       placeholder="Enter link to YouTube video"
                       class="w-full bg-white border border-gray-100 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all font-medium placeholder:text-gray-300 shadow-sm"
                     >
@@ -1001,15 +1012,30 @@ type PickerOption = {
 
                             <span class="text-[12px] font-medium leading-6 text-[#8A8F9A]">Embedded video link</span>
                             <div class="flex min-h-[92px] items-center justify-end">
-                              @if (reviewImages()[1]) {
-                                <div class="relative aspect-square w-[92px] overflow-hidden rounded-[14px] border border-[#E7E9EF] bg-white">
-                                  <img [src]="reviewImages()[1]" alt="" class="h-full w-full object-cover">
-                                  <div class="absolute inset-0 flex items-center justify-center">
-                                    <div class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#202335] shadow-sm">
-                                      ▶
+                              @if (youtubePreview(); as youtube) {
+                                <a
+                                  [href]="youtube.url"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  class="group flex w-full max-w-[178px] items-center gap-3 rounded-[14px] border border-[#E7E9EF] bg-white p-2 text-left transition duration-200 hover:-translate-y-0.5 hover:border-[#D8D9E1] hover:shadow-[0_12px_26px_-20px_rgba(17,24,39,0.45)] active:scale-[0.98]"
+                                  aria-label="Open embedded YouTube video preview"
+                                >
+                                  <div class="relative h-[70px] w-[92px] shrink-0 overflow-hidden rounded-[12px] bg-[#F2F3F6]">
+                                    @if (youtube.thumbnailUrl) {
+                                      <img [src]="youtube.thumbnailUrl" alt="" class="h-full w-full object-cover">
+                                    } @else {
+                                      <div class="flex h-full w-full items-center justify-center text-[#6453D9]">
+                                        <ng-icon name="heroPlayCircle" class="text-[28px]" aria-hidden="true"></ng-icon>
+                                      </div>
+                                    }
+                                    <div class="absolute inset-0 flex items-center justify-center bg-black/10">
+                                      <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#202335] shadow-sm">
+                                        <ng-icon name="heroPlayCircle" class="text-[20px]" aria-hidden="true"></ng-icon>
+                                      </span>
                                     </div>
                                   </div>
-                                </div>
+                                  <span class="min-w-0 flex-1 truncate text-[12px] font-medium text-[#202335]">{{ youtube.displayUrl }}</span>
+                                </a>
                               } @else {
                                 <span class="text-[12px] font-medium text-[#202335]">---</span>
                               }
@@ -1118,7 +1144,33 @@ type PickerOption = {
                              </div>
                              <div class="flex items-center">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Embedded video link</span>
-                                <span class="text-[15px] font-medium text-[#1A1C21]">---</span>
+                                @if (youtubePreview(); as youtube) {
+                                  <a
+                                    [href]="youtube.url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="group flex max-w-[440px] items-center gap-3 rounded-[18px] border border-gray-200 bg-white p-2 pr-4 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md active:scale-[0.99]"
+                                    aria-label="Open embedded YouTube video preview"
+                                  >
+                                    <div class="relative h-[72px] w-[116px] shrink-0 overflow-hidden rounded-[14px] bg-gray-100">
+                                      @if (youtube.thumbnailUrl) {
+                                        <img [src]="youtube.thumbnailUrl" alt="" class="h-full w-full object-cover">
+                                      } @else {
+                                        <div class="flex h-full w-full items-center justify-center text-[#6453D9]">
+                                          <ng-icon name="heroPlayCircle" class="text-[30px]" aria-hidden="true"></ng-icon>
+                                        </div>
+                                      }
+                                      <div class="absolute inset-0 flex items-center justify-center bg-black/10">
+                                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#1A1C21] shadow-sm">
+                                          <ng-icon name="heroPlayCircle" class="text-[22px]" aria-hidden="true"></ng-icon>
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <span class="min-w-0 truncate text-[15px] font-medium text-[#1A1C21]">{{ youtube.displayUrl }}</span>
+                                  </a>
+                                } @else {
+                                  <span class="text-[15px] font-medium text-[#1A1C21]">---</span>
+                                }
                              </div>
                           </div>
                        </div>
@@ -1736,6 +1788,10 @@ export class AddListingModalComponent implements OnDestroy {
       ...this.additionalImages().filter((image): image is string => !!image),
     ];
   });
+
+  readonly youtubePreview = computed<YoutubePreview | null>(() =>
+    this.buildYoutubePreview(this.formValues()?.youtubeLink),
+  );
 
   discountInputPlaceholder = computed(() =>
     this.formValues().discountType === 'percentage' ? '10' : '2,000,000',
@@ -2453,6 +2509,72 @@ export class AddListingModalComponent implements OnDestroy {
     }
 
     return `${this.apiOrigin}/${value.replace(/^\/+/, '')}`;
+  }
+
+  private buildYoutubePreview(value: unknown): YoutubePreview | null {
+    const rawUrl = this.readString(value);
+
+    if (!rawUrl) {
+      return null;
+    }
+
+    const url = this.normalizeExternalUrl(rawUrl);
+    const videoId = this.extractYoutubeVideoId(rawUrl);
+
+    return {
+      url,
+      videoId,
+      thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null,
+      displayUrl: this.normalizeDisplayUrl(rawUrl),
+    };
+  }
+
+  private extractYoutubeVideoId(value: string): string | null {
+    try {
+      const parsed = new URL(this.normalizeExternalUrl(value));
+      const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+
+      if (host === 'youtu.be') {
+        return this.normalizeYoutubeId(parsed.pathname.split('/').filter(Boolean)[0] ?? '');
+      }
+
+      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+        const queryId = parsed.searchParams.get('v');
+
+        if (queryId) {
+          return this.normalizeYoutubeId(queryId);
+        }
+
+        const segments = parsed.pathname.split('/').filter(Boolean);
+        const markerIndex = segments.findIndex((segment) => ['embed', 'live', 'shorts'].includes(segment));
+
+        if (markerIndex >= 0) {
+          return this.normalizeYoutubeId(segments[markerIndex + 1] ?? '');
+        }
+      }
+    } catch {
+      return null;
+    }
+
+    return null;
+  }
+
+  private normalizeYoutubeId(value: string): string | null {
+    const normalized = value.trim();
+    return /^[A-Za-z0-9_-]{6,}$/.test(normalized) ? normalized : null;
+  }
+
+  private normalizeExternalUrl(value: string): string {
+    return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  }
+
+  private normalizeDisplayUrl(value: string): string {
+    try {
+      const parsed = new URL(this.normalizeExternalUrl(value));
+      return `${parsed.hostname.replace(/^www\./i, '')}${parsed.pathname}${parsed.search}`;
+    } catch {
+      return value;
+    }
   }
 
   private currentOrigin(): string {
