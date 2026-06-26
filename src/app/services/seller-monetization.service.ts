@@ -41,6 +41,15 @@ export type FundWalletResponse = {
     reference?: string;
   };
   error?: string;
+  message?: string;
+};
+
+export type PaystackVerifyResponse = {
+  message?: string;
+  processed?: boolean;
+  payment_type?: WalletTransactionNormalizedType | 'bulk_listing_promotion';
+  wallet_balance?: string;
+  error?: string;
 };
 
 export type SubscriptionUsageBucket = {
@@ -124,7 +133,17 @@ export type CreateBannerAdRequest = {
   bannerType: 'image' | 'video';
   mediaFile: File;
   vendorId?: string;
+  planId?: string;
+  paymentMethod?: 'wallet' | 'online';
 };
+
+export type CreateBannerAdResponse =
+  | SellerAdRecord
+  | {
+      message?: string;
+      payment_url?: string;
+      ad?: SellerAdRecord;
+    };
 
 export type CreateStorePromotionRequest = {
   vendorId: string;
@@ -170,6 +189,12 @@ export class SellerMonetizationService {
       | { mode: 'virtual_account' },
   ): Observable<FundWalletResponse> {
     return this.http.post<FundWalletResponse>(`${this.apiUrl}/wallet/fund/`, payload);
+  }
+
+  verifyPaystackPayment(reference: string): Observable<PaystackVerifyResponse> {
+    return this.http.post<PaystackVerifyResponse>(`${this.apiUrl}/wallet/verify/paystack/`, {
+      reference,
+    });
   }
 
   getSubscriptionPlans(): Observable<{
@@ -236,10 +261,16 @@ export class SellerMonetizationService {
     return this.http.get<AdAnalyticsResponse>(`${this.apiUrl}/ads/${adId}/analytics/`);
   }
 
-  createBannerAd(payload: CreateBannerAdRequest): Observable<SellerAdRecord> {
+  createBannerAd(payload: CreateBannerAdRequest): Observable<CreateBannerAdResponse> {
     const formData = new FormData();
     formData.append('title', payload.title);
     formData.append('link', payload.destinationUrl);
+    if (payload.planId) {
+      formData.append('plan_id', payload.planId);
+    }
+    if (payload.paymentMethod) {
+      formData.append('payment_method', payload.paymentMethod);
+    }
     if (payload.vendorId) {
       formData.append('vendor_id', payload.vendorId);
     }
@@ -248,7 +279,7 @@ export class SellerMonetizationService {
     } else {
       formData.append('image', payload.mediaFile);
     }
-    return this.http.post<SellerAdRecord>(`${this.apiUrl}/ads/banner/`, formData);
+    return this.http.post<CreateBannerAdResponse>(`${this.apiUrl}/ads/banner/`, formData);
   }
 
   createStorePromotion(payload: CreateStorePromotionRequest): Observable<SellerAdRecord> {

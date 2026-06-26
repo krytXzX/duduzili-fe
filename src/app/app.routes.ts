@@ -31,6 +31,15 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'wallet/verify',
+    title: 'Confirm Payment',
+    canActivate: [sellerGuard],
+    loadComponent: () =>
+      import('./pages/payments/paystack-verify-page.component').then(
+        (m) => m.PaystackVerifyPageComponent,
+      ),
+  },
+  {
     path: '',
     component: BuyerDashboardLayoutComponent,
     canActivate: [buyerGuard],
@@ -394,6 +403,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/analytics/analytics-page.component').then(
             (m) => m.AnalyticsPageComponent,
+          ),
+      },
+      {
+        path: 'wallet/verify',
+        title: 'Confirm Payment',
+        loadComponent: () =>
+          import('./pages/payments/paystack-verify-page.component').then(
+            (m) => m.PaystackVerifyPageComponent,
           ),
       },
       {

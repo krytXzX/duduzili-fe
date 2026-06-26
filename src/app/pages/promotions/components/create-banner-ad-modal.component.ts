@@ -1548,9 +1548,9 @@ export class CreateBannerAdModalComponent implements OnDestroy {
         return {
           title: 'Promote for 14 days',
           billing: 'Billed weekly',
-          subscriptionAmount: '₦1,000.00',
+          subscriptionAmount: '₦700.00',
           vatAmount: '₦0.00',
-          totalAmount: '₦1,075.00',
+          totalAmount: '₦700.00',
         };
     }
   });
@@ -1631,9 +1631,17 @@ export class CreateBannerAdModalComponent implements OnDestroy {
         destinationUrl: this.bannerForm.controls.destinationUrl.value.trim(),
         bannerType: this.bannerForm.controls.bannerType.value,
         mediaFile: this.selectedMediaFile()!,
+        planId: this.selectedPlanId(),
+        paymentMethod: this.selectedPaymentId(),
       })
       .subscribe({
-        next: () => {
+        next: (response) => {
+          const paymentUrl = this.readPaymentUrl(response);
+          if (paymentUrl) {
+            window.location.href = paymentUrl;
+            return;
+          }
+
           this.isSubmitting.set(false);
           this.hasCreated.set(true);
           this.step.set(5);
@@ -1646,6 +1654,14 @@ export class CreateBannerAdModalComponent implements OnDestroy {
           });
         },
       });
+  }
+
+  private readPaymentUrl(response: unknown): string | null {
+    if (!response || typeof response !== 'object') {
+      return null;
+    }
+    const value = (response as Record<string, unknown>)['payment_url'];
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
   }
 
   finishAndClose(): void {

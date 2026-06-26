@@ -1006,35 +1006,34 @@ export class WalletPageComponent {
           const accessCode = response.data?.access_code;
           const reference = response.data?.reference;
           const paymentUrl = response.data?.authorization_url;
+          const backendMessage =
+            response.error ?? response.message ?? 'Online funding isn’t available right now. Please try again.';
+
+          if (paymentUrl) {
+            this.isFundingOnline.set(false);
+            this.closeFundWallet();
+            globalThis.location?.assign(paymentUrl);
+            return;
+          }
 
           if (accessCode) {
             this.loadPaystackScript().then(() => {
               this.isFundingOnline.set(false);
               this.closeFundWallet();
-              this.openPaystackPopup(accessCode);
+              this.openPaystackPopup(accessCode, reference);
             }).catch((err) => {
               console.error(err);
-              if (paymentUrl) {
-                globalThis.location?.assign(paymentUrl);
-              } else {
-                this.isFundingOnline.set(false);
-                this.appToastService.show({
-                  message: 'Online funding isn’t available right now. Please try again.',
-                });
-              }
+              this.isFundingOnline.set(false);
+              this.appToastService.show({
+                message: backendMessage,
+              });
             });
-            return;
-          }
-
-          if (paymentUrl) {
-            this.isFundingOnline.set(false);
-            globalThis.location?.assign(paymentUrl);
             return;
           }
 
           this.isFundingOnline.set(false);
           this.appToastService.show({
-            message: 'Online funding isn’t available right now. Please try again.',
+            message: backendMessage,
           });
         },
         error: () => {
@@ -1067,25 +1066,62 @@ export class WalletPageComponent {
     });
   }
 
-  private openPaystackPopup(accessCode: string): void {
+  private openPaystackPopup(accessCode: string, initializedReference?: string): void {
     const handler = (window as any).PaystackPop.setup({
       access_code: accessCode,
-      callback: (response: any) => {
-        console.log('Paystack callback response:', response);
-        this.appToastService.show({
-          message: 'Payment successful! Wallet balance will update shortly.',
-          durationMs: 3500,
-        });
-        setTimeout(() => {
+      callback: (response: unknown) => {
+        const callbackReference = this.readPaystackReference(response) ?? initializedReference;
+        if (!callbackReference) {
+          this.appToastService.show({
+            message: 'Payment completed, but we could not confirm the reference. Please refresh your wallet shortly.',
+            durationMs: 4500,
+          });
           this.currentPage.set(1);
           this.loadWalletTransactions();
-        }, 2000);
+          return;
+        }
+
+        this.verifyPaystackPayment(callbackReference);
       },
       onClose: () => {
         this.appToastService.show({ message: 'Payment cancelled' });
       },
     });
     handler.openIframe();
+  }
+
+  private verifyPaystackPayment(reference: string): void {
+    this.isFundingOnline.set(true);
+    this.sellerMonetizationService.verifyPaystackPayment(reference).subscribe({
+      next: () => {
+        this.isFundingOnline.set(false);
+        this.currentPage.set(1);
+        this.loadWalletTransactions();
+        this.appToastService.show({
+          message: 'Payment successful. Your wallet has been updated.',
+          durationMs: 3500,
+        });
+      },
+      error: (error) => {
+        this.isFundingOnline.set(false);
+        const message =
+          typeof error?.error?.error === 'string'
+            ? error.error.error
+            : 'Payment completed, but we could not update your wallet yet. Please try refreshing shortly.';
+        this.currentPage.set(1);
+        this.loadWalletTransactions();
+        this.appToastService.show({ message, durationMs: 5000 });
+      },
+    });
+  }
+
+  private readPaystackReference(value: unknown): string | undefined {
+    if (!value || typeof value !== 'object') {
+      return undefined;
+    }
+    const record = value as Record<string, unknown>;
+    const reference = record['reference'] ?? record['trxref'];
+    return typeof reference === 'string' && reference.trim() ? reference.trim() : undefined;
   }
 
   private loadWalletTransactions(): void {
