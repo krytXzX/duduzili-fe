@@ -2133,7 +2133,9 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
     const isVerified =
       this.readBoolean(userRecord?.['is_verified']) ??
       this.readBoolean(record['is_verified']) ??
-      this.store().isVerified;
+      this.readBoolean(record['is_verified_seller']) ??
+      this.readBoolean(record['verified']) ??
+      false;
     const isFollowed = this.readBoolean(record['is_followed']) ?? this.store().isFollowed;
     const whatsappNumber =
       this.readString(record['whatsapp_number']) ?? this.store().whatsappNumber;
@@ -2699,7 +2701,25 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   }
 
   private readBoolean(value: unknown): boolean | null {
-    return typeof value === 'boolean' ? value : null;
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'number') {
+      return value === 1 ? true : value === 0 ? false : null;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'verified'].includes(normalized)) {
+        return true;
+      }
+      if (['false', '0', 'no', 'unverified', 'pending', 'rejected'].includes(normalized)) {
+        return false;
+      }
+    }
+
+    return null;
   }
 
   private readRecord(value: unknown): Record<string, unknown> | null {

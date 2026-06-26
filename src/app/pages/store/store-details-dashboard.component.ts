@@ -1305,7 +1305,12 @@ export class StoreDetailsDashboardComponent {
       mobileLogo: profilePhoto,
       banner: coverImage,
       mobileBanner: coverImage,
-      isVerified: this.readBoolean(this.readRecord(record['user'])?.['is_verified']) ?? false,
+      isVerified:
+        this.readBoolean(this.readRecord(record['user'])?.['is_verified']) ??
+        this.readBoolean(record['is_verified']) ??
+        this.readBoolean(record['is_verified_seller']) ??
+        this.readBoolean(record['verified']) ??
+        false,
       products: productCount !== null ? this.formatCount(productCount) : '0',
       followers: followerCount !== null ? this.formatCount(followerCount) : '0',
       rating: averageRating !== null ? averageRating.toFixed(1) : '0.0',
@@ -1532,7 +1537,25 @@ export class StoreDetailsDashboardComponent {
   }
 
   private readBoolean(value: unknown): boolean | null {
-    return typeof value === 'boolean' ? value : null;
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'number') {
+      return value === 1 ? true : value === 0 ? false : null;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'verified'].includes(normalized)) {
+        return true;
+      }
+      if (['false', '0', 'no', 'unverified', 'pending', 'rejected'].includes(normalized)) {
+        return false;
+      }
+    }
+
+    return null;
   }
 
   private composeLocation(record: Record<string, unknown>): string | null {

@@ -55,7 +55,7 @@ export class StoreCardComponent {
     () => this.store().location ?? this.store().metaLabel ?? this.store().followers ?? '',
   );
   protected readonly hasLocation = computed(() => this.locationLabel().trim().length > 0);
-  protected readonly isVerified = computed(() => this.store().isVerified ?? true);
+  protected readonly isVerified = computed(() => this.store().isVerified ?? false);
   protected readonly imageLoadingMode = computed(() =>
     this.priority() ? 'eager' : this.imageLoading(),
   );
