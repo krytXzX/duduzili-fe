@@ -62,7 +62,7 @@ type BuyerMoreItem = {
           </section>
         </div>
 
-        <div class="fixed inset-x-0 bottom-[132px] z-30 flex justify-center px-5 md:static md:mt-16 md:px-0">
+        <div class="mt-10 flex justify-center px-5 md:mt-16 md:px-0">
           <a
             routerLink="/seller/listings"
             class="inline-flex h-[52px] w-full max-w-[277px] items-center justify-center gap-2 overflow-hidden rounded-[64px] border border-white bg-[#6453d9] px-5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2a6ce8] transition hover:-translate-y-0.5 hover:bg-[#5c4ad0] active:translate-y-0 active:scale-[0.98]"
