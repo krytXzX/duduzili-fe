@@ -27,6 +27,7 @@ import { MobileOverlayService } from '../../services/mobile-overlay.service';
 import { ListingsApiItem, ListingsService } from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { LocationService, PublicHomeLocationValue } from '../../services/location.service';
 import { environment } from '../../../environments/environment';
 
 export interface ListingData {
@@ -1514,11 +1515,11 @@ type YoutubePreview = {
           <div class="mt-2 flex items-center justify-between">
             <button
               type="button"
-              (click)="closePicker()"
+              (click)="isLocationCityPanelOpen() ? closeLocationCityPanel() : closePicker()"
               class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
-              aria-label="Close picker"
+              [attr.aria-label]="isLocationCityPanelOpen() ? 'Back to states' : 'Close picker'"
             >
-              <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
+              <ng-icon [name]="isLocationCityPanelOpen() ? 'heroChevronLeft' : 'heroXMark'" class="text-[18px]"></ng-icon>
             </button>
             <h3 class="text-[16px] font-semibold text-[#202335]">{{ pickerTitle() }}</h3>
             <span class="h-10 w-10"></span>
@@ -1555,7 +1556,9 @@ type YoutubePreview = {
                     }
                   </span>
                 </span>
-                <ng-icon name="heroChevronRight" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+                @if (!isLocationCityPanelOpen()) {
+                  <ng-icon name="heroChevronRight" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+                }
               </button>
             }
           </div>
@@ -1568,11 +1571,23 @@ type YoutubePreview = {
           [attr.aria-label]="pickerTitle()"
         >
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-[20px] font-semibold text-[#1A1C21]">{{ pickerTitle() }}</h3>
+            <div class="flex min-w-0 items-center gap-3">
+              @if (isLocationCityPanelOpen()) {
+                <button
+                  type="button"
+                  (click)="closeLocationCityPanel()"
+                  class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
+                  aria-label="Back to states"
+                >
+                  <ng-icon name="heroChevronLeft" class="text-[18px]"></ng-icon>
+                </button>
+              }
+              <h3 class="truncate text-[20px] font-semibold text-[#1A1C21]">{{ pickerTitle() }}</h3>
+            </div>
             <button
               type="button"
               (click)="closePicker()"
-              class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
+              class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
               aria-label="Close picker"
             >
               <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
@@ -1610,7 +1625,9 @@ type YoutubePreview = {
                     }
                   </span>
                 </span>
-                <ng-icon name="heroChevronRight" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+                @if (!isLocationCityPanelOpen()) {
+                  <ng-icon name="heroChevronRight" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+                }
               </button>
             }
           </div>
@@ -1645,6 +1662,7 @@ export class AddListingModalComponent implements OnDestroy {
   private readonly listingsService = inject(ListingsService);
   private readonly appToastService = inject(AppToastService);
   private readonly authSessionService = inject(AuthSessionService);
+  private readonly locationService = inject(LocationService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   
   close = output<void>();
@@ -1672,24 +1690,35 @@ export class AddListingModalComponent implements OnDestroy {
 
   readonly activePicker = signal<PickerKind | null>(null);
   readonly pickerSearch = signal('');
+  readonly activeLocationState = signal<PublicHomeLocationValue | null>(null);
 
   readonly conditionOptions: readonly PickerOption[] = [
     { value: 'new', label: 'Brand new' },
     { value: 'used', label: 'Fairly used' },
   ];
 
-  readonly locationOptions: readonly PickerOption[] = [
-    { value: 'Ikeja, Lagos', label: 'Ikeja, Lagos', subtitle: 'Lagos State' },
-    { value: 'Yaba, Lagos', label: 'Yaba, Lagos', subtitle: 'Lagos State' },
-    { value: 'Lekki, Lagos', label: 'Lekki, Lagos', subtitle: 'Lagos State' },
-    { value: 'Surulere, Lagos', label: 'Surulere, Lagos', subtitle: 'Lagos State' },
-    { value: 'Asaba, Delta', label: 'Asaba, Delta', subtitle: 'Delta State' },
-    { value: 'Warri, Delta', label: 'Warri, Delta', subtitle: 'Delta State' },
-    { value: 'Abuja, FCT', label: 'Abuja, FCT', subtitle: 'Federal Capital Territory' },
-    { value: 'Port Harcourt, Rivers', label: 'Port Harcourt, Rivers', subtitle: 'Rivers State' },
-    { value: 'Enugu, Enugu', label: 'Enugu, Enugu', subtitle: 'Enugu State' },
-    { value: 'Benin City, Edo', label: 'Benin City, Edo', subtitle: 'Edo State' },
-  ];
+  readonly locationStateOptions: readonly PickerOption[] = this.locationService.locationGroups
+    .filter((group) => group.value !== 'all-nigeria')
+    .map((group) => ({
+      value: group.value,
+      label: group.desktopLabel ?? group.label,
+      subtitle: 'Select a city',
+    }));
+
+  readonly locationCityOptions = computed<readonly PickerOption[]>(() => {
+    const activeState = this.activeLocationState();
+    const group = this.locationService.locationGroups.find((option) => option.value === activeState);
+
+    if (!group || group.value === 'all-nigeria') {
+      return [];
+    }
+
+    return group.cities.map((city) => ({
+      value: `${city}, ${group.label}`,
+      label: city,
+      subtitle: group.desktopLabel ?? group.label,
+    }));
+  });
 
   mainImage = signal<string | null>(null);
   additionalImages = signal<(string | null)[]>([
@@ -1935,7 +1964,9 @@ export class AddListingModalComponent implements OnDestroy {
       case 'store':
         return 'Select a store';
       case 'location':
-        return 'Select location';
+        return this.activeLocationStateLabel()
+          ? `Select a city in ${this.activeLocationStateLabel()}`
+          : 'Select state';
       default:
         return 'Select option';
     }
@@ -1952,7 +1983,7 @@ export class AddListingModalComponent implements OnDestroy {
       case 'store':
         return 'Search stores';
       case 'location':
-        return 'Search location';
+        return this.activeLocationState() ? 'Search cities' : 'Search states';
       default:
         return 'Search';
     }
@@ -1975,17 +2006,42 @@ export class AddListingModalComponent implements OnDestroy {
 
   openPicker(kind: PickerKind): void {
     this.pickerSearch.set('');
+    this.activeLocationState.set(null);
     this.activePicker.set(kind);
   }
 
   closePicker(): void {
     this.pickerSearch.set('');
+    this.activeLocationState.set(null);
     this.activePicker.set(null);
+  }
+
+  isLocationCityPanelOpen(): boolean {
+    return this.activePicker() === 'location' && this.activeLocationState() !== null;
+  }
+
+  closeLocationCityPanel(): void {
+    this.pickerSearch.set('');
+    this.activeLocationState.set(null);
+  }
+
+  activeLocationStateLabel(): string {
+    const activeState = this.activeLocationState();
+    return this.locationService.locationGroups.find((option) => option.value === activeState)?.label ?? '';
   }
 
   selectPickerOption(value: string): void {
     const kind = this.activePicker();
     if (!kind) {
+      return;
+    }
+
+    if (kind === 'location' && this.activeLocationState() === null) {
+      const locationState = this.toLocationStateValue(value);
+      if (locationState) {
+        this.pickerSearch.set('');
+        this.activeLocationState.set(locationState);
+      }
       return;
     }
 
@@ -2702,9 +2758,14 @@ export class AddListingModalComponent implements OnDestroy {
       case 'store':
         return this.storeOptions();
       case 'location':
-        return this.locationOptions;
+        return this.activeLocationState() ? this.locationCityOptions() : this.locationStateOptions;
       default:
         return [];
     }
+  }
+
+  private toLocationStateValue(value: string): PublicHomeLocationValue | null {
+    const location = this.locationService.locationGroups.find((option) => option.value === value);
+    return location && location.value !== 'all-nigeria' ? location.value : null;
   }
 }
