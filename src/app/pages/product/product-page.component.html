@@ -154,7 +154,7 @@
             [class.ring-2]="currentGalleryIndex() === index"
             [class.ring-[#6453D9]]="currentGalleryIndex() === index"
             [class.ring-offset-2]="currentGalleryIndex() === index"
-            [attr.aria-label]="'View gallery image ' + (index + 1)"
+            [attr.aria-label]="image.type === 'youtube' ? 'View listing video' : 'View gallery image ' + (index + 1)"
           >
             <img
               [ngSrc]="image.src"
@@ -168,6 +168,15 @@
               <div class="absolute inset-0 flex flex-col items-center justify-center rounded-[16px] bg-white/55 px-3 text-center backdrop-blur-[1px]">
                 <span class="text-[10px] font-medium text-[#505050]">{{ image.eyebrow }}</span>
               </div>
+            }
+            @if (image.type === 'youtube') {
+              <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
+                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_8px_18px_rgba(17,24,39,0.22)]">
+                  <svg class="h-4 w-4 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
+                  </svg>
+                </span>
+              </span>
             }
           </button>
         }
@@ -243,7 +252,7 @@
                 type="button"
                 (click)="openGalleryPreview(index)"
                 class="relative h-[350px] w-[86%] shrink-0 snap-start overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_-24px_rgba(17,24,39,0.38)] active:translate-y-0 active:scale-[0.99]"
-                [attr.aria-label]="'Select gallery image ' + (index + 1)"
+                [attr.aria-label]="image.type === 'youtube' ? 'Open listing video' : 'Select gallery image ' + (index + 1)"
               >
                 <img
                   [ngSrc]="image.src"
@@ -257,6 +266,15 @@
                   <div class="absolute inset-0 flex flex-col items-center justify-center bg-white/45 px-6 text-center backdrop-blur-[1px]">
                     <span class="text-[18px] font-medium text-[#505050]">{{ image.eyebrow }}</span>
                   </div>
+                }
+                @if (image.type === 'youtube') {
+                  <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
+                    <span class="flex h-14 w-14 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_12px_28px_rgba(17,24,39,0.24)]">
+                      <svg class="h-6 w-6 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
+                      </svg>
+                    </span>
+                  </span>
                 }
               </button>
             }
@@ -344,15 +362,24 @@
             class="block h-full w-full cursor-zoom-in transition-opacity duration-200 hover:opacity-95 active:opacity-90"
             aria-label="Open image preview"
           >
-            @if (currentGalleryImage()?.src; as imageSrc) {
+            @if (currentGalleryImage(); as galleryItem) {
               <img
-                [ngSrc]="imageSrc"
-                [alt]="currentGalleryImage()?.alt ?? 'Listing image'"
+                [ngSrc]="galleryItem.src"
+                [alt]="galleryItem.alt"
                 width="552"
                 height="668"
                 priority
                 class="h-[668px] w-full object-cover"
               />
+              @if (galleryItem.type === 'youtube') {
+                <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
+                  <span class="flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_16px_34px_rgba(17,24,39,0.25)]">
+                    <svg class="h-7 w-7 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
+                    </svg>
+                  </span>
+                </span>
+              }
             } @else {
               <div class="flex h-[668px] w-full items-center justify-center bg-[#F3F3F3]">
                 <svg class="h-16 w-16 text-[#D0D0D0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
@@ -772,17 +799,30 @@
                 (touchstart)="onTouchStart($event)"
                 (touchend)="onTouchEnd($event)"
               >
-                @if (currentGalleryImage()?.src; as imageSrc) {
-                  @for (img of [currentGalleryImage()]; track img?.src) {
-                    <img
-                      [ngSrc]="imageSrc"
-                      [alt]="img?.alt ?? 'Listing image'"
-                      width="660"
-                      height="760"
-                      class="max-h-full max-w-full rounded-[28px] object-contain"
-                      [class.animate-slide-in-right]="slideDirection() === 'animate-slide-in-right'"
-                      [class.animate-slide-in-left]="slideDirection() === 'animate-slide-in-left'"
-                    />
+                @if (currentGalleryImage(); as galleryItem) {
+                  @for (img of [galleryItem]; track img.src) {
+                    @if (img.type === 'youtube' && img.embedUrl) {
+                      <iframe
+                        [src]="img.embedUrl"
+                        [title]="img.alt"
+                        class="aspect-video w-full max-w-[660px] rounded-[28px]"
+                        [class.animate-slide-in-right]="slideDirection() === 'animate-slide-in-right'"
+                        [class.animate-slide-in-left]="slideDirection() === 'animate-slide-in-left'"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen
+                      ></iframe>
+                    } @else {
+                      <img
+                        [ngSrc]="img.src"
+                        [alt]="img.alt"
+                        width="660"
+                        height="760"
+                        class="max-h-full max-w-full rounded-[28px] object-contain"
+                        [class.animate-slide-in-right]="slideDirection() === 'animate-slide-in-right'"
+                        [class.animate-slide-in-left]="slideDirection() === 'animate-slide-in-left'"
+                      />
+                    }
                   }
                 } @else {
                   <svg class="h-20 w-20 text-[#D0D0D0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
@@ -799,7 +839,7 @@
                     type="button"
                     (click)="setGalleryIndex(index)"
                     class="relative flex h-[92px] w-[104px] items-center justify-center overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-20px_rgba(17,24,39,0.35)] active:translate-y-0 active:scale-[0.97]"
-                    [attr.aria-label]="'Preview image ' + (index + 1)"
+                    [attr.aria-label]="image.type === 'youtube' ? 'Preview listing video' : 'Preview image ' + (index + 1)"
                   >
                     <img
                       [ngSrc]="image.src"
@@ -808,6 +848,15 @@
                       height="84"
                       class="h-full w-full object-cover"
                     />
+                    @if (image.type === 'youtube') {
+                      <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
+                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_8px_18px_rgba(17,24,39,0.22)]">
+                          <svg class="h-4 w-4 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
+                          </svg>
+                        </span>
+                      </span>
+                    }
                   </button>
                 }
               </div>
@@ -847,17 +896,30 @@
                 (touchstart)="onTouchStart($event)"
                 (touchend)="onTouchEnd($event)"
               >
-                @if (currentGalleryImage()?.src; as imageSrc) {
-                  @for (img of [currentGalleryImage()]; track img?.src) {
-                    <img
-                      [ngSrc]="imageSrc"
-                      [alt]="img?.alt ?? 'Listing image'"
-                      width="350"
-                      height="420"
-                      class="max-h-full max-w-full rounded-[22px] object-contain"
-                      [class.animate-slide-in-right]="slideDirection() === 'animate-slide-in-right'"
-                      [class.animate-slide-in-left]="slideDirection() === 'animate-slide-in-left'"
-                    />
+                @if (currentGalleryImage(); as galleryItem) {
+                  @for (img of [galleryItem]; track img.src) {
+                    @if (img.type === 'youtube' && img.embedUrl) {
+                      <iframe
+                        [src]="img.embedUrl"
+                        [title]="img.alt"
+                        class="aspect-video w-full rounded-[22px]"
+                        [class.animate-slide-in-right]="slideDirection() === 'animate-slide-in-right'"
+                        [class.animate-slide-in-left]="slideDirection() === 'animate-slide-in-left'"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen
+                      ></iframe>
+                    } @else {
+                      <img
+                        [ngSrc]="img.src"
+                        [alt]="img.alt"
+                        width="350"
+                        height="420"
+                        class="max-h-full max-w-full rounded-[22px] object-contain"
+                        [class.animate-slide-in-right]="slideDirection() === 'animate-slide-in-right'"
+                        [class.animate-slide-in-left]="slideDirection() === 'animate-slide-in-left'"
+                      />
+                    }
                   }
                 } @else {
                   <svg class="h-16 w-16 text-[#D0D0D0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
@@ -901,7 +963,7 @@
                   type="button"
                   (click)="setGalleryIndex(index)"
                   class="relative h-[102px] w-[102px] shrink-0 overflow-hidden rounded-[22px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-20px_rgba(17,24,39,0.35)] active:translate-y-0 active:scale-[0.97]"
-                  [attr.aria-label]="'Preview image ' + (index + 1)"
+                  [attr.aria-label]="image.type === 'youtube' ? 'Preview listing video' : 'Preview image ' + (index + 1)"
                 >
                   <img
                     [ngSrc]="image.src"
@@ -910,6 +972,15 @@
                     height="94"
                     class="h-full w-full object-cover"
                   />
+                  @if (image.type === 'youtube') {
+                    <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
+                      <span class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_8px_18px_rgba(17,24,39,0.22)]">
+                        <svg class="h-4 w-4 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
+                        </svg>
+                      </span>
+                    </span>
+                  }
                 </button>
               }
             </div>

@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { Title } from '@angular/platform-browser';
+import { DomSanitizer, type SafeResourceUrl, Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -39,8 +39,11 @@ type ListingStatus = 'Available' | 'Paused' | 'Sold';
 
 interface GalleryImage {
   id: string | null;
+  type: 'image' | 'youtube';
   src: string;
   alt: string;
+  embedUrl?: SafeResourceUrl;
+  externalUrl?: string;
 }
 
 interface EditableGalleryImage {
@@ -314,6 +317,15 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                     sizes="42vw"
                     class="object-cover"
                   />
+                  @if (image.type === 'youtube') {
+                    <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
+                      <span class="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_10px_22px_rgba(17,24,39,0.24)]">
+                        <svg class="h-5 w-5 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
+                        </svg>
+                      </span>
+                    </span>
+                  }
                 </button>
               }
             </div>
@@ -830,6 +842,15 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                         fill
                         class="object-cover"
                       />
+                      @if (image.type === 'youtube') {
+                        <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
+                          <span class="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_10px_22px_rgba(17,24,39,0.24)]">
+                            <svg class="h-5 w-5 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
+                            </svg>
+                          </span>
+                        </span>
+                      }
                     </div>
                   </button>
                 }
@@ -2941,6 +2962,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   private readonly listingsService = inject(ListingsService);
   private readonly appToastService = inject(AppToastService);
   private readonly titleService = inject(Title);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private readonly fallbackEditCategories = [
     'Electronics/Phones & Tablets',
@@ -3895,6 +3917,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
     record: ListingsApiItem,
     listingSummary?: ListingsApiItem | null,
   ): GalleryImage[] {
+    const youtubeItem = this.createYoutubeGalleryItem(record);
     const arrayCandidates = [
       record['images'],
       record['gallery'],
@@ -3912,7 +3935,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
           if (typeof entry === 'string') {
             const src = this.resolveMediaUrl(entry);
           return src
-              ? { id: null, src, alt: `${this.listing().name} image ${index + 1}` }
+              ? { id: null, type: 'image', src, alt: `${this.listing().name} image ${index + 1}` }
               : null;
           }
 
@@ -3933,6 +3956,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
 
           return {
             id: this.readIdentifier(entryRecord['id']),
+            type: 'image',
             src,
             alt:
               this.readString(entryRecord['alt']) ??
@@ -3942,7 +3966,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
         .filter((image): image is GalleryImage => image !== null);
 
       if (images.length > 0) {
-        return images;
+        return this.appendYoutubeGalleryItem(images, youtubeItem);
       }
     }
 
@@ -3954,16 +3978,88 @@ export class ListingDetailsPageComponent implements OnDestroy {
       this.resolveMediaUrl(this.readString(listingSummary?.['image']));
 
     if (fallbackImage) {
-      return [
-        {
-          id: null,
-          src: fallbackImage,
-          alt: this.readString(record['title']) ?? 'Listing image',
-        },
-      ];
+      return this.appendYoutubeGalleryItem(
+        [
+          {
+            id: null,
+            type: 'image',
+            src: fallbackImage,
+            alt: this.readString(record['title']) ?? 'Listing image',
+          },
+        ],
+        youtubeItem,
+      );
     }
 
-    return this.listing().gallery;
+    return this.appendYoutubeGalleryItem(
+      this.listing().gallery.filter((image) => image.type === 'image'),
+      youtubeItem,
+    );
+  }
+
+  private appendYoutubeGalleryItem(
+    images: GalleryImage[],
+    youtubeItem: GalleryImage | null,
+  ): GalleryImage[] {
+    if (!youtubeItem) {
+      return images;
+    }
+
+    const hasSameVideo = images.some((image) => image.type === 'youtube' && image.externalUrl === youtubeItem.externalUrl);
+    return hasSameVideo ? images : [...images, youtubeItem];
+  }
+
+  private createYoutubeGalleryItem(record: ListingsApiItem): GalleryImage | null {
+    const rawUrl =
+      this.readString(record['youtube_link']) ??
+      this.readString(record['youtube_url']) ??
+      this.readString(record['video_url']) ??
+      this.readString(record['video']);
+    if (!rawUrl) {
+      return null;
+    }
+
+    const videoId = this.extractYoutubeVideoId(rawUrl);
+    if (!videoId) {
+      return null;
+    }
+
+    const title = this.readString(record['title']) ?? this.listing().name;
+    return {
+      id: null,
+      type: 'youtube',
+      src: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+      alt: `${title} video`,
+      embedUrl: this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${videoId}`),
+      externalUrl: rawUrl,
+    };
+  }
+
+  private extractYoutubeVideoId(rawUrl: string): string | null {
+    const value = rawUrl.trim();
+    if (!value) {
+      return null;
+    }
+
+    if (/^[A-Za-z0-9_-]{11}$/.test(value)) {
+      return value;
+    }
+
+    try {
+      const url = new URL(value);
+      if (url.hostname.includes('youtu.be')) {
+        return url.pathname.split('/').filter(Boolean)[0] ?? null;
+      }
+      if (url.searchParams.has('v')) {
+        return url.searchParams.get('v');
+      }
+
+      const embedMatch = url.pathname.match(/\/(?:embed|shorts)\/([^/?#]+)/);
+      return embedMatch?.[1] ?? null;
+    } catch {
+      const fallbackMatch = value.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);
+      return fallbackMatch?.[1] ?? null;
+    }
   }
 
   private findManageListingSummary(): ListingsApiItem | null {
@@ -4197,7 +4293,8 @@ export class ListingDetailsPageComponent implements OnDestroy {
     );
 
     return this.listing()
-      .gallery.map((image) => image.id)
+      .gallery.filter((image) => image.type === 'image')
+      .map((image) => image.id)
       .filter((imageId): imageId is string => imageId !== null)
       .filter((imageId) => !currentExistingIds.has(String(imageId)));
   }
@@ -4205,13 +4302,15 @@ export class ListingDetailsPageComponent implements OnDestroy {
   private resetEditableGalleryImages(): void {
     this.clearEditableGalleryImages();
     this.editableGalleryImages.set(
-      this.listing().gallery.map((image, index) => ({
-        token: image.id ? `existing:${image.id}` : `existing:fallback-${index}`,
-        kind: 'existing',
-        imageId: image.id,
-        src: image.src,
-        alt: image.alt,
-      })),
+      this.listing()
+        .gallery.filter((image) => image.type === 'image')
+        .map((image, index) => ({
+          token: image.id ? `existing:${image.id}` : `existing:fallback-${index}`,
+          kind: 'existing',
+          imageId: image.id,
+          src: image.src,
+          alt: image.alt,
+        })),
     );
 
     const input = this.editImageInput()?.nativeElement;

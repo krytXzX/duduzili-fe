@@ -10,7 +10,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { Title } from '@angular/platform-browser';
+import { DomSanitizer, type SafeResourceUrl, Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -55,9 +55,12 @@ import {
 import { environment } from '../../../environments/environment';
 
 interface ProductGalleryImage {
+  readonly type: 'image' | 'youtube';
   readonly src: string;
   readonly alt: string;
   readonly eyebrow?: string;
+  readonly embedUrl?: SafeResourceUrl;
+  readonly externalUrl?: string;
 }
 
 interface ProductDetails {
@@ -221,6 +224,7 @@ export class ProductPageComponent {
   private readonly authSession = inject(AuthSessionService);
   private readonly favoritesStateService = inject(FavoritesStateService);
   private readonly messagesService = inject(MessagesService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private readonly reviewCloseButton =
     viewChild<ElementRef<HTMLButtonElement>>('reviewCloseButton');
@@ -1775,6 +1779,7 @@ export class ProductPageComponent {
   }
 
   private extractGalleryImages(record: ListingsApiItem): readonly ProductGalleryImage[] {
+    const youtubeItem = this.createYoutubeGalleryItem(record);
     const galleryCandidates = [
       record['images'],
       record['gallery'],
@@ -1785,7 +1790,7 @@ export class ProductPageComponent {
     for (const candidate of galleryCandidates) {
       const images = this.toGalleryImages(candidate);
       if (images.length > 0) {
-        return images;
+        return this.appendYoutubeGalleryItem(images, youtubeItem);
       }
     }
 
@@ -1795,10 +1800,13 @@ export class ProductPageComponent {
       this.resolveMediaUrl(this.readString(record['cover_image']));
 
     if (singleImage) {
-      return [{ src: singleImage, alt: this.readString(record['title']) ?? 'Listing image' }];
+      return this.appendYoutubeGalleryItem(
+        [{ type: 'image', src: singleImage, alt: this.readString(record['title']) ?? 'Listing image' }],
+        youtubeItem,
+      );
     }
 
-    return [];
+    return this.appendYoutubeGalleryItem([], youtubeItem);
   }
 
   private toGalleryImages(value: unknown): ProductGalleryImage[] {
@@ -1810,6 +1818,7 @@ export class ProductPageComponent {
       .map((entry, index) => {
         if (typeof entry === 'string') {
           return {
+            type: 'image',
             src: this.resolveMediaUrl(entry) ?? '',
             alt: `${this.product().name} image ${index + 1}`,
           };
@@ -1831,6 +1840,7 @@ export class ProductPageComponent {
         }
 
         return {
+          type: 'image',
           src,
           alt:
             this.readString(record['alt']) ??
@@ -1842,6 +1852,72 @@ export class ProductPageComponent {
       .filter((image): image is ProductGalleryImage => image !== null && image.src.length > 0);
 
     return images;
+  }
+
+  private appendYoutubeGalleryItem(
+    images: readonly ProductGalleryImage[],
+    youtubeItem: ProductGalleryImage | null,
+  ): readonly ProductGalleryImage[] {
+    if (!youtubeItem) {
+      return images;
+    }
+
+    const hasSameVideo = images.some((image) => image.type === 'youtube' && image.externalUrl === youtubeItem.externalUrl);
+    return hasSameVideo ? images : [...images, youtubeItem];
+  }
+
+  private createYoutubeGalleryItem(record: ListingsApiItem): ProductGalleryImage | null {
+    const rawUrl =
+      this.readString(record['youtube_link']) ??
+      this.readString(record['youtube_url']) ??
+      this.readString(record['video_url']) ??
+      this.readString(record['video']);
+    if (!rawUrl) {
+      return null;
+    }
+
+    const videoId = this.extractYoutubeVideoId(rawUrl);
+    if (!videoId) {
+      return null;
+    }
+
+    const title = this.readString(record['title']) ?? this.product().name;
+    return {
+      type: 'youtube',
+      src: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+      alt: `${title} video`,
+      eyebrow: 'Video',
+      embedUrl: this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${videoId}`),
+      externalUrl: rawUrl,
+    };
+  }
+
+  private extractYoutubeVideoId(rawUrl: string): string | null {
+    const value = rawUrl.trim();
+    if (!value) {
+      return null;
+    }
+
+    const directMatch = value.match(/^[A-Za-z0-9_-]{11}$/);
+    if (directMatch) {
+      return value;
+    }
+
+    try {
+      const url = new URL(value);
+      if (url.hostname.includes('youtu.be')) {
+        return url.pathname.split('/').filter(Boolean)[0] ?? null;
+      }
+      if (url.searchParams.has('v')) {
+        return url.searchParams.get('v');
+      }
+
+      const embedMatch = url.pathname.match(/\/(?:embed|shorts)\/([^/?#]+)/);
+      return embedMatch?.[1] ?? null;
+    } catch {
+      const fallbackMatch = value.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);
+      return fallbackMatch?.[1] ?? null;
+    }
   }
 
   private toReview(record: VendorReviewRecord, index: number): Review | null {
