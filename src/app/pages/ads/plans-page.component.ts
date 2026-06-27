@@ -317,8 +317,7 @@ export class AdsPlansPageComponent {
       weeklyPrice: 0,
       monthlyPrice: 0,
       yearlyPrice: 0,
-      cta: 'Current plan',
-      current: true,
+      cta: 'Free plan',
       features: [
         'Limited Ad views',
         '1 listing in Automobile',
@@ -390,15 +389,17 @@ export class AdsPlansPageComponent {
   readonly isSubmittingSubscription = signal(false);
 
   readonly plans = computed(() => {
-    const currentPlanName = this.subscriptionStatus()?.plan_name?.toLowerCase() ?? null;
+    const currentPlanName = this.normalizePlanName(this.subscriptionStatus()?.plan_name);
+    const hasActivePlan = currentPlanName.length > 0;
+
     return this.planDefinitions.map((plan) => {
       const backendPlan = this.matchBackendPlanByDisplayPlanId(plan.id);
       const weeklyPrice = backendPlan ? Number(backendPlan.weekly_price || backendPlan.price || backendPlan.computed_price) : null;
       const monthlyPrice = backendPlan ? Number(backendPlan.monthly_price || backendPlan.price || backendPlan.computed_price) : null;
       const yearlyPrice = backendPlan ? Number(backendPlan.yearly_price || backendPlan.price || backendPlan.computed_price) : null;
-      const isCurrent =
-        currentPlanName === (backendPlan?.plan_name?.toLowerCase() ?? null) ||
-        plan.current === true;
+      const isCurrent = hasActivePlan
+        ? this.planMatchesCurrentSubscription(plan, backendPlan, currentPlanName)
+        : plan.id === 'free';
 
       return {
         ...plan,
@@ -608,11 +609,33 @@ export class AdsPlansPageComponent {
             ? 'enterprise'
             : 'free';
 
-    console.log(this.backendPlans());
     return (
-      this.backendPlans().find((plan) => plan.plan_name.trim().toLowerCase() === desiredName) ??
+      this.backendPlans().find((plan) => this.normalizePlanName(plan.plan_name) === desiredName) ??
       null
-      // this.backendPlans().find((plan) => plan.plan_name.trim().toLowerCase() === desiredName) ?? null
     );
+  }
+
+  private planMatchesCurrentSubscription(
+    plan: PlanDefinition,
+    backendPlan: SubscriptionPlan | null,
+    currentPlanName: string,
+  ): boolean {
+    return this.planNameAliases(plan, backendPlan).some((alias) => alias === currentPlanName);
+  }
+
+  private planNameAliases(plan: PlanDefinition, backendPlan: SubscriptionPlan | null): readonly string[] {
+    const aliases = [plan.id, plan.name, backendPlan?.plan_name]
+      .map((value) => this.normalizePlanName(value))
+      .filter((value) => value.length > 0);
+
+    return Array.from(new Set(aliases));
+  }
+
+  private normalizePlanName(value: string | null | undefined): string {
+    return (value ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+(plan|subscription)$/u, '')
+      .replace(/\s+/gu, ' ');
   }
 }
