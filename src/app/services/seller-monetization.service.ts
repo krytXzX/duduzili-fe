@@ -55,6 +55,20 @@ export type PaystackVerifyResponse = {
 export type SubscriptionUsageBucket = {
   used: number;
   max: number;
+  remaining?: number;
+};
+
+export type SubscriptionFeatureUsage = {
+  listing_promotions: {
+    automobile: SubscriptionUsageBucket;
+    property: SubscriptionUsageBucket;
+    other: SubscriptionUsageBucket;
+  };
+  banner_ads: {
+    image: SubscriptionUsageBucket;
+    video: SubscriptionUsageBucket;
+  };
+  store_promotions: SubscriptionUsageBucket;
 };
 
 export type SubscriptionStatusData = {
@@ -65,6 +79,7 @@ export type SubscriptionStatusData = {
     property: SubscriptionUsageBucket;
     other: SubscriptionUsageBucket;
   };
+  features?: SubscriptionFeatureUsage | null;
 };
 
 export type SubscriptionStatusResponse = {

@@ -1572,6 +1572,18 @@ export class StoreDetailsDashboardComponent {
     return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
   }
 
+  private readErrorMessage(error: unknown): string | null {
+    const errorRecord = this.readRecord(error);
+    const response = errorRecord ? errorRecord['error'] : null;
+    const responseRecord = this.readRecord(response);
+    return (
+      this.readString(response) ??
+      this.readString(responseRecord?.['detail']) ??
+      this.readString(responseRecord?.['message']) ??
+      this.readString(responseRecord?.['error'])
+    );
+  }
+
   private readId(value: unknown): string | null {
     if (typeof value === 'string' && value.trim().length > 0) {
       return value.trim();
@@ -1786,9 +1798,11 @@ export class StoreDetailsDashboardComponent {
         this.store.update((current) => (current ? { ...current, promoted: true } : null));
         this.appToastService.show({ message: 'Store promotion is now running.' });
       },
-      error: () => {
+      error: (error: unknown) => {
         this.appToastService.show({
-          message: 'Your store couldn’t be promoted right now. Please try again.',
+          message:
+            this.readErrorMessage(error) ??
+            'Your store couldn’t be promoted right now. Please try again.',
         });
       },
     });

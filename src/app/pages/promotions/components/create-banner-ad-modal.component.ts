@@ -1647,13 +1647,34 @@ export class CreateBannerAdModalComponent implements OnDestroy {
           this.step.set(5);
           this.appToastService.show({ message: 'Banner ad submitted for review.' });
         },
-        error: () => {
+        error: (error: unknown) => {
           this.isSubmitting.set(false);
           this.appToastService.show({
-            message: 'That banner ad couldn’t be created right now. Please try again.',
+            message:
+              this.readErrorMessage(error) ??
+              'That banner ad couldn’t be created right now. Please try again.',
           });
         },
       });
+  }
+
+  private readErrorMessage(error: unknown): string | null {
+    if (!error || typeof error !== 'object') {
+      return null;
+    }
+    const errorRecord = error as Record<string, unknown>;
+    const response = errorRecord['error'];
+    if (typeof response === 'string') {
+      return response.trim() || null;
+    }
+    if (!response || typeof response !== 'object') {
+      return null;
+    }
+    const responseRecord = response as Record<string, unknown>;
+    const detail = responseRecord['detail'];
+    const message = responseRecord['message'] ?? responseRecord['error'];
+    const value = typeof detail === 'string' ? detail : typeof message === 'string' ? message : null;
+    return value?.trim() || null;
   }
 
   private readPaymentUrl(response: unknown): string | null {

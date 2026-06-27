@@ -3653,6 +3653,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
         const responseRecord = this.readRecord(this.readRecord(error)?.['error']) ??
           this.readRecord(this.readRecord(error)?.['response']);
         const message =
+          this.readString(responseRecord?.['detail']) ??
           this.readString(responseRecord?.['error']) ??
           this.readString(responseRecord?.['message']) ??
           'This listing couldn’t be promoted right now. Please try again.';
