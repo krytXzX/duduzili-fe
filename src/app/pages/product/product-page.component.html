@@ -149,7 +149,7 @@
         @for (image of product().images; track image.src; let index = $index) {
           <button
             type="button"
-            (click)="setGalleryIndex(index)"
+            (click)="handleGallerySelection(index, 'select')"
             class="relative aspect-square overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-20px_rgba(17,24,39,0.35)] active:translate-y-0 active:scale-[0.97]"
             [class.ring-2]="currentGalleryIndex() === index"
             [class.ring-[#6453D9]]="currentGalleryIndex() === index"
@@ -250,7 +250,7 @@
             @for (image of product().images; track image.src; let index = $index) {
               <button
                 type="button"
-                (click)="openGalleryPreview(index)"
+                (click)="handleGallerySelection(index, 'preview')"
                 class="relative h-[350px] w-[86%] shrink-0 snap-start overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_-24px_rgba(17,24,39,0.38)] active:translate-y-0 active:scale-[0.99]"
                 [attr.aria-label]="image.type === 'youtube' ? 'Open listing video' : 'Select gallery image ' + (index + 1)"
               >
@@ -358,7 +358,7 @@
 
           <button
             type="button"
-            (click)="openGalleryPreview()"
+            (click)="handleCurrentGalleryOpen()"
             class="block h-full w-full cursor-zoom-in transition-opacity duration-200 hover:opacity-95 active:opacity-90"
             aria-label="Open image preview"
           >
@@ -837,7 +837,7 @@
                 @for (image of product().images; track image.src; let index = $index) {
                   <button
                     type="button"
-                    (click)="setGalleryIndex(index)"
+                    (click)="handleGallerySelection(index, 'select')"
                     class="relative flex h-[92px] w-[104px] items-center justify-center overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-20px_rgba(17,24,39,0.35)] active:translate-y-0 active:scale-[0.97]"
                     [attr.aria-label]="image.type === 'youtube' ? 'Preview listing video' : 'Preview image ' + (index + 1)"
                   >
@@ -961,7 +961,7 @@
               @for (image of product().images; track image.src; let index = $index) {
                 <button
                   type="button"
-                  (click)="setGalleryIndex(index)"
+                  (click)="handleGallerySelection(index, 'select')"
                   class="relative h-[102px] w-[102px] shrink-0 overflow-hidden rounded-[22px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-20px_rgba(17,24,39,0.35)] active:translate-y-0 active:scale-[0.97]"
                   [attr.aria-label]="image.type === 'youtube' ? 'Preview listing video' : 'Preview image ' + (index + 1)"
                 >

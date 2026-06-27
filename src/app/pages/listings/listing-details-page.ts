@@ -8,7 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { DomSanitizer, type SafeResourceUrl, Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -307,7 +307,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
               @for (image of listing().gallery; track image.alt; let index = $index) {
                 <button
                   type="button"
-                  (click)="activeImageIndex.set(index)"
+                  (click)="handleGallerySelection(index)"
                   class="relative h-[168px] w-[152px] shrink-0 overflow-hidden rounded-[24px] bg-[#F3F4F7]"
                 >
                   <img
@@ -832,7 +832,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                 @for (image of listing().gallery; track image.alt; let index = $index) {
                   <button
                     type="button"
-                    (click)="activeImageIndex.set(index)"
+                    (click)="handleGallerySelection(index)"
                     class="relative overflow-hidden rounded-[28px] bg-[#F3F4F7]"
                   >
                     <div class="relative aspect-[0.92] w-full">
@@ -2963,6 +2963,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   private readonly appToastService = inject(AppToastService);
   private readonly titleService = inject(Title);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly document = inject(DOCUMENT);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private readonly fallbackEditCategories = [
     'Electronics/Phones & Tablets',
@@ -3359,6 +3360,20 @@ export class ListingDetailsPageComponent implements OnDestroy {
         ? selected.filter((item) => item !== optionId)
         : [...selected, optionId],
     );
+  }
+
+  protected handleGallerySelection(index: number): void {
+    const galleryItem = this.listing().gallery[index];
+    if (galleryItem?.type === 'youtube' && galleryItem.externalUrl) {
+      this.openExternalUrl(galleryItem.externalUrl);
+      return;
+    }
+
+    this.activeImageIndex.set(index);
+  }
+
+  private openExternalUrl(url: string): void {
+    this.document.defaultView?.open(url, '_blank', 'noopener,noreferrer');
   }
 
   protected isMobileDeliveryOptionSelected(optionId: string): boolean {
