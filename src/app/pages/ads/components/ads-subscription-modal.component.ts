@@ -13,6 +13,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroCheckSolid } from '@ng-icons/heroicons/solid';
 import { heroGlobeAlt, heroWallet, heroXMark } from '@ng-icons/heroicons/outline';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
+import type { SubscriptionPlan } from '../../../services/seller-monetization.service';
 
 type BillingOptionId = 'week' | 'month' | 'year';
 type PaymentOptionId = 'wallet' | 'online';
@@ -217,8 +218,7 @@ interface FeaturePlanConfig {
                       <span class="font-medium text-[#171717]"> {{ planConfig().name }}</span>
                       for
                       <span class="font-medium text-[#1A1A1A]"> {{ selectedOption().label }}</span
-                      >. This expires and renews on
-                      <span class="font-medium text-[#101010]"> 7 March, 2026.</span>
+                      >. You can manage renewal from your Ads plans.
                     </p>
                   </div>
                 </div>
@@ -320,9 +320,7 @@ interface FeaturePlanConfig {
                     >
                       <div class="flex items-start gap-3">
                         <ng-icon name="heroWallet" class="mt-0.5 text-lg text-[#2A2D34]"></ng-icon>
-                        <p class="text-[0.95rem] font-medium text-[#1A1C21]">
-                          Wallet (Balance: N250,000)
-                        </p>
+                        <p class="text-[0.95rem] font-medium text-[#1A1C21]">Wallet</p>
                       </div>
                       <span
                         class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border"
@@ -462,8 +460,7 @@ interface FeaturePlanConfig {
                       <span class="font-medium text-[#0D0D0D]"> {{ planConfig().name }}</span>
                       for
                       <span class="font-medium text-[#0D0D0D]"> {{ selectedOption().label }}.</span>
-                      This expires and renews on
-                      <span class="font-medium text-[#0D0D0D]"> 7 March, 2026.</span>
+                      You can manage renewal from your Ads plans.
                     </p>
                   </div>
                 </div>
@@ -495,6 +492,7 @@ export class AdsSubscriptionModalComponent implements OnDestroy {
   readonly close = output<void>();
   readonly subscribe = output<AdsSubscriptionSelection>();
   readonly plan = input<'pro' | 'premium' | 'enterprise'>('pro');
+  readonly planDetails = input<SubscriptionPlan | null>(null);
   readonly isSubmitting = input(false);
 
   private readonly mobileOverlayService = inject(MobileOverlayService);
@@ -521,6 +519,25 @@ export class AdsSubscriptionModalComponent implements OnDestroy {
   }
 
   readonly billingOptions = computed<BillingOption[]>(() => {
+    const backendPlan = this.planDetails();
+    if (backendPlan) {
+      return [
+        { id: 'week', label: '1 Week', total: this.formatPrice(backendPlan.weekly_price || backendPlan.price) },
+        {
+          id: 'month',
+          label: '1 Month',
+          weeklyRate: `${this.formatPrice(this.weeklyRateFromTotal(backendPlan.monthly_price, 4))}/week`,
+          total: this.formatPrice(backendPlan.monthly_price || backendPlan.price),
+        },
+        {
+          id: 'year',
+          label: '1 Year',
+          weeklyRate: `${this.formatPrice(this.weeklyRateFromTotal(backendPlan.yearly_price, 52))}/week`,
+          total: this.formatPrice(backendPlan.yearly_price || backendPlan.price),
+        },
+      ];
+    }
+
     switch (this.plan()) {
       case 'premium':
         return [
@@ -586,6 +603,14 @@ export class AdsSubscriptionModalComponent implements OnDestroy {
   );
 
   readonly planConfig = computed<FeaturePlanConfig>(() => {
+    const backendPlan = this.planDetails();
+    if (backendPlan) {
+      return {
+        name: this.planDisplayName(backendPlan.plan_name),
+        features: this.featuresForBackendPlan(backendPlan),
+      };
+    }
+
     switch (this.plan()) {
       case 'premium':
         return {
@@ -660,5 +685,53 @@ export class AdsSubscriptionModalComponent implements OnDestroy {
 
   emitSelectedSubscription(): void {
     this.handleSubscribe();
+  }
+
+  private featuresForBackendPlan(plan: SubscriptionPlan): string[] {
+    const features: string[] = [];
+    features.push(plan.unlimited_ads_views ? 'Unlimited ads views' : 'Limited ads views');
+    features.push(this.limitFeatureLabel(plan.automobile_limit, 'Automobile'));
+    features.push(this.limitFeatureLabel(plan.property_limit, 'Property'));
+    features.push(this.limitFeatureLabel(plan.other_limit, 'Other categories'));
+
+    if (plan.image_banner_limit > 0) {
+      features.push(this.limitFeatureLabel(plan.image_banner_limit, 'promotional image banner'));
+    }
+    if (plan.video_banner_limit > 0) {
+      features.push(this.limitFeatureLabel(plan.video_banner_limit, 'promotional video banner'));
+    }
+    if (plan.store_promotion_limit > 0) {
+      features.push(this.limitFeatureLabel(plan.store_promotion_limit, 'store promotion'));
+    }
+
+    return features;
+  }
+
+  private limitFeatureLabel(limit: number, label: string): string {
+    if (limit <= 0) {
+      return `No ${label.toLowerCase()}`;
+    }
+    if (limit > 999) {
+      return `Unlimited ${label.toLowerCase()}`;
+    }
+
+    const pluralSuffix = limit === 1 ? '' : 's';
+    return `${limit} ${label}${pluralSuffix}`;
+  }
+
+  private formatPrice(value: string | number | null | undefined): string {
+    const parsed = Number(value ?? 0);
+    const safeValue = Number.isFinite(parsed) ? parsed : 0;
+    return `₦${new Intl.NumberFormat('en-NG').format(safeValue)}`;
+  }
+
+  private weeklyRateFromTotal(value: string | number | null | undefined, weeks: number): number {
+    const parsed = Number(value ?? 0);
+    return Number.isFinite(parsed) && weeks > 0 ? Math.round(parsed / weeks) : 0;
+  }
+
+  private planDisplayName(planName: string): string {
+    const trimmedName = planName.trim();
+    return /\bplan$/iu.test(trimmedName) ? trimmedName : `${trimmedName} Plan`;
   }
 }

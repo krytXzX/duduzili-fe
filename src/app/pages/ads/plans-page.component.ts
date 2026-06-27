@@ -21,17 +21,21 @@ interface BillingTab {
   savings?: string;
 }
 
-interface PlanDefinition {
+interface PlanUiDefinition {
   id: PlanId;
   name: string;
+  cta: string;
+  highlighted?: boolean;
+  desktopBadge?: string;
+}
+
+interface PlanDefinition extends PlanUiDefinition {
   weeklyPrice: number;
   monthlyPrice: number;
   yearlyPrice: number;
-  cta: string;
-  current?: boolean;
-  highlighted?: boolean;
-  desktopBadge?: string;
+  current: boolean;
   features: readonly string[];
+  backendPlan: SubscriptionPlan;
 }
 
 @Component({
@@ -102,6 +106,19 @@ interface PlanDefinition {
       <div
         class="mt-6 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
+        @if (isLoadingPlans()) {
+          @for (item of [1, 2]; track item) {
+            <div class="h-[533px] w-[260px] shrink-0 animate-pulse rounded-[24px] bg-[#F7F7F7] p-4">
+              <div class="h-[174px] rounded-[20px] bg-white"></div>
+              <div class="mt-6 h-4 w-28 rounded-full bg-[#E8E8E8]"></div>
+              <div class="mt-5 space-y-4">
+                <div class="h-4 rounded-full bg-[#E8E8E8]"></div>
+                <div class="h-4 rounded-full bg-[#E8E8E8]"></div>
+                <div class="h-4 w-2/3 rounded-full bg-[#E8E8E8]"></div>
+              </div>
+            </div>
+          }
+        }
         @for (plan of plans(); track plan.id) {
           <article [class]="mobilePlanCardClass(plan)">
             <div [class]="mobilePlanTopCardClass(plan)">
@@ -162,6 +179,12 @@ interface PlanDefinition {
             </div>
           </article>
         }
+        @if (!isLoadingPlans() && plans().length === 0) {
+          <div class="w-full rounded-[24px] border border-[#EFEFF2] bg-[#FAFAFA] p-6 text-center">
+            <p class="text-[15px] font-medium text-[#1F1F1F]">Plans are not available right now.</p>
+            <p class="mt-2 text-[13px] text-[#747474]">Please check back shortly.</p>
+          </div>
+        }
       </div>
     </div>
 
@@ -208,6 +231,19 @@ interface PlanDefinition {
         </div>
 
         <div class="mt-8 grid grid-cols-4 gap-5">
+          @if (isLoadingPlans()) {
+            @for (item of [1, 2, 3, 4]; track item) {
+              <div class="min-h-[610px] animate-pulse rounded-[24px] bg-[#F7F7F7] p-5">
+                <div class="h-[188px] rounded-[20px] bg-white"></div>
+                <div class="mt-7 h-4 w-32 rounded-full bg-[#E8E8E8]"></div>
+                <div class="mt-5 space-y-4">
+                  <div class="h-4 rounded-full bg-[#E8E8E8]"></div>
+                  <div class="h-4 rounded-full bg-[#E8E8E8]"></div>
+                  <div class="h-4 w-2/3 rounded-full bg-[#E8E8E8]"></div>
+                </div>
+              </div>
+            }
+          }
           @for (plan of plans(); track plan.id) {
             <article [class]="desktopPlanCardClass(plan)">
               @if (plan.desktopBadge) {
@@ -278,6 +314,12 @@ interface PlanDefinition {
               </div>
             </article>
           }
+          @if (!isLoadingPlans() && plans().length === 0) {
+            <div class="col-span-4 rounded-[24px] border border-[#EFEFF2] bg-[#FAFAFA] p-10 text-center">
+              <p class="text-[16px] font-medium text-[#1F1F1F]">Plans are not available right now.</p>
+              <p class="mt-2 text-[14px] text-[#747474]">Please check back shortly.</p>
+            </div>
+          }
         </div>
       </div>
     </div>
@@ -285,6 +327,7 @@ interface PlanDefinition {
     @if (isSubscriptionModalOpen()) {
       <app-ads-subscription-modal
         [plan]="selectedPlanType()"
+        [planDetails]="selectedBackendPlan()"
         [isSubmitting]="isSubmittingSubscription()"
         (close)="isSubscriptionModalOpen.set(false)"
         (subscribe)="handleSubscribe($event)"
@@ -310,72 +353,28 @@ export class AdsPlansPageComponent {
     { id: 'yearly', label: 'Yearly billing', savings: 'Save ~ 35%' },
   ];
 
-  readonly planDefinitions: readonly PlanDefinition[] = [
+  readonly planUiDefinitions: readonly PlanUiDefinition[] = [
     {
       id: 'free',
       name: 'Free',
-      weeklyPrice: 0,
-      monthlyPrice: 0,
-      yearlyPrice: 0,
       cta: 'Free plan',
-      features: [
-        'Limited Ad views',
-        '1 listing in Automobile',
-        '1 listing in Property',
-        '5 listings in Other categories',
-      ],
     },
     {
       id: 'pro',
       name: 'Pro',
-      weeklyPrice: 1000,
-      monthlyPrice: 3200,
-      yearlyPrice: 26600,
       cta: 'Get Pro',
       highlighted: true,
       desktopBadge: 'Most popular',
-      features: [
-        'Unlimited Ad views',
-        '1 listing in Automobile',
-        '1 listing in Property',
-        '15 listings in Other categories',
-        '1 promotional image banner',
-        '1 store promotion',
-      ],
     },
     {
       id: 'premium',
       name: 'Premium',
-      weeklyPrice: 1500,
-      monthlyPrice: 4800,
-      yearlyPrice: 39000,
       cta: 'Get Premium',
-      features: [
-        'Unlimited Ad views',
-        '1 listing in Automobile',
-        '1 listing in Property',
-        '15 listings in Other categories',
-        '1 promotional image banner',
-        '1 promotional video banner',
-        '1 store promotion',
-      ],
     },
     {
       id: 'enterprise',
       name: 'Enterprise',
-      weeklyPrice: 2000,
-      monthlyPrice: 6400,
-      yearlyPrice: 52000,
       cta: 'Get Enterprise',
-      features: [
-        'Unlimited Ad views',
-        '1 listing in Automobile',
-        '1 listing in Property',
-        '15 listings in Other categories',
-        '1 promotional image banner',
-        '1 promotional video banner',
-        '1 store promotion',
-      ],
     },
   ];
 
@@ -383,6 +382,7 @@ export class AdsPlansPageComponent {
   readonly isSubscriptionModalOpen = signal(false);
   readonly selectedPlanType = signal<'pro' | 'premium' | 'enterprise'>('pro');
   readonly backendPlans = signal<SubscriptionPlan[]>([]);
+  readonly isLoadingPlans = signal(true);
   readonly subscriptionStatus = signal<SubscriptionStatusData | null>(null);
   readonly subscriptionsEnabled = signal(true);
   readonly selectedBackendPlan = signal<SubscriptionPlan | null>(null);
@@ -392,24 +392,30 @@ export class AdsPlansPageComponent {
     const currentPlanName = this.normalizePlanName(this.subscriptionStatus()?.plan_name);
     const hasActivePlan = currentPlanName.length > 0;
 
-    return this.planDefinitions.map((plan) => {
-      const backendPlan = this.matchBackendPlanByDisplayPlanId(plan.id);
-      const weeklyPrice = backendPlan ? Number(backendPlan.weekly_price || backendPlan.price || backendPlan.computed_price) : null;
-      const monthlyPrice = backendPlan ? Number(backendPlan.monthly_price || backendPlan.price || backendPlan.computed_price) : null;
-      const yearlyPrice = backendPlan ? Number(backendPlan.yearly_price || backendPlan.price || backendPlan.computed_price) : null;
-      const isCurrent = hasActivePlan
-        ? this.planMatchesCurrentSubscription(plan, backendPlan, currentPlanName)
-        : plan.id === 'free';
+    return this.backendPlans()
+      .map((backendPlan) => {
+        const planId = this.displayPlanIdForBackendPlan(backendPlan);
+        const uiPlan = this.uiPlanForId(planId);
+        const weeklyPrice = this.parsePlanPrice(backendPlan.weekly_price || backendPlan.price || backendPlan.computed_price);
+        const monthlyPrice = this.parsePlanPrice(backendPlan.monthly_price || backendPlan.price || backendPlan.computed_price);
+        const yearlyPrice = this.parsePlanPrice(backendPlan.yearly_price || backendPlan.price || backendPlan.computed_price);
+        const isCurrent = hasActivePlan
+          ? this.planMatchesCurrentSubscription(uiPlan, backendPlan, currentPlanName)
+          : planId === 'free';
 
-      return {
-        ...plan,
-        current: isCurrent,
-        cta: isCurrent ? 'Current plan' : plan.cta,
-        weeklyPrice: weeklyPrice ?? plan.weeklyPrice,
-        monthlyPrice: monthlyPrice ?? plan.monthlyPrice,
-        yearlyPrice: yearlyPrice ?? plan.yearlyPrice,
-      };
-    });
+        return {
+          ...uiPlan,
+          name: backendPlan.plan_name,
+          current: isCurrent,
+          cta: isCurrent ? 'Current plan' : this.ctaForBackendPlan(backendPlan, uiPlan),
+          weeklyPrice,
+          monthlyPrice,
+          yearlyPrice,
+          features: this.featuresForBackendPlan(backendPlan),
+          backendPlan,
+        };
+      })
+      .sort((first, second) => this.planSortIndex(first.id) - this.planSortIndex(second.id));
   });
 
   readonly subscriptionNotice = computed(() => {
@@ -517,15 +523,14 @@ export class AdsPlansPageComponent {
       return;
     }
 
-    const backendPlan = this.matchBackendPlanByDisplayPlanId(plan.id);
-    if (!backendPlan) {
+    if (!plan.backendPlan) {
       this.appToastService.show({
         message: 'This plan is not available right now.',
       });
       return;
     }
 
-    this.selectedBackendPlan.set(backendPlan);
+    this.selectedBackendPlan.set(plan.backendPlan);
     this.selectedPlanType.set(plan.id);
     this.isSubscriptionModalOpen.set(true);
   }
@@ -582,9 +587,16 @@ export class AdsPlansPageComponent {
   }
 
   private loadSubscriptionData(): void {
+    this.isLoadingPlans.set(true);
     this.sellerMonetizationService.getSubscriptionPlans().subscribe({
-      next: (plans) => this.backendPlans.set(plans.results),
-      error: () => this.backendPlans.set([]),
+      next: (plans) => {
+        this.backendPlans.set(plans.results);
+        this.isLoadingPlans.set(false);
+      },
+      error: () => {
+        this.backendPlans.set([]);
+        this.isLoadingPlans.set(false);
+      },
     });
 
     this.sellerMonetizationService.getSubscriptionStatus().subscribe({
@@ -599,31 +611,88 @@ export class AdsPlansPageComponent {
     });
   }
 
-  private matchBackendPlanByDisplayPlanId(planId: PlanId): SubscriptionPlan | null {
-    const desiredName =
-      planId === 'pro'
-        ? 'pro'
-        : planId === 'premium'
-          ? 'premium'
-          : planId === 'enterprise'
-            ? 'enterprise'
-            : 'free';
+  private displayPlanIdForBackendPlan(plan: SubscriptionPlan): PlanId {
+    const normalizedName = this.normalizePlanName(plan.plan_name);
+    if (normalizedName === 'free') {
+      return 'free';
+    }
+    if (normalizedName === 'premium') {
+      return 'premium';
+    }
+    if (normalizedName === 'enterprise') {
+      return 'enterprise';
+    }
+    return 'pro';
+  }
 
+  private uiPlanForId(planId: PlanId): PlanUiDefinition {
     return (
-      this.backendPlans().find((plan) => this.normalizePlanName(plan.plan_name) === desiredName) ??
-      null
+      this.planUiDefinitions.find((plan) => plan.id === planId) ?? {
+        id: planId,
+        name: this.titleCase(planId),
+        cta: `Get ${this.titleCase(planId)}`,
+      }
     );
   }
 
+  private ctaForBackendPlan(backendPlan: SubscriptionPlan, uiPlan: PlanUiDefinition): string {
+    if (uiPlan.id === 'free') {
+      return 'Free plan';
+    }
+
+    return `Get ${backendPlan.plan_name}`;
+  }
+
+  private featuresForBackendPlan(plan: SubscriptionPlan): readonly string[] {
+    const features: string[] = [];
+    features.push(plan.unlimited_ads_views ? 'Unlimited ad views' : 'Limited ad views');
+    features.push(this.limitFeatureLabel(plan.automobile_limit, 'Automobile'));
+    features.push(this.limitFeatureLabel(plan.property_limit, 'Property'));
+    features.push(this.limitFeatureLabel(plan.other_limit, 'Other categories'));
+
+    if (plan.image_banner_limit > 0) {
+      features.push(this.limitFeatureLabel(plan.image_banner_limit, 'promotional image banner'));
+    }
+    if (plan.video_banner_limit > 0) {
+      features.push(this.limitFeatureLabel(plan.video_banner_limit, 'promotional video banner'));
+    }
+    if (plan.store_promotion_limit > 0) {
+      features.push(this.limitFeatureLabel(plan.store_promotion_limit, 'store promotion'));
+    }
+
+    return features;
+  }
+
+  private limitFeatureLabel(limit: number, label: string): string {
+    if (limit <= 0) {
+      return `No ${label.toLowerCase()}`;
+    }
+    if (limit > 999) {
+      return `Unlimited ${label.toLowerCase()}`;
+    }
+
+    const pluralSuffix = limit === 1 ? '' : 's';
+    return `${limit} ${label}${pluralSuffix}`;
+  }
+
+  private parsePlanPrice(value: string | number | null | undefined): number {
+    const parsed = Number(value ?? 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  private planSortIndex(planId: PlanId): number {
+    return ['free', 'pro', 'premium', 'enterprise'].indexOf(planId);
+  }
+
   private planMatchesCurrentSubscription(
-    plan: PlanDefinition,
+    plan: PlanUiDefinition,
     backendPlan: SubscriptionPlan | null,
     currentPlanName: string,
   ): boolean {
     return this.planNameAliases(plan, backendPlan).some((alias) => alias === currentPlanName);
   }
 
-  private planNameAliases(plan: PlanDefinition, backendPlan: SubscriptionPlan | null): readonly string[] {
+  private planNameAliases(plan: PlanUiDefinition, backendPlan: SubscriptionPlan | null): readonly string[] {
     const aliases = [plan.id, plan.name, backendPlan?.plan_name]
       .map((value) => this.normalizePlanName(value))
       .filter((value) => value.length > 0);
@@ -637,5 +706,9 @@ export class AdsPlansPageComponent {
       .toLowerCase()
       .replace(/\s+(plan|subscription)$/u, '')
       .replace(/\s+/gu, ' ');
+  }
+
+  private titleCase(value: string): string {
+    return value.replace(/\b\w/gu, (character) => character.toUpperCase());
   }
 }
