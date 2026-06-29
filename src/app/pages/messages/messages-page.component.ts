@@ -628,9 +628,16 @@ type ChatDay = {
                                 }
                                 @if (message.image) {
                                   <div class="overflow-hidden rounded-[18px]" [class.mb-2]="!!message.text">
-                                    <a [href]="message.image" target="_blank" rel="noopener noreferrer">
-                                      <img [src]="message.image" alt="Shared image" class="max-h-[260px] max-w-full rounded-[18px] object-cover transition hover:opacity-90" />
-                                    </a>
+                                    <button
+                                      type="button"
+                                      (pointerdown)="$event.stopPropagation()"
+                                      (pointerup)="$event.stopPropagation()"
+                                      (click)="openImagePreview($event, message.image)"
+                                      class="block max-w-full rounded-[18px] text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#6453D9]"
+                                      aria-label="Preview shared image"
+                                    >
+                                      <img [src]="message.image" alt="Shared image" class="max-h-[260px] max-w-full rounded-[18px] object-cover" />
+                                    </button>
                                   </div>
                                 }
                                 @if (message.text) {
@@ -1203,9 +1210,16 @@ type ChatDay = {
                             }
                             @if (message.image) {
                               <div class="overflow-hidden rounded-[18px]" [class.mb-2]="!!message.text">
-                                <a [href]="message.image" target="_blank" rel="noopener noreferrer">
+                                <button
+                                  type="button"
+                                  (pointerdown)="$event.stopPropagation()"
+                                  (pointerup)="$event.stopPropagation()"
+                                  (click)="openImagePreview($event, message.image)"
+                                  class="block max-w-full rounded-[18px] text-left transition active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#6453D9]"
+                                  aria-label="Preview shared image"
+                                >
                                   <img [src]="message.image" alt="Shared image" class="max-h-[220px] max-w-full rounded-[18px] object-cover" />
-                                </a>
+                                </button>
                               </div>
                             }
                             @if (message.text) {
@@ -1797,6 +1811,42 @@ type ChatDay = {
       (change)="onImageSelected($event)"
     />
 
+    @if (imagePreviewUrl(); as previewUrl) {
+      <section
+        class="fixed inset-0 z-[170] flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm md:items-center md:p-8"
+        aria-label="Shared image preview"
+        role="dialog"
+        aria-modal="true"
+        (click)="closeImagePreview()"
+      >
+        <div
+          class="relative flex max-h-[92vh] w-full flex-col rounded-t-[32px] bg-white p-4 shadow-[0_30px_80px_rgba(0,0,0,0.25)] md:max-w-[920px] md:rounded-[32px] md:p-6"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="relative h-7 md:hidden">
+            <div class="absolute left-1/2 top-2 h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#E6E6E6]"></div>
+          </div>
+
+          <button
+            type="button"
+            (click)="closeImagePreview()"
+            class="absolute right-4 top-4 z-[1] flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[24px] leading-none text-[#242424] shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition hover:bg-[#F7F7F7] active:scale-95 md:right-6 md:top-6"
+            aria-label="Close image preview"
+          >
+            ×
+          </button>
+
+          <div class="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[24px] bg-[#F7F7F7]">
+            <img
+              [src]="previewUrl"
+              alt="Shared image preview"
+              class="max-h-[78vh] w-full object-contain md:max-h-[82vh]"
+            />
+          </div>
+        </div>
+      </section>
+    }
+
     <app-seller-report-modal
       [open]="isSellerReportModalOpen()"
       [step]="sellerReportStep()"
@@ -2020,6 +2070,7 @@ export class MessagesPageComponent implements OnDestroy {
 
   readonly selectedImageFile = signal<File | null>(null);
   readonly selectedImagePreview = signal<string | null>(null);
+  readonly imagePreviewUrl = signal<string | null>(null);
   private readonly updateMobileViewportHeight = (): void => {
     const viewportHeight =
       this.browserWindow?.visualViewport?.height ?? this.browserWindow?.innerHeight ?? null;
@@ -3190,6 +3241,18 @@ export class MessagesPageComponent implements OnDestroy {
     this.selectedImagePreview.set(null);
   }
 
+  protected openImagePreview(event: Event, imageUrl: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.clearLongPressTimer();
+    this.closeMessageMenu();
+    this.imagePreviewUrl.set(imageUrl);
+  }
+
+  protected closeImagePreview(): void {
+    this.imagePreviewUrl.set(null);
+  }
+
   private focusDraftComposer(): void {
     globalThis.setTimeout(() => {
       const draftFields = Array.from(
@@ -3908,5 +3971,6 @@ export class MessagesPageComponent implements OnDestroy {
       this.mobileOverlayService.closeMobileModal();
       this.mobileConversationOverlayOpen = false;
     }
+    this.closeImagePreview();
   }
 }
