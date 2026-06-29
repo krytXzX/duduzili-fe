@@ -8,7 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { DomSanitizer, type SafeResourceUrl, Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -308,28 +308,32 @@ type EditSectionId = 'media' | 'details' | 'delivery';
           <section class="space-y-6 pt-5">
             <div class="flex gap-3 overflow-x-auto pb-1">
               @for (image of listing().gallery; track image.alt; let index = $index) {
-                <button
-                  type="button"
-                  (click)="handleGallerySelection(index)"
-                  class="relative h-[168px] w-[152px] shrink-0 overflow-hidden rounded-[24px] bg-[#F3F4F7]"
-                >
-                  <img
-                    [ngSrc]="image.src"
-                    [alt]="image.alt"
-                    fill
-                    sizes="42vw"
-                    class="object-cover"
-                  />
-                  @if (image.type === 'youtube') {
-                    <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
-                      <span class="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_10px_22px_rgba(17,24,39,0.24)]">
-                        <svg class="h-5 w-5 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
-                        </svg>
-                      </span>
-                    </span>
-                  }
-                </button>
+                @if (image.type === 'youtube' && image.embedUrl) {
+                  <div class="flex h-[168px] w-[252px] shrink-0 items-center overflow-hidden rounded-[24px] bg-[#111111] p-2">
+                    <iframe
+                      [src]="image.embedUrl"
+                      [title]="image.alt"
+                      class="aspect-video w-full rounded-[18px]"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerpolicy="strict-origin-when-cross-origin"
+                      allowfullscreen
+                    ></iframe>
+                  </div>
+                } @else {
+                  <button
+                    type="button"
+                    (click)="handleGallerySelection(index)"
+                    class="relative h-[168px] w-[152px] shrink-0 overflow-hidden rounded-[24px] bg-[#F3F4F7]"
+                  >
+                    <img
+                      [ngSrc]="image.src"
+                      [alt]="image.alt"
+                      fill
+                      sizes="42vw"
+                      class="object-cover"
+                    />
+                  </button>
+                }
               }
             </div>
 
@@ -847,29 +851,35 @@ type EditSectionId = 'media' | 'details' | 'delivery';
             <div class="space-y-8 pt-8">
               <div class="grid grid-cols-2 gap-3 xl:grid-cols-6">
                 @for (image of listing().gallery; track image.alt; let index = $index) {
-                  <button
-                    type="button"
-                    (click)="handleGallerySelection(index)"
-                    class="relative overflow-hidden rounded-[28px] bg-[#F3F4F7]"
-                  >
-                    <div class="relative aspect-[0.92] w-full">
-                      <img
-                        [ngSrc]="image.src"
-                        [alt]="image.alt"
-                        fill
-                        class="object-cover"
-                      />
-                      @if (image.type === 'youtube') {
-                        <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
-                          <span class="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_10px_22px_rgba(17,24,39,0.24)]">
-                            <svg class="h-5 w-5 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
-                            </svg>
-                          </span>
-                        </span>
-                      }
+                  @if (image.type === 'youtube' && image.embedUrl) {
+                    <div class="relative overflow-hidden rounded-[28px] bg-[#111111] p-2 xl:col-span-2">
+                      <div class="flex aspect-video w-full items-center">
+                        <iframe
+                          [src]="image.embedUrl"
+                          [title]="image.alt"
+                          class="aspect-video w-full rounded-[20px]"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          referrerpolicy="strict-origin-when-cross-origin"
+                          allowfullscreen
+                        ></iframe>
+                      </div>
                     </div>
-                  </button>
+                  } @else {
+                    <button
+                      type="button"
+                      (click)="handleGallerySelection(index)"
+                      class="relative overflow-hidden rounded-[28px] bg-[#F3F4F7]"
+                    >
+                      <div class="relative aspect-[0.92] w-full">
+                        <img
+                          [ngSrc]="image.src"
+                          [alt]="image.alt"
+                          fill
+                          class="object-cover"
+                        />
+                      </div>
+                    </button>
+                  }
                 }
               </div>
 
@@ -2994,7 +3004,6 @@ export class ListingDetailsPageComponent implements OnDestroy {
   private readonly appToastService = inject(AppToastService);
   private readonly titleService = inject(Title);
   private readonly sanitizer = inject(DomSanitizer);
-  private readonly document = inject(DOCUMENT);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private readonly fallbackEditCategories = [
     'Electronics/Phones & Tablets',
@@ -3396,17 +3405,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   }
 
   protected handleGallerySelection(index: number): void {
-    const galleryItem = this.listing().gallery[index];
-    if (galleryItem?.type === 'youtube' && galleryItem.externalUrl) {
-      this.openExternalUrl(galleryItem.externalUrl);
-      return;
-    }
-
     this.activeImageIndex.set(index);
-  }
-
-  private openExternalUrl(url: string): void {
-    this.document.defaultView?.open(url, '_blank', 'noopener,noreferrer');
   }
 
   protected isMobileDeliveryOptionSelected(optionId: string): boolean {

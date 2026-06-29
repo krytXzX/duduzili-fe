@@ -496,12 +496,6 @@ export class ProductPageComponent {
   }
 
   handleGallerySelection(index: number, mode: 'select' | 'preview'): void {
-    const galleryItem = this.product().images[index];
-    if (galleryItem?.type === 'youtube' && galleryItem.externalUrl) {
-      this.openExternalUrl(galleryItem.externalUrl);
-      return;
-    }
-
     if (mode === 'preview') {
       this.openGalleryPreview(index);
       return;
@@ -511,12 +505,6 @@ export class ProductPageComponent {
   }
 
   handleCurrentGalleryOpen(): void {
-    const galleryItem = this.currentGalleryImage();
-    if (galleryItem?.type === 'youtube' && galleryItem.externalUrl) {
-      this.openExternalUrl(galleryItem.externalUrl);
-      return;
-    }
-
     this.openGalleryPreview();
   }
 
@@ -535,10 +523,6 @@ export class ProductPageComponent {
       this.slideDirection.set('');
     }
     this.currentGalleryIndex.set(index);
-  }
-
-  private openExternalUrl(url: string): void {
-    this.document.defaultView?.open(url, '_blank', 'noopener,noreferrer');
   }
 
   nextImage(): void {

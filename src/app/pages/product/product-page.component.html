@@ -248,35 +248,42 @@
         <div class="lg:hidden">
           <div class="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:none]">
             @for (image of product().images; track image.src; let index = $index) {
-              <button
-                type="button"
-                (click)="handleGallerySelection(index, 'preview')"
-                class="relative h-[350px] w-[86%] shrink-0 snap-start overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_-24px_rgba(17,24,39,0.38)] active:translate-y-0 active:scale-[0.99]"
-                [attr.aria-label]="image.type === 'youtube' ? 'Open listing video' : 'Select gallery image ' + (index + 1)"
-              >
-                <img
-                  [ngSrc]="image.src"
-                  [alt]="image.alt"
-                  width="315"
-                  height="350"
-                  class="h-full w-full object-cover"
-                />
+              @if (image.type === 'youtube' && image.embedUrl) {
+                <div
+                  class="flex h-[350px] w-[86%] shrink-0 snap-start items-center overflow-hidden rounded-[20px] bg-[#111111] p-3"
+                  [attr.aria-label]="'Listing video ' + (index + 1)"
+                >
+                  <iframe
+                    [src]="image.embedUrl"
+                    [title]="image.alt"
+                    class="aspect-video w-full rounded-[16px]"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+              } @else {
+                <button
+                  type="button"
+                  (click)="handleGallerySelection(index, 'preview')"
+                  class="relative h-[350px] w-[86%] shrink-0 snap-start overflow-hidden rounded-[20px] bg-[#EFEFEF] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_-24px_rgba(17,24,39,0.38)] active:translate-y-0 active:scale-[0.99]"
+                  [attr.aria-label]="'Select gallery image ' + (index + 1)"
+                >
+                  <img
+                    [ngSrc]="image.src"
+                    [alt]="image.alt"
+                    width="315"
+                    height="350"
+                    class="h-full w-full object-cover"
+                  />
 
-                @if (image.eyebrow) {
-                  <div class="absolute inset-0 flex flex-col items-center justify-center bg-white/45 px-6 text-center backdrop-blur-[1px]">
-                    <span class="text-[18px] font-medium text-[#505050]">{{ image.eyebrow }}</span>
-                  </div>
-                }
-                @if (image.type === 'youtube') {
-                  <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
-                    <span class="flex h-14 w-14 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_12px_28px_rgba(17,24,39,0.24)]">
-                      <svg class="h-6 w-6 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
-                      </svg>
-                    </span>
-                  </span>
-                }
-              </button>
+                  @if (image.eyebrow) {
+                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-white/45 px-6 text-center backdrop-blur-[1px]">
+                      <span class="text-[18px] font-medium text-[#505050]">{{ image.eyebrow }}</span>
+                    </div>
+                  }
+                </button>
+              }
             }
           </div>
         </div>
@@ -356,31 +363,36 @@
             }
           </div>
 
-          <button
-            type="button"
-            (click)="handleCurrentGalleryOpen()"
-            class="block h-full w-full cursor-zoom-in transition-opacity duration-200 hover:opacity-95 active:opacity-90"
-            aria-label="Open image preview"
-          >
-            @if (currentGalleryImage(); as galleryItem) {
-              <img
-                [ngSrc]="galleryItem.src"
-                [alt]="galleryItem.alt"
-                width="552"
-                height="668"
-                priority
-                class="h-[668px] w-full object-cover"
-              />
-              @if (galleryItem.type === 'youtube') {
-                <span class="absolute inset-0 flex items-center justify-center bg-black/20" aria-hidden="true">
-                  <span class="flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_16px_34px_rgba(17,24,39,0.25)]">
-                    <svg class="h-7 w-7 translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path d="M6.5 4.8v10.4c0 .9 1 1.4 1.7.9l7.1-5.2c.6-.4.6-1.3 0-1.7L8.2 3.9c-.7-.5-1.7 0-1.7.9z" />
-                    </svg>
-                  </span>
-                </span>
-              }
+          @if (currentGalleryImage(); as galleryItem) {
+            @if (galleryItem.type === 'youtube' && galleryItem.embedUrl) {
+              <div class="flex h-[668px] w-full items-center justify-center bg-[#111111] p-4">
+                <iframe
+                  [src]="galleryItem.embedUrl"
+                  [title]="galleryItem.alt"
+                  class="aspect-video w-full rounded-[24px]"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerpolicy="strict-origin-when-cross-origin"
+                  allowfullscreen
+                ></iframe>
+              </div>
             } @else {
+              <button
+                type="button"
+                (click)="handleCurrentGalleryOpen()"
+                class="block h-full w-full cursor-zoom-in transition-opacity duration-200 hover:opacity-95 active:opacity-90"
+                aria-label="Open image preview"
+              >
+                <img
+                  [ngSrc]="galleryItem.src"
+                  [alt]="galleryItem.alt"
+                  width="552"
+                  height="668"
+                  priority
+                  class="h-[668px] w-full object-cover"
+                />
+              </button>
+            }
+          } @else {
               <div class="flex h-[668px] w-full items-center justify-center bg-[#F3F3F3]">
                 <svg class="h-16 w-16 text-[#D0D0D0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <rect x="3" y="3" width="18" height="18" rx="3" stroke-width="1.5"/>
@@ -388,8 +400,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 15-5-5L5 21"/>
                 </svg>
               </div>
-            }
-          </button>
+          }
         </div>
 
         <div class="lg:hidden">
