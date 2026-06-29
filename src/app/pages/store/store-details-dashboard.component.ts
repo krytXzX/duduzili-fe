@@ -37,6 +37,7 @@ import {
   type UpdateVendorPayload,
 } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
+import { formatListingPricing } from '../../utils/listing-pricing';
 
 type StoreTab = 'listings' | 'reviews';
 type StoreReviewSort = 'most-recent' | 'highest-rated';
@@ -1440,8 +1441,7 @@ export class StoreDetailsDashboardComponent {
   }
 
   private mapStoreProduct(record: VendorListingRecord): StoreProduct {
-    const price = this.readNumber(record['price']);
-    const originalPrice = this.readNumber(record['original_price']);
+    const pricing = formatListingPricing(record);
     const condition = this.readString(record['condition']);
 
     return {
@@ -1450,11 +1450,8 @@ export class StoreDetailsDashboardComponent {
       image:
         this.resolveMediaUrl(this.readString(record['thumbnail'])) ??
         '/assets/images/store-filled-item-01.png',
-      price: this.readBoolean(record['is_free']) ? 'Free' : this.formatCurrency(price),
-      originalPrice:
-        originalPrice !== null && !this.readBoolean(record['is_free'])
-          ? this.formatCurrency(originalPrice)
-          : undefined,
+      price: pricing.price,
+      originalPrice: pricing.originalPrice,
       location:
         this.readString(record['location']) ??
         this.composeLocation(record) ??
@@ -1462,10 +1459,7 @@ export class StoreDetailsDashboardComponent {
         '',
       condition: condition === 'new' ? 'New' : condition === 'used' ? 'Used' : undefined,
       isVerified: this.readBoolean(record['is_verified']) ?? false,
-      discount:
-        this.readNumber(record['discount_percentage']) !== null
-          ? `-${this.readNumber(record['discount_percentage'])}%`
-          : undefined,
+      discount: pricing.discountBadge,
     };
   }
 

@@ -9,6 +9,7 @@ import {
 } from '../../services/listings.service';
 import { environment } from '../../../environments/environment';
 import { FavoritesStateService } from '../../services/favorites-state.service';
+import { formatListingPricing } from '../../utils/listing-pricing';
 
 interface WishlistGroup {
   label: string;
@@ -207,9 +208,9 @@ export class BuyerWishlistPageComponent {
       this.readString(item['title']) ??
       this.readString(item['name']) ??
       this.readString(item['listing_name']);
-    const price = this.formatPrice(item['price']);
+    const pricing = formatListingPricing(item);
 
-    if (!title || !price) {
+    if (!title || !pricing.price) {
       return null;
     }
 
@@ -218,9 +219,9 @@ export class BuyerWishlistPageComponent {
       listing: {
         id: this.readString(item['id']) ?? `favorite-${index + 1}`,
         title,
-        price,
-        originalPrice: this.formatPrice(item['original_price']) ?? undefined,
-        discountBadge: this.formatDiscountBadge(item['discount_percentage']) ?? undefined,
+        price: pricing.price,
+        originalPrice: pricing.originalPrice,
+        discountBadge: pricing.discountBadge,
         location: this.composeLocation(item) ?? '',
         timeAgo: this.formatCondition(item['condition']) ?? 'Recently',
         isVerified: this.readBoolean(item['is_verified']) ?? false,

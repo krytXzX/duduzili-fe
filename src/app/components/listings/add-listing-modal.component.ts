@@ -2441,8 +2441,9 @@ export class AddListingModalComponent implements OnDestroy {
     payload.append('accept_offers', String(!!formValue.acceptOffers));
     payload.append('is_free', String(!!formValue.listForFree));
 
-    if (formValue.price !== null && formValue.price !== undefined && !formValue.listForFree) {
-      payload.append('price', String(formValue.price));
+    const discountedPricing = this.resolveSubmittedPricing(formValue);
+    if (discountedPricing.price !== null) {
+      payload.append('price', String(discountedPricing.price));
     }
 
     for (const deliveryOption of formValue.deliveryOptions ?? []) {
@@ -2451,9 +2452,8 @@ export class AddListingModalComponent implements OnDestroy {
 
     this.appendFormDataValue(payload, 'youtube_link', formValue.youtubeLink, { optional: true });
 
-    if (formValue.addDiscount && formValue.discountPrice !== null && formValue.discountPrice !== undefined) {
-      payload.append('discount_type', formValue.discountType);
-      payload.append('discount_value', String(formValue.discountPrice));
+    if (discountedPricing.originalPrice !== null) {
+      payload.append('original_price', String(discountedPricing.originalPrice));
 
       if (formValue.discountStartDate) {
         payload.append('discount_start_date', formValue.discountStartDate);
@@ -2618,6 +2618,43 @@ export class AddListingModalComponent implements OnDestroy {
   private normalizeYoutubeId(value: string): string | null {
     const normalized = value.trim();
     return /^[A-Za-z0-9_-]{6,}$/.test(normalized) ? normalized : null;
+  }
+
+  private resolveSubmittedPricing(formValue: {
+    listForFree?: boolean | null;
+    addDiscount?: boolean | null;
+    price?: number | string | null;
+    discountType?: string | null;
+    discountPrice?: number | string | null;
+  }): { readonly price: number | null; readonly originalPrice: number | null } {
+    if (formValue.listForFree) {
+      return { price: 0, originalPrice: null };
+    }
+
+    const basePrice = this.readNumber(formValue.price);
+    if (basePrice === null) {
+      return { price: null, originalPrice: null };
+    }
+
+    if (!formValue.addDiscount) {
+      return { price: basePrice, originalPrice: null };
+    }
+
+    const discountValue = this.readNumber(formValue.discountPrice);
+    if (discountValue === null || discountValue <= 0) {
+      return { price: basePrice, originalPrice: null };
+    }
+
+    const salePrice =
+      formValue.discountType === 'percentage'
+        ? Math.max(basePrice - (basePrice * discountValue) / 100, 0)
+        : Math.max(discountValue, 0);
+
+    if (salePrice >= basePrice) {
+      return { price: basePrice, originalPrice: null };
+    }
+
+    return { price: salePrice, originalPrice: basePrice };
   }
 
   private normalizeExternalUrl(value: string): string {

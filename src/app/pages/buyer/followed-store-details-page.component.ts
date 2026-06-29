@@ -58,6 +58,7 @@ import {
   VendorsService,
 } from '../../services/vendors.service';
 import { environment } from '../../../environments/environment';
+import { formatListingPricing } from '../../utils/listing-pricing';
 
 type BuyerStoreTab = 'products' | 'reviews';
 type StoreReviewSort = 'most-recent' | 'highest-rated' | 'lowest-rated';
@@ -2219,18 +2220,18 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   private toListing(record: VendorListingRecord, index: number): Listing | null {
     const id = this.readString(record['id']) ?? `vendor-listing-${index + 1}`;
     const title = this.readString(record['title']) ?? this.readString(record['name']);
-    const price = this.formatPrice(record['price']);
+    const pricing = formatListingPricing(record);
 
-    if (!title || !price) {
+    if (!title || !pricing.price) {
       return null;
     }
 
     return {
       id,
       title,
-      price,
-      originalPrice: this.formatPrice(record['original_price']) ?? undefined,
-      discountBadge: this.formatDiscountBadge(record['discount_percentage']) ?? undefined,
+      price: pricing.price,
+      originalPrice: pricing.originalPrice,
+      discountBadge: pricing.discountBadge,
       images: this.extractListingImages(record),
       location: this.composeListingLocation(record) ?? this.store().location,
       timeAgo: this.formatRelativeTime(record['created_at']) ?? 'Just now',

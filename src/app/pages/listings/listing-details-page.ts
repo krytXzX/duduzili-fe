@@ -33,6 +33,7 @@ import {
 } from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
 import { environment } from '../../../environments/environment';
+import { formatListingPricing } from '../../utils/listing-pricing';
 
 type ListingTab = 'overview' | 'requests' | 'activities';
 type ListingStatus = 'Available' | 'Paused' | 'Sold';
@@ -89,6 +90,8 @@ interface ListingDetails {
   datePosted: string;
   location: string;
   price: string;
+  originalPrice: string;
+  discountBadge: string;
   description: string;
   status: ListingStatus;
   messages: number;
@@ -365,8 +368,22 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                 <div>
                   <p class="text-[12px] text-[#8A8F9A]">Price</p>
                   <p class="mt-2 text-[28px] font-semibold tracking-[-0.04em] text-[#202335]">
-                    <span class="text-[24px]">₦</span>{{ listing().price }}
+                    {{ listing().price }}
                   </p>
+                  @if (listing().originalPrice || listing().discountBadge) {
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                      @if (listing().originalPrice) {
+                        <span class="text-[13px] font-medium text-[#8A8F9A] line-through">
+                          {{ listing().originalPrice }}
+                        </span>
+                      }
+                      @if (listing().discountBadge) {
+                        <span class="rounded-full bg-[#E9FF7C] px-2.5 py-1 text-[12px] font-semibold text-[#4E3E07]">
+                          {{ listing().discountBadge }}
+                        </span>
+                      }
+                    </div>
+                  }
                 </div>
 
                 <button
@@ -928,8 +945,22 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           <p
                             class="mt-3 text-[34px] font-semibold tracking-[-0.05em] text-[#202335]"
                           >
-                            <span class="text-[30px]">₦</span>{{ listing().price }}
+                            {{ listing().price }}
                           </p>
+                          @if (listing().originalPrice || listing().discountBadge) {
+                            <div class="mt-2 flex flex-wrap items-center gap-2">
+                              @if (listing().originalPrice) {
+                                <span class="text-[14px] font-medium text-[#8A8F9A] line-through">
+                                  {{ listing().originalPrice }}
+                                </span>
+                              }
+                              @if (listing().discountBadge) {
+                                <span class="rounded-full bg-[#E9FF7C] px-2.5 py-1 text-[12px] font-semibold text-[#4E3E07]">
+                                  {{ listing().discountBadge }}
+                                </span>
+                              }
+                            </div>
+                          }
                         </div>
 
                         <button
@@ -3104,6 +3135,8 @@ export class ListingDetailsPageComponent implements OnDestroy {
     datePosted: '--',
     location: '--',
     price: '--',
+    originalPrice: '',
+    discountBadge: '',
     description: 'Details will be added for this listing soon.',
     status: 'Available',
     messages: 0,
@@ -3746,6 +3779,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
     const listingSummary = this.findManageListingSummary();
     const gallery = this.extractGalleryImages(record, listingSummary);
     const storeInfo = this.readRecord(record['store_info']);
+    const pricing = formatListingPricing(record);
     const storeName =
       this.readString(storeInfo?.['store_name']) ??
       this.readString(record['store_name']) ??
@@ -3769,7 +3803,9 @@ export class ListingDetailsPageComponent implements OnDestroy {
       lastUpdated: this.formatDate(updatedAt) ?? this.listing().lastUpdated,
       datePosted: this.formatDate(createdAt) ?? this.listing().datePosted,
       location: listingLocation,
-      price: this.formatPlainPrice(record['price']) ?? this.listing().price,
+      price: pricing.price || this.listing().price,
+      originalPrice: pricing.originalPrice ?? '',
+      discountBadge: pricing.discountBadge ?? '',
       description: this.readString(record['description']) ?? this.listing().description,
       status: this.mapListingStatus(record['status']),
       messages:

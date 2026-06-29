@@ -24,6 +24,7 @@ import {
   SearchListingsParams,
 } from '../../services/listings.service';
 import { environment } from '../../../environments/environment';
+import { formatListingPricing } from '../../utils/listing-pricing';
 
 interface CategoryListingView extends Listing {
   favoriteFilled?: boolean;
@@ -479,21 +480,19 @@ export class CategoryPageComponent {
   private toListing(item: ListingsApiItem, index: number): CategoryListingView | null {
     const id = this.readId(item, index);
     const title = this.readString(item, ['title', 'name', 'listing_name']);
-    const priceValue = this.formatPriceValue(
-      item['price'] ?? item['amount'] ?? item['price_display'],
-    );
+    const pricing = formatListingPricing(item);
     const images = this.extractImageList(item);
 
-    if (!title || !priceValue) {
+    if (!title || !pricing.price) {
       return null;
     }
 
     return {
       id,
       title,
-      price: priceValue,
-      originalPrice: this.formatPriceOptional(item['original_price'] ?? item['originalPrice']),
-      discountBadge: this.formatDiscountBadge(item['discount_percentage']),
+      price: pricing.price,
+      originalPrice: pricing.originalPrice,
+      discountBadge: pricing.discountBadge,
       location: this.buildLocationLabel(item),
       timeAgo: this.relativeTimeFromDate(
         this.readString(item, ['created_at', 'published_at', 'date_created']),

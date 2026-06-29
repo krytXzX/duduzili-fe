@@ -38,6 +38,7 @@ import {
   ListingsSearchResponse,
   ListingsService,
 } from '../../services/listings.service';
+import { formatListingPricing } from '../../utils/listing-pricing';
 import { environment } from '../../../environments/environment';
 
 type HomeCategory = {
@@ -805,59 +806,7 @@ export class HomePageComponent {
     readonly originalPrice?: string;
     readonly discountBadge?: string;
   } {
-    if (this.readBoolean(record['is_free']) === true) {
-      return { price: 'Free' };
-    }
-
-    const salePrice = this.normalizePriceValue(
-      record['sale_price'] ??
-        record['discounted_price'] ??
-        record['discount_price'] ??
-        record['current_price'],
-    );
-    const listedPrice = this.normalizePriceValue(record['price'] ?? record['amount']);
-    const currentPrice = salePrice ?? listedPrice;
-    const explicitOriginalPrice = this.normalizePriceValue(
-      record['original_price'] ??
-        record['originalPrice'] ??
-        record['regular_price'] ??
-        record['list_price'] ??
-        record['old_price'] ??
-        record['before_discount_price'],
-    );
-    const originalPrice =
-      explicitOriginalPrice ??
-      (salePrice !== null && listedPrice !== null && listedPrice > salePrice ? listedPrice : null);
-    const hasDiscount =
-      currentPrice !== null &&
-      originalPrice !== null &&
-      originalPrice > currentPrice;
-    const computedDiscount =
-      hasDiscount ? ((originalPrice - currentPrice) / originalPrice) * 100 : null;
-    const discountValue =
-      hasDiscount
-        ? this.normalizePriceValue(
-            record['discount_percentage'] ??
-              record['discount_percent'] ??
-              record['discount_rate'] ??
-              record['discount'],
-          ) ?? computedDiscount
-        : null;
-
-    return {
-      price:
-        this.formatPrice(currentPrice) ||
-        this.readString(record['price_display']) ||
-        this.readString(record['formatted_price']) ||
-        '',
-      originalPrice: hasDiscount ? this.formatPriceOptional(originalPrice) : undefined,
-      discountBadge: hasDiscount
-        ? this.formatDiscountBadge(discountValue) ??
-          this.readString(record['discount_badge']) ??
-          this.readString(record['badge']) ??
-          undefined
-        : undefined,
-    };
+    return formatListingPricing(record);
   }
 
   private toPromotion(

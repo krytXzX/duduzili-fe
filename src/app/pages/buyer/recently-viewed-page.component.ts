@@ -10,6 +10,7 @@ import {
 } from '../../services/listings.service';
 import { FavoritesStateService } from '../../services/favorites-state.service';
 import { environment } from '../../../environments/environment';
+import { formatListingPricing } from '../../utils/listing-pricing';
 
 interface RecentlyViewedGroup {
   label: string;
@@ -233,9 +234,9 @@ export class BuyerRecentlyViewedPageComponent {
       this.readString(item['title']) ??
       this.readString(item['name']) ??
       this.readString(item['listing_name']);
-    const price = this.formatPrice(item['price'], this.readBoolean(item['is_free']) ?? false);
+    const pricing = formatListingPricing(item);
 
-    if (!title || !price) {
+    if (!title || !pricing.price) {
       return null;
     }
 
@@ -245,9 +246,9 @@ export class BuyerRecentlyViewedPageComponent {
       listing: {
         id: this.readString(item['id']) ?? `recently-viewed-${index + 1}`,
         title,
-        price,
-        originalPrice: this.formatPrice(item['original_price'], false) ?? undefined,
-        discountBadge: this.formatDiscountBadge(item['discount_percentage']) ?? undefined,
+        price: pricing.price,
+        originalPrice: pricing.originalPrice,
+        discountBadge: pricing.discountBadge,
         location: this.composeLocation(item) ?? '',
         timeAgo: this.formatCondition(item['condition']) ?? 'Recently viewed',
         isVerified: this.readBoolean(item['is_verified']) ?? false,
