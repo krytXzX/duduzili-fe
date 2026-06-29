@@ -25,7 +25,7 @@ export function formatListingPricing(record: Record<string, unknown>): ListingPr
       record['old_price'] ??
       record['before_discount_price'],
   );
-  const explicitDiscount = readNumber(
+  const explicitDiscount = readPercent(
     record['discount_percentage'] ??
       record['discount_percent'] ??
       record['discount_rate'] ??
@@ -48,7 +48,7 @@ export function formatListingPricing(record: Record<string, unknown>): ListingPr
     originalPrice > currentPrice;
   const computedDiscount =
     hasDiscount ? ((originalPrice - currentPrice) / originalPrice) * 100 : null;
-  const discountValue = hasDiscount ? explicitDiscount ?? computedDiscount : null;
+  const discountValue = hasDiscount ? computedDiscount ?? explicitDiscount : null;
 
   return {
     price:
@@ -126,6 +126,15 @@ function readNumber(value: unknown): number | null {
   }
 
   return null;
+}
+
+function readPercent(value: unknown): number | null {
+  const parsed = readNumber(value);
+  if (parsed === null || parsed <= 0 || parsed >= 100) {
+    return null;
+  }
+
+  return parsed;
 }
 
 function readString(value: unknown): string | null {
