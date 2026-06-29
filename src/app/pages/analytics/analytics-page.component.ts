@@ -12,6 +12,7 @@ import {
   type VendorAnalyticsRecord,
   type VendorRecord,
 } from '../../services/vendors.service';
+import { formatListingPricing } from '../../utils/listing-pricing';
 
 interface SummaryMetric {
   label: string;
@@ -80,18 +81,33 @@ type AnalyticsStoreFilter = string;
 
         <div class="mt-[25px] overflow-x-auto border-y border-[#EDEDED] py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div class="flex min-w-max items-center gap-8 pr-8">
-            @for (metric of summaryMetrics(); track metric.label) {
-              <div class="flex min-w-[72px] flex-col gap-1">
-                <p class="text-[14px] font-medium leading-[normal] text-[rgba(26,27,29,0.5)]">
-                  {{ metric.label }}
-                </p>
-                <p class="text-[18px] font-semibold leading-[normal] text-[#1A1B1D]">
-                  {{ metric.value }}
-                </p>
-              </div>
+            @if (isLoading()) {
+              @for (item of skeletonItems; track item) {
+                <div class="flex min-w-[72px] flex-col gap-2">
+                  <span class="skeleton-shimmer h-4 w-20 rounded-full"></span>
+                  <span class="skeleton-shimmer h-6 w-12 rounded-full"></span>
+                </div>
+              }
+            } @else {
+              @for (metric of summaryMetrics(); track metric.label) {
+                <div class="flex min-w-[72px] flex-col gap-1">
+                  <p class="text-[14px] font-medium leading-[normal] text-[rgba(26,27,29,0.5)]">
+                    {{ metric.label }}
+                  </p>
+                  <p class="text-[18px] font-semibold leading-[normal] text-[#1A1B1D]">
+                    {{ metric.value }}
+                  </p>
+                </div>
+              }
             }
           </div>
         </div>
+
+        @if (loadMessage()) {
+          <p class="mt-4 rounded-[18px] bg-[#F7F7F8] px-4 py-3 text-[13px] font-medium text-[#6A6F7A]">
+            {{ loadMessage() }}
+          </p>
+        }
 
         <section class="mt-4 rounded-[20px] border border-[#EBEBEB] bg-white px-[11px] pb-4 pt-[11px]">
           <app-custom-dropdown
@@ -111,20 +127,31 @@ type AnalyticsStoreFilter = string;
             <p class="text-[14px] font-semibold leading-6 text-[rgba(13,13,13,0.4)]">
               Total sold items
             </p>
-            <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">
-              {{ formatInteger(soldItemsMetrics().total) }}
-            </p>
-            <span
-              class="mt-[9px] inline-flex h-6 items-center gap-1 rounded-[100px] px-2 py-[6px] text-[12px] font-normal leading-4"
-              [class]="soldItemsChangeToneClass()"
-            >
-              <img [ngSrc]="soldItemsChangeIcon()" width="12" height="12" alt="" class="h-3 w-3">
-              {{ soldItemsChangeText() }}
-            </span>
+            @if (isLoading()) {
+              <div class="mt-2 space-y-3">
+                <span class="skeleton-shimmer block h-9 w-24 rounded-full"></span>
+                <span class="skeleton-shimmer block h-6 w-36 rounded-full"></span>
+              </div>
+            } @else {
+              <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">
+                {{ formatInteger(soldItemsMetrics().total) }}
+              </p>
+              <span
+                class="mt-[9px] inline-flex h-6 items-center gap-1 rounded-[100px] px-2 py-[6px] text-[12px] font-normal leading-4"
+                [class]="soldItemsChangeToneClass()"
+              >
+                <img [ngSrc]="soldItemsChangeIcon()" width="12" height="12" alt="" class="h-3 w-3">
+                {{ soldItemsChangeText() }}
+              </span>
+            }
           </div>
 
           <div class="mt-6">
-            <app-chart [config]="mobileSoldItemsChartOptions()" containerClass="min-h-[220px]"></app-chart>
+            @if (isLoading()) {
+              <div class="skeleton-shimmer min-h-[220px] rounded-[20px]"></div>
+            } @else {
+              <app-chart [config]="mobileSoldItemsChartOptions()" containerClass="min-h-[220px]"></app-chart>
+            }
           </div>
         </section>
 
@@ -134,31 +161,44 @@ type AnalyticsStoreFilter = string;
           </p>
 
           <div class="mt-4 flex flex-col items-center">
-            <div
-              class="rounded-[10.46px] border border-[#EAEAEA] bg-white px-[1.7px] pb-[6.5px] pt-[1.7px] shadow-[0_4.721px_9.443px_rgba(192,192,192,0.25)]"
-            >
-              <div class="overflow-hidden rounded-[8.716px] border border-[#EAEAEA] bg-[#EFEFEF]">
-                <img
-                  [ngSrc]="mostViewedImage()"
-                  width="82"
-                  height="98"
-                  alt="Most viewed listing"
-                  class="h-[97px] w-[82px] object-cover"
-                >
-              </div>
-              <div class="px-[1.7px] pt-[5.2px]">
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-[6.1px] leading-[8.7px] text-[#1F1F1F]">{{ mostViewedTitle() }}</span>
-                  <span class="rounded-[435px] bg-[#F0F0F0] px-[3.5px] py-[0.9px] text-[5.23px] leading-[6.97px] text-[#1F1F1F]">
-                    New
-                  </span>
+            @if (isLoading()) {
+              <div class="skeleton-shimmer h-[132px] w-[96px] rounded-[12px]"></div>
+            } @else {
+              <div
+                class="rounded-[10.46px] border border-[#EAEAEA] bg-white px-[1.7px] pb-[6.5px] pt-[1.7px] shadow-[0_4.721px_9.443px_rgba(192,192,192,0.25)]"
+              >
+                <div class="overflow-hidden rounded-[8.716px] border border-[#EAEAEA] bg-[#EFEFEF]">
+                  @if (mostViewedImage()) {
+                    <img
+                      [ngSrc]="mostViewedImage()"
+                      width="82"
+                      height="98"
+                      alt="Most viewed listing"
+                      class="h-[97px] w-[82px] object-cover"
+                    >
+                  } @else {
+                    <div class="flex h-[97px] w-[82px] items-center justify-center text-[10px] font-medium text-[#8A8F9A]">
+                      No image
+                    </div>
+                  }
                 </div>
-                <div class="mt-[1.7px] flex items-center gap-[1px]">
-                  <span class="text-[6.973px] leading-[10.46px] text-[#1F1F1F]">₦</span>
-                  <span class="text-[6.973px] leading-[10.46px] text-[#1F1F1F]">2,500,000</span>
+                <div class="px-[1.7px] pt-[5.2px]">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-[6.1px] leading-[8.7px] text-[#1F1F1F]">{{ mostViewedTitle() }}</span>
+                    @if (mostViewedBadge()) {
+                      <span class="rounded-[435px] bg-[#F0F0F0] px-[3.5px] py-[0.9px] text-[5.23px] leading-[6.97px] text-[#1F1F1F]">
+                        {{ mostViewedBadge() }}
+                      </span>
+                    }
+                  </div>
+                  @if (mostViewedPrice()) {
+                    <div class="mt-[1.7px] flex items-center gap-[1px]">
+                      <span class="text-[6.973px] leading-[10.46px] text-[#1F1F1F]">{{ mostViewedPrice() }}</span>
+                    </div>
+                  }
                 </div>
               </div>
-            </div>
+            }
 
             <p class="mt-6 max-w-[246px] text-center text-[17px] font-medium leading-[1.3] text-[rgba(13,13,13,0.5)]">
               {{ mostViewedViewsText() }}
@@ -172,7 +212,11 @@ type AnalyticsStoreFilter = string;
           </p>
 
           <div class="mt-10 flex flex-col items-center gap-[5px]">
-            <p class="text-[64px] font-medium leading-[normal] text-[#0D0D0D]">{{ averageResponseTimeLabel() }}</p>
+            @if (isLoading()) {
+              <span class="skeleton-shimmer h-20 w-40 rounded-full"></span>
+            } @else {
+              <p class="text-[64px] font-medium leading-[normal] text-[#0D0D0D]">{{ averageResponseTimeLabel() }}</p>
+            }
             <p class="max-w-[287px] text-[12px] leading-[normal] text-[rgba(13,13,13,0.5)]">
               How quickly you respond to buyer inquiries. Faster responses increase your chances of selling.
             </p>
@@ -185,28 +229,41 @@ type AnalyticsStoreFilter = string;
           </p>
 
           <div class="mt-6 flex items-center gap-0.5">
-            @for (item of distributionItems(); track item.label) {
-              <span
-                class="h-1 rounded-[14px]"
-                [style.width]="item.width"
-                [style.background]="item.color"
-              ></span>
+            @if (isLoading()) {
+              <span class="skeleton-shimmer h-1 w-full rounded-[14px]"></span>
+            } @else {
+              @for (item of distributionItems(); track item.label) {
+                <span
+                  class="h-1 rounded-[14px]"
+                  [style.width]="item.width"
+                  [style.background]="item.color"
+                ></span>
+              }
             }
           </div>
 
           <div class="mt-6 space-y-6">
-            @for (item of distributionItems(); track item.label) {
-              <div class="flex items-center justify-between gap-4">
-                <div class="flex items-center gap-[10px]">
-                  <span class="h-3 w-3 rounded-[22px]" [style.background]="item.color"></span>
-                  <span class="text-[14px] leading-[normal] text-[rgba(13,13,13,0.5)]">
-                    {{ item.label }}
+            @if (isLoading()) {
+              @for (item of distributionSkeletonItems; track item) {
+                <div class="flex items-center justify-between gap-4">
+                  <span class="skeleton-shimmer h-4 w-28 rounded-full"></span>
+                  <span class="skeleton-shimmer h-4 w-10 rounded-full"></span>
+                </div>
+              }
+            } @else {
+              @for (item of distributionItems(); track item.label) {
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex items-center gap-[10px]">
+                    <span class="h-3 w-3 rounded-[22px]" [style.background]="item.color"></span>
+                    <span class="text-[14px] leading-[normal] text-[rgba(13,13,13,0.5)]">
+                      {{ item.label }}
+                    </span>
+                  </div>
+                  <span class="text-[14px] font-medium leading-[normal] text-[#0D0D0D]">
+                    {{ item.value }}
                   </span>
                 </div>
-                <span class="text-[14px] font-medium leading-[normal] text-[#0D0D0D]">
-                  {{ item.value }}
-                </span>
-              </div>
+              }
             }
           </div>
 
@@ -241,22 +298,37 @@ type AnalyticsStoreFilter = string;
 
         <div class="flex-1 overflow-y-auto px-[19px] pb-5 pt-[17px]">
           <div class="grid grid-cols-4 border-y border-[#EDEDED] py-4">
-            @for (metric of summaryMetrics(); track metric.label) {
-              <div class="flex min-h-[57px] flex-col justify-between pr-4">
-                <p class="text-[16px] font-medium leading-[normal] text-[rgba(26,27,29,0.5)]">
-                  {{ metric.label }}
-                </p>
-                <p
-                  class="text-[#1A1B1D] leading-[normal]"
-                  [class.text-[24px]]="$first"
-                  [class.text-[20px]]="!$first"
-                  [class.font-semibold]="true"
-                >
-                  {{ metric.value }}
-                </p>
-              </div>
+            @if (isLoading()) {
+              @for (item of skeletonItems; track item) {
+                <div class="flex min-h-[57px] flex-col justify-between pr-4">
+                  <span class="skeleton-shimmer h-5 w-28 rounded-full"></span>
+                  <span class="skeleton-shimmer h-7 w-16 rounded-full"></span>
+                </div>
+              }
+            } @else {
+              @for (metric of summaryMetrics(); track metric.label) {
+                <div class="flex min-h-[57px] flex-col justify-between pr-4">
+                  <p class="text-[16px] font-medium leading-[normal] text-[rgba(26,27,29,0.5)]">
+                    {{ metric.label }}
+                  </p>
+                  <p
+                    class="text-[#1A1B1D] leading-[normal]"
+                    [class.text-[24px]]="$first"
+                    [class.text-[20px]]="!$first"
+                    [class.font-semibold]="true"
+                  >
+                    {{ metric.value }}
+                  </p>
+                </div>
+              }
             }
           </div>
+
+          @if (loadMessage()) {
+            <p class="mt-4 rounded-[18px] bg-[#F7F7F8] px-4 py-3 text-[13px] font-medium text-[#6A6F7A]">
+              {{ loadMessage() }}
+            </p>
+          }
 
           <section class="mt-[25px] rounded-[24px] border border-[#EFEFEF] bg-white p-[15px]">
             <div class="flex items-start justify-between gap-4">
@@ -264,16 +336,23 @@ type AnalyticsStoreFilter = string;
                 <p class="text-[14px] font-semibold leading-6 text-[rgba(13,13,13,0.4)]">
                   Total sold items
                 </p>
-                <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">
-                  {{ formatInteger(soldItemsMetrics().total) }}
-                </p>
-                <span
-                  class="mt-[9px] inline-flex h-6 items-center gap-1 rounded-[100px] px-2 py-[6px] text-[12px]"
-                  [class]="soldItemsChangeToneClass()"
-                >
-                  <img [ngSrc]="soldItemsChangeIcon()" width="12" height="12" alt="" class="h-3 w-3">
-                  {{ soldItemsChangeText() }}
-                </span>
+                @if (isLoading()) {
+                  <div class="mt-2 space-y-3">
+                    <span class="skeleton-shimmer block h-9 w-24 rounded-full"></span>
+                    <span class="skeleton-shimmer block h-6 w-36 rounded-full"></span>
+                  </div>
+                } @else {
+                  <p class="mt-1 text-[32px] font-semibold leading-[1.2] text-[#1A1B1D]">
+                    {{ formatInteger(soldItemsMetrics().total) }}
+                  </p>
+                  <span
+                    class="mt-[9px] inline-flex h-6 items-center gap-1 rounded-[100px] px-2 py-[6px] text-[12px]"
+                    [class]="soldItemsChangeToneClass()"
+                  >
+                    <img [ngSrc]="soldItemsChangeIcon()" width="12" height="12" alt="" class="h-3 w-3">
+                    {{ soldItemsChangeText() }}
+                  </span>
+                }
               </div>
 
               <app-custom-dropdown
@@ -291,7 +370,11 @@ type AnalyticsStoreFilter = string;
             </div>
 
             <div class="mt-8">
-              <app-chart [config]="desktopSoldItemsChartOptions()" containerClass="min-h-[288px]"></app-chart>
+              @if (isLoading()) {
+                <div class="skeleton-shimmer min-h-[288px] rounded-[20px]"></div>
+              } @else {
+                <app-chart [config]="desktopSoldItemsChartOptions()" containerClass="min-h-[288px]"></app-chart>
+              }
             </div>
           </section>
 
@@ -302,31 +385,44 @@ type AnalyticsStoreFilter = string;
               </p>
 
               <div class="mt-[18px] flex flex-col items-center">
-                <div
-                  class="rounded-[10.46px] border border-[#EAEAEA] bg-white px-[1.7px] pb-[6.5px] pt-[1.7px] shadow-[0_4.721px_9.443px_rgba(192,192,192,0.25)]"
-                >
-                  <div class="overflow-hidden rounded-[8.716px] border border-[#EAEAEA] bg-[#EFEFEF]">
-                    <img
-                      [ngSrc]="mostViewedImage()"
-                      width="82"
-                      height="98"
-                      alt="Most viewed listing"
-                      class="h-[97px] w-[82px] object-cover"
-                    >
-                  </div>
-                  <div class="px-[1.7px] pt-[5.2px]">
-                    <div class="flex items-center justify-between gap-2">
-                      <span class="text-[6.1px] leading-[8.7px] text-[#1F1F1F]">{{ mostViewedTitle() }}</span>
-                      <span class="rounded-[435px] bg-[#F0F0F0] px-[3.5px] py-[0.9px] text-[5.23px] leading-[6.97px] text-[#1F1F1F]">
-                        New
-                      </span>
+                @if (isLoading()) {
+                  <div class="skeleton-shimmer h-[132px] w-[96px] rounded-[12px]"></div>
+                } @else {
+                  <div
+                    class="rounded-[10.46px] border border-[#EAEAEA] bg-white px-[1.7px] pb-[6.5px] pt-[1.7px] shadow-[0_4.721px_9.443px_rgba(192,192,192,0.25)]"
+                  >
+                    <div class="overflow-hidden rounded-[8.716px] border border-[#EAEAEA] bg-[#EFEFEF]">
+                      @if (mostViewedImage()) {
+                        <img
+                          [ngSrc]="mostViewedImage()"
+                          width="82"
+                          height="98"
+                          alt="Most viewed listing"
+                          class="h-[97px] w-[82px] object-cover"
+                        >
+                      } @else {
+                        <div class="flex h-[97px] w-[82px] items-center justify-center text-[10px] font-medium text-[#8A8F9A]">
+                          No image
+                        </div>
+                      }
                     </div>
-                    <div class="mt-[1.7px] flex items-center gap-[1px]">
-                      <span class="text-[6.973px] leading-[10.46px] text-[#1F1F1F]">₦</span>
-                      <span class="text-[6.973px] leading-[10.46px] text-[#1F1F1F]">2,500,000</span>
+                    <div class="px-[1.7px] pt-[5.2px]">
+                      <div class="flex items-center justify-between gap-2">
+                        <span class="text-[6.1px] leading-[8.7px] text-[#1F1F1F]">{{ mostViewedTitle() }}</span>
+                        @if (mostViewedBadge()) {
+                          <span class="rounded-[435px] bg-[#F0F0F0] px-[3.5px] py-[0.9px] text-[5.23px] leading-[6.97px] text-[#1F1F1F]">
+                            {{ mostViewedBadge() }}
+                          </span>
+                        }
+                      </div>
+                      @if (mostViewedPrice()) {
+                        <div class="mt-[1.7px] flex items-center gap-[1px]">
+                          <span class="text-[6.973px] leading-[10.46px] text-[#1F1F1F]">{{ mostViewedPrice() }}</span>
+                        </div>
+                      }
                     </div>
                   </div>
-                </div>
+                }
 
                 <p class="mt-[21px] max-w-[246px] text-center text-[17px] font-medium leading-[1.3] text-[rgba(13,13,13,0.5)]">
                   {{ mostViewedViewsText() }}
@@ -340,7 +436,11 @@ type AnalyticsStoreFilter = string;
               </p>
 
               <div class="mt-[43px] flex flex-col items-center gap-[5px]">
-                <p class="text-[64px] font-medium leading-[normal] text-[#0D0D0D]">{{ averageResponseTimeLabel() }}</p>
+                @if (isLoading()) {
+                  <span class="skeleton-shimmer h-20 w-40 rounded-full"></span>
+                } @else {
+                  <p class="text-[64px] font-medium leading-[normal] text-[#0D0D0D]">{{ averageResponseTimeLabel() }}</p>
+                }
                 <p class="max-w-[287px] text-[12px] leading-[normal] text-[rgba(13,13,13,0.5)]">
                   How quickly you respond to buyer inquiries. Faster responses increase your chances of selling.
                 </p>
@@ -353,28 +453,41 @@ type AnalyticsStoreFilter = string;
               </p>
 
               <div class="mt-[18px] flex items-center gap-0.5">
-                @for (item of distributionItems(); track item.label) {
-                  <span
-                    class="h-1 rounded-[14px]"
-                    [style.width]="item.width"
-                    [style.background]="item.color"
-                  ></span>
+                @if (isLoading()) {
+                  <span class="skeleton-shimmer h-1 w-full rounded-[14px]"></span>
+                } @else {
+                  @for (item of distributionItems(); track item.label) {
+                    <span
+                      class="h-1 rounded-[14px]"
+                      [style.width]="item.width"
+                      [style.background]="item.color"
+                    ></span>
+                  }
                 }
               </div>
 
               <div class="mt-6 space-y-6">
-                @for (item of distributionItems(); track item.label) {
-                  <div class="flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-[10px]">
-                      <span class="h-3 w-3 rounded-[22px]" [style.background]="item.color"></span>
-                      <span class="text-[14px] leading-[normal] text-[rgba(13,13,13,0.5)]">
-                        {{ item.label }}
+                @if (isLoading()) {
+                  @for (item of distributionSkeletonItems; track item) {
+                    <div class="flex items-center justify-between gap-4">
+                      <span class="skeleton-shimmer h-4 w-28 rounded-full"></span>
+                      <span class="skeleton-shimmer h-4 w-10 rounded-full"></span>
+                    </div>
+                  }
+                } @else {
+                  @for (item of distributionItems(); track item.label) {
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="flex items-center gap-[10px]">
+                        <span class="h-3 w-3 rounded-[22px]" [style.background]="item.color"></span>
+                        <span class="text-[14px] leading-[normal] text-[rgba(13,13,13,0.5)]">
+                          {{ item.label }}
+                        </span>
+                      </div>
+                      <span class="text-[14px] font-medium leading-[normal] text-[#0D0D0D]">
+                        {{ item.value }}
                       </span>
                     </div>
-                    <span class="text-[14px] font-medium leading-[normal] text-[#0D0D0D]">
-                      {{ item.value }}
-                    </span>
-                  </div>
+                  }
                 }
               </div>
 
@@ -391,6 +504,35 @@ type AnalyticsStoreFilter = string;
     </div>
   `,
   host: { class: 'block h-full' },
+  styles: [
+    `
+      .skeleton-shimmer {
+        position: relative;
+        overflow: hidden;
+        background: #f1f3f6;
+      }
+
+      .skeleton-shimmer::after {
+        position: absolute;
+        inset: 0;
+        content: '';
+        transform: translateX(-100%);
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.75) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        animation: analytics-shimmer 1.4s ease-in-out infinite;
+      }
+
+      @keyframes analytics-shimmer {
+        100% {
+          transform: translateX(100%);
+        }
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnalyticsPageComponent {
@@ -401,8 +543,9 @@ export class AnalyticsPageComponent {
     arrowDownIcon: '/assets/icons/analytics-arrow-down.svg',
     calendarIcon: '/assets/icons/analytics-calendar.svg',
     storeBadgeIcon: '/assets/icons/analytics-store-badge.svg',
-    mostViewedImage: '/assets/images/analytics-most-viewed-phone.png',
   } as const;
+  readonly skeletonItems = [1, 2, 3, 4] as const;
+  readonly distributionSkeletonItems = [1, 2, 3] as const;
 
   readonly summaryMetrics = computed<readonly SummaryMetric[]>(() => [
     { label: 'Total listings', value: this.formatInteger(this.analyticsTotals().totalListings) },
@@ -439,13 +582,13 @@ export class AnalyticsPageComponent {
   });
 
   readonly stores = signal<readonly StoreAvatar[]>([
-    { id: 'all', src: '/assets/images/analytics-store-avatar-1.png', alt: 'All stores' },
+    { id: 'all', src: '', alt: 'All stores' },
   ]);
   readonly backendStoreIds = signal<readonly string[]>([]);
   readonly analyticsTotals = signal({
-    totalListings: 108,
-    totalViews: 750000,
-    totalSaves: 562,
+    totalListings: 0,
+    totalViews: 0,
+    totalSaves: 0,
   });
   readonly analyticsDistribution = signal({
     active: 0,
@@ -453,10 +596,13 @@ export class AnalyticsPageComponent {
   });
   readonly averageResponseTimeSeconds = signal<number | null>(null);
   readonly soldItemsSeries = signal<readonly SoldItemsChartPoint[]>([]);
-  readonly mostViewedTitle = signal<string>('Iphone 17 pro max');
-  readonly mostViewedImage = signal<string>(this.assets.mostViewedImage);
-  readonly mostViewedViewsText = signal<string>('This store has been viewed 750,000 times');
-  readonly isLoading = signal(false);
+  readonly mostViewedTitle = signal<string>('No listings yet');
+  readonly mostViewedImage = signal<string>('');
+  readonly mostViewedPrice = signal<string>('');
+  readonly mostViewedBadge = signal<string>('');
+  readonly mostViewedViewsText = signal<string>('Your stores have no recorded views yet');
+  readonly isLoading = signal(true);
+  readonly loadMessage = signal('');
   readonly averageResponseTimeLabel = computed(() =>
     this.formatResponseTime(this.averageResponseTimeSeconds()),
   );
@@ -524,7 +670,7 @@ export class AnalyticsPageComponent {
   readonly selectedStoreLabel = computed(() =>
     this.selectedStoreFilter() === 'all'
       ? `All stores (${Math.max(this.stores().length - 1, 0)})`
-      : this.visibleStores()[0]?.alt ?? 'The Vine Collections',
+      : this.visibleStores()[0]?.alt ?? 'Selected store',
   );
   readonly rangeOptions: readonly CustomDropdownOption<AnalyticsRange>[] = [
     { value: '7d', label: 'Last 7 days' },
@@ -567,22 +713,30 @@ export class AnalyticsPageComponent {
   }
 
   private async loadAnalyticsStores(): Promise<void> {
+    this.isLoading.set(true);
+    this.loadMessage.set('');
+
     try {
       const response = await firstValueFrom(this.vendorsService.getMyStores());
       const stores = this.extractStores(response);
       const mappedStores = stores.map((store, index) => this.toStoreAvatar(store, index));
       this.backendStoreIds.set(mappedStores.map((store) => store.id));
       this.stores.set([
-        { id: 'all', src: '/assets/images/analytics-store-avatar-1.png', alt: 'All stores' },
+        { id: 'all', src: '', alt: 'All stores' },
         ...mappedStores,
       ]);
 
       this.selectedStoreFilter.set('all');
       if (mappedStores.length > 0) {
         await this.loadAllStoresAnalytics();
+        return;
       }
+
+      this.resetAnalyticsState('Create a store to start seeing analytics.');
     } catch {
-      // Keep the existing presentation fallback values on load failure.
+      this.resetAnalyticsState('We could not load analytics right now. Please try again later.');
+    } finally {
+      this.isLoading.set(false);
     }
   }
 
@@ -597,7 +751,7 @@ export class AnalyticsPageComponent {
       const response = await firstValueFrom(this.vendorsService.getVendorAnalytics(storeId));
       this.applyAnalytics(response);
     } catch {
-      // Leave fallback metrics in place if analytics fails.
+      this.resetAnalyticsState('We could not load analytics for this store right now.');
     } finally {
       this.isLoading.set(false);
     }
@@ -628,7 +782,7 @@ export class AnalyticsPageComponent {
       );
       this.applyAggregateAnalytics(responses);
     } catch {
-      // Keep the existing presentation fallback values on load failure.
+      this.resetAnalyticsState('We could not load analytics right now. Please try again later.');
     } finally {
       this.isLoading.set(false);
     }
@@ -653,14 +807,14 @@ export class AnalyticsPageComponent {
     this.averageResponseTimeSeconds.set(this.readNumber(record['average_response_time_seconds']));
     this.soldItemsSeries.set(this.readSoldItemsSeries(record['sold_items_chart']));
     this.mostViewedTitle.set(this.readString(mostViewed?.['title']) ?? 'No listings yet');
-    this.mostViewedImage.set(
-      this.resolveMediaUrl(this.readString(mostViewed?.['url'])) ?? this.assets.mostViewedImage,
-    );
+    this.mostViewedImage.set(this.resolveMostViewedImage(mostViewed));
+    this.applyMostViewedPricing(mostViewed);
     this.mostViewedViewsText.set(
       totalViews > 0
         ? `This store has been viewed ${this.formatInteger(totalViews)} times`
         : 'This store has no recorded views yet',
     );
+    this.loadMessage.set('');
   }
 
   private applyAggregateAnalytics(records: readonly VendorAnalyticsRecord[]): void {
@@ -721,13 +875,66 @@ export class AnalyticsPageComponent {
     );
     this.soldItemsSeries.set(this.aggregateSoldItemsSeries(records));
     this.mostViewedTitle.set(this.readString(mostViewed?.['title']) ?? 'No listings yet');
-    this.mostViewedImage.set(
-      this.resolveMediaUrl(this.readString(mostViewed?.['url'])) ?? this.assets.mostViewedImage,
-    );
+    this.mostViewedImage.set(this.resolveMostViewedImage(mostViewed));
+    this.applyMostViewedPricing(mostViewed);
     this.mostViewedViewsText.set(
       totals.totalViews > 0
         ? `Your stores have been viewed ${this.formatInteger(totals.totalViews)} times`
         : 'Your stores have no recorded views yet',
+    );
+    this.loadMessage.set('');
+  }
+
+  private resetAnalyticsState(message = ''): void {
+    this.analyticsTotals.set({
+      totalListings: 0,
+      totalViews: 0,
+      totalSaves: 0,
+    });
+    this.analyticsDistribution.set({
+      active: 0,
+      sold: 0,
+    });
+    this.averageResponseTimeSeconds.set(null);
+    this.soldItemsSeries.set([]);
+    this.mostViewedTitle.set('No listings yet');
+    this.mostViewedImage.set('');
+    this.mostViewedPrice.set('');
+    this.mostViewedBadge.set('');
+    this.mostViewedViewsText.set('Your stores have no recorded views yet');
+    this.loadMessage.set(message);
+  }
+
+  private resolveMostViewedImage(record: Record<string, unknown> | null): string {
+    if (!record) {
+      return '';
+    }
+
+    return (
+      this.resolveMediaUrl(
+        this.readString(record['url']) ??
+          this.readString(record['image']) ??
+          this.readString(record['thumbnail']) ??
+          this.readString(record['cover_image']) ??
+          this.readString(record['primary_image']),
+      ) ?? ''
+    );
+  }
+
+  private applyMostViewedPricing(record: Record<string, unknown> | null): void {
+    if (!record) {
+      this.mostViewedPrice.set('');
+      this.mostViewedBadge.set('');
+      return;
+    }
+
+    const pricing = formatListingPricing(record);
+    this.mostViewedPrice.set(pricing.price);
+    this.mostViewedBadge.set(
+      pricing.discountBadge ??
+        this.readString(record['status']) ??
+        this.readString(record['condition']) ??
+        '',
     );
   }
 
