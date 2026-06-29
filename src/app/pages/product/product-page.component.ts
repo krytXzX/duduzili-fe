@@ -70,6 +70,7 @@ interface ProductDetails {
   readonly oldPrice: string;
   readonly discount: string;
   readonly hasDiscount: boolean;
+  readonly location: string;
   readonly lastUpdated: string;
   readonly description: string;
   readonly condition: string;
@@ -411,6 +412,7 @@ export class ProductPageComponent {
     oldPrice: '',
     discount: '',
     hasDiscount: false,
+    location: '',
     lastUpdated: '',
     description: '',
     condition: '',
@@ -1462,6 +1464,7 @@ export class ProductPageComponent {
       this.readString(record['description']) ?? 'No description has been added for this listing yet.';
     const condition =
       this.formatCondition(record['condition']) ?? '';
+    const listingLocation = this.composeLocation(record) ?? '';
     const lastUpdated =
       this.formatDate(record['updated_at'] ?? record['created_at']) ?? 'Recently updated';
     const saves =
@@ -1524,6 +1527,7 @@ export class ProductPageComponent {
       oldPrice: pricing.oldPrice,
       discount: pricing.discount,
       hasDiscount: pricing.hasDiscount,
+      location: listingLocation,
       lastUpdated,
       description,
       condition,
@@ -2041,7 +2045,7 @@ export class ProductPageComponent {
       price: pricing.price,
       originalPrice: pricing.originalPrice,
       discountBadge: pricing.discountBadge,
-      location: this.composeLocation(record) ?? 'Nigeria',
+      location: this.composeLocation(record) ?? '',
       timeAgo: this.formatRelativeTime(record['created_at']) ?? 'Recently',
       isVerified:
         this.readBoolean(this.readRecord(record['user'])?.['is_verified']) ??

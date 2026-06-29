@@ -1859,7 +1859,7 @@ export class AddListingModalComponent implements OnDestroy {
         originalPrice: hasDiscount ? `₦${basePrice.toLocaleString()}` : undefined,
         discountBadge: hasDiscount && form.discountType === 'percentage' ? `-${discountValue}%` : undefined,
         images: previewImages,
-        location: form.location || 'Location',
+        location: form.location || '',
         timeAgo: 'Just now',
         isVerified: false
      };

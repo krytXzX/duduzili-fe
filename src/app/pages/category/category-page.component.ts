@@ -561,7 +561,7 @@ export class CategoryPageComponent {
       return location;
     }
 
-    return state || city || 'Nigeria';
+    return state || city || '';
   }
 
   private resolveMediaUrl(path: string): string {

@@ -221,7 +221,7 @@ export class BuyerWishlistPageComponent {
         price,
         originalPrice: this.formatPrice(item['original_price']) ?? undefined,
         discountBadge: this.formatDiscountBadge(item['discount_percentage']) ?? undefined,
-        location: this.composeLocation(item) ?? 'Nigeria',
+        location: this.composeLocation(item) ?? '',
         timeAgo: this.formatCondition(item['condition']) ?? 'Recently',
         isVerified: this.readBoolean(item['is_verified']) ?? false,
         images: this.extractImages(item),

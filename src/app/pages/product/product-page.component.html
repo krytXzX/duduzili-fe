@@ -2207,24 +2207,28 @@
 
                 <div class="space-y-[2.9px] px-[2.9px]">
                   <div class="flex items-center justify-between gap-2">
-                    <p class="truncate text-[10.16px] leading-[14.5px] text-[#1F1F1F]">Iphone 17 pro max</p>
-                    <span class="rounded-full bg-[#F0F0F0] px-[5.8px] py-[1.45px] text-[8.7px] font-medium leading-[11.6px] text-[#1F1F1F]">
-                      New
-                    </span>
+                    <p class="truncate text-[10.16px] leading-[14.5px] text-[#1F1F1F]">{{ product().name }}</p>
+                    @if (product().condition) {
+                      <span class="rounded-full bg-[#F0F0F0] px-[5.8px] py-[1.45px] text-[8.7px] font-medium leading-[11.6px] text-[#1F1F1F]">
+                        {{ product().condition }}
+                      </span>
+                    }
                   </div>
 
-                  <p class="text-[11.6px] font-medium leading-[17.4px] text-[#1F1F1F]">₦2,500,000</p>
+                  <p class="text-[11.6px] font-medium leading-[17.4px] text-[#1F1F1F]">{{ product().price }}</p>
 
-                  <div class="flex items-center gap-[2.9px] text-[8.7px] leading-[11.6px] text-[#959595]">
-                    <svg class="h-[8.7px] w-[8.7px] shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path
-                        fill-rule="evenodd"
-                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    <span>Ikeja, Lagos</span>
-                  </div>
+                  @if (product().location) {
+                    <div class="flex items-center gap-[2.9px] text-[8.7px] leading-[11.6px] text-[#959595]">
+                      <svg class="h-[8.7px] w-[8.7px] shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path
+                          fill-rule="evenodd"
+                          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      <span>{{ product().location }}</span>
+                    </div>
+                  }
                 </div>
               </div>
 

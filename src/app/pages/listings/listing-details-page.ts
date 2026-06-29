@@ -2973,7 +2973,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   ];
   private readonly fallbackEditConditions = ['Used', 'Brand new', 'Refurbished'];
   private readonly fallbackEditStores = ['The Vine Collections', 'Duduzili Store'];
-  private readonly fallbackEditLocations = ['Ikeja, Lagos', 'Yaba, Lagos', 'Abuja'];
+  private readonly fallbackEditLocations: readonly string[] = [];
   protected readonly listingId = computed(() => this.route.snapshot.paramMap.get('id') ?? '1');
   private readonly listingRecord = signal<ListingsApiItem | null>(null);
   private readonly manageListingsMetadata = signal<ManageListingsResponse | null>(null);
@@ -3067,17 +3067,17 @@ export class ListingDetailsPageComponent implements OnDestroy {
     );
   });
   protected readonly editListingForm = this.formBuilder.nonNullable.group({
-    name: 'Iphone 17 pro max',
-    category: 'Electronics/Phones & Tablets',
-    condition: 'Used',
-    store: 'The Vine Collections',
-    description: 'UK used iPhone 17, neatly used and fully working. Good battery health.',
+    name: '',
+    category: '',
+    condition: '',
+    store: '',
+    description: '',
     embeddedVideo: '',
-    location: 'Ikeja, Lagos',
-    whatsAppNumber: '+234 801 234 5678',
-    callNumber: '+234 809 876 5432',
-    price: '2,500,000',
-    discountPrice: '2,000,000',
+    location: '',
+    whatsAppNumber: '',
+    callNumber: '',
+    price: '',
+    discountPrice: '',
     discountStartDate: '',
     discountEndDate: '',
   });
