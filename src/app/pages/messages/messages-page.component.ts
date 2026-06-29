@@ -2305,8 +2305,10 @@ export class MessagesPageComponent implements OnDestroy {
     const requestedVendorId = this.requestedVendorId();
     const requestedListingId = this.requestedListingId();
     const currentActiveChatId = this.activeChatId();
+    const hasRequestedContext =
+      requestedBuyerId.length > 0 || requestedVendorId.length > 0 || requestedListingId.length > 0;
     const requestedContextConversationId =
-      requestedConversationId.length === 0
+      requestedConversationId.length === 0 && hasRequestedContext
         ? mappedConversations.find((conversation) => {
             const matchesBuyer =
               requestedBuyerId.length === 0 || conversation.buyerId === requestedBuyerId;
