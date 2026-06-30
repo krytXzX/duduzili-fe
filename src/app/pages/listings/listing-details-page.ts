@@ -1215,7 +1215,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
             class="hidden"
             (change)="handleEditImageSelection($event)"
           />
-          <div class="relative px-4 pb-4 pt-3">
+          <div class="relative min-h-[72px] px-4 pb-4 pt-3">
             <div class="mx-auto h-1 w-[50px] rounded-full bg-[#E7E7E7]"></div>
 
             <button
