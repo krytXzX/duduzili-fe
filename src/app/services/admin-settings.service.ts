@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export type AdminSiteConfigurationResponse = {
@@ -27,6 +28,14 @@ export type AdminLocationState = {
   is_active: boolean;
   cities: readonly AdminLocationCity[];
 };
+
+type PaginatedResponse<T> = {
+  results: readonly T[];
+};
+
+const isPaginatedResponse = <T>(
+  response: readonly T[] | PaginatedResponse<T>,
+): response is PaginatedResponse<T> => !Array.isArray(response);
 
 export type AdminLocationStatePayload = {
   name: string;
@@ -59,7 +68,11 @@ export class AdminSettingsService {
   }
 
   getLocationStates(): Observable<readonly AdminLocationState[]> {
-    return this.http.get<readonly AdminLocationState[]>(`${this.apiUrl}/admin/locations/states/`);
+    return this.http
+      .get<readonly AdminLocationState[] | PaginatedResponse<AdminLocationState>>(
+        `${this.apiUrl}/admin/locations/states/`,
+      )
+      .pipe(map((response) => (isPaginatedResponse(response) ? response.results : response)));
   }
 
   createLocationState(payload: AdminLocationStatePayload): Observable<AdminLocationState> {
