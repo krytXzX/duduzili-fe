@@ -1,19 +1,14 @@
-import { Injectable, signal, computed, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { PLATFORM_ID } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../environments/environment';
 
-export type PublicHomeLocationValue =
-  | 'all-nigeria'
-  | 'lagos'
-  | 'abuja'
-  | 'rivers'
-  | 'oyo'
-  | 'enugu'
-  | 'kaduna'
-  | 'edo'
-  | 'kano'
-  | 'ogun';
+export type PublicHomeLocationValue = string;
 
 export interface PublicHomeLocationGroup {
+  readonly id: number | null;
   readonly value: PublicHomeLocationValue;
   readonly label: string;
   readonly desktopLabel?: string;
@@ -26,48 +21,58 @@ export interface PublicHomeLocationSelection {
   readonly query: string;
 }
 
-export const LOCATION_GROUPS: readonly PublicHomeLocationGroup[] = [
-  {
-    value: 'all-nigeria',
-    label: 'All Nigeria',
-    desktopLabel: 'All of Nigeria',
-    cities: ['Nationwide'],
-  },
-  { value: 'lagos', label: 'Lagos', cities: ['Ikeja', 'Lekki', 'Yaba', 'Surulere'] },
-  { value: 'abuja', label: 'Abuja', cities: ['Maitama', 'Wuse', 'Gwarinpa', 'Asokoro'] },
-  { value: 'rivers', label: 'Port Harcourt', cities: ['GRA', 'Rumuola', 'Ada George', 'Eliozu'] },
-  { value: 'oyo', label: 'Oyo', cities: ['Ibadan', 'Ogbomoso', 'Oyo Town', 'Iseyin'] },
-  {
-    value: 'enugu',
-    label: 'Enugu',
-    cities: ['Independence Layout', 'New Haven', 'Uwani', 'Abakpa'],
-  },
-  { value: 'kaduna', label: 'Kaduna', cities: ['Barnawa', 'Kawo', 'Sabon Tasha', 'Zaria'] },
-  { value: 'edo', label: 'Edo', cities: ['Benin City', 'Ekpoma', 'Uromi', 'Auchi'] },
-  { value: 'kano', label: 'Kano', cities: ['Nasarawa', 'Fagge', 'Tarauni', 'Bompai'] },
-  { value: 'ogun', label: 'Ogun', cities: ['Abeokuta', 'Ijebu Ode', 'Sagamu', 'Ota'] },
-];
+type PublicStateResponse = {
+  readonly id: number;
+  readonly name: string;
+};
+
+type PublicCityResponse = {
+  readonly id: number;
+  readonly name: string;
+  readonly is_active?: boolean;
+};
+
+type PublicCityListObjectResponse = {
+  readonly cities?: readonly PublicCityResponse[];
+};
+
+type PublicCityListResponse = readonly PublicCityResponse[] | PublicCityListObjectResponse;
+
+const ALL_NIGERIA_LOCATION: PublicHomeLocationGroup = {
+  id: null,
+  value: 'all-nigeria',
+  label: 'All Nigeria',
+  desktopLabel: 'All of Nigeria',
+  cities: ['Nationwide'],
+};
 
 @Injectable({ providedIn: 'root' })
 export class LocationService {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly http = inject(HttpClient);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private readonly apiUrl = environment.apiUrl.replace(/\/+$/, '');
+  private readonly configuredLocationGroups = signal<readonly PublicHomeLocationGroup[]>([]);
 
   readonly selectedLocation = signal<PublicHomeLocationValue>('all-nigeria');
   readonly selectedCity = signal<string | null>(null);
   readonly isLocationPickerOpen = signal(false);
   readonly activeLocationPanel = signal<PublicHomeLocationValue | null>(null);
+  readonly isLoadingLocations = signal(false);
 
-  readonly locationGroups = LOCATION_GROUPS;
+  readonly locationGroups = computed<readonly PublicHomeLocationGroup[]>(() => [
+    ALL_NIGERIA_LOCATION,
+    ...this.configuredLocationGroups(),
+  ]);
 
   readonly selectedLocationOption = computed(
     () =>
-      this.locationGroups.find((option) => option.value === this.selectedLocation()) ??
-      this.locationGroups[0],
+      this.locationGroups().find((option) => option.value === this.selectedLocation()) ??
+      ALL_NIGERIA_LOCATION,
   );
 
   readonly activeLocationPanelOption = computed(
-    () => this.locationGroups.find((option) => option.value === this.activeLocationPanel()) ?? null,
+    () => this.locationGroups().find((option) => option.value === this.activeLocationPanel()) ?? null,
   );
 
   readonly selectedLocationDisplay = computed(() => {
@@ -106,21 +111,49 @@ export class LocationService {
   });
 
   constructor() {
-    if (this.isBrowser) {
-      const savedLoc = localStorage.getItem('duduzili.selected_location') as PublicHomeLocationValue | null;
-      const savedCity = localStorage.getItem('duduzili.selected_city');
+    this.restoreSelection();
+    void this.loadConfiguredLocations();
+  }
 
-      if (savedLoc && this.locationGroups.some((g) => g.value === savedLoc)) {
-        this.selectedLocation.set(savedLoc);
-      }
-      if (savedCity) {
-        this.selectedCity.set(savedCity);
-      }
+  async loadConfiguredLocations(): Promise<void> {
+    if (this.isLoadingLocations()) {
+      return;
+    }
+
+    this.isLoadingLocations.set(true);
+    try {
+      const states = await firstValueFrom(
+        this.http.get<readonly PublicStateResponse[]>(`${this.apiUrl}/locations/states/`),
+      );
+      const groups = await Promise.all(
+        states.map(async (state) => {
+          const response = await firstValueFrom(
+            this.http.get<PublicCityListResponse>(
+              `${this.apiUrl}/locations/states/${state.id}/cities/`,
+            ),
+          );
+          const cities = this.extractCities(response);
+
+          return {
+            id: state.id,
+            value: this.stateValue(state.id),
+            label: state.name,
+            desktopLabel: state.name,
+            cities: cities.map((city) => city.name).sort((a, b) => a.localeCompare(b)),
+          } satisfies PublicHomeLocationGroup;
+        }),
+      );
+
+      this.configuredLocationGroups.set(groups.sort((a, b) => a.label.localeCompare(b.label)));
+      this.resetInvalidSavedSelection();
+    } finally {
+      this.isLoadingLocations.set(false);
     }
   }
 
   openLocationPicker(): void {
     this.isLocationPickerOpen.set(true);
+    void this.loadConfiguredLocations();
   }
 
   closeLocationPicker(): void {
@@ -154,6 +187,37 @@ export class LocationService {
     this.closeLocationPicker();
   }
 
+  private restoreSelection(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    const savedLoc = localStorage.getItem('duduzili.selected_location');
+    const savedCity = localStorage.getItem('duduzili.selected_city');
+
+    if (savedLoc) {
+      this.selectedLocation.set(savedLoc);
+    }
+    if (savedCity) {
+      this.selectedCity.set(savedCity);
+    }
+  }
+
+  private resetInvalidSavedSelection(): void {
+    const selectedLocation = this.selectedLocation();
+    const selectedCity = this.selectedCity();
+    const selectedGroup = this.locationGroups().find((group) => group.value === selectedLocation);
+
+    if (!selectedGroup) {
+      this.selectLocationGroup('all-nigeria');
+      return;
+    }
+
+    if (selectedCity && !selectedGroup.cities.includes(selectedCity)) {
+      this.selectLocationGroup(selectedLocation);
+    }
+  }
+
   private saveToStorage(location: PublicHomeLocationValue, city: string | null): void {
     if (this.isBrowser) {
       localStorage.setItem('duduzili.selected_location', location);
@@ -163,5 +227,18 @@ export class LocationService {
         localStorage.removeItem('duduzili.selected_city');
       }
     }
+  }
+
+  private stateValue(stateId: number): string {
+    return `state-${stateId}`;
+  }
+
+  private extractCities(response: PublicCityListResponse): readonly PublicCityResponse[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    const cityList = response as PublicCityListObjectResponse;
+    return cityList.cities ?? [];
   }
 }

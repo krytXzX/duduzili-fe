@@ -67,7 +67,7 @@ import { LocationService } from '../../services/location.service';
                 [class.pointer-events-none]="locationService.activeLocationPanel() !== null"
               >
                 <div class="space-y-4 pb-2 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-                  @for (group of locationService.locationGroups; track group.value) {
+                  @for (group of locationService.locationGroups(); track group.value) {
                     <section class="rounded-[24px] border border-[#EFEFEF] bg-white">
                       <div class="flex items-center gap-3 p-2 lg:p-3">
                         <button

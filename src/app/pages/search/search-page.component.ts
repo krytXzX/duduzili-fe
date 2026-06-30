@@ -190,13 +190,11 @@ export class SearchPageComponent {
     'Luggage & Bags',
     'Sporting goods',
   ];
-  readonly locationOptions = [
-    'Abuja', 'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue',
-    'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'Gombe',
-    'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara',
-    'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau',
-    'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara',
-  ];
+  readonly locationOptions = computed(() =>
+    this.locationService.locationGroups()
+      .filter((group) => group.value !== 'all-nigeria')
+      .map((group) => group.label),
+  );
   readonly conditionOptions = ['New', 'Fairly used'];
   readonly verificationOptions = ['Verified', 'Unverified'];
   readonly sortOptions = [
@@ -338,14 +336,14 @@ export class SearchPageComponent {
       const loc = this.locationService.selectedLocationOption();
       if (loc.value === 'all-nigeria') {
         const currentLoc = this.selectedLocation();
-        const hasMatchingGroup = currentLoc && this.locationService.locationGroups.some(
+        const hasMatchingGroup = currentLoc && this.locationService.locationGroups().some(
           (g) => g.label.toLowerCase() === currentLoc.toLowerCase()
         );
         if (hasMatchingGroup || !currentLoc) {
           this.selectedLocation.set(null);
         }
       } else {
-        const match = this.locationOptions.find(
+        const match = this.locationOptions().find(
           (opt) => opt.toLowerCase() === loc.label.toLowerCase()
         );
         if (match) {
@@ -385,7 +383,7 @@ export class SearchPageComponent {
     if (isCurrentlySelected) {
       this.locationService.selectLocationGroup('all-nigeria');
     } else {
-      const match = this.locationService.locationGroups.find(
+      const match = this.locationService.locationGroups().find(
         (g) => g.label.toLowerCase() === location.toLowerCase()
       );
       if (match) {

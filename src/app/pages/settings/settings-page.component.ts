@@ -17,6 +17,7 @@ import {
   TwoFactorMethod,
 } from './components/settings-two-factor-modal.component';
 import { SettingsVerificationModalComponent } from './components/settings-verification-modal.component';
+import { AdminLocationsSettingsPanelComponent } from './components/admin-locations-settings-panel.component';
 import {
   AuthService,
   AuthUser,
@@ -69,6 +70,7 @@ type NotificationPreferenceSettings = Record<
     SettingsActionModalComponent,
     SettingsTwoFactorModalComponent,
     SettingsVerificationModalComponent,
+    AdminLocationsSettingsPanelComponent,
   ],
   providers: [provideIcons({ heroChevronRightOutline })],
   template: `
@@ -703,6 +705,23 @@ type NotificationPreferenceSettings = Record<
             </p>
           </div>
         </div>
+      } @else if (mobileSettingsStep() === 'locations') {
+        <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pb-32 pt-0">
+          <header>
+            <div class="flex h-[45px] items-center">
+              <button
+                type="button"
+                (click)="mobileSettingsStep.set('menu')"
+                class="inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+                aria-label="Back to account settings"
+              >
+                <img ngSrc="/assets/icons/settings/security-back.svg" width="20" height="20" alt="" aria-hidden="true">
+              </button>
+            </div>
+          </header>
+
+          <app-admin-locations-settings-panel></app-admin-locations-settings-panel>
+        </div>
       }
     </div>
 
@@ -1236,6 +1255,8 @@ type NotificationPreferenceSettings = Record<
                   </div>
                 </div>
               </section>
+            } @else if (activeTab() === 'locations' && isAdminSettingsView()) {
+              <app-admin-locations-settings-panel></app-admin-locations-settings-panel>
             }
           </div>
         </div>
@@ -1618,7 +1639,7 @@ export class SettingsPageComponent {
     return '/more';
   });
   readonly activeTab = signal<SettingsTab>('profile');
-  readonly mobileSettingsStep = signal<'menu' | 'profile' | 'security' | 'notifications' | 'platform'>('menu');
+  readonly mobileSettingsStep = signal<'menu' | 'profile' | 'security' | 'notifications' | 'platform' | 'locations'>('menu');
   readonly securityTab = signal<'password' | '2fa'>('password');
   readonly notificationsTab = signal<'method' | 'preferences'>('method');
   readonly currentPassword = signal('');
@@ -1778,6 +1799,11 @@ export class SettingsPageComponent {
         label: 'Platform',
         iconSrc: '/assets/icons/settings/mobile-security.svg',
       });
+      items.push({
+        id: 'locations',
+        label: 'Locations',
+        iconSrc: '/assets/icons/settings/settings-nav-profile.svg',
+      });
     }
 
     return items;
@@ -1807,6 +1833,11 @@ export class SettingsPageComponent {
 
     if (tab === 'platform') {
       this.mobileSettingsStep.set('platform');
+      return;
+    }
+
+    if (tab === 'locations') {
+      this.mobileSettingsStep.set('locations');
       return;
     }
 

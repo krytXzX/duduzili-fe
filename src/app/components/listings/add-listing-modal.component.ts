@@ -1697,17 +1697,19 @@ export class AddListingModalComponent implements OnDestroy {
     { value: 'used', label: 'Fairly used' },
   ];
 
-  readonly locationStateOptions: readonly PickerOption[] = this.locationService.locationGroups
-    .filter((group) => group.value !== 'all-nigeria')
-    .map((group) => ({
-      value: group.value,
-      label: group.desktopLabel ?? group.label,
-      subtitle: 'Select a city',
-    }));
+  readonly locationStateOptions = computed<readonly PickerOption[]>(() =>
+    this.locationService.locationGroups()
+      .filter((group) => group.value !== 'all-nigeria')
+      .map((group) => ({
+        value: group.value,
+        label: group.desktopLabel ?? group.label,
+        subtitle: 'Select a city',
+      })),
+  );
 
   readonly locationCityOptions = computed<readonly PickerOption[]>(() => {
     const activeState = this.activeLocationState();
-    const group = this.locationService.locationGroups.find((option) => option.value === activeState);
+    const group = this.locationService.locationGroups().find((option) => option.value === activeState);
 
     if (!group || group.value === 'all-nigeria') {
       return [];
@@ -2027,7 +2029,7 @@ export class AddListingModalComponent implements OnDestroy {
 
   activeLocationStateLabel(): string {
     const activeState = this.activeLocationState();
-    return this.locationService.locationGroups.find((option) => option.value === activeState)?.label ?? '';
+    return this.locationService.locationGroups().find((option) => option.value === activeState)?.label ?? '';
   }
 
   selectPickerOption(value: string): void {
@@ -2795,14 +2797,14 @@ export class AddListingModalComponent implements OnDestroy {
       case 'store':
         return this.storeOptions();
       case 'location':
-        return this.activeLocationState() ? this.locationCityOptions() : this.locationStateOptions;
+        return this.activeLocationState() ? this.locationCityOptions() : this.locationStateOptions();
       default:
         return [];
     }
   }
 
   private toLocationStateValue(value: string): PublicHomeLocationValue | null {
-    const location = this.locationService.locationGroups.find((option) => option.value === value);
+    const location = this.locationService.locationGroups().find((option) => option.value === value);
     return location && location.value !== 'all-nigeria' ? location.value : null;
   }
 }
