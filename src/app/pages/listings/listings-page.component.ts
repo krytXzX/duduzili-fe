@@ -789,7 +789,11 @@ export class ListingsPageComponent {
   private readonly authSession = inject(AuthSessionService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
-  protected readonly kycRequired = computed(() => this.authSession.kycRequired());
+  protected readonly kycRequired = computed(
+    () =>
+      this.manageListingsKycRequired() ??
+      (this.authSession.isBootstrapComplete() ? this.authSession.kycRequired() : false),
+  );
 
   protected readonly showAddListingModal = signal(false);
   protected readonly showIdentityModal = signal(false);
@@ -797,6 +801,7 @@ export class ListingsPageComponent {
   protected readonly approvedVerificationBannerDismissed = signal(false);
   protected readonly isVerificationSubmitted = signal(false);
   protected readonly verificationStatus = signal<VerificationStatus>('not_submitted');
+  private readonly manageListingsKycRequired = signal<boolean | null>(null);
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly searchTerm = signal('');
@@ -1132,6 +1137,7 @@ export class ListingsPageComponent {
         .filter((item): item is ListingRow => item !== null);
 
       this.applyVerificationState(response);
+      this.manageListingsKycRequired.set(this.readBoolean(response.kyc_required));
       this.manageListingCategories.set(this.extractCategories(response));
       this.manageListingStores.set(this.extractStores(response));
       this.manageListingDeliveryOptions.set(this.extractDeliveryOptions(response));
@@ -1141,6 +1147,7 @@ export class ListingsPageComponent {
       this.approvedVerificationBannerDismissed.set(false);
       this.verificationStatus.set('not_submitted');
       this.isVerificationSubmitted.set(false);
+      this.manageListingsKycRequired.set(null);
       this.manageListingCategories.set([]);
       this.manageListingStores.set([]);
       this.manageListingDeliveryOptions.set([]);

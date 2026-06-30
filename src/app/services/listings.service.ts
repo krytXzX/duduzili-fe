@@ -42,6 +42,7 @@ export interface ManageListingsResponse {
   stores?: ManageListingsStore[];
   categories?: ManageListingsCategory[];
   identity_verification?: Record<string, unknown>;
+  kyc_required?: boolean;
   states?: ManageListingsState[];
   cities?: ManageListingsCity[];
   delivery_options?: ManageListingsDeliveryOption[];
