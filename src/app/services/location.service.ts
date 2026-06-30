@@ -26,6 +26,13 @@ type PublicStateResponse = {
   readonly name: string;
 };
 
+type PublicStateListObjectResponse = {
+  readonly results?: readonly PublicStateResponse[];
+  readonly states?: readonly PublicStateResponse[];
+};
+
+type PublicStateListResponse = readonly PublicStateResponse[] | PublicStateListObjectResponse;
+
 type PublicCityResponse = {
   readonly id: number;
   readonly name: string;
@@ -34,6 +41,7 @@ type PublicCityResponse = {
 
 type PublicCityListObjectResponse = {
   readonly cities?: readonly PublicCityResponse[];
+  readonly results?: readonly PublicCityResponse[];
 };
 
 type PublicCityListResponse = readonly PublicCityResponse[] | PublicCityListObjectResponse;
@@ -122,9 +130,10 @@ export class LocationService {
 
     this.isLoadingLocations.set(true);
     try {
-      const states = await firstValueFrom(
-        this.http.get<readonly PublicStateResponse[]>(`${this.apiUrl}/locations/states/`),
+      const stateResponse = await firstValueFrom(
+        this.http.get<PublicStateListResponse>(`${this.apiUrl}/locations/states/`),
       );
+      const states = this.extractStates(stateResponse);
       const groups = await Promise.all(
         states.map(async (state) => {
           const response = await firstValueFrom(
@@ -239,6 +248,15 @@ export class LocationService {
     }
 
     const cityList = response as PublicCityListObjectResponse;
-    return cityList.cities ?? [];
+    return cityList.results ?? cityList.cities ?? [];
+  }
+
+  private extractStates(response: PublicStateListResponse): readonly PublicStateResponse[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    const stateList = response as PublicStateListObjectResponse;
+    return stateList.results ?? stateList.states ?? [];
   }
 }
