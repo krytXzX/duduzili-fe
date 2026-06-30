@@ -18,10 +18,10 @@ import { AppToastComponent } from '../common/app-toast.component';
     AdminDashboardSidebarComponent,
     AppToastComponent,
   ],
-  host: { class: 'block h-screen w-full' },
+  host: { class: 'fixed inset-0 block h-dvh w-full overflow-hidden' },
   template: `
     <div
-      class="flex h-screen flex-col lg:gap-4 lg:bg-gray-100 lg:p-4"
+      class="flex h-full flex-col overflow-hidden lg:gap-4 lg:bg-gray-100 lg:p-4"
       [class.bg-[#F4F4F4]]="isAdminRoutePrefix('/admin/more')"
       [class.bg-white]="!isAdminRoutePrefix('/admin/more')"
     >
@@ -103,7 +103,9 @@ import { AppToastComponent } from '../common/app-toast.component';
           </div>
         }
 
-        <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white lg:rounded-[32px] lg:shadow-sm">
+        <main
+          [class]="mainClass()"
+        >
           <router-outlet></router-outlet>
           @if (!isAdminUserDetailsRoute()) {
             <div class="h-[152px] lg:hidden" aria-hidden="true"></div>
@@ -260,6 +262,17 @@ export class AdminDashboardLayoutComponent {
 
   isAdminUserDetailsRoute(): boolean {
     return /^\/admin\/users\/[^/]+$/.test(this.normalizedAdminUrl());
+  }
+
+  isAdminSettingsRoute(): boolean {
+    return this.isAdminRoutePrefix('/admin/settings');
+  }
+
+  protected mainClass(): string {
+    const base = 'min-h-0 min-w-0 flex-1 bg-white lg:rounded-[32px] lg:shadow-sm';
+    return this.isAdminSettingsRoute()
+      ? `${base} flex flex-col overflow-y-auto md:overflow-hidden`
+      : `${base} overflow-y-auto`;
   }
 
   private normalizedAdminUrl(): string {

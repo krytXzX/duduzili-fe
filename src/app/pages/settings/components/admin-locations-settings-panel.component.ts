@@ -12,9 +12,10 @@ import { AppToastService } from '../../../services/app-toast.service';
 @Component({
   selector: 'app-admin-locations-settings-panel',
   imports: [CommonModule, FormsModule],
+  host: { class: 'block min-h-0 md:h-full' },
   template: `
-    <section class="w-full max-w-[760px]">
-      <header>
+    <section class="flex min-h-0 w-full max-w-[760px] flex-col md:h-full">
+      <header class="shrink-0">
         <h2 class="text-[28px] font-semibold leading-10 text-[#1A1B1D] md:text-[28px]">
           Locations
         </h2>
@@ -25,7 +26,7 @@ import { AppToastService } from '../../../services/app-toast.service';
       </header>
 
       <form
-        class="mt-6 flex flex-col gap-3 rounded-[20px] border border-[#EFEFEF] bg-white p-4 sm:flex-row sm:items-center"
+        class="mt-6 flex shrink-0 flex-col gap-3 rounded-[20px] border border-[#EFEFEF] bg-white p-4 sm:flex-row sm:items-center"
         (submit)="createState($event)"
       >
         <label class="sr-only" for="admin-location-state-name">State name</label>
@@ -49,7 +50,7 @@ import { AppToastService } from '../../../services/app-toast.service';
       </form>
 
       @if (isLoading()) {
-        <div class="mt-5 space-y-3">
+        <div class="mt-5 space-y-3 md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-2">
           @for (item of skeletonRows; track item) {
             <div class="overflow-hidden rounded-[20px] border border-[#EFEFEF] bg-white p-5">
               <div class="h-5 w-40 rounded-full bg-[#F1F1F1] skeleton-shimmer"></div>
@@ -83,7 +84,7 @@ import { AppToastService } from '../../../services/app-toast.service';
           </p>
         </div>
       } @else {
-        <div class="mt-5 space-y-4">
+        <div class="mt-5 space-y-4 md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-2">
           @for (state of filteredStates(); track state.id) {
             <article class="rounded-[20px] border border-[#EFEFEF] bg-white p-5">
               <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

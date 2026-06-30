@@ -725,20 +725,32 @@ type NotificationPreferenceSettings = Record<
       }
     </div>
 
-    <div class="hidden h-full flex-col rounded-[32px] bg-white md:flex">
+      <div class="hidden h-full min-h-0 max-h-full flex-col overflow-hidden rounded-[32px] bg-white md:flex">
       <header class="border-b border-[#F0F0F2] px-8 py-6">
         <h1 class="text-[20px] font-semibold leading-[1.2] text-[#1A1B1D]">Account settings</h1>
       </header>
 
-      <div class="flex-1 overflow-y-auto px-4 py-5">
-        <div class="grid items-start gap-12 xl:grid-cols-[261px_579px] xl:gap-[115px]">
+      <div
+        class="min-h-0 flex-1 px-4 py-5"
+        [class.overflow-hidden]="activeTab() === 'locations' && isAdminSettingsView()"
+        [class.overflow-y-auto]="activeTab() !== 'locations' || !isAdminSettingsView()"
+      >
+        <div
+          class="grid min-h-0 gap-12 xl:grid-cols-[261px_579px] xl:gap-[115px]"
+          [class.h-full]="activeTab() === 'locations' && isAdminSettingsView()"
+          [class.items-start]="activeTab() !== 'locations' || !isAdminSettingsView()"
+        >
           <app-settings-nav
             [activeTab]="activeTab()"
             [showPlatformTab]="isAdminSettingsView()"
             (tabChange)="activeTab.set($event)"
           ></app-settings-nav>
 
-          <div>
+          <div
+            class="min-h-0"
+            [class.h-full]="activeTab() === 'locations' && isAdminSettingsView()"
+            [class.overflow-hidden]="activeTab() === 'locations' && isAdminSettingsView()"
+          >
             @if (activeTab() === 'profile') {
               <app-profile-settings-panel
                 [profile]="profile()"
@@ -1615,7 +1627,7 @@ type NotificationPreferenceSettings = Record<
     }
 
   `,
-  host: { class: 'block h-full' },
+  host: { class: 'block h-full min-h-0 overflow-hidden' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsPageComponent {
