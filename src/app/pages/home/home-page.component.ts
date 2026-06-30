@@ -968,18 +968,27 @@ export class HomePageComponent {
   }
 
   private buildLocationLabel(record: Record<string, unknown>): string {
+    const city =
+      this.readString(record['city']) ??
+      this.readString(record['location_city']);
+
+    const state =
+      this.readString(record['state']) ??
+      this.readString(record['location_state']);
+
+    if (city && state && !city.includes(state)) {
+      return `${city}, ${state}`;
+    }
+
     const location =
       this.readString(record['location']) ??
-      this.readString(record['city']) ??
       this.readString(record['address']);
-
-    const state = this.readString(record['state']);
 
     if (location && state && !location.includes(state)) {
       return `${location}, ${state}`;
     }
 
-    return location ?? state ?? '';
+    return city ?? location ?? state ?? '';
   }
 
   private readId(record: Record<string, unknown>, fallbackId: string): string {

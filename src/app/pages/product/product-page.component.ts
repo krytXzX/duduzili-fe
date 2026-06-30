@@ -2206,19 +2206,25 @@ export class ProductPageComponent {
   }
 
   private composeLocation(record: ListingsApiItem): string | null {
-    const location = this.readString(record['location']);
-    if (location) {
-      return location;
-    }
-
-    const city = this.readString(record['city']);
-    const state = this.readString(record['state']);
+    const city =
+      this.readString(record['city']) ??
+      this.readString(record['location_city']);
+    const state =
+      this.readString(record['state']) ??
+      this.readString(record['location_state']);
 
     if (city && state && !city.includes(state)) {
       return `${city}, ${state}`;
     }
 
-    return city ?? state ?? null;
+    const location =
+      this.readString(record['location']) ??
+      this.readString(record['address']);
+    if (location && state && !location.includes(state)) {
+      return `${location}, ${state}`;
+    }
+
+    return city ?? location ?? state ?? null;
   }
 
   private formatReviewDate(value: unknown): string | null {

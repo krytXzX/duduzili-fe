@@ -546,19 +546,19 @@ export class CategoryPageComponent {
   }
 
   private buildLocationLabel(item: ListingsApiItem): string {
-    const city = this.readString(item, ['city']);
-    const state = this.readString(item, ['state']);
+    const city = this.readString(item, ['city', 'location_city']);
+    const state = this.readString(item, ['state', 'location_state']);
     const location = this.readString(item, ['location', 'address']);
 
-    if (city && state) {
+    if (city && state && !city.includes(state)) {
       return `${city}, ${state}`;
     }
 
-    if (location) {
-      return location;
+    if (location && state && !location.includes(state)) {
+      return `${location}, ${state}`;
     }
 
-    return state || city || '';
+    return city || location || state || '';
   }
 
   private resolveMediaUrl(path: string): string {
