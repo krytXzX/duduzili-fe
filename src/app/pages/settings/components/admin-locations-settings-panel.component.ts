@@ -12,9 +12,9 @@ import { AppToastService } from '../../../services/app-toast.service';
 @Component({
   selector: 'app-admin-locations-settings-panel',
   imports: [CommonModule, FormsModule],
-  host: { class: 'block min-h-0 md:h-full' },
+  host: { class: 'block h-full min-h-0' },
   template: `
-    <section class="flex min-h-0 w-full max-w-[760px] flex-col md:h-full">
+    <section class="flex h-full min-h-0 w-full max-w-[760px] flex-col">
       <header class="shrink-0">
         <h2 class="text-[28px] font-semibold leading-10 text-[#1A1B1D] md:text-[28px]">
           Locations
@@ -50,7 +50,7 @@ import { AppToastService } from '../../../services/app-toast.service';
       </form>
 
       @if (isLoading()) {
-        <div class="mt-5 space-y-3 md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-2">
+        <div class="mt-5 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 md:pr-2">
           @for (item of skeletonRows; track item) {
             <div class="overflow-hidden rounded-[20px] border border-[#EFEFEF] bg-white p-5">
               <div class="h-5 w-40 rounded-full bg-[#F1F1F1] skeleton-shimmer"></div>
@@ -84,7 +84,7 @@ import { AppToastService } from '../../../services/app-toast.service';
           </p>
         </div>
       } @else {
-        <div class="mt-5 space-y-4 md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-2">
+        <div class="mt-5 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1 md:pr-2">
           @for (state of filteredStates(); track state.id) {
             <article class="rounded-[20px] border border-[#EFEFEF] bg-white p-5">
               <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

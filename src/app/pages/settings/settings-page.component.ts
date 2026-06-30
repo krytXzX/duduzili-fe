@@ -51,7 +51,12 @@ type AuthenticationMethodConfig = {
 };
 
 type NotificationChannelId = 'sms' | 'email' | 'push';
-type NotificationPreferenceCategoryId = 'messages' | 'listings' | 'ads' | 'buyerActivity' | 'performance';
+type NotificationPreferenceCategoryId =
+  | 'messages'
+  | 'listings'
+  | 'ads'
+  | 'buyerActivity'
+  | 'performance';
 type NotificationChannelSettings = Record<NotificationChannelId, boolean>;
 type NotificationPreferenceSettings = Record<
   NotificationPreferenceCategoryId,
@@ -74,7 +79,13 @@ type NotificationPreferenceSettings = Record<
   ],
   providers: [provideIcons({ heroChevronRightOutline })],
   template: `
-    <div class="min-h-full bg-white md:hidden">
+    <div
+      class="bg-white md:hidden"
+      [class.h-full]="mobileSettingsStep() === 'locations'"
+      [class.min-h-0]="mobileSettingsStep() === 'locations'"
+      [class.overflow-hidden]="mobileSettingsStep() === 'locations'"
+      [class.min-h-full]="mobileSettingsStep() !== 'locations'"
+    >
       @if (mobileSettingsStep() === 'menu') {
         <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pb-32">
           <div class="flex h-[54px] items-center gap-3">
@@ -83,7 +94,13 @@ type NotificationPreferenceSettings = Record<
               class="inline-flex h-8 w-11 items-center justify-center rounded-full bg-[#F3F3F3] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
               aria-label="Back to more"
             >
-              <img ngSrc="/assets/icons/settings/mobile-back.svg" width="20" height="20" alt="" aria-hidden="true">
+              <img
+                ngSrc="/assets/icons/settings/mobile-back.svg"
+                width="20"
+                height="20"
+                alt=""
+                aria-hidden="true"
+              />
             </a>
             <h1 class="text-[20px] font-semibold leading-[1.2] text-black">Account settings</h1>
           </div>
@@ -97,11 +114,14 @@ type NotificationPreferenceSettings = Record<
               >
                 <span class="flex items-center gap-3">
                   <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[#303030]">
-                    <img [ngSrc]="item.iconSrc" width="15" height="15" alt="" aria-hidden="true">
+                    <img [ngSrc]="item.iconSrc" width="15" height="15" alt="" aria-hidden="true" />
                   </span>
                   <span class="text-[16px] font-medium leading-5">{{ item.label }}</span>
                 </span>
-                <ng-icon name="heroChevronRightOutline" class="text-[16px] text-[rgba(13,13,13,0.8)]"></ng-icon>
+                <ng-icon
+                  name="heroChevronRightOutline"
+                  class="text-[16px] text-[rgba(13,13,13,0.8)]"
+                ></ng-icon>
               </button>
             }
           </div>
@@ -115,17 +135,34 @@ type NotificationPreferenceSettings = Record<
           >
             <span class="flex items-center gap-3">
               <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[#303030]">
-                <img ngSrc="/assets/icons/settings/mobile-logout.svg" width="15" height="15" alt="" aria-hidden="true">
+                <img
+                  ngSrc="/assets/icons/settings/mobile-logout.svg"
+                  width="15"
+                  height="15"
+                  alt=""
+                  aria-hidden="true"
+                />
               </span>
               <span class="text-[16px] font-medium leading-5">Logout</span>
             </span>
-            <ng-icon name="heroChevronRightOutline" class="text-[16px] text-[rgba(13,13,13,0.8)]"></ng-icon>
+            <ng-icon
+              name="heroChevronRightOutline"
+              class="text-[16px] text-[rgba(13,13,13,0.8)]"
+            ></ng-icon>
           </button>
 
           <div class="my-8 flex items-center gap-2">
             <span class="h-px flex-1 bg-[#EFEFEF]"></span>
-            <span class="inline-flex items-center gap-2 text-[14px] font-medium leading-5 text-[#A2A2A2]">
-              <img ngSrc="/assets/icons/settings/mobile-danger.svg" width="16" height="16" alt="" aria-hidden="true">
+            <span
+              class="inline-flex items-center gap-2 text-[14px] font-medium leading-5 text-[#A2A2A2]"
+            >
+              <img
+                ngSrc="/assets/icons/settings/mobile-danger.svg"
+                width="16"
+                height="16"
+                alt=""
+                aria-hidden="true"
+              />
               Danger zone
             </span>
             <span class="h-px flex-1 bg-[#EFEFEF]"></span>
@@ -138,11 +175,20 @@ type NotificationPreferenceSettings = Record<
           >
             <span class="flex items-center gap-3">
               <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[#303030]">
-                <img ngSrc="/assets/icons/settings/mobile-trash.svg" width="15" height="15" alt="" aria-hidden="true">
+                <img
+                  ngSrc="/assets/icons/settings/mobile-trash.svg"
+                  width="15"
+                  height="15"
+                  alt=""
+                  aria-hidden="true"
+                />
               </span>
               <span class="text-[16px] font-medium leading-5">Delete account</span>
             </span>
-            <ng-icon name="heroChevronRightOutline" class="text-[16px] text-[rgba(13,13,13,0.8)]"></ng-icon>
+            <ng-icon
+              name="heroChevronRightOutline"
+              class="text-[16px] text-[rgba(13,13,13,0.8)]"
+            ></ng-icon>
           </button>
         </div>
       } @else if (mobileSettingsStep() === 'profile') {
@@ -156,14 +202,22 @@ type NotificationPreferenceSettings = Record<
                 aria-label="Back to account settings"
               >
                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M12.5 15 7.5 10l5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path
+                    d="M12.5 15 7.5 10l5-5"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
                 </svg>
               </button>
               <p class="text-[20px] font-semibold leading-[1.2] text-black">Account settings</p>
             </div>
 
             <div class="absolute bottom-0 left-4 right-4">
-              <h1 class="text-[25px] font-semibold leading-[1.2] text-[#1A1B1D]">Profile settings</h1>
+              <h1 class="text-[25px] font-semibold leading-[1.2] text-[#1A1B1D]">
+                Profile settings
+              </h1>
               <p class="mt-2 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
                 Manage your account preferences and personal information.
               </p>
@@ -187,7 +241,13 @@ type NotificationPreferenceSettings = Record<
                 class="inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
                 aria-label="Back to account settings"
               >
-                <img ngSrc="/assets/icons/settings/security-back.svg" width="20" height="20" alt="" aria-hidden="true">
+                <img
+                  ngSrc="/assets/icons/settings/security-back.svg"
+                  width="20"
+                  height="20"
+                  alt=""
+                  aria-hidden="true"
+                />
               </button>
             </div>
 
@@ -209,7 +269,13 @@ type NotificationPreferenceSettings = Record<
                 [class.text-[#6453D9]]="securityTab() === 'password'"
                 [class.border-transparent]="securityTab() !== 'password'"
               >
-                <img ngSrc="/assets/icons/settings/security-lock.svg" width="16" height="16" alt="" aria-hidden="true">
+                <img
+                  ngSrc="/assets/icons/settings/security-lock.svg"
+                  width="16"
+                  height="16"
+                  alt=""
+                  aria-hidden="true"
+                />
                 Password
               </button>
 
@@ -221,7 +287,13 @@ type NotificationPreferenceSettings = Record<
                 [class.text-[#6453D9]]="securityTab() === '2fa'"
                 [class.border-transparent]="securityTab() !== '2fa'"
               >
-                <img ngSrc="/assets/icons/settings/security-key.svg" width="16" height="16" alt="" aria-hidden="true">
+                <img
+                  ngSrc="/assets/icons/settings/security-key.svg"
+                  width="16"
+                  height="16"
+                  alt=""
+                  aria-hidden="true"
+                />
                 2-Factor Auth
               </button>
             </div>
@@ -232,7 +304,10 @@ type NotificationPreferenceSettings = Record<
 
                 <div class="mt-[29px] space-y-[31px]">
                   <div>
-                    <label for="mobile-current-password" class="mb-[7px] block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                    <label
+                      for="mobile-current-password"
+                      class="mb-[7px] block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]"
+                    >
                       Enter current password
                     </label>
                     <input
@@ -241,33 +316,46 @@ type NotificationPreferenceSettings = Record<
                       [value]="currentPassword()"
                       (input)="updateCurrentPassword($event)"
                       class="h-11 w-full rounded-lg border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none focus:border-[#6453D9]"
-                    >
+                    />
                   </div>
 
                   <div>
-                    <label for="mobile-new-password" class="mb-[7px] block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                    <label
+                      for="mobile-new-password"
+                      class="mb-[7px] block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]"
+                    >
                       Enter new password
                     </label>
-                    <div class="flex h-11 items-center gap-2 rounded-lg border border-[#6453D9] bg-white px-4">
+                    <div
+                      class="flex h-11 items-center gap-2 rounded-lg border border-[#6453D9] bg-white px-4"
+                    >
                       <input
                         id="mobile-new-password"
                         [type]="showNewPassword() ? 'text' : 'password'"
                         [value]="newPassword()"
                         (input)="updateNewPassword($event)"
                         class="min-w-0 flex-1 bg-transparent text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none"
-                      >
+                      />
                       <button
                         type="button"
                         (click)="showNewPassword.update(value => !value)"
                         class="inline-flex h-5 w-5 items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
                         aria-label="Toggle password visibility"
                       >
-                        <img ngSrc="/assets/icons/settings/security-eye.svg" width="20" height="20" alt="" aria-hidden="true">
+                        <img
+                          ngSrc="/assets/icons/settings/security-eye.svg"
+                          width="20"
+                          height="20"
+                          alt=""
+                          aria-hidden="true"
+                        />
                       </button>
                     </div>
 
                     <div class="mt-[15px] flex items-center justify-between gap-4">
-                      <p class="text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">Password strength</p>
+                      <p class="text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
+                        Password strength
+                      </p>
                       <div class="flex gap-1.5">
                         @for (segment of passwordStrengthSegments(); track $index) {
                           <span class="h-1 w-10 rounded-full" [style.background]="segment"></span>
@@ -277,14 +365,20 @@ type NotificationPreferenceSettings = Record<
 
                     <div class="mt-[15px] flex flex-wrap gap-2">
                       @for (item of passwordChecks(); track item.label) {
-                        <span class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#F3F3F3] bg-white px-3 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
+                        <span
+                          class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#F3F3F3] bg-white px-3 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]"
+                        >
                           <img
-                            [ngSrc]="item.passed ? '/assets/icons/settings/security-check.svg' : '/assets/icons/settings/security-close-circle.svg'"
+                            [ngSrc]="
+                              item.passed
+                                ? '/assets/icons/settings/security-check.svg'
+                                : '/assets/icons/settings/security-close-circle.svg'
+                            "
                             width="16"
                             height="16"
                             alt=""
                             aria-hidden="true"
-                          >
+                          />
                           {{ item.label }}
                         </span>
                       }
@@ -292,7 +386,10 @@ type NotificationPreferenceSettings = Record<
                   </div>
 
                   <div>
-                    <label for="mobile-confirm-password" class="mb-[7px] block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                    <label
+                      for="mobile-confirm-password"
+                      class="mb-[7px] block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]"
+                    >
                       Confirm new password
                     </label>
                     <input
@@ -301,16 +398,19 @@ type NotificationPreferenceSettings = Record<
                       [value]="confirmPassword()"
                       (input)="updateConfirmPassword($event)"
                       class="h-11 w-full rounded-lg border border-[#EAEAEA] bg-white px-4 text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none focus:border-[#6453D9]"
-                    >
+                    />
                   </div>
                 </div>
               </div>
             } @else if (!isTwoFactorEnabled()) {
               <div class="mt-6">
                 <div>
-                  <h2 class="text-[20px] font-semibold leading-7 text-[#0D0D0D]">Select an authentication method</h2>
+                  <h2 class="text-[20px] font-semibold leading-7 text-[#0D0D0D]">
+                    Select an authentication method
+                  </h2>
                   <p class="mt-1 text-[14px] leading-5 text-[rgba(13,13,13,0.6)]">
-                    Turning this on will require an additional verification code when you log in from an untrusted device.
+                    Turning this on will require an additional verification code when you log in
+                    from an untrusted device.
                   </p>
                 </div>
 
@@ -326,17 +426,31 @@ type NotificationPreferenceSettings = Record<
                       [class.border-[#EBEBEB]]="selectedAuthMethod() !== method.id"
                       [attr.aria-pressed]="selectedAuthMethod() === method.id"
                     >
-                      <span class="absolute left-2.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#E6E6E6] bg-white">
-                        <img [ngSrc]="method.iconSrc" width="24" height="24" alt="" aria-hidden="true">
+                      <span
+                        class="absolute left-2.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#E6E6E6] bg-white"
+                      >
+                        <img
+                          [ngSrc]="method.iconSrc"
+                          width="24"
+                          height="24"
+                          alt=""
+                          aria-hidden="true"
+                        />
                       </span>
-                      <span class="absolute left-[70px] right-[42px] top-1/2 flex -translate-y-1/2 flex-col gap-1">
+                      <span
+                        class="absolute left-[70px] right-[42px] top-1/2 flex -translate-y-1/2 flex-col gap-1"
+                      >
                         <span class="text-[16px] font-medium leading-6 text-[#0D0D0D]">
                           {{ method.label }}
                           @if (method.meta) {
-                            <span class="font-normal text-[rgba(13,13,13,0.5)]">{{ method.meta }}</span>
+                            <span class="font-normal text-[rgba(13,13,13,0.5)]">{{
+                              method.meta
+                            }}</span>
                           }
                         </span>
-                        <span class="text-[12px] leading-4 text-[rgba(13,13,13,0.5)]">{{ method.description }}</span>
+                        <span class="text-[12px] leading-4 text-[rgba(13,13,13,0.5)]">{{
+                          method.description
+                        }}</span>
                       </span>
                       <span
                         class="absolute right-2.5 top-[29px] flex h-5 w-5 items-center justify-center rounded-full border bg-white"
@@ -354,9 +468,12 @@ type NotificationPreferenceSettings = Record<
             } @else {
               <div class="mt-6">
                 <div>
-                  <h2 class="text-[20px] font-semibold leading-7 text-[#0D0D0D]">Select an authentication method</h2>
+                  <h2 class="text-[20px] font-semibold leading-7 text-[#0D0D0D]">
+                    Select an authentication method
+                  </h2>
                   <p class="mt-1 text-[14px] leading-5 text-[rgba(13,13,13,0.6)]">
-                    Turning this on will require an additional verification code when you log in from an untrusted device.
+                    Turning this on will require an additional verification code when you log in
+                    from an untrusted device.
                   </p>
                 </div>
 
@@ -367,19 +484,31 @@ type NotificationPreferenceSettings = Record<
                       [attr.aria-label]="method.label + ' is active'"
                     >
                       <div class="flex items-center justify-between gap-4">
-                        <span class="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-[#DFFDF5] px-2">
+                        <span
+                          class="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-[#DFFDF5] px-2"
+                        >
                           <img
                             ngSrc="/assets/icons/settings/two-factor-active-badge.svg"
                             width="14"
                             height="14"
                             alt=""
                             aria-hidden="true"
+                          />
+                          <span class="text-[12px] font-semibold leading-4 text-[#25AD32]"
+                            >Active</span
                           >
-                          <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">Active</span>
                         </span>
 
-                        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E6E6E6] bg-white">
-                          <img [ngSrc]="method.iconSrc" width="24" height="24" alt="" aria-hidden="true">
+                        <span
+                          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E6E6E6] bg-white"
+                        >
+                          <img
+                            [ngSrc]="method.iconSrc"
+                            width="24"
+                            height="24"
+                            alt=""
+                            aria-hidden="true"
+                          />
                         </span>
                       </div>
 
@@ -390,7 +519,9 @@ type NotificationPreferenceSettings = Record<
                             <span>{{ ' ' + method.meta }}</span>
                           }
                         </p>
-                        <p class="mt-2 max-w-[301px] text-[14px] leading-4 text-[rgba(13,13,13,0.6)]">
+                        <p
+                          class="mt-2 max-w-[301px] text-[14px] leading-4 text-[rgba(13,13,13,0.6)]"
+                        >
                           {{ method.activeDescription }}
                         </p>
                       </div>
@@ -402,7 +533,9 @@ type NotificationPreferenceSettings = Record<
                       </p>
                     </section>
 
-                    <div class="flex items-start gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]">
+                    <div
+                      class="flex items-start gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]"
+                    >
                       <img
                         ngSrc="/assets/icons/settings/two-factor-warning.svg"
                         width="24"
@@ -410,7 +543,7 @@ type NotificationPreferenceSettings = Record<
                         alt=""
                         aria-hidden="true"
                         class="mt-0.5 shrink-0"
-                      >
+                      />
                       <p class="text-[14px] font-medium leading-5 text-[#A2A500]">
                         {{ method.warningMessage }}
                       </p>
@@ -422,7 +555,9 @@ type NotificationPreferenceSettings = Record<
           </div>
 
           @if (securityTab() === 'password') {
-            <div class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3">
+            <div
+              class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3"
+            >
               <button
                 type="button"
                 (click)="submitPasswordChange()"
@@ -441,7 +576,9 @@ type NotificationPreferenceSettings = Record<
               </button>
             </div>
           } @else if (!isTwoFactorEnabled()) {
-            <div class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3">
+            <div
+              class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3"
+            >
               <button
                 type="button"
                 (click)="beginTwoFactorSetup()"
@@ -453,7 +590,9 @@ type NotificationPreferenceSettings = Record<
               </button>
             </div>
           } @else {
-            <div class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3">
+            <div
+              class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3"
+            >
               <button
                 type="button"
                 (click)="isTurnOffTwoFactorModalOpen.set(true)"
@@ -474,7 +613,13 @@ type NotificationPreferenceSettings = Record<
                 class="inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
                 aria-label="Back to account settings"
               >
-                <img ngSrc="/assets/icons/settings/security-back.svg" width="20" height="20" alt="" aria-hidden="true">
+                <img
+                  ngSrc="/assets/icons/settings/security-back.svg"
+                  width="20"
+                  height="20"
+                  alt=""
+                  aria-hidden="true"
+                />
               </button>
             </div>
 
@@ -498,12 +643,16 @@ type NotificationPreferenceSettings = Record<
                 [class.text-[#959595]]="notificationsTab() !== 'method'"
               >
                 <img
-                  [ngSrc]="notificationsTab() === 'method' ? '/assets/icons/settings/notifications-tab-method.svg' : '/assets/icons/settings/settings-nav-notifications.svg'"
+                  [ngSrc]="
+                    notificationsTab() === 'method'
+                      ? '/assets/icons/settings/notifications-tab-method.svg'
+                      : '/assets/icons/settings/settings-nav-notifications.svg'
+                  "
                   width="16"
                   height="16"
                   alt=""
                   aria-hidden="true"
-                >
+                />
                 Method
               </button>
 
@@ -516,7 +665,13 @@ type NotificationPreferenceSettings = Record<
                 [class.border-transparent]="notificationsTab() !== 'preferences'"
                 [class.text-[#959595]]="notificationsTab() !== 'preferences'"
               >
-                <img ngSrc="/assets/icons/settings/notifications-tab-preferences.svg" width="16" height="16" alt="" aria-hidden="true">
+                <img
+                  ngSrc="/assets/icons/settings/notifications-tab-preferences.svg"
+                  width="16"
+                  height="16"
+                  alt=""
+                  aria-hidden="true"
+                />
                 Preferences
               </button>
             </div>
@@ -526,8 +681,12 @@ type NotificationPreferenceSettings = Record<
                 @for (item of notificationMethods; track item.id) {
                   <div class="flex items-start justify-between gap-4">
                     <div class="min-w-0 flex-1">
-                      <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">{{ item.label }}</h2>
-                      <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">{{ item.description }}</p>
+                      <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                        {{ item.label }}
+                      </h2>
+                      <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                        {{ item.description }}
+                      </p>
                     </div>
 
                     <button
@@ -549,7 +708,9 @@ type NotificationPreferenceSettings = Record<
                 }
               </div>
 
-              <div class="mt-10 flex items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]">
+              <div
+                class="mt-10 flex items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]"
+              >
                 <img
                   ngSrc="/assets/icons/settings/two-factor-warning.svg"
                   width="24"
@@ -557,7 +718,7 @@ type NotificationPreferenceSettings = Record<
                   alt=""
                   aria-hidden="true"
                   class="shrink-0"
-                >
+                />
                 <p class="text-[14px] font-medium leading-5 text-[#A2A500]">
                   Maximize your platform usage by leaving notification settings active
                 </p>
@@ -572,8 +733,13 @@ type NotificationPreferenceSettings = Record<
                       class="flex w-full items-start justify-between gap-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
                     >
                       <span class="min-w-0 flex-1 pr-3">
-                        <span class="block text-[16px] font-medium leading-6 text-[#1A1B1D]">{{ item.label }}</span>
-                        <span class="mt-1 block text-[14px] leading-[1.35] text-[rgba(26,27,29,0.6)]">{{ item.description }}</span>
+                        <span class="block text-[16px] font-medium leading-6 text-[#1A1B1D]">{{
+                          item.label
+                        }}</span>
+                        <span
+                          class="mt-1 block text-[14px] leading-[1.35] text-[rgba(26,27,29,0.6)]"
+                          >{{ item.description }}</span
+                        >
                       </span>
 
                       <ng-icon
@@ -584,7 +750,9 @@ type NotificationPreferenceSettings = Record<
                   }
                 </div>
 
-                <div class="mt-[34px] flex items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]">
+                <div
+                  class="mt-[34px] flex items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]"
+                >
                   <img
                     ngSrc="/assets/icons/settings/two-factor-warning.svg"
                     width="24"
@@ -592,7 +760,7 @@ type NotificationPreferenceSettings = Record<
                     alt=""
                     aria-hidden="true"
                     class="shrink-0"
-                  >
+                  />
                   <p class="text-[14px] font-medium leading-5 text-[#A2A500]">
                     Maximize your platform usage by leaving notification settings active
                   </p>
@@ -611,7 +779,13 @@ type NotificationPreferenceSettings = Record<
                 class="inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
                 aria-label="Back to account settings"
               >
-                <img ngSrc="/assets/icons/settings/security-back.svg" width="20" height="20" alt="" aria-hidden="true">
+                <img
+                  ngSrc="/assets/icons/settings/security-back.svg"
+                  width="20"
+                  height="20"
+                  alt=""
+                  aria-hidden="true"
+                />
               </button>
             </div>
 
@@ -626,10 +800,13 @@ type NotificationPreferenceSettings = Record<
           <div class="mt-8 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-5">
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0 flex-1">
-                <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">Require KYC for posting</h2>
+                <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                  Require KYC for posting
+                </h2>
                 <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                  Turn this on when sellers must verify their identity before creating or publishing listings.
-                  Turn it off to let users post without KYC, while keeping existing verification badges and records intact.
+                  Turn this on when sellers must verify their identity before creating or publishing
+                  listings. Turn it off to let users post without KYC, while keeping existing
+                  verification badges and records intact.
                 </p>
               </div>
 
@@ -667,10 +844,13 @@ type NotificationPreferenceSettings = Record<
           <div class="mt-4 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-5">
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0 flex-1">
-                <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">Enable subscriptions across the app</h2>
+                <h2 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                  Enable subscriptions across the app
+                </h2>
                 <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                  Turn this on to allow sellers to buy subscription plans and use paid promotion features.
-                  Turn it off to block plan purchases and hide promoted placements such as sponsored listings, store promotions, and banner ads.
+                  Turn this on to allow sellers to buy subscription plans and use paid promotion
+                  features. Turn it off to block plan purchases and hide promoted placements such as
+                  sponsored listings, store promotions, and banner ads.
                 </p>
               </div>
 
@@ -706,8 +886,8 @@ type NotificationPreferenceSettings = Record<
           </div>
         </div>
       } @else if (mobileSettingsStep() === 'locations') {
-        <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pb-32 pt-0">
-          <header>
+        <div class="mx-auto flex h-full min-h-0 w-full max-w-[390px] flex-col px-5 pt-0">
+          <header class="shrink-0">
             <div class="flex h-[45px] items-center">
               <button
                 type="button"
@@ -715,17 +895,27 @@ type NotificationPreferenceSettings = Record<
                 class="inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
                 aria-label="Back to account settings"
               >
-                <img ngSrc="/assets/icons/settings/security-back.svg" width="20" height="20" alt="" aria-hidden="true">
+                <img
+                  ngSrc="/assets/icons/settings/security-back.svg"
+                  width="20"
+                  height="20"
+                  alt=""
+                  aria-hidden="true"
+                />
               </button>
             </div>
           </header>
 
-          <app-admin-locations-settings-panel></app-admin-locations-settings-panel>
+          <app-admin-locations-settings-panel
+            class="min-h-0 flex-1"
+          ></app-admin-locations-settings-panel>
         </div>
       }
     </div>
 
-      <div class="hidden h-full min-h-0 max-h-full flex-col overflow-hidden rounded-[32px] bg-white md:flex">
+    <div
+      class="hidden h-full min-h-0 max-h-full flex-col overflow-hidden rounded-[32px] bg-white md:flex"
+    >
       <header class="border-b border-[#F0F0F2] px-8 py-6">
         <h1 class="text-[20px] font-semibold leading-[1.2] text-[#1A1B1D]">Account settings</h1>
       </header>
@@ -775,7 +965,13 @@ type NotificationPreferenceSettings = Record<
                       [class.text-[#6453D9]]="securityTab() === 'password'"
                       [class.border-transparent]="securityTab() !== 'password'"
                     >
-                      <img ngSrc="/assets/icons/settings/security-lock.svg" width="16" height="16" alt="" aria-hidden="true">
+                      <img
+                        ngSrc="/assets/icons/settings/security-lock.svg"
+                        width="16"
+                        height="16"
+                        alt=""
+                        aria-hidden="true"
+                      />
                       Password
                     </button>
 
@@ -787,18 +983,29 @@ type NotificationPreferenceSettings = Record<
                       [class.text-[#6453D9]]="securityTab() === '2fa'"
                       [class.border-transparent]="securityTab() !== '2fa'"
                     >
-                      <img ngSrc="/assets/icons/settings/security-key.svg" width="16" height="16" alt="" aria-hidden="true">
+                      <img
+                        ngSrc="/assets/icons/settings/security-key.svg"
+                        width="16"
+                        height="16"
+                        alt=""
+                        aria-hidden="true"
+                      />
                       2-Factor Authentication
                     </button>
                   </div>
 
                   @if (securityTab() === 'password') {
                     <div class="mt-8">
-                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Change password</h3>
+                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">
+                        Change password
+                      </h3>
 
                       <div class="mt-8 space-y-8">
                         <div>
-                          <label for="current-password" class="mb-2 block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                          <label
+                            for="current-password"
+                            class="mb-2 block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]"
+                          >
                             Enter current password
                           </label>
                           <input
@@ -807,50 +1014,72 @@ type NotificationPreferenceSettings = Record<
                             [value]="currentPassword()"
                             (input)="updateCurrentPassword($event)"
                             class="h-8 w-full rounded-lg border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none focus:border-[#6453D9]"
-                          >
+                          />
                         </div>
 
                         <div>
-                          <label for="new-password" class="mb-2 block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                          <label
+                            for="new-password"
+                            class="mb-2 block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]"
+                          >
                             Enter new password
                           </label>
-                          <div class="flex h-8 items-center gap-2 rounded-lg border border-[#6453D9] bg-white px-3">
+                          <div
+                            class="flex h-8 items-center gap-2 rounded-lg border border-[#6453D9] bg-white px-3"
+                          >
                             <input
                               id="new-password"
                               [type]="showNewPassword() ? 'text' : 'password'"
                               [value]="newPassword()"
                               (input)="updateNewPassword($event)"
                               class="min-w-0 flex-1 bg-transparent text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none"
-                            >
+                            />
                             <button
                               type="button"
                               (click)="showNewPassword.update(value => !value)"
                               class="inline-flex h-5 w-5 items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6453D9]"
                               aria-label="Toggle password visibility"
                             >
-                              <img ngSrc="/assets/icons/settings/security-eye.svg" width="20" height="20" alt="" aria-hidden="true">
+                              <img
+                                ngSrc="/assets/icons/settings/security-eye.svg"
+                                width="20"
+                                height="20"
+                                alt=""
+                                aria-hidden="true"
+                              />
                             </button>
                           </div>
 
                           <div class="mt-4 flex items-center justify-between gap-4">
-                            <p class="text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">Password strength</p>
+                            <p class="text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
+                              Password strength
+                            </p>
                             <div class="flex gap-1.5">
                               @for (segment of passwordStrengthSegments(); track $index) {
-                                <span class="h-1 w-10 rounded-full" [style.background]="segment"></span>
+                                <span
+                                  class="h-1 w-10 rounded-full"
+                                  [style.background]="segment"
+                                ></span>
                               }
                             </div>
                           </div>
 
                           <div class="mt-4 flex flex-wrap gap-2">
                             @for (item of passwordChecks(); track item.label) {
-                              <span class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#F3F3F3] bg-white px-3 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]">
+                              <span
+                                class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#F3F3F3] bg-white px-3 text-[12px] leading-normal text-[rgba(26,27,29,0.6)]"
+                              >
                                 <img
-                                  [ngSrc]="item.passed ? '/assets/icons/settings/security-check.svg' : '/assets/icons/settings/security-close-circle.svg'"
+                                  [ngSrc]="
+                                    item.passed
+                                      ? '/assets/icons/settings/security-check.svg'
+                                      : '/assets/icons/settings/security-close-circle.svg'
+                                  "
                                   width="16"
                                   height="16"
                                   alt=""
                                   aria-hidden="true"
-                                >
+                                />
                                 {{ item.label }}
                               </span>
                             }
@@ -858,7 +1087,10 @@ type NotificationPreferenceSettings = Record<
                         </div>
 
                         <div>
-                          <label for="confirm-password" class="mb-2 block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                          <label
+                            for="confirm-password"
+                            class="mb-2 block text-[14px] leading-5 text-[rgba(26,27,29,0.6)]"
+                          >
                             Confirm new password
                           </label>
                           <input
@@ -867,7 +1099,7 @@ type NotificationPreferenceSettings = Record<
                             [value]="confirmPassword()"
                             (input)="updateConfirmPassword($event)"
                             class="h-8 w-full rounded-lg border border-[#EAEAEA] bg-white px-3 text-[14px] font-medium leading-5 text-[#1A1B1D] outline-none focus:border-[#6453D9]"
-                          >
+                          />
                         </div>
                       </div>
 
@@ -897,7 +1129,8 @@ type NotificationPreferenceSettings = Record<
                           Select an authentication method
                         </h3>
                         <p class="mt-1 text-[14px] leading-5 text-[rgba(13,13,13,0.6)]">
-                          Turning this on will require an additional verification code when you log in from an untrusted device.
+                          Turning this on will require an additional verification code when you log
+                          in from an untrusted device.
                         </p>
                       </div>
 
@@ -912,17 +1145,29 @@ type NotificationPreferenceSettings = Record<
                             [class.border-[#EBEBEB]]="selectedAuthMethod() !== method.id"
                             [attr.aria-pressed]="selectedAuthMethod() === method.id"
                           >
-                            <span class="absolute left-[15px] top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#E6E6E6] bg-white">
-                              <img [ngSrc]="method.iconSrc" width="24" height="24" alt="" aria-hidden="true">
+                            <span
+                              class="absolute left-[15px] top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#E6E6E6] bg-white"
+                            >
+                              <img
+                                [ngSrc]="method.iconSrc"
+                                width="24"
+                                height="24"
+                                alt=""
+                                aria-hidden="true"
+                              />
                             </span>
-                            <span class="absolute left-[79px] right-[58px] top-1/2 flex -translate-y-1/2 flex-col gap-1">
+                            <span
+                              class="absolute left-[79px] right-[58px] top-1/2 flex -translate-y-1/2 flex-col gap-1"
+                            >
                               <span class="text-[16px] font-medium leading-6 text-[#1F1F1F]">
                                 {{ method.label }}
                                 @if (method.meta) {
                                   <span class="font-normal text-[#959595]">{{ method.meta }}</span>
                                 }
                               </span>
-                              <span class="text-[12px] leading-4 text-[#959595]">{{ method.description }}</span>
+                              <span class="text-[12px] leading-4 text-[#959595]">{{
+                                method.description
+                              }}</span>
                             </span>
                             <span
                               class="absolute right-[15px] top-[28px] flex h-5 w-5 items-center justify-center rounded-full border bg-white"
@@ -954,7 +1199,8 @@ type NotificationPreferenceSettings = Record<
                           Select an authentication method
                         </h3>
                         <p class="mt-1 text-[14px] leading-5 text-[rgba(13,13,13,0.6)]">
-                          Turning this on will require an additional verification code when you log in from an untrusted device.
+                          Turning this on will require an additional verification code when you log
+                          in from an untrusted device.
                         </p>
                       </div>
 
@@ -964,29 +1210,45 @@ type NotificationPreferenceSettings = Record<
                             class="relative min-h-[147px] rounded-[20px] border border-[#6453D9] bg-[#F9F7FF] px-[15px] pb-[15px] pt-[21px]"
                             [attr.aria-label]="method.label + ' is active'"
                           >
-                            <span class="absolute right-[15px] top-[15px] inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-[#DFFDF5] px-2">
+                            <span
+                              class="absolute right-[15px] top-[15px] inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-[#DFFDF5] px-2"
+                            >
                               <img
                                 ngSrc="/assets/icons/settings/two-factor-active-badge.svg"
                                 width="14"
                                 height="14"
                                 alt=""
                                 aria-hidden="true"
+                              />
+                              <span class="text-[12px] font-semibold leading-4 text-[#25AD32]"
+                                >Active</span
                               >
-                              <span class="text-[12px] font-semibold leading-4 text-[#25AD32]">Active</span>
                             </span>
 
                             <div class="flex items-start gap-5">
-                              <span class="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E6E6E6] bg-white">
-                                <img [ngSrc]="method.iconSrc" width="24" height="24" alt="" aria-hidden="true">
+                              <span
+                                class="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E6E6E6] bg-white"
+                              >
+                                <img
+                                  [ngSrc]="method.iconSrc"
+                                  width="24"
+                                  height="24"
+                                  alt=""
+                                  aria-hidden="true"
+                                />
                               </span>
                               <div class="min-w-0 flex-1 pr-[72px]">
                                 <p class="text-[18px] font-medium leading-6 text-[#1F1F1F]">
                                   {{ method.label }}
                                   @if (method.meta) {
-                                    <span class="font-normal text-[#959595]">{{ ' ' + method.meta }}</span>
+                                    <span class="font-normal text-[#959595]">{{
+                                      ' ' + method.meta
+                                    }}</span>
                                   }
                                 </p>
-                                <p class="mt-1 max-w-[318px] text-[13px] leading-4 text-[rgba(13,13,13,0.6)]">
+                                <p
+                                  class="mt-1 max-w-[318px] text-[13px] leading-4 text-[rgba(13,13,13,0.6)]"
+                                >
                                   {{ method.activeDescription }}
                                 </p>
 
@@ -999,7 +1261,9 @@ type NotificationPreferenceSettings = Record<
                             </div>
                           </section>
 
-                          <div class="flex items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]">
+                          <div
+                            class="flex items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]"
+                          >
                             <img
                               ngSrc="/assets/icons/settings/two-factor-warning.svg"
                               width="24"
@@ -1007,7 +1271,7 @@ type NotificationPreferenceSettings = Record<
                               alt=""
                               aria-hidden="true"
                               class="shrink-0"
-                            >
+                            />
                             <p class="text-[14px] font-medium leading-5 text-[#A2A500]">
                               {{ method.warningMessage }}
                             </p>
@@ -1045,12 +1309,16 @@ type NotificationPreferenceSettings = Record<
                       [class.text-[#959595]]="notificationsTab() !== 'method'"
                     >
                       <img
-                        [ngSrc]="notificationsTab() === 'method' ? '/assets/icons/settings/notifications-tab-method.svg' : '/assets/icons/settings/settings-nav-notifications.svg'"
+                        [ngSrc]="
+                          notificationsTab() === 'method'
+                            ? '/assets/icons/settings/notifications-tab-method.svg'
+                            : '/assets/icons/settings/settings-nav-notifications.svg'
+                        "
                         width="16"
                         height="16"
                         alt=""
                         aria-hidden="true"
-                      >
+                      />
                       Method
                     </button>
 
@@ -1063,7 +1331,13 @@ type NotificationPreferenceSettings = Record<
                       [class.border-transparent]="notificationsTab() !== 'preferences'"
                       [class.text-[#959595]]="notificationsTab() !== 'preferences'"
                     >
-                      <img ngSrc="/assets/icons/settings/notifications-tab-preferences.svg" width="16" height="16" alt="" aria-hidden="true">
+                      <img
+                        ngSrc="/assets/icons/settings/notifications-tab-preferences.svg"
+                        width="16"
+                        height="16"
+                        alt=""
+                        aria-hidden="true"
+                      />
                       Preferences
                     </button>
                   </div>
@@ -1073,8 +1347,12 @@ type NotificationPreferenceSettings = Record<
                       @for (item of notificationMethods; track item.id) {
                         <div class="flex items-start justify-between gap-6">
                           <div class="min-w-0 flex-1">
-                            <h3 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">{{ item.label }}</h3>
-                            <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">{{ item.description }}</p>
+                            <h3 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                              {{ item.label }}
+                            </h3>
+                            <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
+                              {{ item.description }}
+                            </p>
                           </div>
 
                           <button
@@ -1096,7 +1374,9 @@ type NotificationPreferenceSettings = Record<
                       }
                     </div>
 
-                    <div class="mt-14 flex w-[545px] items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]">
+                    <div
+                      class="mt-14 flex w-[545px] items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]"
+                    >
                       <img
                         ngSrc="/assets/icons/settings/two-factor-warning.svg"
                         width="24"
@@ -1104,26 +1384,42 @@ type NotificationPreferenceSettings = Record<
                         alt=""
                         aria-hidden="true"
                         class="shrink-0"
-                      >
+                      />
                       <p class="text-[14px] font-medium leading-5 text-[#A2A500]">
                         Maximize your platform usage by leaving notification settings active
                       </p>
                     </div>
                   } @else {
                     <div class="mt-8 w-[629px] max-w-full">
-                      <div class="grid grid-cols-[minmax(0,1fr)_74px_74px_74px] items-center gap-x-[28px] border-b border-[#EFEFEF] pb-[10px]">
-                        <p class="text-[13px] font-medium leading-5 text-[#7D828B]">Notify me about</p>
-                        <p class="text-center text-[13px] font-medium leading-5 text-[#7D828B]">SMS</p>
-                        <p class="text-center text-[13px] font-medium leading-5 text-[#7D828B]">Email</p>
-                        <p class="text-center text-[13px] font-medium leading-5 text-[#7D828B]">Push</p>
+                      <div
+                        class="grid grid-cols-[minmax(0,1fr)_74px_74px_74px] items-center gap-x-[28px] border-b border-[#EFEFEF] pb-[10px]"
+                      >
+                        <p class="text-[13px] font-medium leading-5 text-[#7D828B]">
+                          Notify me about
+                        </p>
+                        <p class="text-center text-[13px] font-medium leading-5 text-[#7D828B]">
+                          SMS
+                        </p>
+                        <p class="text-center text-[13px] font-medium leading-5 text-[#7D828B]">
+                          Email
+                        </p>
+                        <p class="text-center text-[13px] font-medium leading-5 text-[#7D828B]">
+                          Push
+                        </p>
                       </div>
 
                       <div class="space-y-[20px] pt-[16px]">
                         @for (item of notificationPreferenceCategories; track item.id) {
-                          <div class="grid grid-cols-[minmax(0,1fr)_74px_74px_74px] items-start gap-x-[28px]">
+                          <div
+                            class="grid grid-cols-[minmax(0,1fr)_74px_74px_74px] items-start gap-x-[28px]"
+                          >
                             <div class="min-w-0 pr-2">
-                              <h3 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">{{ item.label }}</h3>
-                              <p class="mt-[2px] text-[14px] leading-[1.35] text-[rgba(26,27,29,0.6)]">
+                              <h3 class="text-[16px] font-medium leading-6 text-[#1A1B1D]">
+                                {{ item.label }}
+                              </h3>
+                              <p
+                                class="mt-[2px] text-[14px] leading-[1.35] text-[rgba(26,27,29,0.6)]"
+                              >
                                 {{ item.description }}
                               </p>
                             </div>
@@ -1133,15 +1429,30 @@ type NotificationPreferenceSettings = Record<
                                 type="button"
                                 (click)="toggleNotificationPreference(item.id, channel.id)"
                                 class="mx-auto mt-[2px] flex h-[16px] w-[16px] items-center justify-center rounded-[4px] border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
-                                [class.border-[#6B5CF0]]="isNotificationPreferenceEnabled(item.id, channel.id)"
-                                [class.bg-[#6B5CF0]]="isNotificationPreferenceEnabled(item.id, channel.id)"
-                                [class.border-[#D5D5D5]]="!isNotificationPreferenceEnabled(item.id, channel.id)"
-                                [class.bg-white]="!isNotificationPreferenceEnabled(item.id, channel.id)"
-                                [attr.aria-pressed]="isNotificationPreferenceEnabled(item.id, channel.id)"
+                                [class.border-[#6B5CF0]]="
+                                  isNotificationPreferenceEnabled(item.id, channel.id)
+                                "
+                                [class.bg-[#6B5CF0]]="
+                                  isNotificationPreferenceEnabled(item.id, channel.id)
+                                "
+                                [class.border-[#D5D5D5]]="
+                                  !isNotificationPreferenceEnabled(item.id, channel.id)
+                                "
+                                [class.bg-white]="
+                                  !isNotificationPreferenceEnabled(item.id, channel.id)
+                                "
+                                [attr.aria-pressed]="
+                                  isNotificationPreferenceEnabled(item.id, channel.id)
+                                "
                                 [attr.aria-label]="'Toggle ' + item.label + ' for ' + channel.label"
                               >
                                 @if (isNotificationPreferenceEnabled(item.id, channel.id)) {
-                                  <svg class="h-[10px] w-[10px]" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                                  <svg
+                                    class="h-[10px] w-[10px]"
+                                    viewBox="0 0 10 10"
+                                    fill="none"
+                                    aria-hidden="true"
+                                  >
                                     <path
                                       d="M2.2 5.2 4.1 7l3.7-4"
                                       stroke="white"
@@ -1157,7 +1468,9 @@ type NotificationPreferenceSettings = Record<
                         }
                       </div>
 
-                      <div class="mt-[26px] flex w-[505px] max-w-full items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]">
+                      <div
+                        class="mt-[26px] flex w-[505px] max-w-full items-center gap-2 rounded-[12px] bg-[rgba(250,250,250,0.8)] px-[10px] py-[11px]"
+                      >
                         <img
                           ngSrc="/assets/icons/settings/two-factor-warning.svg"
                           width="24"
@@ -1165,7 +1478,7 @@ type NotificationPreferenceSettings = Record<
                           alt=""
                           aria-hidden="true"
                           class="shrink-0"
-                        >
+                        />
                         <p class="text-[14px] font-medium leading-5 text-[#A2A500]">
                           Maximize your platform usage by leaving notification settings active
                         </p>
@@ -1184,10 +1497,13 @@ type NotificationPreferenceSettings = Record<
                 <div class="mt-8 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-6">
                   <div class="flex items-start justify-between gap-6">
                     <div class="min-w-0 flex-1">
-                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Require KYC for posting</h3>
+                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">
+                        Require KYC for posting
+                      </h3>
                       <p class="mt-2 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                        Turn this on when sellers must verify their identity before creating or publishing listings.
-                        Turn it off to let users post without KYC, while keeping existing verification badges and records intact.
+                        Turn this on when sellers must verify their identity before creating or
+                        publishing listings. Turn it off to let users post without KYC, while
+                        keeping existing verification badges and records intact.
                       </p>
                     </div>
 
@@ -1227,10 +1543,13 @@ type NotificationPreferenceSettings = Record<
                 <div class="mt-4 rounded-[20px] border border-[#EFEFEF] bg-white px-5 py-6">
                   <div class="flex items-start justify-between gap-6">
                     <div class="min-w-0 flex-1">
-                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">Enable subscriptions across the app</h3>
+                      <h3 class="text-[20px] font-semibold leading-7 text-[#1A1B1D]">
+                        Enable subscriptions across the app
+                      </h3>
                       <p class="mt-2 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
-                        Turn this on to allow sellers to buy subscription plans and use paid promotion features.
-                        Turn it off to block plan purchases and hide promoted placements such as sponsored listings, store promotions, and banner ads.
+                        Turn this on to allow sellers to buy subscription plans and use paid
+                        promotion features. Turn it off to block plan purchases and hide promoted
+                        placements such as sponsored listings, store promotions, and banner ads.
                       </p>
                     </div>
 
@@ -1327,7 +1646,9 @@ type NotificationPreferenceSettings = Record<
           aria-labelledby="turn-off-2fa-title"
           (click)="$event.stopPropagation()"
         >
-          <div class="absolute left-1/2 top-[11px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB] md:hidden"></div>
+          <div
+            class="absolute left-1/2 top-[11px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB] md:hidden"
+          ></div>
 
           <button
             type="button"
@@ -1335,14 +1656,24 @@ type NotificationPreferenceSettings = Record<
             class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D] md:right-6 md:top-6 md:h-8 md:w-8 md:border-0 md:bg-[#F9F9F9] md:shadow-none"
             aria-label="Close disable 2FA modal"
           >
-            <img ngSrc="/assets/icons/settings/modal-close.svg" width="24" height="24" alt="" aria-hidden="true">
+            <img
+              ngSrc="/assets/icons/settings/modal-close.svg"
+              width="24"
+              height="24"
+              alt=""
+              aria-hidden="true"
+            />
           </button>
 
-          <div class="bg-white px-4 pb-6 pt-[85px] md:rounded-b-[15px] md:px-6 md:pb-[46px] md:pt-6">
+          <div
+            class="bg-white px-4 pb-6 pt-[85px] md:rounded-b-[15px] md:px-6 md:pb-[46px] md:pt-6"
+          >
             <div class="flex flex-col items-start gap-3 md:w-[451px]">
               <div class="relative h-[120px] w-[121.5px] shrink-0">
                 <div class="absolute inset-0 rounded-full bg-[#F7F4EE]"></div>
-                <div class="absolute left-1/2 top-[16.5px] h-[87.5px] w-[88.6px] -translate-x-1/2 rounded-full bg-[#FDF6D7]"></div>
+                <div
+                  class="absolute left-1/2 top-[16.5px] h-[87.5px] w-[88.6px] -translate-x-1/2 rounded-full bg-[#FDF6D7]"
+                ></div>
                 <img
                   ngSrc="/assets/icons/settings/two-factor-warning.svg"
                   width="54"
@@ -1350,21 +1681,28 @@ type NotificationPreferenceSettings = Record<
                   alt=""
                   aria-hidden="true"
                   class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                >
+                />
               </div>
 
               <div class="w-full">
-                <h3 id="turn-off-2fa-title" class="text-[24px] font-semibold leading-8 text-[#1A1B1D] md:text-[24px] md:leading-normal md:text-[#0D0D0D]">
+                <h3
+                  id="turn-off-2fa-title"
+                  class="text-[24px] font-semibold leading-8 text-[#1A1B1D] md:text-[24px] md:leading-normal md:text-[#0D0D0D]"
+                >
                   Turn off two-factor authentication?
                 </h3>
-                <p class="mt-3 max-w-[325px] text-[16px] leading-6 text-[#5A5A5A] md:mt-3 md:max-w-[451px] md:font-medium md:leading-[1.4] md:text-[rgba(13,13,13,0.7)]">
+                <p
+                  class="mt-3 max-w-[325px] text-[16px] leading-6 text-[#5A5A5A] md:mt-3 md:max-w-[451px] md:font-medium md:leading-[1.4] md:text-[rgba(13,13,13,0.7)]"
+                >
                   This will make your account less secure. You’ll only need your password to log in.
                 </p>
               </div>
             </div>
           </div>
 
-          <div class="bg-white px-4 pb-8 pt-[10px] md:flex md:justify-end md:gap-4 md:bg-transparent md:px-[13.5px] md:pb-[15px] md:pt-4">
+          <div
+            class="bg-white px-4 pb-8 pt-[10px] md:flex md:justify-end md:gap-4 md:bg-transparent md:px-[13.5px] md:pb-[15px] md:pt-4"
+          >
             <div class="flex flex-col gap-3 md:hidden">
               <button
                 type="button"
@@ -1424,8 +1762,12 @@ type NotificationPreferenceSettings = Record<
           <div class="mt-[26px] flex flex-col items-center text-center md:mt-0">
             <div class="relative h-[121px] w-[121px]">
               <div class="absolute inset-0 rounded-full bg-[#FFF1F1]"></div>
-              <div class="absolute left-1/2 top-[15px] h-[91px] w-[91px] -translate-x-1/2 rounded-full bg-[#FFD9D9]"></div>
-              <div class="absolute left-1/2 top-[35px] flex h-[52px] w-[52px] -translate-x-1/2 items-center justify-center rounded-[18px] bg-[#FF3131] shadow-[0_10px_24px_rgba(255,49,49,0.18)]">
+              <div
+                class="absolute left-1/2 top-[15px] h-[91px] w-[91px] -translate-x-1/2 rounded-full bg-[#FFD9D9]"
+              ></div>
+              <div
+                class="absolute left-1/2 top-[35px] flex h-[52px] w-[52px] -translate-x-1/2 items-center justify-center rounded-[18px] bg-[#FF3131] shadow-[0_10px_24px_rgba(255,49,49,0.18)]"
+              >
                 <svg class="h-7 w-7" viewBox="0 0 28 28" fill="none" aria-hidden="true">
                   <path
                     d="M14 5.25c.62 0 1.2.33 1.51.86l7.16 12.33c.62 1.06-.15 2.38-1.36 2.38H6.69c-1.21 0-1.98-1.32-1.36-2.38l7.16-12.33c.31-.53.89-.86 1.51-.86Z"
@@ -1438,16 +1780,20 @@ type NotificationPreferenceSettings = Record<
                     stroke-width="2.2"
                     stroke-linecap="round"
                   />
-                  <circle cx="14" cy="18.25" r="1.4" fill="white"/>
+                  <circle cx="14" cy="18.25" r="1.4" fill="white" />
                 </svg>
               </div>
             </div>
 
-            <h3 id="logout-confirm-title" class="mt-[14px] text-[24px] font-semibold leading-8 text-[#1F2230]">
+            <h3
+              id="logout-confirm-title"
+              class="mt-[14px] text-[24px] font-semibold leading-8 text-[#1F2230]"
+            >
               Are you sure?
             </h3>
             <p class="mt-3 max-w-[320px] text-[16px] leading-[1.2] text-[#5E5E5E] md:max-w-[332px]">
-              Logging out will temporarily hide all your personal data, including matches and dates. To see again, simply log back in to your account.
+              Logging out will temporarily hide all your personal data, including matches and dates.
+              To see again, simply log back in to your account.
             </p>
           </div>
 
@@ -1488,8 +1834,12 @@ type NotificationPreferenceSettings = Record<
           <div class="mt-[22px] md:mt-0">
             <div class="relative h-[105px] w-[105px] md:h-[112px] md:w-[112px]">
               <div class="absolute inset-0 rounded-full bg-[#FFF1F1]"></div>
-              <div class="absolute left-1/2 top-[12px] h-[80px] w-[80px] -translate-x-1/2 rounded-full bg-[#FFD9D9] md:top-[14px] md:h-[84px] md:w-[84px]"></div>
-              <div class="absolute left-1/2 top-[31px] flex h-[46px] w-[46px] -translate-x-1/2 items-center justify-center rounded-[16px] bg-[#FF3131] shadow-[0_10px_24px_rgba(255,49,49,0.18)] md:top-[33px] md:h-[48px] md:w-[48px]">
+              <div
+                class="absolute left-1/2 top-[12px] h-[80px] w-[80px] -translate-x-1/2 rounded-full bg-[#FFD9D9] md:top-[14px] md:h-[84px] md:w-[84px]"
+              ></div>
+              <div
+                class="absolute left-1/2 top-[31px] flex h-[46px] w-[46px] -translate-x-1/2 items-center justify-center rounded-[16px] bg-[#FF3131] shadow-[0_10px_24px_rgba(255,49,49,0.18)] md:top-[33px] md:h-[48px] md:w-[48px]"
+              >
                 <svg class="h-6 w-6" viewBox="0 0 28 28" fill="none" aria-hidden="true">
                   <path
                     d="M14 9.15v5.95"
@@ -1497,21 +1847,35 @@ type NotificationPreferenceSettings = Record<
                     stroke-width="2.2"
                     stroke-linecap="round"
                   />
-                  <circle cx="14" cy="18.25" r="1.4" fill="white"/>
+                  <circle cx="14" cy="18.25" r="1.4" fill="white" />
                 </svg>
               </div>
             </div>
 
-            <h3 id="delete-account-confirm-title" class="mt-4 max-w-[290px] text-[24px] font-semibold leading-[1.15] text-[#1F2230] md:max-w-[360px]">
+            <h3
+              id="delete-account-confirm-title"
+              class="mt-4 max-w-[290px] text-[24px] font-semibold leading-[1.15] text-[#1F2230] md:max-w-[360px]"
+            >
               Delete your Duduzili account?
             </h3>
 
             <div class="mt-6">
               <p class="text-[16px] leading-6 text-[#595959]">What’s going to happen:</p>
-              <ul class="mt-4 list-disc space-y-4 pl-5 text-[16px] leading-[1.2] text-[#595959] marker:text-[#353535]">
-                <li>Your account will be <span class="font-semibold text-[#2D2D2D]">deactivated immediately.</span></li>
-                <li>It will be reactivated if you login <span class="font-semibold text-[#2D2D2D]">within 30 days.</span></li>
-                <li>If you don’t login after 30 days, your data will be <span class="font-semibold text-[#2D2D2D]">permanently deleted.</span></li>
+              <ul
+                class="mt-4 list-disc space-y-4 pl-5 text-[16px] leading-[1.2] text-[#595959] marker:text-[#353535]"
+              >
+                <li>
+                  Your account will be
+                  <span class="font-semibold text-[#2D2D2D]">deactivated immediately.</span>
+                </li>
+                <li>
+                  It will be reactivated if you login
+                  <span class="font-semibold text-[#2D2D2D]">within 30 days.</span>
+                </li>
+                <li>
+                  If you don’t login after 30 days, your data will be
+                  <span class="font-semibold text-[#2D2D2D]">permanently deleted.</span>
+                </li>
               </ul>
             </div>
           </div>
@@ -1548,7 +1912,9 @@ type NotificationPreferenceSettings = Record<
           aria-labelledby="notification-preference-sheet-title"
           (click)="$event.stopPropagation()"
         >
-          <div class="absolute left-1/2 top-[10px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#E3E3E3]"></div>
+          <div
+            class="absolute left-1/2 top-[10px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#E3E3E3]"
+          ></div>
 
           <button
             type="button"
@@ -1556,13 +1922,22 @@ type NotificationPreferenceSettings = Record<
             class="absolute right-4 top-[18px] z-10 flex h-[48px] w-[48px] items-center justify-center rounded-full border border-[#EFEFEF] bg-white shadow-[0_5px_14px_rgba(0,0,0,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
             aria-label="Close notification preference sheet"
           >
-            <img ngSrc="/assets/icons/settings/modal-close.svg" width="24" height="24" alt="" aria-hidden="true">
+            <img
+              ngSrc="/assets/icons/settings/modal-close.svg"
+              width="24"
+              height="24"
+              alt=""
+              aria-hidden="true"
+            />
           </button>
 
           <div class="px-4 pb-10 pt-[84px]">
             @if (mobilePreferenceCategoryConfig(); as category) {
               <div>
-                <h3 id="notification-preference-sheet-title" class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">
+                <h3
+                  id="notification-preference-sheet-title"
+                  class="text-[24px] font-semibold leading-8 text-[#1A1B1D]"
+                >
                   {{ category.label }}
                 </h3>
                 <p class="mt-[6px] text-[16px] font-normal leading-6 text-[#666666]">
@@ -1573,24 +1948,74 @@ type NotificationPreferenceSettings = Record<
                   @for (channel of notificationPreferenceChannels; track channel.id) {
                     <div class="flex items-center justify-between gap-4">
                       <span class="flex min-w-0 items-center gap-4">
-                        <span class="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-[#F7F7F7]">
+                        <span
+                          class="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-[#F7F7F7]"
+                        >
                           @switch (channel.id) {
                             @case ('sms') {
-                              <svg class="h-5 w-5 text-[#1F1F1F]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <path d="M10 15.5c3.866 0 7-2.686 7-6s-3.134-6-7-6-7 2.686-7 6c0 1.59.72 3.036 1.896 4.105L4.5 16.5l2.653-1.326A8.073 8.073 0 0 0 10 15.5Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                              <svg
+                                class="h-5 w-5 text-[#1F1F1F]"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  d="M10 15.5c3.866 0 7-2.686 7-6s-3.134-6-7-6-7 2.686-7 6c0 1.59.72 3.036 1.896 4.105L4.5 16.5l2.653-1.326A8.073 8.073 0 0 0 10 15.5Z"
+                                  stroke="currentColor"
+                                  stroke-width="1.4"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                />
                               </svg>
                             }
                             @case ('email') {
-                              <svg class="h-5 w-5 text-[#1F1F1F]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <rect x="3.25" y="5.25" width="13.5" height="9.5" rx="2.5" stroke="currentColor" stroke-width="1.4"/>
-                                <path d="m5 7 5 4 5-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                              <svg
+                                class="h-5 w-5 text-[#1F1F1F]"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                aria-hidden="true"
+                              >
+                                <rect
+                                  x="3.25"
+                                  y="5.25"
+                                  width="13.5"
+                                  height="9.5"
+                                  rx="2.5"
+                                  stroke="currentColor"
+                                  stroke-width="1.4"
+                                />
+                                <path
+                                  d="m5 7 5 4 5-4"
+                                  stroke="currentColor"
+                                  stroke-width="1.4"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                />
                               </svg>
                             }
                             @default {
-                              <svg class="h-5 w-5 text-[#1F1F1F]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <rect x="5.25" y="4.25" width="9.5" height="11.5" rx="2.75" stroke="currentColor" stroke-width="1.4"/>
-                                <path d="M12.75 4.75h1.25a1.75 1.75 0 0 1 1.75 1.75V7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-                                <circle cx="12.75" cy="7.25" r="1.15" fill="currentColor"/>
+                              <svg
+                                class="h-5 w-5 text-[#1F1F1F]"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                aria-hidden="true"
+                              >
+                                <rect
+                                  x="5.25"
+                                  y="4.25"
+                                  width="9.5"
+                                  height="11.5"
+                                  rx="2.75"
+                                  stroke="currentColor"
+                                  stroke-width="1.4"
+                                />
+                                <path
+                                  d="M12.75 4.75h1.25a1.75 1.75 0 0 1 1.75 1.75V7.5"
+                                  stroke="currentColor"
+                                  stroke-width="1.4"
+                                  stroke-linecap="round"
+                                />
+                                <circle cx="12.75" cy="7.25" r="1.15" fill="currentColor" />
                               </svg>
                             }
                           }
@@ -1605,15 +2030,27 @@ type NotificationPreferenceSettings = Record<
                         type="button"
                         (click)="toggleNotificationPreference(category.id, channel.id)"
                         class="relative h-[20px] w-[34px] shrink-0 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
-                        [class.bg-[#6453D9]]="isNotificationPreferenceEnabled(category.id, channel.id)"
-                        [class.bg-[#ECECEC]]="!isNotificationPreferenceEnabled(category.id, channel.id)"
-                        [attr.aria-pressed]="isNotificationPreferenceEnabled(category.id, channel.id)"
-                        [attr.aria-label]="'Toggle ' + channel.label + ' notifications for ' + category.label"
+                        [class.bg-[#6453D9]]="
+                          isNotificationPreferenceEnabled(category.id, channel.id)
+                        "
+                        [class.bg-[#ECECEC]]="
+                          !isNotificationPreferenceEnabled(category.id, channel.id)
+                        "
+                        [attr.aria-pressed]="
+                          isNotificationPreferenceEnabled(category.id, channel.id)
+                        "
+                        [attr.aria-label]="
+                          'Toggle ' + channel.label + ' notifications for ' + category.label
+                        "
                       >
                         <span
                           class="absolute top-[2px] h-[16px] w-[16px] rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.16)] transition"
-                          [class.left-[16px]]="isNotificationPreferenceEnabled(category.id, channel.id)"
-                          [class.left-[2px]]="!isNotificationPreferenceEnabled(category.id, channel.id)"
+                          [class.left-[16px]]="
+                            isNotificationPreferenceEnabled(category.id, channel.id)
+                          "
+                          [class.left-[2px]]="
+                            !isNotificationPreferenceEnabled(category.id, channel.id)
+                          "
                         ></span>
                       </button>
                     </div>
@@ -1625,7 +2062,6 @@ type NotificationPreferenceSettings = Record<
         </div>
       </div>
     }
-
   `,
   host: { class: 'block h-full min-h-0 overflow-hidden' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -1651,7 +2087,9 @@ export class SettingsPageComponent {
     return '/more';
   });
   readonly activeTab = signal<SettingsTab>('profile');
-  readonly mobileSettingsStep = signal<'menu' | 'profile' | 'security' | 'notifications' | 'platform' | 'locations'>('menu');
+  readonly mobileSettingsStep = signal<
+    'menu' | 'profile' | 'security' | 'notifications' | 'platform' | 'locations'
+  >('menu');
   readonly securityTab = signal<'password' | '2fa'>('password');
   readonly notificationsTab = signal<'method' | 'preferences'>('method');
   readonly currentPassword = signal('');
@@ -1713,20 +2151,21 @@ export class SettingsPageComponent {
   });
 
   readonly passwordStrengthSegments = computed(() => {
-    const passedCount = this.passwordChecks().filter(item => item.passed).length;
+    const passedCount = this.passwordChecks().filter((item) => item.passed).length;
 
-    return Array.from({ length: 4 }, (_, index) =>
-      index < passedCount ? '#FCD53F' : '#F0F0F0',
-    );
+    return Array.from({ length: 4 }, (_, index) => (index < passedCount ? '#FCD53F' : '#F0F0F0'));
   });
   readonly authenticationMethods: AuthenticationMethodConfig[] = [
     {
       id: 'sms',
       label: 'SMS code',
       meta: '',
-      description: 'Use your mobile phone to receive a text message with an authentication code to enter when you log in.',
-      activeDescription: 'Verification codes are sent to this number when logging in from a new device.',
-      warningMessage: 'Keep your phone number secure. If you lose access, you may be locked out of your account',
+      description:
+        'Use your mobile phone to receive a text message with an authentication code to enter when you log in.',
+      activeDescription:
+        'Verification codes are sent to this number when logging in from a new device.',
+      warningMessage:
+        'Keep your phone number secure. If you lose access, you may be locked out of your account',
       iconSrc: '/assets/icons/settings/two-factor-call.svg',
     },
     {
@@ -1734,8 +2173,10 @@ export class SettingsPageComponent {
       label: 'Email code',
       meta: '',
       description: 'Use your email to receive a verification code to enter when you log in.',
-      activeDescription: 'Verification codes are sent to your email when logging in from a new device.',
-      warningMessage: 'Keep your email access secure. If you lose access, you may be locked out of your account',
+      activeDescription:
+        'Verification codes are sent to your email when logging in from a new device.',
+      warningMessage:
+        'Keep your email access secure. If you lose access, you may be locked out of your account',
       iconSrc: '/assets/icons/settings/two-factor-sms.svg',
     },
     {
@@ -1743,8 +2184,10 @@ export class SettingsPageComponent {
       label: 'Authenticator app',
       meta: '',
       description: 'Install an app to generate your verification code',
-      activeDescription: 'Verification codes are sent to your authenticator app when logging in from a new device.',
-      warningMessage: 'Keep your phone number secure. If you lose access, you may be locked out of your account',
+      activeDescription:
+        'Verification codes are sent to your authenticator app when logging in from a new device.',
+      warningMessage:
+        'Keep your phone number secure. If you lose access, you may be locked out of your account',
       iconSrc: '/assets/icons/settings/two-factor-shield.svg',
     },
   ];
@@ -1779,12 +2222,14 @@ export class SettingsPageComponent {
     {
       id: 'listings' as const,
       label: 'Listings',
-      description: 'Stay informed about your listings, including status changes, reports, and performance updates',
+      description:
+        'Stay informed about your listings, including status changes, reports, and performance updates',
     },
     {
       id: 'ads' as const,
       label: 'Ads & Promotions',
-      description: 'Get notified when your ads are approved, go live, are rejected, or about to expire',
+      description:
+        'Get notified when your ads are approved, go live, are rejected, or about to expire',
     },
     {
       id: 'buyerActivity' as const,
@@ -1797,12 +2242,22 @@ export class SettingsPageComponent {
       description: 'Receive summaries and insights on how your listings and ads are performing',
     },
   ];
-  readonly isAdminSettingsView = computed(() => this.router.url.split('?')[0]?.startsWith('/admin/') ?? false);
+  readonly isAdminSettingsView = computed(
+    () => this.router.url.split('?')[0]?.startsWith('/admin/') ?? false,
+  );
   readonly mobileMenuItems = computed(() => {
     const items: Array<{ id: SettingsTab; label: string; iconSrc: string }> = [
-      { id: 'profile', label: 'Profile settings', iconSrc: '/assets/icons/settings/mobile-profile.svg' },
+      {
+        id: 'profile',
+        label: 'Profile settings',
+        iconSrc: '/assets/icons/settings/mobile-profile.svg',
+      },
       { id: 'security', label: 'Security', iconSrc: '/assets/icons/settings/mobile-security.svg' },
-      { id: 'notifications', label: 'Notifications', iconSrc: '/assets/icons/settings/mobile-notifications.svg' },
+      {
+        id: 'notifications',
+        label: 'Notifications',
+        iconSrc: '/assets/icons/settings/mobile-notifications.svg',
+      },
     ];
 
     if (this.isAdminSettingsView()) {
@@ -1868,11 +2323,15 @@ export class SettingsPageComponent {
     }
   });
   readonly activeAuthMethodConfig = computed(
-    () => this.authenticationMethods.find(method => method.id === this.selectedAuthMethod()) ?? this.authenticationMethods[0],
+    () =>
+      this.authenticationMethods.find((method) => method.id === this.selectedAuthMethod()) ??
+      this.authenticationMethods[0],
   );
   readonly mobilePreferenceCategoryConfig = computed(
     () =>
-      this.notificationPreferenceCategories.find(category => category.id === this.mobilePreferenceCategory()) ?? null,
+      this.notificationPreferenceCategories.find(
+        (category) => category.id === this.mobilePreferenceCategory(),
+      ) ?? null,
   );
 
   readonly currentModalConfig = computed(() => {
@@ -1892,7 +2351,8 @@ export class SettingsPageComponent {
       case 'call-add':
         return {
           title: 'Add call number',
-          description: 'You’ll use this number to get notifications, calls and recover your account when necessary. We’ll send you a code to confirm this.',
+          description:
+            'You’ll use this number to get notifications, calls and recover your account when necessary. We’ll send you a code to confirm this.',
           fieldLabel: 'Phone number',
           value: this.modalValue(),
           inputType: 'tel' as const,
@@ -1902,7 +2362,8 @@ export class SettingsPageComponent {
       case 'call-update':
         return {
           title: 'Update call number',
-          description: 'You’ll use this number to get notifications, calls and recover your account when necessary',
+          description:
+            'You’ll use this number to get notifications, calls and recover your account when necessary',
           fieldLabel: 'Phone number',
           value: this.modalValue(),
           inputType: 'tel' as const,
@@ -1932,7 +2393,8 @@ export class SettingsPageComponent {
       case 'email':
         return {
           title: 'Update email',
-          description: 'You’ll use this email to get notifications, sign in and recover your account when necessary',
+          description:
+            'You’ll use this email to get notifications, sign in and recover your account when necessary',
           fieldLabel: 'Email',
           value: this.modalValue() || profile.email,
           inputType: 'email' as const,
@@ -2126,7 +2588,12 @@ export class SettingsPageComponent {
       await firstValueFrom(this.authService.updateProfile(payload));
       this.showToast('We sent a new verification code.');
     } catch (error: unknown) {
-      this.showToast(this.extractSettingsErrorMessage(error, 'We couldn’t resend the code right now. Please try again.'));
+      this.showToast(
+        this.extractSettingsErrorMessage(
+          error,
+          'We couldn’t resend the code right now. Please try again.',
+        ),
+      );
     } finally {
       this.isVerificationResending.set(false);
     }
@@ -2176,7 +2643,12 @@ export class SettingsPageComponent {
       this.showToast('Password updated successfully');
       await this.authFlow.logout();
     } catch (error: unknown) {
-      this.showToast(this.extractSettingsErrorMessage(error, 'Your password couldn’t be updated right now. Please try again.'));
+      this.showToast(
+        this.extractSettingsErrorMessage(
+          error,
+          'Your password couldn’t be updated right now. Please try again.',
+        ),
+      );
     } finally {
       this.isPasswordSubmitting.set(false);
     }
@@ -2199,7 +2671,12 @@ export class SettingsPageComponent {
       this.twoFactorManualSecret.set(response.secret ?? null);
       this.isTwoFactorModalOpen.set(true);
     } catch (error: unknown) {
-      this.showToast(this.extractSettingsErrorMessage(error, 'We couldn’t start two-factor setup right now. Please try again.'));
+      this.showToast(
+        this.extractSettingsErrorMessage(
+          error,
+          'We couldn’t start two-factor setup right now. Please try again.',
+        ),
+      );
     } finally {
       this.isTwoFactorSubmitting.set(false);
     }
@@ -2218,7 +2695,12 @@ export class SettingsPageComponent {
       this.twoFactorEnabledDate.set(this.formatEnabledDate(response.enabled_at));
       this.showToast('2-Factor Authentication enabled successfully');
     } catch (error: unknown) {
-      this.showToast(this.extractSettingsErrorMessage(error, 'We couldn’t verify that two-factor code right now. Please try again.'));
+      this.showToast(
+        this.extractSettingsErrorMessage(
+          error,
+          'We couldn’t verify that two-factor code right now. Please try again.',
+        ),
+      );
     } finally {
       this.isTwoFactorSubmitting.set(false);
     }
@@ -2237,7 +2719,12 @@ export class SettingsPageComponent {
       this.twoFactorEnabledDate.set('');
       this.showToast('2-Factor Authentication disabled successfully');
     } catch (error: unknown) {
-      this.showToast(this.extractSettingsErrorMessage(error, 'We couldn’t turn off two-factor authentication right now. Please try again.'));
+      this.showToast(
+        this.extractSettingsErrorMessage(
+          error,
+          'We couldn’t turn off two-factor authentication right now. Please try again.',
+        ),
+      );
     } finally {
       this.isTwoFactorSubmitting.set(false);
     }
@@ -2318,7 +2805,9 @@ export class SettingsPageComponent {
         this.adminSettingsService.updateSiteConfiguration({ kyc_required: nextValue }),
       );
       this.isKycRequired.set(response.kyc_required);
-      this.showToast(`KYC requirement ${response.kyc_required ? 'enabled' : 'disabled'} successfully`);
+      this.showToast(
+        `KYC requirement ${response.kyc_required ? 'enabled' : 'disabled'} successfully`,
+      );
     } catch {
       this.isKycRequired.set(previousValue);
       this.showToast('The KYC setting couldn’t be updated right now. Please try again.');
@@ -2343,7 +2832,9 @@ export class SettingsPageComponent {
         this.adminSettingsService.updateSiteConfiguration({ subscriptions_enabled: nextValue }),
       );
       this.isSubscriptionsEnabled.set(response.subscriptions_enabled);
-      this.showToast(`Subscriptions ${response.subscriptions_enabled ? 'enabled' : 'disabled'} successfully`);
+      this.showToast(
+        `Subscriptions ${response.subscriptions_enabled ? 'enabled' : 'disabled'} successfully`,
+      );
     } catch {
       this.isSubscriptionsEnabled.set(previousValue);
       this.showToast('The subscription setting couldn’t be updated right now. Please try again.');
@@ -2560,7 +3051,9 @@ export class SettingsPageComponent {
     }
   }
 
-  private fromTwoFactorApiMethod(method: 'sms' | 'email' | 'authenticator' | null | undefined): TwoFactorMethod | null {
+  private fromTwoFactorApiMethod(
+    method: 'sms' | 'email' | 'authenticator' | null | undefined,
+  ): TwoFactorMethod | null {
     switch (method) {
       case 'authenticator':
         return 'app';
@@ -2663,7 +3156,12 @@ export class SettingsPageComponent {
       return code;
     }
 
-    for (const key of ['old_password', 'new_password', 'confirm_password', 'phone_number'] as const) {
+    for (const key of [
+      'old_password',
+      'new_password',
+      'confirm_password',
+      'phone_number',
+    ] as const) {
       const values = this.readStringArray(responseError?.[key]);
       if (values.length > 0) {
         return values[0];
@@ -2688,9 +3186,9 @@ export class SettingsPageComponent {
 
     const candidate = value as Partial<AuthUser>;
     return (
-      typeof candidate.id === 'number'
-      && typeof candidate.username === 'string'
-      && typeof candidate.email === 'string'
+      typeof candidate.id === 'number' &&
+      typeof candidate.username === 'string' &&
+      typeof candidate.email === 'string'
     );
   }
 
@@ -2703,7 +3201,9 @@ export class SettingsPageComponent {
       return [];
     }
 
-    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+    return value.filter(
+      (item): item is string => typeof item === 'string' && item.trim().length > 0,
+    );
   }
 
   private readRecord(value: unknown): Record<string, unknown> | null {
