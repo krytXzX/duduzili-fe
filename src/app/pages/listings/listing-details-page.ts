@@ -1270,161 +1270,65 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                   </p>
                 </div>
 
-                <div class="space-y-2.5">
-                  <div class="grid grid-cols-3 gap-2">
-                    @if (editPrimaryGalleryImage(); as primaryImage) {
+                <div class="grid grid-flow-row-dense grid-cols-3 gap-2">
+                  @for (slot of editGallerySlots(); track slot.position) {
+                    @if (slot.image; as image) {
                       <div
-                        class="relative h-[230px] overflow-hidden rounded-[18px] bg-[#F4F4F4] col-span-2"
-                        >
-                        <img
-                          [src]="primaryImage.src"
-                          [alt]="primaryImage.alt"
-                          class="absolute inset-0 h-full w-full object-cover"
-                        />
-                        <div
-                          class="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[12px] font-medium text-[#1A1B1D]"
-                        >
-                          Main photo
-                        </div>
-                        <button
-                          type="button"
-                          (click)="openEditImagePicker(0)"
-                          class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_4px_8px_rgba(15,23,42,0.08)]"
-                          aria-label="Photo actions"
-                        >
-                          <ng-icon name="heroEllipsisHorizontal" class="text-[18px]" aria-hidden="true"></ng-icon>
-                        </button>
-                        <span
-                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
-                        >
-                          1
-                        </span>
-                        <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1">
-                          <button
-                            type="button"
-                            (click)="removeEditImage(0)"
-                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[14px] text-[#D92D20]"
-                            aria-label="Remove first listing image"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
-                    } @else {
-                      <button
-                        type="button"
-                        (click)="openEditImagePicker()"
-                        class="relative h-[230px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] col-span-2"
-                        aria-label="Add listing photo 1"
+                        class="relative aspect-square overflow-hidden rounded-[18px] bg-[#F4F4F4]"
+                        [class.col-span-2]="slot.index === 0"
+                        [class.row-span-2]="slot.index === 0"
+                        [class.col-start-3]="slot.index === 1 || slot.index === 2 || slot.index === 5"
+                        [class.col-start-1]="slot.index === 3"
+                        [class.col-start-2]="slot.index === 4"
+                        [class.row-start-1]="slot.index === 1"
+                        [class.row-start-2]="slot.index === 2"
+                        [class.row-start-3]="slot.index === 3 || slot.index === 4 || slot.index === 5"
                       >
-                        <img
-                          ngSrc="/assets/icons/edit-listing-add.svg"
-                          alt=""
-                          width="24"
-                          height="24"
-                          class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
-                          aria-hidden="true"
-                        />
-                        <span
-                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
-                        >
-                          1
-                        </span>
-                      </button>
-                    }
-
-                    <div class="flex h-[230px] flex-col gap-2 col-span-1">
-                      @if (editSecondaryGalleryImage(); as secondaryImage) {
-                        <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
-                          <img
-                            [src]="secondaryImage.src"
-                            [alt]="secondaryImage.alt"
-                            class="absolute inset-0 h-full w-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            (click)="openEditImagePicker(1)"
-                            class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_4px_8px_rgba(15,23,42,0.08)]"
-                            aria-label="Photo actions"
-                          >
-                            <ng-icon name="heroEllipsisHorizontal" class="text-[18px]" aria-hidden="true"></ng-icon>
-                          </button>
-                          <span
-                            class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
-                          >
-                            2
-                          </span>
-                          <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1">
-                            <button
-                              type="button"
-                              (click)="removeEditImage(1)"
-                              class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[14px] text-[#D92D20]"
-                              aria-label="Remove second listing image"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </div>
-                      }
-
-                      @if (editSideAddSlot(); as sideSlot) {
-                        <button
-                          type="button"
-                          (click)="openEditImagePicker()"
-                          [disabled]="isGalleryFull()"
-                          class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
-                          [attr.aria-label]="'Add listing photo ' + sideSlot"
-                        >
-                          <img
-                            ngSrc="/assets/icons/edit-listing-add.svg"
-                            alt=""
-                            width="24"
-                            height="24"
-                            class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
-                            aria-hidden="true"
-                          />
-                          <span
-                            class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
-                          >
-                            {{ sideSlot }}
-                          </span>
-                        </button>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="grid grid-cols-3 gap-2">
-                    @for (image of editRemainingGalleryImages(); track image.token; let index = $index) {
-                      <div class="relative h-[111px] overflow-hidden rounded-[18px] bg-[#F4F4F4]">
                         <img
                           [src]="image.src"
                           [alt]="image.alt"
                           class="absolute inset-0 h-full w-full object-cover"
                         />
-                        <span
-                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
+                        @if (slot.index === 0) {
+                          <div class="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[12px] font-medium text-[#1A1B1D]">
+                            Main photo
+                          </div>
+                        }
+                        <button
+                          type="button"
+                          (click)="openEditImagePicker(slot.index)"
+                          class="absolute right-2 top-2 inline-flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_4px_8px_rgba(15,23,42,0.08)]"
+                          [attr.aria-label]="'Replace listing photo ' + slot.position"
                         >
-                          {{ index + 3 }}
+                          <ng-icon name="heroEllipsisHorizontal" class="text-[18px]" aria-hidden="true"></ng-icon>
+                        </button>
+                        <span class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]">
+                          {{ slot.position }}
                         </span>
-                        <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1">
-                          <button
-                            type="button"
-                            (click)="removeEditImage(index + 2)"
-                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[14px] text-[#D92D20]"
-                            [attr.aria-label]="'Remove listing image ' + (index + 3)"
-                          >
-                            ×
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          (click)="removeEditImage(slot.index)"
+                          class="absolute bottom-1.5 left-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[14px] text-[#D92D20]"
+                          [attr.aria-label]="'Remove listing photo ' + slot.position"
+                        >
+                          ×
+                        </button>
                       </div>
-                    }
-                    @for (slot of editRemainingPlaceholderSlots(); track slot) {
+                    } @else {
                       <button
                         type="button"
                         (click)="openEditImagePicker()"
                         [disabled]="isGalleryFull()"
-                        class="relative h-[111px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
-                        [attr.aria-label]="'Add listing photo ' + slot"
+                        class="relative aspect-square overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
+                        [class.col-span-2]="slot.index === 0"
+                        [class.row-span-2]="slot.index === 0"
+                        [class.col-start-3]="slot.index === 1 || slot.index === 2 || slot.index === 5"
+                        [class.col-start-1]="slot.index === 3"
+                        [class.col-start-2]="slot.index === 4"
+                        [class.row-start-1]="slot.index === 1"
+                        [class.row-start-2]="slot.index === 2"
+                        [class.row-start-3]="slot.index === 3 || slot.index === 4 || slot.index === 5"
+                        [attr.aria-label]="'Add listing photo ' + slot.position"
                       >
                         <img
                           ngSrc="/assets/icons/edit-listing-add.svg"
@@ -1434,14 +1338,12 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                           class="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2"
                           aria-hidden="true"
                         />
-                        <span
-                          class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]"
-                        >
-                          {{ slot }}
+                        <span class="absolute bottom-1.5 right-1.5 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white text-[12px] font-medium text-[#2D2D2D]">
+                          {{ slot.position }}
                         </span>
                       </button>
                     }
-                  </div>
+                  }
                 </div>
 
                 <label class="block space-y-1">
@@ -1826,170 +1728,65 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
                   @if (isEditSectionOpen('media')) {
                     <div class="space-y-8">
-                      <div class="space-y-3">
-                        <div class="grid grid-cols-[minmax(0,1fr)_176px] gap-3">
-                          @if (editPrimaryGalleryImage(); as primaryImage) {
+                      <div class="grid grid-flow-row-dense grid-cols-3 gap-3">
+                        @for (slot of editGallerySlots(); track slot.position) {
+                          @if (slot.image; as image) {
                             <div
-                              class="relative h-[363px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
-                              >
-                              <img
-                                [src]="primaryImage.src"
-                                [alt]="primaryImage.alt"
-                                class="absolute inset-0 h-full w-full object-cover"
-                              />
-
-                              <div
-                                class="absolute left-3 top-3 rounded-full border border-[#F1F1F1] bg-white px-3 py-[6px] text-[18px] font-medium leading-[30px] text-[#1A1B1D]"
-                              >
-                                Main photo
-                              </div>
-
-                              <button
-                                type="button"
-                                (click)="openEditImagePicker(0)"
-                                class="absolute right-3 top-3 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_6px_14px_rgba(15,23,42,0.08)]"
-                                aria-label="Photo actions"
-                              >
-                                <ng-icon name="heroEllipsisHorizontal" class="text-[26px]" aria-hidden="true"></ng-icon>
-                              </button>
-
-                              <div
-                                class="absolute bottom-4 right-5 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
-                              >
-                                1
-                              </div>
-                              <div class="absolute bottom-4 left-4 flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  (click)="removeEditImage(0)"
-                                  class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[18px] text-[#D92D20]"
-                                  aria-label="Remove first listing image"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            </div>
-                          } @else {
-                            <button
-                              type="button"
-                              (click)="openEditImagePicker()"
-                              class="relative h-[363px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4]"
-                              aria-label="Add listing photo 1"
+                              class="relative aspect-square overflow-hidden rounded-[18px] bg-[#F4F4F4]"
+                              [class.col-span-2]="slot.index === 0"
+                              [class.row-span-2]="slot.index === 0"
+                              [class.col-start-3]="slot.index === 1 || slot.index === 2 || slot.index === 5"
+                              [class.col-start-1]="slot.index === 3"
+                              [class.col-start-2]="slot.index === 4"
+                              [class.row-start-1]="slot.index === 1"
+                              [class.row-start-2]="slot.index === 2"
+                              [class.row-start-3]="slot.index === 3 || slot.index === 4 || slot.index === 5"
                             >
-                              <img
-                                ngSrc="/assets/icons/edit-listing-add.svg"
-                                alt=""
-                                width="37"
-                                height="37"
-                                class="absolute left-1/2 top-1/2 h-[37px] w-[37px] -translate-x-1/2 -translate-y-1/2"
-                                aria-hidden="true"
-                              />
-                              <span
-                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
-                              >
-                                1
-                              </span>
-                            </button>
-                          }
-
-                          <div class="flex h-[363px] flex-col gap-3">
-                            @if (editSecondaryGalleryImage(); as secondaryImage) {
-                              <div
-                                class="relative flex-1 overflow-hidden rounded-[18px] bg-[#F4F4F4]"
-                                >
-                                <img
-                                  [src]="secondaryImage.src"
-                                  [alt]="secondaryImage.alt"
-                                  class="absolute inset-0 h-full w-full object-cover"
-                                />
-
-                                <button
-                                  type="button"
-                                  (click)="openEditImagePicker(1)"
-                                  class="absolute right-3 top-3 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_6px_14px_rgba(15,23,42,0.08)]"
-                                  aria-label="Photo actions"
-                                >
-                                  <ng-icon name="heroEllipsisHorizontal" class="text-[26px]" aria-hidden="true"></ng-icon>
-                                </button>
-
-                                <div
-                                  class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
-                                >
-                                  2
-                                </div>
-                                <div class="absolute bottom-3 left-3 flex items-center gap-2">
-                                  <button
-                                    type="button"
-                                    (click)="removeEditImage(1)"
-                                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[18px] text-[#D92D20]"
-                                    aria-label="Remove second listing image"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              </div>
-                            }
-
-                            @if (editSideAddSlot(); as sideSlot) {
-                              <button
-                                type="button"
-                                (click)="openEditImagePicker()"
-                                [disabled]="isGalleryFull()"
-                                class="relative flex-1 overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
-                                [attr.aria-label]="'Add listing photo ' + sideSlot"
-                              >
-                                <img
-                                  ngSrc="/assets/icons/edit-listing-add.svg"
-                                  alt=""
-                                  width="37"
-                                  height="37"
-                                  class="absolute left-1/2 top-1/2 h-[37px] w-[37px] -translate-x-1/2 -translate-y-1/2"
-                                  aria-hidden="true"
-                                />
-                                <span
-                                  class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
-                                >
-                                  {{ sideSlot }}
-                                </span>
-                              </button>
-                            }
-                          </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-3">
-                          @for (image of editRemainingGalleryImages(); track image.token; let index = $index) {
-                            <div
-                              class="relative h-[175px] overflow-hidden rounded-[18px] bg-[#F4F4F4]"
-                              >
                               <img
                                 [src]="image.src"
                                 [alt]="image.alt"
                                 class="absolute inset-0 h-full w-full object-cover"
                               />
-                              <span
-                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
+                              @if (slot.index === 0) {
+                                <div class="absolute left-3 top-3 rounded-full border border-[#F1F1F1] bg-white px-3 py-[6px] text-[18px] font-medium leading-[30px] text-[#1A1B1D]">
+                                  Main photo
+                                </div>
+                              }
+                              <button
+                                type="button"
+                                (click)="openEditImagePicker(slot.index)"
+                                class="absolute right-3 top-3 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1B1D] shadow-[0_6px_14px_rgba(15,23,42,0.08)]"
+                                [attr.aria-label]="'Replace listing photo ' + slot.position"
                               >
-                                {{ index + 3 }}
+                                <ng-icon name="heroEllipsisHorizontal" class="text-[26px]" aria-hidden="true"></ng-icon>
+                              </button>
+                              <span class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]">
+                                {{ slot.position }}
                               </span>
-                              <div class="absolute bottom-3 left-3 flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  (click)="removeEditImage(index + 2)"
-                                  class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[18px] text-[#D92D20]"
-                                  [attr.aria-label]="'Remove listing image ' + (index + 3)"
-                                >
-                                  ×
-                                </button>
-                              </div>
+                              <button
+                                type="button"
+                                (click)="removeEditImage(slot.index)"
+                                class="absolute bottom-3 left-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[18px] text-[#D92D20]"
+                                [attr.aria-label]="'Remove listing photo ' + slot.position"
+                              >
+                                ×
+                              </button>
                             </div>
-                          }
-                          @for (slot of editRemainingPlaceholderSlots(); track slot) {
+                          } @else {
                             <button
                               type="button"
                               (click)="openEditImagePicker()"
                               [disabled]="isGalleryFull()"
-                              class="relative h-[175px] overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
-                              [attr.aria-label]="'Add listing photo ' + slot"
+                              class="relative aspect-square overflow-hidden rounded-[18px] border border-dashed border-[#CECECE] bg-[#F4F4F4] disabled:opacity-40"
+                              [class.col-span-2]="slot.index === 0"
+                              [class.row-span-2]="slot.index === 0"
+                              [class.col-start-3]="slot.index === 1 || slot.index === 2 || slot.index === 5"
+                              [class.col-start-1]="slot.index === 3"
+                              [class.col-start-2]="slot.index === 4"
+                              [class.row-start-1]="slot.index === 1"
+                              [class.row-start-2]="slot.index === 2"
+                              [class.row-start-3]="slot.index === 3 || slot.index === 4 || slot.index === 5"
+                              [attr.aria-label]="'Add listing photo ' + slot.position"
                             >
                               <img
                                 ngSrc="/assets/icons/edit-listing-add.svg"
@@ -1999,14 +1796,12 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                                 class="absolute left-1/2 top-1/2 h-[37px] w-[37px] -translate-x-1/2 -translate-y-1/2"
                                 aria-hidden="true"
                               />
-                              <span
-                                class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]"
-                              >
-                                {{ slot }}
+                              <span class="absolute bottom-3 right-3 inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[13px] font-medium text-[#2D2D2D]">
+                                {{ slot.position }}
                               </span>
                             </button>
                           }
-                        </div>
+                        }
                       </div>
 
                       <label class="block space-y-1">
@@ -3038,7 +2833,6 @@ export class ListingDetailsPageComponent implements OnDestroy {
   protected readonly maxGalleryImages = 6;
   protected readonly selectedDeliveryMethods = signal<string[]>([]);
   protected readonly selectedDeliveryRanges = signal<string[]>([]);
-  protected readonly editMediaPlaceholderSlots = [4, 5, 6] as const;
   private readonly editImageInput = viewChild<ElementRef<HTMLInputElement>>('editImageInput');
   private readonly editableGalleryImages = signal<EditableGalleryImage[]>([]);
   private readonly editImageReplaceIndex = signal<number | null>(null);
@@ -3086,26 +2880,14 @@ export class ListingDetailsPageComponent implements OnDestroy {
     this.deliveryOptions().filter((option) => option.kind !== 'method'),
   );
   protected readonly mobileDeliveryOptions = computed(() => this.deliveryOptions());
-  protected readonly editPrimaryGalleryImage = computed(() => this.editableGalleryImages()[0] ?? null);
-  protected readonly editSecondaryGalleryImage = computed(() => this.editableGalleryImages()[1] ?? null);
-  protected readonly editRemainingGalleryImages = computed(() => this.editableGalleryImages().slice(2, this.maxGalleryImages));
+  protected readonly editGallerySlots = computed(() =>
+    Array.from({ length: this.maxGalleryImages }, (_, index) => ({
+      index,
+      position: index + 1,
+      image: this.editableGalleryImages()[index] ?? null,
+    })),
+  );
   protected readonly isGalleryFull = computed(() => this.editableGalleryImages().length >= this.maxGalleryImages);
-  protected readonly editSideAddSlot = computed(() => {
-    const visibleCount = this.editableGalleryImages().length;
-    if (visibleCount < 2) {
-      return 2;
-    }
-
-    return visibleCount < 3 ? 3 : null;
-  });
-  protected readonly editRemainingPlaceholderSlots = computed(() => {
-    const visibleCount = this.editableGalleryImages().length;
-    const startSlot = visibleCount < 2 ? 3 : Math.max(4, visibleCount + 1);
-    return Array.from(
-      { length: Math.max(0, this.maxGalleryImages - startSlot + 1) },
-      (_, index) => startSlot + index,
-    );
-  });
   protected readonly editListingForm = this.formBuilder.nonNullable.group({
     name: '',
     category: '',
