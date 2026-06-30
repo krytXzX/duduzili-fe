@@ -216,7 +216,7 @@ type YoutubePreview = {
                     </p>
                   </div>
 
-                  <div class="mt-7 grid grid-cols-3 gap-2.5">
+                  <div class="mt-7 grid grid-cols-3 grid-flow-row-dense gap-2.5">
                     <input
                       #mobileMainImageInput
                       type="file"
@@ -265,6 +265,12 @@ type YoutubePreview = {
 
                       <div
                         class="relative aspect-square overflow-hidden rounded-[16px] border border-[#ECEEF4] bg-[#F6F7FA]"
+                        [class.col-start-3]="slotIndex === 0 || slotIndex === 1 || slotIndex === 4"
+                        [class.col-start-1]="slotIndex === 2"
+                        [class.col-start-2]="slotIndex === 3"
+                        [class.row-start-1]="slotIndex === 0"
+                        [class.row-start-2]="slotIndex === 1"
+                        [class.row-start-3]="slotIndex === 2 || slotIndex === 3 || slotIndex === 4"
                         (click)="openFilePicker(mobileSlotInput, $event)"
                       >
                         @if (slot.image) {
