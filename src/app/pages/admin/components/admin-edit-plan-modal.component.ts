@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, input, output, signal } from '@angular/core';
-import { ReactiveFormsModule, NonNullableFormBuilder } from '@angular/forms';
+import { ReactiveFormsModule, NonNullableFormBuilder, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroXMark } from '@ng-icons/heroicons/outline';
 
@@ -12,6 +12,7 @@ export interface AdminPlanFeature {
 }
 
 export interface AdminEditablePlan {
+  id: number;
   name: string;
   status: AdminPlanStatus;
   prices: Record<AdminBillingCycleId, string>;
@@ -51,6 +52,27 @@ export interface AdminEditablePlan {
 
         <form class="mt-10" [formGroup]="pricingForm" (ngSubmit)="submit()">
           <section>
+            <h3 class="text-[18px] font-semibold text-[#222222] sm:text-[20px]">Plan details</h3>
+
+            <label class="mt-5 block">
+              <span class="mb-2 block text-[15px] font-medium text-[#5b5b5b]">Plan name</span>
+              <input
+                type="text"
+                formControlName="name"
+                autocomplete="off"
+                class="h-12 w-full rounded-[10px] border border-[#e3e3e3] px-4 text-[15px] text-[#202020] outline-none transition placeholder:text-[#b1b1b1] focus:border-[#6a5aed] focus:ring-4 focus:ring-[#6a5aed]/10"
+                [class.border-[#f05252]]="pricingForm.controls.name.invalid && pricingForm.controls.name.touched"
+                aria-describedby="edit-plan-name-error"
+              >
+              @if (pricingForm.controls.name.invalid && pricingForm.controls.name.touched) {
+                <p id="edit-plan-name-error" class="mt-2 text-[13px] font-medium text-[#d14343]">
+                  Enter a plan name.
+                </p>
+              }
+            </label>
+          </section>
+
+          <section class="mt-10">
             <h3 class="text-[18px] font-semibold text-[#222222] sm:text-[20px]">Configure the pricing for this plan</h3>
 
             <div class="mt-5 grid gap-4 md:grid-cols-3">
@@ -147,7 +169,10 @@ export interface AdminEditablePlan {
 
             <button
               type="submit"
+              [disabled]="pricingForm.invalid"
               class="min-w-34 rounded-full bg-[#6653e4] px-6 py-3 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945db]"
+              [class.cursor-not-allowed]="pricingForm.invalid"
+              [class.opacity-60]="pricingForm.invalid"
             >
               Save changes
             </button>
@@ -170,6 +195,7 @@ export class AdminEditPlanModalComponent implements OnInit {
   readonly isPlanDeactivated = signal(false);
 
   readonly pricingForm = this.formBuilder.group({
+    name: ['', [Validators.required]],
     weekly: ['N0.00'],
     monthly: ['N0.00'],
     yearly: ['N0.00'],
@@ -180,6 +206,7 @@ export class AdminEditPlanModalComponent implements OnInit {
 
     this.pricingForm.setValue(
       {
+        name: plan.name,
         weekly: this.toModalCurrency(plan.prices.weekly),
         monthly: this.toModalCurrency(plan.prices.monthly),
         yearly: this.toModalCurrency(plan.prices.yearly),
@@ -199,10 +226,16 @@ export class AdminEditPlanModalComponent implements OnInit {
   }
 
   submit(): void {
+    if (this.pricingForm.invalid) {
+      this.pricingForm.markAllAsTouched();
+      return;
+    }
+
     const rawValue = this.pricingForm.getRawValue();
 
     this.save.emit({
       ...this.plan(),
+      name: rawValue.name.trim(),
       status: this.isPlanDeactivated() ? 'inactive' : 'active',
       prices: {
         weekly: this.toCardCurrency(rawValue.weekly),

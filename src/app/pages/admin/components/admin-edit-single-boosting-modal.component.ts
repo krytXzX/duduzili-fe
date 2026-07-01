@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, input, output, signal } from '@angular/core';
-import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroXMark } from '@ng-icons/heroicons/outline';
 
@@ -12,6 +12,7 @@ export interface SingleBoostingRate {
 }
 
 export interface EditableSingleBoostingPlan {
+  id: number;
   name: string;
   status: SingleBoostingPlanStatus;
   rates: SingleBoostingRate[];
@@ -52,6 +53,27 @@ type SingleBoostingRatesForm = FormGroup<Record<string, FormControl<string>>>;
 
         <form class="mt-10" [formGroup]="ratesForm()" (ngSubmit)="submit()">
           <section>
+            <h3 class="text-[18px] font-semibold text-[#222222] sm:text-[20px]">Plan details</h3>
+
+            <label class="mt-5 block">
+              <span class="mb-2 block text-[15px] font-medium text-[#5b5b5b]">Plan name</span>
+              <input
+                type="text"
+                [formControl]="nameControl"
+                autocomplete="off"
+                class="h-12 w-full rounded-[10px] border border-[#e3e3e3] px-4 text-[15px] text-[#202020] outline-none transition placeholder:text-[#b1b1b1] focus:border-[#6a5aed] focus:ring-4 focus:ring-[#6a5aed]/10"
+                [class.border-[#f05252]]="nameControl.invalid && nameControl.touched"
+                aria-describedby="edit-single-boosting-plan-name-error"
+              >
+              @if (nameControl.invalid && nameControl.touched) {
+                <p id="edit-single-boosting-plan-name-error" class="mt-2 text-[13px] font-medium text-[#d14343]">
+                  Enter a plan name.
+                </p>
+              }
+            </label>
+          </section>
+
+          <section class="mt-10">
             <h3 class="text-[18px] font-semibold text-[#222222] sm:text-[20px]">Configure the pricing for this plan</h3>
 
             <div class="mt-6 overflow-hidden rounded-[18px] bg-[#fafafa]">
@@ -119,7 +141,10 @@ type SingleBoostingRatesForm = FormGroup<Record<string, FormControl<string>>>;
 
             <button
               type="submit"
+              [disabled]="nameControl.invalid"
               class="min-w-34 rounded-full bg-[#6653e4] px-6 py-3 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945db]"
+              [class.cursor-not-allowed]="nameControl.invalid"
+              [class.opacity-60]="nameControl.invalid"
             >
               Save changes
             </button>
@@ -139,6 +164,7 @@ export class AdminEditSingleBoostingModalComponent implements OnInit {
   readonly rates = signal<SingleBoostingRate[]>([]);
   readonly isPlanDeactivated = signal(false);
   readonly ratesForm = signal<SingleBoostingRatesForm>(new FormGroup({}));
+  readonly nameControl = new FormControl('', { nonNullable: true, validators: [Validators.required] });
 
   readonly modalTitle = signal('');
 
@@ -149,6 +175,7 @@ export class AdminEditSingleBoostingModalComponent implements OnInit {
     this.modalTitle.set(
       plan.name.replace('Promote for ', '').replace('Promote ', '')
     );
+    this.nameControl.setValue(plan.name, { emitEvent: false });
     this.rates.set(plan.rates.map((rate) => ({ ...rate })));
     this.isPlanDeactivated.set(plan.status === 'inactive');
 
@@ -172,10 +199,16 @@ export class AdminEditSingleBoostingModalComponent implements OnInit {
   }
 
   submit(): void {
+    if (this.nameControl.invalid) {
+      this.nameControl.markAsTouched();
+      return;
+    }
+
     const formValue = this.ratesForm().getRawValue();
 
     this.save.emit({
       ...this.plan(),
+      name: this.nameControl.getRawValue().trim(),
       status: this.isPlanDeactivated() ? 'inactive' : 'active',
       rates: this.rates().map((rate) => ({
         ...rate,

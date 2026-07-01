@@ -121,7 +121,7 @@ const PLAN_FEATURE_CATALOG = [
             </div>
 
             <div class="mt-5 flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              @for (plan of plans(); track plan.name) {
+              @for (plan of plans(); track plan.id) {
                 <article class="h-[470px] w-[250px] shrink-0 rounded-[16px] border border-[#efefef] bg-[#fafafa] px-5 py-5">
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-1">
@@ -179,7 +179,7 @@ const PLAN_FEATURE_CATALOG = [
         } @else {
           <div class="pt-5">
             <div class="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              @for (plan of singleBoostingPlans(); track plan.name) {
+              @for (plan of singleBoostingPlans(); track plan.id) {
                 <article class="w-[250px] shrink-0 rounded-[16px] border border-[#efefef] bg-[#fafafa] px-5 py-5">
                   <span
                     class="inline-flex items-center gap-1 rounded-[8px] bg-white px-2 py-1 text-[12px] font-semibold"
@@ -265,7 +265,7 @@ const PLAN_FEATURE_CATALOG = [
             </div>
 
             <div class="mt-5 grid gap-4 xl:grid-cols-4">
-              @for (plan of plans(); track plan.name) {
+              @for (plan of plans(); track plan.id) {
                 <article class="rounded-[18px] border border-[#e9e9e9] bg-white px-5 py-5">
                   <div class="flex items-start justify-between gap-4">
                     <div class="flex items-center gap-2">
@@ -325,7 +325,7 @@ const PLAN_FEATURE_CATALOG = [
         } @else {
           <div class="pt-6">
             <div class="grid gap-4 xl:grid-cols-4">
-              @for (plan of singleBoostingPlans(); track plan.name) {
+              @for (plan of singleBoostingPlans(); track plan.id) {
                 <article class="rounded-[18px] border border-[#e9e9e9] bg-white px-5 py-5">
                   <span
                     class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[14px] font-medium"
@@ -448,9 +448,7 @@ export class AdminAdsPlansPageComponent {
   }
 
   savePlanChanges(updatedPlan: AdminEditablePlan): void {
-    const backendPlan = this.subscriptionPlanRecords().find(
-      (plan) => plan.plan_name.trim().toLowerCase() === updatedPlan.name.trim().toLowerCase(),
-    );
+    const backendPlan = this.subscriptionPlanRecords().find((plan) => plan.id === updatedPlan.id);
 
     if (!backendPlan) {
       this.toast.show({ message: 'That subscription plan isn’t available right now. Please try again.' });
@@ -480,7 +478,7 @@ export class AdminAdsPlansPageComponent {
   }
 
   saveSingleBoostingPlanChanges(updatedPlan: EditableSingleBoostingPlan): void {
-    const backendPlan = this.singleBoostingPlanRecords().find((plan) => plan.name === updatedPlan.name);
+    const backendPlan = this.singleBoostingPlanRecords().find((plan) => plan.id === updatedPlan.id);
 
     if (!backendPlan) {
       this.toast.show({ message: 'That boost plan isn’t available right now. Please try again.' });
@@ -542,6 +540,7 @@ export class AdminAdsPlansPageComponent {
     }
 
     return {
+      id: plan.id,
       name: plan.plan_name,
       status: plan.is_active ? 'active' : 'inactive',
       prices: {
@@ -555,6 +554,7 @@ export class AdminAdsPlansPageComponent {
 
   private mapSingleBoostingPlan(plan: AdminSingleBoostingPlanRecord): EditableSingleBoostingPlan {
     return {
+      id: plan.id,
       name: plan.name,
       status: plan.status,
       rates: [
@@ -574,7 +574,7 @@ export class AdminAdsPlansPageComponent {
     );
 
     return {
-      plan_name: updatedPlan.name,
+      plan_name: updatedPlan.name.trim(),
       weekly_price: this.toBackendDecimal(updatedPlan.prices.weekly),
       monthly_price: this.toBackendDecimal(updatedPlan.prices.monthly),
       yearly_price: this.toBackendDecimal(updatedPlan.prices.yearly),
@@ -619,7 +619,7 @@ export class AdminAdsPlansPageComponent {
     };
 
     return {
-      name: updatedPlan.name,
+      name: updatedPlan.name.trim(),
       status: updatedPlan.status,
       automobile_price: amountFor('Automobile listing'),
       property_price: amountFor('Property listing'),
