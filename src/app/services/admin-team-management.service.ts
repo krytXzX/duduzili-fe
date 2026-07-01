@@ -127,6 +127,20 @@ export class AdminTeamManagementService {
     return this.http.delete<void>(`${this.apiUrl}/admin/team/${memberId}/`);
   }
 
+  exportTeamMembers(query: AdminTeamQuery): Observable<Blob> {
+    let params = new HttpParams();
+
+    const search = query.search?.trim();
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    return this.http.get(`${this.apiUrl}/admin/team/export/`, {
+      params,
+      responseType: 'blob',
+    });
+  }
+
   getRoles(query: AdminTeamQuery): Observable<PaginatedResponse<AdminTeamRoleRecord>> {
     let params = new HttpParams();
 

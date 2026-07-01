@@ -53,7 +53,7 @@ import {
   CreateAdminRolePayload,
 } from '../../services/admin-team-management.service';
 import { AppToastService } from '../../services/app-toast.service';
-import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, finalize, switchMap, tap } from 'rxjs/operators';
 
 type TeamManagementTab = 'users' | 'roles';
 type TeamMemberStatus = 'active' | 'inactive' | 'pending activation';
@@ -175,7 +175,11 @@ interface TeamRoleRecord {
               <div class="flex items-center gap-3">
                 <button
                   type="button"
+                  (click)="exportTeamMembers()"
+                  [disabled]="isExporting()"
                   class="inline-flex h-6 w-6 items-center justify-center text-[#202020]"
+                  [class.cursor-not-allowed]="isExporting()"
+                  [class.opacity-50]="isExporting()"
                   aria-label="Export users"
                 >
                   <ng-icon name="heroArrowUpTray" class="text-[22px]"></ng-icon>
@@ -435,10 +439,14 @@ interface TeamRoleRecord {
               <div class="flex flex-wrap items-center gap-3 self-end">
                 <button
                   type="button"
+                  (click)="exportTeamMembers()"
+                  [disabled]="isExporting()"
                   class="inline-flex h-11 items-center gap-2 rounded-full border border-[#e8e8e8] bg-white px-5 text-[15px] font-medium text-[#202020]"
+                  [class.cursor-not-allowed]="isExporting()"
+                  [class.opacity-60]="isExporting()"
                 >
                   <ng-icon name="heroArrowUpTray" class="text-[16px]"></ng-icon>
-                  Export
+                  {{ isExporting() ? 'Exporting...' : 'Export' }}
                 </button>
 
                 <button
@@ -805,6 +813,7 @@ export class AdminTeamManagementPageComponent {
   readonly activateMemberId = signal<string | null>(null);
   readonly deactivateMemberId = signal<string | null>(null);
   readonly deleteMemberId = signal<string | null>(null);
+  readonly isExporting = signal(false);
   readonly isLoading = signal(true);
   readonly teamRoles = signal<TeamRoleRecord[]>([]);
   readonly teamMembers = signal<TeamMemberRecord[]>([]);
@@ -881,6 +890,41 @@ export class AdminTeamManagementPageComponent {
     const input = event.target as HTMLInputElement;
     this.searchQuery.set(input.value);
     this.currentPage.set(1);
+  }
+
+  exportTeamMembers(): void {
+    if (this.isExporting()) {
+      return;
+    }
+
+    this.isExporting.set(true);
+    this.teamService
+      .exportTeamMembers({ search: this.searchQuery().trim() })
+      .pipe(
+        finalize(() => this.isExporting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (file) => this.downloadExport(file),
+        error: () => {
+          this.toast.show({
+            message: 'We couldn’t export team members right now. Please try again.',
+          });
+        },
+      });
+  }
+
+  private downloadExport(file: Blob): void {
+    const exportDate = new Date().toISOString().slice(0, 10);
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = `team-members-${exportDate}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    this.toast.show({ message: 'Team members exported successfully.' });
   }
 
   goToPreviousPage(): void {
