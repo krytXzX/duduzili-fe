@@ -2030,6 +2030,10 @@ export class ProductPageComponent {
       price: pricing.price,
       originalPrice: pricing.originalPrice,
       discountBadge: pricing.discountBadge,
+      condition:
+        this.readString(record['condition']) ??
+        this.readString(record['product_condition']) ??
+        undefined,
       location: this.composeLocation(record) ?? '',
       timeAgo: this.formatRelativeTime(record['created_at']) ?? 'Recently',
       isVerified:

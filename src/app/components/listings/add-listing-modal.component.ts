@@ -1866,6 +1866,7 @@ export class AddListingModalComponent implements OnDestroy {
         price: form.listForFree ? 'Free' : `₦${discountedPrice.toLocaleString()}`,
         originalPrice: hasDiscount ? `₦${basePrice.toLocaleString()}` : undefined,
         discountBadge: hasDiscount && form.discountType === 'percentage' ? `-${discountValue}%` : undefined,
+        condition: form.condition || undefined,
         images: previewImages,
         location: form.location || '',
         timeAgo: 'Just now',
@@ -1919,6 +1920,10 @@ export class AddListingModalComponent implements OnDestroy {
         this.readString(publishedListing['discount_badge']) ??
         this.readString(publishedListing['badge']) ??
         (hasDiscount ? fallback.discountBadge : undefined),
+      condition:
+        this.readString(publishedListing['condition']) ??
+        this.readString(publishedListing['product_condition']) ??
+        fallback.condition,
       images: this.extractListingImages(publishedListing, fallback.images),
       location:
         this.readString(publishedListing['location']) ??

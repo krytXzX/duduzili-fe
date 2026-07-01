@@ -916,6 +916,7 @@ export class AdminStoreDetailsPageComponent {
       id: record.id,
       title: record.title,
       price: this.formatPrice(record.price),
+      condition: record.condition ?? undefined,
       images: image ? [image] : [],
       location: this.composeListingLocation(record),
       timeAgo: this.timeAgo(record.created_at),

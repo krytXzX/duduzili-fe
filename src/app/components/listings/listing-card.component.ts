@@ -14,6 +14,7 @@ export interface Listing {
   price: string;
   originalPrice?: string;
   discountBadge?: string;
+  condition?: string;
   location: string;
   timeAgo: string;
   isVerified?: boolean;
@@ -61,6 +62,7 @@ export class ListingCardComponent {
     () => '(min-width: 1024px) 22vw, (min-width: 768px) 25vw, 50vw',
   );
   toastImageSrc = computed(() => this.listing().images[0] ?? undefined);
+  conditionLabel = computed(() => this.formatConditionLabel(this.listing().condition));
 
   isFavorited = computed(() =>
     (this.favoriteFilled() && !this.removedInitiallyFavorited())
@@ -158,6 +160,27 @@ export class ListingCardComponent {
 
   protected isUnoptimizedImageSource(value: string): boolean {
     return value.startsWith('data:') || value.startsWith('blob:');
+  }
+
+  private formatConditionLabel(value: string | undefined): string {
+    const normalized = value?.trim().toLowerCase().replace(/[_-]+/g, ' ');
+    if (!normalized) {
+      return '';
+    }
+
+    if (normalized === 'new') {
+      return 'New';
+    }
+
+    if (normalized === 'used' || normalized === 'fairly used') {
+      return 'Used';
+    }
+
+    return normalized
+      .split(' ')
+      .filter((part) => part.length > 0)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   }
 
   private resolveFavoriteState(

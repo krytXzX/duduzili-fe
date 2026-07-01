@@ -561,6 +561,7 @@ export class SearchPageComponent {
       price: pricing.price,
       originalPrice: pricing.originalPrice,
       discountBadge: pricing.discountBadge,
+      condition: this.readString(item, ['condition', 'product_condition']) ?? undefined,
       location: this.buildLocationLabel(item),
       timeAgo: this.relativeTimeFromDate(this.readString(item, ['created_at', 'published_at', 'date_created'])),
       isVerified: this.readBoolean(item, ['is_verified', 'verified']) || false,

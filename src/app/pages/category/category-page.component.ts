@@ -491,6 +491,7 @@ export class CategoryPageComponent {
       price: pricing.price,
       originalPrice: pricing.originalPrice,
       discountBadge: pricing.discountBadge,
+      condition: this.readString(item, ['condition', 'product_condition']) ?? undefined,
       location: this.buildLocationLabel(item),
       timeAgo: this.relativeTimeFromDate(
         this.readString(item, ['created_at', 'published_at', 'date_created']),

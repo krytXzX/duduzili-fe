@@ -1,8 +1,8 @@
 <a [routerLink]="[...listingRoute(), listing().id]"
-  class="group flex h-full cursor-pointer flex-col overflow-hidden rounded-[18px] border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-xl md:rounded-[24px]">
+  class="group flex h-full cursor-pointer flex-col items-start gap-[7px] overflow-hidden rounded-[13.5px] border border-[#EAEAEA] bg-white px-[2px] pb-2 pt-[2px] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#DADADA] hover:shadow-[0_14px_34px_-26px_rgba(17,24,39,0.45)] active:translate-y-0">
 
   <!-- Image Container -->
-  <div class="relative aspect-square overflow-hidden bg-gray-50">
+  <div class="relative aspect-[168/162] w-full shrink-0 overflow-hidden rounded-[11px] bg-[#BEBEBE]">
     @if (currentImage(); as currentImage) {
       @if (isUnoptimizedImageSource(currentImage)) {
         <img
@@ -26,17 +26,19 @@
       <div class="h-full w-full animate-pulse bg-[#EEF2FF]"></div>
     }
 
+    <div class="pointer-events-none absolute inset-0 rounded-[11px] bg-gradient-to-b from-transparent from-[63%] to-black/50"></div>
+
     <!-- Verified Badge (Image Style) -->
     @if (listing().isVerified) {
-    <div class="absolute left-2 top-2 z-10 flex items-center justify-center gap-1 overflow-hidden rounded-[8px] border border-[#eaeaea] bg-white px-2 py-1.5 md:left-4 md:top-4">
-      <img ngSrc="/assets/icons/listing-card/verified-medal.svg" width="14" height="14" alt="" aria-hidden="true" class="h-[14px] w-[14px] shrink-0" />
-      <span class="text-center text-[12px] leading-4 font-medium text-black">Verified</span>
+    <div class="absolute left-[7px] top-[7px] z-10 flex h-[22px] items-center justify-center gap-1 overflow-hidden rounded-[8px] border border-[#EAEAEA] bg-white px-2 py-1">
+      <img ngSrc="/assets/icons/listing-card/verified-medal.svg" width="12" height="12" alt="" aria-hidden="true" class="h-3 w-3 shrink-0" />
+      <span class="text-center text-[11px] leading-[14px] font-semibold text-black">Verified</span>
     </div>
     }
 
     @if (listing().discountBadge) {
-    <div class="absolute left-2 top-10 z-10 rounded-[8px] bg-[#E9FF7C] px-[6px] py-[2px] shadow-[0_6px_16px_-14px_rgba(78,62,7,0.45)] md:left-4 md:top-[54px]">
-      <span class="block text-[12px] leading-4 font-medium text-[#4E3E07]">
+    <div class="absolute left-[7px] top-9 z-10 rounded-[8px] bg-[#E9FF7C] px-[6px] py-[2px] shadow-[0_6px_16px_-14px_rgba(78,62,7,0.45)]">
+      <span class="block text-[11px] leading-[14px] font-medium text-[#4E3E07]">
       {{ listing().discountBadge }}
       </span>
     </div>
@@ -45,10 +47,10 @@
     <!-- Heart Icon -->
     @if (showFavorite()) {
     <button (click)="toggleFavorite($event)"
-      class="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center transition-all md:right-4 md:top-4 md:h-10 md:w-10"
+      class="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95"
       [attr.aria-pressed]="isFavorited()"
       aria-label="Save listing">
-      <span class="relative block h-4 w-4 md:h-5 md:w-5" aria-hidden="true">
+      <span class="relative block h-[22px] w-[22px]" aria-hidden="true">
         <span
           class="absolute inset-0 scale-[1.2]"
           style="background-color: #FFFFFF; -webkit-mask: url('/assets/icons/listing-card/heart-outline-figma.svg') center / contain no-repeat; mask: url('/assets/icons/listing-card/heart-outline-figma.svg') center / contain no-repeat;"
@@ -65,25 +67,25 @@
     <!-- Carousel Nav (Arrows & Dots) -->
     @if (listing().images.length > 1) {
     <div
-      class="absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-between px-1 opacity-100 transition-opacity md:px-2 md:opacity-0 md:group-hover:opacity-100">
+      class="absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-between px-3 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
       <button (click)="prevImage($event)"
-        class="flex h-5 w-5 items-center justify-center rounded-full bg-white/85 shadow-sm transition-all hover:bg-white md:h-8 md:w-8 md:bg-white/60 md:backdrop-blur-sm">
-        <svg class="h-3 w-3 text-gray-800 md:h-4 md:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        class="flex h-5 w-5 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2px_4px_rgba(202,202,202,0.25)] transition-all hover:scale-105 hover:bg-white active:scale-95">
+        <svg class="h-2.5 w-2.5 text-[#1F1F1F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
       <button (click)="nextImage($event)"
-        class="flex h-5 w-5 items-center justify-center rounded-full bg-white/85 shadow-sm transition-all hover:bg-white md:h-8 md:w-8 md:bg-white/60 md:backdrop-blur-sm">
-        <svg class="h-3 w-3 text-gray-800 md:h-4 md:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        class="flex h-5 w-5 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_2px_4px_rgba(202,202,202,0.25)] transition-all hover:scale-105 hover:bg-white active:scale-95">
+        <svg class="h-2.5 w-2.5 text-[#1F1F1F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
       </button>
     </div>
 
     <!-- Dots -->
-    <div class="absolute bottom-2 left-1/2 z-10 hidden -translate-x-1/2 gap-1.5 md:flex md:bottom-4">
+    <div class="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1">
       @for (img of listing().images; track $index) {
-      <span class="w-1.5 h-1.5 rounded-full transition-all" [class.bg-white]="currentImageIndex() === $index"
+      <span class="h-[3px] rounded-full transition-all" [class.w-[14px]]="currentImageIndex() === $index" [class.w-[3px]]="currentImageIndex() !== $index" [class.bg-white]="currentImageIndex() === $index"
         [class.bg-white/40]="currentImageIndex() !== $index"></span>
       }
     </div>
@@ -91,23 +93,31 @@
   </div>
 
   <!-- Info Container -->
-  <div class="flex grow flex-col p-2.5 text-left md:p-4">
-    <h3 class="mb-1 line-clamp-1 text-[11px] font-normal text-[#1A1C21] md:text-sm md:font-medium">{{ listing().title }}</h3>
-    <div class="mb-1.5 flex items-center gap-1.5 md:mb-2 md:gap-2">
-      <p class="text-[14px] font-medium text-[#1A1C21] md:text-base md:font-semibold">{{ listing().price }}</p>
+  <div class="flex w-full shrink-0 flex-col gap-2 px-[2px] text-left">
+    <div class="flex w-full items-center justify-between gap-2">
+      <h3 class="line-clamp-1 min-w-0 text-[13px] font-normal leading-[14px] text-[#1F1F1F]">{{ listing().title }}</h3>
+      @if (conditionLabel()) {
+        <span class="shrink-0 rounded-full bg-[#F0F0F0] px-[6px] py-[2px] text-[10px] font-normal leading-none text-[#1F1F1F]">
+          {{ conditionLabel() }}
+        </span>
+      }
+    </div>
+
+    <div class="flex items-baseline gap-1.5">
+      <p class="text-[14px] font-medium leading-[14px] text-[#1F1F1F]">{{ listing().price }}</p>
       @if (listing().originalPrice) {
-        <span class="text-[10px] font-normal text-gray-400 line-through md:text-xs md:font-medium">{{ listing().originalPrice }}</span>
+        <span class="text-[10px] font-medium leading-[12px] text-[#9EA3AE] line-through">{{ listing().originalPrice }}</span>
       }
     </div>
 
     @if (listing().location; as location) {
-      <div class="mt-auto flex items-center gap-1 text-[9px] font-normal text-gray-400 md:gap-1.5 md:text-[11px] md:font-medium">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-60 md:h-3.5 md:w-3.5" viewBox="0 0 20 20" fill="currentColor">
+      <div class="flex w-full items-center gap-[2px] text-[10px] font-normal leading-[10px] text-[#959595]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 shrink-0 opacity-70" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path fill-rule="evenodd"
             d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
             clip-rule="evenodd" />
         </svg>
-        <span>{{ location }}</span>
+        <span class="line-clamp-1 min-w-0">{{ location }}</span>
         <!-- <span class="mx-0.5">•</span> -->
         <!-- <span>{{ listing().timeAgo }}</span> -->
       </div>

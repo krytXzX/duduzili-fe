@@ -2233,6 +2233,10 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
       originalPrice: pricing.originalPrice,
       discountBadge: pricing.discountBadge,
       images: this.extractListingImages(record),
+      condition:
+        this.readString(record['condition']) ??
+        this.readString(record['product_condition']) ??
+        undefined,
       location: this.composeListingLocation(record) ?? this.store().location,
       timeAgo: this.formatRelativeTime(record['created_at']) ?? 'Just now',
       isVerified: this.readBoolean(record['is_verified']) ?? false,

@@ -787,6 +787,7 @@ export class HomePageComponent {
       title,
       price: pricing.price,
       originalPrice: pricing.originalPrice,
+      condition: this.readString(record['condition']) ?? undefined,
       location,
       images,
       timeAgo:

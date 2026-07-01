@@ -249,6 +249,10 @@ export class BuyerRecentlyViewedPageComponent {
         price: pricing.price,
         originalPrice: pricing.originalPrice,
         discountBadge: pricing.discountBadge,
+        condition:
+          this.readString(item['condition']) ??
+          this.readString(item['product_condition']) ??
+          undefined,
         location: this.composeLocation(item) ?? '',
         timeAgo: this.formatCondition(item['condition']) ?? 'Recently viewed',
         isVerified: this.readBoolean(item['is_verified']) ?? false,

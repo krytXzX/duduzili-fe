@@ -52,6 +52,7 @@ export type AdminStoreListingResponse = {
   is_saved?: boolean;
   created_at?: string;
   category?: string | null;
+  condition?: string | null;
 };
 
 export type AdminStoreDetailResponse = {
