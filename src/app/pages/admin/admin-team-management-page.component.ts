@@ -1117,7 +1117,7 @@ export class AdminTeamManagementPageComponent {
   }
 
   mobileDateLabel(date: string): string {
-    return this.formatDate(date);
+    return date;
   }
 
   statusLabel(status: TeamMemberStatus): string {
@@ -1260,6 +1260,8 @@ export class AdminTeamManagementPageComponent {
 
     return new Intl.DateTimeFormat('en-NG', {
       day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
       month: 'short',
       year: 'numeric',
     }).format(parsedDate);
