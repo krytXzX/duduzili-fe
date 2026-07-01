@@ -256,7 +256,7 @@ export class AdminDashboardSidebarComponent {
 
   readonly notificationBadge = this.notificationsService.unreadBadge;
 
-  readonly isAdsExpanded = signal(true);
+  readonly isAdsExpanded = signal(false);
   readonly canManageCategories = computed(() => this.authSession.canManageCategories());
   readonly activeAdsItem = signal<AdminAdsManagementItemId>('plans');
   readonly adsManagementItems: ReadonlyArray<{ id: AdminAdsManagementItemId; label: string }> = [
