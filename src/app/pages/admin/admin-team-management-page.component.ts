@@ -944,6 +944,7 @@ export class AdminTeamManagementPageComponent {
         phone_number: payload.phoneNumber.trim(),
         role: payload.role,
         status: 'pending_activation',
+        avatar: payload.avatar,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

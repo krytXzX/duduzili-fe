@@ -61,6 +61,7 @@ export type CreateAdminTeamMemberPayload = {
   phone_number: string;
   role: string;
   status: AdminTeamMemberStatus;
+  avatar?: File | null;
 };
 
 export type UpdateAdminTeamMemberPayload = {
@@ -106,7 +107,19 @@ export class AdminTeamManagementService {
   }
 
   addTeamMember(payload: CreateAdminTeamMemberPayload): Observable<AdminTeamMemberRecord> {
-    return this.http.post<AdminTeamMemberRecord>(`${this.apiUrl}/admin/team/`, payload);
+    const formData = new FormData();
+    formData.set('email', payload.email);
+    formData.set('first_name', payload.first_name);
+    formData.set('last_name', payload.last_name);
+    formData.set('phone_number', payload.phone_number);
+    formData.set('role', payload.role);
+    formData.set('status', payload.status);
+
+    if (payload.avatar) {
+      formData.set('avatar', payload.avatar);
+    }
+
+    return this.http.post<AdminTeamMemberRecord>(`${this.apiUrl}/admin/team/`, formData);
   }
 
   resendInvite(memberId: string): Observable<{ message: string }> {

@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -15,6 +24,7 @@ export interface NewTeamUserPayload {
   email: string;
   phoneNumber: string;
   role: string;
+  avatar: File | null;
 }
 
 export interface TeamRoleOption {
@@ -84,17 +94,30 @@ export interface TeamRoleOption {
 
             <div class="mt-6">
               <div class="relative inline-flex">
-                <div class="flex h-[100px] w-[100px] items-center justify-center rounded-full border border-[#ececec] bg-[#fafafa] text-[#9f9f9f] sm:h-24 sm:w-24">
-                  <ng-icon name="heroPhoto" class="text-[50px] sm:text-[44px]"></ng-icon>
+                <div class="flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-full border border-[#ececec] bg-[#fafafa] text-[#9f9f9f] sm:h-24 sm:w-24">
+                  @if (avatarPreviewUrl()) {
+                    <img
+                      [src]="avatarPreviewUrl()"
+                      alt="Selected profile preview"
+                      class="h-full w-full object-cover"
+                    >
+                  } @else {
+                    <ng-icon name="heroPhoto" class="text-[50px] sm:text-[44px]"></ng-icon>
+                  }
                 </div>
 
-                <button
-                  type="button"
+                <label
                   class="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border border-[#ececec] bg-white text-[#6b6b6b] shadow-[0_12px_24px_-18px_rgba(0,0,0,0.45)] transition hover:bg-[#fafafa] sm:bottom-1 sm:right-[-2px] sm:h-10 sm:w-10"
                   aria-label="Add profile image"
                 >
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    class="sr-only"
+                    (change)="selectAvatar($event)"
+                  >
                   <ng-icon name="heroPlus" class="text-[18px] sm:text-[18px]"></ng-icon>
-                </button>
+                </label>
               </div>
             </div>
 
@@ -258,7 +281,7 @@ export interface TeamRoleOption {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminAddTeamUserModalComponent {
+export class AdminAddTeamUserModalComponent implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
 
   readonly roles = input.required<ReadonlyArray<TeamRoleOption>>();
@@ -267,6 +290,8 @@ export class AdminAddTeamUserModalComponent {
   readonly submitUser = output<NewTeamUserPayload>();
   readonly isRoleDropdownOpen = signal(false);
   readonly isRolePickerOpen = signal(false);
+  readonly avatarFile = signal<File | null>(null);
+  readonly avatarPreviewUrl = signal<string | null>(null);
 
   readonly form = this.formBuilder.nonNullable.group({
     firstName: ['', Validators.required],
@@ -307,6 +332,31 @@ export class AdminAddTeamUserModalComponent {
     this.closeRolePicker();
   }
 
+  selectAvatar(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    const file = inputElement.files?.[0] ?? null;
+
+    if (!file) {
+      return;
+    }
+
+    const currentPreviewUrl = this.avatarPreviewUrl();
+    if (currentPreviewUrl) {
+      URL.revokeObjectURL(currentPreviewUrl);
+    }
+
+    this.avatarFile.set(file);
+    this.avatarPreviewUrl.set(URL.createObjectURL(file));
+    inputElement.value = '';
+  }
+
+  ngOnDestroy(): void {
+    const currentPreviewUrl = this.avatarPreviewUrl();
+    if (currentPreviewUrl) {
+      URL.revokeObjectURL(currentPreviewUrl);
+    }
+  }
+
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -320,6 +370,7 @@ export class AdminAddTeamUserModalComponent {
       email: value.email.trim(),
       phoneNumber: value.phoneNumber.trim(),
       role: value.role,
+      avatar: this.avatarFile(),
     });
   }
 }
