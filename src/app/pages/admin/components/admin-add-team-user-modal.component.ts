@@ -188,9 +188,9 @@ export interface TeamRoleOption {
                     @for (role of roles(); track role.id) {
                       <button
                         type="button"
-                        (click)="selectRole(role.id)"
+                        (click)="selectRole(role.id, $event)"
                         class="block w-full px-4 py-3 text-left transition hover:bg-[#fafafa]"
-                        [class.bg-[#f9f7ff]]="form.controls.role.value === role.id"
+                        [class.bg-[#f9f7ff]]="selectedRoleId() === role.id"
                       >
                         <p class="text-[15px] font-medium text-[#202020]">{{ role.label }}</p>
                         <p class="mt-1 text-[14px] leading-6 text-[#8d8d8d]">{{ role.description }}</p>
@@ -264,7 +264,7 @@ export interface TeamRoleOption {
                   @for (role of roles(); track role.id) {
                     <button
                       type="button"
-                      (click)="selectRole(role.id); closeRolePicker()"
+                      (click)="selectRole(role.id, $event)"
                       class="block w-full text-left"
                     >
                       <p class="text-[16px] font-medium leading-5 text-[#0D0D0D]">{{ role.label }}</p>
@@ -290,6 +290,7 @@ export class AdminAddTeamUserModalComponent implements OnDestroy {
   readonly submitUser = output<NewTeamUserPayload>();
   readonly isRoleDropdownOpen = signal(false);
   readonly isRolePickerOpen = signal(false);
+  readonly selectedRoleId = signal('');
   readonly avatarFile = signal<File | null>(null);
   readonly avatarPreviewUrl = signal<string | null>(null);
 
@@ -302,7 +303,7 @@ export class AdminAddTeamUserModalComponent implements OnDestroy {
   });
 
   readonly selectedRoleLabel = computed(
-    () => this.roles().find((role) => role.id === this.form.controls.role.value)?.label ?? '',
+    () => this.roles().find((role) => role.id === this.selectedRoleId())?.label ?? '',
   );
 
   toggleRoleDropdown(): void {
@@ -326,8 +327,13 @@ export class AdminAddTeamUserModalComponent implements OnDestroy {
     this.isRolePickerOpen.set(false);
   }
 
-  selectRole(roleId: string): void {
+  selectRole(roleId: string, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    this.selectedRoleId.set(roleId);
     this.form.controls.role.setValue(roleId);
+    this.form.controls.role.markAsDirty();
+    this.form.controls.role.markAsTouched();
     this.closeRoleDropdown();
     this.closeRolePicker();
   }
