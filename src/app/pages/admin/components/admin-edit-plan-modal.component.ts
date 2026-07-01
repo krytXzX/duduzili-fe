@@ -8,6 +8,7 @@ export type AdminBillingCycleId = 'weekly' | 'monthly' | 'yearly';
 
 export interface AdminPlanFeature {
   label: string;
+  description: string;
   enabled: boolean;
 }
 
@@ -111,8 +112,9 @@ export interface AdminEditablePlan {
             <div class="mt-5 rounded-[18px] bg-[#fafafa] p-3">
               @for (feature of features(); track feature.label) {
                 <div class="flex items-center gap-4 border-b border-[#efefef] px-3 py-3 last:border-b-0">
-                  <div class="min-h-11 flex-1 rounded-[10px] bg-white px-4 py-3 text-[15px] text-[#313131]">
-                    {{ feature.label }}
+                  <div class="min-h-11 flex-1 rounded-[10px] bg-white px-4 py-3">
+                    <p class="text-[15px] font-medium text-[#313131]">{{ feature.label }}</p>
+                    <p class="mt-1 text-[13px] leading-5 text-[#8a8a8a]">{{ feature.description }}</p>
                   </div>
 
                   <button

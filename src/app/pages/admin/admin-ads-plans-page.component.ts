@@ -55,6 +55,26 @@ const PLAN_FEATURE_CATALOG = [
   'Unlimited store promotion',
 ] as const;
 
+type PlanFeatureLabel = (typeof PLAN_FEATURE_CATALOG)[number];
+
+const PLAN_FEATURE_DESCRIPTIONS: Record<PlanFeatureLabel, string> = {
+  'Limited ads views': 'Restricts promotion exposure to the plan’s standard visibility allowance.',
+  'Unlimited ads views': 'Keeps promoted items visible without a view-count cap.',
+  '1 listings in Automobile': 'Allows one automobile listing to be promoted at a time.',
+  '5 listings in Automobile': 'Allows up to five automobile listings to be promoted at a time.',
+  'Unlimited listings in Automobile': 'Allows unlimited automobile listing promotions.',
+  '1 listings in Property': 'Allows one property listing to be promoted at a time.',
+  '5 listings in Property': 'Allows up to five property listings to be promoted at a time.',
+  'Unlimited listings in Property': 'Allows unlimited property listing promotions.',
+  '5 listings in Other categories': 'Allows up to five non-automobile/property listings to be promoted.',
+  '15 listings in Other categories': 'Allows up to fifteen non-automobile/property listings to be promoted.',
+  'Unlimited listings in Others': 'Allows unlimited promotions across other categories.',
+  '1 image banner listing': 'Unlocks one image banner ad placement.',
+  '1 video banner listing': 'Unlocks one video banner ad placement.',
+  '1 store promotion': 'Allows one store promotion campaign.',
+  'Unlimited store promotion': 'Allows unlimited store promotion campaigns.',
+};
+
 @Component({
   selector: 'app-admin-ads-plans-page',
   imports: [NgIcon, AdminEditPlanModalComponent, AdminEditSingleBoostingModalComponent],
@@ -122,7 +142,7 @@ const PLAN_FEATURE_CATALOG = [
 
             <div class="mt-5 flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               @for (plan of plans(); track plan.id) {
-                <article class="h-[470px] w-[250px] shrink-0 rounded-[16px] border border-[#efefef] bg-[#fafafa] px-5 py-5">
+                <article class="min-h-[470px] w-[250px] shrink-0 rounded-[16px] border border-[#efefef] bg-[#fafafa] px-5 py-5">
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-1">
                       <h2 class="text-[20px] font-semibold leading-7 text-[#1a1b1d]">{{ plan.name }}</h2>
@@ -163,11 +183,14 @@ const PLAN_FEATURE_CATALOG = [
 
                   <div class="mt-7 border-t border-[#e7e7e7] pt-4">
                     <h3 class="text-[18px] font-medium text-[#0d0d0d]">Features</h3>
-                    <ul class="mt-4 space-y-3 text-[14px] leading-5 text-[#0d0d0d]">
-                      @for (feature of enabledFeatures(plan); track feature) {
+                    <ul class="mt-4 space-y-3">
+                      @for (feature of enabledFeatures(plan); track feature.label) {
                         <li class="flex items-start gap-2">
                           <span class="mt-[8px] h-[5px] w-[5px] shrink-0 rounded-full bg-[#bfbfbf]"></span>
-                          <span>{{ feature }}</span>
+                          <span>
+                            <span class="block text-[14px] font-medium leading-5 text-[#0d0d0d]">{{ feature.label }}</span>
+                            <span class="mt-1 block text-[12px] leading-4 text-[#8f8f8f]">{{ feature.description }}</span>
+                          </span>
                         </li>
                       }
                     </ul>
@@ -309,11 +332,14 @@ const PLAN_FEATURE_CATALOG = [
 
                   <div class="mt-6 border-t border-[#e7e7e7] pt-5">
                     <h3 class="text-[16px] font-medium text-[#222222]">Features</h3>
-                    <ul class="mt-4 space-y-4 text-[15px] leading-6 text-[#363636]">
-                      @for (feature of enabledFeatures(plan); track feature) {
+                    <ul class="mt-4 space-y-4">
+                      @for (feature of enabledFeatures(plan); track feature.label) {
                         <li class="flex items-start gap-3">
                           <span class="mt-[10px] h-[5px] w-[5px] shrink-0 rounded-full bg-[#bfbfbf]"></span>
-                          <span>{{ feature }}</span>
+                          <span>
+                            <span class="block text-[15px] font-medium leading-6 text-[#363636]">{{ feature.label }}</span>
+                            <span class="mt-1 block text-[13px] leading-5 text-[#8b8b8b]">{{ feature.description }}</span>
+                          </span>
                         </li>
                       }
                     </ul>
@@ -435,8 +461,8 @@ export class AdminAdsPlansPageComponent {
     this.loadPlans();
   }
 
-  enabledFeatures(plan: AdminEditablePlan): string[] {
-    return plan.features.filter((feature) => feature.enabled).map((feature) => feature.label);
+  enabledFeatures(plan: AdminEditablePlan): AdminEditablePlan['features'] {
+    return plan.features.filter((feature) => feature.enabled);
   }
 
   openEditPlanModal(plan: AdminEditablePlan): void {
@@ -656,6 +682,7 @@ export class AdminAdsPlansPageComponent {
 
     return PLAN_FEATURE_CATALOG.map((label) => ({
       label,
+      description: PLAN_FEATURE_DESCRIPTIONS[label],
       enabled: enabledSet.has(label),
     }));
   }
