@@ -16,10 +16,8 @@ import {
   heroComputerDesktop,
   heroDevicePhoneMobile,
   heroExclamationTriangle,
-  heroGlobeAlt,
   heroMagnifyingGlassMinus,
   heroMagnifyingGlassPlus,
-  heroWallet,
   heroXMark,
 } from '@ng-icons/heroicons/outline';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
@@ -32,19 +30,6 @@ export interface CreateBannerAdPayload {
   bannerType: 'image' | 'video';
   imagePreview: string | null;
   mediaFile: File | null;
-  paymentMethod: 'wallet' | 'online';
-  planId?: string;
-}
-
-interface BoostingPlan {
-  id: string;
-  label: string;
-  price: string;
-  desktopUnit?: string;
-  desktopBilling: string;
-  mobileBilling: string;
-  savings?: string;
-  mobileSavingsTone?: 'yellow' | 'gray';
 }
 
 @Component({
@@ -57,10 +42,8 @@ interface BoostingPlan {
       heroComputerDesktop,
       heroDevicePhoneMobile,
       heroExclamationTriangle,
-      heroGlobeAlt,
       heroMagnifyingGlassMinus,
       heroMagnifyingGlassPlus,
-      heroWallet,
       heroXMark,
     }),
   ],
@@ -440,253 +423,18 @@ interface BoostingPlan {
 
                     <button
                       type="button"
-                      (click)="step.set(3)"
-                      class="mt-8 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] hover:shadow-[0_18px_36px_-14px_rgba(102,83,228,1.0)] active:scale-95 duration-200"
-                    >
-                      Continue
-                    </button>
-                  </div>
-                </div>
-              }
-
-              @case (3) {
-                <div
-                  class="relative flex min-h-0 flex-1 flex-col overflow-y-auto rounded-t-[32px] bg-white"
-                >
-                  <div
-                    class="absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,#83A0FF_0%,rgba(255,255,255,0)_100%)]"
-                  ></div>
-
-                  <button
-                    type="button"
-                    (click)="close.emit()"
-                    class="absolute right-4 top-3 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all duration-200 pointer-events-auto md:hidden"
-                    aria-label="Close plan selection"
-                  >
-                    <img
-                      [ngSrc]="bannerPlanCloseIcon"
-                      width="24"
-                      height="24"
-                      alt=""
-                      class="-rotate-45"
-                    />
-                  </button>
-
-                  <div class="relative px-4 pb-6 pt-[84px]">
-                    <div class="mx-auto w-[266px] text-center">
-                      <h2 class="text-[24px] font-medium leading-[1.1] text-[#1A1B1D]">
-                        Choose a boosting plan to proceed 🚀
-                      </h2>
-                      <p class="mt-1 text-[14px] leading-5 text-[#979797]">
-                        Give your store more visibility
-                      </p>
-                    </div>
-
-                    <div class="mt-10 space-y-5">
-                      @for (plan of mobilePlanCards(); track plan.id) {
-                        <button
-                          type="button"
-                          (click)="selectedPlanId.set(plan.id)"
-                          class="relative flex h-[84px] w-full items-center justify-between rounded-[20px] border bg-white px-[15px] text-left transition-all hover:border-[#357FF6]/50 active:scale-[0.98] duration-200"
-                          [class.border-2]="selectedPlanId() === plan.id"
-                          [class.border-[#357FF6]]="selectedPlanId() === plan.id"
-                          [class.bg-[#FAFAFF]]="selectedPlanId() === plan.id"
-                          [class.border-[#E5E5E5]]="selectedPlanId() !== plan.id"
-                        >
-                          <div>
-                            <h3 class="text-[20px] font-medium leading-5 text-[#272727]">
-                              {{ plan.label }}
-                            </h3>
-                            <p class="mt-1 text-[16px] leading-5 text-[#979797]">
-                              {{ plan.mobileBilling }}
-                            </p>
-                          </div>
-
-                          <p class="text-right text-[16px] font-medium leading-5 text-[#272727]">
-                            <span class="line-through">N</span>{{ plan.price }}
-                          </p>
-
-                          @if (plan.savings) {
-                            <span
-                              class="absolute -top-[10px] right-[7px] rounded-[8px] px-[6px] py-[2px] text-[12px] font-medium leading-4"
-                              [class.bg-[#F1FFAC]]="plan.mobileSavingsTone === 'yellow'"
-                              [class.text-[#4E3E07]]="plan.mobileSavingsTone === 'yellow'"
-                              [class.bg-[#EAEAEA]]="plan.mobileSavingsTone === 'gray'"
-                              [class.font-semibold]="plan.mobileSavingsTone === 'gray'"
-                              [class.text-[#0D0D0D]]="plan.mobileSavingsTone === 'gray'"
-                            >
-                              Save {{ plan.savings }}
-                            </span>
-                          }
-                        </button>
-                      }
-                    </div>
-
-                    <div class="mt-[84px] rounded-t-[24px] bg-white pb-3">
-                      <button
-                        type="button"
-                        (click)="goToPaymentStep()"
-                        class="w-full rounded-[64px] border border-white bg-[#6453D9] px-6 py-3.5 text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_0_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition hover:bg-[#5341C6] active:scale-95 duration-200"
-                      >
-                        Proceed
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              }
-
-              @case (4) {
-                <div class="flex min-h-0 flex-1 flex-col">
-                  <header class="flex items-center justify-between px-4 pb-4 pt-5">
-                    <button
-                      type="button"
-                      (click)="step.set(3)"
-                      class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F6FA] text-[#30313A] transition hover:bg-[#E8EAEE] active:scale-95 duration-200"
-                      aria-label="Back to plan selection"
-                    >
-                      <ng-icon name="heroChevronLeft" class="text-[16px]"></ng-icon>
-                    </button>
-
-                    <div class="h-1.5 w-14 rounded-full bg-[#E6E7EC]"></div>
-
-                    <button
-                      type="button"
-                      (click)="close.emit()"
-                      class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] transition hover:bg-[#F5F6FA] active:scale-95 duration-200"
-                      aria-label="Close payment"
-                    >
-                      <ng-icon name="heroXMark" class="text-[16px]"></ng-icon>
-                    </button>
-                  </header>
-
-                  <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-5">
-                    <div
-                      class="rounded-[18px] bg-[#FAFAFB] p-4 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]"
-                    >
-                      <h2
-                        class="text-[15px] font-semibold leading-tight tracking-[-0.03em] text-[#1A1C21]"
-                      >
-                        {{ selectedPlanSummary().title }}
-                      </h2>
-                      <p class="mt-1 text-[10px] text-[#8B8F98]">
-                        {{ selectedPlanSummary().billing }}
-                      </p>
-
-                      <div
-                        class="mt-4 space-y-3 border-t border-[#E3E5EA] pt-4 text-[11px] text-[#595E68]"
-                      >
-                        <div class="flex items-center justify-between gap-4">
-                          <span>Weekly subscription</span>
-                          <span>{{ selectedPlanSummary().subscriptionAmount }}</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-4">
-                          <span>VAT (7.5%)</span>
-                          <span>{{ selectedPlanSummary().vatAmount }}</span>
-                        </div>
-                        <div
-                          class="flex items-center justify-between gap-4 text-[12px] font-semibold text-[#1A1C21]"
-                        >
-                          <span>Total due today</span>
-                          <span>{{ selectedPlanSummary().totalAmount }}</span>
-                        </div>
-                      </div>
-
-                      <label
-                        class="mt-4 flex cursor-pointer items-center gap-2 text-[10px] text-[#424750]"
-                      >
-                        <input
-                          type="checkbox"
-                          [checked]="isRecurring()"
-                          (change)="isRecurring.set(!isRecurring())"
-                          class="h-3.5 w-3.5 rounded border-[#D3D6DE] text-[#6955F2] focus:ring-[#6955F2]/20"
-                        />
-                        <span>Mark this payment as recurring</span>
-                      </label>
-                    </div>
-
-                    <div class="mt-6">
-                      <h3 class="text-[13px] font-medium text-[#1A1C21]">
-                        Select your payment method
-                      </h3>
-
-                      <div class="mt-3 space-y-3">
-                        <button
-                          type="button"
-                          (click)="selectedPaymentId.set('wallet')"
-                          class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition hover:border-[#6955F2]/50 active:scale-[0.99] duration-200"
-                          [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
-                          [class.bg-[#F8F6FF]]="selectedPaymentId() === 'wallet'"
-                          [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
-                        >
-                          <div class="flex items-start gap-2.5">
-                            <ng-icon
-                              name="heroWallet"
-                              class="mt-0.5 text-[16px] text-[#272A31]"
-                            ></ng-icon>
-                            <p class="text-[11px] font-medium text-[#1A1C21]">
-                              Wallet (Balance: N250,000)
-                            </p>
-                          </div>
-                          <span
-                            class="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border"
-                            [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
-                            [class.border-[#D9DBE2]]="selectedPaymentId() !== 'wallet'"
-                          >
-                            @if (selectedPaymentId() === 'wallet') {
-                              <span class="h-2 w-2 rounded-full bg-[#6955F2]"></span>
-                            }
-                          </span>
-                        </button>
-
-                        <button
-                          type="button"
-                          (click)="selectedPaymentId.set('online')"
-                          class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition hover:border-[#6955F2]/50 active:scale-[0.99] duration-200"
-                          [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
-                          [class.bg-[#F8F6FF]]="selectedPaymentId() === 'online'"
-                          [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
-                        >
-                          <div class="flex items-start gap-2.5">
-                            <ng-icon
-                              name="heroGlobeAlt"
-                              class="mt-0.5 text-[16px] text-[#272A31]"
-                            ></ng-icon>
-                            <p class="text-[11px] font-medium text-[#1A1C21]">Online</p>
-                          </div>
-                          <span
-                            class="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border"
-                            [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
-                            [class.border-[#D9DBE2]]="selectedPaymentId() !== 'online'"
-                          >
-                            @if (selectedPaymentId() === 'online') {
-                              <span class="h-2 w-2 rounded-full bg-[#6955F2]"></span>
-                            }
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      (click)="completePayment()"
+                      (click)="submitForm()"
                       [disabled]="isSubmitting()"
-                      class="mt-7 w-full rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
+                      class="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#6653E4] px-6 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] hover:shadow-[0_18px_36px_-14px_rgba(102,83,228,1.0)] active:scale-95 duration-200 disabled:pointer-events-none disabled:opacity-50"
                     >
                       @if (isSubmitting()) {
-                        <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="-ml-1 h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                       }
-                      Confirm and pay
+                      Submit for approval
                     </button>
-
-                    <p class="mt-4 text-[9px] leading-4 text-[#6D727C]">
-                      By clicking on Confirm and pay, you accept the
-                      <span class="text-[#6653E4]">Terms of Use</span>, confirm that you will abide
-                      by the Safety Tips and declare that this posting does not include any
-                      Prohibited Items.
-                    </p>
                   </div>
                 </div>
               }
@@ -1125,228 +873,6 @@ interface BoostingPlan {
                   </button>
                 </div>
               </footer>
-            } @else if (step() === 3) {
-              <div
-                class="relative flex h-full flex-col overflow-hidden rounded-[32px] border border-[#D7D7D7] bg-white shadow-[0_0_12px_4px_rgba(180,180,180,0.17)] animate-in fade-in slide-in-from-bottom-4 duration-300"
-              >
-                <div
-                  class="absolute inset-x-0 top-0 h-[199px] rounded-t-[24px] bg-[linear-gradient(180deg,#ACA0F9_0%,rgba(255,255,255,0)_100%)]"
-                ></div>
-                <div class="relative flex h-full flex-col">
-                  <button
-                    type="button"
-                    (click)="close.emit()"
-                    class="absolute right-6 top-4 flex h-10 w-10 items-center justify-center rounded-full text-[#1A1C21] transition hover:bg-white/60 active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-white/40"
-                  >
-                    <img
-                      [ngSrc]="bannerPlanCloseIcon"
-                      width="24"
-                      height="24"
-                      alt=""
-                      class="-rotate-45"
-                    />
-                  </button>
-
-                  <div class="mx-auto max-w-[510px] px-6 pb-10 pt-[110px] text-center">
-                    <h2 class="text-[36px] font-semibold leading-[1.1] text-[#0D0D0D]">
-                      Choose a boosting plan to proceed 🚀
-                    </h2>
-                    <p class="mt-2 text-[16px] leading-6 text-[#747474]">
-                      Give your banner more visibility
-                    </p>
-                  </div>
-
-                  <div class="flex-1 px-[39px] pb-8">
-                    <div class="grid grid-cols-4 gap-[18px]">
-                      @for (plan of desktopPlanCards(); track plan.id) {
-                        <button
-                          type="button"
-                          (click)="selectedPlanId.set(plan.id)"
-                          class="relative h-[225px] rounded-[20px] border text-left transition-all hover:border-[#6453D9]/60 active:scale-[0.98] duration-200"
-                          [class.border-2]="selectedPlanId() === plan.id"
-                          [class.border-[#6453D9]]="selectedPlanId() === plan.id"
-                          [class.bg-[rgba(100,83,217,0.04)]]="selectedPlanId() === plan.id"
-                          [class.border-[#E4E4E4]]="selectedPlanId() !== plan.id"
-                          [class.bg-white]="selectedPlanId() !== plan.id"
-                        >
-                          <h3
-                            class="absolute left-[18px] top-[18px] w-[224px] text-[20px] font-medium leading-5 text-[#0D0D0D]"
-                          >
-                            {{ plan.label }}
-                          </h3>
-
-                          <div class="absolute bottom-[18px] left-[18px]">
-                            @if (plan.savings) {
-                              <span
-                                class="absolute -top-7 left-0 inline-flex rounded-[8px] bg-[#F1FFAC] px-[6px] py-[2px] text-[12px] font-medium leading-4 text-[#4E3E07]"
-                                >Save {{ plan.savings }}</span
-                              >
-                            }
-
-                            <p class="text-[28px] font-medium leading-[1.2] text-[#1F1F1F]">
-                              <span class="line-through">N</span>{{ plan.price
-                              }}<span class="text-[18px] text-[#939393]"
-                                >/{{ plan.desktopUnit }}</span
-                              >
-                            </p>
-                            <p class="text-[14px] leading-[1.2] text-[#1B1B1B]">
-                              {{ plan.desktopBilling }}
-                            </p>
-                          </div>
-                        </button>
-                      }
-                    </div>
-
-                    <div class="mt-[66px] flex justify-center">
-                      <button
-                        type="button"
-                        (click)="goToPaymentStep()"
-                        class="h-10 w-[445px] rounded-[64px] border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_0_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition hover:bg-[#5945DB] hover:shadow-[0_6px_16px_0_rgba(81,35,173,0.45),0_0_0_1px_#6B5BD5] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
-                      >
-                        Proceed
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            } @else if (step() === 4) {
-              <div class="grid h-full gap-6 p-8 lg:grid-cols-[minmax(0,1fr)_480px]">
-                <section class="min-w-0 pt-4">
-                  <h2 class="text-[1.8rem] font-bold tracking-tight text-[#1A1C21]">
-                    Select your payment method
-                  </h2>
-
-                  <div class="mt-8 space-y-4">
-                    <button
-                      type="button"
-                      (click)="selectedPaymentId.set('wallet')"
-                      class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition hover:border-[#6955F2]/50 active:scale-[0.99] duration-200"
-                      [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
-                      [class.bg-[#F8F6FF]]="selectedPaymentId() === 'wallet'"
-                      [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
-                    >
-                      <div class="flex items-start gap-3">
-                        <span class="mt-0.5 text-[#272A31]"
-                          ><ng-icon name="heroWallet" class="text-lg"></ng-icon
-                        ></span>
-                        <p class="text-[0.95rem] font-medium text-[#1A1C21]">
-                          Wallet (Balance: N250,000)
-                        </p>
-                      </div>
-                      <span
-                        class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border"
-                        [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
-                        [class.border-[#D9DBE2]]="selectedPaymentId() !== 'wallet'"
-                      >
-                        @if (selectedPaymentId() === 'wallet') {
-                          <span class="h-2.5 w-2.5 rounded-full bg-[#6955F2]"></span>
-                        }
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      (click)="selectedPaymentId.set('online')"
-                      class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition hover:border-[#6955F2]/50 active:scale-[0.99] duration-200"
-                      [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
-                      [class.bg-[#F8F6FF]]="selectedPaymentId() === 'online'"
-                      [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
-                    >
-                      <div class="flex items-start gap-3">
-                        <span class="mt-0.5 text-[#272A31]"
-                          ><ng-icon name="heroGlobeAlt" class="text-lg"></ng-icon
-                        ></span>
-                        <p class="text-[0.95rem] font-medium text-[#1A1C21]">Online</p>
-                      </div>
-                      <span
-                        class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border"
-                        [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
-                        [class.border-[#D9DBE2]]="selectedPaymentId() !== 'online'"
-                      >
-                        @if (selectedPaymentId() === 'online') {
-                          <span class="h-2.5 w-2.5 rounded-full bg-[#6955F2]"></span>
-                        }
-                      </span>
-                    </button>
-                  </div>
-                </section>
-
-                <aside
-                  class="relative rounded-[28px] bg-[#FAFAFB] p-8 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]"
-                >
-                  <button
-                    type="button"
-                    (click)="close.emit()"
-                    class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#1A1C21] transition hover:bg-white active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-gray-200"
-                  >
-                    <ng-icon name="heroXMark" class="text-xl"></ng-icon>
-                  </button>
-
-                  <h3
-                    class="pr-14 text-[2.65rem] font-medium leading-none tracking-tight text-[#1A1C21]"
-                  >
-                    {{ selectedPlanSummary().title }}
-                  </h3>
-                  <p class="mt-3 text-[0.95rem] font-medium text-[#8B8F98]">
-                    {{ selectedPlanSummary().billing }}
-                  </p>
-
-                  <div class="mt-8 h-px bg-[#E3E5EA]"></div>
-
-                  <div class="mt-8 space-y-4 text-[0.95rem] text-[#595E68]">
-                    <div class="flex items-center justify-between gap-4">
-                      <span>Weekly subscription</span>
-                      <span>{{ selectedPlanSummary().subscriptionAmount }}</span>
-                    </div>
-                    <div class="flex items-center justify-between gap-4">
-                      <span>VAT (7.5%)</span>
-                      <span>{{ selectedPlanSummary().vatAmount }}</span>
-                    </div>
-                    <div
-                      class="flex items-center justify-between gap-4 pt-2 text-[1.05rem] font-semibold text-[#1A1C21]"
-                    >
-                      <span>Total due today</span>
-                      <span>{{ selectedPlanSummary().totalAmount }}</span>
-                    </div>
-                  </div>
-
-                  <div class="mt-8 h-px bg-[#E3E5EA]"></div>
-
-                  <label
-                    class="mt-8 flex cursor-pointer items-center gap-3 text-[0.95rem] font-medium text-[#424750]"
-                  >
-                    <input
-                      type="checkbox"
-                      [checked]="isRecurring()"
-                      (change)="isRecurring.set(!isRecurring())"
-                      class="h-4 w-4 rounded border-[#D3D6DE] text-[#6955F2] focus:ring-[#6955F2]/20"
-                    />
-                    <span>Mark this payment as recurring</span>
-                  </label>
-
-                  <button
-                    type="button"
-                    (click)="completePayment()"
-                    [disabled]="isSubmitting()"
-                    class="mt-16 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] hover:shadow-[0_18px_36px_-14px_rgba(102,83,228,1.0)] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20 disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
-                  >
-                    @if (isSubmitting()) {
-                      <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    }
-                    Confirm and pay
-                  </button>
-
-                  <p class="mt-10 text-[0.875rem] leading-6 text-[#6D727C]">
-                    By clicking on Confirm and pay, you accept the
-                    <span class="text-[#6653E4]">Terms of Use</span>, confirm that you will abide by
-                    the Safety Tips and declare that this posting does not include any Prohibited
-                    Items.
-                  </p>
-                </aside>
-              </div>
             } @else {
               <div
                 class="flex h-full flex-col items-center justify-center px-6 py-10 text-center animate-in fade-in zoom-in-95 duration-300"
@@ -1422,57 +948,14 @@ export class CreateBannerAdModalComponent implements OnDestroy {
     { value: 'video', label: 'Video Ad (1 left)' },
   ] as const;
 
-  readonly boostingPlans: BoostingPlan[] = [
-    {
-      id: '1-day',
-      label: 'Promote for 1 day',
-      price: '100',
-      desktopUnit: 'day',
-      desktopBilling: 'Billed daily',
-      mobileBilling: 'Billed daily',
-    },
-    {
-      id: '7-days',
-      label: 'Promote for 7 days',
-      price: '500',
-      desktopUnit: 'week',
-      desktopBilling: 'Billed weekly',
-      mobileBilling: 'Billed weekly',
-    },
-    {
-      id: '14-days',
-      label: 'Promote for 14 days',
-      price: '700',
-      desktopUnit: 'bi-wekkly',
-      desktopBilling: 'Billed bi-weekly',
-      mobileBilling: 'Billed bi-weekly',
-      savings: '20%',
-      mobileSavingsTone: 'yellow',
-    },
-    {
-      id: '30-days',
-      label: 'Promote for 30 days',
-      price: '1,000',
-      desktopUnit: 'month',
-      desktopBilling: 'Billed monthly',
-      mobileBilling: 'Billed every six months',
-      savings: '60%',
-      mobileSavingsTone: 'gray',
-    },
-  ];
-
   readonly skeletonItems = [1, 2, 3, 4];
   readonly step = signal(1);
-  readonly selectedPlanId = signal('14-days');
-  readonly selectedPaymentId = signal<'wallet' | 'online'>('wallet');
-  readonly isRecurring = signal(false);
   readonly previewMode = signal<'desktop' | 'mobile'>('desktop');
   readonly imagePreview = signal<string | null>(null);
   readonly selectedMediaFile = signal<File | null>(null);
   readonly createBannerInfoIcon = 'assets/icons/banner-create-info.svg';
   readonly createBannerGalleryAddIcon = 'assets/icons/banner-create-gallery-add.svg';
   readonly createBannerVideoAddIcon = 'assets/icons/banner-create-video-add.svg';
-  readonly bannerPlanCloseIcon = 'assets/icons/banner-plan-close-glyph.svg';
   readonly createBannerMonitorIcon = 'assets/icons/banner-create-monitor.svg';
   readonly createBannerMobileIcon = 'assets/icons/banner-create-mobile.svg';
   readonly createBannerRadioSelectedIcon = 'assets/icons/banner-create-radio-selected.svg';
@@ -1518,45 +1001,7 @@ export class CreateBannerAdModalComponent implements OnDestroy {
       ? 'linear-gradient(135deg, #5F7CFA 0%, #2E91FF 45%, #28C6F0 100%)'
       : 'linear-gradient(135deg, #FFCC4B 0%, #FF8A1F 42%, #F35B22 100%)',
   );
-  readonly selectedPlanSummary = computed(() => {
-    switch (this.selectedPlanId()) {
-      case '1-day':
-        return {
-          title: 'Promote for 1 day',
-          billing: 'Billed daily',
-          subscriptionAmount: '₦100.00',
-          vatAmount: '₦0.00',
-          totalAmount: '₦100.00',
-        };
-      case '7-days':
-        return {
-          title: 'Promote for 7 days',
-          billing: 'Billed weekly',
-          subscriptionAmount: '₦500.00',
-          vatAmount: '₦0.00',
-          totalAmount: '₦500.00',
-        };
-      case '30-days':
-        return {
-          title: 'Promote for 30 days',
-          billing: 'Billed every six months',
-          subscriptionAmount: '₦1,000.00',
-          vatAmount: '₦75.00',
-          totalAmount: '₦1,075.00',
-        };
-      default:
-        return {
-          title: 'Promote for 14 days',
-          billing: 'Billed weekly',
-          subscriptionAmount: '₦700.00',
-          vatAmount: '₦0.00',
-          totalAmount: '₦700.00',
-        };
-    }
-  });
-
   constructor() {
-    this.selectedPlanId.set(this.defaultPlanIdForViewport());
     this.mobileOverlayService.openMobileModal();
   }
 
@@ -1592,14 +1037,6 @@ export class CreateBannerAdModalComponent implements OnDestroy {
     this.bannerForm.controls.bannerType.markAsTouched();
   }
 
-  desktopPlanCards(): BoostingPlan[] {
-    return this.boostingPlans;
-  }
-
-  mobilePlanCards(): BoostingPlan[] {
-    return this.boostingPlans;
-  }
-
   openPreview(): void {
     this.step.set(2);
   }
@@ -1610,17 +1047,7 @@ export class CreateBannerAdModalComponent implements OnDestroy {
       return;
     }
 
-    this.step.set(3);
-  }
-
-  goToPaymentStep(): void {
-    this.step.set(4);
-  }
-
-  completePayment(): void {
-    if (this.bannerForm.invalid || !this.selectedMediaFile()) {
-      this.step.set(1);
-      this.bannerForm.markAllAsTouched();
+    if (this.isSubmitting()) {
       return;
     }
 
@@ -1631,17 +1058,9 @@ export class CreateBannerAdModalComponent implements OnDestroy {
         destinationUrl: this.bannerForm.controls.destinationUrl.value.trim(),
         bannerType: this.bannerForm.controls.bannerType.value,
         mediaFile: this.selectedMediaFile()!,
-        planId: this.selectedPlanId(),
-        paymentMethod: this.selectedPaymentId(),
       })
       .subscribe({
-        next: (response) => {
-          const paymentUrl = this.readPaymentUrl(response);
-          if (paymentUrl) {
-            window.location.href = paymentUrl;
-            return;
-          }
-
+        next: () => {
           this.isSubmitting.set(false);
           this.hasCreated.set(true);
           this.step.set(5);
@@ -1677,14 +1096,6 @@ export class CreateBannerAdModalComponent implements OnDestroy {
     return value?.trim() || null;
   }
 
-  private readPaymentUrl(response: unknown): string | null {
-    if (!response || typeof response !== 'object') {
-      return null;
-    }
-    const value = (response as Record<string, unknown>)['payment_url'];
-    return typeof value === 'string' && value.trim() ? value.trim() : null;
-  }
-
   finishAndClose(): void {
     if (this.hasCreated()) {
       this.success.emit();
@@ -1702,22 +1113,11 @@ export class CreateBannerAdModalComponent implements OnDestroy {
     this.imagePreview.set(null);
     this.selectedMediaFile.set(null);
     this.previewMode.set('desktop');
-    this.selectedPlanId.set(this.defaultPlanIdForViewport());
-    this.selectedPaymentId.set('wallet');
-    this.isRecurring.set(false);
     this.hasCreated.set(false);
     this.step.set(1);
   }
 
   private truncate(value: string, maxLength: number): string {
     return value.length > maxLength ? `${value.slice(0, maxLength - 1)}...` : value;
-  }
-
-  private defaultPlanIdForViewport(): string {
-    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
-      return '7-days';
-    }
-
-    return '14-days';
   }
 }

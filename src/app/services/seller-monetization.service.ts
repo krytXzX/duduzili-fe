@@ -148,15 +148,12 @@ export type CreateBannerAdRequest = {
   bannerType: 'image' | 'video';
   mediaFile: File;
   vendorId?: string;
-  planId?: string;
-  paymentMethod?: 'wallet' | 'online';
 };
 
 export type CreateBannerAdResponse =
   | SellerAdRecord
   | {
       message?: string;
-      payment_url?: string;
       ad?: SellerAdRecord;
     };
 
@@ -280,12 +277,6 @@ export class SellerMonetizationService {
     const formData = new FormData();
     formData.append('title', payload.title);
     formData.append('link', payload.destinationUrl);
-    if (payload.planId) {
-      formData.append('plan_id', payload.planId);
-    }
-    if (payload.paymentMethod) {
-      formData.append('payment_method', payload.paymentMethod);
-    }
     if (payload.vendorId) {
       formData.append('vendor_id', payload.vendorId);
     }
