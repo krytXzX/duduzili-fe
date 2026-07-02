@@ -1,7 +1,7 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
-export type SettingsTab = 'profile' | 'security' | 'notifications' | 'platform' | 'locations';
+export type SettingsTab = 'profile' | 'security' | 'notifications' | 'platform';
 
 @Component({
   selector: 'app-settings-nav',
@@ -70,12 +70,6 @@ export class SettingsNavComponent {
         label: 'Platform',
         iconSrc: '/assets/icons/settings/mobile-security.svg',
         activeIconSrc: '/assets/icons/settings/settings-nav-security-active.svg',
-      },
-      {
-        id: 'locations' as const,
-        label: 'Locations',
-        iconSrc: '/assets/icons/settings/settings-nav-profile.svg',
-        activeIconSrc: '/assets/icons/settings/settings-nav-profile.svg',
       },
     ] as const;
   });

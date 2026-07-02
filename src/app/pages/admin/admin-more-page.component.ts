@@ -147,6 +147,12 @@ export class AdminMorePageComponent {
         iconBackground: '#1969FE',
       },
       {
+        label: 'Locations',
+        route: '/admin/locations',
+        icon: '/assets/icons/settings/settings-nav-profile.svg',
+        iconBackground: '#6453D9',
+      },
+      {
         label: 'Account settings',
         route: '/admin/settings',
         icon: '/assets/icons/admin-more/setting-2.svg',

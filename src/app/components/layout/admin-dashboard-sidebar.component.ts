@@ -9,6 +9,7 @@ import {
   heroCog6Tooth,
   heroFlag,
   heroHome,
+  heroMapPin,
   heroMegaphone,
   heroQueueList,
   heroRectangleStack,
@@ -31,6 +32,7 @@ import { NotificationsService } from '../../services/notifications.service';
       heroCog6Tooth,
       heroFlag,
       heroHome,
+      heroMapPin,
       heroMegaphone,
       heroQueueList,
       heroRectangleStack,
@@ -219,6 +221,14 @@ import { NotificationsService } from '../../services/notifications.service';
           >
             <ng-icon name="heroUserCircle" class="text-lg text-gray-400"></ng-icon>
             Team management
+          </a>
+          <a
+            routerLink="/admin/locations"
+            routerLinkActive="bg-white text-[#1A1C21] shadow-sm"
+            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
+          >
+            <ng-icon name="heroMapPin" class="text-lg text-gray-400"></ng-icon>
+            Locations
           </a>
           <a
             routerLink="/admin/settings"

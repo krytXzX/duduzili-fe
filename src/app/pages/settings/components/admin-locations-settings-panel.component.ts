@@ -15,7 +15,7 @@ import { AppToastService } from '../../../services/app-toast.service';
   host: { class: 'block h-full min-h-0' },
   template: `
     <section class="flex h-full min-h-0 w-full max-w-[760px] flex-col">
-      <header class="shrink-0">
+      <!-- <header class="shrink-0">
         <h2 class="text-[28px] font-semibold leading-10 text-[#1A1B1D] md:text-[28px]">
           Locations
         </h2>
@@ -23,7 +23,7 @@ import { AppToastService } from '../../../services/app-toast.service';
           Configure the states and cities shown in platform location pickers. Users select a state
           first, then choose one of the cities under it.
         </p>
-      </header>
+      </header> -->
 
       <form
         class="mt-6 flex shrink-0 flex-col gap-3 rounded-[20px] border border-[#EFEFEF] bg-white p-4 sm:flex-row sm:items-center"
@@ -76,11 +76,13 @@ import { AppToastService } from '../../../services/app-toast.service';
           </button>
         </div>
       } @else if (states().length === 0) {
-        <div class="mt-5 rounded-[20px] border border-dashed border-[#DCDCE4] bg-[#FAFAFA] p-6 text-center">
+        <div
+          class="mt-5 rounded-[20px] border border-dashed border-[#DCDCE4] bg-[#FAFAFA] p-6 text-center"
+        >
           <p class="text-[16px] font-semibold text-[#1A1B1D]">No platform locations yet</p>
           <p class="mx-auto mt-2 max-w-[420px] text-[14px] leading-5 text-[rgba(26,27,29,0.58)]">
-            Add a state, then add cities beneath it. Only active states and active cities appear
-            to users across the app.
+            Add a state, then add cities beneath it. Only active states and active cities appear to
+            users across the app.
           </p>
         </div>
       } @else {
@@ -130,7 +132,8 @@ import { AppToastService } from '../../../services/app-toast.service';
                         {{ state.is_active ? 'Active' : 'Hidden' }}
                       </span>
                       <span class="text-[13px] text-[#8A8F9B]">
-                        {{ activeCityCount(state) }} active {{ activeCityCount(state) === 1 ? 'city' : 'cities' }}
+                        {{ activeCityCount(state) }} active
+                        {{ activeCityCount(state) === 1 ? 'city' : 'cities' }}
                       </span>
                     </div>
                   }
@@ -161,7 +164,10 @@ import { AppToastService } from '../../../services/app-toast.service';
                 </div>
               </div>
 
-              <form class="mt-4 flex flex-col gap-2 sm:flex-row" (submit)="createCity($event, state)">
+              <form
+                class="mt-4 flex flex-col gap-2 sm:flex-row"
+                (submit)="createCity($event, state)"
+              >
                 <label class="sr-only" [for]="'city-add-' + state.id">City name</label>
                 <input
                   [id]="'city-add-' + state.id"
@@ -478,7 +484,10 @@ export class AdminLocationsSettingsPanelComponent {
     }
   }
 
-  protected async toggleCityStatus(state: AdminLocationState, city: AdminLocationCity): Promise<void> {
+  protected async toggleCityStatus(
+    state: AdminLocationState,
+    city: AdminLocationCity,
+  ): Promise<void> {
     const previousCity = city;
     const optimisticCity = { ...city, is_active: !city.is_active };
     this.replaceCity(state, optimisticCity);

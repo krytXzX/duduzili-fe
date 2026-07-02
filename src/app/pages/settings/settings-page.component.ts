@@ -17,7 +17,6 @@ import {
   TwoFactorMethod,
 } from './components/settings-two-factor-modal.component';
 import { SettingsVerificationModalComponent } from './components/settings-verification-modal.component';
-import { AdminLocationsSettingsPanelComponent } from './components/admin-locations-settings-panel.component';
 import {
   AuthService,
   AuthUser,
@@ -75,17 +74,10 @@ type NotificationPreferenceSettings = Record<
     SettingsActionModalComponent,
     SettingsTwoFactorModalComponent,
     SettingsVerificationModalComponent,
-    AdminLocationsSettingsPanelComponent,
   ],
   providers: [provideIcons({ heroChevronRightOutline })],
   template: `
-    <div
-      class="bg-white md:hidden"
-      [class.h-full]="mobileSettingsStep() === 'locations'"
-      [class.min-h-0]="mobileSettingsStep() === 'locations'"
-      [class.overflow-hidden]="mobileSettingsStep() === 'locations'"
-      [class.min-h-full]="mobileSettingsStep() !== 'locations'"
-    >
+    <div class="min-h-full bg-white md:hidden">
       @if (mobileSettingsStep() === 'menu') {
         <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pb-32">
           <div class="flex h-[54px] items-center gap-3">
@@ -885,31 +877,6 @@ type NotificationPreferenceSettings = Record<
             </p>
           </div>
         </div>
-      } @else if (mobileSettingsStep() === 'locations') {
-        <div class="mx-auto flex h-full min-h-0 w-full max-w-[390px] flex-col px-5 pt-0">
-          <header class="shrink-0">
-            <div class="flex h-[45px] items-center">
-              <button
-                type="button"
-                (click)="mobileSettingsStep.set('menu')"
-                class="inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#F4F4F4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
-                aria-label="Back to account settings"
-              >
-                <img
-                  ngSrc="/assets/icons/settings/security-back.svg"
-                  width="20"
-                  height="20"
-                  alt=""
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
-          </header>
-
-          <app-admin-locations-settings-panel
-            class="min-h-0 flex-1"
-          ></app-admin-locations-settings-panel>
-        </div>
       }
     </div>
 
@@ -920,27 +887,15 @@ type NotificationPreferenceSettings = Record<
         <h1 class="text-[20px] font-semibold leading-[1.2] text-[#1A1B1D]">Account settings</h1>
       </header>
 
-      <div
-        class="min-h-0 flex-1 px-4 py-5"
-        [class.overflow-hidden]="activeTab() === 'locations' && isAdminSettingsView()"
-        [class.overflow-y-auto]="activeTab() !== 'locations' || !isAdminSettingsView()"
-      >
-        <div
-          class="grid min-h-0 gap-12 xl:grid-cols-[261px_579px] xl:gap-[115px]"
-          [class.h-full]="activeTab() === 'locations' && isAdminSettingsView()"
-          [class.items-start]="activeTab() !== 'locations' || !isAdminSettingsView()"
-        >
+      <div class="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+        <div class="grid min-h-0 items-start gap-12 xl:grid-cols-[261px_579px] xl:gap-[115px]">
           <app-settings-nav
             [activeTab]="activeTab()"
             [showPlatformTab]="isAdminSettingsView()"
             (tabChange)="activeTab.set($event)"
           ></app-settings-nav>
 
-          <div
-            class="min-h-0"
-            [class.h-full]="activeTab() === 'locations' && isAdminSettingsView()"
-            [class.overflow-hidden]="activeTab() === 'locations' && isAdminSettingsView()"
-          >
+          <div class="min-h-0">
             @if (activeTab() === 'profile') {
               <app-profile-settings-panel
                 [profile]="profile()"
@@ -1586,8 +1541,6 @@ type NotificationPreferenceSettings = Record<
                   </div>
                 </div>
               </section>
-            } @else if (activeTab() === 'locations' && isAdminSettingsView()) {
-              <app-admin-locations-settings-panel></app-admin-locations-settings-panel>
             }
           </div>
         </div>
@@ -2088,7 +2041,7 @@ export class SettingsPageComponent {
   });
   readonly activeTab = signal<SettingsTab>('profile');
   readonly mobileSettingsStep = signal<
-    'menu' | 'profile' | 'security' | 'notifications' | 'platform' | 'locations'
+    'menu' | 'profile' | 'security' | 'notifications' | 'platform'
   >('menu');
   readonly securityTab = signal<'password' | '2fa'>('password');
   readonly notificationsTab = signal<'method' | 'preferences'>('method');
@@ -2266,11 +2219,6 @@ export class SettingsPageComponent {
         label: 'Platform',
         iconSrc: '/assets/icons/settings/mobile-security.svg',
       });
-      items.push({
-        id: 'locations',
-        label: 'Locations',
-        iconSrc: '/assets/icons/settings/settings-nav-profile.svg',
-      });
     }
 
     return items;
@@ -2300,11 +2248,6 @@ export class SettingsPageComponent {
 
     if (tab === 'platform') {
       this.mobileSettingsStep.set('platform');
-      return;
-    }
-
-    if (tab === 'locations') {
-      this.mobileSettingsStep.set('locations');
       return;
     }
 

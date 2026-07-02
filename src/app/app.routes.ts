@@ -261,6 +261,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'locations',
+        title: 'Locations',
+        loadComponent: () =>
+          import('./pages/admin/admin-locations-page.component').then(
+            (m) => m.AdminLocationsPageComponent,
+          ),
+      },
+      {
         path: 'settings',
         title: 'Settings',
         loadComponent: () =>
