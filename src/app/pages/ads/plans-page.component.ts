@@ -683,23 +683,16 @@ export class AdsPlansPageComponent {
   private planSortIndex(planId: PlanId): number {
     return ['free', 'pro', 'premium', 'enterprise'].indexOf(planId);
   }
-
   private planMatchesCurrentSubscription(
     plan: PlanUiDefinition,
     backendPlan: SubscriptionPlan | null,
     currentPlanName: string,
   ): boolean {
-    return this.planNameAliases(plan, backendPlan).some((alias) => alias === currentPlanName);
+    if (!backendPlan) {
+      return false;
+    }
+    return this.normalizePlanName(backendPlan.plan_name) === currentPlanName;
   }
-
-  private planNameAliases(plan: PlanUiDefinition, backendPlan: SubscriptionPlan | null): readonly string[] {
-    const aliases = [plan.id, plan.name, backendPlan?.plan_name]
-      .map((value) => this.normalizePlanName(value))
-      .filter((value) => value.length > 0);
-
-    return Array.from(new Set(aliases));
-  }
-
   private normalizePlanName(value: string | null | undefined): string {
     return (value ?? '')
       .trim()
