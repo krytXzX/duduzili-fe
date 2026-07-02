@@ -3,6 +3,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { NotificationsService } from '../../services/notifications.service';
+import { SellerMonetizationService } from '../../services/seller-monetization.service';
 
 type SidebarLink = {
   readonly label: string;
@@ -107,22 +108,24 @@ type SidebarLink = {
           </p>
           <nav class="mt-2 space-y-2">
             @if (subscriptionsEnabled()) {
-              <a
-                routerLink="/seller/promotions"
-                routerLinkActive="bg-white text-[#1F1F1F]"
-                class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
-              >
-                <span class="flex items-center gap-2 px-1">
-                  <img
-                    ngSrc="/assets/icons/seller-sidebar-promotions.svg"
-                    alt=""
-                    width="16"
-                    height="16"
-                    class="h-4 w-4 shrink-0"
-                  />
-                  <span class="text-[14px] font-medium">Banner promotions</span>
-                </span>
-              </a>
+              @if (sellerMonetization.hasBannerPromotionsAccess()) {
+                <a
+                  routerLink="/seller/promotions"
+                  routerLinkActive="bg-white text-[#1F1F1F]"
+                  class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
+                >
+                  <span class="flex items-center gap-2 px-1">
+                    <img
+                      ngSrc="/assets/icons/seller-sidebar-promotions.svg"
+                      alt=""
+                      width="16"
+                      height="16"
+                      class="h-4 w-4 shrink-0"
+                    />
+                    <span class="text-[14px] font-medium">Banner promotions</span>
+                  </span>
+                </a>
+              }
 
               <div class="space-y-2">
                 <button
@@ -281,6 +284,7 @@ export class DashboardSidebarComponent {
   private readonly authSession = inject(AuthSessionService);
   private readonly router = inject(Router);
   private readonly notificationsService = inject(NotificationsService);
+  protected readonly sellerMonetization = inject(SellerMonetizationService);
 
   readonly isRequestsExpanded = signal(false);
   readonly isAdsExpanded = signal(this.router.url.startsWith('/seller/ads'));

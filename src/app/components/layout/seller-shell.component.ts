@@ -8,6 +8,7 @@ import { AppToastComponent } from '../common/app-toast.component';
 import { AppModeService } from '../../services/app-mode.service';
 import { AuthService, type ProfileResponse } from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { SellerMonetizationService } from '../../services/seller-monetization.service';
 
 @Component({
   selector: 'app-seller-shell',
@@ -72,6 +73,8 @@ export class SellerShellComponent implements OnInit {
   readonly showMobileBottomNav = input(true);
   readonly contentClass = input('');
 
+  private readonly sellerMonetization = inject(SellerMonetizationService);
+
   async ngOnInit(): Promise<void> {
     if (this.hasRequestedSellerMode || !this.appMode.isBackendEnabled()) {
       return;
@@ -86,6 +89,7 @@ export class SellerShellComponent implements OnInit {
       if (this.isProfileLikeResponse(response)) {
         this.authSession.initializeFromProfile(response);
       }
+      await firstValueFrom(this.sellerMonetization.getSubscriptionStatus());
     } catch {
       // Keep seller navigation usable even if the mode switch request fails.
     }

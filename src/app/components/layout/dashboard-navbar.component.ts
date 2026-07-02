@@ -6,6 +6,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AuthFlowService } from '../../services/auth-flow.service';
 import { LocationService } from '../../services/location.service';
+import { SellerMonetizationService } from '../../services/seller-monetization.service';
 
 type SellerMenuEntry = {
   readonly label: string;
@@ -568,6 +569,8 @@ export class DashboardNavbarComponent {
     return this.authSession.isSuperuser() ? '/admin' : '/en';
   });
 
+  private readonly sellerMonetization = inject(SellerMonetizationService);
+
   readonly subscriptionsEnabled = computed(() => this.authSession.subscriptionsEnabled());
 
   readonly sellerMenuEntries = computed<SellerMenuEntry[]>(() => {
@@ -595,12 +598,14 @@ export class DashboardNavbarComponent {
     ];
 
     if (this.subscriptionsEnabled()) {
-      list.push(
-        {
+      if (this.sellerMonetization.hasBannerPromotionsAccess()) {
+        list.push({
           label: 'Banner promotions',
           iconSrc: 'assets/icons/seller-menu-promotions.svg',
           route: '/seller/promotions',
-        },
+        });
+      }
+      list.push(
         { label: 'Ads', iconSrc: 'assets/icons/seller-menu-ads.svg', route: '/seller/ads/plans' }
       );
     }

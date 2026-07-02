@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Injectable, inject, signal, computed } from '@angular/core';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export type WalletTransactionStatus = 'pending' | 'successful' | 'failed';
@@ -175,6 +175,32 @@ export class SellerMonetizationService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl.replace(/\/+$/, '');
 
+  private readonly subscriptionStatusState = signal<SubscriptionStatusData | null>(null);
+  readonly subscriptionStatus = this.subscriptionStatusState.asReadonly();
+
+  readonly hasBannerPromotionsAccess = computed(() => {
+    const status = this.subscriptionStatus();
+    if (!status || !status.features) {
+      return false;
+    }
+    const bannerAds = status.features.banner_ads;
+    if (!bannerAds) {
+      return false;
+    }
+    const maxImage = bannerAds.image?.max ?? 0;
+    const maxVideo = bannerAds.video?.max ?? 0;
+    return maxImage > 0 || maxVideo > 0;
+  });
+
+  readonly hasStorePromotionsAccess = computed(() => {
+    const status = this.subscriptionStatus();
+    if (!status || !status.features) {
+      return false;
+    }
+    const storePromotions = status.features.store_promotions;
+    return (storePromotions?.max ?? 0) > 0;
+  });
+
   getWalletTransactions(params?: {
     type?: string;
     status?: string;
@@ -224,7 +250,12 @@ export class SellerMonetizationService {
   }
 
   getSubscriptionStatus(): Observable<SubscriptionStatusResponse> {
-    return this.http.get<SubscriptionStatusResponse>(`${this.apiUrl}/subscription/status/`);
+    return this.http.get<SubscriptionStatusResponse>(`${this.apiUrl}/subscription/status/`).pipe(
+      tap((response) => {
+        const status = response.status === 'No active plan' ? null : response.status;
+        this.subscriptionStatusState.set(status);
+      })
+    );
   }
 
   subscribeToPlan(

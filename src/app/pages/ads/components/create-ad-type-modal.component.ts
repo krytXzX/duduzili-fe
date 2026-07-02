@@ -17,6 +17,7 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../../components/ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
+import { SellerMonetizationService } from '../../../services/seller-monetization.service';
 
 export type CreateAdType = 'listing' | 'store' | 'banner';
 
@@ -109,7 +110,7 @@ interface StorePromotionOption {
               </p>
 
               <div class="mt-5 space-y-6">
-                @for (option of adTypeOptions; track option.id) {
+                @for (option of adTypeOptions(); track option.id) {
                   <button
                     type="button"
                     (click)="selectedType.set(option.id)"
@@ -1047,7 +1048,7 @@ interface StorePromotionOption {
                   </p>
 
                   <div class="mt-8 space-y-8">
-                    @for (option of adTypeOptions; track option.id) {
+                    @for (option of adTypeOptions(); track option.id) {
                       <button
                         type="button"
                         (click)="selectedType.set(option.id)"
@@ -2025,50 +2026,85 @@ export class CreateAdTypeModalComponent {
     ),
   );
 
-  readonly adTypeOptions: AdTypeOption[] = [
-    {
-      id: 'listing',
-      title: 'Promote a Listing',
-      badge: '8 promotions left',
-      descriptionLeft: ['Get more views on your listing', 'Appear higher in search results'],
-      descriptionRight: [
-        'Reach buyers searching in your category',
-        'Increase chances of selling faster',
-      ],
-      artTone: 'linear-gradient(135deg, #F1ECFF 0%, #E8F0FF 100%)',
-      cardTone: 'linear-gradient(135deg, #DAD3FF 0%, #EEF2FF 100%)',
-    },
-    {
-      id: 'store',
-      title: 'Promote Your Store',
-      badge: '2 promotions left',
-      descriptionLeft: [
-        'Feature your store to more buyers',
-        'Grow your followers/returning customers',
-      ],
-      descriptionRight: [
-        'Drive traffic to all your listings',
-        'Build credibility and brand awareness',
-      ],
-      artTone: 'linear-gradient(135deg, #FFF7EA 0%, #FDEACB 100%)',
-      cardTone: 'linear-gradient(135deg, #FFE2A9 0%, #FFF3D7 100%)',
-    },
-    {
-      id: 'banner',
-      title: 'Create a Banner Ad',
-      badge: '1 promotion left',
-      descriptionLeft: [
-        'Display image or video banners on Duduzili',
-        'Direct buyers to your store or listing',
-      ],
-      descriptionRight: [
-        'Capture attention across high-traffic pages',
-        'Promote special offers or new products',
-      ],
-      artTone: 'linear-gradient(135deg, #FFF0F8 0%, #F6E8FF 100%)',
-      cardTone: 'linear-gradient(135deg, #FFD3EA 0%, #E5D9FF 100%)',
-    },
-  ];
+  private readonly sellerMonetizationService = inject(SellerMonetizationService);
+
+  readonly adTypeOptions = computed(() => {
+    const status = this.sellerMonetizationService.subscriptionStatus();
+    const features = status?.features;
+
+    const list: AdTypeOption[] = [];
+
+    // 1. Promote a Listing
+    const automobileLimit = features?.listing_promotions?.automobile;
+    const propertyLimit = features?.listing_promotions?.property;
+    const otherLimit = features?.listing_promotions?.other;
+    const autoRemaining = (automobileLimit?.max ?? 0) - (automobileLimit?.used ?? 0);
+    const propertyRemaining = (propertyLimit?.max ?? 0) - (propertyLimit?.used ?? 0);
+    const otherRemaining = (otherLimit?.max ?? 0) - (otherLimit?.used ?? 0);
+    const totalListingRemaining = autoRemaining + propertyRemaining + otherRemaining;
+
+    // Show Listing option if the plan has any listing limits > 0
+    if ((automobileLimit?.max ?? 0) > 0 || (propertyLimit?.max ?? 0) > 0 || (otherLimit?.max ?? 0) > 0) {
+      list.push({
+        id: 'listing',
+        title: 'Promote a Listing',
+        badge: `${totalListingRemaining} promotions left`,
+        descriptionLeft: ['Get more views on your listing', 'Appear higher in search results'],
+        descriptionRight: [
+          'Reach buyers searching in your category',
+          'Increase chances of selling faster',
+        ],
+        artTone: 'linear-gradient(135deg, #F1ECFF 0%, #E8F0FF 100%)',
+        cardTone: 'linear-gradient(135deg, #DAD3FF 0%, #EEF2FF 100%)',
+      });
+    }
+
+    // 2. Promote Your Store
+    const storeLimit = features?.store_promotions;
+    const storeRemaining = (storeLimit?.max ?? 0) - (storeLimit?.used ?? 0);
+    if ((storeLimit?.max ?? 0) > 0) {
+      list.push({
+        id: 'store',
+        title: 'Promote Your Store',
+        badge: `${storeRemaining} promotions left`,
+        descriptionLeft: [
+          'Feature your store to more buyers',
+          'Grow your followers/returning customers',
+        ],
+        descriptionRight: [
+          'Drive traffic to all your listings',
+          'Build credibility and brand awareness',
+        ],
+        artTone: 'linear-gradient(135deg, #FFF7EA 0%, #FDEACB 100%)',
+        cardTone: 'linear-gradient(135deg, #FFE2A9 0%, #FFF3D7 100%)',
+      });
+    }
+
+    // 3. Create a Banner Ad
+    const imageBannerLimit = features?.banner_ads?.image;
+    const videoBannerLimit = features?.banner_ads?.video;
+    const bannerRemaining = ((imageBannerLimit?.max ?? 0) - (imageBannerLimit?.used ?? 0)) +
+                            ((videoBannerLimit?.max ?? 0) - (videoBannerLimit?.used ?? 0));
+    if ((imageBannerLimit?.max ?? 0) > 0 || (videoBannerLimit?.max ?? 0) > 0) {
+      list.push({
+        id: 'banner',
+        title: 'Create a Banner Ad',
+        badge: `${bannerRemaining} promotions left`,
+        descriptionLeft: [
+          'Display image or video banners on Duduzili',
+          'Direct buyers to your store or listing',
+        ],
+        descriptionRight: [
+          'Capture attention across high-traffic pages',
+          'Promote special offers or new products',
+        ],
+        artTone: 'linear-gradient(135deg, #FFF0F8 0%, #F6E8FF 100%)',
+        cardTone: 'linear-gradient(135deg, #FFD3EA 0%, #E5D9FF 100%)',
+      });
+    }
+
+    return list;
+  });
 
   constructor() {
     this.mobileOverlayService.openMobileModal();
