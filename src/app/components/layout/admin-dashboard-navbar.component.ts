@@ -7,13 +7,19 @@ import {
   heroBars3,
   heroCog6Tooth,
 } from '@ng-icons/heroicons/outline';
-import { NgOptimizedImage } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AuthFlowService } from '../../services/auth-flow.service';
 
+interface AdminSearchablePage {
+  label: string;
+  route: string;
+  keywords: string[];
+}
+
 @Component({
   selector: 'app-admin-dashboard-navbar',
-  imports: [RouterLink, NgIcon, NgOptimizedImage],
+  imports: [CommonModule, RouterLink, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({
       heroArrowRightOnRectangle,
@@ -51,7 +57,16 @@ import { AuthFlowService } from '../../services/auth-flow.service';
       <div
         class="order-3 flex w-full group sm:order-2 sm:mx-2 sm:flex-1 sm:max-w-lg lg:absolute lg:left-1/2 lg:top-1/2 lg:z-10 lg:mx-0 lg:w-[min(32rem,calc(100%-28rem))] lg:max-w-none lg:-translate-x-1/2 lg:-translate-y-1/2"
       >
-        <div class="relative w-full rounded-[100px] bg-[#2F2F2F] px-3 py-1">
+        @if (isDropdownOpen() && searchResults().length > 0 && searchQuery().trim()) {
+          <button
+            type="button"
+            class="fixed inset-0 z-40 cursor-default bg-transparent"
+            (click)="isDropdownOpen.set(false)"
+            aria-label="Close search dropdown"
+          ></button>
+        }
+
+        <div class="relative z-50 w-full rounded-[100px] bg-[#2F2F2F] px-3 py-1">
           <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
             <img
               ngSrc="/assets/icons/admin-navbar/search-normal.svg"
@@ -65,9 +80,10 @@ import { AuthFlowService } from '../../services/auth-flow.service';
 
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search pages, settings..."
             [value]="searchQuery()"
             #adminSearchInput
+            (focus)="isDropdownOpen.set(true)"
             (input)="updateSearchQuery(adminSearchInput.value)"
             (keydown.enter)="runSearch()"
             class="h-8 w-full border-none bg-transparent pl-[22px] pr-20 text-[14px] font-normal tracking-[0.01em] text-white/90 outline-none placeholder:text-white/60 focus:ring-0"
@@ -89,6 +105,28 @@ import { AuthFlowService } from '../../services/auth-flow.service';
               aria-hidden="true"
             />
           </button>
+
+          @if (isDropdownOpen() && searchResults().length > 0 && searchQuery().trim()) {
+            <div class="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-[20px] border border-white/10 bg-[#2F2F2F] p-2 shadow-2xl">
+              @for (page of searchResults(); track page.route) {
+                <button
+                  type="button"
+                  (click)="selectPage(page)"
+                  class="flex w-full items-center gap-3 rounded-[12px] px-4 py-2.5 text-left text-[14px] font-medium text-white/90 hover:bg-white/10"
+                >
+                  <img
+                    ngSrc="/assets/icons/admin-navbar/search-normal.svg"
+                    width="14"
+                    height="14"
+                    alt=""
+                    class="h-3.5 w-3.5 opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span>{{ page.label }}</span>
+                </button>
+              }
+            </div>
+          }
         </div>
       </div>
 
@@ -183,15 +221,20 @@ export class AdminDashboardNavbarComponent {
   readonly menuRequested = output<void>();
   readonly searchQuery = signal('');
   readonly isAccountMenuOpen = signal(false);
+  readonly isDropdownOpen = signal(false);
+
   protected readonly fallbackAvatarSrc = '/assets/images/auth-avatar-fallback.svg';
   protected readonly currentUser = this.authSession.user;
+
   protected readonly accountAvatarSrc = computed(
     () => this.currentUser()?.avatar?.trim() || this.fallbackAvatarSrc,
   );
+
   protected readonly accountDisplayName = computed(() => {
     const user = this.currentUser();
     return user?.full_name?.trim() || user?.username?.trim() || 'Admin';
   });
+
   protected readonly accountRoleLabel = computed(() => {
     const role = this.currentUser()?.role?.trim().toLowerCase();
     if (!role) {
@@ -209,8 +252,40 @@ export class AdminDashboardNavbarComponent {
       .join(' ');
   });
 
+  readonly adminPages: AdminSearchablePage[] = [
+    { label: 'Home / Dashboard', route: '/admin', keywords: ['home', 'dashboard', 'main', 'index'] },
+    { label: 'Users Management', route: '/admin/users', keywords: ['users', 'members', 'accounts', 'sellers', 'buyers'] },
+    { label: 'Listings Management', route: '/admin/listings', keywords: ['listings', 'products', 'ads', 'items'] },
+    { label: 'Stores Management', route: '/admin/stores', keywords: ['stores', 'shops', 'vendors', 'sellers'] },
+    { label: 'Categories Management', route: '/admin/categories', keywords: ['categories', 'taxonomy', 'sections'] },
+    { label: 'Ads Plans', route: '/admin/ads/plans', keywords: ['ads plans', 'pricing', 'subscriptions', 'monetization'] },
+    { label: 'Running Ads', route: '/admin/ads/running', keywords: ['running ads', 'active promotions', 'campaigns'] },
+    { label: 'Ads Approvals', route: '/admin/ads/approvals', keywords: ['ads approvals', 'pending ads', 'campaign approval'] },
+    { label: 'Ads Transactions', route: '/admin/ads/transactions', keywords: ['ads transactions', 'billing', 'payments', 'revenue'] },
+    { label: 'KYC Requests', route: '/admin/kyc-requests', keywords: ['kyc requests', 'identity verification', 'compliance'] },
+    { label: 'Reports', route: '/admin/reports', keywords: ['reports', 'flags', 'moderation', 'complaints'] },
+    { label: 'Analytics', route: '/admin/analytics', keywords: ['analytics', 'metrics', 'insights', 'statistics'] },
+    { label: 'Audit Log', route: '/admin/audit-log', keywords: ['audit log', 'logs', 'history', 'activities', 'events'] },
+    { label: 'Team Management', route: '/admin/team-management', keywords: ['team management', 'staff', 'admins', 'moderators', 'roles'] },
+    { label: 'Locations', route: '/admin/locations', keywords: ['locations', 'places', 'cities', 'states', 'regions'] },
+    { label: 'Account Settings', route: '/admin/settings', keywords: ['account settings', 'profile', 'security', 'preferences'] },
+    { label: 'Notifications', route: '/admin/notifications', keywords: ['notifications', 'alerts', 'messages', 'unread'] },
+  ];
+
+  readonly searchResults = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+    if (!query) {
+      return [];
+    }
+    return this.adminPages.filter((page) =>
+      page.label.toLowerCase().includes(query) ||
+      page.keywords.some((keyword) => keyword.toLowerCase().includes(query))
+    );
+  });
+
   updateSearchQuery(value: string): void {
     this.searchQuery.set(value);
+    this.isDropdownOpen.set(true);
   }
 
   toggleAccountMenu(): void {
@@ -222,8 +297,16 @@ export class AdminDashboardNavbarComponent {
   }
 
   runSearch(): void {
-    const query = this.searchQuery().trim() || 'iPhone';
-    void this.router.navigate(['/search'], { queryParams: { q: query } });
+    const results = this.searchResults();
+    if (results.length > 0) {
+      this.selectPage(results[0]);
+    }
+  }
+
+  selectPage(page: AdminSearchablePage): void {
+    this.isDropdownOpen.set(false);
+    this.searchQuery.set('');
+    void this.router.navigateByUrl(page.route);
   }
 
   goToAdminRoute(path: string): void {
