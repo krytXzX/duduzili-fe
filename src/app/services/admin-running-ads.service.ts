@@ -85,4 +85,11 @@ export class AdminRunningAdsService {
 
     return this.http.get<AdminRunningAdsResponse>(`${this.apiUrl}/admin/ads/running/`, { params });
   }
+
+  updateAdStatus(adId: number, action: 'pause' | 'resume' | 'stop'): Observable<{ status: string; detail: string }> {
+    return this.http.post<{ status: string; detail: string }>(
+      `${this.apiUrl}/admin/ads/running/${adId}/${action}/`,
+      {},
+    );
+  }
 }

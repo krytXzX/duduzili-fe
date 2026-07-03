@@ -10,6 +10,7 @@ import {
   AdminRunningAdsService,
   AdminRunningAdsType,
 } from '../../services/admin-running-ads.service';
+import { AppToastService } from '../../services/app-toast.service';
 import {
   heroBuildingStorefront,
   heroCalendarDays,
@@ -234,6 +235,33 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                       Active until:
                       <span class="font-medium text-[#383838]">{{ record.activeUntil }}</span>
                     </p>
+
+                    <div class="mt-3 flex items-center gap-2">
+                      @if (record.status === 'active') {
+                        <button
+                          type="button"
+                          (click)="changeAdStatus(record, 'pause')"
+                          class="rounded bg-[#F6F6F6] px-2.5 py-1 text-[12px] font-semibold text-[#1A1B1D] hover:bg-[#ECECEC] transition"
+                        >
+                          Pause
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          (click)="changeAdStatus(record, 'resume')"
+                          class="rounded bg-[#6254f3] px-2.5 py-1 text-[12px] font-semibold text-white hover:bg-[#5244e3] transition"
+                        >
+                          Resume
+                        </button>
+                      }
+                      <button
+                        type="button"
+                        (click)="changeAdStatus(record, 'stop')"
+                        class="rounded bg-[#FFF1F1] px-2.5 py-1 text-[12px] font-semibold text-[#D33A3A] hover:bg-[#FFE7E7] transition"
+                      >
+                        Stop
+                      </button>
+                    </div>
                   </div>
                 </div>
               </article>
@@ -369,9 +397,36 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                     </div>
                   </div>
 
-                  <div class="flex items-center justify-between gap-2">
+                   <div class="flex items-center justify-between gap-2">
                     <p class="text-[14px] text-[rgba(26,27,29,0.5)]">Active until</p>
                     <p class="text-[14px] font-medium text-[#1a1b1d]">{{ record.activeUntil }}</p>
+                  </div>
+
+                  <div class="mt-3 flex items-center gap-2">
+                    @if (record.status === 'active') {
+                      <button
+                        type="button"
+                        (click)="changeAdStatus(record, 'pause')"
+                        class="rounded bg-[#F6F6F6] px-2.5 py-1 text-[12px] font-semibold text-[#1A1B1D] hover:bg-[#ECECEC] transition"
+                      >
+                        Pause
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        (click)="changeAdStatus(record, 'resume')"
+                        class="rounded bg-[#6254f3] px-2.5 py-1 text-[12px] font-semibold text-white hover:bg-[#5244e3] transition"
+                      >
+                        Resume
+                      </button>
+                    }
+                    <button
+                      type="button"
+                      (click)="changeAdStatus(record, 'stop')"
+                      class="rounded bg-[#FFF1F1] px-2.5 py-1 text-[12px] font-semibold text-[#D33A3A] hover:bg-[#FFE7E7] transition"
+                    >
+                      Stop
+                    </button>
                   </div>
                 </div>
               </article>
@@ -416,15 +471,44 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                   }
                 </div>
 
-                <div class="flex items-center gap-3 px-4 py-2 text-[14px] text-[#959595]">
-                  <span class="inline-flex items-center gap-1">
-                    <img [ngSrc]="metricViewIcon" alt="" width="14" height="14" class="h-[14px] w-[14px]">
-                    {{ record.views }}
-                  </span>
-                  <span class="inline-flex items-center gap-1">
-                    <img [ngSrc]="metricClickIcon" alt="" width="14" height="14" class="h-[14px] w-[14px]">
-                    {{ record.clicks }}
-                  </span>
+                <div class="flex items-center justify-between px-4 py-2 text-[14px]">
+                  <div class="flex items-center gap-3 text-[#959595]">
+                    <span class="inline-flex items-center gap-1">
+                      <img [ngSrc]="metricViewIcon" alt="" width="14" height="14" class="h-[14px] w-[14px]">
+                      {{ record.views }}
+                    </span>
+                    <span class="inline-flex items-center gap-1">
+                      <img [ngSrc]="metricClickIcon" alt="" width="14" height="14" class="h-[14px] w-[14px]">
+                      {{ record.clicks }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    @if (record.status === 'active') {
+                      <button
+                        type="button"
+                        (click)="changeAdStatus(record, 'pause')"
+                        class="rounded bg-[#F6F6F6] px-2 py-0.5 text-[12px] font-semibold text-[#1A1B1D] hover:bg-[#ECECEC] transition"
+                      >
+                        Pause
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        (click)="changeAdStatus(record, 'resume')"
+                        class="rounded bg-[#6254f3] px-2 py-0.5 text-[12px] font-semibold text-white hover:bg-[#5244e3] transition"
+                      >
+                        Resume
+                      </button>
+                    }
+                    <button
+                      type="button"
+                      (click)="changeAdStatus(record, 'stop')"
+                      class="rounded bg-[#FFF1F1] px-2 py-0.5 text-[12px] font-semibold text-[#D33A3A] hover:bg-[#FFE7E7] transition"
+                    >
+                      Stop
+                    </button>
+                  </div>
                 </div>
               </article>
             }
@@ -509,15 +593,44 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                     </div>
                   </div>
 
-                  <div class="flex items-center gap-4 px-4 pb-4 text-[14px] text-[#8d8d8d]">
-                    <span class="inline-flex items-center gap-1">
-                      <span class="text-[15px]">◉</span>
-                      {{ record.views }}
-                    </span>
-                    <span class="inline-flex items-center gap-1">
-                      <span class="text-[15px]">✦</span>
-                      {{ record.clicks }}
-                    </span>
+                  <div class="flex items-center justify-between px-4 pb-4">
+                    <div class="flex items-center gap-4 text-[14px] text-[#8d8d8d]">
+                      <span class="inline-flex items-center gap-1">
+                        <span class="text-[15px]">◉</span>
+                        {{ record.views }}
+                      </span>
+                      <span class="inline-flex items-center gap-1">
+                        <span class="text-[15px]">✦</span>
+                        {{ record.clicks }}
+                      </span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                      @if (record.status === 'active') {
+                        <button
+                          type="button"
+                          (click)="changeAdStatus(record, 'pause')"
+                          class="rounded bg-[#F6F6F6] px-2.5 py-1 text-[13px] font-semibold text-[#1A1B1D] hover:bg-[#ECECEC] transition"
+                        >
+                          Pause
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          (click)="changeAdStatus(record, 'resume')"
+                          class="rounded bg-[#6254f3] px-2.5 py-1 text-[13px] font-semibold text-white hover:bg-[#5244e3] transition"
+                        >
+                          Resume
+                        </button>
+                      }
+                      <button
+                        type="button"
+                        (click)="changeAdStatus(record, 'stop')"
+                        class="rounded bg-[#FFF1F1] px-2.5 py-1 text-[13px] font-semibold text-[#D33A3A] hover:bg-[#FFE7E7] transition"
+                      >
+                        Stop
+                      </button>
+                    </div>
                   </div>
                 </article>
               }
@@ -573,7 +686,7 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
 
           <div class="overflow-x-auto">
             @if (activeCategory() === 'store promotions') {
-              <table class="min-w-[1080px] w-full table-fixed">
+              <table class="min-w-[1180px] w-full table-fixed">
                 <thead>
                   <tr class="border-b border-[#efefef] bg-[#fafafa] text-left text-[13px] font-medium text-[#7d7d7d]">
                     <th class="w-[260px] px-4 py-3 font-medium">Store</th>
@@ -583,6 +696,7 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                     <th class="w-[90px] px-4 py-3 font-medium">Clicks</th>
                     <th class="w-[140px] px-4 py-3 font-medium">Active until</th>
                     <th class="w-[110px] px-4 py-3 font-medium">Status</th>
+                    <th class="w-[160px] px-4 py-3 font-medium">Actions</th>
                   </tr>
                 </thead>
 
@@ -610,6 +724,7 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                         <td class="px-4 py-4"><div class="h-4 w-12 rounded-full bg-[#EEF2FF]"></div></td>
                         <td class="px-4 py-4"><div class="h-4 w-20 rounded-full bg-[#EEF2FF]"></div></td>
                         <td class="px-4 py-4"><div class="h-6 w-20 rounded-full bg-[#EEF2FF]"></div></td>
+                        <td class="px-4 py-4"><div class="h-6 w-24 rounded-full bg-[#EEF2FF]"></div></td>
                       </tr>
                     }
                   } @else {
@@ -663,13 +778,41 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                           {{ record.status === 'active' ? 'Active' : 'Paused' }}
                         </span>
                       </td>
+                      <td class="px-4 py-4">
+                        <div class="flex items-center gap-2">
+                          @if (record.status === 'active') {
+                            <button
+                              type="button"
+                              (click)="changeAdStatus(record, 'pause')"
+                              class="rounded bg-[#F6F6F6] px-2.5 py-1 text-[13px] font-semibold text-[#1A1B1D] hover:bg-[#ECECEC] transition"
+                            >
+                              Pause
+                            </button>
+                          } @else {
+                            <button
+                              type="button"
+                              (click)="changeAdStatus(record, 'resume')"
+                              class="rounded bg-[#6254f3] px-2.5 py-1 text-[13px] font-semibold text-white hover:bg-[#5244e3] transition"
+                            >
+                              Resume
+                            </button>
+                          }
+                          <button
+                            type="button"
+                            (click)="changeAdStatus(record, 'stop')"
+                            class="rounded bg-[#FFF1F1] px-2.5 py-1 text-[13px] font-semibold text-[#D33A3A] hover:bg-[#FFE7E7] transition"
+                          >
+                            Stop
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   }
                   }
                 </tbody>
               </table>
             } @else {
-              <table class="min-w-[1120px] w-full table-fixed">
+               <table class="min-w-[1220px] w-full table-fixed">
               <thead>
                 <tr class="border-b border-[#efefef] bg-[#fafafa] text-left text-[13px] font-medium text-[#7d7d7d]">
                   <th class="w-[260px] px-4 py-3 font-medium">Listing</th>
@@ -680,6 +823,7 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                   <th class="w-[80px] px-4 py-3 font-medium">Calls</th>
                   <th class="w-[140px] px-4 py-3 font-medium">Active until</th>
                   <th class="w-[110px] px-4 py-3 font-medium">Status</th>
+                  <th class="w-[160px] px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
 
@@ -705,6 +849,7 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                       <td class="px-4 py-4"><div class="h-4 w-10 rounded-full bg-[#EEF2FF]"></div></td>
                       <td class="px-4 py-4"><div class="h-4 w-20 rounded-full bg-[#EEF2FF]"></div></td>
                       <td class="px-4 py-4"><div class="h-6 w-20 rounded-full bg-[#EEF2FF]"></div></td>
+                      <td class="px-4 py-4"><div class="h-6 w-24 rounded-full bg-[#EEF2FF]"></div></td>
                     </tr>
                   }
                 } @else {
@@ -755,6 +900,34 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
                         ></ng-icon>
                         {{ record.status === 'active' ? 'Active' : 'Paused' }}
                       </span>
+                    </td>
+                    <td class="px-4 py-4">
+                      <div class="flex items-center gap-2">
+                        @if (record.status === 'active') {
+                          <button
+                            type="button"
+                            (click)="changeAdStatus(record, 'pause')"
+                            class="rounded bg-[#F6F6F6] px-2.5 py-1 text-[13px] font-semibold text-[#1A1B1D] hover:bg-[#ECECEC] transition"
+                          >
+                            Pause
+                          </button>
+                        } @else {
+                          <button
+                            type="button"
+                            (click)="changeAdStatus(record, 'resume')"
+                            class="rounded bg-[#6254f3] px-2.5 py-1 text-[13px] font-semibold text-white hover:bg-[#5244e3] transition"
+                          >
+                            Resume
+                          </button>
+                        }
+                        <button
+                          type="button"
+                          (click)="changeAdStatus(record, 'stop')"
+                          class="rounded bg-[#FFF1F1] px-2.5 py-1 text-[13px] font-semibold text-[#D33A3A] hover:bg-[#FFE7E7] transition"
+                        >
+                          Stop
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 }
@@ -807,7 +980,10 @@ const EMPTY_COUNTS: AdminRunningAdsCounts = {
 })
 export class AdminRunningAdsPageComponent {
   private readonly adminRunningAdsService = inject(AdminRunningAdsService);
+  private readonly appToastService = inject(AppToastService);
   private readonly destroyRef = inject(DestroyRef);
+
+  private readonly refreshTrigger = signal(0);
 
   readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
   readonly statusActiveIcon = '/assets/icons/admin-users/tick-circle.svg';
@@ -886,14 +1062,17 @@ export class AdminRunningAdsPageComponent {
 
   readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalResults() / this.pageSize)));
   readonly paginatedAds = computed(() => this.runningAds());
-  private readonly query = computed(() => ({
-    page: this.currentPage(),
-    ad_type: this.categoryToApiType(this.activeCategory()),
-    status: this.effectiveStatusFilter(),
-    search: this.searchQuery().trim(),
-    vendor_name: this.storeFilter() === 'all' ? undefined : this.storeFilter(),
-    end_date: this.activeUntilFilter() === 'all' ? undefined : this.activeUntilFilter(),
-  }));
+  private readonly query = computed(() => {
+    this.refreshTrigger();
+    return {
+      page: this.currentPage(),
+      ad_type: this.categoryToApiType(this.activeCategory()),
+      status: this.effectiveStatusFilter(),
+      search: this.searchQuery().trim(),
+      vendor_name: this.storeFilter() === 'all' ? undefined : this.storeFilter(),
+      end_date: this.activeUntilFilter() === 'all' ? undefined : this.activeUntilFilter(),
+    };
+  });
 
   countByFilterChip(chip: FilterChip): number {
     const categoryCounts = this.counts()[this.categoryToApiType(this.activeCategory())];
@@ -1084,5 +1263,23 @@ export class AdminRunningAdsPageComponent {
     ];
     const hash = [...label].reduce((total, char) => total + char.charCodeAt(0), 0);
     return tones[hash % tones.length] ?? tones[0];
+  }
+
+  changeAdStatus(record: RunningAdsRecord, action: 'pause' | 'resume' | 'stop'): void {
+    const confirmMsg = action === 'stop'
+      ? 'Are you sure you want to stop this ad permanently?'
+      : `Are you sure you want to ${action} this ad?`;
+
+    if (confirm(confirmMsg)) {
+      this.adminRunningAdsService.updateAdStatus(Number(record.id), action).subscribe({
+        next: (res) => {
+          this.appToastService.show({ message: res.detail || `Ad status updated successfully.` });
+          this.refreshTrigger.update((n) => n + 1);
+        },
+        error: () => {
+          this.appToastService.show({ message: `Failed to update ad status. Please try again.` });
+        }
+      });
+    }
   }
 }
