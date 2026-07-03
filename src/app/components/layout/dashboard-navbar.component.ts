@@ -7,11 +7,13 @@ import { AuthSessionService } from '../../services/auth-session.service';
 import { AuthFlowService } from '../../services/auth-flow.service';
 import { LocationService } from '../../services/location.service';
 import { SellerMonetizationService } from '../../services/seller-monetization.service';
+import { AppToastService } from '../../services/app-toast.service';
 
 type SellerMenuEntry = {
   readonly label: string;
   readonly iconSrc: string;
   readonly route: string;
+  readonly disabled?: boolean;
 };
 
 @Component({
@@ -141,7 +143,9 @@ type SellerMenuEntry = {
                         @for (item of sellerMenuEntries(); track item.label) {
                           <button
                             type="button"
-                            (click)="goToSellerRoute(item.route)"
+                            (click)="goToSellerRoute(item)"
+                            [attr.title]="item.disabled ? 'Upgrade your plan to access this feature.' : null"
+                            [class.opacity-50]="item.disabled"
                             class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#F7F8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15162B]"
                             role="menuitem"
                           >
@@ -343,7 +347,9 @@ type SellerMenuEntry = {
                         @for (item of sellerMenuEntries(); track item.label) {
                           <button
                             type="button"
-                            (click)="goToSellerRoute(item.route)"
+                            (click)="goToSellerRoute(item)"
+                            [attr.title]="item.disabled ? 'Upgrade your plan to access this feature.' : null"
+                            [class.opacity-50]="item.disabled"
                             class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#F7F8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15162B]"
                             role="menuitem"
                           >
@@ -569,6 +575,7 @@ export class DashboardNavbarComponent {
     return this.authSession.isSuperuser() ? '/admin' : '/en';
   });
 
+  private readonly appToastService = inject(AppToastService);
   private readonly sellerMonetization = inject(SellerMonetizationService);
 
   readonly subscriptionsEnabled = computed(() => this.authSession.subscriptionsEnabled());
@@ -598,14 +605,13 @@ export class DashboardNavbarComponent {
     ];
 
     if (this.subscriptionsEnabled()) {
-      if (this.sellerMonetization.hasBannerPromotionsAccess()) {
-        list.push({
+      list.push(
+        {
           label: 'Banner promotions',
           iconSrc: 'assets/icons/seller-menu-promotions.svg',
           route: '/seller/promotions',
-        });
-      }
-      list.push(
+          disabled: !this.sellerMonetization.hasBannerPromotionsAccess(),
+        },
         { label: 'Ads', iconSrc: 'assets/icons/seller-menu-ads.svg', route: '/seller/ads/plans' }
       );
     }
@@ -668,13 +674,16 @@ export class DashboardNavbarComponent {
   runSearch(): void {
     const query = this.searchQuery().trim() || 'iPhone';
     void this.router.navigate(['/search'], { queryParams: { q: query } });
-  }
-
-  goToSellerRoute(path: string): void {
+  }  goToSellerRoute(item: SellerMenuEntry): void {
     this.closeAccountMenu();
-    void this.router.navigateByUrl(path);
+    if (item.disabled) {
+      this.appToastService.show({
+        message: 'Upgrade your plan to access this feature.',
+      });
+      return;
+    }
+    void this.router.navigateByUrl(item.route);
   }
-
   switchToBuyerMode(): void {
     this.closeAccountMenu();
     void this.router.navigate(['/en']);

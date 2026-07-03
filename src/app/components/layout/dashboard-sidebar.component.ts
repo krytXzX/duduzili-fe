@@ -4,6 +4,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { NotificationsService } from '../../services/notifications.service';
 import { SellerMonetizationService } from '../../services/seller-monetization.service';
+import { AppToastService } from '../../services/app-toast.service';
 
 type SidebarLink = {
   readonly label: string;
@@ -108,24 +109,25 @@ type SidebarLink = {
           </p>
           <nav class="mt-2 space-y-2">
             @if (subscriptionsEnabled()) {
-              @if (sellerMonetization.hasBannerPromotionsAccess()) {
-                <a
-                  routerLink="/seller/promotions"
-                  routerLinkActive="bg-white text-[#1F1F1F]"
-                  class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
-                >
-                  <span class="flex items-center gap-2 px-1">
-                    <img
-                      ngSrc="/assets/icons/seller-sidebar-promotions.svg"
-                      alt=""
-                      width="16"
-                      height="16"
-                      class="h-4 w-4 shrink-0"
-                    />
-                    <span class="text-[14px] font-medium">Banner promotions</span>
-                  </span>
-                </a>
-              }
+              <a
+                [routerLink]="sellerMonetization.hasBannerPromotionsAccess() ? '/seller/promotions' : null"
+                [routerLinkActive]="sellerMonetization.hasBannerPromotionsAccess() ? 'bg-white text-[#1F1F1F]' : ''"
+                (click)="handlePromotionsClick($event)"
+                [attr.title]="!sellerMonetization.hasBannerPromotionsAccess() ? 'Upgrade your plan to access this feature.' : null"
+                [class.opacity-50]="!sellerMonetization.hasBannerPromotionsAccess()"
+                class="group flex h-10 items-center justify-between rounded-full px-2 py-1 text-[#777777] transition hover:bg-white/70"
+              >
+                <span class="flex items-center gap-2 px-1">
+                  <img
+                    ngSrc="/assets/icons/seller-sidebar-promotions.svg"
+                    alt=""
+                    width="16"
+                    height="16"
+                    class="h-4 w-4 shrink-0"
+                  />
+                  <span class="text-[14px] font-medium">Banner promotions</span>
+                </span>
+              </a>
 
               <div class="space-y-2">
                 <button
@@ -284,7 +286,18 @@ export class DashboardSidebarComponent {
   private readonly authSession = inject(AuthSessionService);
   private readonly router = inject(Router);
   private readonly notificationsService = inject(NotificationsService);
+  private readonly appToastService = inject(AppToastService);
   protected readonly sellerMonetization = inject(SellerMonetizationService);
+
+  handlePromotionsClick(event: MouseEvent): void {
+    if (!this.sellerMonetization.hasBannerPromotionsAccess()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.appToastService.show({
+        message: 'Upgrade your plan to access this feature.',
+      });
+    }
+  }
 
   readonly isRequestsExpanded = signal(false);
   readonly isAdsExpanded = signal(this.router.url.startsWith('/seller/ads'));

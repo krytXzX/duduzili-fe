@@ -18,6 +18,7 @@ import {
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../../components/ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 import { SellerMonetizationService } from '../../../services/seller-monetization.service';
+import { AppToastService } from '../../../services/app-toast.service';
 
 export type CreateAdType = 'listing' | 'store' | 'banner';
 
@@ -29,6 +30,7 @@ interface AdTypeOption {
   descriptionRight: string[];
   artTone: string;
   cardTone: string;
+  disabled?: boolean;
 }
 
 interface ListingItem {
@@ -113,7 +115,9 @@ interface StorePromotionOption {
                 @for (option of adTypeOptions(); track option.id) {
                   <button
                     type="button"
-                    (click)="selectedType.set(option.id)"
+                    (click)="selectAdType(option)"
+                    [attr.title]="option.disabled ? 'Upgrade your plan to access this feature.' : null"
+                    [class.opacity-50]="option.disabled"
                     class="relative block h-[158px] w-full overflow-hidden rounded-[24px] border bg-white px-[18px] pb-[18px] pt-[18px] text-left transition"
                     [attr.aria-pressed]="selectedType() === option.id"
                     [class.border-[#E8E8E8]]="selectedType() !== option.id"
@@ -1051,7 +1055,9 @@ interface StorePromotionOption {
                     @for (option of adTypeOptions(); track option.id) {
                       <button
                         type="button"
-                        (click)="selectedType.set(option.id)"
+                        (click)="selectAdType(option)"
+                        [attr.title]="option.disabled ? 'Upgrade your plan to access this feature.' : null"
+                        [class.opacity-50]="option.disabled"
                         class="relative block h-[146px] w-full overflow-hidden rounded-[24px] border bg-white px-[18px] py-[18px] text-left transition-all"
                         [attr.aria-pressed]="selectedType() === option.id"
                         [class.border-[#E8E8E8]]="selectedType() !== option.id"
@@ -2027,6 +2033,17 @@ export class CreateAdTypeModalComponent {
   );
 
   private readonly sellerMonetizationService = inject(SellerMonetizationService);
+  private readonly appToastService = inject(AppToastService);
+
+  selectAdType(option: AdTypeOption): void {
+    if (option.disabled) {
+      this.appToastService.show({
+        message: 'Upgrade your plan to access this feature.',
+      });
+      return;
+    }
+    this.selectedType.set(option.id);
+  }
 
   readonly adTypeOptions = computed(() => {
     const status = this.sellerMonetizationService.subscriptionStatus();
@@ -2042,66 +2059,67 @@ export class CreateAdTypeModalComponent {
     const propertyRemaining = (propertyLimit?.max ?? 0) - (propertyLimit?.used ?? 0);
     const otherRemaining = (otherLimit?.max ?? 0) - (otherLimit?.used ?? 0);
     const totalListingRemaining = autoRemaining + propertyRemaining + otherRemaining;
+    const listingDisabled = !((automobileLimit?.max ?? 0) > 0 || (propertyLimit?.max ?? 0) > 0 || (otherLimit?.max ?? 0) > 0);
 
-    // Show Listing option if the plan has any listing limits > 0
-    if ((automobileLimit?.max ?? 0) > 0 || (propertyLimit?.max ?? 0) > 0 || (otherLimit?.max ?? 0) > 0) {
-      list.push({
-        id: 'listing',
-        title: 'Promote a Listing',
-        badge: `${totalListingRemaining} promotions left`,
-        descriptionLeft: ['Get more views on your listing', 'Appear higher in search results'],
-        descriptionRight: [
-          'Reach buyers searching in your category',
-          'Increase chances of selling faster',
-        ],
-        artTone: 'linear-gradient(135deg, #F1ECFF 0%, #E8F0FF 100%)',
-        cardTone: 'linear-gradient(135deg, #DAD3FF 0%, #EEF2FF 100%)',
-      });
-    }
+    list.push({
+      id: 'listing',
+      title: 'Promote a Listing',
+      badge: listingDisabled ? 'Not supported on your plan' : `${totalListingRemaining} promotions left`,
+      descriptionLeft: ['Get more views on your listing', 'Appear higher in search results'],
+      descriptionRight: [
+        'Reach buyers searching in your category',
+        'Increase chances of selling faster',
+      ],
+      artTone: 'linear-gradient(135deg, #F1ECFF 0%, #E8F0FF 100%)',
+      cardTone: 'linear-gradient(135deg, #DAD3FF 0%, #EEF2FF 100%)',
+      disabled: listingDisabled,
+    });
 
     // 2. Promote Your Store
     const storeLimit = features?.store_promotions;
     const storeRemaining = (storeLimit?.max ?? 0) - (storeLimit?.used ?? 0);
-    if ((storeLimit?.max ?? 0) > 0) {
-      list.push({
-        id: 'store',
-        title: 'Promote Your Store',
-        badge: `${storeRemaining} promotions left`,
-        descriptionLeft: [
-          'Feature your store to more buyers',
-          'Grow your followers/returning customers',
-        ],
-        descriptionRight: [
-          'Drive traffic to all your listings',
-          'Build credibility and brand awareness',
-        ],
-        artTone: 'linear-gradient(135deg, #FFF7EA 0%, #FDEACB 100%)',
-        cardTone: 'linear-gradient(135deg, #FFE2A9 0%, #FFF3D7 100%)',
-      });
-    }
+    const storeDisabled = !((storeLimit?.max ?? 0) > 0);
+
+    list.push({
+      id: 'store',
+      title: 'Promote Your Store',
+      badge: storeDisabled ? 'Not supported on your plan' : `${storeRemaining} promotions left`,
+      descriptionLeft: [
+        'Feature your store to more buyers',
+        'Grow your followers/returning customers',
+      ],
+      descriptionRight: [
+        'Drive traffic to all your listings',
+        'Build credibility and brand awareness',
+      ],
+      artTone: 'linear-gradient(135deg, #FFF7EA 0%, #FDEACB 100%)',
+      cardTone: 'linear-gradient(135deg, #FFE2A9 0%, #FFF3D7 100%)',
+      disabled: storeDisabled,
+    });
 
     // 3. Create a Banner Ad
     const imageBannerLimit = features?.banner_ads?.image;
     const videoBannerLimit = features?.banner_ads?.video;
     const bannerRemaining = ((imageBannerLimit?.max ?? 0) - (imageBannerLimit?.used ?? 0)) +
                             ((videoBannerLimit?.max ?? 0) - (videoBannerLimit?.used ?? 0));
-    if ((imageBannerLimit?.max ?? 0) > 0 || (videoBannerLimit?.max ?? 0) > 0) {
-      list.push({
-        id: 'banner',
-        title: 'Create a Banner Ad',
-        badge: `${bannerRemaining} promotions left`,
-        descriptionLeft: [
-          'Display image or video banners on Duduzili',
-          'Direct buyers to your store or listing',
-        ],
-        descriptionRight: [
-          'Capture attention across high-traffic pages',
-          'Promote special offers or new products',
-        ],
-        artTone: 'linear-gradient(135deg, #FFF0F8 0%, #F6E8FF 100%)',
-        cardTone: 'linear-gradient(135deg, #FFD3EA 0%, #E5D9FF 100%)',
-      });
-    }
+    const bannerDisabled = !((imageBannerLimit?.max ?? 0) > 0 || (videoBannerLimit?.max ?? 0) > 0);
+
+    list.push({
+      id: 'banner',
+      title: 'Create a Banner Ad',
+      badge: bannerDisabled ? 'Not supported on your plan' : `${bannerRemaining} promotions left`,
+      descriptionLeft: [
+        'Display image or video banners on Duduzili',
+        'Direct buyers to your store or listing',
+      ],
+      descriptionRight: [
+        'Capture attention across high-traffic pages',
+        'Promote special offers or new products',
+      ],
+      artTone: 'linear-gradient(135deg, #FFF0F8 0%, #F6E8FF 100%)',
+      cardTone: 'linear-gradient(135deg, #FFD3EA 0%, #E5D9FF 100%)',
+      disabled: bannerDisabled,
+    });
 
     return list;
   });

@@ -24,3 +24,6 @@ Replace the heart icon on listing card
 
 
 full purge of the assets folder for placeholder images and icons
+
+
+sms verification integration
