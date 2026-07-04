@@ -105,7 +105,7 @@ interface ListingReportRecord {
               [class.text-[#8b8b8b]]="activeTab() !== 'reported sellers'"
             >
               <ng-icon name="heroUserCircle" class="text-[16px]"></ng-icon>
-              Reported Sellers
+              Reported Sellers/Stores
             </button>
 
             <button
