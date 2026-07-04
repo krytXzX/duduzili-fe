@@ -1,11 +1,19 @@
 import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, output } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { heroShare } from '@ng-icons/heroicons/outline';
 
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
+import { AppToastService } from '../../../services/app-toast.service';
 
 @Component({
   selector: 'app-success-modal',
-  imports: [NgOptimizedImage],
+  imports: [NgOptimizedImage, NgIcon],
+  providers: [
+    provideIcons({
+      heroShare,
+    }),
+  ],
   template: `
     <div
       class="fixed inset-0 z-[60] bg-black/40 backdrop-blur-[4px] md:flex md:items-center md:justify-center md:p-4"
@@ -54,21 +62,22 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
               </div>
             </div>
 
-            <div class="flex h-[52px] items-center gap-2 md:h-10">
+            <div class="flex h-[52px] items-center gap-3 w-full max-w-[400px] px-4 md:px-0">
               <button
                 type="button"
-                class="inline-flex h-full items-center justify-center rounded-[82px] bg-[#f5f5f5] px-6 text-[16px] leading-[22px] font-medium tracking-[-0.03em] text-[#05061a] transition-all duration-200 hover:bg-[#ebebeb] active:scale-95"
-                (click)="addAnother.emit()"
+                class="flex-1 inline-flex h-full items-center justify-center rounded-[82px] bg-[#f5f5f5] px-4 text-[14px] md:text-[15px] font-medium text-[#05061a] transition-all duration-200 hover:bg-[#ebebeb] active:scale-95 whitespace-nowrap"
+                (click)="ok.emit()"
               >
-                Add another store
+                Done
               </button>
 
               <button
                 type="button"
-                class="inline-flex h-full min-w-[89px] items-center justify-center rounded-[64px] border border-white bg-[#6453d9] px-5 text-[16px] leading-5 font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] md:text-[14px] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
-                (click)="ok.emit()"
+                class="flex-1 inline-flex h-full items-center justify-center gap-2 rounded-[64px] border border-white bg-[#6453d9] px-4 text-[14px] md:text-[15px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5] transition-all duration-200 hover:bg-[#5342c6] active:scale-95 whitespace-nowrap"
+                (click)="shareStore()"
               >
-                Done
+                <ng-icon name="heroShare" class="text-[16px] md:text-[18px]"></ng-icon>
+                <span>Share store</span>
               </button>
             </div>
           </div>
@@ -80,6 +89,7 @@ import { MobileOverlayService } from '../../../services/mobile-overlay.service';
 })
 export class SuccessModalComponent implements OnDestroy {
   readonly storeName = input<string | null>(null);
+  readonly storeId = input<string | null>(null);
   readonly ok = output<void>();
   readonly addAnother = output<void>();
 
@@ -87,6 +97,21 @@ export class SuccessModalComponent implements OnDestroy {
   protected readonly closeIconUrl = '/assets/icons/my-stores-success-close.svg';
 
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly appToastService = inject(AppToastService);
+
+  shareStore(): void {
+    const storeId = this.storeId();
+    if (!storeId) {
+      return;
+    }
+    const shareUrl = `${window.location.origin}/en/stores/${storeId}`;
+    void navigator.clipboard.writeText(shareUrl).then(() => {
+      this.appToastService.show({
+        message: 'Store link copied to clipboard!',
+        durationMs: 2500,
+      });
+    });
+  }
 
   constructor() {
     this.mobileOverlayService.openMobileModal();

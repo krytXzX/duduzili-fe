@@ -200,6 +200,7 @@ interface NewStoreFormData {
     @if (isSuccess()) {
       <app-success-modal
         [storeName]="latestCreatedStoreName()"
+        [storeId]="latestCreatedStoreId()"
         (ok)="isSuccess.set(false)"
         (addAnother)="onAddAnother()"
       />
@@ -227,6 +228,7 @@ export class MyStoresPageComponent {
   protected readonly isLoading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly latestCreatedStoreName = signal<string | null>(null);
+  protected readonly latestCreatedStoreId = signal<string | null>(null);
   protected readonly hasStores = computed(() => this.stores().length > 0);
 
   protected readonly filteredStores = computed(() => {
@@ -270,6 +272,7 @@ export class MyStoresPageComponent {
       const response = await firstValueFrom(this.vendorsService.createStore(this.buildCreateStorePayload(formData)));
       this.isAddingStore.set(false);
       this.latestCreatedStoreName.set(this.readString(response['store_name']) ?? formData.name);
+      this.latestCreatedStoreId.set(response['id'] ? String(response['id']) : null);
       this.isSuccess.set(true);
       void this.loadMyStores();
     } catch {
