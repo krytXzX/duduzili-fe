@@ -144,8 +144,12 @@ export interface ReportStoreSubmitValue {
         @else if (step() === 3) {
           <div class="flex flex-col items-center gap-6 py-6 text-center">
             <!-- Handshake illustration -->
-            <div class="relative flex h-20 w-20 items-center justify-center rounded-full bg-[#f4f2ff]">
-              <span class="text-[36px] select-none">🤝</span>
+            <div class="relative flex h-[100px] w-[140px] items-center justify-center overflow-hidden">
+              <img
+                src="/assets/images/product-modal/seller-report-success-hero.png"
+                alt="Success"
+                class="h-full w-full object-contain"
+              />
             </div>
 
             <div class="space-y-2 max-w-[340px]">
