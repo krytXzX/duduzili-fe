@@ -132,6 +132,36 @@ export interface AdminSellerReportDetails {
               </div>
             </div>
 
+            <p class="text-[15px] text-[#8f8f8f]">Linked User</p>
+            <div class="flex min-w-0 items-center gap-3">
+              <div class="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f3f3f3]">
+                @if (report().sellerAvatar) {
+                  <img
+                    [ngSrc]="report().sellerAvatar!"
+                    [alt]="report().sellerName"
+                    width="32"
+                    height="32"
+                    loading="lazy"
+                    class="h-8 w-8 object-cover"
+                  >
+                } @else {
+                  <div class="flex h-8 w-8 items-center justify-center bg-[#E8EAED] text-[11px] font-semibold text-[#4B5563]">
+                    {{ initialsFromLabel(report().sellerName) }}
+                  </div>
+                }
+              </div>
+              <div class="flex min-w-0 items-center gap-2">
+                <p class="truncate text-[15px] font-medium text-[#222222]">{{ report().sellerName }}</p>
+                <a
+                  [routerLink]="['/admin/users', report().sellerId]"
+                  class="inline-flex h-5 w-5 items-center justify-center text-[#4f5965] transition hover:text-[#202020]"
+                  aria-label="Open seller details"
+                >
+                  <ng-icon name="heroArrowTopRightOnSquare" class="text-[16px]"></ng-icon>
+                </a>
+              </div>
+            </div>
+
             <p class="text-[15px] text-[#8f8f8f]">Date reported</p>
             <p class="text-[15px] font-medium text-[#222222]">{{ report().dateReported }}</p>
 
