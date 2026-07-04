@@ -31,6 +31,8 @@ import {
   heroArrowUpTray,
   heroTrash,
   heroXMark,
+  heroEllipsisHorizontal,
+  heroFlag,
 } from '@ng-icons/heroicons/outline';
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
 import { AuthSessionService } from '../../services/auth-session.service';
@@ -57,6 +59,7 @@ import {
   VendorReviewsResponse,
   VendorsService,
 } from '../../services/vendors.service';
+import { ListingsService } from '../../services/listings.service';
 import { environment } from '../../../environments/environment';
 import { formatListingPricing } from '../../utils/listing-pricing';
 
@@ -142,6 +145,8 @@ type VendorTagSummary = {
       heroArrowUpTray,
       heroTrash,
       heroXMark,
+      heroEllipsisHorizontal,
+      heroFlag,
     }),
   ],
   host: {
@@ -213,7 +218,7 @@ type VendorTagSummary = {
       <ng-template #storeDetailsContent>
         <section class="bg-white pb-[32px] md:hidden">
           <div class="h-[54px] px-5">
-            <div class="flex h-full items-center">
+            <div class="flex h-full items-center justify-between">
               <a
                 [routerLink]="backRoute()"
                 aria-label="Back"
@@ -221,6 +226,15 @@ type VendorTagSummary = {
               >
                 <ng-icon name="heroChevronLeft" class="text-[18px] text-[#2d2d2d]"></ng-icon>
               </a>
+
+              <button
+                type="button"
+                (click)="toggleOptionsMenu($event)"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f3f3f3] transition active:scale-95"
+                aria-label="More options"
+              >
+                <ng-icon name="heroEllipsisHorizontal" class="text-[18px] text-[#2d2d2d]"></ng-icon>
+              </button>
             </div>
           </div>
 
@@ -696,6 +710,63 @@ type VendorTagSummary = {
           </div>
         }
 
+        <!-- Mobile Options Bottom Sheet -->
+        @if (showOptionsMenu() && isMobile()) {
+          <!-- Backdrop -->
+          <div
+            class="fixed inset-0 z-40 bg-black/40 md:hidden"
+            aria-hidden="true"
+            (click)="showOptionsMenu.set(false)"
+          ></div>
+
+          <!-- Sheet panel -->
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Store options"
+            class="fixed inset-x-0 bottom-0 z-50 md:hidden rounded-t-[24px] bg-white px-4 pb-[env(safe-area-inset-bottom,16px)] pt-5 shadow-2xl animate-[slide-up_0.2s_ease-out]"
+          >
+            <!-- Drag handle -->
+            <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-[#e0e0e0]"></div>
+
+            <div class="space-y-1 pb-2">
+              <button
+                type="button"
+                (click)="shareStore(); showOptionsMenu.set(false)"
+                class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left text-[15px] font-medium text-[#1A1C21] transition active:bg-[#f4f4f4]"
+              >
+                <span
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F3F4F6]"
+                >
+                  <ng-icon name="heroArrowUpTray" class="text-[18px] text-[#4b5563]"></ng-icon>
+                </span>
+                <span>Share store</span>
+              </button>
+
+              <button
+                type="button"
+                (click)="reportStore(); showOptionsMenu.set(false)"
+                class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left text-[15px] font-medium text-[#EF4444] transition active:bg-[#f4f4f4]"
+              >
+                <span
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF5F5]"
+                >
+                  <ng-icon name="heroFlag" class="text-[18px] text-[#EF4444]"></ng-icon>
+                </span>
+                <span>Report store</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              (click)="showOptionsMenu.set(false)"
+              class="mt-2 w-full rounded-full bg-[#f4f4f4] py-3 text-[15px] font-medium text-[#1a1a1a] transition active:bg-[#e8e8e8]"
+            >
+              Cancel
+            </button>
+          </div>
+        }
+
         <section class="hidden min-h-full px-6 py-6 md:block md:px-8">
           <nav class="mb-6 flex items-center gap-3 text-sm text-[#8C8C92]">
             <a [routerLink]="backRoute()" class="transition-colors hover:text-[#5932EA]">
@@ -870,6 +941,46 @@ type VendorTagSummary = {
                         class="fixed inset-0 z-10 cursor-default"
                         aria-label="Close contact menu"
                         (click)="showContactMenu.set(false)"
+                      ></button>
+                    }
+                  </div>
+
+                  <div class="relative">
+                    <button
+                      type="button"
+                      (click)="toggleOptionsMenu($event)"
+                      class="flex h-11 w-11 items-center justify-center rounded-full border border-[#EEF0F4] bg-white text-[#2d2d2d] transition hover:bg-[#F3F4F6] active:scale-95 shadow-[0_2px_8px_rgba(31,36,48,0.05)]"
+                      aria-label="More options"
+                    >
+                      <ng-icon name="heroEllipsisHorizontal" class="text-[20px]"></ng-icon>
+                    </button>
+
+                    @if (showOptionsMenu() && !isMobile()) {
+                      <div
+                        class="absolute right-0 top-[calc(100%+8px)] z-20 w-[220px] overflow-hidden rounded-[20px] border border-[#EEF0F4] bg-white p-2 shadow-xl"
+                      >
+                        <button
+                          type="button"
+                          (click)="shareStore(); showOptionsMenu.set(false)"
+                          class="flex w-full items-center gap-3 rounded-[14px] px-4 py-3 text-left text-sm font-medium text-[#4b5563] hover:text-black transition hover:bg-[#F7F7FA] active:scale-95"
+                        >
+                          <ng-icon name="heroArrowUpTray" class="text-[18px] text-[#4b5563]"></ng-icon>
+                          <span>Share store</span>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="reportStore(); showOptionsMenu.set(false)"
+                          class="flex w-full items-center gap-3 rounded-[14px] px-4 py-3 text-left text-sm font-medium text-[#EF4444] transition hover:bg-[#FFF5F5] active:scale-95"
+                        >
+                          <ng-icon name="heroFlag" class="text-[18px] text-[#EF4444]"></ng-icon>
+                          <span>Report store</span>
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        class="fixed inset-0 z-10 cursor-default"
+                        aria-label="Close options menu"
+                        (click)="showOptionsMenu.set(false)"
                       ></button>
                     }
                   </div>
@@ -1533,6 +1644,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   private readonly appToastService = inject(AppToastService);
   private readonly messagesService = inject(MessagesService);
   private readonly vendorsService = inject(VendorsService);
+  private readonly listingsService = inject(ListingsService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
   private readonly reviewCloseButton =
     viewChild<ElementRef<HTMLButtonElement>>('reviewCloseButton');
@@ -1542,6 +1654,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   readonly activeCategory = signal('All');
   readonly showContactMenu = signal(false);
   readonly showContactBottomSheet = signal(false);
+  readonly showOptionsMenu = signal(false);
   readonly showLeaveReviewModal = signal(false);
   readonly isFollowPending = signal(false);
   readonly isStartingConversation = signal(false);
@@ -1928,6 +2041,60 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
     } finally {
       this.isSubmittingReview.set(false);
     }
+  }
+
+  isMobile(): boolean {
+    const defaultView = this.document.defaultView;
+    return defaultView ? defaultView.innerWidth < 768 : false;
+  }
+
+  toggleOptionsMenu(event: Event): void {
+    event.stopPropagation();
+    this.showOptionsMenu.update((v) => !v);
+  }
+
+  shareStore(): void {
+    const storeId = this.store().id;
+    if (!storeId) {
+      return;
+    }
+    const defaultView = this.document.defaultView;
+    const shareUrl = defaultView ? `${defaultView.location.origin}/en/stores/${storeId}` : `/en/stores/${storeId}`;
+    if (defaultView?.navigator?.clipboard) {
+      void defaultView.navigator.clipboard.writeText(shareUrl).then(() => {
+        this.appToastService.show({
+          message: 'Store link copied to clipboard!',
+          durationMs: 2500,
+        });
+      });
+    }
+  }
+
+  reportStore(): void {
+    if (!this.authSession.isAuthenticated()) {
+      if (typeof window !== 'undefined') {
+        void Promise.resolve().then(() => (window.location.href = '/sign-in'));
+      }
+      return;
+    }
+    const storeId = this.store().id;
+    if (!storeId) {
+      return;
+    }
+    firstValueFrom(this.listingsService.createSellerReport(storeId, { reason: 'other' })).then(
+      () => {
+        this.appToastService.show({
+          message: 'Store reported successfully. Thank you!',
+          durationMs: 2500,
+        });
+      },
+      () => {
+        this.appToastService.show({
+          message: 'Could not report store. Please try again.',
+          durationMs: 2500,
+        });
+      }
+    );
   }
 
   async toggleVendorFollow(): Promise<void> {
