@@ -60,6 +60,7 @@ import {
   VendorsService,
 } from '../../services/vendors.service';
 import { ListingsService } from '../../services/listings.service';
+import { ReportStoreModalComponent, ReportStoreSubmitValue } from './components/report-store-modal.component';
 import { environment } from '../../../environments/environment';
 import { formatListingPricing } from '../../utils/listing-pricing';
 
@@ -126,6 +127,7 @@ type VendorTagSummary = {
     HomeFooterComponent,
     MobileBottomNavComponent,
     CustomDropdownComponent,
+    ReportStoreModalComponent,
   ],
   providers: [
     provideIcons({
@@ -213,6 +215,13 @@ type VendorTagSummary = {
         <app-home-footer />
       } @else {
         <app-mobile-bottom-nav variant="buyer" />
+      }
+
+      @if (showReportModal()) {
+        <app-report-store-modal
+          (close)="showReportModal.set(false)"
+          (submitReport)="onReportSubmit($event)"
+        />
       }
 
       <ng-template #storeDetailsContent>
@@ -1655,6 +1664,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   readonly showContactMenu = signal(false);
   readonly showContactBottomSheet = signal(false);
   readonly showOptionsMenu = signal(false);
+  readonly showReportModal = signal(false);
   readonly showLeaveReviewModal = signal(false);
   readonly isFollowPending = signal(false);
   readonly isStartingConversation = signal(false);
@@ -2077,20 +2087,25 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
       }
       return;
     }
+    this.showReportModal.set(true);
+  }
+
+  onReportSubmit(value: ReportStoreSubmitValue): void {
     const storeId = this.store().id;
     if (!storeId) {
       return;
     }
-    firstValueFrom(this.listingsService.createSellerReport(storeId, { reason: 'other' })).then(
+    firstValueFrom(
+      this.listingsService.createSellerReport(storeId, {
+        reason: value.reason,
+      })
+    ).then(
       () => {
-        this.appToastService.show({
-          message: 'Store reported successfully. Thank you!',
-          durationMs: 2500,
-        });
+        // Successfully reported
       },
       () => {
         this.appToastService.show({
-          message: 'Could not report store. Please try again.',
+          message: 'Could not submit report. Please try again.',
           durationMs: 2500,
         });
       }
