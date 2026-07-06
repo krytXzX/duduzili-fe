@@ -61,6 +61,7 @@ import {
 } from '../../services/vendors.service';
 import { ListingsService } from '../../services/listings.service';
 import { ReportStoreModalComponent, ReportStoreSubmitValue } from './components/report-store-modal.component';
+import { ShareListingModalComponent } from '../../components/listings/share-listing-modal.component';
 import { environment } from '../../../environments/environment';
 import { formatListingPricing } from '../../utils/listing-pricing';
 
@@ -128,6 +129,7 @@ type VendorTagSummary = {
     MobileBottomNavComponent,
     CustomDropdownComponent,
     ReportStoreModalComponent,
+    ShareListingModalComponent,
   ],
   providers: [
     provideIcons({
@@ -217,10 +219,19 @@ type VendorTagSummary = {
         <app-mobile-bottom-nav variant="buyer" />
       }
 
-      @if (showReportModal()) {
+      @if (isReportStoreModalOpen()) {
         <app-report-store-modal
-          (close)="showReportModal.set(false)"
+          (close)="isReportStoreModalOpen.set(false)"
           (submitReport)="onReportSubmit($event)"
+        />
+      }
+
+      @if (isShareStoreModalOpen()) {
+        <app-share-listing-modal
+          [(isOpen)]="isShareStoreModalOpen"
+          itemType="store"
+          [listingName]="store().name"
+          [customShareUrl]="storeShareUrl()"
         />
       }
 
@@ -741,7 +752,7 @@ type VendorTagSummary = {
             <div class="space-y-1 pb-2">
               <button
                 type="button"
-                (click)="shareStore(); showOptionsMenu.set(false)"
+                (click)="isShareStoreModalOpen.set(true); showOptionsMenu.set(false)"
                 class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left text-[15px] font-medium text-[#1A1C21] transition active:bg-[#f4f4f4]"
               >
                 <span
@@ -754,7 +765,7 @@ type VendorTagSummary = {
 
               <button
                 type="button"
-                (click)="reportStore(); showOptionsMenu.set(false)"
+                (click)="isReportStoreModalOpen.set(true); showOptionsMenu.set(false)"
                 class="flex w-full items-center gap-3 rounded-[16px] px-4 py-3.5 text-left text-[15px] font-medium text-[#EF4444] transition active:bg-[#f4f4f4]"
               >
                 <span
@@ -970,7 +981,7 @@ type VendorTagSummary = {
                       >
                         <button
                           type="button"
-                          (click)="shareStore(); showOptionsMenu.set(false)"
+                          (click)="isShareStoreModalOpen.set(true); showOptionsMenu.set(false)"
                           class="flex w-full items-center gap-3 rounded-[14px] px-4 py-3 text-left text-sm font-medium text-[#4b5563] hover:text-black transition hover:bg-[#F7F7FA] active:scale-95"
                         >
                           <ng-icon name="heroArrowUpTray" class="text-[18px] text-[#4b5563]"></ng-icon>
@@ -978,7 +989,7 @@ type VendorTagSummary = {
                         </button>
                         <button
                           type="button"
-                          (click)="reportStore(); showOptionsMenu.set(false)"
+                          (click)="isReportStoreModalOpen.set(true); showOptionsMenu.set(false)"
                           class="flex w-full items-center gap-3 rounded-[14px] px-4 py-3 text-left text-sm font-medium text-[#EF4444] transition hover:bg-[#FFF5F5] active:scale-95"
                         >
                           <ng-icon name="heroFlag" class="text-[18px] text-[#EF4444]"></ng-icon>
@@ -1664,7 +1675,8 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   readonly showContactMenu = signal(false);
   readonly showContactBottomSheet = signal(false);
   readonly showOptionsMenu = signal(false);
-  readonly showReportModal = signal(false);
+  readonly isReportStoreModalOpen = signal(false);
+  readonly isShareStoreModalOpen = signal(false);
   readonly showLeaveReviewModal = signal(false);
   readonly isFollowPending = signal(false);
   readonly isStartingConversation = signal(false);
@@ -1757,6 +1769,13 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
       ? 'flex h-screen flex-col bg-white lg:gap-4 lg:bg-gray-100 lg:p-4'
       : 'flex min-h-screen flex-col bg-white overflow-x-hidden',
   );
+
+  readonly storeShareUrl = computed(() => {
+    const storeId = this.store().id;
+    const defaultView = this.document.defaultView;
+    return defaultView ? `${defaultView.location.origin}/stores/${storeId}` : `/stores/${storeId}`;
+  });
+
   readonly hasStoreBanner = computed(() => this.store().banner.trim().length > 0);
   readonly hasStoreLogo = computed(() => this.store().logo.trim().length > 0);
   readonly hasLoadedAnyStoreData = computed(
@@ -2064,20 +2083,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   }
 
   shareStore(): void {
-    const storeId = this.store().id;
-    if (!storeId) {
-      return;
-    }
-    const defaultView = this.document.defaultView;
-    const shareUrl = defaultView ? `${defaultView.location.origin}/en/stores/${storeId}` : `/en/stores/${storeId}`;
-    if (defaultView?.navigator?.clipboard) {
-      void defaultView.navigator.clipboard.writeText(shareUrl).then(() => {
-        this.appToastService.show({
-          message: 'Store link copied to clipboard!',
-          durationMs: 2500,
-        });
-      });
-    }
+    this.isShareStoreModalOpen.set(true);
   }
 
   reportStore(): void {

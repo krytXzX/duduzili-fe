@@ -14,8 +14,10 @@ export class ShareListingModalComponent {
 
   readonly isOpen = model.required<boolean>();
   readonly listingName = input.required<string>();
+  readonly itemType = input<'listing' | 'store'>('listing');
+  readonly customShareUrl = input<string>();
 
-  readonly shareUrl = computed(() => this.document.defaultView?.location.href ?? '');
+  readonly shareUrl = computed(() => this.customShareUrl() ?? this.document.defaultView?.location.href ?? '');
   readonly canUseNativeShare = computed(
     () => typeof navigator !== 'undefined' && 'share' in navigator,
   );
@@ -35,7 +37,7 @@ export class ShareListingModalComponent {
     const shareUrl = this.shareUrl();
     if (!shareUrl) {
       this.appToastService.show({
-        message: 'This listing can’t be shared right now. Please try again in a moment.',
+        message: `This ${this.itemType()} can’t be shared right now. Please try again in a moment.`,
       });
       return;
     }
@@ -59,7 +61,7 @@ export class ShareListingModalComponent {
       }
 
       this.appToastService.show({
-        message: 'This listing can’t be shared right now. Please try again in a moment.',
+        message: `This ${this.itemType()} can’t be shared right now. Please try again in a moment.`,
       });
     }
   }
@@ -68,7 +70,7 @@ export class ShareListingModalComponent {
     const shareUrl = this.shareUrl();
     if (!shareUrl) {
       this.appToastService.show({
-        message: 'This listing can’t be shared right now. Please try again in a moment.',
+        message: `This ${this.itemType()} can’t be shared right now. Please try again in a moment.`,
       });
       return;
     }
@@ -77,14 +79,14 @@ export class ShareListingModalComponent {
     if (copied) {
       this.hasCopiedShareUrl.set(true);
       this.appToastService.show({
-        message: 'Listing link copied',
+        message: `${this.itemType() === 'store' ? 'Store' : 'Listing'} link copied`,
         durationMs: 2200,
       });
       return;
     }
 
     this.appToastService.show({
-      message: 'This listing can’t be shared right now. Please try again in a moment.',
+      message: `This ${this.itemType()} can’t be shared right now. Please try again in a moment.`,
     });
   }
 

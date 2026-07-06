@@ -1,14 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, output, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroShare } from '@ng-icons/heroicons/outline';
 
 import { MobileOverlayService } from '../../../services/mobile-overlay.service';
-import { AppToastService } from '../../../services/app-toast.service';
+import { ShareListingModalComponent } from '../../../components/listings/share-listing-modal.component';
 
 @Component({
   selector: 'app-success-modal',
-  imports: [NgOptimizedImage, NgIcon],
+  imports: [NgOptimizedImage, NgIcon, ShareListingModalComponent],
   providers: [
     provideIcons({
       heroShare,
@@ -84,6 +84,13 @@ import { AppToastService } from '../../../services/app-toast.service';
         </div>
       </div>
     </div>
+    
+    <app-share-listing-modal
+      [(isOpen)]="isShareModalOpen"
+      itemType="store"
+      [listingName]="storeName() ?? 'your store'"
+      [customShareUrl]="storeShareUrl()"
+    />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -92,25 +99,24 @@ export class SuccessModalComponent implements OnDestroy {
   readonly storeId = input<string | null>(null);
   readonly ok = output<void>();
   readonly addAnother = output<void>();
+  
+  isShareModalOpen = signal(false);
 
   protected readonly illustrationUrl = '/assets/images/my-stores-success-illustration.png';
   protected readonly closeIconUrl = '/assets/icons/my-stores-success-close.svg';
 
   private readonly mobileOverlayService = inject(MobileOverlayService);
-  private readonly appToastService = inject(AppToastService);
 
-  shareStore(): void {
+  storeShareUrl(): string {
     const storeId = this.storeId();
     if (!storeId) {
-      return;
+      return '';
     }
-    const shareUrl = `${window.location.origin}/en/stores/${storeId}`;
-    void navigator.clipboard.writeText(shareUrl).then(() => {
-      this.appToastService.show({
-        message: 'Store link copied to clipboard!',
-        durationMs: 2500,
-      });
-    });
+    return `${window.location.origin}/stores/${storeId}`;
+  }
+
+  shareStore(): void {
+    this.isShareModalOpen.set(true);
   }
 
   constructor() {
