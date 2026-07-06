@@ -1,0 +1,134 @@
+@if (isOpen()) {
+  <div
+    class="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] md:items-center md:p-4"
+    (click)="closeModal()"
+  >
+    <div
+      class="relative w-full rounded-t-[36px] bg-white px-4 pb-8 pt-4 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] md:max-w-[560px] md:rounded-[32px] md:px-6 md:pb-8 md:pt-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="share-listing-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="mx-auto mb-5 h-1 w-[50px] rounded-full bg-[#EBEBEB] md:hidden"></div>
+
+      <button
+        type="button"
+        (click)="closeModal()"
+        class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#434455] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#FAFAFA] md:right-5 md:top-5"
+        aria-label="Close share listing modal"
+      >
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div class="mx-auto flex max-w-[500px] flex-col gap-6 pt-4 md:pt-2">
+        <div class="space-y-2 pr-14">
+          <h2 id="share-listing-title" class="text-[24px] font-semibold leading-8 text-[#15162B] md:text-[28px]">
+            Share listing
+          </h2>
+          <p class="text-[14px] leading-6 text-[#5B5D6B]">
+            Share this listing with friends or copy the link to send it anywhere.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+          @if (canUseNativeShare()) {
+            <button
+              type="button"
+              (click)="shareListingWithDevice()"
+              class="flex min-h-[92px] flex-col items-center justify-center gap-3 rounded-[22px] border border-[#EAEAEA] bg-[#F8F8FB] px-4 py-4 text-center text-[14px] font-medium text-[#1F1F1F] transition hover:bg-[#F1F1F6]"
+            >
+              <span class="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#6453D9] shadow-[0_4px_8px_rgba(202,202,202,0.18)]">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14" />
+                </svg>
+              </span>
+              Use device share
+            </button>
+          }
+
+          <button
+            type="button"
+            (click)="shareViaWhatsApp()"
+            class="flex min-h-[92px] flex-col items-center justify-center gap-3 rounded-[22px] border border-[#EAEAEA] bg-[#F8F8FB] px-4 py-4 text-center text-[14px] font-medium text-[#1F1F1F] transition hover:bg-[#F1F1F6]"
+          >
+            <span class="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#21C063] shadow-[0_4px_8px_rgba(202,202,202,0.18)]">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="M20 12a8 8 0 0 1-11.72 7.05L4 20l1.02-4.08A8 8 0 1 1 20 12Z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="M9.4 8.8c.2-.4.42-.41.6-.42h.51c.17.01.4.07.55.42l.72 1.72c.08.18.08.4-.03.58l-.5.79c-.1.16-.08.36.03.5.33.45.94 1.17 1.95 1.68.16.08.35.05.49-.07l.77-.65a.7.7 0 0 1 .64-.12l1.67.57c.28.1.4.3.42.55l.03.47c.01.23-.08.45-.27.6-.43.34-1.05.66-1.78.61-1.05-.07-2.25-.55-3.74-1.93-1.56-1.45-2.17-2.79-2.32-3.87-.1-.71.17-1.35.47-1.83Z"
+                />
+              </svg>
+            </span>
+            WhatsApp
+          </button>
+
+          <button
+            type="button"
+            (click)="shareViaX()"
+            class="flex min-h-[92px] flex-col items-center justify-center gap-3 rounded-[22px] border border-[#EAEAEA] bg-[#F8F8FB] px-4 py-4 text-center text-[14px] font-medium text-[#1F1F1F] transition hover:bg-[#F1F1F6]"
+          >
+            <span class="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.18)]">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.53 3H20.6l-6.7 7.66L21.8 21h-6.18l-4.84-6.33L5.25 21H2.17l7.17-8.2L2 3h6.34l4.37 5.77L17.53 3Zm-1.08 16.14h1.7L7.41 4.77H5.58l10.87 14.37Z" />
+              </svg>
+            </span>
+            X
+          </button>
+
+          <button
+            type="button"
+            (click)="shareViaEmail()"
+            class="flex min-h-[92px] flex-col items-center justify-center gap-3 rounded-[22px] border border-[#EAEAEA] bg-[#F8F8FB] px-4 py-4 text-center text-[14px] font-medium text-[#1F1F1F] transition hover:bg-[#F1F1F6]"
+          >
+            <span class="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#1F1F1F] shadow-[0_4px_8px_rgba(202,202,202,0.18)]">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"
+                />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 7 9 6 9-6" />
+              </svg>
+            </span>
+            Email
+          </button>
+        </div>
+
+        <div class="space-y-2">
+          <label for="share-listing-url" class="block text-[14px] font-medium leading-5 text-[#434455]">
+            Listing URL
+          </label>
+          <div class="flex items-center gap-2 rounded-[22px] border border-[#EAEAEA] bg-[#F8F8FB] p-2">
+            <input
+              id="share-listing-url"
+              type="text"
+              [value]="shareUrl()"
+              readonly
+              class="min-w-0 flex-1 bg-transparent px-3 py-3 text-[14px] leading-5 text-[#1F1F1F] outline-none"
+              aria-label="Listing URL"
+            />
+            <button
+              type="button"
+              (click)="copyShareUrl()"
+              class="shrink-0 rounded-full bg-[#6453D9] px-4 py-3 text-[14px] font-medium text-white transition hover:bg-[#5645cb]"
+            >
+              {{ hasCopiedShareUrl() ? 'Copied' : 'Copy link' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

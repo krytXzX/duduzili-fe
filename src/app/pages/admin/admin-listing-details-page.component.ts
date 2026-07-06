@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, map, switchMap } from 'rxjs/operators';
 import { AppToastService } from '../../services/app-toast.service';
+import { ShareListingModalComponent } from '../../components/listings/share-listing-modal.component';
 import {
   AdminListingDetailActivityResponse,
   AdminListingDetailResponse,
@@ -109,7 +110,7 @@ interface AdminListingDetailRecord {
 
 @Component({
   selector: 'app-admin-listing-details-page',
-  imports: [RouterLink, NgOptimizedImage],
+  imports: [RouterLink, NgOptimizedImage, ShareListingModalComponent],
   template: `
     <section class="flex h-full flex-col bg-white lg:hidden">
       <div class="flex items-center justify-between px-5 pb-4 pt-4">
@@ -1215,6 +1216,8 @@ interface AdminListingDetailRecord {
         </div>
       </div>
     }
+
+    <app-share-listing-modal [(isOpen)]="isShareListingModalOpen" [listingName]="listing().name" />
   `,
   host: { class: 'block h-full' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -1236,6 +1239,7 @@ export class AdminListingDetailsPageComponent {
   readonly activeTab = signal<AdminListingDetailTab>('overview');
   readonly isSuspendModalOpen = signal(false);
   readonly isLiftSuspensionOpen = signal(false);
+  readonly isShareListingModalOpen = signal(false);
   readonly mobileActionsOpen = signal(false);
   readonly suspendReasonInput = signal('');
   readonly isLoading = signal(true);
@@ -1608,6 +1612,11 @@ export class AdminListingDetailsPageComponent {
 
   handleMobileAction(actionId: MobileListingAction['id']): void {
     this.mobileActionsOpen.set(false);
+
+    if (actionId === 'share') {
+      this.isShareListingModalOpen.set(true);
+      return;
+    }
 
     if (actionId === 'suspend') {
       this.suspendReasonInput.set('');

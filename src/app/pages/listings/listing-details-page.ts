@@ -20,6 +20,7 @@ import {
   ListingPromotionSelection,
   PromoteListingModalComponent,
 } from '../../components/listings/promote-listing-modal.component';
+import { ShareListingModalComponent } from '../../components/listings/share-listing-modal.component';
 import {
   ListingsApiItem,
   ListingsService,
@@ -142,6 +143,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
     RouterLink,
     ReactiveFormsModule,
     PromoteListingModalComponent,
+    ShareListingModalComponent,
     NgIcon,
   ],
   providers: [provideIcons({ heroEllipsisHorizontal })],
@@ -1187,6 +1189,8 @@ type EditSectionId = 'media' | 'details' | 'delivery';
         </section>
       </div>
     </div>
+    
+    <app-share-listing-modal [(isOpen)]="isShareListingModalOpen" [listingName]="listing().name" />
 
     @if (editSheetOpen()) {
       <button
@@ -3324,6 +3328,11 @@ export class ListingDetailsPageComponent implements OnDestroy {
 
   protected handleMobileAction(action: MobileActionId): void {
     this.desktopMenuOpen.set(false);
+
+    if (action === 'share') {
+      this.isShareListingModalOpen.set(true);
+      return;
+    }
 
     if (action === 'delete') {
       this.deleteSheetOpen.set(true);

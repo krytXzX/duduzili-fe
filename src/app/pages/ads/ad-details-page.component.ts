@@ -26,6 +26,7 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { AppChartComponent, AppChartOptions } from '../../components/charts/app-chart.component';
 import { createPerformanceLineChartOptions } from '../../components/charts/chart-mock-data';
+import { ShareListingModalComponent } from '../../components/listings/share-listing-modal.component';
 import { CustomDropdownComponent, type CustomDropdownOption } from '../../components/ui/custom-dropdown.component';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 import { AppToastService } from '../../services/app-toast.service';
@@ -70,7 +71,7 @@ const EMPTY_RUNNING_ADS_QUERY_STATE: RunningAdsQueryState = {};
 
 @Component({
   selector: 'app-ad-details-page',
-  imports: [CommonModule, RouterLink, NgIcon, NgOptimizedImage, AppChartComponent, CustomDropdownComponent],
+  imports: [CommonModule, RouterLink, NgIcon, NgOptimizedImage, AppChartComponent, CustomDropdownComponent, ShareListingModalComponent],
   providers: [
     provideIcons({
       heroPause,
@@ -842,7 +843,7 @@ const EMPTY_RUNNING_ADS_QUERY_STATE: RunningAdsQueryState = {};
 
                       <button
                         type="button"
-                        (click)="closeDesktopActionMenu()"
+                        (click)="shareListing()"
                         class="mt-1 flex h-8 w-full items-center gap-[6px] rounded-[8px] bg-white px-2 text-left text-[14px] font-medium text-[rgba(13,13,13,0.87)]"
                         role="menuitem"
                       >
@@ -1063,7 +1064,7 @@ const EMPTY_RUNNING_ADS_QUERY_STATE: RunningAdsQueryState = {};
 
             <button
               type="button"
-              (click)="closeMobileActionMenu()"
+              (click)="shareListing()"
               class="flex h-8 w-full items-center gap-[10px] rounded-[8px] px-2 text-left text-[16px] font-medium text-[rgba(13,13,13,0.87)]"
             >
               <img [ngSrc]="listingShareIcon" width="20" height="20" alt="" class="shrink-0" />
@@ -1119,6 +1120,8 @@ const EMPTY_RUNNING_ADS_QUERY_STATE: RunningAdsQueryState = {};
         aria-label="Close listing actions"
       ></button>
     }
+    
+    <app-share-listing-modal [(isOpen)]="isShareListingModalOpen" [listingName]="ad().title" />
   `,
   host: { class: 'block h-full' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -1175,6 +1178,7 @@ export class AdDetailsPageComponent implements OnDestroy {
   readonly isMobileActionMenuOpen = signal(false);
   readonly isDesktopActionMenuOpen = signal(false);
   readonly isDestinationModalOpen = signal(false);
+  readonly isShareListingModalOpen = signal(false);
   readonly editedDestinationUrl = signal('');
   readonly destinationUrlOverrides = signal<Record<string, string>>({});
   readonly listingStatusIcon = computed(() =>
@@ -1495,6 +1499,12 @@ export class AdDetailsPageComponent implements OnDestroy {
 
   closeDesktopActionMenu(): void {
     this.isDesktopActionMenuOpen.set(false);
+  }
+
+  shareListing(): void {
+    this.closeDesktopActionMenu();
+    this.closeMobileActionMenu();
+    this.isShareListingModalOpen.set(true);
   }
 
   closeMobileActionMenu(): void {
