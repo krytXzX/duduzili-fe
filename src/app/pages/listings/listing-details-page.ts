@@ -2823,6 +2823,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   protected readonly desktopMenuOpen = signal(false);
   protected readonly statusSheetOpen = signal(false);
   protected readonly deleteSheetOpen = signal(false);
+  protected readonly isShareListingModalOpen = signal(false);
   protected readonly markSoldSheetOpen = signal(false);
   protected readonly editSheetOpen = signal(false);
   protected readonly mobileEditStep = signal<EditSectionId>('media');

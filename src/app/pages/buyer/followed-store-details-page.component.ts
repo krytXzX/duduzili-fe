@@ -2093,7 +2093,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
       }
       return;
     }
-    this.showReportModal.set(true);
+    this.isReportStoreModalOpen.set(true);
   }
 
   onReportSubmit(value: ReportStoreSubmitValue): void {
