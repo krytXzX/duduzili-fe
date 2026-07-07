@@ -4,18 +4,18 @@
     (click)="closeModal()"
   >
     <div
-      class="relative w-full rounded-t-[36px] bg-white px-4 pb-8 pt-4 shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] md:max-w-[560px] md:rounded-[32px] md:px-6 md:pb-8 md:pt-6"
+      class="relative flex max-h-[92dvh] w-full flex-col rounded-t-[36px] bg-white shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] md:max-h-[85vh] md:max-w-[560px] md:rounded-[32px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="share-listing-title"
       (click)="$event.stopPropagation()"
     >
-      <div class="mx-auto mb-5 h-1 w-[50px] rounded-full bg-[#EBEBEB] md:hidden"></div>
+      <div class="absolute left-1/2 top-3 z-10 h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB] md:hidden"></div>
 
       <button
         type="button"
         (click)="closeModal()"
-        class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#434455] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#FAFAFA] md:right-5 md:top-5"
+        class="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white text-[#434455] shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition hover:bg-[#FAFAFA] md:right-5 md:top-5"
         aria-label="Close share listing modal"
       >
         <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
@@ -23,7 +23,8 @@
         </svg>
       </button>
 
-      <div class="mx-auto flex max-w-[500px] flex-col gap-6 pt-4 md:pt-2">
+      <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-12 md:px-6 md:pb-8 md:pt-8">
+        <div class="mx-auto flex max-w-[500px] flex-col gap-6">
         <div class="space-y-2 pr-14">
           <h2 id="share-listing-title" class="text-[24px] font-semibold leading-8 text-[#15162B] md:text-[28px]">
             Share {{ itemType() }}
@@ -179,6 +180,7 @@
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </div>
