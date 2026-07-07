@@ -123,6 +123,46 @@ export class ShareListingModalComponent {
     );
   }
 
+  shareViaFacebook(): void {
+    const shareUrl = this.shareUrl();
+    if (!shareUrl) {
+      return;
+    }
+
+    this.openExternalShareUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`);
+  }
+
+  shareViaLinkedIn(): void {
+    const shareUrl = this.shareUrl();
+    if (!shareUrl) {
+      return;
+    }
+
+    this.openExternalShareUrl(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`);
+  }
+
+  shareViaTelegram(): void {
+    const shareUrl = this.shareUrl();
+    if (!shareUrl) {
+      return;
+    }
+
+    this.openExternalShareUrl(
+      `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out ${this.listingName()} on Duduzili`)}`,
+    );
+  }
+
+  shareViaReddit(): void {
+    const shareUrl = this.shareUrl();
+    if (!shareUrl) {
+      return;
+    }
+
+    this.openExternalShareUrl(
+      `https://reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(this.listingName())}`,
+    );
+  }
+
   private openExternalShareUrl(url: string): void {
     const win = this.document.defaultView?.open(url, '_blank', 'noopener,noreferrer');
     if (win) {

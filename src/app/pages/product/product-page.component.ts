@@ -21,6 +21,7 @@ import { HomeFooterComponent } from '../../components/layout/home-footer.compone
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { Review } from '../../components/product/review-card.component';
 import { SellerReportModalComponent } from '../../components/product/seller-report-modal.component';
+import { ShareListingModalComponent } from '../../components/listings/share-listing-modal.component';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroArrowLeft,
@@ -129,6 +130,7 @@ type SellerReportStep = 1 | 2;
     HomeFooterComponent,
     AppToastComponent,
     SellerReportModalComponent,
+    ShareListingModalComponent,
     NgIcon,
   ],
   providers: [
@@ -252,7 +254,6 @@ export class ProductPageComponent {
   readonly isGalleryPreviewOpen = signal(false);
   readonly isFollowPending = signal(false);
   readonly isWishlistPending = signal(false);
-  readonly hasCopiedShareUrl = signal(false);
   readonly isSubmittingListingReport = signal(false);
   readonly isSubmittingSellerReport = signal(false);
   readonly isStartingConversation = signal(false);
@@ -361,10 +362,6 @@ export class ProductPageComponent {
   });
   readonly currentGalleryImage = computed(
     () => this.product().images[this.currentGalleryIndex()] ?? this.product().images[0] ?? null,
-  );
-  readonly shareUrl = computed(() => this.document.defaultView?.location.href ?? '');
-  readonly canUseNativeShare = computed(
-    () => typeof navigator !== 'undefined' && 'share' in navigator,
   );
   readonly formattedOfferValue = computed(() => {
     const rawValue = this.makeOfferForm.controls.amount.value ?? '';
@@ -593,11 +590,6 @@ export class ProductPageComponent {
       return;
     }
 
-    if (this.isShareListingModalOpen()) {
-      this.closeShareListingModal();
-      return;
-    }
-
     if (this.isGalleryPreviewOpen()) {
       this.closeGalleryPreview();
     }
@@ -645,15 +637,8 @@ export class ProductPageComponent {
 
   shareListing(): void {
     this.closeListingActionsMenu();
-    this.hasCopiedShareUrl.set(false);
     this.isShareListingModalOpen.set(true);
     this.setBodyScrollLocked(true);
-  }
-
-  closeShareListingModal(): void {
-    this.isShareListingModalOpen.set(false);
-    this.hasCopiedShareUrl.set(false);
-    this.setBodyScrollLocked(false);
   }
 
   openReviewsModal(): void {
@@ -863,131 +848,6 @@ export class ProductPageComponent {
 
   reviewBarWidth(percentage: number): string {
     return `${Math.max(0, Math.min(100, percentage))}%`;
-  }
-
-  async shareListingWithDevice(): Promise<void> {
-    const shareUrl = this.shareUrl();
-    if (!shareUrl) {
-      this.appToastService.show({
-        message: 'This listing can’t be shared right now. Please try again in a moment.',
-      });
-      return;
-    }
-
-    if (!(typeof navigator !== 'undefined' && 'share' in navigator)) {
-      this.appToastService.show({
-        message: 'Sharing is not available on this device.',
-      });
-      return;
-    }
-
-    try {
-      await navigator.share({
-        title: this.product().name,
-        text: `Check out ${this.product().name} on Duduzili`,
-        url: shareUrl,
-      });
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        return;
-      }
-
-      this.appToastService.show({
-        message: 'This listing can’t be shared right now. Please try again in a moment.',
-      });
-    }
-  }
-
-  async copyShareUrl(): Promise<void> {
-    this.closeListingActionsMenu();
-
-    const shareUrl = this.shareUrl();
-    if (!shareUrl) {
-      this.appToastService.show({
-        message: 'This listing can’t be shared right now. Please try again in a moment.',
-      });
-      return;
-    }
-
-    const copied = await this.copyTextToClipboard(shareUrl);
-    if (copied) {
-      this.hasCopiedShareUrl.set(true);
-      this.appToastService.show({
-        message: 'Listing link copied',
-        durationMs: 2200,
-      });
-      return;
-    }
-
-    this.appToastService.show({
-      message: 'This listing can’t be shared right now. Please try again in a moment.',
-    });
-  }
-
-  shareViaWhatsApp(): void {
-    const shareUrl = this.shareUrl();
-    if (!shareUrl) {
-      return;
-    }
-
-    this.openExternalShareUrl(
-      `https://wa.me/?text=${encodeURIComponent(`Check out ${this.product().name} on Duduzili: ${shareUrl}`)}`,
-    );
-  }
-
-  shareViaEmail(): void {
-    const shareUrl = this.shareUrl();
-    if (!shareUrl) {
-      return;
-    }
-
-    this.openExternalShareUrl(
-      `mailto:?subject=${encodeURIComponent(this.product().name)}&body=${encodeURIComponent(`Check out ${this.product().name} on Duduzili: ${shareUrl}`)}`,
-    );
-  }
-
-  shareViaX(): void {
-    const shareUrl = this.shareUrl();
-    if (!shareUrl) {
-      return;
-    }
-
-    this.openExternalShareUrl(
-      `https://x.com/intent/tweet?text=${encodeURIComponent(`Check out ${this.product().name} on Duduzili`)}&url=${encodeURIComponent(shareUrl)}`,
-    );
-  }
-
-  private async copyTextToClipboard(value: string): Promise<boolean> {
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(value);
-        return true;
-      }
-    } catch {
-      // Fall back to execCommand when clipboard permissions are unavailable.
-    }
-
-    const textArea = this.document.createElement('textarea');
-    textArea.value = value;
-    textArea.setAttribute('readonly', '');
-    textArea.style.position = 'fixed';
-    textArea.style.opacity = '0';
-    textArea.style.pointerEvents = 'none';
-    this.document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-      return this.document.execCommand('copy');
-    } catch {
-      return false;
-    } finally {
-      this.document.body.removeChild(textArea);
-    }
-  }
-
-  private openExternalShareUrl(url: string): void {
-    this.document.defaultView?.open(url, '_blank', 'noopener,noreferrer');
   }
 
   private setBodyScrollLocked(isLocked: boolean): void {
