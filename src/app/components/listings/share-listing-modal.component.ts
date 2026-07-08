@@ -152,15 +152,17 @@ export class ShareListingModalComponent {
     );
   }
 
-  shareViaReddit(): void {
+  shareViaSms(): void {
     const shareUrl = this.shareUrl();
     if (!shareUrl) {
       return;
     }
 
-    this.openExternalShareUrl(
-      `https://reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(this.listingName())}`,
-    );
+    const message = `Check out ${this.listingName()} on Duduzili: ${shareUrl}`;
+    const win = this.document.defaultView;
+    if (win) {
+      win.location.href = `sms:?body=${encodeURIComponent(message)}`;
+    }
   }
 
   private openExternalShareUrl(url: string): void {
