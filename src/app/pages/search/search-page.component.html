@@ -21,11 +21,11 @@
       <button type="button" class="fixed inset-0 z-30 cursor-default" (click)="closeFilters()" aria-label="Close filters"></button>
       }
 
-      <div class="relative z-40 flex flex-wrap items-center gap-3">
+      <div class="relative z-40 flex items-center gap-3 overflow-x-auto whitespace-nowrap pb-2 flex-nowrap [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         @for (filter of filters(); track filter.key) {
         <button type="button" (click)="toggleFilter(filter.key)" [class]="activeFilter() === filter.key
-            ? 'inline-flex items-center gap-2 rounded-full bg-[#ECECFE] px-4 py-3 text-[14px] font-medium text-[#5E57FF] transition hover:bg-[#E3E3FC]'
-            : 'inline-flex items-center gap-2 rounded-full bg-[#F5F5F7] px-4 py-3 text-[14px] font-medium text-[#2C313C] transition hover:bg-[#ECECF2]'">
+            ? 'inline-flex shrink-0 items-center gap-2 rounded-full bg-[#ECECFE] px-4 py-3 text-[14px] font-medium text-[#5E57FF] transition hover:bg-[#E3E3FC]'
+            : 'inline-flex shrink-0 items-center gap-2 rounded-full bg-[#F5F5F7] px-4 py-3 text-[14px] font-medium text-[#2C313C] transition hover:bg-[#ECECF2]'">
           {{ filter.label }}
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -33,7 +33,7 @@
         </button>
         }
 
-        <button type="button" (click)="resetAllFilters()" class="ml-2 text-[14px] font-medium text-[#5E57FF] transition hover:text-[#4B44F2]">
+        <button type="button" (click)="resetAllFilters()" class="ml-2 shrink-0 text-[14px] font-medium text-[#5E57FF] transition hover:text-[#4B44F2]">
           Reset all
         </button>
       </div>
