@@ -1,7 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroMagnifyingGlass, heroBars3, heroChevronRight } from '@ng-icons/heroicons/outline';
+import {
+  heroMagnifyingGlass,
+  heroBars3,
+  heroChevronRight,
+  heroCheck,
+  heroXMark,
+} from '@ng-icons/heroicons/outline';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AuthFlowService } from '../../services/auth-flow.service';
@@ -24,6 +30,8 @@ type SellerMenuEntry = {
       heroMagnifyingGlass,
       heroBars3,
       heroChevronRight,
+      heroCheck,
+      heroXMark,
     }),
   ],
   template: `
@@ -113,98 +121,68 @@ type SellerMenuEntry = {
 
               @if (isAccountMenuOpen()) {
                 <div
-                  class="absolute right-0 top-[calc(100%+12px)] z-50 w-[304px] overflow-hidden rounded-[24px] border border-black/[0.03] bg-white py-4 text-[#15162B] shadow-[0_6.65px_5.32px_rgba(0,0,0,0.03),0_2.767px_2.214px_rgba(0,0,0,0.02)]"
-                  role="menu"
-                  aria-label="Seller account menu"
+                  class="fixed inset-0 z-[100] bg-black/30"
+                  (click)="closeAccountMenu()"
                 >
-                  <div class="flex flex-col gap-6">
-                    <div class="flex items-center gap-1.5 px-3">
-                      <div
-                        class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full"
+                  <div
+                    class="absolute inset-0 bg-white p-6 flex flex-col gap-6"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <!-- Header Pill -->
+                    <div class="flex items-center justify-between rounded-full border border-[#E1E3E8] bg-white px-5 py-3 shadow-sm">
+                      <span class="text-[20px] font-semibold text-[#0d0d0d] tracking-[-0.02em]">Duduzili</span>
+                      <button
+                        type="button"
+                        (click)="closeAccountMenu()"
+                        class="inline-flex items-center justify-center text-[#2A2D34]"
+                        aria-label="Close menu"
                       >
-                        <img
-                          [ngSrc]="accountAvatarSrc()"
-                          [alt]="accountDisplayName()"
-                          width="36"
-                          height="36"
-                          class="h-9 w-9 object-cover"
-                        />
-                      </div>
+                        <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
+                      </button>
+                    </div>
+
+                    <!-- User Profile Details -->
+                    <div class="mt-4 flex items-center gap-3">
+                      <img
+                        [src]="accountAvatarSrc()"
+                        alt=""
+                        class="h-14 w-14 rounded-full object-cover"
+                      />
                       <div class="min-w-0">
-                        <p class="truncate text-sm font-medium tracking-[-0.07px] text-[#15162B]">
-                          {{ accountDisplayName() }}
-                        </p>
-                        <p class="truncate text-[10px] font-normal text-[#72737F]">Seller mode</p>
+                        <h4 class="truncate text-[18px] font-semibold text-[#0d0d0d] leading-snug">{{ accountDisplayName() }}</h4>
+                        <p class="truncate text-[13px] text-[#848484] leading-normal">{{ currentUser()?.email || 'No email' }}</p>
                       </div>
                     </div>
 
-                    <div class="flex flex-col gap-3">
+                    <!-- Switch Modes Section -->
+                    <div class="mt-4 flex flex-col gap-3">
+                      <h5 class="text-[11px] font-bold tracking-[0.05em] text-[#9ca3af] uppercase">Switch Modes</h5>
+                      
                       <div class="flex flex-col gap-2">
-                        @for (item of sellerMenuEntries(); track item.label) {
-                          <button
-                            type="button"
-                            (click)="goToSellerRoute(item)"
-                            [attr.title]="item.disabled ? 'Upgrade your plan to access this feature.' : null"
-                            [class.opacity-50]="item.disabled"
-                            class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#F7F8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15162B]"
-                            role="menuitem"
-                          >
-                            <img
-                              [ngSrc]="item.iconSrc"
-                              alt=""
-                              width="16"
-                              height="16"
-                              class="h-4 w-4 shrink-0"
-                            />
-                            <span
-                              class="text-sm font-medium leading-none tracking-[-0.08px] text-[#15162B]"
-                            >
-                              {{ item.label }}
-                            </span>
-                          </button>
-                        }
-                      </div>
-
-                      <div class="flex flex-col gap-3">
-                        <div class="h-px w-full bg-[#E8E8EB]"></div>
-
+                        <!-- Buyer Mode Option -->
                         <button
                           type="button"
                           (click)="switchToBuyerMode()"
-                          class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#F7F8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15162B]"
-                          role="menuitem"
+                          class="flex w-full items-center justify-between gap-3 text-left py-2 hover:bg-[#F8F8FB] rounded-[8px] transition-colors"
                         >
-                          <img
-                            ngSrc="assets/icons/seller-menu-switch.svg"
-                            alt=""
-                            width="16"
-                            height="16"
-                            class="h-4 w-4 shrink-0"
-                          />
-                          <span
-                            class="text-sm font-medium leading-none tracking-[-0.08px] text-[#15162B]"
-                          >
-                            Switch to buyer mode
+                          <span class="flex items-center gap-3">
+                            <img [src]="accountAvatarSrc()" alt="" class="h-9 w-9 rounded-full object-cover" />
+                            <span class="text-[15px] font-medium text-[#0d0d0d]">Buyer mode</span>
                           </span>
                         </button>
 
+                        <!-- Seller Mode Option -->
                         <button
                           type="button"
-                          (click)="logOut()"
-                          class="flex h-7 w-full items-center gap-2 rounded-lg bg-white px-3 py-2 text-left transition hover:bg-[#FFF5F5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF2524]"
-                          role="menuitem"
+                          (click)="closeAccountMenu()"
+                          class="flex w-full items-center justify-between gap-3 text-left py-2 hover:bg-[#F8F8FB] rounded-[8px] transition-colors"
                         >
-                          <img
-                            ngSrc="assets/icons/seller-menu-logout.svg"
-                            alt=""
-                            width="16"
-                            height="16"
-                            class="h-4 w-4 shrink-0"
-                          />
-                          <span
-                            class="text-sm font-medium leading-none tracking-[-0.08px] text-[#FF2524]"
-                          >
-                            Log out
+                          <span class="flex items-center gap-3">
+                            <img [src]="accountAvatarSrc()" alt="" class="h-9 w-9 rounded-full object-cover" />
+                            <span class="text-[15px] font-medium text-[#0d0d0d]">Seller mode</span>
+                          </span>
+                          <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#6453D9] text-white">
+                            <ng-icon name="heroCheck" class="text-[12px] font-bold"></ng-icon>
                           </span>
                         </button>
                       </div>
