@@ -10,7 +10,12 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroBars3, heroChevronRight, heroMagnifyingGlass } from '@ng-icons/heroicons/outline';
+import {
+  heroBars3,
+  heroChevronRight,
+  heroMagnifyingGlass,
+  heroXMark,
+} from '@ng-icons/heroicons/outline';
 import { AppModeService } from '../../services/app-mode.service';
 import { AuthService, type ProfileResponse } from '../../services/auth.service';
 import { AuthFlowService } from '../../services/auth-flow.service';
@@ -31,6 +36,7 @@ type BuyerMenuEntry = {
       heroBars3,
       heroChevronRight,
       heroMagnifyingGlass,
+      heroXMark,
     }),
   ],
   template: `
@@ -78,9 +84,7 @@ type BuyerMenuEntry = {
                 </span>
               </div>
 
-              <span
-                class="flex h-7 w-7 items-center justify-center rounded-full bg-white"
-              >
+              <span class="flex h-7 w-7 items-center justify-center rounded-full bg-white">
                 <img
                   ngSrc="/assets/icons/buyer-header/arrow-down.svg"
                   alt=""
@@ -119,17 +123,18 @@ type BuyerMenuEntry = {
               </button>
 
               @if (isAccountMenuOpen()) {
-                <div
-                  class="fixed inset-0 z-[100] bg-black/30"
-                  (click)="closeAccountMenu()"
-                >
+                <div class="fixed inset-0 z-[100] bg-black/30" (click)="closeAccountMenu()">
                   <div
                     class="absolute inset-0 bg-white p-6 flex flex-col gap-6"
                     (click)="$event.stopPropagation()"
                   >
                     <!-- Header Pill -->
-                    <div class="flex items-center justify-between rounded-full border border-[#E1E3E8] bg-white px-5 py-3 shadow-sm">
-                      <span class="text-[20px] font-semibold text-[#0d0d0d] tracking-[-0.02em]">Duduzili</span>
+                    <div
+                      class="flex items-center justify-between rounded-full border border-[#E1E3E8] bg-white px-5 py-3 shadow-sm"
+                    >
+                      <span class="text-[20px] font-semibold text-[#0d0d0d] tracking-[-0.02em]"
+                        >Duduzili</span
+                      >
                       <button
                         type="button"
                         (click)="closeAccountMenu()"
@@ -148,15 +153,21 @@ type BuyerMenuEntry = {
                         class="h-14 w-14 rounded-full object-cover"
                       />
                       <div class="min-w-0">
-                        <h4 class="truncate text-[18px] font-semibold text-[#0d0d0d] leading-snug">{{ accountDisplayName() }}</h4>
-                        <p class="truncate text-[13px] text-[#848484] leading-normal">{{ currentUser()?.email || 'No email' }}</p>
+                        <h4 class="truncate text-[18px] font-semibold text-[#0d0d0d] leading-snug">
+                          {{ accountDisplayName() }}
+                        </h4>
+                        <p class="truncate text-[13px] text-[#848484] leading-normal">
+                          {{ currentUser()?.email || 'No email' }}
+                        </p>
                       </div>
                     </div>
 
                     <!-- Switch Modes Section -->
                     <div class="mt-4 flex flex-col gap-3">
-                      <h5 class="text-[11px] font-bold tracking-[0.05em] text-[#9ca3af] uppercase">Switch Modes</h5>
-                      
+                      <h5 class="text-[11px] font-bold tracking-[0.05em] text-[#9ca3af] uppercase">
+                        Switch Modes
+                      </h5>
+
                       <div class="flex flex-col gap-2">
                         <!-- Buyer Mode Option -->
                         <button
@@ -165,10 +176,16 @@ type BuyerMenuEntry = {
                           class="flex w-full items-center justify-between gap-3 text-left py-2 hover:bg-[#F8F8FB] rounded-[8px] transition-colors"
                         >
                           <span class="flex items-center gap-3">
-                            <img [src]="accountAvatarSrc()" alt="" class="h-9 w-9 rounded-full object-cover" />
+                            <img
+                              [src]="accountAvatarSrc()"
+                              alt=""
+                              class="h-9 w-9 rounded-full object-cover"
+                            />
                             <span class="text-[15px] font-medium text-[#0d0d0d]">Buyer mode</span>
                           </span>
-                          <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#6453D9] text-white">
+                          <span
+                            class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#6453D9] text-white"
+                          >
                             <ng-icon name="heroCheck" class="text-[12px] font-bold"></ng-icon>
                           </span>
                         </button>
@@ -180,7 +197,11 @@ type BuyerMenuEntry = {
                           class="flex w-full items-center justify-between gap-3 text-left py-2 hover:bg-[#F8F8FB] rounded-[8px] transition-colors"
                         >
                           <span class="flex items-center gap-3">
-                            <img [src]="accountAvatarSrc()" alt="" class="h-9 w-9 rounded-full object-cover" />
+                            <img
+                              [src]="accountAvatarSrc()"
+                              alt=""
+                              class="h-9 w-9 rounded-full object-cover"
+                            />
                             <span class="text-[15px] font-medium text-[#0d0d0d]">Seller mode</span>
                           </span>
                         </button>
