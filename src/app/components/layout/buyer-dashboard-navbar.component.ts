@@ -15,6 +15,7 @@ import {
   heroChevronRight,
   heroMagnifyingGlass,
   heroXMark,
+  heroCheck,
 } from '@ng-icons/heroicons/outline';
 import { AppModeService } from '../../services/app-mode.service';
 import { AuthService, type ProfileResponse } from '../../services/auth.service';
@@ -37,6 +38,7 @@ type BuyerMenuEntry = {
       heroChevronRight,
       heroMagnifyingGlass,
       heroXMark,
+      heroCheck,
     }),
   ],
   template: `
