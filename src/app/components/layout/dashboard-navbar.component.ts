@@ -56,6 +56,8 @@ type SellerMenuEntry = {
           </a>
 
           <div class="ml-auto flex items-center gap-2">
+            <!-- Location picker hidden in seller mode -->
+            <!--
             <button
               type="button"
               class="flex h-9 items-center justify-between gap-2 rounded-full border border-white bg-[#F3F3F3] py-1 pl-3 pr-1 shadow-[0_0_0_1px_rgba(255,255,255,0.65)]"
@@ -91,6 +93,7 @@ type SellerMenuEntry = {
                 />
               </span>
             </button>
+            -->
 
             <div class="relative">
               @if (isAccountMenuOpen()) {
