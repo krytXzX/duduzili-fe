@@ -16,119 +16,154 @@ type NavItem = {
   template: `
     @if (enableActionSheet() && isActionSheetOpen()) {
       <div
-        class="fixed inset-0 z-[70] bg-black/20 md:hidden"
+        class="fixed inset-0 z-[70] bg-black/25 md:hidden"
         (click)="closeActionSheet()"
         aria-hidden="true"
       ></div>
 
       <section
-        class="fixed inset-x-0 bottom-0 z-[80] rounded-t-[34px] bg-white px-4 pb-8 pt-3 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.4)] md:hidden"
+        class="fixed inset-x-0 bottom-0 z-[80] rounded-t-[34px] bg-white px-6 pb-9 pt-4 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.4)] md:hidden"
         aria-label="Create options"
         role="dialog"
         aria-modal="true"
       >
-        <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E6E7EC]"></div>
+        <div class="mx-auto h-[5px] w-12 rounded-full bg-[#E6E7EC]"></div>
 
-        <div class="mt-2 flex justify-end">
+        <div class="mt-4 flex items-center justify-between">
+          <h2 class="text-[22px] font-semibold tracking-tight text-[#0D1F3C]">
+            What would you like to do?
+          </h2>
+
           <button
             type="button"
             (click)="closeActionSheet()"
-            class="inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)]"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition active:scale-95"
             aria-label="Close action sheet"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.8"
+              stroke="currentColor"
+              class="h-5 w-5"
             >
               <path
-                fill-rule="evenodd"
-                d="M4.22 4.22a.75.75 0 011.06 0L10 8.94l4.72-4.72a.75.75 0 111.06 1.06L11.06 10l4.72 4.72a.75.75 0 11-1.06 1.06L10 11.06l-4.72 4.72a.75.75 0 11-1.06-1.06L8.94 10 4.22 5.28a.75.75 0 010-1.06z"
-                clip-rule="evenodd"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
               />
             </svg>
           </button>
         </div>
 
-        <h2 class="mt-3 text-[20px] font-semibold tracking-[-0.03em] text-[#202335]">
-          What would you like to do?
-        </h2>
-
-        <div class="mt-4 space-y-4">
+        <div class="mt-6 space-y-5">
           <button
             type="button"
             (click)="openAddListingFlow()"
-            class="flex w-full items-center gap-4 text-left text-[#202335]"
+            class="flex w-full items-center gap-4 text-left text-[#0D1F3C] transition active:scale-[0.995]"
           >
             <span
-              class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F6F7FA] text-[#444955]"
+              class="inline-flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#F6F7FA]"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.8"
+                stroke="currentColor"
+                class="h-6 w-6 text-[#1E293B]"
               >
                 <path
-                  d="M3.75 4.5A1.75 1.75 0 015.5 2.75h9A1.75 1.75 0 0116.25 4.5v11A1.75 1.75 0 0114.5 17.25h-9A1.75 1.75 0 013.75 15.5v-11zm1.75-.25a.25.25 0 00-.25.25v11c0 .138.112.25.25.25h9a.25.25 0 00.25-.25v-11a.25.25 0 00-.25-.25h-9z"
-                />
-                <path
-                  d="M7 6.5a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 017 6.5zm0 3.5a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 017 10zm0 3.5a.75.75 0 01.75-.75h3a.75.75 0 010 1.5h-3A.75.75 0 017 13.5z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
                 />
               </svg>
             </span>
-            <span class="text-[16px] font-medium">Sell an item</span>
+            <span class="text-[17px] font-medium">Sell an item</span>
           </button>
 
           <button
             type="button"
             (click)="openAddStoreFlow()"
-            class="flex w-full items-center gap-4 text-left text-[#202335]"
+            class="flex w-full items-center gap-4 text-left text-[#0D1F3C] transition active:scale-[0.995]"
           >
             <span
-              class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F6F7FA] text-[#444955]"
+              class="inline-flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#F6F7FA]"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.8"
+                stroke="currentColor"
+                class="h-6 w-6 text-[#1E293B]"
               >
                 <path
-                  d="M4 4.75A1.75 1.75 0 015.75 3h8.5A1.75 1.75 0 0116 4.75v1.132a2.5 2.5 0 01-.75 1.782v6.586A1.75 1.75 0 0113.5 16h-7A1.75 1.75 0 014.75 14.25V7.664A2.5 2.5 0 014 5.882V4.75zm1.75-.25a.25.25 0 00-.25.25v1.132c0 .34.135.665.375.905l.22.22a.75.75 0 01.22.53v6.713c0 .138.112.25.25.25h7a.25.25 0 00.25-.25V7.537a.75.75 0 01.22-.53l.22-.22A1.28 1.28 0 0014.5 5.88V4.75a.25.25 0 00-.25-.25h-8.5z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 10V20a1 1 0 001 1h16a1 1 0 001-1V10M3 10L4.5 5h15L21 10M3 10h18"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 10c0 1 1 1.8 2 1.8s2-.8 2-1.8m0 0c0 1 1 1.8 2 1.8s2-.8 2-1.8m0 0c0 1 1 1.8 2 1.8s2-.8 2-1.8m0 0c0 1 1 1.8 2 1.8s2-.8 2-1.8m0 0c0 1 1 1.8 2 1.8s2-.8 2-1.8"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M10 21v-4a1 1 0 011-1h2a1 1 0 011 1v4"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M5.5 17h3M7 15.5v3"
                 />
               </svg>
             </span>
-            <span class="text-[16px] font-medium">Create a new store</span>
+            <span class="text-[17px] font-medium">Create a new store</span>
           </button>
 
           <button
             type="button"
             (click)="navigateTo(variant() === 'seller' ? '/seller/ads/plans' : '/ads/plans')"
-            class="flex w-full items-center gap-4 text-left text-[#202335]"
+            class="flex w-full items-center gap-4 text-left text-[#0D1F3C] transition active:scale-[0.995]"
           >
             <span
-              class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F6F7FA] text-[#444955]"
+              class="inline-flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#F6F7FA]"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.8"
+                stroke="currentColor"
+                class="h-6 w-6 text-[#1E293B]"
               >
                 <path
-                  fill-rule="evenodd"
-                  d="M10 2.5a3 3 0 00-3 3V6H5.75A2.75 2.75 0 003 8.75v5.5A2.75 2.75 0 005.75 17h8.5A2.75 2.75 0 0017 14.25v-5.5A2.75 2.75 0 0014.25 6H13v-.5a3 3 0 00-3-3zm1.5 3V6h-3v-.5a1.5 1.5 0 013 0zm-1.5 4a1.75 1.75 0 100 3.5 1.75 1.75 0 000-3.5z"
-                  clip-rule="evenodd"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 15a5 5 0 100-10 5 5 0 000 10z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M8.25 13.5L5.25 21l3.75-1.5L12.75 21l-3-7.5"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15.75 13.5L18.75 21l-3.75-1.5L11.25 21l3-7.5"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 7.5l.8 1.6 1.8.3-1.3 1.3.3 1.8-1.6-.8-1.6.8.3-1.8-1.3-1.3 1.8-.3.8-1.6z"
                 />
               </svg>
             </span>
-            <span class="text-[16px] font-medium">Create an Ad</span>
+            <span class="text-[17px] font-medium">Create an Ad</span>
           </button>
         </div>
       </section>
