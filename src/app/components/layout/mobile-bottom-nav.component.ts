@@ -66,20 +66,11 @@ type NavItem = {
             <span
               class="inline-flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#F6F7FA]"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.8"
-                stroke="currentColor"
-                class="h-6 w-6 text-[#1E293B]"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
-                />
-              </svg>
+              <img
+                src="/assets/icons/sell-an-item-icon.svg"
+                alt=""
+                class="h-12 w-12"
+              />
             </span>
             <span class="text-[17px] font-medium">Sell an item</span>
           </button>
@@ -92,35 +83,11 @@ type NavItem = {
             <span
               class="inline-flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#F6F7FA]"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.8"
-                stroke="currentColor"
-                class="h-6 w-6 text-[#1E293B]"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3 10V20a1 1 0 001 1h16a1 1 0 001-1V10M3 10L4.5 5h15L21 10M3 10h18"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3 10c0 1 1 1.8 2 1.8s2-.8 2-1.8m0 0c0 1 1 1.8 2 1.8s2-.8 2-1.8m0 0c0 1 1 1.8 2 1.8s2-.8 2-1.8m0 0c0 1 1 1.8 2 1.8s2-.8 2-1.8m0 0c0 1 1 1.8 2 1.8s2-.8 2-1.8"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M10 21v-4a1 1 0 011-1h2a1 1 0 011 1v4"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M5.5 17h3M7 15.5v3"
-                />
-              </svg>
+              <img
+                src="/assets/icons/create-a-store-icon.svg"
+                alt=""
+                class="h-12 w-12"
+              />
             </span>
             <span class="text-[17px] font-medium">Create a new store</span>
           </button>
@@ -133,35 +100,11 @@ type NavItem = {
             <span
               class="inline-flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#F6F7FA]"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.8"
-                stroke="currentColor"
-                class="h-6 w-6 text-[#1E293B]"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 15a5 5 0 100-10 5 5 0 000 10z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M8.25 13.5L5.25 21l3.75-1.5L12.75 21l-3-7.5"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M15.75 13.5L18.75 21l-3.75-1.5L11.25 21l3-7.5"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 7.5l.8 1.6 1.8.3-1.3 1.3.3 1.8-1.6-.8-1.6.8.3-1.8-1.3-1.3 1.8-.3.8-1.6z"
-                />
-              </svg>
+              <img
+                src="/assets/icons/create-an-ad-icon.svg"
+                alt=""
+                class="h-12 w-12"
+              />
             </span>
             <span class="text-[17px] font-medium">Create an Ad</span>
           </button>
