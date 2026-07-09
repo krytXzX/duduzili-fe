@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LocationPickerComponent } from '../../../components/common/location-picker.component';
 
 import { AppToastService } from '../../../services/app-toast.service';
 import { AuthSessionService } from '../../../services/auth-session.service';
@@ -30,7 +31,7 @@ export interface AddStoreFormValue {
 
 @Component({
   selector: 'app-add-store-modal',
-  imports: [ReactiveFormsModule, NgOptimizedImage],
+  imports: [ReactiveFormsModule, NgOptimizedImage, LocationPickerComponent],
   template: `
     <div
       class="fixed inset-0 z-50 bg-black/40 backdrop-blur-[4px] md:flex md:items-center md:justify-center md:p-4"
@@ -108,25 +109,22 @@ export interface AddStoreFormValue {
                       Location
                     </label>
                     <div class="relative">
-                      <select
+                      <button
                         id="store-location"
-                        formControlName="location"
-                        class="h-12 w-full appearance-none rounded-[8px] border border-[#eaeaea] bg-white px-3 pr-10 text-[14px] tracking-[-0.01em] text-[#0d0d0d] outline-none md:h-10"
+                        type="button"
+                        (click)="openPicker('location')"
+                        class="flex h-12 w-full items-center justify-between rounded-[8px] border border-[#eaeaea] bg-white px-3 text-[14px] text-[#0d0d0d] outline-none md:h-10"
                       >
-                        <option value="" disabled>Select location</option>
-                        @for (location of locations; track location) {
-                          <option [value]="location">{{ location }}</option>
-                        }
-                      </select>
-
-                      <img
-                        [ngSrc]="chevronIconUrl"
-                        alt=""
-                        width="10"
-                        height="10"
-                        class="pointer-events-none absolute right-3 top-1/2 shrink-0 -translate-y-1/2 object-contain rotate-[-90deg]"
-                        aria-hidden="true"
-                      />
+                        <span class="truncate">{{ storeForm.value.location || 'Select location' }}</span>
+                        <img
+                          [ngSrc]="chevronIconUrl"
+                          alt=""
+                          width="10"
+                          height="10"
+                          class="shrink-0 object-contain rotate-[-90deg]"
+                          aria-hidden="true"
+                        />
+                      </button>
                     </div>
                   </div>
 
@@ -351,6 +349,13 @@ export interface AddStoreFormValue {
           </div>
         </div>
       </div>
+
+      @if (activePicker() === 'location') {
+        <app-location-picker
+          (close)="closePicker()"
+          (selectLocation)="storeForm.patchValue({ location: $event })"
+        />
+      }
     </div>
   `,
   styles: [
@@ -384,12 +389,6 @@ export class AddStoreModalComponent implements OnDestroy {
   protected readonly chevronIconUrl = '/assets/icons/my-stores-add-chevron.svg';
   protected readonly imagePlaceholderIconUrl = '/assets/icons/my-stores-add-image-placeholder.svg';
   protected readonly plusIconUrl = '/assets/icons/my-stores-add-plus.svg';
-  protected readonly locations = [
-    'Ikeja, Lagos',
-    'Lekki, Lagos',
-    'Abuja, FCT',
-    'Port Harcourt, Rivers',
-  ] as const;
 
   protected readonly profilePreview = signal<string | null>(null);
   protected readonly coverPreview = signal<string | null>(null);
@@ -400,6 +399,15 @@ export class AddStoreModalComponent implements OnDestroy {
   private readonly appToastService = inject(AppToastService);
   private readonly authSession = inject(AuthSessionService);
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  protected readonly activePicker = signal<string | null>(null);
+
+  protected openPicker(kind: string): void {
+    this.activePicker.set(kind);
+  }
+
+  protected closePicker(): void {
+    this.activePicker.set(null);
+  }
 
   protected readonly storeForm = this.fb.group({
     name: ['', [Validators.required]],

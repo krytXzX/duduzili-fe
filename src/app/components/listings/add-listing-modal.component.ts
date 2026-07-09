@@ -28,6 +28,7 @@ import { ListingsApiItem, ListingsService } from '../../services/listings.servic
 import { AppToastService } from '../../services/app-toast.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { LocationService, PublicHomeLocationValue } from '../../services/location.service';
+import { LocationPickerComponent } from '../common/location-picker.component';
 import { environment } from '../../../environments/environment';
 
 export interface ListingData {
@@ -62,7 +63,7 @@ type YoutubePreview = {
 
 @Component({
   selector: 'app-add-listing-modal',
-  imports: [CommonModule, ReactiveFormsModule, NgIcon, ListingCardComponent],
+  imports: [CommonModule, ReactiveFormsModule, NgIcon, ListingCardComponent, LocationPickerComponent],
   providers: [
     provideIcons({ 
       heroXMark, 
@@ -1503,141 +1504,148 @@ type YoutubePreview = {
       </div>
 
       @if (activePicker(); as picker) {
-        <button
-          type="button"
-          class="fixed inset-0 z-[70] bg-black/30"
-          (click)="closePicker()"
-          aria-label="Close picker"
-        ></button>
+        @if (picker === 'location') {
+          <app-location-picker
+            (close)="closePicker()"
+            (selectLocation)="selectPickerOption($event)"
+          />
+        } @else {
+          <button
+            type="button"
+            class="fixed inset-0 z-[70] bg-black/30"
+            (click)="closePicker()"
+            aria-label="Close picker"
+          ></button>
 
-        <section
-          class="fixed inset-x-0 bottom-0 z-[80] rounded-t-[28px] bg-white px-4 pb-6 pt-3 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.4)] md:hidden"
-          role="dialog"
-          aria-modal="true"
-          [attr.aria-label]="pickerTitle()"
-        >
-          <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E6E7EC]"></div>
+          <section
+            class="fixed inset-x-0 bottom-0 z-[80] rounded-t-[28px] bg-white px-4 pb-6 pt-3 shadow-[0_-20px_50px_-30px_rgba(18,24,35,0.4)] md:hidden"
+            role="dialog"
+            aria-modal="true"
+            [attr.aria-label]="pickerTitle()"
+          >
+            <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E6E7EC]"></div>
 
-          <div class="mt-2 flex items-center justify-between">
-            <button
-              type="button"
-              (click)="isLocationCityPanelOpen() ? closeLocationCityPanel() : closePicker()"
-              class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
-              [attr.aria-label]="isLocationCityPanelOpen() ? 'Back to states' : 'Close picker'"
-            >
-              <ng-icon [name]="isLocationCityPanelOpen() ? 'heroChevronLeft' : 'heroXMark'" class="text-[18px]"></ng-icon>
-            </button>
-            <h3 class="text-[16px] font-semibold text-[#202335]">{{ pickerTitle() }}</h3>
-            <span class="h-10 w-10"></span>
-          </div>
-
-          @if (pickerHasSearch()) {
-            <label class="mt-5 flex items-center gap-2 rounded-[14px] border border-[#E1E3E8] bg-white px-4 py-3">
-              <ng-icon name="heroMagnifyingGlass" class="text-[16px] text-[#9BA0AA]"></ng-icon>
-              <input
-                type="search"
-                [value]="pickerSearch()"
-                (input)="pickerSearch.set($any($event.target).value)"
-                [placeholder]="pickerSearchPlaceholder()"
-                class="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-[#202335] outline-none placeholder:text-[#B1B5BF]"
-              />
-            </label>
-          }
-
-          <div class="mt-4 max-h-[52vh] overflow-y-auto">
-            @for (option of filteredPickerOptions(); track option.value) {
+            <div class="mt-2 flex items-center justify-between">
               <button
                 type="button"
-                (click)="selectPickerOption(option.value)"
-                class="flex w-full items-center justify-between gap-3 rounded-[14px] px-2 py-3 text-left hover:bg-[#F8F8FB]"
+                (click)="isLocationCityPanelOpen() ? closeLocationCityPanel() : closePicker()"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
+                [attr.aria-label]="isLocationCityPanelOpen() ? 'Back to states' : 'Close picker'"
               >
-                <span class="flex min-w-0 items-center gap-3">
-                  @if (option.image) {
-                    <img [src]="option.image" alt="" class="h-8 w-8 rounded-full object-cover" />
-                  }
-                  <span class="min-w-0">
-                    <span class="block truncate text-[13px] font-medium text-[#202335]">{{ option.label }}</span>
-                    @if (option.subtitle) {
-                      <span class="block truncate text-[11px] text-[#8A8F9A]">{{ option.subtitle }}</span>
-                    }
-                  </span>
-                </span>
-                @if (!isLocationCityPanelOpen()) {
-                  <ng-icon name="heroChevronRight" class="text-[16px] text-[#9BA0AA]"></ng-icon>
-                }
+                <ng-icon [name]="isLocationCityPanelOpen() ? 'heroChevronLeft' : 'heroXMark'" class="text-[18px]"></ng-icon>
               </button>
-            }
-          </div>
-        </section>
+              <h3 class="text-[16px] font-semibold text-[#202335]">{{ pickerTitle() }}</h3>
+              <span class="h-10 w-10"></span>
+            </div>
 
-        <section
-          class="fixed left-1/2 top-1/2 z-[80] hidden w-[min(540px,calc(100vw-48px))] -translate-x-1/2 -translate-y-1/2 rounded-[24px] border border-[#ECEEF4] bg-white p-6 shadow-[0_20px_80px_rgba(32,35,53,0.18)] md:block"
-          role="dialog"
-          aria-modal="true"
-          [attr.aria-label]="pickerTitle()"
-        >
-          <div class="flex items-center justify-between gap-4">
-            <div class="flex min-w-0 items-center gap-3">
-              @if (isLocationCityPanelOpen()) {
+            @if (pickerHasSearch()) {
+              <label class="mt-5 flex items-center gap-2 rounded-[14px] border border-[#E1E3E8] bg-white px-4 py-3">
+                <ng-icon name="heroMagnifyingGlass" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+                <input
+                  type="search"
+                  [value]="pickerSearch()"
+                  (input)="pickerSearch.set($any($event.target).value)"
+                  [placeholder]="pickerSearchPlaceholder()"
+                  class="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-[#202335] outline-none placeholder:text-[#B1B5BF]"
+                />
+              </label>
+            }
+
+            <div class="mt-4 max-h-[52vh] overflow-y-auto">
+              @for (option of filteredPickerOptions(); track option.value) {
                 <button
                   type="button"
-                  (click)="closeLocationCityPanel()"
-                  class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
-                  aria-label="Back to states"
+                  (click)="selectPickerOption(option.value)"
+                  class="flex w-full items-center justify-between gap-3 rounded-[14px] px-2 py-3 text-left hover:bg-[#F8F8FB]"
                 >
-                  <ng-icon name="heroChevronLeft" class="text-[18px]"></ng-icon>
+                  <span class="flex min-w-0 items-center gap-3">
+                    @if (option.image) {
+                      <img [src]="option.image" alt="" class="h-8 w-8 rounded-full object-cover" />
+                    }
+                    <span class="min-w-0">
+                      <span class="block truncate text-[13px] font-medium text-[#202335]">{{ option.label }}</span>
+                      @if (option.subtitle) {
+                        <span class="block truncate text-[11px] text-[#8A8F9A]">{{ option.subtitle }}</span>
+                      }
+                    </span>
+                  </span>
+                  @if (!isLocationCityPanelOpen()) {
+                    <ng-icon name="heroChevronRight" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+                  }
                 </button>
               }
-              <h3 class="truncate text-[20px] font-semibold text-[#1A1C21]">{{ pickerTitle() }}</h3>
             </div>
-            <button
-              type="button"
-              (click)="closePicker()"
-              class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
-              aria-label="Close picker"
-            >
-              <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
-            </button>
-          </div>
+          </section>
 
-          @if (pickerHasSearch()) {
-            <label class="mt-5 flex items-center gap-2 rounded-[14px] border border-[#E1E3E8] bg-white px-4 py-3">
-              <ng-icon name="heroMagnifyingGlass" class="text-[16px] text-[#9BA0AA]"></ng-icon>
-              <input
-                type="search"
-                [value]="pickerSearch()"
-                (input)="pickerSearch.set($any($event.target).value)"
-                [placeholder]="pickerSearchPlaceholder()"
-                class="min-w-0 flex-1 bg-transparent text-[14px] font-medium text-[#202335] outline-none placeholder:text-[#B1B5BF]"
-              />
-            </label>
-          }
-
-          <div class="mt-5 max-h-[420px] overflow-y-auto">
-            @for (option of filteredPickerOptions(); track option.value) {
+          <section
+            class="fixed left-1/2 top-1/2 z-[80] hidden w-[min(540px,calc(100vw-48px))] -translate-x-1/2 -translate-y-1/2 rounded-[24px] border border-[#ECEEF4] bg-white p-6 shadow-[0_20px_80px_rgba(32,35,53,0.18)] md:block"
+            role="dialog"
+            aria-modal="true"
+            [attr.aria-label]="pickerTitle()"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex min-w-0 items-center gap-3">
+                @if (isLocationCityPanelOpen()) {
+                  <button
+                    type="button"
+                    (click)="closeLocationCityPanel()"
+                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
+                    aria-label="Back to states"
+                  >
+                    <ng-icon name="heroChevronLeft" class="text-[18px]"></ng-icon>
+                  </button>
+                }
+                <h3 class="truncate text-[20px] font-semibold text-[#1A1C21]">{{ pickerTitle() }}</h3>
+              </div>
               <button
                 type="button"
-                (click)="selectPickerOption(option.value)"
-                class="flex w-full items-center justify-between gap-4 rounded-[14px] px-3 py-3 text-left hover:bg-[#F8F8FB]"
+                (click)="closePicker()"
+                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F7FA] text-[#2A2D34]"
+                aria-label="Close picker"
               >
-                <span class="flex min-w-0 items-center gap-3">
-                  @if (option.image) {
-                    <img [src]="option.image" alt="" class="h-10 w-10 rounded-full object-cover" />
-                  }
-                  <span class="min-w-0">
-                    <span class="block truncate text-[14px] font-medium text-[#202335]">{{ option.label }}</span>
-                    @if (option.subtitle) {
-                      <span class="block truncate text-[12px] text-[#8A8F9A]">{{ option.subtitle }}</span>
-                    }
-                  </span>
-                </span>
-                @if (!isLocationCityPanelOpen()) {
-                  <ng-icon name="heroChevronRight" class="text-[16px] text-[#9BA0AA]"></ng-icon>
-                }
+                <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
               </button>
+            </div>
+
+            @if (pickerHasSearch()) {
+              <label class="mt-5 flex items-center gap-2 rounded-[14px] border border-[#E1E3E8] bg-white px-4 py-3">
+                <ng-icon name="heroMagnifyingGlass" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+                <input
+                  type="search"
+                  [value]="pickerSearch()"
+                  (input)="pickerSearch.set($any($event.target).value)"
+                  [placeholder]="pickerSearchPlaceholder()"
+                  class="min-w-0 flex-1 bg-transparent text-[14px] font-medium text-[#202335] outline-none placeholder:text-[#B1B5BF]"
+                />
+              </label>
             }
-          </div>
-        </section>
+
+            <div class="mt-5 max-h-[420px] overflow-y-auto">
+              @for (option of filteredPickerOptions(); track option.value) {
+                <button
+                  type="button"
+                  (click)="selectPickerOption(option.value)"
+                  class="flex w-full items-center justify-between gap-4 rounded-[14px] px-3 py-3 text-left hover:bg-[#F8F8FB]"
+                >
+                  <span class="flex min-w-0 items-center gap-3">
+                    @if (option.image) {
+                      <img [src]="option.image" alt="" class="h-10 w-10 rounded-full object-cover" />
+                    }
+                    <span class="min-w-0">
+                      <span class="block truncate text-[14px] font-medium text-[#202335]">{{ option.label }}</span>
+                      @if (option.subtitle) {
+                        <span class="block truncate text-[12px] text-[#8A8F9A]">{{ option.subtitle }}</span>
+                      }
+                    </span>
+                  </span>
+                  @if (!isLocationCityPanelOpen()) {
+                    <ng-icon name="heroChevronRight" class="text-[16px] text-[#9BA0AA]"></ng-icon>
+                  }
+                </button>
+              }
+            </div>
+          </section>
+        }
       }
     </div>
   `,
