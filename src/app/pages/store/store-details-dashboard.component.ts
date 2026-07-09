@@ -225,15 +225,15 @@ interface ReviewTagCount {
               <h1 class="sr-only">Store information</h1>
             </div>
 
-            <div class="mt-6 overflow-hidden rounded-[18px] bg-white">
+            <div class="mt-6 bg-white mx-[-20px] rounded-t-[18px] overflow-hidden">
               <div
-                class="relative mx-auto h-[91px] max-w-[350px] overflow-hidden rounded-t-[12px] bg-[#F8F3E5]"
+                class="relative w-full h-[120px] overflow-hidden rounded-t-[18px] bg-[#F8F3E5]"
               >
                 @if (s.mobileBanner) {
                   <img
                     [ngSrc]="s.mobileBanner"
-                    width="350"
-                    height="91"
+                    width="750"
+                    height="120"
                     alt=""
                     class="h-full w-full object-cover"
                   />
@@ -250,7 +250,7 @@ interface ReviewTagCount {
                 ></div>
               </div>
 
-              <div class="relative mx-auto max-w-[350px] px-0">
+              <div class="relative w-full px-5 pb-6">
                 <div class="-mt-[32px] flex flex-col items-center">
                   <div class="flex flex-col items-center gap-2">
                     <div
@@ -310,7 +310,7 @@ interface ReviewTagCount {
                           <p class="text-[12px] leading-4 text-[#777777]">{{ item.label }}</p>
                           <div class="mt-1 flex items-center justify-center gap-1">
                             <span
-                              class="max-w-[70px] truncate text-[14px] font-medium leading-5 text-[#1F1F1F]"
+                              class="max-w-[90px] truncate text-[14px] font-medium leading-5 text-[#1F1F1F]"
                               >{{ item.value }}</span
                             >
                             @if (item.highlightIcon === 'star') {
