@@ -211,9 +211,7 @@
             </div>
 
             <button type="button" (click)="toggleListingActionsMenu($event)" class="flex h-9 w-9 items-center justify-center rounded-full text-[#1F1F1F] transition-all duration-200 hover:bg-[#F4F4F4] active:scale-[0.92]" aria-label="More listing actions" [attr.aria-expanded]="isListingActionsMenuOpen()" aria-haspopup="menu">
-              <svg class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path d="M10 3.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
-              </svg>
+              <img ngSrc="/assets/icons/three-dot-icon.svg" width="24" height="24" alt="" class="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
 
@@ -365,9 +363,7 @@
 
             <div class="relative">
               <button type="button" (click)="toggleListingActionsMenu($event)" class="flex h-9 w-9 items-center justify-center rounded-full text-[#1F1F1F] transition-all duration-200 hover:bg-[#F4F4F4] hover:scale-105 active:scale-95" aria-label="More listing actions" [attr.aria-expanded]="isListingActionsMenuOpen()" aria-haspopup="menu">
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M10 3.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
-                </svg>
+                <img ngSrc="/assets/icons/three-dot-icon.svg" width="20" height="20" alt="" class="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -748,9 +744,45 @@
 <app-toast />
 
 @if (isListingActionsMenuOpen()) {
-<button type="button" class="fixed inset-0 z-40 cursor-default bg-transparent" (click)="closeListingActionsMenu()" aria-label="Close listing actions menu"></button>
+<!-- Mobile Bottom Sheet -->
+<div class="fixed inset-0 z-40 bg-black/30 lg:hidden" (click)="closeListingActionsMenu()">
+  <div class="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white px-5 pb-8 pt-4 shadow-[0_-12px_40px_rgba(19,27,45,0.12)]" (click)="$event.stopPropagation()" role="menu" aria-label="Listing actions">
+    <div class="mx-auto mb-5 h-1 w-12 rounded-full bg-[#E7E7E7]"></div>
 
-<div class="fixed z-50 w-[260px] overflow-hidden rounded-[20px] border border-[#EAEAEA] bg-white py-2 shadow-[0_18px_40px_-24px_rgba(17,24,39,0.35)]" [style.top.px]="listingActionsMenuPosition().top" [style.left.px]="listingActionsMenuPosition().left" role="menu" aria-label="Listing actions">
+    <button type="button" (click)="void toggleWishlist(true)" class="flex w-full items-center gap-3 rounded-[14px] px-4 py-3.5 text-left text-[15px] font-medium text-[#2E323B] transition hover:bg-[#F8F8FA]" role="menuitem" [attr.aria-pressed]="isProductSaved()" [disabled]="isWishlistPending()">
+      <svg class="h-5 w-5 transition-colors" [class.text-[#6453D9]]="isProductSaved()" [class.text-[#7B8088]]="!isProductSaved()" viewBox="0 0 24 24" [attr.fill]="isProductSaved() ? 'currentColor' : 'none'" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m12 21-1.45-1.32C5.4 15.05 2 11.97 2 8.2 2 5.12 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6.04 6.04 0 0116.5 3C19.58 3 22 5.12 22 8.2c0 3.77-3.4 6.85-8.55 11.49L12 21z" />
+      </svg>
+      {{ isProductSaved() ? 'Remove from wishlist' : 'Add to wishlist' }}
+    </button>
+
+    <button type="button" (click)="shareListing()" class="flex w-full items-center gap-3 rounded-[14px] px-4 py-3.5 text-left text-[15px] font-medium text-[#2E323B] transition hover:bg-[#F8F8FA]" role="menuitem">
+      <svg class="h-5 w-5 text-[#7B8088]" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14" />
+      </svg>
+      Share listing
+    </button>
+
+    <button type="button" (click)="openReportModal('listing')" class="flex w-full items-center gap-3 rounded-[14px] px-4 py-3.5 text-left text-[15px] font-medium text-[#FF3B30] transition hover:bg-[#FFF5F5]" role="menuitem">
+      <svg class="h-5 w-5 text-[#FF3B30]" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v3.75m0 3h.008M3 5.75h18L18.5 20H5.5L3 5.75z" />
+      </svg>
+      Report listing as unavailable
+    </button>
+
+    <button type="button" (click)="openReportModal('seller')" class="flex w-full items-center gap-3 rounded-[14px] px-4 py-3.5 text-left text-[15px] font-medium text-[#FF3B30] transition hover:bg-[#FFF5F5]" role="menuitem">
+      <svg class="h-5 w-5 text-[#FF3B30]" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 9l-6 6m0-6 6 6M12 3a9 9 0 100 18 9 9 0 000-18z" />
+      </svg>
+      Report seller
+    </button>
+  </div>
+</div>
+
+<!-- Desktop Positioned Dropdown -->
+<button type="button" class="fixed inset-0 z-40 hidden cursor-default bg-transparent lg:block" (click)="closeListingActionsMenu()" aria-label="Close listing actions menu"></button>
+
+<div class="fixed z-50 hidden w-[260px] overflow-hidden rounded-[20px] border border-[#EAEAEA] bg-white py-2 shadow-[0_18px_40px_-24px_rgba(17,24,39,0.35)] lg:block" [style.top.px]="listingActionsMenuPosition().top" [style.left.px]="listingActionsMenuPosition().left" role="menu" aria-label="Listing actions">
   <button type="button" (click)="void toggleWishlist(true)" class="flex w-full items-center gap-3 px-5 py-3 text-left text-[14px] font-medium text-[#2E323B] transition hover:bg-[#F8F8FA]" role="menuitem" [attr.aria-pressed]="isProductSaved()" [disabled]="isWishlistPending()">
     <svg class="h-4 w-4 transition-colors" [class.text-[#6453D9]]="isProductSaved()" [class.text-[#7B8088]]="!isProductSaved()" viewBox="0 0 24 24" [attr.fill]="isProductSaved() ? 'currentColor' : 'none'" stroke="currentColor" aria-hidden="true">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m12 21-1.45-1.32C5.4 15.05 2 11.97 2 8.2 2 5.12 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6.04 6.04 0 0116.5 3C19.58 3 22 5.12 22 8.2c0 3.77-3.4 6.85-8.55 11.49L12 21z" />
