@@ -4,6 +4,7 @@ import { Injectable, computed, signal } from '@angular/core';
 export class MobileOverlayService {
   readonly isAddListingOpen = signal(false);
   readonly shouldOpenAddListing = signal(false);
+  readonly shouldOpenAddStore = signal(false);
   private readonly mobileModalCount = signal(0);
   readonly isAnyMobileOverlayOpen = computed(
     () => this.isAddListingOpen() || this.mobileModalCount() > 0,
@@ -27,5 +28,13 @@ export class MobileOverlayService {
 
   consumeOpenAddListingRequest(): void {
     this.shouldOpenAddListing.set(false);
+  }
+
+  requestOpenAddStore(): void {
+    this.shouldOpenAddStore.set(true);
+  }
+
+  consumeOpenAddStoreRequest(): void {
+    this.shouldOpenAddStore.set(false);
   }
 }

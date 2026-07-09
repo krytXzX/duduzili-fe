@@ -85,7 +85,7 @@ type NavItem = {
 
           <button
             type="button"
-            (click)="navigateTo(variant() === 'seller' ? '/seller/my-stores' : '/my-stores')"
+            (click)="openAddStoreFlow()"
             class="flex w-full items-center gap-4 text-left text-[#202335]"
           >
             <span
@@ -383,6 +383,12 @@ export class MobileBottomNavComponent {
     this.closeActionSheet();
     this.mobileOverlayService.requestOpenAddListing();
     void this.router.navigateByUrl(this.variant() === 'seller' ? '/seller/listings' : '/listings');
+  }
+
+  openAddStoreFlow(): void {
+    this.closeActionSheet();
+    this.mobileOverlayService.requestOpenAddStore();
+    void this.router.navigateByUrl(this.variant() === 'seller' ? '/seller/my-stores' : '/my-stores');
   }
 
   readonly isSearchOverlayOpen = signal(false);

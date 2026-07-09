@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 
@@ -7,6 +7,7 @@ import { AddStoreModalComponent } from './components/add-store-modal.component';
 import { SuccessModalComponent } from './components/success-modal.component';
 import { AppToastService } from '../../services/app-toast.service';
 import { MyStoresResponse, VendorRecord, VendorsService } from '../../services/vendors.service';
+import { MobileOverlayService } from '../../services/mobile-overlay.service';
 import { environment } from '../../../environments/environment';
 
 interface NewStoreFormData {
@@ -214,6 +215,7 @@ interface NewStoreFormData {
 export class MyStoresPageComponent {
   private readonly vendorsService = inject(VendorsService);
   private readonly appToastService = inject(AppToastService);
+  private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
 
   protected readonly searchIconUrl = '/assets/icons/my-stores-search.svg';
@@ -242,6 +244,14 @@ export class MyStoresPageComponent {
   });
 
   constructor() {
+    effect(() => {
+      if (!this.mobileOverlayService.shouldOpenAddStore()) {
+        return;
+      }
+      this.isAddingStore.set(true);
+      this.mobileOverlayService.consumeOpenAddStoreRequest();
+    });
+
     void this.loadMyStores();
   }
 
