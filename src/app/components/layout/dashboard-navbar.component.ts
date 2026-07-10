@@ -570,7 +570,7 @@ export class DashboardNavbarComponent {
     
     if (isSettings) {
       const step = this.settingsState.mobileSettingsStep();
-      return step === 'profile' || step === 'security';
+      return step === 'profile' || step === 'security' || step === 'notifications';
     }
     
     return false;

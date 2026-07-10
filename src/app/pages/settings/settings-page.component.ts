@@ -204,7 +204,7 @@ type NotificationPreferenceSettings = Record<
                   />
                 </svg>
               </button>
-              <p class="text-[20px] font-semibold leading-[1.2] text-black">Account settings</p>
+              <!-- <p class="text-[20px] font-semibold leading-[1.2] text-black">Account settings</p> -->
             </div>
 
             <div class="absolute bottom-0 left-4 right-4">
