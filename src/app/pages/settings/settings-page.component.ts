@@ -27,6 +27,7 @@ import {
 } from '../../services/auth.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AdminSettingsService } from '../../services/admin-settings.service';
+import { SettingsStateService } from '../../services/settings-state.service';
 
 type ModalMode =
   | 'name'
@@ -2039,10 +2040,9 @@ export class SettingsPageComponent {
 
     return '/more';
   });
+  private readonly settingsState = inject(SettingsStateService);
   readonly activeTab = signal<SettingsTab>('profile');
-  readonly mobileSettingsStep = signal<
-    'menu' | 'profile' | 'security' | 'notifications' | 'platform'
-  >('menu');
+  readonly mobileSettingsStep = this.settingsState.mobileSettingsStep;
   readonly securityTab = signal<'password' | '2fa'>('password');
   readonly notificationsTab = signal<'method' | 'preferences'>('method');
   readonly currentPassword = signal('');

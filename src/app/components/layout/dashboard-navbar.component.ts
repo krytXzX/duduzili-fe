@@ -14,6 +14,7 @@ import { AuthFlowService } from '../../services/auth-flow.service';
 import { LocationService } from '../../services/location.service';
 import { SellerMonetizationService } from '../../services/seller-monetization.service';
 import { AppToastService } from '../../services/app-toast.service';
+import { SettingsStateService } from '../../services/settings-state.service';
 
 type SellerMenuEntry = {
   readonly label: string;
@@ -39,7 +40,7 @@ type SellerMenuEntry = {
       <header
         class="bg-white text-[#15162B] lg:mx-4 lg:my-1 lg:rounded-full lg:bg-black lg:px-6 lg:text-white lg:shadow-lg"
       >
-        <div class="flex h-[72px] items-center justify-between gap-3 px-5 lg:hidden">
+        <div class="flex h-[72px] items-center justify-between gap-3 px-5 lg:hidden" [class.hidden]="hideTopNav()">
           <a
             [routerLink]="homeRoute()"
             class="flex shrink-0 items-center transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6453D9]"
@@ -554,6 +555,25 @@ export class DashboardNavbarComponent {
       return '/';
     }
     return this.authSession.isSuperuser() ? '/admin' : '/en';
+  });
+
+  private readonly settingsState = inject(SettingsStateService);
+
+  protected readonly hideTopNav = computed(() => {
+    const url = this.router.url.split('?')[0];
+    const isNotifications = url === '/notifications' || url === '/seller/notifications' || url === '/admin/notifications';
+    const isSettings = url === '/settings' || url === '/seller/settings' || url === '/admin/settings';
+    
+    if (isNotifications) {
+      return true;
+    }
+    
+    if (isSettings) {
+      const step = this.settingsState.mobileSettingsStep();
+      return step === 'profile' || step === 'security';
+    }
+    
+    return false;
   });
 
   private readonly appToastService = inject(AppToastService);
