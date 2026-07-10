@@ -119,6 +119,7 @@ const CATEGORY_ICON_BY_SLUG: Record<string, string> = {
 export class HomePageComponent {
   private readonly categoryRail = viewChild<ElementRef<HTMLDivElement>>('categoryRail');
   private readonly desktopSearchShell = viewChild<ElementRef<HTMLDivElement>>('desktopSearchShell');
+  private readonly mobileSearchInput = viewChild<ElementRef<HTMLInputElement>>('mobileSearchInput');
   private readonly platformId = inject(PLATFORM_ID);
   private readonly homeService = inject(HomeService);
   private readonly listingsService = inject(ListingsService);
@@ -341,6 +342,9 @@ export class HomePageComponent {
 
   openMobileSearchOverlay(): void {
     this.isMobileSearchOverlayOpen.set(true);
+    setTimeout(() => {
+      this.mobileSearchInput()?.nativeElement?.focus();
+    }, 50);
   }
 
   closeMobileSearchOverlay(): void {

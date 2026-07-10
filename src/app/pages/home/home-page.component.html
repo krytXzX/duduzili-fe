@@ -601,7 +601,7 @@
     <div class="pointer-events-auto fixed inset-x-5 bottom-[max(41px,env(safe-area-inset-bottom))] z-[301]">
       <div class="h-[126px] rounded-[28px] border border-[#EDEDED] bg-white px-[15px] pt-[13px] shadow-[0_12px_30px_rgba(151,150,196,0.25)]">
         <form class="relative h-full w-full" (submit)="submitHomeSearch($event)" autocomplete="off">
-          <input type="text" [value]="mobileSearchQuery()" (input)="updateMobileSearchQuery($event)" class="h-full w-full bg-transparent pr-[74px] text-[24px] leading-[1.3] text-[#1F1F1F] outline-none" placeholder=" " autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          <input #mobileSearchInput type="text" [value]="mobileSearchQuery()" (input)="updateMobileSearchQuery($event)" class="h-full w-full bg-transparent pr-[74px] text-[24px] leading-[1.3] text-[#1F1F1F] outline-none" placeholder=" " autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
           <button type="submit" class="absolute bottom-[15px] right-0 flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full border border-white bg-[#6453D9] shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]" aria-label="Search">
             <img ngSrc="/assets/icons/home-search-overlay/search.svg" alt="" width="20" height="20" class="h-5 w-5" aria-hidden="true" />
           </button>
