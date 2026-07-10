@@ -7,10 +7,26 @@
 
   <main [class]="
       isAuthenticated()
-        ? 'mx-auto max-w-7xl px-4 py-10 pb-36 sm:px-6 lg:px-8 lg:pb-44'
-        : 'mx-auto max-w-7xl px-4 py-10 pb-36 pt-6 sm:px-6 lg:px-8 lg:pb-44 lg:pt-[112px]'
+        ? 'mx-auto max-w-7xl px-4 pt-2 pb-36 sm:px-6 lg:px-8 lg:py-10 lg:pb-44'
+        : 'mx-auto max-w-7xl px-4 pt-2 pb-36 sm:px-6 lg:px-8 lg:pb-44 lg:pt-[112px]'
     ">
     <header class="mb-7">
+      <div class="mb-4 flex items-center lg:hidden">
+        <button
+          type="button"
+          (click)="goBack()"
+          class="inline-flex h-8 w-10 items-center justify-center rounded-full bg-[#F3F3F3] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1B1D]"
+          aria-label="Go back"
+        >
+          <img
+            ngSrc="/assets/icons/settings/security-back.svg"
+            width="20"
+            height="20"
+            alt=""
+            aria-hidden="true"
+          />
+        </button>
+      </div>
       <h1 class="text-[30px] font-semibold tracking-tight text-[#1A1C21] sm:text-[36px]">
         We found {{ listingsCount() }} results for “{{ searchTerm() || 'Search' }}”
       </h1>

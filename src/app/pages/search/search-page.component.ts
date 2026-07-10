@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, Location, NgOptimizedImage } from '@angular/common';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
@@ -150,11 +150,23 @@ const VERIFICATION_PARAM_BY_LABEL: Record<string, 'true' | 'false'> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchPageComponent {
+  private readonly location = inject(Location);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authSession = inject(AuthSessionService);
   private readonly listingsService = inject(ListingsService);
   private readonly locationService = inject(LocationService);
+  
+  goBack(): void {
+    const hasHistory = window.history.length > 1;
+    if (hasHistory) {
+      this.location.back();
+    } else {
+      const home = this.isAuthenticated() ? '/en' : '/';
+      void this.router.navigate([home]);
+    }
+  }
+
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
   });
