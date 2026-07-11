@@ -230,9 +230,14 @@ export class SignUpPageComponent {
           }),
         );
         this.otpControl.reset('');
-        this.currentStep.set(2);
+        if (environment.disableOtp) {
+          // Verify code automatically on backend side or just skip step 2
+          this.currentStep.set(3);
+        } else {
+          this.currentStep.set(2);
+          this.startResendCountdown();
+        }
         this.submitted.set(false);
-        this.startResendCountdown();
       } catch (error: unknown) {
         const message = this.resolveBackendMessage(error) ?? 'Email already registered';
         this.emailErrorMessage.set(message);

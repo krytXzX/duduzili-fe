@@ -6,6 +6,7 @@ export const environment = {
   googleOAuthRedirectUri: 'https://ddb.sft.org.ng/api/auth/google/',
   demoMode: false,
   backendEnabled: true,
+  disableOtp: true,
 };
 
 export const ENVIRIONMENT = environment;

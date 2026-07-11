@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 import { OtpInputComponent } from '../../components/common/otp-input/otp-input.component';
 
@@ -162,7 +163,11 @@ export class ForgotPasswordPageComponent {
         this.isProcessing.set(true);
         setTimeout(() => {
           this.isProcessing.set(false);
-          this.currentStep.set('code');
+          if (environment.disableOtp) {
+            this.currentStep.set('password');
+          } else {
+            this.currentStep.set('code');
+          }
           this.submitted.set(false);
         }, 1000);
         return;

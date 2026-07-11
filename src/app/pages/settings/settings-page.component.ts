@@ -28,6 +28,7 @@ import {
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AdminSettingsService } from '../../services/admin-settings.service';
 import { SettingsStateService } from '../../services/settings-state.service';
+import { environment } from '../../../environments/environment';
 
 type ModalMode =
   | 'name'
@@ -2405,8 +2406,14 @@ export class SettingsPageComponent {
             return;
           }
 
-          this.verificationReturnMode.set('call-add');
-          this.verificationMode.set('call');
+          if (environment.disableOtp) {
+            this.verificationReturnMode.set('call-add');
+            this.verificationMode.set('call');
+            await this.completeVerification('123456');
+          } else {
+            this.verificationReturnMode.set('call-add');
+            this.verificationMode.set('call');
+          }
           this.modalMode.set(null);
           break;
         case 'whatsapp-add':
@@ -2414,8 +2421,14 @@ export class SettingsPageComponent {
             return;
           }
 
-          this.verificationReturnMode.set('whatsapp-add');
-          this.verificationMode.set('whatsapp');
+          if (environment.disableOtp) {
+            this.verificationReturnMode.set('whatsapp-add');
+            this.verificationMode.set('whatsapp');
+            await this.completeVerification('123456');
+          } else {
+            this.verificationReturnMode.set('whatsapp-add');
+            this.verificationMode.set('whatsapp');
+          }
           this.modalMode.set(null);
           break;
         case 'call-update':
@@ -2423,8 +2436,14 @@ export class SettingsPageComponent {
             return;
           }
 
-          this.verificationReturnMode.set('call-update');
-          this.verificationMode.set('call');
+          if (environment.disableOtp) {
+            this.verificationReturnMode.set('call-update');
+            this.verificationMode.set('call');
+            await this.completeVerification('123456');
+          } else {
+            this.verificationReturnMode.set('call-update');
+            this.verificationMode.set('call');
+          }
           this.modalMode.set(null);
           break;
         case 'whatsapp-update':
@@ -2432,8 +2451,14 @@ export class SettingsPageComponent {
             return;
           }
 
-          this.verificationReturnMode.set('whatsapp-update');
-          this.verificationMode.set('whatsapp');
+          if (environment.disableOtp) {
+            this.verificationReturnMode.set('whatsapp-update');
+            this.verificationMode.set('whatsapp');
+            await this.completeVerification('123456');
+          } else {
+            this.verificationReturnMode.set('whatsapp-update');
+            this.verificationMode.set('whatsapp');
+          }
           this.modalMode.set(null);
           break;
         case 'email':
@@ -2441,8 +2466,14 @@ export class SettingsPageComponent {
             return;
           }
 
-          this.verificationReturnMode.set('email');
-          this.verificationMode.set('email');
+          if (environment.disableOtp) {
+            this.verificationReturnMode.set('email');
+            this.verificationMode.set('email');
+            await this.completeVerification('123456');
+          } else {
+            this.verificationReturnMode.set('email');
+            this.verificationMode.set('email');
+          }
           this.modalMode.set(null);
           break;
         default:
