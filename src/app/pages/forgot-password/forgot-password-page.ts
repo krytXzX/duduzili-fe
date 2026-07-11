@@ -130,7 +130,7 @@ export class ForgotPasswordPageComponent {
       case 'password':
         return 'Reset password';
       default:
-        return 'Send code';
+        return environment.disableOtp ? 'Continue' : 'Send code';
     }
   });
   protected readonly isPrimaryActionDisabled = computed(() => {

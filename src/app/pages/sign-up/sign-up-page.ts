@@ -147,7 +147,7 @@ export class SignUpPageComponent {
   protected readonly primaryActionLabel = computed(() => {
     switch (this.currentStep()) {
       case 1:
-        return 'Send code';
+        return environment.disableOtp ? 'Continue' : 'Send code';
       case 2:
         return 'Confirm and continue';
       default:
