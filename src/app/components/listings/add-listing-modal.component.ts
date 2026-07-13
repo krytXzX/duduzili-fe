@@ -2057,15 +2057,6 @@ export class AddListingModalComponent implements OnDestroy {
       return;
     }
 
-    if (kind === 'location' && this.activeLocationState() === null) {
-      const locationState = this.toLocationStateValue(value);
-      if (locationState) {
-        this.pickerSearch.set('');
-        this.activeLocationState.set(locationState);
-      }
-      return;
-    }
-
     const controlName = kind === 'store' ? 'store' : kind;
     this.listingForm.patchValue({ [controlName]: value });
     this.closePicker();
