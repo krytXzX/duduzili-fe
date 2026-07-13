@@ -30,7 +30,7 @@ import { AppToastService } from '../../services/app-toast.service';
           }
 
           <div class="min-w-0 flex-1">
-            <p class="truncate text-[14px] font-medium text-white/95">{{ activeToast.message }}</p>
+            <p class="text-[14px] font-medium text-white/95 line-clamp-3 break-words">{{ activeToast.message }}</p>
           </div>
 
           @if (canAct()) {
