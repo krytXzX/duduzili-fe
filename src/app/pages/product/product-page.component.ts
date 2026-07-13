@@ -16,6 +16,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
+import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
 import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { AppToastComponent } from '../../components/common/app-toast.component';
@@ -126,6 +127,7 @@ type SellerReportStep = 1 | 2;
     ReactiveFormsModule,
     NgOptimizedImage,
     BuyerDashboardNavbarComponent,
+    PublicHomeNavbarComponent,
     ListingCardComponent,
     HomeFooterComponent,
     AppToastComponent,
@@ -351,6 +353,7 @@ export class ProductPageComponent {
       return { stars, count, percentage };
     });
   });
+  readonly isAuthenticated = computed(() => this.authSession.isAuthenticated());
   readonly isProductSaved = computed(() =>
     this.product().isSaved || this.favoritesStateService.isFavorited(this.product().id),
   );
