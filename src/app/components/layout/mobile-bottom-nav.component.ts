@@ -304,7 +304,7 @@ export class MobileBottomNavComponent {
       const authItems = this.authSession.isAuthenticated() ? [
         {
           label: 'Sell',
-          iconSrc: '/assets/icons/buyer-more/box-add.svg',
+          iconSrc: '/assets/icons/sell-icon.svg',
           route: '/seller/listings',
           activePaths: ['/listings', '/seller/listings'],
           onClick: () => this.openAddListingFlow(),
