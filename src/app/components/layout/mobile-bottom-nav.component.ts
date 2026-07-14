@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, output, signal, PLAT
 import { NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 type NavItem = {
   readonly label: string;
@@ -116,14 +117,40 @@ type NavItem = {
       class="fixed inset-x-0 bottom-0 z-40 h-[101px] bg-gradient-to-b from-transparent to-white lg:hidden"
       aria-label="Mobile bottom navigation"
     >
-      <div class="mx-auto flex h-full w-[350px] items-end pb-[19px]">
+      <!-- Floating Search Icon (Just above the bottom nav on the right) -->
+      @if (variant() === 'buyer') {
+        <div class="absolute bottom-[94px] right-5">
+          <button
+            type="button"
+            (click)="handleSearchAction()"
+            [attr.aria-label]="searchButtonAriaLabel()"
+            class="flex h-16 w-16 items-center justify-center rounded-full border border-gray-100 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.08)] active:scale-95 transition-transform duration-200"
+          >
+            <img
+              ngSrc="/assets/icons/buyer-bottom-nav/search.svg"
+              alt=""
+              width="24"
+              height="24"
+              class="h-6 w-6"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+      }
+
+      <div
+        class="mx-auto flex h-full items-end pb-[19px] transition-all duration-300"
+        [class.w-[390px]]="navItems.length === 5"
+        [class.w-[350px]]="navItems.length !== 5"
+      >
         <div
           class="flex min-w-0 flex-1 items-center rounded-full border border-[#f4f4f4] bg-white p-1 shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
         >
           @for (item of navItems; track item.label) {
             <a
-              [routerLink]="item.route"
-              class="flex min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-[#5c5c5c]"
+              [routerLink]="item.onClick ? null : item.route"
+              (click)="handleItemClick(item, $event)"
+              class="flex min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-[#5c5c5c] cursor-pointer"
               [class.rounded-[32px]]="isRouteActive(item.activePaths)"
               [class.bg-[#f5f3ff]]="isRouteActive(item.activePaths)"
               [class.text-[#6453d9]]="isRouteActive(item.activePaths)"
@@ -146,23 +173,7 @@ type NavItem = {
           }
         </div>
 
-        @if (variant() === 'buyer') {
-          <button
-            type="button"
-            (click)="handleSearchAction()"
-            [attr.aria-label]="searchButtonAriaLabel()"
-            class="ml-1 inline-flex h-[63px] w-[63px] items-center justify-center rounded-full border border-[#f4f4f4] bg-white shadow-[0_4px_12px_rgba(212,212,212,0.25)]"
-          >
-            <img
-              ngSrc="/assets/icons/buyer-bottom-nav/search.svg"
-              alt=""
-              width="24"
-              height="24"
-              class="h-6 w-6"
-              aria-hidden="true"
-            />
-          </button>
-        } @else {
+        @if (variant() !== 'buyer') {
           <button
             type="button"
             (click)="handlePrimaryAction()"
@@ -245,6 +256,7 @@ export class MobileBottomNavComponent {
   private readonly router = inject(Router);
   private readonly mobileOverlayService = inject(MobileOverlayService);
   private readonly platformId = inject(PLATFORM_ID);
+  protected readonly authSession = inject(AuthSessionService);
 
   readonly variant = input<'buyer' | 'seller'>('buyer');
   readonly exploreRoute = input('/en');
@@ -272,9 +284,9 @@ export class MobileBottomNavComponent {
 
   readonly isActionSheetOpen = signal(false);
 
-  get navItems(): readonly NavItem[] {
+  get navItems(): readonly (NavItem & { readonly onClick?: () => void })[] {
     if (this.variant() === 'buyer') {
-      return [
+      const baseItems = [
         {
           label: 'Explore',
           iconSrc: '/assets/icons/buyer-bottom-nav/home.svg',
@@ -287,6 +299,19 @@ export class MobileBottomNavComponent {
           route: this.wishlistRoute(),
           activePaths: this.wishlistActivePaths(),
         },
+      ];
+
+      const authItems = this.authSession.isAuthenticated() ? [
+        {
+          label: 'Sell',
+          iconSrc: '/assets/icons/buyer-more/box-add.svg',
+          route: '/listings',
+          activePaths: ['/listings', '/seller/listings'],
+          onClick: () => this.openAddListingFlow(),
+        }
+      ] : [];
+
+      const remainingItems = [
         {
           label: 'Chats',
           iconSrc: '/assets/icons/buyer-bottom-nav/messages.svg',
@@ -300,6 +325,8 @@ export class MobileBottomNavComponent {
           activePaths: this.moreActivePaths(),
         },
       ];
+
+      return [...baseItems, ...authItems, ...remainingItems];
     }
 
     return [
@@ -336,6 +363,13 @@ export class MobileBottomNavComponent {
 
   closeActionSheet(): void {
     this.isActionSheetOpen.set(false);
+  }
+
+  handleItemClick(item: NavItem & { readonly onClick?: () => void }, event: Event): void {
+    if (item.onClick) {
+      event.preventDefault();
+      item.onClick();
+    }
   }
 
   isRouteActive(paths: readonly string[]): boolean {
