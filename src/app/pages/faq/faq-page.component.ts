@@ -1,6 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule, Location, NgOptimizedImage } from '@angular/common';
 
+import { HomeFooterComponent } from '../../components/layout/home-footer.component';
+import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
+import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
+import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
+import { AuthSessionService } from '../../services/auth-session.service';
+
 type FaqItem = {
   readonly question: string;
   readonly answer: string;
@@ -9,16 +15,36 @@ type FaqItem = {
 @Component({
   selector: 'app-faq-page',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage],
+  imports: [
+    CommonModule,
+    NgOptimizedImage,
+    HomeFooterComponent,
+    BuyerDashboardNavbarComponent,
+    PublicHomeNavbarComponent,
+    MobileBottomNavComponent,
+  ],
   template: `
-    <div class="min-h-full bg-white pb-20">
+    @if (isAuthenticated()) {
+      <app-buyer-dashboard-navbar class="w-full" />
+    } @else {
+      <app-public-home-navbar class="w-full" />
+    }
+
+    <div
+      [class]="
+        isAuthenticated()
+          ? 'min-h-full bg-white pb-24'
+          : 'min-h-full bg-white pb-24 lg:pt-20'
+      "
+    >
       <!-- Title Header with Back Button (Mobile layout style matching design) -->
-      <header class="mx-auto max-w-[390px] px-5 pt-6 md:max-w-5xl md:px-8">
+      <header class="mx-auto max-w-[390px] px-5 pt-6 md:max-w-7xl md:px-[100px] md:pt-[53px]">
         <div class="flex items-center gap-4">
+          <!-- Back button only visible on mobile -->
           <button
             type="button"
             (click)="goBack()"
-            class="flex h-11 w-11 items-center justify-center rounded-full bg-[#F4F4F6] text-[#1A1B1D] active:scale-95 transition-transform"
+            class="flex h-11 w-11 items-center justify-center rounded-full bg-[#F4F4F6] text-[#1A1B1D] active:scale-95 transition-transform md:hidden"
             aria-label="Go back"
           >
             <svg
@@ -32,87 +58,111 @@ type FaqItem = {
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
             </svg>
           </button>
-          <h1 class="text-[24px] font-bold leading-8 text-[#1A1B1D]">FAQs</h1>
+          <h1 class="text-[24px] font-bold leading-8 text-[#1A1B1D] md:hidden">FAQs</h1>
         </div>
       </header>
 
-      <main class="mx-auto mt-6 w-full max-w-[390px] px-5 md:max-w-5xl md:px-8">
-        <!-- Segmented Tab Picker (Buyers / Sellers) -->
-        <div class="flex rounded-full bg-[#F4F4F6] p-1">
-          <button
-            type="button"
-            (click)="setActiveTab('buyer')"
-            [class.bg-[#6453D9]]="activeTab() === 'buyer'"
-            [class.text-white]="activeTab() === 'buyer'"
-            [class.text-[#8A8A8A]]="activeTab() !== 'buyer'"
-            class="flex-1 py-3 text-center text-[16px] font-medium rounded-full transition-all duration-200"
-          >
-            Buyers
-          </button>
-          <button
-            type="button"
-            (click)="setActiveTab('seller')"
-            [class.bg-[#6453D9]]="activeTab() === 'seller'"
-            [class.text-white]="activeTab() === 'seller'"
-            [class.text-[#8A8A8A]]="activeTab() !== 'seller'"
-            class="flex-1 py-3 text-center text-[16px] font-medium rounded-full transition-all duration-200"
-          >
-            Sellers
-          </button>
+      <main class="mx-auto mt-6 w-full max-w-[390px] px-5 md:max-w-7xl md:mt-16 md:px-[100px] md:grid md:grid-cols-[1fr_1.6fr] md:gap-20">
+        <!-- Desktop Left Title Column -->
+        <div class="hidden md:block">
+          <h2 class="text-[44px] font-bold tracking-tight text-[#1A1B1D] leading-[1.2] max-w-[320px]">
+            Frequently Asked Questions
+          </h2>
         </div>
 
-        <!-- FAQ Items List -->
-        <div class="mt-8 divide-y divide-[#EAEAEA]">
-          @for (faq of activeFaqItems(); track faq.question; let index = $index) {
-            <div class="py-4">
-              <button
-                type="button"
-                (click)="selectFaq(faq, index)"
-                class="flex w-full items-start justify-between text-left group"
-              >
-                <span class="flex items-center gap-3">
-                  <!-- Help/Question Circle SVG Icon -->
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.8"
-                    stroke="currentColor"
-                    class="h-6 w-6 shrink-0 text-[#1F1F1F]"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
-                    />
-                  </svg>
-                  <span class="text-[16px] font-medium leading-6 text-[#1F1F1F]">
-                    {{ faq.question }}
-                  </span>
-                </span>
+        <div>
+          <!-- Segmented Tab Picker (Buyers / Sellers) -->
+          <div class="flex rounded-full bg-[#F4F4F6] p-1 md:max-w-[420px] md:mb-10">
+            <button
+              type="button"
+              (click)="setActiveTab('buyer')"
+              [class.bg-[#6453D9]]="activeTab() === 'buyer'"
+              [class.text-white]="activeTab() === 'buyer'"
+              [class.text-[#8A8A8A]]="activeTab() !== 'buyer'"
+              class="flex-1 py-3 text-center text-[16px] font-medium rounded-full transition-all duration-200"
+            >
+              Buyers
+            </button>
+            <button
+              type="button"
+              (click)="setActiveTab('seller')"
+              [class.bg-[#6453D9]]="activeTab() === 'seller'"
+              [class.text-white]="activeTab() === 'seller'"
+              [class.text-[#8A8A8A]]="activeTab() !== 'seller'"
+              class="flex-1 py-3 text-center text-[16px] font-medium rounded-full transition-all duration-200"
+            >
+              Sellers
+            </button>
+          </div>
 
-                <!-- Chevron Right / Down -->
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                  [class.rotate-90]="expandedIndex() === index && windowWidth() >= 768"
-                  class="h-4 w-4 shrink-0 text-[#8D93A0] transition-transform duration-200 mt-1"
+          <!-- FAQ Items List -->
+          <div class="mt-8 divide-y divide-[#EAEAEA] md:mt-0">
+            @for (faq of activeFaqItems(); track faq.question; let index = $index) {
+              <div class="py-5">
+                <button
+                  type="button"
+                  (click)="selectFaq(faq, index)"
+                  class="flex w-full items-start justify-between text-left group gap-4"
                 >
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-              </button>
+                  <span class="flex items-center gap-3">
+                    <!-- Help/Question Circle SVG Icon (Only visible on mobile) -->
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.8"
+                      stroke="currentColor"
+                      class="h-6 w-6 shrink-0 text-[#1F1F1F] md:hidden"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
+                      />
+                    </svg>
+                    <span class="text-[16px] font-medium leading-6 text-[#1F1F1F] md:text-[20px] md:leading-7 md:font-semibold">
+                      {{ faq.question }}
+                    </span>
+                  </span>
 
-              <!-- Accordion Answer Body (Desktop only) -->
-              @if (expandedIndex() === index) {
-                <div class="mt-3 pl-9 text-[15px] leading-6 text-[#4D5260] transition-all duration-300 hidden md:block">
-                  {{ faq.answer }}
-                </div>
-              }
-            </div>
-          }
+                  <!-- Mobile Arrow or Desktop Circular Arrow -->
+                  <div class="md:hidden">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                      class="h-4 w-4 shrink-0 text-[#8D93A0]"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </div>
+                  
+                  <div class="hidden md:flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F4F4F6] text-[#8D93A0] group-hover:bg-[#EAEAEF] transition-colors">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2.5"
+                      stroke="currentColor"
+                      [class.rotate-180]="expandedIndex() === index"
+                      class="h-4 w-4 transition-transform duration-200"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </div>
+                </button>
+
+                <!-- Accordion Answer Body (Desktop only) -->
+                @if (expandedIndex() === index) {
+                  <div class="mt-3 text-[15px] leading-6 text-[#4D5260] transition-all duration-300 hidden md:block md:text-[16px] md:leading-7 md:mt-4 md:text-[#5D5D5D] max-w-[620px]">
+                    {{ faq.answer }}
+                  </div>
+                }
+              </div>
+            }
+          </div>
         </div>
       </main>
 
@@ -180,13 +230,22 @@ type FaqItem = {
           </div>
         </div>
       }
+
+      <!-- Footer (Desktop only) -->
+      <app-home-footer class="hidden md:block mt-24" />
     </div>
+
+    @if (isAuthenticated()) {
+      <app-mobile-bottom-nav variant="buyer" />
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FaqPageComponent {
   private readonly location = inject(Location);
+  private readonly authSession = inject(AuthSessionService);
 
+  readonly isAuthenticated = this.authSession.isAuthenticated;
   readonly activeTab = signal<'buyer' | 'seller'>('buyer');
   readonly expandedIndex = signal<number | null>(null);
   readonly isBottomSheetOpen = signal<boolean>(false);
