@@ -534,6 +534,12 @@ export const routes: Routes = [
         (m) => m.ContactUsPageComponent,
       ),
   },
+  {
+    path: 'faq',
+    title: 'FAQs',
+    loadComponent: () =>
+      import('./pages/faq/faq-page.component').then((m) => m.FaqPageComponent),
+  },
   // Catch-all (Optional, but good for stability)
   {
     path: '**',
