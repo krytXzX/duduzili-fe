@@ -77,6 +77,40 @@ type SellerMoreItem = {
           </div>
         }
 
+        <!-- FAQs Card -->
+        <div class="rounded-[24px] bg-white p-3">
+          <div class="flex flex-col">
+            <a
+              routerLink="/faq"
+              class="group flex min-h-8 items-center justify-between rounded-[14px] transition hover:bg-[#F7F7F7] active:scale-[0.99]"
+            >
+              <span class="flex items-center gap-2">
+                <span
+                  class="flex h-[30.67px] w-[30.67px] items-center justify-center rounded-lg transition group-hover:scale-105"
+                >
+                  <img
+                    ngSrc="/assets/icons/message-question-icon.svg"
+                    alt=""
+                    width="32"
+                    height="32"
+                    class="h-[30.67px] w-[30.67px]"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="text-[16px] font-medium leading-5 text-[#1F1F1F]">
+                  FAQs
+                </span>
+              </span>
+
+              <span
+                class="mr-1 inline-block h-4 w-4 bg-[#8D93A0] transition group-hover:translate-x-0.5"
+                style="-webkit-mask: url('/assets/icons/more-mobile-figma/arrow-right.svg') center / contain no-repeat; mask: url('/assets/icons/more-mobile-figma/arrow-right.svg') center / contain no-repeat;"
+                aria-hidden="true"
+              ></span>
+            </a>
+          </div>
+        </div>
+
         <button
           type="button"
           (click)="switchToBuyerMode()"

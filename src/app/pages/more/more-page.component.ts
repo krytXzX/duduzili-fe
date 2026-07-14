@@ -60,6 +60,26 @@ type BuyerMoreItem = {
               }
             }
           </section>
+
+          <section class="mt-4 rounded-[24px] bg-white p-3">
+            <a routerLink="/faq" class="flex items-center justify-between py-[14px]">
+              <span class="flex items-center gap-2">
+                <span class="inline-flex h-8 w-8 items-center justify-center rounded-[8px]">
+                  <img ngSrc="/assets/icons/message-question-icon.svg" alt="" width="32" height="32" class="h-8 w-8" aria-hidden="true" />
+                </span>
+                <span class="text-[16px] font-medium leading-5 text-[#1f1f1f]">FAQs</span>
+              </span>
+
+              <img
+                ngSrc="/assets/icons/more-mobile-figma/arrow-right.svg"
+                alt=""
+                width="16"
+                height="16"
+                class="h-4 w-4"
+                aria-hidden="true"
+              />
+            </a>
+          </section>
         </div>
 
         <div class="mt-10 flex justify-center px-5 md:mt-16 md:px-0">
