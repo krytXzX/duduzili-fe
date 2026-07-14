@@ -130,6 +130,12 @@ export class AdminMorePageComponent {
         icon: '/assets/icons/admin-more/flag.svg',
         iconBackground: '#25AD31',
       },
+      {
+        label: 'FAQs',
+        route: '/faq',
+        icon: '/assets/icons/message-question-icon.svg',
+        iconBackground: '#48A465',
+      },
     ],
     [
       {

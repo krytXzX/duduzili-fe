@@ -16,6 +16,7 @@ import {
   heroShieldCheck,
   heroSquares2x2,
   heroUserCircle,
+  heroQuestionMarkCircle,
 } from '@ng-icons/heroicons/outline';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { NotificationsService } from '../../services/notifications.service';
@@ -39,12 +40,15 @@ import { NotificationsService } from '../../services/notifications.service';
       heroShieldCheck,
       heroSquares2x2,
       heroUserCircle,
+      heroQuestionMarkCircle,
     }),
   ],
   template: `
     <aside class="flex h-full flex-col overflow-y-auto bg-inherit p-5 sm:p-8">
       <div class="mb-10">
-        <h3 class="mb-5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Main</h3>
+        <h3 class="mb-5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+          Main
+        </h3>
         <nav class="space-y-1">
           <a
             routerLink="/admin"
@@ -101,7 +105,10 @@ import { NotificationsService } from '../../services/notifications.service';
                 <ng-icon name="heroMegaphone" class="text-lg text-gray-400"></ng-icon>
                 Ads management
               </span>
-              <ng-icon [name]="isAdsExpanded() ? 'heroChevronUp' : 'heroChevronDown'" class="text-base text-gray-400"></ng-icon>
+              <ng-icon
+                [name]="isAdsExpanded() ? 'heroChevronUp' : 'heroChevronDown'"
+                class="text-base text-gray-400"
+              ></ng-icon>
             </button>
             @if (isAdsExpanded()) {
               <div
@@ -168,7 +175,9 @@ import { NotificationsService } from '../../services/notifications.service';
       </div>
 
       <div class="mb-10">
-        <h3 class="mb-5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Moderation</h3>
+        <h3 class="mb-5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+          Moderation
+        </h3>
         <nav class="space-y-1">
           <a
             routerLink="/admin/kyc-requests"
@@ -186,11 +195,34 @@ import { NotificationsService } from '../../services/notifications.service';
             <ng-icon name="heroFlag" class="text-lg text-gray-400"></ng-icon>
             Reports
           </a>
+          <a
+            routerLink="/faq"
+            routerLinkActive="bg-white text-[#1A1C21] shadow-sm"
+            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
+          >
+            <!-- <ng-icon name="heroQuestionMarkCircle" class="text-lg text-gray-400"></ng-icon> -->
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11.3359 1.61719H4.66927C2.66927 1.61719 1.33594 2.95052 1.33594 4.95052V8.95052C1.33594 10.9505 2.66927 12.2839 4.66927 12.2839V13.7039C4.66927 14.2372 5.2626 14.5572 5.7026 14.2572L8.66927 12.2839H11.3359C13.3359 12.2839 14.6693 10.9505 14.6693 8.95052V4.95052C14.6693 2.95052 13.3359 1.61719 11.3359 1.61719ZM8.0026 9.73052C7.7226 9.73052 7.5026 9.50385 7.5026 9.23052C7.5026 8.95719 7.7226 8.73052 8.0026 8.73052C8.2826 8.73052 8.5026 8.95719 8.5026 9.23052C8.5026 9.50385 8.2826 9.73052 8.0026 9.73052ZM8.8426 6.96385C8.5826 7.13719 8.5026 7.25052 8.5026 7.43719V7.57719C8.5026 7.85052 8.27594 8.07719 8.0026 8.07719C7.72927 8.07719 7.5026 7.85052 7.5026 7.57719V7.43719C7.5026 6.66385 8.06927 6.28385 8.2826 6.13719C8.52927 5.97052 8.60927 5.85719 8.60927 5.68385C8.60927 5.35052 8.33594 5.07719 8.0026 5.07719C7.66927 5.07719 7.39594 5.35052 7.39594 5.68385C7.39594 5.95719 7.16927 6.18385 6.89594 6.18385C6.6226 6.18385 6.39594 5.95719 6.39594 5.68385C6.39594 4.79719 7.11594 4.07719 8.0026 4.07719C8.88927 4.07719 9.60927 4.79719 9.60927 5.68385C9.60927 6.44385 9.04927 6.82385 8.8426 6.96385Z"
+                fill="#1F1F1F"
+              />
+            </svg>
+
+            FAQs
+          </a>
         </nav>
       </div>
 
       <div class="mb-10">
-        <h3 class="mb-5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Insights</h3>
+        <h3 class="mb-5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+          Insights
+        </h3>
         <nav class="space-y-1">
           <a
             routerLink="/admin/analytics"
@@ -212,7 +244,9 @@ import { NotificationsService } from '../../services/notifications.service';
       </div>
 
       <div>
-        <h3 class="mb-5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Administration</h3>
+        <h3 class="mb-5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+          Administration
+        </h3>
         <nav class="space-y-1">
           <a
             routerLink="/admin/team-management"
@@ -248,7 +282,9 @@ import { NotificationsService } from '../../services/notifications.service';
               Notifications
             </span>
             @if (notificationBadge()) {
-              <span class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
+              <span
+                class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white"
+              >
                 {{ notificationBadge() }}
               </span>
             }
@@ -301,8 +337,4 @@ export class AdminDashboardSidebarComponent {
   }
 }
 
-type AdminAdsManagementItemId =
-  | 'plans'
-  | 'running-ads'
-  | 'approvals'
-  | 'transactions';
+type AdminAdsManagementItemId = 'plans' | 'running-ads' | 'approvals' | 'transactions';
