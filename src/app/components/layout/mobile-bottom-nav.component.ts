@@ -305,7 +305,7 @@ export class MobileBottomNavComponent {
         {
           label: 'Sell',
           iconSrc: '/assets/icons/buyer-more/box-add.svg',
-          route: '/listings',
+          route: '/seller/listings',
           activePaths: ['/listings', '/seller/listings'],
           onClick: () => this.openAddListingFlow(),
         }
@@ -394,7 +394,7 @@ export class MobileBottomNavComponent {
   openAddListingFlow(): void {
     this.closeActionSheet();
     this.mobileOverlayService.requestOpenAddListing();
-    void this.router.navigateByUrl(this.variant() === 'seller' ? '/seller/listings' : '/listings');
+    void this.router.navigateByUrl('/seller/listings');
   }
 
   openAddStoreFlow(): void {
