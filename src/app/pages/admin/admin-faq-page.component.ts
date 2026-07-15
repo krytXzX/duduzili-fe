@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, signal, ViewChild } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 
 type AdminFaqItem = {
@@ -380,7 +380,84 @@ type AdminFaqItem = {
                 placeholder="Untitled article"
                 class="w-full text-[40px] font-extrabold tracking-tight text-[#1A1C21] outline-none placeholder:text-[#BBB]"
               />
+
+              <!-- Text Formatting Toolbar -->
+              <div class="flex items-center gap-1 border-b border-[#F5F5F7] pb-3">
+                <button
+                  type="button"
+                  (click)="formatText('bold')"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
+                  title="Bold"
+                >
+                  <strong class="text-sm font-extrabold">B</strong>
+                </button>
+                <button
+                  type="button"
+                  (click)="formatText('italic')"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
+                  title="Italic"
+                >
+                  <em class="text-sm font-semibold italic">I</em>
+                </button>
+                <button
+                  type="button"
+                  (click)="formatText('underline')"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
+                  title="Underline"
+                >
+                  <span class="text-sm underline font-semibold">U</span>
+                </button>
+                <button
+                  type="button"
+                  (click)="formatText('strikeThrough')"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
+                  title="Strikethrough"
+                >
+                  <span class="text-sm line-through font-semibold">S</span>
+                </button>
+                <span class="h-4 w-px bg-gray-200 mx-1"></span>
+                <button
+                  type="button"
+                  (click)="formatText('heading1')"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
+                  title="Heading 1"
+                >
+                  <span class="text-xs font-bold">H1</span>
+                </button>
+                <button
+                  type="button"
+                  (click)="formatText('heading2')"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
+                  title="Heading 2"
+                >
+                  <span class="text-xs font-bold">H2</span>
+                </button>
+                <span class="h-4 w-px bg-gray-200 mx-1"></span>
+                <button
+                  type="button"
+                  (click)="formatText('insertUnorderedList')"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
+                  title="Bullet list"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm0 5.25h.007v.008H3.75V12Zm0 5.25h.007v.008H3.75v-.008Z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  (click)="formatText('createLink')"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
+                  title="Link"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Editable Textarea Area -->
               <textarea
+                #faqTextarea
                 placeholder="Type anything..."
                 rows="12"
                 class="w-full text-[16px] leading-relaxed text-[#4D5260] outline-none resize-none placeholder:text-[#BBB]"
@@ -477,6 +554,8 @@ type AdminFaqItem = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminFaqPageComponent {
+  @ViewChild('faqTextarea') faqTextarea!: ElementRef<HTMLTextAreaElement>;
+
   readonly activeFilter = signal<string>('all');
   readonly openMenuIndex = signal<number | null>(null);
   readonly isEditing = signal<boolean>(false);
@@ -484,6 +563,51 @@ export class AdminFaqPageComponent {
   readonly selectedUserType = signal<'Buyers' | 'Sellers'>('Buyers');
   readonly showSidebar = signal<boolean>(true);
   readonly isEditorMenuOpen = signal<boolean>(false);
+
+  formatText(style: string): void {
+    const textarea = this.faqTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selected = text.substring(start, end);
+
+    let formatted = '';
+    switch (style) {
+      case 'bold':
+        formatted = `**${selected || 'bold text'}**`;
+        break;
+      case 'italic':
+        formatted = `*${selected || 'italic text'}*`;
+        break;
+      case 'underline':
+        formatted = `<u>${selected || 'underlined text'}</u>`;
+        break;
+      case 'strikeThrough':
+        formatted = `~~${selected || 'strikethrough text'}~~`;
+        break;
+      case 'heading1':
+        formatted = `\n# ${selected || 'Heading 1'}\n`;
+        break;
+      case 'heading2':
+        formatted = `\n## ${selected || 'Heading 2'}\n`;
+        break;
+      case 'insertUnorderedList':
+        formatted = `\n- ${selected || 'List item'}\n`;
+        break;
+      case 'createLink':
+        formatted = `[${selected || 'Link text'}](url)`;
+        break;
+    }
+
+    textarea.value = text.substring(0, start) + formatted + text.substring(end);
+    textarea.focus();
+    
+    // Reposition cursor
+    const newCursorPos = start + formatted.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+  }
 
   toggleSidebar(): void {
     this.showSidebar.update((v) => !v);
