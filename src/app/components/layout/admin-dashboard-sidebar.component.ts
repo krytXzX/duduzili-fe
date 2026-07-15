@@ -196,7 +196,7 @@ import { NotificationsService } from '../../services/notifications.service';
             Reports
           </a>
           <a
-            routerLink="/faq"
+            routerLink="/admin/faq"
             routerLinkActive="bg-white text-[#1A1C21] shadow-sm"
             class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
           >

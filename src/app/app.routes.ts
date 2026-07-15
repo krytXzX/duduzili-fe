@@ -231,6 +231,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'faq',
+        title: 'FAQs Management',
+        loadComponent: () =>
+          import('./pages/admin/admin-faq-page.component').then(
+            (m) => m.AdminFaqPageComponent,
+          ),
+      },
+      {
         path: 'analytics',
         title: 'Analytics',
         loadComponent: () =>

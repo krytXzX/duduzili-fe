@@ -132,7 +132,7 @@ export class AdminMorePageComponent {
       },
       {
         label: 'FAQs',
-        route: '/faq',
+        route: '/admin/faq',
         icon: '/assets/icons/message-question-icon.svg',
         iconBackground: '#48A465',
       },
