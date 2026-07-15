@@ -305,20 +305,61 @@ type AdminFaqItem = {
                 class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4F4F6] text-[#0F2942] transition active:scale-95"
                 aria-label="Show settings details sidebar"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25" />
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4.58073 7.70833C4.23555 7.70833 3.95573 7.98816 3.95573 8.33333C3.95573 8.67851 4.23555 8.95833 4.58073 8.95833H9.58073C9.92591 8.95833 10.2057 8.67851 10.2057 8.33333C10.2057 7.98816 9.92591 7.70833 9.58073 7.70833H4.58073Z" fill="#141414" fill-opacity="0.5"/>
+                  <path d="M4.78906 11.6667C4.78906 11.3215 5.06889 11.0417 5.41406 11.0417H8.7474C9.09257 11.0417 9.3724 11.3215 9.3724 11.6667C9.3724 12.0118 9.09257 12.2917 8.7474 12.2917H5.41406C5.06889 12.2917 4.78906 12.0118 4.78906 11.6667Z" fill="#141414" fill-opacity="0.5"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M8.28372 1.875C6.75226 1.87499 5.53922 1.87498 4.58988 2.00261C3.61286 2.13397 2.82207 2.41073 2.19843 3.03437C1.5748 3.65801 1.29803 4.4488 1.16668 5.42582C1.03904 6.37516 1.03905 7.58818 1.03906 9.11964V10.8803C1.03905 12.4118 1.03904 13.6248 1.16668 14.5742C1.29803 15.5512 1.5748 16.342 2.19843 16.9656C2.82207 17.5893 3.61286 17.866 4.58988 17.9974C5.53922 18.125 6.75223 18.125 8.28368 18.125H11.7111C11.9729 18.125 12.2255 18.125 12.469 18.1244C12.4784 18.1248 12.4879 18.125 12.4974 18.125C12.5081 18.125 12.5188 18.1247 12.5294 18.1242C13.6827 18.1206 14.6313 18.1014 15.4049 17.9974C16.3819 17.866 17.1727 17.5893 17.7964 16.9656C18.42 16.342 18.6968 15.5512 18.8281 14.5742C18.9558 13.6248 18.9557 12.4118 18.9557 10.8804V9.11966C18.9557 7.58821 18.9558 6.37515 18.8281 5.42582C18.6968 4.4488 18.42 3.65801 17.7964 3.03437C17.1727 2.41073 16.3819 2.13397 15.4049 2.00261C14.6313 1.89861 13.6827 1.87936 12.5294 1.8758C12.5188 1.87527 12.5081 1.875 12.4974 1.875C12.4879 1.875 12.4784 1.87521 12.469 1.87563C12.2255 1.875 11.973 1.875 11.7111 1.875H8.28372ZM11.8724 3.12502C11.8038 3.125 11.7344 3.125 11.6641 3.125H8.33073C6.74171 3.125 5.61282 3.12633 4.75644 3.24147C3.91803 3.35419 3.43499 3.56558 3.08232 3.91825C2.72964 4.27093 2.51825 4.75397 2.40553 5.59237C2.29039 6.44876 2.28906 7.57765 2.28906 9.16667V10.8333C2.28906 12.4224 2.29039 13.5512 2.40553 14.4076C2.51825 15.246 2.72964 15.7291 3.08232 16.0817C3.43499 16.4344 3.91803 16.6458 4.75644 16.7585C5.61282 16.8737 6.74171 16.875 8.33073 16.875H11.6641C11.7344 16.875 11.8038 16.875 11.8724 16.875L11.8724 3.12502ZM13.1224 16.8702C13.9838 16.8612 14.6709 16.8348 15.2384 16.7585C16.0768 16.6458 16.5598 16.4344 16.9125 16.0817C17.2652 15.7291 17.4765 15.246 17.5893 14.4076C17.7044 13.5512 17.7057 12.4224 17.7057 10.8333V9.16667C17.7057 7.57765 17.7044 6.44876 17.5893 5.59237C17.4765 4.75397 17.2652 4.27093 16.9125 3.91825C16.5598 3.56558 16.0768 3.35419 15.2384 3.24147C14.6709 3.16517 13.9838 3.13885 13.1224 3.12977L13.1224 16.8702Z" fill="#141414" fill-opacity="0.5"/>
                 </svg>
               </button>
             }
-            <button
-              type="button"
-              class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4F4F6] text-gray-600 transition active:scale-95"
-              aria-label="More options"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-5 w-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-              </svg>
-            </button>
+            <div class="relative">
+              <button
+                type="button"
+                (click)="toggleEditorMenu(); $event.stopPropagation()"
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4F4F6] text-gray-600 transition active:scale-95"
+                aria-label="More options"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-5 w-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                </svg>
+              </button>
+
+              <!-- Editor Action Menu popup -->
+              @if (isEditorMenuOpen()) {
+                <!-- Backdrop to close -->
+                <div class="fixed inset-0 z-10" (click)="closeEditorMenu()"></div>
+
+                <div
+                  class="absolute right-0 mt-2 w-48 rounded-[20px] bg-white p-3 shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 text-left z-20"
+                >
+                  <p class="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Menu</p>
+                  
+                  <div class="space-y-1">
+                    <button
+                      type="button"
+                      (click)="closeEditorMenu(); stopEditing()"
+                      class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#1F1F1F] hover:bg-gray-50 transition"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+                      </svg>
+                      Save to drafts
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="closeEditorMenu(); stopEditing()"
+                      class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#FF3B30] hover:bg-red-50/50 transition"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
             <button
               type="button"
               (click)="stopEditing()"
@@ -353,8 +394,10 @@ type AdminFaqItem = {
               <div class="flex items-center justify-between border-b border-[#F5F5F7] pb-4">
                 <h3 class="text-[18px] font-bold text-[#0F2942]">Details</h3>
                 <button type="button" (click)="toggleSidebar()" class="text-[#0F2942] hover:opacity-80" aria-label="Hide settings details sidebar">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25" />
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4.58073 7.70833C4.23555 7.70833 3.95573 7.98816 3.95573 8.33333C3.95573 8.67851 4.23555 8.95833 4.58073 8.95833H9.58073C9.92591 8.95833 10.2057 8.67851 10.2057 8.33333C10.2057 7.98816 9.92591 7.70833 9.58073 7.70833H4.58073Z" fill="#141414" fill-opacity="0.5"/>
+                    <path d="M4.78906 11.6667C4.78906 11.3215 5.06889 11.0417 5.41406 11.0417H8.7474C9.09257 11.0417 9.3724 11.3215 9.3724 11.6667C9.3724 12.0118 9.09257 12.2917 8.7474 12.2917H5.41406C5.06889 12.2917 4.78906 12.0118 4.78906 11.6667Z" fill="#141414" fill-opacity="0.5"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.28372 1.875C6.75226 1.87499 5.53922 1.87498 4.58988 2.00261C3.61286 2.13397 2.82207 2.41073 2.19843 3.03437C1.5748 3.65801 1.29803 4.4488 1.16668 5.42582C1.03904 6.37516 1.03905 7.58818 1.03906 9.11964V10.8803C1.03905 12.4118 1.03904 13.6248 1.16668 14.5742C1.29803 15.5512 1.5748 16.342 2.19843 16.9656C2.82207 17.5893 3.61286 17.866 4.58988 17.9974C5.53922 18.125 6.75223 18.125 8.28368 18.125H11.7111C11.9729 18.125 12.2255 18.125 12.469 18.1244C12.4784 18.1248 12.4879 18.125 12.4974 18.125C12.5081 18.125 12.5188 18.1247 12.5294 18.1242C13.6827 18.1206 14.6313 18.1014 15.4049 17.9974C16.3819 17.866 17.1727 17.5893 17.7964 16.9656C18.42 16.342 18.6968 15.5512 18.8281 14.5742C18.9558 13.6248 18.9557 12.4118 18.9557 10.8804V9.11966C18.9557 7.58821 18.9558 6.37515 18.8281 5.42582C18.6968 4.4488 18.42 3.65801 17.7964 3.03437C17.1727 2.41073 16.3819 2.13397 15.4049 2.00261C14.6313 1.89861 13.6827 1.87936 12.5294 1.8758C12.5188 1.87527 12.5081 1.875 12.4974 1.875C12.4879 1.875 12.4784 1.87521 12.469 1.87563C12.2255 1.875 11.973 1.875 11.7111 1.875H8.28372ZM11.8724 3.12502C11.8038 3.125 11.7344 3.125 11.6641 3.125H8.33073C6.74171 3.125 5.61282 3.12633 4.75644 3.24147C3.91803 3.35419 3.43499 3.56558 3.08232 3.91825C2.72964 4.27093 2.51825 4.75397 2.40553 5.59237C2.29039 6.44876 2.28906 7.57765 2.28906 9.16667V10.8333C2.28906 12.4224 2.29039 13.5512 2.40553 14.4076C2.51825 15.246 2.72964 15.7291 3.08232 16.0817C3.43499 16.4344 3.91803 16.6458 4.75644 16.7585C5.61282 16.8737 6.74171 16.875 8.33073 16.875H11.6641C11.7344 16.875 11.8038 16.875 11.8724 16.875L11.8724 3.12502ZM13.1224 16.8702C13.9838 16.8612 14.6709 16.8348 15.2384 16.7585C16.0768 16.6458 16.5598 16.4344 16.9125 16.0817C17.2652 15.7291 17.4765 15.246 17.5893 14.4076C17.7044 13.5512 17.7057 12.4224 17.7057 10.8333V9.16667C17.7057 7.57765 17.7044 6.44876 17.5893 5.59237C17.4765 4.75397 17.2652 4.27093 16.9125 3.91825C16.5598 3.56558 16.0768 3.35419 15.2384 3.24147C14.6709 3.16517 13.9838 3.13885 13.1224 3.12977L13.1224 16.8702Z" fill="#141414" fill-opacity="0.5"/>
                   </svg>
                 </button>
               </div>
@@ -440,9 +483,18 @@ export class AdminFaqPageComponent {
   readonly isUserTypeMenuOpen = signal<boolean>(false);
   readonly selectedUserType = signal<'Buyers' | 'Sellers'>('Buyers');
   readonly showSidebar = signal<boolean>(true);
+  readonly isEditorMenuOpen = signal<boolean>(false);
 
   toggleSidebar(): void {
     this.showSidebar.update((v) => !v);
+  }
+
+  toggleEditorMenu(): void {
+    this.isEditorMenuOpen.update((v) => !v);
+  }
+
+  closeEditorMenu(): void {
+    this.isEditorMenuOpen.set(false);
   }
 
   toggleUserTypeMenu(): void {
