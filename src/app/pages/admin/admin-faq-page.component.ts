@@ -545,8 +545,90 @@ type AdminFaqItem = {
                 </div>
               </div>
             </div>
-          </aside>
-        }
+
+            <!-- Collapsible Data settings section -->
+              <div class="border-t border-[#F5F5F7] pt-5 mt-5">
+                <button
+                  type="button"
+                  (click)="toggleDataAccordion()"
+                  class="flex w-full items-center justify-between text-sm font-semibold text-[#1A1C21]"
+                >
+                  <span class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4 text-gray-500">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                    </svg>
+                    Data
+                  </span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="2.5"
+                    stroke="currentColor"
+                    [class.rotate-180]="isDataAccordionOpen()"
+                    class="h-3.5 w-3.5 text-gray-400 transition-transform duration-200"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </button>
+
+                @if (isDataAccordionOpen()) {
+                  <div class="mt-4 space-y-4 text-xs font-semibold text-gray-500">
+                    <!-- Status -->
+                    <div class="flex items-center justify-between">
+                      <span class="text-gray-400">Status</span>
+                      <span class="inline-flex items-center gap-1 rounded-full bg-[#E8F8EE] px-2.5 py-1 text-[11px] font-semibold text-[#25AD31]">
+                        <span class="h-1.5 w-1.5 rounded-full bg-[#25AD31]"></span>
+                        Published
+                      </span>
+                    </div>
+
+                    <!-- Created -->
+                    <div class="flex items-center justify-between">
+                      <span class="text-gray-400">Created</span>
+                      <span class="text-[#1A1C21]">8 hours ago</span>
+                    </div>
+
+                    <!-- Created by -->
+                    <div class="flex items-center justify-between">
+                      <span class="text-gray-400">Created by</span>
+                      <div class="flex items-center gap-2">
+                        <img
+                          src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
+                          alt=""
+                          width="24"
+                          height="24"
+                          class="h-6 w-6 rounded-full object-cover"
+                        />
+                        <span class="text-[#1A1C21]">Amaka Chibuzor</span>
+                      </div>
+                    </div>
+
+                    <!-- Last updated -->
+                    <div class="flex items-center justify-between">
+                      <span class="text-gray-400">Last updated</span>
+                      <span class="text-[#1A1C21]">8 hours ago</span>
+                    </div>
+
+                    <!-- Last updated by -->
+                    <div class="flex items-center justify-between">
+                      <span class="text-gray-400">Last updated by</span>
+                      <div class="flex items-center gap-2">
+                        <img
+                          src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
+                          alt=""
+                          width="24"
+                          height="24"
+                          class="h-6 w-6 rounded-full object-cover"
+                        />
+                        <span class="text-[#1A1C21]">Amaka Chibuzor</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </aside>
+          }
         </div>
       </div>
     }
@@ -563,6 +645,11 @@ export class AdminFaqPageComponent {
   readonly selectedUserType = signal<'Buyers' | 'Sellers'>('Buyers');
   readonly showSidebar = signal<boolean>(true);
   readonly isEditorMenuOpen = signal<boolean>(false);
+  readonly isDataAccordionOpen = signal<boolean>(true);
+
+  toggleDataAccordion(): void {
+    this.isDataAccordionOpen.update((v) => !v);
+  }
 
   formatText(style: string): void {
     const textarea = this.faqTextarea?.nativeElement;
