@@ -50,3 +50,10 @@ body {
     }
   }
 }
+
+/* Ensure Quill floating tooltips/bubbles layer on top of all parent shell components */
+.ql-tooltip,
+.ql-bubble .ql-tooltip {
+  z-index: 9999 !important;
+  margin-left: 110px !important;
+}

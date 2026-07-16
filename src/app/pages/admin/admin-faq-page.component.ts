@@ -280,7 +280,7 @@ type AdminFaqItem = {
       </div>
     } @else {
       <!-- FAQ Editor Screen layout -->
-      <div class="flex h-screen flex-col bg-white">
+      <div class="flex min-h-screen flex-col bg-white">
         <!-- Editor Topbar -->
         <header class="flex h-16 items-center justify-between border-b border-[#F5F5F7] px-6">
           <div class="flex items-center gap-4">
@@ -374,7 +374,7 @@ type AdminFaqItem = {
         <!-- Editor Work Area (Split Panel Layout) -->
         <div class="flex flex-1 min-h-0">
           <!-- Text Editing Panel (Left Column) -->
-          <main class="flex-1 p-10 overflow-y-auto flex flex-col">
+          <main class="flex-1 p-10 flex flex-col">
             <div class="max-w-[700px] flex-1 flex flex-col space-y-6">
               <input
                 type="text"
