@@ -1,21 +1,15 @@
-import { ChangeDetectionStrategy, Component, ElementRef, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
+import { FaqService, FAQItem } from '../../services/faq.service';
 
-type AdminFaqItem = {
-  readonly title: string;
-  readonly userType: 'Buyers' | 'Sellers';
-  readonly lastUpdated: string;
-  readonly authorName: string;
-  readonly authorEmail: string;
-  readonly authorAvatar: string;
-  readonly status: 'Published' | 'Draft' | 'Archived';
-};
+
 
 @Component({
   selector: 'app-admin-faq-page',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, QuillModule],
+  imports: [CommonModule, NgOptimizedImage, FormsModule, QuillModule],
   template: `
     @if (!isEditing()) {
       <div class="space-y-6 p-4 lg:p-8">
@@ -56,7 +50,7 @@ type AdminFaqItem = {
             class="min-w-[130px] flex-1 cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-4 transition hover:bg-gray-50"
           >
             <p class="text-[11px] md:text-[12px] font-medium text-gray-400">All FAQs</p>
-            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">65</p>
+            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">{{ faqsList() ? faqsList().length : 0 }}</p>
           </div>
 
           <div
@@ -67,7 +61,7 @@ type AdminFaqItem = {
             class="min-w-[130px] flex-1 cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-4 transition hover:bg-gray-50"
           >
             <p class="text-[11px] md:text-[12px] font-medium text-gray-400">Published</p>
-            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">09</p>
+            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">{{ getFaqCountByStatus('Published') }}</p>
           </div>
 
           <div
@@ -78,7 +72,7 @@ type AdminFaqItem = {
             class="min-w-[130px] flex-1 cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-4 transition hover:bg-gray-50"
           >
             <p class="text-[11px] md:text-[12px] font-medium text-gray-400">Draft</p>
-            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">17</p>
+            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">{{ getFaqCountByStatus('Draft') }}</p>
           </div>
 
           <div
@@ -89,7 +83,7 @@ type AdminFaqItem = {
             class="min-w-[130px] flex-1 cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-4 transition hover:bg-gray-50"
           >
             <p class="text-[11px] md:text-[12px] font-medium text-gray-400">Archived</p>
-            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">03</p>
+            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">{{ getFaqCountByStatus('Archived') }}</p>
           </div>
         </div>
 
@@ -157,25 +151,25 @@ type AdminFaqItem = {
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#F5F5F7]">
-                @for (item of filteredFaqItems(); track item.title; let index = $index) {
+                @for (item of filteredFaqItems(); track item.id || $index; let index = $index) {
                   <tr class="align-middle hover:bg-[#FAFAFC]/50 transition-colors">
                     <td class="py-4 pr-4 text-[14px] font-semibold text-[#1A1C21] max-w-[280px] truncate">
                       {{ item.title }}
                     </td>
-                    <td class="py-4 px-4 text-gray-600 font-medium">{{ item.userType }}</td>
-                    <td class="py-4 px-4 text-gray-600 font-medium">{{ item.lastUpdated }}</td>
+                    <td class="py-4 px-4 text-gray-600 font-medium">{{ item.user_type }}</td>
+                    <td class="py-4 px-4 text-gray-600 font-medium">{{ item.updated_at | date:'dd MMM, yyyy' }}</td>
                     <td class="py-4 px-4">
                       <div class="flex items-center gap-2">
                         <img
-                          [src]="item.authorAvatar"
+                          [src]="item.author_avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'"
                           alt=""
                           width="32"
                           height="32"
                           class="h-8 w-8 rounded-full object-cover shrink-0"
                         />
                         <div>
-                          <p class="text-[13px] font-semibold text-[#1A1C21] leading-none mb-0.5">{{ item.authorName }}</p>
-                          <p class="text-[11px] text-gray-400 leading-none">{{ item.authorEmail }}</p>
+                          <p class="text-[13px] font-semibold text-[#1A1C21] leading-none mb-0.5">{{ item.author_name || 'Admin User' }}</p>
+                          <p class="text-[11px] text-gray-400 leading-none">{{ item.author_email || 'admin@duduzili.com' }}</p>
                         </div>
                       </div>
                     </td>
@@ -226,7 +220,7 @@ type AdminFaqItem = {
                           <div class="space-y-1">
                             <button
                               type="button"
-                              (click)="closeMenu()"
+                              (click)="closeMenu(); startEditing(item)"
                               class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#1F1F1F] hover:bg-gray-50 transition"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
@@ -238,7 +232,7 @@ type AdminFaqItem = {
                             @if (item.status === 'Published') {
                               <button
                                 type="button"
-                                (click)="closeMenu()"
+                                (click)="closeMenu(); archiveFaqItem(item)"
                                 class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#1F1F1F] hover:bg-gray-50 transition"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
@@ -251,7 +245,7 @@ type AdminFaqItem = {
                             @if (item.status === 'Archived') {
                               <button
                                 type="button"
-                                (click)="closeMenu()"
+                                (click)="closeMenu(); publishFaqItem(item)"
                                 class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#1F1F1F] hover:bg-gray-50 transition"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
@@ -263,7 +257,7 @@ type AdminFaqItem = {
 
                             <button
                               type="button"
-                              (click)="closeMenu()"
+                              (click)="closeMenu(); deleteFaqItem(item)"
                               class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#FF3B30] hover:bg-red-50/50 transition"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
@@ -283,7 +277,7 @@ type AdminFaqItem = {
 
           <!-- Mobile Cards Layout List (hidden on desktop) -->
           <div class="block md:hidden mt-4 space-y-4">
-            @for (item of filteredFaqItems(); track item.title; let index = $index) {
+            @for (item of filteredFaqItems(); track item.id || $index; let index = $index) {
               <div class="border-b border-[#F5F5F7] pb-4 space-y-3">
                 <div class="flex items-start justify-between gap-4">
                   <h3 class="text-[15px] font-bold text-[#1A1C21] leading-snug">
@@ -303,7 +297,12 @@ type AdminFaqItem = {
 
                 <div class="flex justify-between items-center text-xs">
                   <span class="text-gray-400 font-medium">User type</span>
-                  <span class="text-[#1A1C21] font-semibold">{{ item.userType }}</span>
+                  <span class="text-[#1A1C21] font-semibold">{{ item.user_type }}</span>
+                </div>
+
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-400 font-medium font-semibold">Last updated</span>
+                  <span class="text-[#1A1C21] font-semibold">{{ item.updated_at | date:'dd MMM, yyyy' }}</span>
                 </div>
 
                 <div class="flex justify-between items-center text-xs">
@@ -334,13 +333,13 @@ type AdminFaqItem = {
                   <span class="text-gray-400 font-medium">Author</span>
                   <div class="flex items-center gap-1.5">
                     <img
-                      [src]="item.authorAvatar"
+                      [src]="item.author_avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'"
                       alt=""
                       width="20"
                       height="20"
                       class="h-5 w-5 rounded-full object-cover shrink-0"
                     />
-                    <span class="text-[#1A1C21] font-semibold">{{ item.authorName }}</span>
+                    <span class="text-[#1A1C21] font-semibold">{{ item.author_name || 'Admin User' }}</span>
                   </div>
                 </div>
               </div>
@@ -349,7 +348,7 @@ type AdminFaqItem = {
         </div>
 
         <!-- Mobile Bottom Sheet Action Sheet Modal -->
-        @for (item of filteredFaqItems(); track item.title; let index = $index) {
+        @for (item of filteredFaqItems(); track item.id || $index; let index = $index) {
           @if (openMenuIndex() === index) {
             <!-- Backdrop layer -->
             <div
@@ -368,7 +367,7 @@ type AdminFaqItem = {
                 <!-- Edit -->
                 <button
                   type="button"
-                  (click)="closeMenu()"
+                  (click)="closeMenu(); startEditing(item)"
                   class="flex w-full items-center gap-3.5 rounded-xl border border-gray-100 px-4 py-3.5 text-[14px] font-semibold text-[#1F1F1F] bg-white active:bg-gray-50 transition"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-gray-400">
@@ -381,7 +380,7 @@ type AdminFaqItem = {
                 @if (item.status === 'Published') {
                   <button
                     type="button"
-                    (click)="closeMenu()"
+                    (click)="closeMenu(); archiveFaqItem(item)"
                     class="flex w-full items-center gap-3.5 rounded-xl border border-gray-100 px-4 py-3.5 text-[14px] font-semibold text-[#1F1F1F] bg-white active:bg-gray-50 transition"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-gray-400">
@@ -395,7 +394,7 @@ type AdminFaqItem = {
                 @if (item.status === 'Archived') {
                   <button
                     type="button"
-                    (click)="closeMenu()"
+                    (click)="closeMenu(); publishFaqItem(item)"
                     class="flex w-full items-center gap-3.5 rounded-xl border border-gray-100 px-4 py-3.5 text-[14px] font-semibold text-[#1F1F1F] bg-white active:bg-gray-50 transition"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-gray-400">
@@ -408,7 +407,7 @@ type AdminFaqItem = {
                 <!-- Delete -->
                 <button
                   type="button"
-                  (click)="closeMenu()"
+                  (click)="closeMenu(); deleteFaqItem(item)"
                   class="flex w-full items-center gap-3.5 rounded-xl border border-red-50 px-4 py-3.5 text-[14px] font-semibold text-[#FF3B30] bg-red-50/10 active:bg-red-50 transition"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-[#FF3B30]">
@@ -483,7 +482,7 @@ type AdminFaqItem = {
                     <div class="space-y-1">
                       <button
                         type="button"
-                        (click)="closeEditorMenu(); stopEditing()"
+                        (click)="closeEditorMenu(); saveDraft()"
                         class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#1F1F1F] hover:bg-gray-50 transition"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
@@ -518,7 +517,7 @@ type AdminFaqItem = {
                     <div class="space-y-2">
                       <button
                         type="button"
-                        (click)="closeEditorMenu(); stopEditing()"
+                        (click)="closeEditorMenu(); saveDraft()"
                         class="flex w-full items-center gap-3.5 rounded-xl border border-gray-100 px-4 py-3.5 text-[14px] font-semibold text-[#1F1F1F] bg-white active:bg-gray-50 transition"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-gray-400">
@@ -544,7 +543,7 @@ type AdminFaqItem = {
             </div>
             <button
               type="button"
-              (click)="stopEditing()"
+              (click)="publishFaq()"
               class="rounded-full bg-[#6453D9] px-5 py-2 text-[13px] font-bold text-white shadow-sm hover:bg-[#5C4AD0] transition active:scale-95"
             >
               Publish
@@ -560,6 +559,8 @@ type AdminFaqItem = {
               <input
                 type="text"
                 placeholder="Untitled article"
+                [value]="editorTitle()"
+                (input)="editorTitle.set($any($event.target).value)"
                 class="w-full text-[40px] font-extrabold tracking-tight text-[#1A1C21] outline-none placeholder:text-[#BBB]"
               />
 
@@ -570,6 +571,8 @@ type AdminFaqItem = {
                 class="w-full flex-1 text-[16px] text-[#4D5260] [&_.ql-tooltip]:z-50 [&_.ql-editor]:p-0 [&_.ql-editor]:outline-none [&_.ql-editor]:text-[16px] [&_.ql-editor]:leading-relaxed"
                 placeholder="Type anything..."
                 [modules]="quillModules"
+                [ngModel]="editorContent()"
+                (ngModelChange)="editorContent.set($any($event))"
               ></quill-editor>
             </div>
           </main>
@@ -873,7 +876,9 @@ type AdminFaqItem = {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminFaqPageComponent {
+export class AdminFaqPageComponent implements OnInit {
+  private readonly faqService = inject(FaqService);
+
   readonly activeFilter = signal<string>('all');
   readonly openMenuIndex = signal<number | null>(null);
   readonly isEditing = signal<boolean>(false);
@@ -882,6 +887,13 @@ export class AdminFaqPageComponent {
   readonly showSidebar = signal<boolean>(false);
   readonly isEditorMenuOpen = signal<boolean>(false);
   readonly isDataAccordionOpen = signal<boolean>(true);
+
+  // Editor fields
+  readonly editorTitle = signal<string>('');
+  readonly editorContent = signal<string>('');
+  readonly activeEditingId = signal<number | null>(null);
+
+  readonly faqsList = signal<FAQItem[]>([]);
 
   readonly quillModules = {
     toolbar: [
@@ -892,6 +904,23 @@ export class AdminFaqPageComponent {
       ['clean']
     ]
   };
+
+  ngOnInit(): void {
+    this.loadFaqs();
+  }
+
+  loadFaqs(): void {
+    this.faqService.getFaqs().subscribe({
+      next: (faqs) => {
+        console.log('Backend FAQs raw response:', faqs);
+        // If paginated, Django REST Framework returns { results: [...] } instead of direct array
+        const list = Array.isArray(faqs) ? faqs : ((faqs as any).results || []);
+        console.log('Resolved FAQ list:', list);
+        this.faqsList.set(list);
+      },
+      error: (err) => console.error('Failed to load FAQs', err)
+    });
+  }
 
   toggleDataAccordion(): void {
     this.isDataAccordionOpen.update((v) => !v);
@@ -922,7 +951,18 @@ export class AdminFaqPageComponent {
     this.closeUserTypeMenu();
   }
 
-  startEditing(): void {
+  startEditing(faq?: FAQItem): void {
+    if (faq) {
+      this.activeEditingId.set(faq.id || null);
+      this.editorTitle.set(faq.title);
+      this.editorContent.set(faq.content);
+      this.selectedUserType.set(faq.user_type);
+    } else {
+      this.activeEditingId.set(null);
+      this.editorTitle.set('');
+      this.editorContent.set('');
+      this.selectedUserType.set('Buyers');
+    }
     this.showSidebar.set(false);
     this.isEditing.set(true);
   }
@@ -930,6 +970,67 @@ export class AdminFaqPageComponent {
   stopEditing(): void {
     this.showSidebar.set(false);
     this.isEditing.set(false);
+    this.activeEditingId.set(null);
+  }
+
+  saveDraft(): void {
+    this.submitFaq('Draft');
+  }
+
+  publishFaq(): void {
+    this.submitFaq('Published');
+  }
+
+  private submitFaq(status: 'Published' | 'Draft' | 'Archived'): void {
+    const payload: FAQItem = {
+      title: this.editorTitle() || 'Untitled FAQ',
+      content: this.editorContent(),
+      user_type: this.selectedUserType(),
+      status: status
+    };
+
+    const editId = this.activeEditingId();
+    if (editId !== null) {
+      this.faqService.updateFaq(editId, payload).subscribe({
+        next: () => {
+          this.loadFaqs();
+          this.stopEditing();
+        },
+        error: (err) => console.error('Failed to update FAQ', err)
+      });
+    } else {
+      this.faqService.createFaq(payload).subscribe({
+        next: () => {
+          this.loadFaqs();
+          this.stopEditing();
+        },
+        error: (err) => console.error('Failed to create FAQ', err)
+      });
+    }
+  }
+
+  archiveFaqItem(faq: FAQItem): void {
+    if (!faq.id) return;
+    this.faqService.updateFaq(faq.id, { status: 'Archived' }).subscribe({
+      next: () => this.loadFaqs(),
+      error: (err) => console.error('Failed to archive FAQ', err)
+    });
+  }
+
+  publishFaqItem(faq: FAQItem): void {
+    if (!faq.id) return;
+    this.faqService.updateFaq(faq.id, { status: 'Published' }).subscribe({
+      next: () => this.loadFaqs(),
+      error: (err) => console.error('Failed to publish FAQ', err)
+    });
+  }
+
+  deleteFaqItem(faq: FAQItem): void {
+    if (!faq.id) return;
+    this.faqService.deleteFaq(faq.id).subscribe({
+      next: () => this.loadFaqs(),
+      error: (err) => console.error('Failed to delete FAQ', err)
+    });
   }
 
   toggleMenu(index: number): void {
@@ -940,45 +1041,27 @@ export class AdminFaqPageComponent {
     this.openMenuIndex.set(null);
   }
 
-  protected readonly faqsList: readonly AdminFaqItem[] = [
-    {
-      title: 'Can I contact a seller directly?',
-      userType: 'Buyers',
-      lastUpdated: '06 May, 2024',
-      authorName: 'Francis Uche',
-      authorEmail: 'uche@email.com',
-      authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      status: 'Published',
-    },
-    {
-      title: 'Do I pay to post an item?',
-      userType: 'Sellers',
-      lastUpdated: '06 May, 2024',
-      authorName: 'Mark Anthony',
-      authorEmail: 'mark@email.com',
-      authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-      status: 'Draft',
-    },
-    {
-      title: 'Can I contact a seller directly?',
-      userType: 'Buyers',
-      lastUpdated: '06 May, 2024',
-      authorName: 'Elle Adebisi',
-      authorEmail: 'elle@email.com',
-      authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-      status: 'Archived',
-    },
-  ];
-
   setActiveFilter(status: string): void {
     this.activeFilter.set(status);
   }
 
-  filteredFaqItems(): readonly AdminFaqItem[] {
+  filteredFaqItems(): readonly FAQItem[] {
+    const list = this.faqsList();
+    if (!list || !Array.isArray(list)) {
+      return [];
+    }
     const filter = this.activeFilter();
     if (filter === 'all') {
-      return this.faqsList;
+      return list;
     }
-    return this.faqsList.filter((item) => item.status === filter);
+    return list.filter((item) => item.status === filter);
+  }
+
+  getFaqCountByStatus(status: 'Published' | 'Draft' | 'Archived'): number {
+    const list = this.faqsList();
+    if (!list || !Array.isArray(list)) {
+      return 0;
+    }
+    return list.filter((item) => item.status === status).length;
   }
 }
