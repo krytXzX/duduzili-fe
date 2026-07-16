@@ -469,41 +469,78 @@ type AdminFaqItem = {
                 </svg>
               </button>
 
-              <!-- Editor Action Menu popup -->
-              @if (isEditorMenuOpen()) {
-                <!-- Backdrop to close -->
-                <div class="fixed inset-0 z-10" (click)="closeEditorMenu()"></div>
+              <!-- Editor Action Menu Desktop popup -->
+              <div class="hidden md:block">
+                @if (isEditorMenuOpen()) {
+                  <!-- Backdrop to close -->
+                  <div class="fixed inset-0 z-10" (click)="closeEditorMenu()"></div>
 
-                <div
-                  class="absolute right-0 mt-2 w-48 rounded-[20px] bg-white p-3 shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 text-left z-20"
-                >
-                  <p class="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Menu</p>
-                  
-                  <div class="space-y-1">
-                    <button
-                      type="button"
-                      (click)="closeEditorMenu(); stopEditing()"
-                      class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#1F1F1F] hover:bg-gray-50 transition"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
-                      </svg>
-                      Save to drafts
-                    </button>
+                  <div
+                    class="absolute right-0 mt-2 w-48 rounded-[20px] bg-white p-3 shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 text-left z-20"
+                  >
+                    <p class="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Menu</p>
+                    
+                    <div class="space-y-1">
+                      <button
+                        type="button"
+                        (click)="closeEditorMenu(); stopEditing()"
+                        class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#1F1F1F] hover:bg-gray-50 transition"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+                        </svg>
+                        Save to drafts
+                      </button>
 
-                    <button
-                      type="button"
-                      (click)="closeEditorMenu(); stopEditing()"
-                      class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#FF3B30] hover:bg-red-50/50 transition"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                      </svg>
-                      Delete
-                    </button>
+                      <button
+                        type="button"
+                        (click)="closeEditorMenu(); stopEditing()"
+                        class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#FF3B30] hover:bg-red-50/50 transition"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
-              }
+                @}
+              </div>
+
+              <!-- Editor Action Menu Mobile bottomsheet -->
+              <div class="md:hidden">
+                @if (isEditorMenuOpen()) {
+                  <div (click)="closeEditorMenu()" class="fixed inset-0 bg-black/40 z-50"></div>
+                  <div class="fixed bottom-0 left-0 right-0 rounded-t-[24px] bg-white p-6 shadow-2xl z-55 text-left">
+                    <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-4">Menu</p>
+                    
+                    <div class="space-y-2">
+                      <button
+                        type="button"
+                        (click)="closeEditorMenu(); stopEditing()"
+                        class="flex w-full items-center gap-3.5 rounded-xl border border-gray-100 px-4 py-3.5 text-[14px] font-semibold text-[#1F1F1F] bg-white active:bg-gray-50 transition"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-gray-400">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+                        </svg>
+                        Save to drafts
+                      </button>
+
+                      <button
+                        type="button"
+                        (click)="closeEditorMenu(); stopEditing()"
+                        class="flex w-full items-center gap-3.5 rounded-xl border border-red-50 px-4 py-3.5 text-[14px] font-semibold text-[#FF3B30] bg-red-50/10 active:bg-red-50 transition"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-[#FF3B30]">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                @}
+              </div>
             </div>
             <button
               type="button"
@@ -537,9 +574,10 @@ type AdminFaqItem = {
             </div>
           </main>
 
-          <!-- Details Settings Panel (Right Sidebar) -->
+          <!-- Details Settings Panel (Right Sidebar on Desktop, Bottomsheet on Mobile) -->
+          <!-- Desktop aside panel -->
           @if (showSidebar()) {
-            <aside class="w-[320px] border-l border-[#F5F5F7] bg-white p-6 overflow-y-auto">
+            <aside class="hidden md:block w-[320px] border-l border-[#F5F5F7] bg-white p-6 overflow-y-auto shrink-0">
               <div class="flex items-center justify-between border-b border-[#F5F5F7] pb-4">
                 <h3 class="text-[18px] font-bold text-[#0F2942]">Details</h3>
                 <button type="button" (click)="toggleSidebar()" class="text-[#0F2942] hover:opacity-80" aria-label="Hide settings details sidebar">
@@ -551,74 +589,70 @@ type AdminFaqItem = {
                 </button>
               </div>
 
-            <div class="mt-6 space-y-6">
-              <!-- Who's this FAQ for? settings block -->
-              <div class="space-y-3">
-                <div class="flex items-center gap-2 text-sm font-semibold text-[#1A1C21]">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                  </svg>
-                  Who's this FAQ for?
-                </div>
-                <p class="text-[12px] leading-5 text-gray-400">
-                  Choose whether this FAQ is tailored for buyers or sellers.
-                </p>
+              <div class="mt-6 space-y-6">
+                <!-- Who's this FAQ for? settings block -->
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 text-sm font-semibold text-[#1A1C21]">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
+                    Who's this FAQ for?
+                  </div>
+                  <p class="text-[12px] leading-5 text-gray-400">
+                    Choose whether this FAQ is tailored for buyers or sellers.
+                  </p>
 
-                <!-- Select Box wrapper -->
-                <div class="space-y-1.5">
-                  <label class="text-[11px] font-semibold text-gray-400">User type</label>
-                  <div class="relative">
-                    <button
-                      type="button"
-                      (click)="toggleUserTypeMenu(); $event.stopPropagation()"
-                      class="flex h-10 w-full items-center justify-between rounded-lg border border-[#EAEAEF] bg-white px-3 text-xs font-semibold text-[#1A1C21] outline-none"
-                    >
-                      <span>{{ selectedUserType() }}</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="2.5"
-                        stroke="currentColor"
-                        [class.rotate-180]="isUserTypeMenuOpen()"
-                        class="h-3.5 w-3.5 text-gray-400 transition-transform duration-200"
+                  <!-- Select Box wrapper -->
+                  <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold text-gray-400">User type</label>
+                    <div class="relative">
+                      <button
+                        type="button"
+                        (click)="toggleUserTypeMenu(); $event.stopPropagation()"
+                        class="flex h-10 w-full items-center justify-between rounded-lg border border-[#EAEAEF] bg-white px-3 text-xs font-semibold text-[#1A1C21] outline-none"
                       >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </button>
-
-                    <!-- Custom Dropdown Menu -->
-                    @if (isUserTypeMenuOpen()) {
-                      <!-- Backdrop to close -->
-                      <div class="fixed inset-0 z-10" (click)="closeUserTypeMenu()"></div>
-
-                      <div
-                        class="absolute left-0 right-0 mt-1 rounded-lg border border-gray-100 bg-white py-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.08)] z-20"
-                      >
-                        <button
-                          type="button"
-                          (click)="selectUserType('Buyers')"
-                          [class.bg-gray-50]="selectedUserType() === 'Buyers'"
-                          class="flex w-full px-3 py-2 text-left text-xs font-semibold text-[#1A1C21] hover:bg-gray-50 transition"
+                        <span>{{ selectedUserType() }}</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="2.5"
+                          stroke="currentColor"
+                          [class.rotate-180]="isUserTypeMenuOpen()"
+                          class="h-3.5 w-3.5 text-gray-400 transition-transform duration-200"
                         >
-                          Buyers
-                        </button>
-                        <button
-                          type="button"
-                          (click)="selectUserType('Sellers')"
-                          [class.bg-gray-50]="selectedUserType() === 'Sellers'"
-                          class="flex w-full px-3 py-2 text-left text-xs font-semibold text-[#1A1C21] hover:bg-gray-50 transition"
-                        >
-                          Sellers
-                        </button>
-                      </div>
-                    }
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </button>
+
+                      <!-- Desktop User Type Selector Dropdown Menu -->
+                      @if (isUserTypeMenuOpen()) {
+                        <div class="hidden md:block fixed inset-0 z-10" (click)="closeUserTypeMenu()"></div>
+                        <div class="hidden md:block absolute left-0 right-0 mt-1 rounded-lg border border-gray-100 bg-white py-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.08)] z-20">
+                          <button
+                            type="button"
+                            (click)="selectUserType('Buyers')"
+                            [class.bg-gray-50]="selectedUserType() === 'Buyers'"
+                            class="flex w-full px-3 py-2 text-left text-xs font-semibold text-[#1A1C21] hover:bg-gray-50 transition"
+                          >
+                            Buyers
+                          </button>
+                          <button
+                            type="button"
+                            (click)="selectUserType('Sellers')"
+                            [class.bg-gray-50]="selectedUserType() === 'Sellers'"
+                            class="flex w-full px-3 py-2 text-left text-xs font-semibold text-[#1A1C21] hover:bg-gray-50 transition"
+                          >
+                            Sellers
+                          </button>
+                        </div>
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Collapsible Data settings section -->
+              <!-- Collapsible Data settings section -->
               <div class="border-t border-[#F5F5F7] pt-5 mt-5">
                 <button
                   type="button"
@@ -700,6 +734,61 @@ type AdminFaqItem = {
                 }
               </div>
             </aside>
+          }
+
+          <!-- Mobile Details Settings Bottom Sheet overlay -->
+          @if (showSidebar()) {
+            <div (click)="toggleSidebar()" class="fixed inset-0 bg-black/40 z-50 md:hidden"></div>
+            <div class="fixed bottom-0 left-0 right-0 rounded-t-[24px] bg-white p-6 shadow-2xl z-55 md:hidden text-left">
+              <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-[18px] font-bold text-[#1A1C21]">Details</h3>
+                <button type="button" (click)="toggleSidebar()" class="text-gray-400 p-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-5 w-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="space-y-6">
+                <!-- Who's this FAQ for? settings block -->
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 text-sm font-semibold text-[#1A1C21]">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
+                    Who's this FAQ for?
+                  </div>
+                  <p class="text-[12px] leading-5 text-gray-400">
+                    Choose whether this FAQ is tailored for buyers or sellers.
+                  </p>
+
+                  <!-- Select Box wrapper -->
+                  <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold text-gray-400">User type</label>
+                    <div class="relative">
+                      <button
+                        type="button"
+                        (click)="toggleUserTypeMenu(); $event.stopPropagation()"
+                        class="flex h-10 w-full items-center justify-between rounded-lg border border-[#EAEAEF] bg-white px-3 text-xs font-semibold text-[#1A1C21] outline-none"
+                      >
+                        <span>{{ selectedUserType() }}</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="2.5"
+                          stroke="currentColor"
+                          class="h-3.5 w-3.5 text-gray-400"
+                        >
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           }
         </div>
       </div>
