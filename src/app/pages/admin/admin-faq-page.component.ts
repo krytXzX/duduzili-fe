@@ -18,30 +18,45 @@ type AdminFaqItem = {
   imports: [CommonModule, NgOptimizedImage, QuillModule],
   template: `
     @if (!isEditing()) {
-      <div class="space-y-8 p-6 lg:p-8">
+      <div class="space-y-6 p-4 lg:p-8">
         <!-- Top header layout -->
         <div class="flex items-center justify-between">
-          <h1 class="text-[32px] font-bold text-[#1A1C21]">FAQs</h1>
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4F4F6] text-gray-600 transition active:scale-95 md:hidden"
+              aria-label="Back"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-5 w-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <h1 class="text-[24px] md:text-[32px] font-bold text-[#1A1C21]">FAQs</h1>
+          </div>
           <button
             type="button"
             (click)="startEditing()"
-            class="rounded-[20px] bg-[#6453D9] px-6 py-3 text-[14px] font-semibold text-white shadow-sm hover:bg-[#5C4AD0] transition active:scale-95"
+            class="flex h-9 w-9 md:h-12 md:w-auto items-center justify-center rounded-full md:rounded-[20px] bg-[#6453D9] text-white shadow-sm hover:bg-[#5C4AD0] transition active:scale-95 md:px-6"
+            title="Create FAQ"
           >
-            Create FAQ
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-5 w-5 md:hidden">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span class="hidden md:inline text-[14px] font-semibold">Create FAQ</span>
           </button>
         </div>
 
         <!-- Overview Cards row -->
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
+        <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-none md:grid md:grid-cols-4 lg:gap-6">
           <div
             (click)="setActiveFilter('all')"
             [class.border-[#6453D9]]="activeFilter() === 'all'"
             [class.ring-2]="activeFilter() === 'all'"
             [class.ring-[#6453D9]/10]="activeFilter() === 'all'"
-            class="cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-5 transition hover:bg-gray-50"
+            class="min-w-[130px] flex-1 cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-4 transition hover:bg-gray-50"
           >
-            <p class="text-[12px] font-medium text-gray-400">All articles</p>
-            <p class="mt-2 text-[28px] font-bold text-[#1A1C21]">65</p>
+            <p class="text-[11px] md:text-[12px] font-medium text-gray-400">All FAQs</p>
+            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">65</p>
           </div>
 
           <div
@@ -49,10 +64,10 @@ type AdminFaqItem = {
             [class.border-[#6453D9]]="activeFilter() === 'Published'"
             [class.ring-2]="activeFilter() === 'Published'"
             [class.ring-[#6453D9]/10]="activeFilter() === 'Published'"
-            class="cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-5 transition hover:bg-gray-50"
+            class="min-w-[130px] flex-1 cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-4 transition hover:bg-gray-50"
           >
-            <p class="text-[12px] font-medium text-gray-400">Published</p>
-            <p class="mt-2 text-[28px] font-bold text-[#1A1C21]">09</p>
+            <p class="text-[11px] md:text-[12px] font-medium text-gray-400">Published</p>
+            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">09</p>
           </div>
 
           <div
@@ -60,10 +75,10 @@ type AdminFaqItem = {
             [class.border-[#6453D9]]="activeFilter() === 'Draft'"
             [class.ring-2]="activeFilter() === 'Draft'"
             [class.ring-[#6453D9]/10]="activeFilter() === 'Draft'"
-            class="cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-5 transition hover:bg-gray-50"
+            class="min-w-[130px] flex-1 cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-4 transition hover:bg-gray-50"
           >
-            <p class="text-[12px] font-medium text-gray-400">Draft</p>
-            <p class="mt-2 text-[28px] font-bold text-[#1A1C21]">03</p>
+            <p class="text-[11px] md:text-[12px] font-medium text-gray-400">Draft</p>
+            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">17</p>
           </div>
 
           <div
@@ -71,18 +86,42 @@ type AdminFaqItem = {
             [class.border-[#6453D9]]="activeFilter() === 'Archived'"
             [class.ring-2]="activeFilter() === 'Archived'"
             [class.ring-[#6453D9]/10]="activeFilter() === 'Archived'"
-            class="cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-5 transition hover:bg-gray-50"
+            class="min-w-[130px] flex-1 cursor-pointer rounded-[16px] border border-gray-100 bg-[#F9FAFC] p-4 transition hover:bg-gray-50"
           >
-            <p class="text-[12px] font-medium text-gray-400">Archived</p>
-            <p class="mt-2 text-[28px] font-bold text-[#1A1C21]">03</p>
+            <p class="text-[11px] md:text-[12px] font-medium text-gray-400">Archived</p>
+            <p class="mt-2 text-[20px] md:text-[28px] font-bold text-[#1A1C21]">03</p>
           </div>
         </div>
 
         <!-- Search and filters layout card -->
-        <div class="rounded-[24px] border border-gray-100 bg-white p-5 shadow-xs">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <!-- Filters Dropdowns -->
-            <div class="flex items-center gap-3">
+        <div class="rounded-[20px] md:rounded-[24px] border border-gray-100 bg-white p-4 md:p-5 shadow-xs">
+          <div class="flex flex-row items-center justify-between gap-4">
+            <!-- Search Input -->
+            <div class="relative flex-1 max-w-full md:max-w-[280px]">
+              <span class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.602 10.602Z" />
+                </svg>
+              </span>
+              <input
+                type="text"
+                placeholder="Search"
+                class="h-10 w-full rounded-full bg-[#FAFAFC] pl-10 pr-4 text-xs font-medium text-[#1A1C21] outline-none placeholder:text-gray-400 border border-transparent focus:border-gray-200"
+              />
+            </div>
+
+            <!-- Mobile Settings Filter Toggle icon -->
+            <button
+              type="button"
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAFAFC] text-gray-600 border border-gray-100 md:hidden"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+              </svg>
+            </button>
+
+            <!-- Filters Dropdowns (Desktop only) -->
+            <div class="hidden md:flex items-center gap-3">
               <button
                 type="button"
                 class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-600 shadow-xs hover:bg-gray-50 transition active:scale-95"
@@ -102,24 +141,10 @@ type AdminFaqItem = {
                 </svg>
               </button>
             </div>
-
-            <!-- Search Input -->
-            <div class="relative w-full max-w-[280px]">
-              <span class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.602 10.602Z" />
-                </svg>
-              </span>
-              <input
-                type="text"
-                placeholder="Search"
-                class="h-10 w-full rounded-full bg-[#FAFAFC] pl-10 pr-4 text-xs font-medium text-[#1A1C21] outline-none placeholder:text-gray-400 border border-transparent focus:border-gray-200"
-              />
-            </div>
           </div>
 
-          <!-- Table Viewport -->
-          <div class="mt-6 overflow-x-visible">
+          <!-- Desktop Table Layout (hidden on mobile) -->
+          <div class="hidden md:block mt-6 overflow-x-visible">
             <table class="w-full min-w-[800px] border-collapse text-left text-xs text-gray-500">
               <thead>
                 <tr class="border-b border-[#F5F5F7] text-[11px] font-semibold uppercase tracking-wider text-gray-400">
@@ -188,7 +213,7 @@ type AdminFaqItem = {
                         </svg>
                       </button>
 
-                      <!-- Popup Dropdown Menu -->
+                      <!-- Desktop Popup Dropdown Menu -->
                       @if (openMenuIndex() === index) {
                         <!-- Backdrop to close -->
                         <div class="fixed inset-0 z-10" (click)="closeMenu()"></div>
@@ -199,7 +224,6 @@ type AdminFaqItem = {
                           <p class="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Menu</p>
                           
                           <div class="space-y-1">
-                            <!-- Edit (Always shown) -->
                             <button
                               type="button"
                               (click)="closeMenu()"
@@ -211,7 +235,6 @@ type AdminFaqItem = {
                               Edit
                             </button>
 
-                            <!-- Archive (Published only) -->
                             @if (item.status === 'Published') {
                               <button
                                 type="button"
@@ -225,7 +248,6 @@ type AdminFaqItem = {
                               </button>
                             }
 
-                            <!-- Publish (Archived only) -->
                             @if (item.status === 'Archived') {
                               <button
                                 type="button"
@@ -239,7 +261,6 @@ type AdminFaqItem = {
                               </button>
                             }
 
-                            <!-- Delete (Always shown) -->
                             <button
                               type="button"
                               (click)="closeMenu()"
@@ -259,24 +280,147 @@ type AdminFaqItem = {
               </tbody>
             </table>
           </div>
-        </div>
 
-        <!-- Pagination Footer -->
-        <div class="flex items-center justify-between text-xs text-gray-500 pt-4">
-          <span><strong class="text-gray-800">5</strong> results</span>
-          <div class="flex items-center gap-4">
-            <div class="flex items-center gap-1">
-              <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 transition active:scale-95" disabled>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-              </button>
-              <input type="text" value="1" class="h-8 w-8 rounded-lg border border-gray-200 text-center font-medium text-gray-700 outline-none" readonly />
-              <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 transition active:scale-95">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-              </button>
-            </div>
-            <span>of 20</span>
+          <!-- Mobile Cards Layout List (hidden on desktop) -->
+          <div class="block md:hidden mt-4 space-y-4">
+            @for (item of filteredFaqItems(); track item.title; let index = $index) {
+              <div class="border-b border-[#F5F5F7] pb-4 space-y-3">
+                <div class="flex items-start justify-between gap-4">
+                  <h3 class="text-[15px] font-bold text-[#1A1C21] leading-snug">
+                    {{ item.title }}
+                  </h3>
+                  <button
+                    type="button"
+                    (click)="toggleMenu(index); $event.stopPropagation()"
+                    class="text-gray-400 hover:text-gray-600 p-1"
+                    aria-label="Actions"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-5 w-5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-400 font-medium">User type</span>
+                  <span class="text-[#1A1C21] font-semibold">{{ item.userType }}</span>
+                </div>
+
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-400 font-medium">Status</span>
+                  @switch (item.status) {
+                    @case ('Published') {
+                      <span class="inline-flex items-center gap-1 rounded-full bg-[#E8F8EE] px-2.5 py-0.5 text-[11px] font-semibold text-[#25AD31]">
+                        <span class="h-1.5 w-1.5 rounded-full bg-[#25AD31]"></span>
+                        Published
+                      </span>
+                    }
+                    @case ('Draft') {
+                      <span class="inline-flex items-center gap-1 rounded-full bg-[#F4F4F6] px-2.5 py-0.5 text-[11px] font-semibold text-[#5E5E5E]">
+                        <span class="h-1.5 w-1.5 rounded-full bg-[#5E5E5E]"></span>
+                        Draft
+                      </span>
+                    }
+                    @case ('Archived') {
+                      <span class="inline-flex items-center gap-1 rounded-full bg-[#EAF2FE] px-2.5 py-0.5 text-[11px] font-semibold text-[#1969FE]">
+                        <span class="h-1.5 w-1.5 rounded-full bg-[#1969FE]"></span>
+                        Archived
+                      </span>
+                    }
+                  }
+                </div>
+
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-400 font-medium">Author</span>
+                  <div class="flex items-center gap-1.5">
+                    <img
+                      [src]="item.authorAvatar"
+                      alt=""
+                      width="20"
+                      height="20"
+                      class="h-5 w-5 rounded-full object-cover shrink-0"
+                    />
+                    <span class="text-[#1A1C21] font-semibold">{{ item.authorName }}</span>
+                  </div>
+                </div>
+              </div>
+            }
           </div>
         </div>
+
+        <!-- Mobile Bottom Sheet Action Sheet Modal -->
+        @for (item of filteredFaqItems(); track item.title; let index = $index) {
+          @if (openMenuIndex() === index) {
+            <!-- Backdrop layer -->
+            <div
+              (click)="closeMenu()"
+              class="fixed inset-0 bg-black/40 z-50 md:hidden transition-opacity duration-300"
+            ></div>
+
+            <!-- Bottomsheet content panel -->
+            <div
+              class="fixed bottom-0 left-0 right-0 rounded-t-[24px] bg-white p-6 shadow-2xl z-55 md:hidden transform translate-y-0 transition-transform duration-300 ease-out"
+            >
+              <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
+              <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-4">Menu</p>
+              
+              <div class="space-y-2">
+                <!-- Edit -->
+                <button
+                  type="button"
+                  (click)="closeMenu()"
+                  class="flex w-full items-center gap-3.5 rounded-xl border border-gray-100 px-4 py-3.5 text-[14px] font-semibold text-[#1F1F1F] bg-white active:bg-gray-50 transition"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-gray-400">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 21.75a.75.75 0 0 1-.528.22H3.75a.75.75 0 0 1-.75-.75V18.16a.75.75 0 0 1 .22-.528L16.862 4.487Zm0 0L19.5 7.125" />
+                  </svg>
+                  Edit
+                </button>
+
+                <!-- Archive (Published status) -->
+                @if (item.status === 'Published') {
+                  <button
+                    type="button"
+                    (click)="closeMenu()"
+                    class="flex w-full items-center gap-3.5 rounded-xl border border-gray-100 px-4 py-3.5 text-[14px] font-semibold text-[#1F1F1F] bg-white active:bg-gray-50 transition"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-gray-400">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                    </svg>
+                    Archive
+                  </button>
+                }
+
+                <!-- Publish (Archived status) -->
+                @if (item.status === 'Archived') {
+                  <button
+                    type="button"
+                    (click)="closeMenu()"
+                    class="flex w-full items-center gap-3.5 rounded-xl border border-gray-100 px-4 py-3.5 text-[14px] font-semibold text-[#1F1F1F] bg-white active:bg-gray-50 transition"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-gray-400">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                    </svg>
+                    Publish
+                  </button>
+                }
+
+                <!-- Delete -->
+                <button
+                  type="button"
+                  (click)="closeMenu()"
+                  class="flex w-full items-center gap-3.5 rounded-xl border border-red-50 px-4 py-3.5 text-[14px] font-semibold text-[#FF3B30] bg-red-50/10 active:bg-red-50 transition"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 text-[#FF3B30]">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                  </svg>
+                  Delete
+                </button>
+              </div>
+            </div>
+          }
+        }
+
       </div>
     } @else {
       <!-- FAQ Editor Screen layout -->
