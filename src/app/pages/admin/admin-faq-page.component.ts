@@ -686,16 +686,32 @@ import { FaqService, FAQItem } from '../../services/faq.service';
                     <!-- Status -->
                     <div class="flex items-center justify-between">
                       <span class="text-gray-400">Status</span>
-                      <span class="inline-flex items-center gap-1 rounded-full bg-[#E8F8EE] px-2.5 py-1 text-[11px] font-semibold text-[#25AD31]">
-                        <span class="h-1.5 w-1.5 rounded-full bg-[#25AD31]"></span>
-                        Published
-                      </span>
+                      @switch (editorStatus()) {
+                        @case ('Published') {
+                          <span class="inline-flex items-center gap-1 rounded-full bg-[#E8F8EE] px-2.5 py-1 text-[11px] font-semibold text-[#25AD31]">
+                            <span class="h-1.5 w-1.5 rounded-full bg-[#25AD31]"></span>
+                            Published
+                          </span>
+                        }
+                        @case ('Draft') {
+                          <span class="inline-flex items-center gap-1 rounded-full bg-[#F4F4F6] px-2.5 py-1 text-[11px] font-semibold text-[#5E5E5E]">
+                            <span class="h-1.5 w-1.5 rounded-full bg-[#5E5E5E]"></span>
+                            Draft
+                          </span>
+                        }
+                        @case ('Archived') {
+                          <span class="inline-flex items-center gap-1 rounded-full bg-[#EAF2FE] px-2.5 py-1 text-[11px] font-semibold text-[#1969FE]">
+                            <span class="h-1.5 w-1.5 rounded-full bg-[#1969FE]"></span>
+                            Archived
+                          </span>
+                        }
+                      }
                     </div>
 
                     <!-- Created -->
                     <div class="flex items-center justify-between">
                       <span class="text-gray-400">Created</span>
-                      <span class="text-[#1A1C21]">8 hours ago</span>
+                      <span class="text-[#1A1C21]">{{ editorCreatedAt() ? (editorCreatedAt() | date:'dd MMM, yyyy') : 'Just now' }}</span>
                     </div>
 
                     <!-- Created by -->
@@ -703,20 +719,20 @@ import { FaqService, FAQItem } from '../../services/faq.service';
                       <span class="text-gray-400">Created by</span>
                       <div class="flex items-center gap-2">
                         <img
-                          src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
+                          src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
                           alt=""
                           width="24"
                           height="24"
                           class="h-6 w-6 rounded-full object-cover"
                         />
-                        <span class="text-[#1A1C21]">Amaka Chibuzor</span>
+                        <span class="text-[#1A1C21]">{{ editorAuthorName() }}</span>
                       </div>
                     </div>
 
                     <!-- Last updated -->
                     <div class="flex items-center justify-between">
                       <span class="text-gray-400">Last updated</span>
-                      <span class="text-[#1A1C21]">8 hours ago</span>
+                      <span class="text-[#1A1C21]">{{ editorCreatedAt() ? (editorCreatedAt() | date:'dd MMM, yyyy') : 'Just now' }}</span>
                     </div>
 
                     <!-- Last updated by -->
@@ -724,13 +740,13 @@ import { FaqService, FAQItem } from '../../services/faq.service';
                       <span class="text-gray-400">Last updated by</span>
                       <div class="flex items-center gap-2">
                         <img
-                          src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
+                          src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
                           alt=""
                           width="24"
                           height="24"
                           class="h-6 w-6 rounded-full object-cover"
                         />
-                        <span class="text-[#1A1C21]">Amaka Chibuzor</span>
+                        <span class="text-[#1A1C21]">{{ editorAuthorName() }}</span>
                       </div>
                     </div>
                   </div>
@@ -821,47 +837,63 @@ import { FaqService, FAQItem } from '../../services/faq.service';
                     <div class="mt-4 space-y-4 text-xs font-semibold text-gray-500">
                       <div class="flex items-center justify-between">
                         <span class="text-gray-400">Status</span>
-                        <span class="inline-flex items-center gap-1 rounded-full bg-[#E8F8EE] px-2.5 py-1 text-[11px] font-semibold text-[#25AD31]">
-                          <span class="h-1.5 w-1.5 rounded-full bg-[#25AD31]"></span>
-                          Published
-                        </span>
+                        @switch (editorStatus()) {
+                          @case ('Published') {
+                            <span class="inline-flex items-center gap-1 rounded-full bg-[#E8F8EE] px-2.5 py-1 text-[11px] font-semibold text-[#25AD31]">
+                              <span class="h-1.5 w-1.5 rounded-full bg-[#25AD31]"></span>
+                              Published
+                            </span>
+                          }
+                          @case ('Draft') {
+                            <span class="inline-flex items-center gap-1 rounded-full bg-[#F4F4F6] px-2.5 py-1 text-[11px] font-semibold text-[#5E5E5E]">
+                              <span class="h-1.5 w-1.5 rounded-full bg-[#5E5E5E]"></span>
+                              Draft
+                            </span>
+                          }
+                          @case ('Archived') {
+                            <span class="inline-flex items-center gap-1 rounded-full bg-[#EAF2FE] px-2.5 py-1 text-[11px] font-semibold text-[#1969FE]">
+                              <span class="h-1.5 w-1.5 rounded-full bg-[#1969FE]"></span>
+                              Archived
+                            </span>
+                          }
+                        }
                       </div>
 
                       <div class="flex items-center justify-between">
                         <span class="text-gray-400">Created</span>
-                        <span class="text-[#1A1C21]">8 hours ago</span>
+                        <span class="text-[#1A1C21]">{{ editorCreatedAt() ? (editorCreatedAt() | date:'dd MMM, yyyy') : 'Just now' }}</span>
                       </div>
 
                       <div class="flex items-center justify-between">
                         <span class="text-gray-400">Created by</span>
                         <div class="flex items-center gap-2">
                           <img
-                            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
+                            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
                             alt=""
                             width="24"
                             height="24"
                             class="h-6 w-6 rounded-full object-cover"
                           />
-                          <span class="text-[#1A1C21]">Amaka Chibuzor</span>
+                          <span class="text-[#1A1C21]">{{ editorAuthorName() }}</span>
                         </div>
                       </div>
 
                       <div class="flex items-center justify-between">
                         <span class="text-gray-400">Last updated</span>
-                        <span class="text-[#1A1C21]">8 hours ago</span>
+                        <span class="text-[#1A1C21]">{{ editorCreatedAt() ? (editorCreatedAt() | date:'dd MMM, yyyy') : 'Just now' }}</span>
                       </div>
 
                       <div class="flex items-center justify-between">
                         <span class="text-gray-400">Last updated by</span>
                         <div class="flex items-center gap-2">
                           <img
-                            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
+                            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
                             alt=""
                             width="24"
                             height="24"
                             class="h-6 w-6 rounded-full object-cover"
                           />
-                          <span class="text-[#1A1C21]">Amaka Chibuzor</span>
+                          <span class="text-[#1A1C21]">{{ editorAuthorName() }}</span>
                         </div>
                       </div>
                     </div>
@@ -892,6 +924,9 @@ export class AdminFaqPageComponent implements OnInit {
   readonly editorTitle = signal<string>('');
   readonly editorContent = signal<string>('');
   readonly activeEditingId = signal<number | null>(null);
+  readonly editorStatus = signal<'Published' | 'Draft' | 'Archived'>('Draft');
+  readonly editorCreatedAt = signal<string | null>(null);
+  readonly editorAuthorName = signal<string>('Amaka Chibuzor');
 
   readonly faqsList = signal<FAQItem[]>([]);
 
@@ -957,11 +992,17 @@ export class AdminFaqPageComponent implements OnInit {
       this.editorTitle.set(faq.title);
       this.editorContent.set(faq.content);
       this.selectedUserType.set(faq.user_type);
+      this.editorStatus.set(faq.status);
+      this.editorCreatedAt.set(faq.created_at || null);
+      this.editorAuthorName.set(faq.author_name || 'Admin User');
     } else {
       this.activeEditingId.set(null);
       this.editorTitle.set('');
       this.editorContent.set('');
       this.selectedUserType.set('Buyers');
+      this.editorStatus.set('Draft');
+      this.editorCreatedAt.set(null);
+      this.editorAuthorName.set('Admin User');
     }
     this.showSidebar.set(false);
     this.isEditing.set(true);
