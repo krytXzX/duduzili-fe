@@ -853,7 +853,6 @@ import { FaqService, FAQItem } from '../../services/faq.service';
                       </button>
                     </div>
                   </div>
-                  @
                 }
               </div>
             </div>
