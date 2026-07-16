@@ -24,6 +24,8 @@
     "@ng-icons/core": "^33.2.0",
     "@ng-icons/font-awesome": "^33.2.0",
     "@ng-icons/heroicons": "^33.2.0",
+    "@tiptap/core": "^3.28.0",
+    "@tiptap/starter-kit": "^3.28.0",
     "apexcharts": "^5.11.0",
     "express": "^5.1.0",
     "ng-apexcharts": "^2.4.0",

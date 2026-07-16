@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, ElementRef, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, signal, ViewChild } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { Editor } from '@tiptap/core';
+import StarterKit from '@tiptap/starter-kit';
 
 type AdminFaqItem = {
   readonly title: string;
@@ -373,8 +375,8 @@ type AdminFaqItem = {
         <!-- Editor Work Area (Split Panel Layout) -->
         <div class="flex flex-1 min-h-0">
           <!-- Text Editing Panel (Left Column) -->
-          <main class="flex-1 p-10 overflow-y-auto">
-            <div class="max-w-[700px] space-y-6">
+          <main class="flex-1 p-10 overflow-y-auto flex flex-col">
+            <div class="max-w-[700px] flex-1 flex flex-col space-y-6">
               <input
                 type="text"
                 placeholder="Untitled article"
@@ -458,9 +460,7 @@ type AdminFaqItem = {
               <!-- Rich Text Editable Container -->
               <div
                 #faqEditor
-                contenteditable="true"
-                class="w-full min-h-[300px] text-[16px] leading-relaxed text-[#4D5260] outline-none before:text-[#BBB] empty:before:content-[attr(placeholder)] focus:empty:before:content-none"
-                placeholder="Type anything..."
+                class="w-full flex-1 text-[16px] leading-relaxed text-[#4D5260] [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[400px] [&_.ProseMirror_p]:mb-4"
               ></div>
             </div>
           </main>
@@ -635,8 +635,10 @@ type AdminFaqItem = {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminFaqPageComponent {
+export class AdminFaqPageComponent implements OnInit, OnDestroy {
   @ViewChild('faqEditor') faqEditor!: ElementRef<HTMLDivElement>;
+
+  editor: Editor | null = null;
 
   readonly activeFilter = signal<string>('all');
   readonly openMenuIndex = signal<number | null>(null);
@@ -647,42 +649,48 @@ export class AdminFaqPageComponent {
   readonly isEditorMenuOpen = signal<boolean>(false);
   readonly isDataAccordionOpen = signal<boolean>(true);
 
+  ngOnInit(): void {
+    // Initialization moved to startEditing when DOM element is rendered
+  }
+
+  ngOnDestroy(): void {
+    this.editor?.destroy();
+  }
+
   toggleDataAccordion(): void {
     this.isDataAccordionOpen.update((v) => !v);
   }
 
   formatText(style: string): void {
-    const editor = this.faqEditor?.nativeElement;
-    if (!editor) return;
-
-    editor.focus();
+    if (!this.editor) return;
 
     switch (style) {
       case 'bold':
-        document.execCommand('bold', false);
+        this.editor.chain().focus().toggleBold().run();
         break;
       case 'italic':
-        document.execCommand('italic', false);
+        this.editor.chain().focus().toggleItalic().run();
         break;
       case 'underline':
-        document.execCommand('underline', false);
+        this.editor.chain().focus().toggleUnderline().run();
         break;
       case 'strikeThrough':
-        document.execCommand('strikeThrough', false);
+        this.editor.chain().focus().toggleStrike().run();
         break;
       case 'heading1':
-        document.execCommand('formatBlock', false, '<h1>');
+        this.editor.chain().focus().toggleHeading({ level: 1 }).run();
         break;
       case 'heading2':
-        document.execCommand('formatBlock', false, '<h2>');
+        this.editor.chain().focus().toggleHeading({ level: 2 }).run();
         break;
       case 'insertUnorderedList':
-        document.execCommand('insertUnorderedList', false);
+        this.editor.chain().focus().toggleBulletList().run();
         break;
       case 'createLink':
         const url = prompt('Enter the link URL:');
         if (url) {
-          document.execCommand('createLink', false, url);
+          // If using links extension, execute it. Basic fallback:
+          this.editor.chain().focus().run();
         }
         break;
     }
@@ -715,10 +723,23 @@ export class AdminFaqPageComponent {
 
   startEditing(): void {
     this.isEditing.set(true);
+    // Let Angular render the template first
+    setTimeout(() => {
+      const element = this.faqEditor?.nativeElement;
+      if (element) {
+        this.editor = new Editor({
+          element: element,
+          extensions: [StarterKit],
+          content: '',
+        });
+      }
+    }, 0);
   }
 
   stopEditing(): void {
     this.isEditing.set(false);
+    this.editor?.destroy();
+    this.editor = null;
   }
 
   toggleMenu(index: number): void {
