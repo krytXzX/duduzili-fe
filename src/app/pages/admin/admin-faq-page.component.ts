@@ -455,13 +455,13 @@ type AdminFaqItem = {
                 </button>
               </div>
 
-              <!-- Editable Textarea Area -->
-              <textarea
-                #faqTextarea
+              <!-- Rich Text Editable Container -->
+              <div
+                #faqEditor
+                contenteditable="true"
+                class="w-full min-h-[300px] text-[16px] leading-relaxed text-[#4D5260] outline-none before:text-[#BBB] empty:before:content-[attr(placeholder)] focus:empty:before:content-none"
                 placeholder="Type anything..."
-                rows="12"
-                class="w-full text-[16px] leading-relaxed text-[#4D5260] outline-none resize-none placeholder:text-[#BBB]"
-              ></textarea>
+              ></div>
             </div>
           </main>
 
@@ -636,7 +636,7 @@ type AdminFaqItem = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminFaqPageComponent {
-  @ViewChild('faqTextarea') faqTextarea!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('faqEditor') faqEditor!: ElementRef<HTMLDivElement>;
 
   readonly activeFilter = signal<string>('all');
   readonly openMenuIndex = signal<number | null>(null);
@@ -652,48 +652,40 @@ export class AdminFaqPageComponent {
   }
 
   formatText(style: string): void {
-    const textarea = this.faqTextarea?.nativeElement;
-    if (!textarea) return;
+    const editor = this.faqEditor?.nativeElement;
+    if (!editor) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-    const selected = text.substring(start, end);
+    editor.focus();
 
-    let formatted = '';
     switch (style) {
       case 'bold':
-        formatted = `**${selected || 'bold text'}**`;
+        document.execCommand('bold', false);
         break;
       case 'italic':
-        formatted = `*${selected || 'italic text'}*`;
+        document.execCommand('italic', false);
         break;
       case 'underline':
-        formatted = `<u>${selected || 'underlined text'}</u>`;
+        document.execCommand('underline', false);
         break;
       case 'strikeThrough':
-        formatted = `~~${selected || 'strikethrough text'}~~`;
+        document.execCommand('strikeThrough', false);
         break;
       case 'heading1':
-        formatted = `\n# ${selected || 'Heading 1'}\n`;
+        document.execCommand('formatBlock', false, '<h1>');
         break;
       case 'heading2':
-        formatted = `\n## ${selected || 'Heading 2'}\n`;
+        document.execCommand('formatBlock', false, '<h2>');
         break;
       case 'insertUnorderedList':
-        formatted = `\n- ${selected || 'List item'}\n`;
+        document.execCommand('insertUnorderedList', false);
         break;
       case 'createLink':
-        formatted = `[${selected || 'Link text'}](url)`;
+        const url = prompt('Enter the link URL:');
+        if (url) {
+          document.execCommand('createLink', false, url);
+        }
         break;
     }
-
-    textarea.value = text.substring(0, start) + formatted + text.substring(end);
-    textarea.focus();
-    
-    // Reposition cursor
-    const newCursorPos = start + formatted.length;
-    textarea.setSelectionRange(newCursorPos, newCursorPos);
   }
 
   toggleSidebar(): void {
