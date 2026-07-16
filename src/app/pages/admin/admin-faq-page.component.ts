@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, signal, ViewChild } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { Editor } from '@tiptap/core';
-import StarterKit from '@tiptap/starter-kit';
+import { QuillModule } from 'ngx-quill';
 
 type AdminFaqItem = {
   readonly title: string;
@@ -16,7 +15,7 @@ type AdminFaqItem = {
 @Component({
   selector: 'app-admin-faq-page',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage],
+  imports: [CommonModule, NgOptimizedImage, QuillModule],
   template: `
     @if (!isEditing()) {
       <div class="space-y-8 p-6 lg:p-8">
@@ -383,85 +382,14 @@ type AdminFaqItem = {
                 class="w-full text-[40px] font-extrabold tracking-tight text-[#1A1C21] outline-none placeholder:text-[#BBB]"
               />
 
-              <!-- Text Formatting Toolbar -->
-              <div class="flex items-center gap-1 border-b border-[#F5F5F7] pb-3">
-                <button
-                  type="button"
-                  (click)="formatText('bold')"
-                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
-                  title="Bold"
-                >
-                  <strong class="text-sm font-extrabold">B</strong>
-                </button>
-                <button
-                  type="button"
-                  (click)="formatText('italic')"
-                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
-                  title="Italic"
-                >
-                  <em class="text-sm font-semibold italic">I</em>
-                </button>
-                <button
-                  type="button"
-                  (click)="formatText('underline')"
-                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
-                  title="Underline"
-                >
-                  <span class="text-sm underline font-semibold">U</span>
-                </button>
-                <button
-                  type="button"
-                  (click)="formatText('strikeThrough')"
-                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
-                  title="Strikethrough"
-                >
-                  <span class="text-sm line-through font-semibold">S</span>
-                </button>
-                <span class="h-4 w-px bg-gray-200 mx-1"></span>
-                <button
-                  type="button"
-                  (click)="formatText('heading1')"
-                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
-                  title="Heading 1"
-                >
-                  <span class="text-xs font-bold">H1</span>
-                </button>
-                <button
-                  type="button"
-                  (click)="formatText('heading2')"
-                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
-                  title="Heading 2"
-                >
-                  <span class="text-xs font-bold">H2</span>
-                </button>
-                <span class="h-4 w-px bg-gray-200 mx-1"></span>
-                <button
-                  type="button"
-                  (click)="formatText('insertUnorderedList')"
-                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
-                  title="Bullet list"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm0 5.25h.007v.008H3.75V12Zm0 5.25h.007v.008H3.75v-.008Z" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  (click)="formatText('createLink')"
-                  class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#F4F4F6] hover:text-[#1A1C21] transition active:scale-95"
-                  title="Link"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-                  </svg>
-                </button>
-              </div>
-
-              <!-- Rich Text Editable Container -->
-              <div
-                #faqEditor
-                class="w-full flex-1 text-[16px] leading-relaxed text-[#4D5260] [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[400px] [&_.ProseMirror_p]:mb-4"
-              ></div>
+              <!-- Quill Rich Text Editor -->
+              <quill-editor
+                #quillEditor
+                theme="bubble"
+                class="w-full flex-1 text-[16px] text-[#4D5260] [&_.ql-tooltip]:z-50 [&_.ql-editor]:p-0 [&_.ql-editor]:outline-none [&_.ql-editor]:text-[16px] [&_.ql-editor]:leading-relaxed"
+                placeholder="Type anything..."
+                [modules]="quillModules"
+              ></quill-editor>
             </div>
           </main>
 
@@ -635,11 +563,7 @@ type AdminFaqItem = {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminFaqPageComponent implements OnInit, OnDestroy {
-  @ViewChild('faqEditor') faqEditor!: ElementRef<HTMLDivElement>;
-
-  editor: Editor | null = null;
-
+export class AdminFaqPageComponent {
   readonly activeFilter = signal<string>('all');
   readonly openMenuIndex = signal<number | null>(null);
   readonly isEditing = signal<boolean>(false);
@@ -649,51 +573,18 @@ export class AdminFaqPageComponent implements OnInit, OnDestroy {
   readonly isEditorMenuOpen = signal<boolean>(false);
   readonly isDataAccordionOpen = signal<boolean>(true);
 
-  ngOnInit(): void {
-    // Initialization moved to startEditing when DOM element is rendered
-  }
-
-  ngOnDestroy(): void {
-    this.editor?.destroy();
-  }
+  readonly quillModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'header': 1 }, { 'header': 2 }],
+      [{ 'list': 'bullet' }],
+      ['link'],
+      ['clean']
+    ]
+  };
 
   toggleDataAccordion(): void {
     this.isDataAccordionOpen.update((v) => !v);
-  }
-
-  formatText(style: string): void {
-    if (!this.editor) return;
-
-    switch (style) {
-      case 'bold':
-        this.editor.chain().focus().toggleBold().run();
-        break;
-      case 'italic':
-        this.editor.chain().focus().toggleItalic().run();
-        break;
-      case 'underline':
-        this.editor.chain().focus().toggleUnderline().run();
-        break;
-      case 'strikeThrough':
-        this.editor.chain().focus().toggleStrike().run();
-        break;
-      case 'heading1':
-        this.editor.chain().focus().toggleHeading({ level: 1 }).run();
-        break;
-      case 'heading2':
-        this.editor.chain().focus().toggleHeading({ level: 2 }).run();
-        break;
-      case 'insertUnorderedList':
-        this.editor.chain().focus().toggleBulletList().run();
-        break;
-      case 'createLink':
-        const url = prompt('Enter the link URL:');
-        if (url) {
-          // If using links extension, execute it. Basic fallback:
-          this.editor.chain().focus().run();
-        }
-        break;
-    }
   }
 
   toggleSidebar(): void {
@@ -723,23 +614,10 @@ export class AdminFaqPageComponent implements OnInit, OnDestroy {
 
   startEditing(): void {
     this.isEditing.set(true);
-    // Let Angular render the template first
-    setTimeout(() => {
-      const element = this.faqEditor?.nativeElement;
-      if (element) {
-        this.editor = new Editor({
-          element: element,
-          extensions: [StarterKit],
-          content: '',
-        });
-      }
-    }, 0);
   }
 
   stopEditing(): void {
     this.isEditing.set(false);
-    this.editor?.destroy();
-    this.editor = null;
   }
 
   toggleMenu(index: number): void {
