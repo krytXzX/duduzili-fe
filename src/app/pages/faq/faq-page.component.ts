@@ -1,23 +1,23 @@
+import { CommonModule, Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule, Location, NgOptimizedImage } from '@angular/common';
-
-import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
-import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
+import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
+import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
+import { CleanSpacesPipe } from '../../pipes/clean-spaces-pipe';
 import { AuthSessionService } from '../../services/auth-session.service';
-import { FaqService, FAQItem } from '../../services/faq.service';
+import { FAQItem, FaqService } from '../../services/faq.service';
 
 @Component({
   selector: 'app-faq-page',
   standalone: true,
   imports: [
     CommonModule,
-    NgOptimizedImage,
     HomeFooterComponent,
     BuyerDashboardNavbarComponent,
     PublicHomeNavbarComponent,
     MobileBottomNavComponent,
+    CleanSpacesPipe,
   ],
   template: `
     @if (isAuthenticated()) {
@@ -28,13 +28,11 @@ import { FaqService, FAQItem } from '../../services/faq.service';
 
     <div
       [class]="
-        isAuthenticated()
-          ? 'min-h-screen bg-white pb-24'
-          : 'min-h-screen bg-white pb-24 lg:pt-20'
+        isAuthenticated() ? 'min-h-screen bg-white pb-24' : 'min-h-screen bg-white pb-24 lg:pt-20'
       "
     >
       <!-- Title Header with Back Button (Mobile layout style matching design) -->
-      <header class="mx-auto max-w-[390px] px-5 pt-6 md:max-w-7xl md:px-[100px] md:pt-[53px]">
+      <header class="mx-auto max-w-97.5 px-5 pt-6 md:max-w-7xl md:px-25 md:pt-13.25">
         <div class="flex items-center gap-4">
           <!-- Back button only visible on mobile -->
           <button
@@ -51,24 +49,32 @@ import { FaqService, FAQItem } from '../../services/faq.service';
               stroke="currentColor"
               class="h-6 w-6"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+              />
             </svg>
           </button>
           <h1 class="text-[24px] font-bold leading-8 text-[#1A1B1D] md:hidden">FAQs</h1>
         </div>
       </header>
 
-      <main class="mx-auto mt-6 w-full max-w-[390px] px-5 md:max-w-7xl md:mt-16 md:px-[100px] md:grid md:grid-cols-[1fr_1.6fr] md:gap-20">
+      <main
+        class="mx-auto mt-6 w-full max-w-full px-5 md:max-w-7xl md:mt-16 md:px-2.5 md:grid md:grid-cols-2 md:gap-20"
+      >
         <!-- Desktop Left Title Column -->
         <div class="hidden md:block">
-          <h2 class="text-[44px] font-bold tracking-tight text-[#1A1B1D] leading-[1.2] max-w-[320px]">
+          <h2
+            class="text-[44px] font-bold tracking-tight text-[#1A1B1D] leading-[1.2] max-w-[320px]"
+          >
             Frequently Asked Questions
           </h2>
         </div>
 
         <div>
           <!-- Segmented Tab Picker (Buyers / Sellers) -->
-          <div class="flex rounded-full bg-[#F4F4F6] p-1 md:max-w-[420px] md:mb-10">
+          <div class="flex rounded-full bg-[#F4F4F6] p-1 md:max-w-105 md:mb-10">
             <button
               type="button"
               (click)="setActiveTab('buyer')"
@@ -116,7 +122,9 @@ import { FaqService, FAQItem } from '../../services/faq.service';
                         d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
                       />
                     </svg>
-                    <span class="text-[16px] font-medium leading-6 text-[#1F1F1F] md:text-[20px] md:leading-7 md:font-semibold">
+                    <span
+                      class="text-[16px] font-medium leading-6 text-[#1F1F1F] md:text-[20px] md:leading-7 md:font-semibold"
+                    >
                       {{ faq.title }}
                     </span>
                   </span>
@@ -131,11 +139,17 @@ import { FaqService, FAQItem } from '../../services/faq.service';
                       stroke="currentColor"
                       class="h-4 w-4 shrink-0 text-[#8D93A0]"
                     >
-                      <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                      />
                     </svg>
                   </div>
-                  
-                  <div class="hidden md:flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F4F4F6] text-[#8D93A0] group-hover:bg-[#EAEAEF] transition-colors">
+
+                  <div
+                    class="hidden md:flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F4F4F6] text-[#8D93A0] group-hover:bg-[#EAEAEF] transition-colors"
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
@@ -145,15 +159,21 @@ import { FaqService, FAQItem } from '../../services/faq.service';
                       [class.rotate-180]="expandedIndex() === index"
                       class="h-4 w-4 transition-transform duration-200"
                     >
-                      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                      />
                     </svg>
                   </div>
                 </button>
 
                 <!-- Accordion Answer Body (Desktop only) -->
                 @if (expandedIndex() === index) {
-                  <div class="mt-3 text-[15px] leading-6 text-[#4D5260] transition-all duration-300 hidden md:block md:text-[16px] md:leading-7 md:mt-4 md:text-[#5D5D5D] max-w-[620px]" [innerHTML]="faq.content">
-                  </div>
+                  <div
+                    class="mt-3 text-[15px] leading-6 text-[#4D5260] transition-all duration-300 hidden md:block md:text-[16px] md:leading-7 md:mt-4 md:text-[#5D5D5D] max-w-155 w-full whitespace-normal! wrap-break-word! min-w-0"
+                    [innerHTML]="faq.content | cleanSpaces"
+                  ></div>
                 }
               </div>
             }
@@ -172,7 +192,7 @@ import { FaqService, FAQItem } from '../../services/faq.service';
 
         <!-- Sheet Panel -->
         <div
-          class="fixed inset-x-0 bottom-0 z-50 max-h-[75vh] rounded-t-[32px] bg-white px-6 pb-12 pt-4 shadow-[0_-8px_30px_rgba(0,0,0,0.1)] md:hidden transition-transform duration-300 translate-y-0"
+          class="fixed inset-x-0 bottom-0 z-50 max-h-[75vh] rounded-t-4xl bg-white px-6 pb-12 pt-4 shadow-[0_-8px_30px_rgba(0,0,0,0.1)] md:hidden transition-transform duration-300 translate-y-0"
           role="dialog"
           aria-modal="true"
         >
@@ -220,8 +240,10 @@ import { FaqService, FAQItem } from '../../services/faq.service';
             </h2>
           </div>
 
-          <div class="mt-4 pl-9 text-[15px] leading-6 text-[#4D5260] overflow-y-auto max-h-[45vh]" [innerHTML]="selectedFaq()?.content">
-          </div>
+          <div
+            class="mt-4 text-[15px] leading-6 text-[#4D5260] overflow-x-auto max-h-[70vh] w-full whitespace-normal! wrap-break-word! min-w-0"
+            [innerHTML]="selectedFaq()?.content && (selectedFaq()!.content | cleanSpaces)"
+          ></div>
         </div>
       }
 
@@ -258,19 +280,19 @@ export class FaqPageComponent implements OnInit {
     // Fetch published buyer FAQs
     this.faqService.getFaqs({ status: 'Published', user_type: 'Buyers' }).subscribe({
       next: (data) => {
-        const list = Array.isArray(data) ? data : ((data as any).results || []);
+        const list = Array.isArray(data) ? data : (data as any).results || [];
         this.buyerFaqs.set(list);
       },
-      error: (err) => console.error('Failed to load buyer FAQs', err)
+      error: (err) => console.error('Failed to load buyer FAQs', err),
     });
 
     // Fetch published seller FAQs
     this.faqService.getFaqs({ status: 'Published', user_type: 'Sellers' }).subscribe({
       next: (data) => {
-        const list = Array.isArray(data) ? data : ((data as any).results || []);
+        const list = Array.isArray(data) ? data : (data as any).results || [];
         this.sellerFaqs.set(list);
       },
-      error: (err) => console.error('Failed to load seller FAQs', err)
+      error: (err) => console.error('Failed to load seller FAQs', err),
     });
   }
 
