@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule, Location, NgOptimizedImage } from '@angular/common';
 
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
@@ -6,11 +6,7 @@ import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-das
 import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { AuthSessionService } from '../../services/auth-session.service';
-
-type FaqItem = {
-  readonly question: string;
-  readonly answer: string;
-};
+import { FaqService, FAQItem } from '../../services/faq.service';
 
 @Component({
   selector: 'app-faq-page',
@@ -33,8 +29,8 @@ type FaqItem = {
     <div
       [class]="
         isAuthenticated()
-          ? 'min-h-full bg-white pb-24'
-          : 'min-h-full bg-white pb-24 lg:pt-20'
+          ? 'min-h-screen bg-white pb-24'
+          : 'min-h-screen bg-white pb-24 lg:pt-20'
       "
     >
       <!-- Title Header with Back Button (Mobile layout style matching design) -->
@@ -97,7 +93,7 @@ type FaqItem = {
 
           <!-- FAQ Items List -->
           <div class="mt-8 divide-y divide-[#EAEAEA] md:mt-0">
-            @for (faq of activeFaqItems(); track faq.question; let index = $index) {
+            @for (faq of activeFaqItems(); track faq.id || $index; let index = $index) {
               <div class="py-5">
                 <button
                   type="button"
@@ -121,7 +117,7 @@ type FaqItem = {
                       />
                     </svg>
                     <span class="text-[16px] font-medium leading-6 text-[#1F1F1F] md:text-[20px] md:leading-7 md:font-semibold">
-                      {{ faq.question }}
+                      {{ faq.title }}
                     </span>
                   </span>
 
@@ -156,8 +152,7 @@ type FaqItem = {
 
                 <!-- Accordion Answer Body (Desktop only) -->
                 @if (expandedIndex() === index) {
-                  <div class="mt-3 text-[15px] leading-6 text-[#4D5260] transition-all duration-300 hidden md:block md:text-[16px] md:leading-7 md:mt-4 md:text-[#5D5D5D] max-w-[620px]">
-                    {{ faq.answer }}
+                  <div class="mt-3 text-[15px] leading-6 text-[#4D5260] transition-all duration-300 hidden md:block md:text-[16px] md:leading-7 md:mt-4 md:text-[#5D5D5D] max-w-[620px]" [innerHTML]="faq.content">
                   </div>
                 }
               </div>
@@ -221,12 +216,11 @@ type FaqItem = {
               />
             </svg>
             <h2 class="text-[18px] font-semibold leading-6 text-[#1F1F1F] pr-10">
-              {{ selectedFaq()?.question }}
+              {{ selectedFaq()?.title }}
             </h2>
           </div>
 
-          <div class="mt-4 pl-9 text-[15px] leading-6 text-[#4D5260] overflow-y-auto max-h-[45vh]">
-            {{ selectedFaq()?.answer }}
+          <div class="mt-4 pl-9 text-[15px] leading-6 text-[#4D5260] overflow-y-auto max-h-[45vh]" [innerHTML]="selectedFaq()?.content">
           </div>
         </div>
       }
@@ -239,46 +233,53 @@ type FaqItem = {
       <app-mobile-bottom-nav variant="buyer" />
     }
   `,
+  host: { class: 'block h-full overflow-auto bg-white' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FaqPageComponent {
+export class FaqPageComponent implements OnInit {
   private readonly location = inject(Location);
   private readonly authSession = inject(AuthSessionService);
+  private readonly faqService = inject(FaqService);
 
   readonly isAuthenticated = this.authSession.isAuthenticated;
   readonly activeTab = signal<'buyer' | 'seller'>('buyer');
   readonly expandedIndex = signal<number | null>(null);
   readonly isBottomSheetOpen = signal<boolean>(false);
-  readonly selectedFaq = signal<FaqItem | null>(null);
+  readonly selectedFaq = signal<FAQItem | null>(null);
 
-  protected readonly buyerFaqs: readonly FaqItem[] = [
-    {
-      question: 'Can I contact a seller directly?',
-      answer: 'Yes, you can initiate a chat with any seller directly from the product details page using the chat or message buttons.',
-    },
-    {
-      question: 'How do I add items to my wishlist?',
-      answer: 'Click the heart icon on any product listing to add it to your wishlist. You can view all saved items from the wishlist tab.',
-    },
-  ];
+  readonly buyerFaqs = signal<FAQItem[]>([]);
+  readonly sellerFaqs = signal<FAQItem[]>([]);
 
-  protected readonly sellerFaqs: readonly FaqItem[] = [
-    {
-      question: 'Do I pay to post an item?',
-      answer: 'Posting basic listings is free. You can opt to promote or boost listings through ad packages to gain extra exposure.',
-    },
-    {
-      question: 'How long do promoted ads run?',
-      answer: 'The duration of promoted ads depends on the plan you select, ranging from weekly to monthly terms.',
-    },
-  ];
+  ngOnInit(): void {
+    this.loadFaqs();
+  }
+
+  private loadFaqs(): void {
+    // Fetch published buyer FAQs
+    this.faqService.getFaqs({ status: 'Published', user_type: 'Buyers' }).subscribe({
+      next: (data) => {
+        const list = Array.isArray(data) ? data : ((data as any).results || []);
+        this.buyerFaqs.set(list);
+      },
+      error: (err) => console.error('Failed to load buyer FAQs', err)
+    });
+
+    // Fetch published seller FAQs
+    this.faqService.getFaqs({ status: 'Published', user_type: 'Sellers' }).subscribe({
+      next: (data) => {
+        const list = Array.isArray(data) ? data : ((data as any).results || []);
+        this.sellerFaqs.set(list);
+      },
+      error: (err) => console.error('Failed to load seller FAQs', err)
+    });
+  }
 
   setActiveTab(tab: 'buyer' | 'seller'): void {
     this.activeTab.set(tab);
     this.expandedIndex.set(null);
   }
 
-  selectFaq(faq: FaqItem, index: number): void {
+  selectFaq(faq: FAQItem, index: number): void {
     // If we're on mobile/small screen (under md width), open the bottom sheet
     if (window.innerWidth < 768) {
       this.selectedFaq.set(faq);
@@ -298,8 +299,8 @@ export class FaqPageComponent {
     this.expandedIndex.update((curr) => (curr === index ? null : index));
   }
 
-  activeFaqItems(): readonly FaqItem[] {
-    return this.activeTab() === 'buyer' ? this.buyerFaqs : this.sellerFaqs;
+  activeFaqItems(): FAQItem[] {
+    return this.activeTab() === 'buyer' ? this.buyerFaqs() : this.sellerFaqs();
   }
 
   windowWidth(): number {
