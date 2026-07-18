@@ -61,6 +61,65 @@ export class AuthSessionService {
 
     return permissions.can_manage_categories === true;
   });
+  readonly canManageUsers = computed(() => {
+    if (!this.isSuperuser()) {
+      return false;
+    }
+    const permissions = this.adminPermissions();
+    return !permissions || permissions.can_manage_users === true;
+  });
+  readonly canManageListings = computed(() => {
+    if (!this.isSuperuser()) {
+      return false;
+    }
+    const permissions = this.adminPermissions();
+    return !permissions || permissions.can_manage_listings === true;
+  });
+  readonly canManageTransactions = computed(() => {
+    if (!this.isSuperuser()) {
+      return false;
+    }
+    const permissions = this.adminPermissions();
+    return !permissions || permissions.can_manage_transactions === true;
+  });
+  readonly canManageKyc = computed(() => {
+    if (!this.isSuperuser()) {
+      return false;
+    }
+    const permissions = this.adminPermissions();
+    return !permissions || permissions.can_manage_kyc === true;
+  });
+  readonly canManageReports = computed(() => {
+    if (!this.isSuperuser()) {
+      return false;
+    }
+    const permissions = this.adminPermissions();
+    return !permissions || permissions.can_manage_reports === true;
+  });
+  readonly canViewAnalytics = computed(() => {
+    if (!this.isSuperuser()) {
+      return false;
+    }
+    const permissions = this.adminPermissions();
+    return !permissions || permissions.can_view_analytics === true;
+  });
+  readonly canManageAds = computed(() => {
+    if (!this.isSuperuser()) {
+      return false;
+    }
+    const permissions = this.adminPermissions();
+    return !permissions || permissions.can_manage_ads === true;
+  });
+  readonly canManageTeam = computed(() => {
+    if (!this.isSuperuser()) {
+      return false;
+    }
+    const permissions = this.adminPermissions();
+    return !permissions || permissions.can_manage_team === true;
+  });
+  readonly canManageSiteConfiguration = computed(() => {
+    return this.canManageTeam() || this.canManageKyc() || this.canManageAds();
+  });
   readonly isSeller = computed(() => {
     const role = this.role();
     return this.user()?.is_vendor === true || role === 'seller' || role === 'vendor';

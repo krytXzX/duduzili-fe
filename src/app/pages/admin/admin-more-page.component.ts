@@ -93,78 +93,101 @@ export class AdminMorePageComponent {
 
   protected readonly menuGroups = computed<ReadonlyArray<ReadonlyArray<AdminMoreItem>>>(() => {
     const canManageCategories = this.authSession.canManageCategories();
+    const canManageAds = this.authSession.canManageAds();
+    const canManageStores = this.authSession.canManageTransactions() || this.authSession.canManageUsers();
+    const canManageKyc = this.authSession.canManageKyc();
+    const canManageReports = this.authSession.canManageReports();
+    const canViewAuditLog = this.authSession.canManageTeam();
+    const canManageTeam = this.authSession.canManageTeam();
+    const canManageSiteConfiguration = this.authSession.canManageSiteConfiguration();
 
-    return [
-    [
-      {
-        label: 'Ads management',
-        route: '/admin/ads',
-        icon: '/assets/icons/admin-more/award.svg',
-        iconBackground: '#48A465',
-      },
-      ...(canManageCategories
-        ? [{
-            label: 'Categories',
-            route: '/admin/categories',
-            icon: '/assets/icons/admin-more/shop.svg',
-            iconBackground: '#8E6CFF',
-          }]
-        : []),
-      {
-        label: 'Stores',
-        route: '/admin/stores',
-        icon: '/assets/icons/admin-more/shop.svg',
-        iconBackground: '#E2B448',
-      },
-    ],
-    [
-      {
-        label: 'KYC requests',
-        route: '/admin/kyc-requests',
-        icon: '/assets/icons/admin-more/card-tick.svg',
-        iconBackground: '#F7458A',
-      },
-      {
-        label: 'Reports',
-        route: '/admin/reports',
-        icon: '/assets/icons/admin-more/flag.svg',
-        iconBackground: '#25AD31',
-      },
-      {
-        label: 'FAQs',
-        route: '/admin/faq',
-        icon: '/assets/icons/message-question-icon.svg',
-        iconBackground: '#48A465',
-      },
-    ],
-    [
-      {
-        label: 'Audit log',
-        route: '/admin/audit-log',
-        icon: '/assets/icons/admin-more/document.svg',
-        iconBackground: '#E2B448',
-      },
-    ],
-    [
-      {
-        label: 'Team management',
-        route: '/admin/team-management',
-        icon: '/assets/icons/admin-more/security-user.svg',
-        iconBackground: '#1969FE',
-      },
-      {
-        label: 'Locations',
-        route: '/admin/locations',
-        icon: '/assets/icons/settings/settings-nav-profile.svg',
-        iconBackground: '#6453D9',
-      },
-      {
-        label: 'Account settings',
-        route: '/admin/settings',
-        icon: '/assets/icons/admin-more/setting-2.svg',
-        iconBackground: '#FF641E',
-      },
-    ],
+    const groups: Array<Array<AdminMoreItem>> = [
+      [
+        ...(canManageAds
+          ? [{
+              label: 'Ads management',
+              route: '/admin/ads',
+              icon: '/assets/icons/admin-more/award.svg',
+              iconBackground: '#48A465',
+            }]
+          : []),
+        ...(canManageCategories
+          ? [{
+              label: 'Categories',
+              route: '/admin/categories',
+              icon: '/assets/icons/admin-more/shop.svg',
+              iconBackground: '#8E6CFF',
+            }]
+          : []),
+        ...(canManageStores
+          ? [{
+              label: 'Stores',
+              route: '/admin/stores',
+              icon: '/assets/icons/admin-more/shop.svg',
+              iconBackground: '#E2B448',
+            }]
+          : []),
+      ],
+      [
+        ...(canManageKyc
+          ? [{
+              label: 'KYC requests',
+              route: '/admin/kyc-requests',
+              icon: '/assets/icons/admin-more/card-tick.svg',
+              iconBackground: '#F7458A',
+            }]
+          : []),
+        ...(canManageReports
+          ? [{
+              label: 'Reports',
+              route: '/admin/reports',
+              icon: '/assets/icons/admin-more/flag.svg',
+              iconBackground: '#25AD31',
+            }]
+          : []),
+        {
+          label: 'FAQs',
+          route: '/admin/faq',
+          icon: '/assets/icons/message-question-icon.svg',
+          iconBackground: '#48A465',
+        },
+      ],
+      [
+        ...(canViewAuditLog
+          ? [{
+              label: 'Audit log',
+              route: '/admin/audit-log',
+              icon: '/assets/icons/admin-more/document.svg',
+              iconBackground: '#E2B448',
+            }]
+          : []),
+      ],
+      [
+        ...(canManageTeam
+          ? [{
+              label: 'Team management',
+              route: '/admin/team-management',
+              icon: '/assets/icons/admin-more/security-user.svg',
+              iconBackground: '#1969FE',
+            }]
+          : []),
+        ...(canManageSiteConfiguration
+          ? [{
+              label: 'Locations',
+              route: '/admin/locations',
+              icon: '/assets/icons/settings/settings-nav-profile.svg',
+              iconBackground: '#6453D9',
+            }]
+          : []),
+        {
+          label: 'Account settings',
+          route: '/admin/settings',
+          icon: '/assets/icons/admin-more/setting-2.svg',
+          iconBackground: '#FF641E',
+        },
+      ],
     ];
+
+    return groups.filter(group => group.length > 0);
   });
 }

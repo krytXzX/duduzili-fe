@@ -31,7 +31,15 @@ export type AuthUser = {
   vendor_profile_ids?: readonly (string | number)[];
   vendor_profile_id?: string | number | null;
   admin_permissions?: {
+    can_manage_users?: boolean;
+    can_manage_listings?: boolean;
+    can_manage_transactions?: boolean;
+    can_manage_kyc?: boolean;
+    can_manage_reports?: boolean;
+    can_view_analytics?: boolean;
+    can_manage_ads?: boolean;
     can_manage_categories?: boolean;
+    can_manage_team?: boolean;
   } | null;
   created_at: string;
   role?: string;

@@ -9,6 +9,7 @@ import {
   AdminHomePayment,
   AdminHomeTodoItem,
 } from '../../services/admin-dashboard.service';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 interface PaymentItem extends AdminHomePayment {
   avatarBackground: string;
@@ -282,10 +283,22 @@ export class AdminDashboardHomePageComponent {
   private readonly adminDashboardService = inject(AdminDashboardService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  private readonly authSession = inject(AuthSessionService);
   private readonly dashboard = signal<AdminHomeDashboardResponse | null>(null);
 
   readonly displayName = computed(() => this.dashboard()?.admin_user.display_name ?? 'Admin');
-  readonly todoItems = computed(() => this.dashboard()?.todo_items ?? []);
+  readonly todoItems = computed(() => {
+    const rawItems = this.dashboard()?.todo_items ?? [];
+    return rawItems.filter((item) => {
+      if (item.icon === 'banner') {
+        return this.authSession.canManageAds();
+      }
+      if (item.icon === 'kyc') {
+        return this.authSession.canManageKyc();
+      }
+      return true;
+    });
+  });
   readonly payments = computed<PaymentItem[]>(() =>
     (this.dashboard()?.payments ?? []).map((payment) => ({
       ...payment,
