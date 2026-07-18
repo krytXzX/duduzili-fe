@@ -11,7 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { DomSanitizer, type SafeResourceUrl, Title } from '@angular/platform-browser';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -123,7 +123,7 @@ type SellerReportStep = 1 | 2;
   selector: 'app-product-page',
   imports: [
     CommonModule,
-    RouterLink,
+
     ReactiveFormsModule,
     NgOptimizedImage,
     BuyerDashboardNavbarComponent,

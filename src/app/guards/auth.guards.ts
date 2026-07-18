@@ -98,3 +98,38 @@ export const subscriptionsEnabledGuard: CanActivateFn = async () => {
   await authSession.waitForBootstrap();
   return authSession.subscriptionsEnabled() ? true : router.createUrlTree(['/seller/listings']);
 };
+
+function requireAdminPermission(
+  permissionCheck: (session: AuthSessionService) => boolean,
+): CanActivateFn {
+  return async () => {
+    const authSession = inject(AuthSessionService);
+    const router = inject(Router);
+
+    await authSession.waitForBootstrap();
+
+    if (!authSession.isAuthenticated()) {
+      return router.createUrlTree(['/sign-in']);
+    }
+
+    if (!authSession.isSuperuser()) {
+      return router.createUrlTree(signedInRedirectTarget(authSession));
+    }
+
+    if (!permissionCheck(authSession)) {
+      return router.createUrlTree(['/admin']);
+    }
+
+    return true;
+  };
+}
+
+export const adminUsersGuard: CanActivateFn = requireAdminPermission(s => s.canManageUsers());
+export const adminListingsGuard: CanActivateFn = requireAdminPermission(s => s.canManageListings());
+export const adminKycGuard: CanActivateFn = requireAdminPermission(s => s.canManageKyc());
+export const adminReportsGuard: CanActivateFn = requireAdminPermission(s => s.canManageReports());
+export const adminAnalyticsGuard: CanActivateFn = requireAdminPermission(s => s.canViewAnalytics());
+export const adminTeamGuard: CanActivateFn = requireAdminPermission(s => s.canManageTeam());
+export const adminSiteConfigGuard: CanActivateFn = requireAdminPermission(s => s.canManageSiteConfiguration());
+export const adminAdsGuard: CanActivateFn = requireAdminPermission(s => s.canManageAds());
+export const adminCategoriesGuard: CanActivateFn = requireAdminPermission(s => s.canManageCategories());

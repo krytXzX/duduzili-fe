@@ -7,7 +7,7 @@ import {
   signal,
   ViewChild,
 } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
 import { FaqService, FAQItem } from '../../services/faq.service';
@@ -15,7 +15,7 @@ import { FaqService, FAQItem } from '../../services/faq.service';
 @Component({
   selector: 'app-admin-faq-page',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule, QuillModule],
+  imports: [CommonModule, FormsModule, QuillModule],
   template: `
     @if (!isEditing()) {
       <div class="space-y-6 p-4 lg:p-8">

@@ -14,13 +14,13 @@ type AdminMoreItem = {
   selector: 'app-admin-more-page',
   imports: [NgOptimizedImage, RouterLink],
   template: `
-    <section class="min-h-full bg-[#F4F4F4] px-5 pb-8 pt-2 lg:bg-white lg:px-8 lg:pt-8">
-      <div class="flex h-[54px] items-center justify-between lg:hidden">
-        <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">More</h1>
+    <section class="min-h-full bg-[#F4F4F4] px-5 pb-8 pt-2 lg:bg-[#F9FAFB] lg:px-8 lg:pt-8">
+      <div class="flex h-[54px] items-center justify-between lg:h-auto lg:mb-8">
+        <h1 class="text-[24px] font-semibold leading-8 text-[#1A1B1D] lg:text-[32px] lg:font-bold">More</h1>
 
         <a
           routerLink="/admin/notifications"
-          class="flex h-9 w-9 items-center justify-center rounded-full bg-white"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-white lg:hidden"
           aria-label="Notifications"
         >
           <img
@@ -34,30 +34,30 @@ type AdminMoreItem = {
         </a>
       </div>
 
-      <div class="mt-3 flex flex-col gap-6 lg:hidden">
+      <div class="mt-3 flex flex-col gap-6 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-8">
         @for (group of menuGroups(); track $index) {
-          <div class="rounded-[24px] bg-white p-3">
-            <div class="flex flex-col">
+          <div class="rounded-[24px] bg-white p-5 border border-[#efefef] shadow-sm">
+            <div class="flex flex-col gap-4">
               @for (item of group; track item.label) {
                 <a
                   [routerLink]="item.route"
-                  class="flex min-h-10 items-center justify-between"
+                  class="flex min-h-12 items-center justify-between hover:bg-[#fafafa] p-2 rounded-xl transition-all"
                 >
-                  <span class="flex items-center gap-2">
+                  <span class="flex items-center gap-3">
                     <span
-                      class="flex h-[30.67px] w-[30.67px] items-center justify-center rounded-lg"
+                      class="flex h-10 w-10 items-center justify-center rounded-xl"
                       [style.background-color]="item.iconBackground"
                     >
                       <img
                         [ngSrc]="item.icon"
-                        width="20"
-                        height="20"
+                        width="24"
+                        height="24"
                         alt=""
-                        class="h-5 w-5"
+                        class="h-6 w-6"
                         aria-hidden="true"
                       />
                     </span>
-                    <span class="text-[16px] font-medium leading-5 text-[#1F1F1F]">
+                    <span class="text-[16px] font-semibold leading-5 text-[#1F1F1F]">
                       {{ item.label }}
                     </span>
                   </span>
@@ -71,18 +71,10 @@ type AdminMoreItem = {
                     aria-hidden="true"
                   />
                 </a>
-
-                @if (!$last) {
-                  <div class="ml-[52px] h-px bg-[#EAEAEA]"></div>
-                }
               }
             </div>
           </div>
         }
-      </div>
-
-      <div class="hidden lg:block">
-        <h1 class="text-2xl font-semibold text-[#1A1B1D]">More</h1>
       </div>
     </section>
   `,

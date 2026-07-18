@@ -123,12 +123,39 @@ interface KycRequestRecord {
           </label>
           <button
             type="button"
-            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white"
+            (click)="showMobileFilters.set(!showMobileFilters())"
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white border border-[#fafafa]"
+            [class.bg-[#f9f9ff]]="showMobileFilters()"
+            [class.border-[#6254f3]]="showMobileFilters()"
             aria-label="Filter requests"
           >
             <img [ngSrc]="mobileFilterIcon" alt="" width="24" height="24" class="h-6 w-6">
           </button>
         </div>
+
+        @if (showMobileFilters()) {
+          <div class="mt-4 flex flex-wrap gap-2">
+            <app-custom-dropdown
+              [options]="categoryOptions"
+              [value]="categoryFilter()"
+              ariaLabel="Select KYC category"
+              buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-[#fafafa] px-4 text-[14px] text-[#8a8a8a]"
+              iconClass="text-[#8a8a8a]"
+              menuClass="min-w-[180px]"
+              (valueChange)="categoryFilter.set($event); currentPage.set(1)"
+            ></app-custom-dropdown>
+
+            <app-custom-dropdown
+              [options]="regionOptions"
+              [value]="regionFilter()"
+              ariaLabel="Select KYC region"
+              buttonClass="inline-flex h-10 items-center gap-2 rounded-full border border-[#e8e8e8] bg-[#fafafa] px-4 text-[14px] text-[#8a8a8a]"
+              iconClass="text-[#8a8a8a]"
+              menuClass="min-w-[180px]"
+              (valueChange)="regionFilter.set($event); currentPage.set(1)"
+            ></app-custom-dropdown>
+          </div>
+        }
 
         <div class="mt-6">
           @if (isLoading()) {
@@ -434,6 +461,7 @@ export class AdminKycRequestsPageComponent {
   private readonly appToastService = inject(AppToastService);
   private readonly adminKycService = inject(AdminKycService);
   private readonly authSession = inject(AuthSessionService);
+  readonly showMobileFilters = signal(false);
   readonly mobileFilterIcon = '/assets/icons/admin-users/filter-tuning.svg';
   readonly categoryOptions: readonly CustomDropdownOption<KycCategoryFilter>[] = [
     { value: 'all', label: 'All categories' },

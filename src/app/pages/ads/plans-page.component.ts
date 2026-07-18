@@ -1,6 +1,6 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   AdsSubscriptionModalComponent,
   type AdsSubscriptionSelection,
@@ -40,7 +40,7 @@ interface PlanDefinition extends PlanUiDefinition {
 
 @Component({
   selector: 'app-ads-plans-page',
-  imports: [CommonModule, RouterLink, NgOptimizedImage, AdsSubscriptionModalComponent],
+  imports: [CommonModule, NgOptimizedImage, AdsSubscriptionModalComponent],
   template: `
     <div class="mx-auto w-full max-w-[390px] bg-white px-5 pb-[124px] pt-4 md:hidden">
       <div class="flex items-center gap-3">

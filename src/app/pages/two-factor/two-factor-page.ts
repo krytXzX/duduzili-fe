@@ -6,7 +6,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { OtpInputComponent } from '../../components/common/otp-input/otp-input.component';
@@ -16,7 +16,7 @@ import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-two-factor-page',
-  imports: [RouterLink, OtpInputComponent, ReactiveFormsModule],
+  imports: [OtpInputComponent, ReactiveFormsModule],
   templateUrl: './two-factor-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {

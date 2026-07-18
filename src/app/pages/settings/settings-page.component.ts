@@ -893,7 +893,7 @@ type NotificationPreferenceSettings = Record<
         <div class="grid min-h-0 items-start gap-12 xl:grid-cols-[261px_579px] xl:gap-[115px]">
           <app-settings-nav
             [activeTab]="activeTab()"
-            [showPlatformTab]="isAdminSettingsView()"
+            [showPlatformTab]="showPlatformTab()"
             (tabChange)="activeTab.set($event)"
           ></app-settings-nav>
 
@@ -1444,7 +1444,7 @@ type NotificationPreferenceSettings = Record<
                   }
                 </div>
               </section>
-            } @else if (activeTab() === 'platform' && isAdminSettingsView()) {
+            } @else if (activeTab() === 'platform' && showPlatformTab()) {
               <section class="w-full max-w-[545px]">
                 <h2 class="text-[28px] font-semibold leading-10 text-[#1A1B1D]">Platform</h2>
                 <p class="mt-1 text-[14px] leading-5 text-[rgba(26,27,29,0.6)]">
@@ -2199,6 +2199,9 @@ export class SettingsPageComponent {
   readonly isAdminSettingsView = computed(
     () => this.router.url.split('?')[0]?.startsWith('/admin/') ?? false,
   );
+  readonly showPlatformTab = computed(
+    () => this.isAdminSettingsView() && this.authSession.canManageSiteConfiguration(),
+  );
   readonly mobileMenuItems = computed(() => {
     const items: Array<{ id: SettingsTab; label: string; iconSrc: string }> = [
       {
@@ -2214,7 +2217,7 @@ export class SettingsPageComponent {
       },
     ];
 
-    if (this.isAdminSettingsView()) {
+    if (this.showPlatformTab()) {
       items.push({
         id: 'platform',
         label: 'Platform',

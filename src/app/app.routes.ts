@@ -13,6 +13,15 @@ import {
   sellerChildGuard,
   sellerGuard,
   subscriptionsEnabledGuard,
+  adminUsersGuard,
+  adminListingsGuard,
+  adminKycGuard,
+  adminReportsGuard,
+  adminAnalyticsGuard,
+  adminTeamGuard,
+  adminSiteConfigGuard,
+  adminAdsGuard,
+  adminCategoriesGuard,
 } from './guards/auth.guards';
 export const routes: Routes = [
   // Home (Specific match for empty path)
@@ -123,12 +132,14 @@ export const routes: Routes = [
       {
         path: 'users',
         title: 'Users',
+        canActivate: [adminUsersGuard],
         loadComponent: () =>
           import('./pages/admin/admin-users-page.component').then((m) => m.AdminUsersPageComponent),
       },
       {
         path: 'users/:id',
         title: 'User Details',
+        canActivate: [adminUsersGuard],
         loadComponent: () =>
           import('./pages/admin/admin-user-details-page.component').then(
             (m) => m.AdminUserDetailsPageComponent,
@@ -137,6 +148,7 @@ export const routes: Routes = [
       {
         path: 'listings',
         title: 'Listings',
+        canActivate: [adminListingsGuard],
         loadComponent: () =>
           import('./pages/admin/admin-listings-page.component').then(
             (m) => m.AdminListingsPageComponent,
@@ -145,6 +157,7 @@ export const routes: Routes = [
       {
         path: 'stores',
         title: 'Stores',
+        canActivate: [adminUsersGuard],
         loadComponent: () =>
           import('./pages/admin/admin-stores-page.component').then(
             (m) => m.AdminStoresPageComponent,
@@ -153,6 +166,7 @@ export const routes: Routes = [
       {
         path: 'categories',
         title: 'Categories',
+        canActivate: [adminCategoriesGuard],
         loadComponent: () =>
           import('./pages/admin/admin-categories-page.component').then(
             (m) => m.AdminCategoriesPageComponent,
@@ -161,6 +175,7 @@ export const routes: Routes = [
       {
         path: 'stores/:id',
         title: 'Store Details',
+        canActivate: [adminUsersGuard],
         loadComponent: () =>
           import('./pages/admin/admin-store-details-page.component').then(
             (m) => m.AdminStoreDetailsPageComponent,
@@ -169,6 +184,7 @@ export const routes: Routes = [
       {
         path: 'listings/:id',
         title: 'Listing Details',
+        canActivate: [adminListingsGuard],
         loadComponent: () =>
           import('./pages/admin/admin-listing-details-page.component').then(
             (m) => m.AdminListingDetailsPageComponent,
@@ -177,6 +193,7 @@ export const routes: Routes = [
       {
         path: 'ads',
         title: 'Ads Management',
+        canActivate: [adminAdsGuard],
         loadComponent: () =>
           import('./pages/admin/admin-ads-management-page.component').then(
             (m) => m.AdminAdsManagementPageComponent,
@@ -185,6 +202,7 @@ export const routes: Routes = [
       {
         path: 'ads/plans',
         title: 'Ads Plans',
+        canActivate: [adminAdsGuard],
         loadComponent: () =>
           import('./pages/admin/admin-ads-plans-page.component').then(
             (m) => m.AdminAdsPlansPageComponent,
@@ -193,6 +211,7 @@ export const routes: Routes = [
       {
         path: 'ads/running',
         title: 'Running Ads',
+        canActivate: [adminAdsGuard],
         loadComponent: () =>
           import('./pages/admin/admin-running-ads-page.component').then(
             (m) => m.AdminRunningAdsPageComponent,
@@ -201,6 +220,7 @@ export const routes: Routes = [
       {
         path: 'ads/approvals',
         title: 'Ads Approvals',
+        canActivate: [adminAdsGuard],
         loadComponent: () =>
           import('./pages/admin/admin-ads-approvals-page.component').then(
             (m) => m.AdminAdsApprovalsPageComponent,
@@ -209,6 +229,7 @@ export const routes: Routes = [
       {
         path: 'ads/transactions',
         title: 'Ads Transactions',
+        canActivate: [adminAdsGuard],
         loadComponent: () =>
           import('./pages/admin/admin-ads-transactions-page.component').then(
             (m) => m.AdminAdsTransactionsPageComponent,
@@ -217,6 +238,7 @@ export const routes: Routes = [
       {
         path: 'kyc-requests',
         title: 'KYC Requests',
+        canActivate: [adminKycGuard],
         loadComponent: () =>
           import('./pages/admin/admin-kyc-requests-page.component').then(
             (m) => m.AdminKycRequestsPageComponent,
@@ -225,6 +247,7 @@ export const routes: Routes = [
       {
         path: 'reports',
         title: 'Reports',
+        canActivate: [adminReportsGuard],
         loadComponent: () =>
           import('./pages/admin/admin-reports-page.component').then(
             (m) => m.AdminReportsPageComponent,
@@ -241,6 +264,7 @@ export const routes: Routes = [
       {
         path: 'analytics',
         title: 'Analytics',
+        canActivate: [adminAnalyticsGuard],
         loadComponent: () =>
           import('./pages/admin/admin-analytics-page.component').then(
             (m) => m.AdminAnalyticsPageComponent,
@@ -255,6 +279,7 @@ export const routes: Routes = [
       {
         path: 'audit-log',
         title: 'Audit Log',
+        canActivate: [adminTeamGuard],
         loadComponent: () =>
           import('./pages/admin/admin-audit-log-page.component').then(
             (m) => m.AdminAuditLogPageComponent,
@@ -263,6 +288,7 @@ export const routes: Routes = [
       {
         path: 'team-management',
         title: 'Team Management',
+        canActivate: [adminTeamGuard],
         loadComponent: () =>
           import('./pages/admin/admin-team-management-page.component').then(
             (m) => m.AdminTeamManagementPageComponent,
@@ -271,6 +297,7 @@ export const routes: Routes = [
       {
         path: 'locations',
         title: 'Locations',
+        canActivate: [adminSiteConfigGuard],
         loadComponent: () =>
           import('./pages/admin/admin-locations-page.component').then(
             (m) => m.AdminLocationsPageComponent,
