@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  output,
+  signal,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -29,7 +36,9 @@ interface AdminSearchablePage {
     }),
   ],
   template: `
-    <header class="relative flex flex-wrap items-center gap-3 rounded-[28px] bg-black px-4 py-3 text-white shadow-lg sm:px-6 sm:py-2.5">
+    <header
+      class="relative flex flex-wrap items-center gap-3 rounded-[28px] bg-black px-4 py-3 text-white shadow-lg sm:px-6 sm:py-2.5"
+    >
       <div class="flex min-w-0 items-center gap-3">
         <button
           type="button"
@@ -40,7 +49,10 @@ interface AdminSearchablePage {
           <ng-icon name="heroBars3" class="text-lg"></ng-icon>
         </button>
 
-        <a [routerLink]="homeRoute()" class="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-90">
+        <a
+          [routerLink]="homeRoute()"
+          class="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-90"
+        >
           <div class="flex h-8 w-8 items-center justify-center">
             <img
               ngSrc="assets/images/logo-light-fill.svg"
@@ -88,6 +100,7 @@ interface AdminSearchablePage {
             (keydown.enter)="runSearch()"
             class="h-8 w-full border-none bg-transparent pl-[22px] pr-20 text-[14px] font-normal tracking-[0.01em] text-white/90 outline-none placeholder:text-white/60 focus:ring-0"
             style="font-family: 'Mona Sans', sans-serif"
+            autocomplete="off"
           />
 
           <button
@@ -107,7 +120,9 @@ interface AdminSearchablePage {
           </button>
 
           @if (isDropdownOpen() && searchResults().length > 0 && searchQuery().trim()) {
-            <div class="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-[20px] border border-white/10 bg-[#2F2F2F] p-2 shadow-2xl">
+            <div
+              class="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-[20px] border border-white/10 bg-[#2F2F2F] p-2 shadow-2xl"
+            >
               @for (page of searchResults(); track page.route) {
                 <button
                   type="button"
@@ -148,7 +163,9 @@ interface AdminSearchablePage {
           [attr.aria-expanded]="isAccountMenuOpen()"
           aria-label="Open admin account menu"
         >
-          <span class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-[#EEEEEE] ring-2 ring-white/10">
+          <span
+            class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-[#EEEEEE] ring-2 ring-white/10"
+          >
             <img
               [ngSrc]="accountAvatarSrc()"
               [alt]="accountDisplayName()"
@@ -167,7 +184,9 @@ interface AdminSearchablePage {
             aria-label="Admin account menu"
           >
             <div class="mb-5 flex items-start gap-3">
-              <span class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#EEEEEE]">
+              <span
+                class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#EEEEEE]"
+              >
                 <img
                   [ngSrc]="accountAvatarSrc()"
                   [alt]="accountDisplayName()"
@@ -177,17 +196,29 @@ interface AdminSearchablePage {
                 />
               </span>
               <div class="min-w-0">
-                <p class="truncate text-[17px] font-semibold tracking-[-0.02em] text-[#1A1C21]">{{ accountDisplayName() }}</p>
+                <p class="truncate text-[17px] font-semibold tracking-[-0.02em] text-[#1A1C21]">
+                  {{ accountDisplayName() }}
+                </p>
                 <p class="truncate text-sm text-[#8E9199]">{{ accountRoleLabel() }}</p>
               </div>
             </div>
 
             <div class="space-y-1">
-              <button type="button" (click)="goToAdminRoute('/admin/settings')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
+              <button
+                type="button"
+                (click)="goToAdminRoute('/admin/settings')"
+                class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]"
+                role="menuitem"
+              >
                 <ng-icon name="heroCog6Tooth" class="text-[18px] text-[#6A6D75]"></ng-icon>
                 Account settings
               </button>
-              <button type="button" (click)="goToAdminRoute('/admin/notifications')" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]" role="menuitem">
+              <button
+                type="button"
+                (click)="goToAdminRoute('/admin/notifications')"
+                class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#1A1C21] transition hover:bg-[#F7F8FA]"
+                role="menuitem"
+              >
                 <ng-icon name="heroBell" class="text-[18px] text-[#6A6D75]"></ng-icon>
                 Notifications
               </button>
@@ -195,8 +226,16 @@ interface AdminSearchablePage {
 
             <div class="my-3 h-px bg-[#EEF0F4]"></div>
 
-            <button type="button" (click)="logOut()" class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#FF3B30] transition hover:bg-[#FFF5F5]" role="menuitem">
-              <ng-icon name="heroArrowRightOnRectangle" class="text-[18px] text-[#FF3B30]"></ng-icon>
+            <button
+              type="button"
+              (click)="logOut()"
+              class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-[15px] font-medium text-[#FF3B30] transition hover:bg-[#FFF5F5]"
+              role="menuitem"
+            >
+              <ng-icon
+                name="heroArrowRightOnRectangle"
+                class="text-[18px] text-[#FF3B30]"
+              ></ng-icon>
               Log out
             </button>
           </div>
@@ -253,23 +292,91 @@ export class AdminDashboardNavbarComponent {
   });
 
   readonly adminPages: AdminSearchablePage[] = [
-    { label: 'Home / Dashboard', route: '/admin', keywords: ['home', 'dashboard', 'main', 'index'] },
-    { label: 'Users Management', route: '/admin/users', keywords: ['users', 'members', 'accounts', 'sellers', 'buyers'] },
-    { label: 'Listings Management', route: '/admin/listings', keywords: ['listings', 'products', 'ads', 'items'] },
-    { label: 'Stores Management', route: '/admin/stores', keywords: ['stores', 'shops', 'vendors', 'sellers'] },
-    { label: 'Categories Management', route: '/admin/categories', keywords: ['categories', 'taxonomy', 'sections'] },
-    { label: 'Ads Plans', route: '/admin/ads/plans', keywords: ['ads plans', 'pricing', 'subscriptions', 'monetization'] },
-    { label: 'Running Ads', route: '/admin/ads/running', keywords: ['running ads', 'active promotions', 'campaigns'] },
-    { label: 'Ads Approvals', route: '/admin/ads/approvals', keywords: ['ads approvals', 'pending ads', 'campaign approval'] },
-    { label: 'Ads Transactions', route: '/admin/ads/transactions', keywords: ['ads transactions', 'billing', 'payments', 'revenue'] },
-    { label: 'KYC Requests', route: '/admin/kyc-requests', keywords: ['kyc requests', 'identity verification', 'compliance'] },
-    { label: 'Reports', route: '/admin/reports', keywords: ['reports', 'flags', 'moderation', 'complaints'] },
-    { label: 'Analytics', route: '/admin/analytics', keywords: ['analytics', 'metrics', 'insights', 'statistics'] },
-    { label: 'Audit Log', route: '/admin/audit-log', keywords: ['audit log', 'logs', 'history', 'activities', 'events'] },
-    { label: 'Team Management', route: '/admin/team-management', keywords: ['team management', 'staff', 'admins', 'moderators', 'roles'] },
-    { label: 'Locations', route: '/admin/locations', keywords: ['locations', 'places', 'cities', 'states', 'regions'] },
-    { label: 'Account Settings', route: '/admin/settings', keywords: ['account settings', 'profile', 'security', 'preferences'] },
-    { label: 'Notifications', route: '/admin/notifications', keywords: ['notifications', 'alerts', 'messages', 'unread'] },
+    {
+      label: 'Home / Dashboard',
+      route: '/admin',
+      keywords: ['home', 'dashboard', 'main', 'index'],
+    },
+    {
+      label: 'Users Management',
+      route: '/admin/users',
+      keywords: ['users', 'members', 'accounts', 'sellers', 'buyers'],
+    },
+    {
+      label: 'Listings Management',
+      route: '/admin/listings',
+      keywords: ['listings', 'products', 'ads', 'items'],
+    },
+    {
+      label: 'Stores Management',
+      route: '/admin/stores',
+      keywords: ['stores', 'shops', 'vendors', 'sellers'],
+    },
+    {
+      label: 'Categories Management',
+      route: '/admin/categories',
+      keywords: ['categories', 'taxonomy', 'sections'],
+    },
+    {
+      label: 'Ads Plans',
+      route: '/admin/ads/plans',
+      keywords: ['ads plans', 'pricing', 'subscriptions', 'monetization'],
+    },
+    {
+      label: 'Running Ads',
+      route: '/admin/ads/running',
+      keywords: ['running ads', 'active promotions', 'campaigns'],
+    },
+    {
+      label: 'Ads Approvals',
+      route: '/admin/ads/approvals',
+      keywords: ['ads approvals', 'pending ads', 'campaign approval'],
+    },
+    {
+      label: 'Ads Transactions',
+      route: '/admin/ads/transactions',
+      keywords: ['ads transactions', 'billing', 'payments', 'revenue'],
+    },
+    {
+      label: 'KYC Requests',
+      route: '/admin/kyc-requests',
+      keywords: ['kyc requests', 'identity verification', 'compliance'],
+    },
+    {
+      label: 'Reports',
+      route: '/admin/reports',
+      keywords: ['reports', 'flags', 'moderation', 'complaints'],
+    },
+    {
+      label: 'Analytics',
+      route: '/admin/analytics',
+      keywords: ['analytics', 'metrics', 'insights', 'statistics'],
+    },
+    {
+      label: 'Audit Log',
+      route: '/admin/audit-log',
+      keywords: ['audit log', 'logs', 'history', 'activities', 'events'],
+    },
+    {
+      label: 'Team Management',
+      route: '/admin/team-management',
+      keywords: ['team management', 'staff', 'admins', 'moderators', 'roles'],
+    },
+    {
+      label: 'Locations',
+      route: '/admin/locations',
+      keywords: ['locations', 'places', 'cities', 'states', 'regions'],
+    },
+    {
+      label: 'Account Settings',
+      route: '/admin/settings',
+      keywords: ['account settings', 'profile', 'security', 'preferences'],
+    },
+    {
+      label: 'Notifications',
+      route: '/admin/notifications',
+      keywords: ['notifications', 'alerts', 'messages', 'unread'],
+    },
   ];
 
   readonly searchResults = computed(() => {
@@ -277,9 +384,10 @@ export class AdminDashboardNavbarComponent {
     if (!query) {
       return [];
     }
-    return this.adminPages.filter((page) =>
-      page.label.toLowerCase().includes(query) ||
-      page.keywords.some((keyword) => keyword.toLowerCase().includes(query))
+    return this.adminPages.filter(
+      (page) =>
+        page.label.toLowerCase().includes(query) ||
+        page.keywords.some((keyword) => keyword.toLowerCase().includes(query)),
     );
   });
 
