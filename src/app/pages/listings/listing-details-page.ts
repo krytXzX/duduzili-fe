@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { DomSanitizer, type SafeResourceUrl, Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -32,6 +33,7 @@ import {
   UpdateListingRequest,
 } from '../../services/listings.service';
 import { AppToastService } from '../../services/app-toast.service';
+import { AuthSessionService } from '../../services/auth-session.service';
 import { environment } from '../../../environments/environment';
 import { formatListingPricing } from '../../utils/listing-pricing';
 
@@ -146,7 +148,21 @@ type EditSectionId = 'media' | 'details' | 'delivery';
   ],
   template: `
     <div class="mx-auto max-w-[1248px] px-4 pb-28 pt-4 md:px-0 md:pb-0 md:pt-0">
-      <div class="md:hidden">
+      @if (isListingSuspended()) {
+        <div class="mx-auto max-w-md px-6 py-20 text-center">
+          <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <h2 class="mt-4 text-xl font-bold text-gray-900">Listing Unavailable</h2>
+          <p class="mt-2 text-sm text-gray-600">This listing belongs to a store that has been suspended by the platform administrator and is currently unavailable.</p>
+          <a routerLink="/" class="mt-6 inline-flex items-center gap-2 rounded-full bg-[#6453D9] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5343c7]">
+            Go to Homepage
+          </a>
+        </div>
+      } @else {
+        <div class="md:hidden">
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-3">
             <a
@@ -1181,6 +1197,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
           }
         </section>
       </div>
+      }
     </div>
     
     <app-share-listing-modal [(isOpen)]="isShareListingModalOpen" [listingName]="listing().name" />
@@ -2807,6 +2824,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly listingsService = inject(ListingsService);
   private readonly appToastService = inject(AppToastService);
+  private readonly authSession = inject(AuthSessionService);
   private readonly titleService = inject(Title);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly apiOrigin = new URL(environment.apiUrl).origin;
@@ -2838,6 +2856,7 @@ export class ListingDetailsPageComponent implements OnDestroy {
   protected readonly editAcceptOffersEnabled = signal(false);
   protected readonly editFreeListingEnabled = signal(false);
   protected readonly isSavingEdit = signal(false);
+  protected readonly isListingSuspended = signal(false);
   protected readonly isUpdatingStatus = signal(false);
   protected readonly isDeletingListing = signal(false);
   protected readonly isPromotingListing = signal(false);
@@ -3523,9 +3542,35 @@ export class ListingDetailsPageComponent implements OnDestroy {
   private async loadListingDetails(): Promise<void> {
     try {
       const record = await firstValueFrom(this.listingsService.getListingDetails(this.listingId()));
+      const storeInfo = this.readRecord(record['store_info']);
+      const isSuspended =
+        this.readBoolean(record['is_suspended']) === true ||
+        this.readBoolean(storeInfo?.['is_suspended']) === true;
+
+      // Always apply details so the user/seller can view their record
       this.applyListingDetails(record);
-    } catch {
-      // Keep the existing mocked page content as the fallback state on request failure.
+
+      const currentUser = this.authSession.user();
+      const currentUserId = currentUser?.id ? String(currentUser.id) : null;
+      const ownerUserId =
+        this.readString(storeInfo?.['user_id']) ??
+        this.readString(this.readRecord(storeInfo?.['user'])?.['id']) ??
+        this.readString(this.readRecord(record['user'])?.['id']);
+      const isOwnerOrStaff =
+        currentUser?.role === 'admin' ||
+        (currentUserId !== null && ownerUserId !== null && currentUserId === ownerUserId);
+
+      if (isSuspended && !isOwnerOrStaff) {
+        this.isListingSuspended.set(true);
+      } else {
+        this.isListingSuspended.set(false);
+      }
+    } catch (error: unknown) {
+      if (error instanceof HttpErrorResponse && (error.status === 404 || error.status === 403)) {
+        this.isListingSuspended.set(true);
+      } else {
+        this.isListingSuspended.set(true);
+      }
     }
   }
 

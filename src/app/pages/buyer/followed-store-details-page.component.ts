@@ -202,14 +202,44 @@ type VendorTagSummary = {
 
           <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white lg:rounded-4xl lg:shadow-sm">
             <div class="bg-white pb-[120px] lg:px-4 lg:pb-12 lg:pt-20">
-              <ng-container [ngTemplateOutlet]="storeDetailsContent" />
+              @if (isStoreSuspended()) {
+                <div class="mx-auto max-w-md px-6 py-20 text-center">
+                  <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                  </div>
+                  <h2 class="mt-4 text-xl font-bold text-gray-900">Store Suspended</h2>
+                  <p class="mt-2 text-sm text-gray-600">This store has been suspended by the platform administrator and is currently unavailable.</p>
+                  <a [routerLink]="backRoute()" class="mt-6 inline-flex items-center gap-2 rounded-full bg-[#6453D9] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5343c7]">
+                    Go Back
+                  </a>
+                </div>
+              } @else {
+                <ng-container [ngTemplateOutlet]="storeDetailsContent" />
+              }
             </div>
             <div class="h-[120px] lg:hidden" aria-hidden="true"></div>
           </main>
         </div>
       } @else {
         <main class="min-h-0 flex-1 bg-white pb-[48px] pt-0 lg:px-4 lg:pt-[112px]">
-          <ng-container [ngTemplateOutlet]="storeDetailsContent" />
+          @if (isStoreSuspended()) {
+            <div class="mx-auto max-w-md px-6 py-20 text-center">
+              <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+              </div>
+              <h2 class="mt-4 text-xl font-bold text-gray-900">Store Suspended</h2>
+              <p class="mt-2 text-sm text-gray-600">This store has been suspended by the platform administrator and is currently unavailable.</p>
+              <a [routerLink]="backRoute()" class="mt-6 inline-flex items-center gap-2 rounded-full bg-[#6453D9] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5343c7]">
+                Go Back
+              </a>
+            </div>
+          } @else {
+            <ng-container [ngTemplateOutlet]="storeDetailsContent" />
+          }
         </main>
       }
 
@@ -1686,6 +1716,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
   readonly isProfileLoading = signal(true);
   readonly isListingsLoading = signal(true);
   readonly isReviewsLoading = signal(true);
+  readonly isStoreSuspended = signal(false);
   readonly isAuthenticated = this.authSession.isAuthenticated;
   readonly isOwnStore = computed(() => {
     const currentUserId = this.authSession.user()?.id;
@@ -2166,28 +2197,36 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
 
     try {
       const record = await firstValueFrom(this.vendorsService.getVendorDetails(this.storeId));
-      this.applyVendorProfile(record);
-    } catch {
-      this.store.update((store) => ({
-        ...store,
-        id: this.storeId,
-        ownerUserId: null,
-        name: '',
-        logo: '',
-        banner: '',
-        location: '',
-        description: '',
-        whatsappNumber: '',
-        callNumber: '',
-        isVerified: false,
-        isFollowed: false,
-        stats: {
-          followers: '0',
-          products: '0',
-          rating: '0.0',
-          dateJoined: '',
-        },
-      }));
+      if (record['is_suspended']) {
+        this.isStoreSuspended.set(true);
+      } else {
+        this.applyVendorProfile(record);
+      }
+    } catch (error: unknown) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
+        this.isStoreSuspended.set(true);
+      } else {
+        this.store.update((store) => ({
+          ...store,
+          id: this.storeId,
+          ownerUserId: null,
+          name: '',
+          logo: '',
+          banner: '',
+          location: '',
+          description: '',
+          whatsappNumber: '',
+          callNumber: '',
+          isVerified: false,
+          isFollowed: false,
+          stats: {
+            followers: '0',
+            products: '0',
+            rating: '0.0',
+            dateJoined: '',
+          },
+        }));
+      }
     } finally {
       this.isProfileLoading.set(false);
     }

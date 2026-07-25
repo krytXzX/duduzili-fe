@@ -262,6 +262,7 @@ export class ProductPageComponent {
   readonly isSubmittingOffer = signal(false);
   readonly isSubmittingCallbackRequest = signal(false);
   readonly isProductLoading = signal(true);
+  readonly isProductSuspended = signal(false);
   readonly productLoadError = signal<string | null>(null);
   readonly reviewSort = signal<ProductReviewSort>('most-recent');
   readonly isLeaveReviewModalOpen = signal(false);
@@ -1279,17 +1280,41 @@ export class ProductPageComponent {
     }
     const loadVersion = ++this.productLoadVersion;
     this.isProductLoading.set(true);
+    this.isProductSuspended.set(false);
     this.productLoadError.set(null);
     try {
       const record = await firstValueFrom(this.listingsService.getListingDetails(id));
       if (!this.isCurrentProductLoad(loadVersion)) {
         return;
       }
+
       this.applyProductDetails(record, loadVersion);
+
+      const storeInfo = this.readRecord(record['store_info']);
+      const isSuspended =
+        this.readBoolean(record['is_suspended']) === true ||
+        this.readBoolean(storeInfo?.['is_suspended']) === true;
+
+      const currentUser = this.authSession.user();
+      const currentUserId = currentUser?.id ? String(currentUser.id) : null;
+      const ownerUserId =
+        this.readString(storeInfo?.['user_id']) ??
+        this.readString(this.readRecord(storeInfo?.['user'])?.['id']) ??
+        this.readString(this.readRecord(record['user'])?.['id']);
+      const isOwnerOrStaff =
+        currentUser?.role === 'admin' ||
+        (currentUserId !== null && ownerUserId !== null && currentUserId === ownerUserId);
+
+      if (isSuspended && !isOwnerOrStaff) {
+        this.isProductSuspended.set(true);
+      } else {
+        this.isProductSuspended.set(false);
+      }
     } catch (error) {
       if (!this.isCurrentProductLoad(loadVersion)) {
         return;
       }
+      this.isProductSuspended.set(true);
       this.productLoadError.set(this.extractErrorMessage(error));
       this.moreFromSeller.set([]);
       this.relatedItems.set([]);
