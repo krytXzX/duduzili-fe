@@ -226,7 +226,7 @@ type NotificationPreferenceSettings = Record<
           ></app-profile-settings-panel>
         </div>
       } @else if (mobileSettingsStep() === 'security') {
-        <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pb-56 pt-0">
+        <div class="mx-auto min-h-screen w-full max-w-[390px] px-5 pt-0">
           <header>
             <div class="flex h-[45px] items-center">
               <button
@@ -549,9 +549,7 @@ type NotificationPreferenceSettings = Record<
           </div>
 
           @if (securityTab() === 'password') {
-            <div
-              class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3"
-            >
+            <div class="left-1/2 z-20 w-full max-w-[390px] bg-white px-5 pt-3">
               <button
                 type="button"
                 (click)="submitPasswordChange()"
@@ -570,9 +568,7 @@ type NotificationPreferenceSettings = Record<
               </button>
             </div>
           } @else if (!isTwoFactorEnabled()) {
-            <div
-              class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3"
-            >
+            <div class="z-20 w-full max-w-[390px] bg-white px-5 pt-3">
               <button
                 type="button"
                 (click)="beginTwoFactorSetup()"
@@ -584,9 +580,7 @@ type NotificationPreferenceSettings = Record<
               </button>
             </div>
           } @else {
-            <div
-              class="fixed bottom-0 left-1/2 z-20 w-full max-w-[390px] -translate-x-1/2 bg-white px-5 pb-24 pt-3"
-            >
+            <div class="z-20 w-full max-w-[390px] bg-white px-5 pt-3">
               <button
                 type="button"
                 (click)="isTurnOffTwoFactorModalOpen.set(true)"
@@ -2018,7 +2012,7 @@ type NotificationPreferenceSettings = Record<
       </div>
     }
   `,
-  host: { class: 'block h-full min-h-0 overflow-hidden' },
+  host: { class: 'block h-full min-h-0 overflow-hidden overflow-y-auto' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsPageComponent {
