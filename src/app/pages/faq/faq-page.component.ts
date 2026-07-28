@@ -66,7 +66,7 @@ import { FAQItem, FaqService } from '../../services/faq.service';
         <!-- Desktop Left Title Column -->
         <div class="hidden md:block">
           <h2
-            class="text-[44px] font-bold tracking-tight text-[#1A1B1D] leading-[1.2] max-w-[320px]"
+            class="text-[44px] font-medium tracking-tight text-[#1A1B1D] leading-[1.2] max-w-[320px]"
           >
             Frequently Asked Questions
           </h2>
