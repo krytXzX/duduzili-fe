@@ -66,7 +66,7 @@ import { FAQItem, FaqService } from '../../services/faq.service';
         <!-- Desktop Left Title Column -->
         <div class="hidden md:block">
           <h2
-            class="text-[44px] font-medium tracking-tight text-[#1A1B1D] leading-[1.2] max-w-[320px]"
+            class="text-[44px] font-medium tracking-tight text-[#383838] leading-[1.2] max-w-[320px]"
           >
             Frequently Asked Questions
           </h2>
@@ -123,7 +123,7 @@ import { FAQItem, FaqService } from '../../services/faq.service';
                       />
                     </svg>
                     <span
-                      class="text-[16px] font-medium leading-6 text-[#1F1F1F] md:text-[20px] md:leading-7 md:font-semibold"
+                      class="text-[16px] font-medium leading-6 text-[#383838] md:text-[20px] md:leading-7"
                     >
                       {{ faq.title }}
                     </span>
