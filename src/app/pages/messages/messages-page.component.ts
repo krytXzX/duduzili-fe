@@ -1,4 +1,6 @@
 import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { heroChevronDown } from '@ng-icons/heroicons/outline';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -111,7 +113,9 @@ type ChatDay = {
 
 @Component({
   selector: 'app-messages-page',
-  imports: [CommonModule, NgOptimizedImage, SellerReportModalComponent],
+  standalone: true,
+  imports: [CommonModule, NgOptimizedImage, NgIcon, SellerReportModalComponent],
+  providers: [provideIcons({ heroChevronDown })],
   host: {
     class: 'block h-full min-h-0',
   },
@@ -137,23 +141,27 @@ type ChatDay = {
                 aria-haspopup="listbox"
                 [attr.aria-expanded]="isStoreSelectorOpen()"
               >
-                <span class="flex items-center gap-2">
-                  <span class="relative h-8 w-[68px] shrink-0">
-                    @if (selectedStore().variant === 'all') {
-                      @for (store of allStoreAvatarPreviews(); track store.id; let index = $index) {
+                <span class="flex items-center gap-2 min-w-0">
+                  @if (selectedStore().variant === 'all') {
+                    @if (firstStoreAvatar()?.avatar; as storeAvatar) {
+                      <span class="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
                         <img
-                          [ngSrc]="store.avatar"
+                          [ngSrc]="storeAvatar"
                           width="32"
                           height="32"
-                          [alt]="store.label"
-                          class="absolute top-0 h-8 w-8 rounded-full border border-white object-cover"
-                          [style.left.px]="index * 12"
+                          [alt]="firstStoreAvatar()?.label ?? 'Store'"
+                          class="h-8 w-8 object-cover"
                         />
-                      }
+                      </span>
+                    } @else if (firstStoreAvatar()?.label; as storeLabel) {
                       <span
-                        class="absolute top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                        [style.left.px]="allStoreAvatarPreviews().length * 12"
+                        class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold text-white"
+                        [style.background]="avatarGradientForLabel(storeLabel)"
                       >
+                        {{ initialsFromLabel(storeLabel) }}
+                      </span>
+                    } @else {
+                      <span class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]">
                         <img
                           [ngSrc]="assets.selectorStoreIconDesktop"
                           width="21"
@@ -162,33 +170,35 @@ type ChatDay = {
                           class="h-4 w-[21px]"
                         />
                       </span>
-                    } @else if (selectedStore().avatar; as storeAvatar) {
+                    }
+                  } @else if (selectedStore().avatar; as storeAvatar) {
+                    <span class="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
                       <img
                         [ngSrc]="storeAvatar"
                         width="32"
                         height="32"
                         [alt]="selectedStore().label"
-                        class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
+                        class="h-8 w-8 object-cover"
                       />
-                    } @else {
-                      <span
-                        class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold text-white"
-                        [style.background]="avatarGradientForLabel(selectedStore().label)"
-                      >
-                        {{ initialsFromLabel(selectedStore().label) }}
-                      </span>
-                    }
-                  </span>
+                    </span>
+                  } @else {
+                    <span
+                      class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold text-white"
+                      [style.background]="avatarGradientForLabel(selectedStore().label)"
+                    >
+                      {{ initialsFromLabel(selectedStore().label) }}
+                    </span>
+                  }
 
-                  <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
+                  <span class="truncate text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
                     {{ selectedStoreLabel() }}
                   </span>
                 </span>
 
                 <span class="flex items-center gap-[10px]">
                   <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
-                  <span class="rounded-full bg-[#EDEDED] p-1">
-                    <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
+                  <span class="flex h-6 w-6 items-center justify-center rounded-full bg-[#EDEDED]">
+                    <ng-icon name="heroChevronDown" class="text-[14px] text-[#4A4A4A]"></ng-icon>
                   </span>
                 </span>
               </button>
@@ -226,30 +236,34 @@ type ChatDay = {
                       >
                         <span class="flex min-w-0 items-center gap-2">
                           @if (store.variant === 'all') {
-                            <span class="relative h-[19px] w-10 shrink-0">
-                              @for (preview of allStoreAvatarPreviews(); track preview.id; let index = $index) {
+                            @if (firstStoreAvatar()?.avatar; as storeAvatar) {
+                              <span class="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full">
                                 <img
-                                  [ngSrc]="preview.avatar"
-                                  width="19"
-                                  height="19"
-                                  [alt]="preview.label"
-                                  class="absolute top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                                  [style.left.px]="index * 7"
-                                />
-                              }
-                              <span
-                                class="absolute top-0 flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                                [style.left.px]="allStoreAvatarPreviews().length * 7"
-                              >
-                                <img
-                                  [ngSrc]="assets.selectorStoreIconMobile"
-                                  width="12"
-                                  height="10"
-                                  alt=""
-                                  class="h-[10px] w-3"
+                                  [ngSrc]="storeAvatar"
+                                  width="40"
+                                  height="40"
+                                  [alt]="firstStoreAvatar()?.label ?? 'Store'"
+                                  class="h-10 w-10 object-cover"
                                 />
                               </span>
-                            </span>
+                            } @else if (firstStoreAvatar()?.label; as storeLabel) {
+                              <span
+                                class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-[14px] font-semibold text-white"
+                                [style.background]="avatarGradientForLabel(storeLabel)"
+                              >
+                                {{ initialsFromLabel(storeLabel) }}
+                              </span>
+                            } @else {
+                              <span class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]">
+                                <img
+                                  [ngSrc]="assets.selectorStoreIconMobile"
+                                  width="21"
+                                  height="16"
+                                  alt=""
+                                  class="h-4 w-[21px]"
+                                />
+                              </span>
+                            }
 
                             <span class="text-[16px] font-medium leading-5 text-[#0D0D0D]">
                               {{ store.label }}
@@ -893,23 +907,27 @@ type ChatDay = {
                 aria-haspopup="dialog"
                 [attr.aria-expanded]="isStoreSelectorOpen()"
               >
-                <span class="flex items-center gap-2">
-                  <span class="relative h-8 w-[68px] shrink-0">
-                    @if (selectedStore().variant === 'all') {
-                      @for (store of allStoreAvatarPreviews(); track store.id; let index = $index) {
+                <span class="flex items-center gap-2 min-w-0">
+                  @if (selectedStore().variant === 'all') {
+                    @if (firstStoreAvatar()?.avatar; as storeAvatar) {
+                      <span class="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
                         <img
-                          [ngSrc]="store.avatar"
+                          [ngSrc]="storeAvatar"
                           width="32"
                           height="32"
-                          [alt]="store.label"
-                          class="absolute top-0 h-8 w-8 rounded-full border border-white object-cover"
-                          [style.left.px]="index * 12"
+                          [alt]="firstStoreAvatar()?.label ?? 'Store'"
+                          class="h-8 w-8 object-cover"
                         />
-                      }
+                      </span>
+                    } @else if (firstStoreAvatar()?.label; as storeLabel) {
                       <span
-                        class="absolute top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                        [style.left.px]="allStoreAvatarPreviews().length * 12"
+                        class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold text-white"
+                        [style.background]="avatarGradientForLabel(storeLabel)"
                       >
+                        {{ initialsFromLabel(storeLabel) }}
+                      </span>
+                    } @else {
+                      <span class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]">
                         <img
                           [ngSrc]="assets.selectorStoreIconMobile"
                           width="21"
@@ -918,33 +936,35 @@ type ChatDay = {
                           class="h-4 w-[21px]"
                         />
                       </span>
-                    } @else if (selectedStore().avatar; as storeAvatar) {
+                    }
+                  } @else if (selectedStore().avatar; as storeAvatar) {
+                    <span class="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
                       <img
                         [ngSrc]="storeAvatar"
                         width="32"
                         height="32"
                         [alt]="selectedStore().label"
-                        class="absolute left-0 top-0 h-8 w-8 rounded-full object-cover"
+                        class="h-8 w-8 object-cover"
                       />
-                    } @else {
-                      <span
-                        class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold text-white"
-                        [style.background]="avatarGradientForLabel(selectedStore().label)"
-                      >
-                        {{ initialsFromLabel(selectedStore().label) }}
-                      </span>
-                    }
-                  </span>
+                    </span>
+                  } @else {
+                    <span
+                      class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold text-white"
+                      [style.background]="avatarGradientForLabel(selectedStore().label)"
+                    >
+                      {{ initialsFromLabel(selectedStore().label) }}
+                    </span>
+                  }
 
-                  <span class="text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
+                  <span class="truncate text-[14px] font-medium leading-5 text-[rgba(13,13,13,0.8)]">
                     {{ selectedStoreLabel() }}
                   </span>
                 </span>
 
                 <span class="flex items-center gap-[10px]">
                   <span class="h-[17px] w-px bg-[#E8E8E8]"></span>
-                  <span class="rounded-full bg-[#EDEDED] p-1">
-                    <img [ngSrc]="assets.chevronDown" width="16" height="16" alt="" class="h-4 w-4" />
+                  <span class="flex h-6 w-6 items-center justify-center rounded-full bg-[#EDEDED]">
+                    <ng-icon name="heroChevronDown" class="text-[14px] text-[#4A4A4A]"></ng-icon>
                   </span>
                 </span>
               </button>
@@ -1728,30 +1748,34 @@ type ChatDay = {
               >
                 <span class="flex min-w-0 items-center gap-2">
                   @if (store.variant === 'all') {
-                    <span class="relative h-[19px] w-10 shrink-0">
-                      @for (preview of allStoreAvatarPreviews(); track preview.id; let index = $index) {
+                    @if (firstStoreAvatar()?.avatar; as storeAvatar) {
+                      <span class="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full">
                         <img
-                          [ngSrc]="preview.avatar"
-                          width="19"
-                          height="19"
-                          [alt]="preview.label"
-                          class="absolute top-0 h-[19px] w-[19px] rounded-full border border-white object-cover"
-                          [style.left.px]="index * 7"
-                        />
-                      }
-                      <span
-                        class="absolute top-0 flex h-[19px] w-[19px] items-center justify-center overflow-hidden rounded-full border border-white bg-[#3D785F]"
-                        [style.left.px]="allStoreAvatarPreviews().length * 7"
-                      >
-                        <img
-                          [ngSrc]="assets.selectorStoreIconMobile"
-                          width="12"
-                          height="10"
-                          alt=""
-                          class="h-[10px] w-3"
+                          [ngSrc]="storeAvatar"
+                          width="40"
+                          height="40"
+                          [alt]="firstStoreAvatar()?.label ?? 'Store'"
+                          class="h-10 w-10 object-cover"
                         />
                       </span>
-                    </span>
+                    } @else if (firstStoreAvatar()?.label; as storeLabel) {
+                      <span
+                        class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-[14px] font-semibold text-white"
+                        [style.background]="avatarGradientForLabel(storeLabel)"
+                      >
+                        {{ initialsFromLabel(storeLabel) }}
+                      </span>
+                    } @else {
+                      <span class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#3D785F]">
+                        <img
+                          [ngSrc]="assets.selectorStoreIconMobile"
+                          width="21"
+                          height="16"
+                          alt=""
+                          class="h-4 w-[21px]"
+                        />
+                      </span>
+                    }
 
                     <span class="text-[16px] font-medium leading-5 text-[#0D0D0D]">
                       {{ store.label }}
@@ -2079,11 +2103,10 @@ export class MessagesPageComponent implements OnDestroy {
   };
 
   readonly storeOptions = signal<readonly StoreOption[]>([]);
-  readonly allStoreAvatarPreviews = computed(() =>
-    this.storeOptions()
-      .filter((store) => store.variant !== 'all' && Boolean(store.avatar))
-      .slice(0, 3) as readonly (StoreOption & { avatar: string })[],
-  );
+  readonly firstStoreAvatar = computed(() => {
+    const stores = this.storeOptions().filter((store) => store.variant !== 'all');
+    return stores[0] ?? null;
+  });
 
   readonly conversations = signal<Conversation[]>([]);
   readonly conversationVendorIds = signal<Record<string, string>>({});
