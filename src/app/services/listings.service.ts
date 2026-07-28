@@ -132,8 +132,6 @@ export interface PromotionPlanApiItem {
 export interface PromoteListingsRequest {
   listing_ids: string[];
   plan_id: number;
-  payment_method: 'wallet' | 'online';
-  confirm_deduction?: boolean;
 }
 
 export type ListingOfferResponse = ListingsApiItem[];

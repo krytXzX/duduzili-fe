@@ -3482,8 +3482,6 @@ export class ListingDetailsPageComponent implements OnDestroy {
       this.listingsService.promoteListings({
         listing_ids: [this.listingId()],
         plan_id: plan.id,
-        payment_method: selection.paymentMethod,
-        confirm_deduction: selection.paymentMethod === 'wallet',
       }),
     )
       .then(async (response) => {

@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroChevronLeft, heroGlobeAlt, heroWallet, heroXMark } from '@ng-icons/heroicons/outline';
+import { heroChevronLeft, heroXMark } from '@ng-icons/heroicons/outline';
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
 
@@ -57,14 +57,13 @@ interface StorePaymentMethod {
 
 export interface ListingPromotionSelection {
   durationDays: number;
-  paymentMethod: 'wallet' | 'online';
 }
 
 @Component({
   selector: 'app-promote-listing-modal',
   imports: [CommonModule, NgIcon, NgOptimizedImage],
   providers: [
-    provideIcons({ heroXMark, heroWallet, heroGlobeAlt, heroStarSolid, heroChevronLeft }),
+    provideIcons({ heroXMark, heroStarSolid, heroChevronLeft }),
   ],
   template: `
     <div class="fixed inset-0 z-[220] flex items-center justify-center p-4" (click)="close.emit()">
@@ -814,137 +813,6 @@ export interface ListingPromotionSelection {
 
               <button
                 type="button"
-                (click)="step.set('payment')"
-                class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
-              >
-                Proceed
-              </button>
-            </div>
-          }
-
-          @if (step() === 'payment') {
-            <div class="flex h-full flex-col px-4 pb-4 pt-3">
-              <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E7E8EE]"></div>
-
-              <div class="mt-2 flex items-center justify-between">
-                <button
-                  type="button"
-                  (click)="step.set('plan')"
-                  class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F6F7FA] text-[#4D5260] transition-all duration-200 hover:bg-[#e8e8e8] active:scale-95"
-                  aria-label="Go back"
-                >
-                  <ng-icon name="heroChevronLeft" class="text-[20px]"></ng-icon>
-                </button>
-                <button
-                  type="button"
-                  (click)="close.emit()"
-                  class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ECEEF4] bg-white text-[#4D5260] shadow-[0_10px_24px_-22px_rgba(18,24,35,0.55)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
-                  [attr.aria-label]="'Close promote ' + targetLabel() + ' flow'"
-                >
-                  <ng-icon name="heroXMark" class="text-[20px]"></ng-icon>
-                </button>
-              </div>
-
-              <div class="flex-1 overflow-y-auto pb-4 pt-6 text-[#202335]">
-                <div
-                  class="rounded-[22px] bg-[#FAFAFB] p-4 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]"
-                >
-                  <h2 class="pr-8 text-[17px] font-semibold leading-7 tracking-[-0.03em]">
-                    {{ selectedPlan().label }}
-                  </h2>
-                  <p class="mt-1 text-[11px] text-[#8B8F98]">{{ selectedPlan().summaryBilling }}</p>
-
-                  <div class="mt-4 h-px bg-[#E3E5EA]"></div>
-
-                  <div class="mt-4 space-y-3 text-[11px] text-[#595E68]">
-                    <div class="flex items-center justify-between gap-3">
-                      <span>Weekly subscription</span>
-                      <span>{{ selectedPlan().subscriptionAmount }}</span>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                      <span>VAT (7.5%)</span>
-                      <span>{{ selectedPlan().vatAmount }}</span>
-                    </div>
-                    <div
-                      class="flex items-center justify-between gap-3 pt-1 text-[12px] font-semibold text-[#1A1C21]"
-                    >
-                      <span>Total due today</span>
-                      <span>{{ selectedPlan().totalAmount }}</span>
-                    </div>
-                  </div>
-
-                  <label class="mt-4 flex items-center gap-2 text-[10px] text-[#595E68]">
-                    <input
-                      type="checkbox"
-                      [checked]="isRecurring()"
-                      (change)="isRecurring.set(!isRecurring())"
-                      class="h-3.5 w-3.5 rounded border-[#D3D6DE] text-[#6955F2] focus:ring-[#6955F2]/20"
-                    />
-                    <span>Mark this payment as recurring</span>
-                  </label>
-                </div>
-
-                <section class="mt-6">
-                  <h3 class="text-[13px] font-medium text-[#1A1C21]">Select your payment method</h3>
-
-                  <div class="mt-3 space-y-3">
-                    <button
-                      type="button"
-                      (click)="selectedPaymentId.set('wallet')"
-                      class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition-all active:scale-[0.98] duration-200 hover:border-[#6955F2]/50"
-                      [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
-                      [class.bg-[#F8F6FF]]="selectedPaymentId() === 'wallet'"
-                      [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
-                    >
-                      <div class="flex items-start gap-3">
-                        <span class="mt-0.5 text-[#272A31]">
-                          <ng-icon name="heroWallet" class="text-[16px]"></ng-icon>
-                        </span>
-                        <p class="text-[11px] font-medium text-[#1A1C21]">
-                          Wallet (Balance: N250,000)
-                        </p>
-                      </div>
-                      <span
-                        class="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border"
-                        [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
-                        [class.border-[#D9DBE2]]="selectedPaymentId() !== 'wallet'"
-                      >
-                        @if (selectedPaymentId() === 'wallet') {
-                          <span class="h-2 w-2 rounded-full bg-[#6955F2]"></span>
-                        }
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      (click)="selectedPaymentId.set('online')"
-                      class="flex w-full items-start justify-between rounded-[14px] border px-3 py-3 text-left transition-all active:scale-[0.98] duration-200 hover:border-[#6955F2]/50"
-                      [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
-                      [class.bg-[#F8F6FF]]="selectedPaymentId() === 'online'"
-                      [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
-                    >
-                      <div class="flex items-start gap-3">
-                        <span class="mt-0.5 text-[#272A31]">
-                          <ng-icon name="heroGlobeAlt" class="text-[16px]"></ng-icon>
-                        </span>
-                        <p class="text-[11px] font-medium text-[#1A1C21]">Online</p>
-                      </div>
-                      <span
-                        class="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border"
-                        [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
-                        [class.border-[#D9DBE2]]="selectedPaymentId() !== 'online'"
-                      >
-                        @if (selectedPaymentId() === 'online') {
-                          <span class="h-2 w-2 rounded-full bg-[#6955F2]"></span>
-                        }
-                      </span>
-                    </button>
-                  </div>
-                </section>
-              </div>
-
-              <button
-                type="button"
                 (click)="submitListingPromotion()"
                 [disabled]="isSubmitting()"
                 class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
@@ -955,14 +823,8 @@ export interface ListingPromotionSelection {
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                 }
-                {{ isSubmitting() ? 'Processing...' : 'Confirm and pay' }}
+                {{ isSubmitting() ? 'Processing...' : 'Promote listing' }}
               </button>
-
-              <p class="mt-3 px-2 text-[9px] leading-4 text-[#6D727C]">
-                By clicking on Confirm and pay, you accept the
-                <span class="text-[#6653E4]">Terms of Use</span> and confirm this posting does not
-                include prohibited items.
-              </p>
             </div>
           }
 
@@ -1124,153 +986,20 @@ export interface ListingPromotionSelection {
                 <div class="mt-16 flex justify-center">
                   <button
                     type="button"
-                    (click)="step.set('payment')"
-                    class="w-full max-w-[460px] rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
+                    (click)="submitListingPromotion()"
+                    [disabled]="isSubmitting()"
+                    class="w-full max-w-[460px] rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
                   >
-                    Proceed
+                    @if (isSubmitting()) {
+                      <svg class="animate-spin h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    }
+                    {{ isSubmitting() ? 'Processing...' : 'Promote listing' }}
                   </button>
                 </div>
               </div>
-            </div>
-          }
-
-          @if (step() === 'payment') {
-            <div class="grid h-full gap-6 p-8 lg:grid-cols-[minmax(0,1fr)_480px]">
-              <section class="min-w-0 pt-4">
-                <h2 class="text-[1.8rem] font-bold tracking-tight text-[#1A1C21]">
-                  Select your payment method
-                </h2>
-
-                <div class="mt-8 space-y-4">
-                  <button
-                    type="button"
-                    (click)="selectedPaymentId.set('wallet')"
-                    class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition-all hover:border-[#6955F2]/50 active:scale-[0.98] duration-200"
-                    [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
-                    [class.bg-[#F8F6FF]]="selectedPaymentId() === 'wallet'"
-                    [class.border-[#E6E7EB]]="selectedPaymentId() !== 'wallet'"
-                  >
-                    <div class="flex items-start gap-3">
-                      <span class="mt-0.5 text-[#272A31]">
-                        <ng-icon name="heroWallet" class="text-lg"></ng-icon>
-                      </span>
-                      <p class="text-[0.95rem] font-medium text-[#1A1C21]">
-                        Wallet (Balance: N250,000)
-                      </p>
-                    </div>
-                    <span
-                      class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border"
-                      [class.border-[#6955F2]]="selectedPaymentId() === 'wallet'"
-                      [class.border-[#D9DBE2]]="selectedPaymentId() !== 'wallet'"
-                    >
-                      @if (selectedPaymentId() === 'wallet') {
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#6955F2]"></span>
-                      }
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    (click)="selectedPaymentId.set('online')"
-                    class="flex w-full items-start justify-between rounded-[16px] border px-4 py-3.5 text-left transition-all hover:border-[#6955F2]/50 active:scale-[0.98] duration-200"
-                    [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
-                    [class.bg-[#F8F6FF]]="selectedPaymentId() === 'online'"
-                    [class.border-[#E6E7EB]]="selectedPaymentId() !== 'online'"
-                  >
-                    <div class="flex items-start gap-3">
-                      <span class="mt-0.5 text-[#272A31]">
-                        <ng-icon name="heroGlobeAlt" class="text-lg"></ng-icon>
-                      </span>
-                      <p class="text-[0.95rem] font-medium text-[#1A1C21]">Online</p>
-                    </div>
-                    <span
-                      class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border"
-                      [class.border-[#6955F2]]="selectedPaymentId() === 'online'"
-                      [class.border-[#D9DBE2]]="selectedPaymentId() !== 'online'"
-                    >
-                      @if (selectedPaymentId() === 'online') {
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#6955F2]"></span>
-                      }
-                    </span>
-                  </button>
-                </div>
-              </section>
-
-              <aside
-                class="relative rounded-[28px] bg-[#FAFAFB] p-8 shadow-[inset_0_0_0_1px_rgba(235,237,242,0.9)]"
-              >
-                <button
-                  type="button"
-                  (click)="close.emit()"
-                  class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#1A1C21] transition-all duration-200 hover:bg-white active:scale-95"
-                >
-                  <ng-icon name="heroXMark" class="text-xl"></ng-icon>
-                </button>
-
-                <h3
-                  class="pr-14 text-[2.65rem] font-medium leading-none tracking-tight text-[#1A1C21]"
-                >
-                  {{ selectedPlan().summaryTitle }}
-                </h3>
-                <p class="mt-3 text-[0.95rem] font-medium text-[#8B8F98]">
-                  {{ selectedPlan().summaryBilling }}
-                </p>
-
-                <div class="mt-8 h-px bg-[#E3E5EA]"></div>
-
-                <div class="mt-8 space-y-4 text-[0.95rem] text-[#595E68]">
-                  <div class="flex items-center justify-between gap-4">
-                    <span>Weekly subscription</span>
-                    <span>{{ selectedPlan().subscriptionAmount }}</span>
-                  </div>
-                  <div class="flex items-center justify-between gap-4">
-                    <span>VAT (7.5%)</span>
-                    <span>{{ selectedPlan().vatAmount }}</span>
-                  </div>
-                  <div
-                    class="flex items-center justify-between gap-4 pt-2 text-[1.05rem] font-semibold text-[#1A1C21]"
-                  >
-                    <span>Total due today</span>
-                    <span>{{ selectedPlan().totalAmount }}</span>
-                  </div>
-                </div>
-
-                <div class="mt-8 h-px bg-[#E3E5EA]"></div>
-
-                <label
-                  class="mt-8 flex cursor-pointer items-center gap-3 text-[0.95rem] font-medium text-[#424750]"
-                >
-                  <input
-                    type="checkbox"
-                    [checked]="isRecurring()"
-                    (change)="isRecurring.set(!isRecurring())"
-                    class="h-4 w-4 rounded border-[#D3D6DE] text-[#6955F2] focus:ring-[#6955F2]/20"
-                  />
-                  <span>Mark this payment as recurring</span>
-                </label>
-
-                <button
-                  type="button"
-                  (click)="submitListingPromotion()"
-                  [disabled]="isSubmitting()"
-                  class="mt-16 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
-                >
-                  @if (isSubmitting()) {
-                    <svg class="animate-spin h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  }
-                  {{ isSubmitting() ? 'Processing...' : 'Confirm and pay' }}
-                </button>
-
-                <p class="mt-10 text-[0.875rem] leading-6 text-[#6D727C]">
-                  By clicking on Confirm and pay, you accept the
-                  <span class="text-[#6653E4]">Terms of Use</span>, confirm that you will abide by
-                  the Safety Tips and declare that this posting does not include any Prohibited
-                  Items.
-                </p>
-              </aside>
             </div>
           }
 
@@ -1353,7 +1082,7 @@ export class PromoteListingModalComponent implements OnDestroy {
 
   readonly storeStep = signal<'confirm' | 'plan' | 'payment'>('confirm');
   readonly selectedStorePlanId = signal<StoreBoostPlan['id']>('7-days');
-  readonly step = signal<'confirm' | 'plan' | 'payment' | 'success'>('confirm');
+  readonly step = signal<'confirm' | 'plan' | 'success'>('confirm');
   readonly selectedPlanId = signal<ListingBoostPlan['id']>('7-days');
   readonly selectedPaymentId = signal<'wallet' | 'online'>('wallet');
   readonly isRecurring = signal(false);
@@ -1515,8 +1244,6 @@ export class PromoteListingModalComponent implements OnDestroy {
         return '560px';
       case 'plan':
         return '1120px';
-      case 'payment':
-        return '1120px';
       default:
         return '760px';
     }
@@ -1576,7 +1303,6 @@ export class PromoteListingModalComponent implements OnDestroy {
     this.storeStep.set('confirm');
     this.selectedStorePlanId.set('7-days');
     this.selectedPlanId.set('7-days');
-    this.selectedPaymentId.set('wallet');
     this.isRecurring.set(false);
     this.step.set('confirm');
   }
@@ -1593,7 +1319,6 @@ export class PromoteListingModalComponent implements OnDestroy {
 
     this.promotionRequested.emit({
       durationDays: this.durationFromPlanId(this.selectedPlanId()),
-      paymentMethod: this.selectedPaymentId(),
     });
   }
 
