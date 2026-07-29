@@ -7,6 +7,7 @@ import {
   inject,
   signal,
   viewChild,
+  ViewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
@@ -17,12 +18,16 @@ import {
   CreateAdType,
   CreateAdTypeModalComponent,
 } from './components/create-ad-type-modal.component';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 import {
   SellerMonetizationService,
   type SellerAdRecord,
   type SubscriptionStatusData,
 } from '../../services/seller-monetization.service';
 import { AppToastService } from '../../services/app-toast.service';
+import { ListingsService } from '../../services/listings.service';
 
 type AdPlacement = 'promoted listings' | 'store promotions' | 'banner ads';
 type AdStatus = 'active' | 'paused' | 'expired';
@@ -600,9 +605,11 @@ interface ListingSection {
 
     @if (isCreateAdTypeModalOpen()) {
       <app-create-ad-type-modal
+        [isSubmitting]="isSubmittingAd()"
         (close)="isCreateAdTypeModalOpen.set(false)"
         (continue)="handleCreateAdTypeSelection($event)"
         (promoteStore)="handleCreateStorePromotion($event)"
+        (promoteListing)="handleCreateListingPromotion($event)"
       ></app-create-ad-type-modal>
     }
 
@@ -621,6 +628,10 @@ export class RunningAdsPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly sellerMonetizationService = inject(SellerMonetizationService);
   private readonly appToastService = inject(AppToastService);
+  private readonly listingsService = inject(ListingsService);
+
+  @ViewChild(CreateAdTypeModalComponent) createAdModal!: CreateAdTypeModalComponent;
+  readonly isSubmittingAd = signal(false);
 
   readonly arrowLeftIcon = '/assets/icons/running-ads-arrow-left.svg';
   readonly arrowRightIcon = '/assets/icons/running-ads-arrow-right.svg';
@@ -1423,21 +1434,69 @@ export class RunningAdsPageComponent {
   }
 
   handleCreateStorePromotion(vendorId: string): void {
+    this.isSubmittingAd.set(true);
     this.sellerMonetizationService.createStorePromotion({ vendorId }).subscribe({
       next: () => {
         this.activePlacement.set('store promotions');
         this.activeStatus.set('active');
         this.currentPage.set(1);
-        this.isCreateAdTypeModalOpen.set(false);
+        this.isSubmittingAd.set(false);
+        this.createAdModal.showSuccess('store');
         this.appToastService.show({ message: 'Store promotion is now running.' });
         this.loadAdsData();
       },
       error: () => {
+        this.isSubmittingAd.set(false);
         this.appToastService.show({
           message: 'That store promotion couldn’t be created right now. Please try again.',
         });
       },
     });
+  }
+
+  private durationFromPlanId(planId: string): number {
+    switch (planId) {
+      case '1-day': return 1;
+      case '7-days': return 7;
+      case '14-days': return 14;
+      case '30-days': return 30;
+      default: return 7;
+    }
+  }
+
+  async handleCreateListingPromotion(event: { listingIds: string[], planId: string }): Promise<void> {
+    this.isSubmittingAd.set(true);
+
+    try {
+      const durationDays = this.durationFromPlanId(event.planId);
+      const plans = await firstValueFrom(this.listingsService.getPromotionPlans());
+      const plan = plans.find(
+        (p) => p.status?.toLowerCase() === 'active' && p.duration_days === durationDays,
+      );
+
+      if (!plan) {
+        this.isSubmittingAd.set(false);
+        this.appToastService.show({
+          message: "That promotion option isn't available right now.",
+        });
+        return;
+      }
+
+      await firstValueFrom(
+        this.listingsService.promoteListings({
+          listing_ids: event.listingIds,
+          plan_id: plan.id,
+        }),
+      );
+
+      this.isSubmittingAd.set(false);
+      this.createAdModal.showSuccess('listing');
+    } catch (error) {
+      this.isSubmittingAd.set(false);
+      this.appToastService.show({
+        message: 'Listings couldn’t be promoted right now. Please try again.',
+      });
+    }
   }
 
   navigateToPlans(): void {

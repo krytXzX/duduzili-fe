@@ -5,6 +5,7 @@ import {
   inject,
   output,
   signal,
+  input,
 } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -62,6 +63,14 @@ interface StorePromotionOption {
   coverImage: string;
   logoImage: string;
   activeListings: string;
+}
+
+export interface ListingBoostPlan {
+  id: string;
+  name: string;
+  price: string;
+  duration: string;
+  description: string;
 }
 
 @Component({
@@ -324,10 +333,93 @@ interface StorePromotionOption {
                 </button>
                 <button
                   type="button"
-                  (click)="completeListingPromotion()"
+                  (click)="step.set('configure-listing-plan')"
                   class="h-[52px] rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
                 >
-                  Promote Listing(s)
+                  Continue
+                </button>
+              </div>
+            </footer>
+          } @else if (step() === 'configure-listing-plan') {
+            <header class="px-4 pb-4 pt-3">
+              <div class="flex items-center gap-3">
+                <button
+                  type="button"
+                  (click)="step.set('configure-listing')"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F7] text-[#1A1B1D]"
+                  aria-label="Back"
+                >
+                  <ng-icon name="heroXMark" class="text-[18px]"></ng-icon>
+                </button>
+                <span class="text-[16px] font-medium leading-6 text-[#1A1B1D]">Select Plan</span>
+              </div>
+
+              <div class="mt-3 grid grid-cols-2 gap-2">
+                <span class="h-[2px] rounded-full bg-[#6453D9]"></span>
+                <span class="h-[2px] rounded-full bg-[#6453D9]"></span>
+              </div>
+            </header>
+
+            <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-6">
+              <h2 class="text-[24px] font-semibold leading-8 text-[#1A1B1D]">
+                Choose Promotion Plan
+              </h2>
+              <p class="mt-0.5 text-[14px] leading-6 text-[rgba(26,27,29,0.7)]">
+                Select a plan to boost your listings
+              </p>
+
+              <section class="mt-9">
+                <div class="space-y-3">
+                  @for (plan of listingPlans; track plan.id) {
+                    <button
+                      type="button"
+                      (click)="selectedListingPlanId.set(plan.id)"
+                      class="flex w-full items-start justify-between rounded-[16px] border p-4 text-left transition"
+                      [class.border-[#6453D9]]="selectedListingPlanId() === plan.id"
+                      [class.bg-[#F9F7FF]]="selectedListingPlanId() === plan.id"
+                      [class.border-[#EAEAEA]]="selectedListingPlanId() !== plan.id"
+                      [class.bg-white]="selectedListingPlanId() !== plan.id"
+                    >
+                      <div class="flex items-start gap-3">
+                        <span
+                          class="mt-1 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-[2px]"
+                          [class.border-[#6453D9]]="selectedListingPlanId() === plan.id"
+                          [class.border-[#D9D9D9]]="selectedListingPlanId() !== plan.id"
+                        >
+                          @if (selectedListingPlanId() === plan.id) {
+                            <span class="h-[10px] w-[10px] rounded-full bg-[#6453D9]"></span>
+                          }
+                        </span>
+                        <div>
+                          <h4 class="text-[16px] font-medium text-[#1A1B1D]">{{ plan.name }}</h4>
+                          <p class="mt-1 text-[13px] text-[#777777]">{{ plan.description }}</p>
+                          <p class="mt-1 text-[13px] font-medium text-[#6453D9]">{{ plan.duration }}</p>
+                        </div>
+                      </div>
+                      <span class="text-[16px] font-bold text-[#1A1B1D]">{{ plan.price }}</span>
+                    </button>
+                  }
+                </div>
+              </section>
+            </div>
+
+            <footer class="border-t border-[#EDEDED] bg-white px-5 pb-6 pt-[10px]">
+              <div class="grid grid-cols-[minmax(0,1fr)_205px] gap-[6px]">
+                <button
+                  type="button"
+                  (click)="step.set('configure-listing')"
+                  [disabled]="isSubmitting()"
+                  class="h-[52px] rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.5px] text-[#05061A] disabled:opacity-50"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  (click)="completeListingPromotion()"
+                  [disabled]="isSubmitting()"
+                  class="h-[52px] rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:opacity-50"
+                >
+                  {{ isSubmitting() ? 'Processing...' : 'Promote Listing(s)' }}
                 </button>
               </div>
             </footer>
@@ -559,16 +651,18 @@ interface StorePromotionOption {
                 <button
                   type="button"
                   (click)="step.set('type')"
-                  class="h-[52px] rounded-[82px] bg-[#F5F5F5] px-5 text-[16px] font-medium tracking-[-0.5px] text-[#05061A]"
+                  [disabled]="isSubmitting()"
+                  class="h-[52px] rounded-[82px] bg-[#F5F5F5] px-5 text-[16px] font-medium tracking-[-0.5px] text-[#05061A] disabled:opacity-50"
                 >
                   Back
                 </button>
                 <button
                   type="button"
                   (click)="completeStorePromotion()"
-                  class="h-[52px] rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
+                  [disabled]="isSubmitting()"
+                  class="h-[52px] rounded-full border border-white bg-[#6453D9] px-5 text-[16px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:opacity-50"
                 >
-                  Promote store
+                  {{ isSubmitting() ? 'Processing...' : 'Promote store' }}
                 </button>
               </div>
             </footer>
@@ -1336,6 +1430,48 @@ interface StorePromotionOption {
                       </div>
                     </div>
                   </section>
+                } @else if (step() === 'configure-listing-plan') {
+                  <h2 class="text-[32px] font-semibold leading-10 text-[#1A1B1D]">
+                    Choose Promotion Plan
+                  </h2>
+                  <p class="mt-2 max-w-[552px] text-[16px] leading-6 text-[rgba(26,27,29,0.5)]">
+                    Select a plan to boost your listings
+                  </p>
+
+                  <section class="mt-11">
+                    <div class="max-w-[580px] space-y-4">
+                      @for (plan of listingPlans; track plan.id) {
+                        <button
+                          type="button"
+                          (click)="selectedListingPlanId.set(plan.id)"
+                          class="flex w-full items-start justify-between rounded-[20px] border p-6 text-left transition hover:border-[#6453D9]"
+                          [class.border-[#6453D9]]="selectedListingPlanId() === plan.id"
+                          [class.bg-[#F9F7FF]]="selectedListingPlanId() === plan.id"
+                          [class.border-[#EAEAEA]]="selectedListingPlanId() !== plan.id"
+                          [class.bg-white]="selectedListingPlanId() !== plan.id"
+                          [style.border-width.px]="selectedListingPlanId() === plan.id ? 2 : 1"
+                        >
+                          <div class="flex items-start gap-4">
+                            <span
+                              class="mt-1 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-[2px]"
+                              [class.border-[#6453D9]]="selectedListingPlanId() === plan.id"
+                              [class.border-[#D9D9D9]]="selectedListingPlanId() !== plan.id"
+                            >
+                              @if (selectedListingPlanId() === plan.id) {
+                                <span class="h-[12px] w-[12px] rounded-full bg-[#6453D9]"></span>
+                              }
+                            </span>
+                            <div>
+                              <h4 class="text-[18px] font-medium text-[#1A1B1D]">{{ plan.name }}</h4>
+                              <p class="mt-1.5 text-[14px] text-[#777777]">{{ plan.description }}</p>
+                              <p class="mt-1 text-[14px] font-medium text-[#6453D9]">{{ plan.duration }}</p>
+                            </div>
+                          </div>
+                          <span class="text-[18px] font-bold text-[#1A1B1D]">{{ plan.price }}</span>
+                        </button>
+                      }
+                    </div>
+                  </section>
                 } @else if (step() === 'configure-store') {
                   <div class="flex min-h-[720px] flex-col">
                     <div class="grid gap-14 xl:grid-cols-[580px_340px]">
@@ -1669,10 +1805,29 @@ interface StorePromotionOption {
                     </button>
                     <button
                       type="button"
-                      (click)="completeListingPromotion()"
+                      (click)="step.set('configure-listing-plan')"
                       class="h-10 rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5]"
                     >
-                      Promote Listing(s)
+                      Continue
+                    </button>
+                  </div>
+                } @else if (step() === 'configure-listing-plan') {
+                  <div class="mx-auto flex max-w-[996px] items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      (click)="step.set('configure-listing')"
+                      [disabled]="isSubmitting()"
+                      class="h-[44px] rounded-[82px] bg-[#F5F5F5] px-6 text-[16px] font-medium tracking-[-0.5px] text-[#05061A] disabled:opacity-50"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="button"
+                      (click)="completeListingPromotion()"
+                      [disabled]="isSubmitting()"
+                      class="h-10 rounded-full border border-white bg-[#6453D9] px-5 text-[14px] font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:opacity-50"
+                    >
+                      {{ isSubmitting() ? 'Processing...' : 'Promote Listing(s)' }}
                     </button>
                   </div>
                 } @else {
@@ -1692,7 +1847,8 @@ interface StorePromotionOption {
                     <button
                       type="button"
                       (click)="onPrimaryAction()"
-                      class="rounded-full bg-[#6653E4] px-7 py-3 text-[15px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
+                      [disabled]="isSubmitting()"
+                      class="rounded-full bg-[#6653E4] px-7 py-3 text-[15px] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5945DB] focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20 disabled:opacity-50"
                     >
                       {{ primaryActionLabel() }}
                     </button>
@@ -1712,13 +1868,15 @@ export class CreateAdTypeModalComponent {
 
   readonly close = output<void>();
   readonly continue = output<CreateAdType>();
-  readonly promoteListing = output<string[]>();
+  readonly promoteListing = output<{ listingIds: string[]; planId: string }>();
   readonly promoteStore = output<string>();
 
+  readonly isSubmitting = input(false);
   readonly selectedType = signal<CreateAdType>('listing');
   readonly step = signal<
     | 'type'
     | 'configure-listing'
+    | 'configure-listing-plan'
     | 'mobile-listing-picker'
     | 'configure-store'
     | 'store-preview'
@@ -1732,6 +1890,7 @@ export class CreateAdTypeModalComponent {
     'listing-3',
     'listing-4',
   ]);
+  readonly selectedListingPlanId = signal('7-days');
   readonly selectedStoreId = signal('store-promo-vine');
   readonly listingSearch = signal('');
   readonly isStoreFilterOpen = signal(false);
@@ -1744,6 +1903,12 @@ export class CreateAdTypeModalComponent {
     { id: 'automobiles' as const, label: 'Automobiles (1 left)' },
     { id: 'properties' as const, label: 'Properties (1 left)' },
     { id: 'others' as const, label: 'Others (6 left)' },
+  ];
+
+  readonly listingPlans: ListingBoostPlan[] = [
+    { id: '1-day', name: '1 Day Boost', price: '₦500.00', duration: '24 hours', description: 'Quick visibility boost for your listing.' },
+    { id: '3-days', name: '3 Days Boost', price: '₦1,200.00', duration: '3 days', description: 'Reach more buyers over the weekend.' },
+    { id: '7-days', name: '7 Days Boost', price: '₦2,500.00', duration: '7 days', description: 'Maximum exposure for a full week.' },
   ];
 
   readonly listings: ListingItem[] = [
@@ -2155,8 +2320,12 @@ export class CreateAdTypeModalComponent {
     }
 
     if (this.step() === 'configure-store') {
-      this.promoteStore.emit(this.selectedStoreId());
-      this.step.set('store-success');
+      this.completeStorePromotion();
+      return;
+    }
+
+    if (this.step() === 'configure-listing') {
+      this.step.set('configure-listing-plan');
       return;
     }
 
@@ -2198,8 +2367,10 @@ export class CreateAdTypeModalComponent {
   }
 
   completeListingPromotion(): void {
-    this.promoteListing.emit(this.selectedListingIds());
-    this.step.set('listing-success');
+    this.promoteListing.emit({
+      listingIds: this.selectedListingIds(),
+      planId: this.selectedListingPlanId(),
+    });
   }
 
   openStorePreview(): void {
@@ -2208,7 +2379,10 @@ export class CreateAdTypeModalComponent {
 
   completeStorePromotion(): void {
     this.promoteStore.emit(this.selectedStoreId());
-    this.step.set('store-success');
+  }
+
+  showSuccess(type: 'listing' | 'store'): void {
+    this.step.set(type === 'listing' ? 'listing-success' : 'store-success');
   }
 
   resetListingFlow(): void {
@@ -2294,15 +2468,15 @@ export class CreateAdTypeModalComponent {
   }
 
   primaryActionLabel(): string {
-    if (this.step() === 'type') {
+    if (this.step() === 'type' || this.step() === 'configure-listing') {
       return 'Continue';
     }
 
     if (this.step() === 'configure-store') {
-      return 'Promote store';
+      return this.isSubmitting() ? 'Processing...' : 'Promote store';
     }
 
-    return 'Promote Listing(s)';
+    return this.isSubmitting() ? 'Processing...' : 'Promote Listing(s)';
   }
 
   private storeIdForListing(storeName: string): string {
