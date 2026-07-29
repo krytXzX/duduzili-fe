@@ -56,6 +56,10 @@ export class AdminAdsPlansService {
     return this.http.patch<AdminSubscriptionPlanRecord>(`${this.apiUrl}/admin/ads/subscription-plans/${id}/`, payload);
   }
 
+  createSubscriptionPlan(payload: Partial<AdminSubscriptionPlanRecord>): Observable<AdminSubscriptionPlanRecord> {
+    return this.http.post<AdminSubscriptionPlanRecord>(`${this.apiUrl}/admin/ads/subscription-plans/`, payload);
+  }
+
   updateSingleBoostingPlan(id: number, payload: Partial<AdminSingleBoostingPlanRecord>): Observable<AdminSingleBoostingPlanRecord> {
     return this.http.patch<AdminSingleBoostingPlanRecord>(`${this.apiUrl}/admin/ads/single-boosting-plans/${id}/`, payload);
   }

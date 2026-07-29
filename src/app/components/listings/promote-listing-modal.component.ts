@@ -12,7 +12,9 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroChevronLeft, heroXMark } from '@ng-icons/heroicons/outline';
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
+import { Router } from '@angular/router';
 import { MobileOverlayService } from '../../services/mobile-overlay.service';
+import { SellerMonetizationService } from '../../services/seller-monetization.service';
 
 interface ListingBoostPlan {
   id: '1-day' | '7-days' | '14-days' | '30-days';
@@ -461,21 +463,39 @@ export interface ListingPromotionSelection {
                 </div>
 
                 <h2 class="mt-7 text-[17px] font-semibold leading-7 tracking-[-0.03em]">
-                  You have <span class="font-black">4/100</span> {{ targetLabel() }} promotion left
+                  @if (hasQuota()) {
+                    You have <span class="font-black">{{ quotaString() }}</span> {{ targetLabel() }} promotion left
+                  } @else {
+                    You have reached your promotion limit
+                  }
                 </h2>
 
                 <p class="mt-3 text-[11px] leading-5 text-[#8A8F9A]">
-                  Promoting this would mean, kinikan kinikan and more kinikan. You get?
+                  @if (hasQuota()) {
+                    Promoting this would mean, kinikan kinikan and more kinikan. You get?
+                  } @else {
+                    Please upgrade your plan to continue promoting your {{ targetLabel() }}s.
+                  }
                 </p>
               </div>
 
-              <button
-                type="button"
-                (click)="step.set('plan')"
-                class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
-              >
-                {{ confirmActionLabel() }}
-              </button>
+              @if (hasQuota()) {
+                <button
+                  type="button"
+                  (click)="step.set('plan')"
+                  class="rounded-full bg-[#6653E4] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
+                >
+                  {{ confirmActionLabel() }}
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  (click)="handleUpgradePlan()"
+                  class="rounded-full bg-[#111111] px-5 py-3 text-[12px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(17,17,17,0.9)] transition-all duration-200 hover:bg-[#222222] active:scale-95"
+                >
+                  Upgrade Plan
+                </button>
+              }
             </div>
           }
 
@@ -617,11 +637,19 @@ export interface ListingPromotionSelection {
               </div>
 
               <h2 class="text-[24px] font-semibold leading-tight tracking-tight text-[#1A1C21]">
-                You have <span class="font-black">4/100</span> {{ targetLabel() }} promotion left
+                @if (hasQuota()) {
+                  You have <span class="font-black">{{ quotaString() }}</span> {{ targetLabel() }} promotion left
+                } @else {
+                  You have reached your promotion limit
+                }
               </h2>
 
               <p class="mx-auto mt-5 max-w-[420px] text-[15px] leading-7 text-gray-500">
-                Promoting this would mean, kinikan kinikan and more kinikan. You get?
+                @if (hasQuota()) {
+                  Promoting this would mean, kinikan kinikan and more kinikan. You get?
+                } @else {
+                  Please upgrade your plan to continue promoting your {{ targetLabel() }}s.
+                }
               </p>
 
               <div class="mt-12 flex items-center justify-center gap-3">
@@ -632,13 +660,23 @@ export interface ListingPromotionSelection {
                 >
                   Cancel
                 </button>
-                <button
-                  type="button"
-                  (click)="step.set('plan')"
-                  class="rounded-full bg-[#6653E4] px-8 py-4 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
-                >
-                  {{ confirmActionLabel() }}
-                </button>
+                @if (hasQuota()) {
+                  <button
+                    type="button"
+                    (click)="step.set('plan')"
+                    class="rounded-full bg-[#6653E4] px-8 py-4 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition-all duration-200 hover:bg-[#5542cc] active:scale-95"
+                  >
+                    {{ confirmActionLabel() }}
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    (click)="handleUpgradePlan()"
+                    class="rounded-full bg-[#111111] px-8 py-4 text-[15px] font-medium text-white shadow-[0_16px_32px_-18px_rgba(17,17,17,0.9)] transition-all duration-200 hover:bg-[#222222] active:scale-95"
+                  >
+                    Upgrade Plan
+                  </button>
+                }
               </div>
             </div>
           }
@@ -784,6 +822,8 @@ export class PromoteListingModalComponent implements OnDestroy {
   promoted = output<void>();
   promotionRequested = output<ListingPromotionSelection>();
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly sellerMonetizationService = inject(SellerMonetizationService);
+  private readonly router = inject(Router);
 
   protected readonly storeAssets = {
     awardDesktop: '/assets/icons/promote-store-award-desktop.svg',
@@ -956,7 +996,43 @@ export class PromoteListingModalComponent implements OnDestroy {
   });
 
   readonly targetLabel = computed(() => (this.promoteTarget() === 'store' ? 'store' : 'listing'));
-  readonly confirmTitle = computed(() => `You have 4/100 ${this.targetLabel()} promotion left`);
+  readonly remainingQuota = computed(() => {
+    const status = this.sellerMonetizationService.subscriptionStatus();
+    if (!status || !status.features) return 0;
+
+    if (this.promoteTarget() === 'store') {
+      const store = status.features.store_promotions;
+      if (!store) return 0;
+      return store.remaining ?? Math.max(0, store.max - store.used);
+    } else {
+      const listings = status.features.listing_promotions;
+      if (!listings) return 0;
+      const max = (listings.automobile?.max ?? 0) + (listings.property?.max ?? 0) + (listings.other?.max ?? 0);
+      const used = (listings.automobile?.used ?? 0) + (listings.property?.used ?? 0) + (listings.other?.used ?? 0);
+      return Math.max(0, max - used);
+    }
+  });
+
+  readonly hasQuota = computed(() => this.remainingQuota() > 0);
+
+  readonly quotaString = computed(() => {
+    const status = this.sellerMonetizationService.subscriptionStatus();
+    if (!status || !status.features) return '0/0';
+
+    if (this.promoteTarget() === 'store') {
+      const store = status.features.store_promotions;
+      if (!store) return '0/0';
+      const max = store.max;
+      return `${this.remainingQuota()}/${max}`;
+    } else {
+      const listings = status.features.listing_promotions;
+      if (!listings) return '0/0';
+      const max = (listings.automobile?.max ?? 0) + (listings.property?.max ?? 0) + (listings.other?.max ?? 0);
+      return `${this.remainingQuota()}/${max}`;
+    }
+  });
+
+  readonly confirmTitle = computed(() => `You have ${this.quotaString()} ${this.targetLabel()} promotion left`);
   readonly confirmActionLabel = computed(() => `Yes, promote ${this.targetLabel()}`);
   readonly planSubtitle = computed(() =>
     this.promoteTarget() === 'store'
@@ -1017,7 +1093,7 @@ export class PromoteListingModalComponent implements OnDestroy {
     this.close.emit();
   }
 
-  submitListingPromotion() {
+  protected submitListingPromotion() {
     if (this.isSubmitting()) {
       return;
     }
@@ -1025,6 +1101,11 @@ export class PromoteListingModalComponent implements OnDestroy {
     this.promotionRequested.emit({
       durationDays: this.durationFromPlanId(this.selectedPlanId()),
     });
+  }
+
+  protected handleUpgradePlan(): void {
+    this.close.emit();
+    void this.router.navigate(['/seller/ads/plans']);
   }
 
   submitStorePromotion() {

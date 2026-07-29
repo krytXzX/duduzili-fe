@@ -117,6 +117,16 @@ const PLAN_FEATURE_DESCRIPTIONS: Record<PlanFeatureLabel, string> = {
         </div>
 
         @if (activeTab() === 'subscriptions') {
+          <div class="mt-4">
+            <button
+              type="button"
+              (click)="openCreatePlanModal()"
+              class="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-white bg-[#6453d9] px-4 text-base font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]"
+            >
+              <span class="text-lg leading-none">+</span>
+              Create Subscription Plan
+            </button>
+          </div>
           <div class="pt-5">
             <div class="inline-flex w-full items-center rounded-full border border-[#ededed] bg-[#fafafa] p-1 shadow-[0_0_4px_1px_rgba(194,194,194,0.25)]">
               @for (cycle of billingCycles; track cycle.id; let last = $last) {
@@ -247,8 +257,9 @@ const PLAN_FEATURE_DESCRIPTIONS: Record<PlanFeatureLabel, string> = {
 
       <div class="hidden px-4 py-6 sm:px-6 lg:px-8 md:block">
         <div class="border-b border-[#efefef]">
-          <div class="flex items-center gap-8">
-            @for (tab of planTabs; track tab.id) {
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-8">
+              @for (tab of planTabs; track tab.id) {
               <button
                 type="button"
                 (click)="activeTab.set(tab.id)"
@@ -262,6 +273,19 @@ const PLAN_FEATURE_DESCRIPTIONS: Record<PlanFeatureLabel, string> = {
                 <ng-icon [name]="tab.icon" class="text-[16px]"></ng-icon>
                 {{ tab.label }}
               </button>
+            }
+            </div>
+            @if (activeTab() === 'subscriptions') {
+              <div class="pb-2">
+                <button
+                  type="button"
+                  (click)="openCreatePlanModal()"
+                  class="inline-flex h-10 items-center gap-2 rounded-full border border-white bg-[#6453d9] px-5 text-sm font-medium text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6b5bd5]"
+                >
+                  <span class="text-lg leading-none">+</span>
+                  Create Subscription Plan
+                </button>
+              </div>
             }
           </div>
         </div>
@@ -473,7 +497,44 @@ export class AdminAdsPlansPageComponent {
     });
   }
 
+  openCreatePlanModal(): void {
+    const defaultFeatures: AdminEditablePlan['features'] = PLAN_FEATURE_CATALOG.map(
+      (label) => ({
+        label,
+        description: PLAN_FEATURE_DESCRIPTIONS[label],
+        enabled: false,
+      })
+    );
+
+    this.editingPlan.set({
+      id: -1,
+      name: 'New Plan',
+      status: 'inactive',
+      prices: {
+        weekly: '₦0',
+        monthly: '₦0',
+        yearly: '₦0',
+      },
+      features: defaultFeatures,
+    });
+  }
+
   savePlanChanges(updatedPlan: AdminEditablePlan): void {
+    if (updatedPlan.id === -1) {
+      const payload = this.toSubscriptionPlanPayload(updatedPlan, null);
+      this.adsPlansService.createSubscriptionPlan(payload).subscribe({
+        next: (response) => {
+          this.subscriptionPlanRecords.update((plans) => [...plans, response]);
+          this.editingPlan.set(null);
+          this.toast.show({ message: 'Subscription plan created successfully.' });
+        },
+        error: () => {
+          this.toast.show({ message: 'That subscription plan couldn’t be created right now. Please try again.' });
+        },
+      });
+      return;
+    }
+
     const backendPlan = this.subscriptionPlanRecords().find((plan) => plan.id === updatedPlan.id);
 
     if (!backendPlan) {
@@ -594,7 +655,7 @@ export class AdminAdsPlansPageComponent {
     };
   }
 
-  private toSubscriptionPlanPayload(updatedPlan: AdminEditablePlan, backendPlan: AdminSubscriptionPlanRecord): Partial<AdminSubscriptionPlanRecord> {
+  private toSubscriptionPlanPayload(updatedPlan: AdminEditablePlan, backendPlan: AdminSubscriptionPlanRecord | null): Partial<AdminSubscriptionPlanRecord> {
     const enabledLabels = new Set(
       updatedPlan.features.filter((feature) => feature.enabled).map((feature) => feature.label),
     );
@@ -629,8 +690,8 @@ export class AdminAdsPlansPageComponent {
         : enabledLabels.has('1 store promotion')
           ? 1
           : 0,
-      discount_percentage: backendPlan.discount_percentage,
-      vat_percentage: backendPlan.vat_percentage,
+      discount_percentage: backendPlan?.discount_percentage ?? '0.00',
+      vat_percentage: backendPlan?.vat_percentage ?? '0.00',
     };
   }
 
