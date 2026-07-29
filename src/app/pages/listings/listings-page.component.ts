@@ -614,9 +614,11 @@ type AddListingPickerOption = {
                   {{ listing.status }}
                 </a>
 
-                <button type="button" class="ml-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]" [attr.aria-label]="'Promote ' + listing.name">
-                  <span class="text-sm leading-none">🚀</span>
-                </button>
+                @if (listing.promoted) {
+                  <button type="button" class="ml-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#eaeaea] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)]" [attr.aria-label]="'Promoted ' + listing.name">
+                    <span class="text-sm leading-none">🚀</span>
+                  </button>
+                }
               </div>
             }
           </div>

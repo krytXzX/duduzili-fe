@@ -12,7 +12,7 @@ import {
 } from '../../services/admin-listing-details.service';
 
 type AdminListingDetailTab = 'overview' | 'reports' | 'requests' | 'activities';
-type AdminListingDetailStatus = 'Available' | 'Sold' | 'Paused' | 'Suspended';
+type AdminListingDetailStatus = 'Available' | 'Sold' | 'Paused' | 'Suspended' | 'Draft';
 
 interface ListingGalleryItem {
   id: string;
@@ -720,12 +720,14 @@ interface AdminListingDetailRecord {
             </div>
           </div>
 
-          <button
-            type="button"
-            class="absolute left-[328px] top-[72px] inline-flex h-8 items-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#2D2D2D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
-          >
-            🚀 Promoted
-          </button>
+          @if (listing().isPromoted) {
+            <button
+              type="button"
+              class="absolute left-[328px] top-[72px] inline-flex h-8 items-center rounded-full border border-[#EAEAEA] bg-white px-5 text-[14px] font-medium text-[#2D2D2D] shadow-[0_4px_8px_rgba(202,202,202,0.25)]"
+            >
+              🚀 Promoted
+            </button>
+          }
 
           <nav class="mt-7 flex items-end gap-0 border-b border-[#EAEAEA]">
             @for (tab of desktopTabs; track tab.id) {
@@ -1637,8 +1639,10 @@ export class AdminListingDetailsPageComponent {
         return '/assets/icons/listing-details-status-sold.svg';
       case 'Paused':
         return '/assets/icons/listing-details-status-pause.svg';
-      default:
+      case 'Available':
         return '/assets/icons/listing-details-status-available.svg';
+      case 'Draft':
+        return '/assets/icons/listings-status-draft.svg';
     }
   }
 
@@ -1650,8 +1654,10 @@ export class AdminListingDetailsPageComponent {
         return '/assets/icons/listing-details-status-desktop-sold.svg';
       case 'Paused':
         return '/assets/icons/listing-details-status-desktop-pause.svg';
-      default:
+      case 'Available':
         return '/assets/icons/listing-details-status-desktop-available.svg';
+      case 'Draft':
+        return '/assets/icons/listings-status-draft.svg';
     }
   }
 

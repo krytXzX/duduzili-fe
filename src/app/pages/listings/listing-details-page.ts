@@ -38,7 +38,7 @@ import { environment } from '../../../environments/environment';
 import { formatListingPricing } from '../../utils/listing-pricing';
 
 type ListingTab = 'overview' | 'requests' | 'activities';
-type ListingStatus = 'Available' | 'Paused' | 'Sold';
+type ListingStatus = 'Available' | 'Paused' | 'Sold' | 'Draft';
 
 interface GalleryImage {
   id: string | null;
@@ -112,7 +112,7 @@ interface ListingDetails {
 interface StatusOption {
   label: string;
   value: ListingStatus;
-  tone: 'available' | 'paused' | 'sold';
+  tone: 'available' | 'paused' | 'sold' | 'draft';
 }
 
 interface DeliveryOption {
@@ -697,7 +697,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                 <div class="relative">
                   <button
                     type="button"
-                    (click)="statusSheetOpen.set(true)"
+                    (click)="statusSheetOpen.update((v) => !v)"
                     class="inline-flex h-12 items-center gap-2 rounded-full border border-[#E4E7EC] bg-white px-5 text-[14px] font-medium text-[#202335]"
                   >
                     Status
@@ -714,6 +714,11 @@ type EditSectionId = 'media' | 'details' | 'delivery';
 
                   @if (statusSheetOpen()) {
                     <div
+                      class="fixed inset-0 z-10 hidden md:block"
+                      (click)="statusSheetOpen.set(false); $event.stopPropagation()"
+                      aria-hidden="true"
+                    ></div>
+                    <div
                       class="absolute right-0 top-[calc(100%+12px)] z-20 hidden w-[296px] flex-col gap-4 overflow-hidden rounded-[16px] border border-[#F0F0F0] bg-white p-3 shadow-[0_6.65px_5.32px_rgba(0,0,0,0.03),0_2.767px_2.214px_rgba(0,0,0,0.02)] md:flex"
                       role="menu"
                       aria-label="Update listing status"
@@ -723,7 +728,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
                       </h3>
 
                       <div class="flex flex-col gap-1">
-                        @for (option of statusOptions; track option.value) {
+                        @for (option of statusOptions(); track option.value) {
                           <button
                             type="button"
                             (click)="handleStatusSelection(option.value)"
@@ -2423,7 +2428,7 @@ type EditSectionId = 'media' | 'details' | 'delivery';
         </h2>
 
         <div class="mt-4 space-y-4">
-          @for (option of statusOptions; track option.value) {
+          @for (option of statusOptions(); track option.value) {
             <button
               type="button"
               (click)="handleStatusSelection(option.value)"
@@ -2991,11 +2996,19 @@ export class ListingDetailsPageComponent implements OnDestroy {
     },
   ] as const;
 
-  protected readonly statusOptions: readonly StatusOption[] = [
-    { label: 'Available', value: 'Available', tone: 'available' },
-    { label: 'Pause', value: 'Paused', tone: 'paused' },
-    { label: 'Sold', value: 'Sold', tone: 'sold' },
-  ] as const;
+  protected readonly statusOptions = computed<readonly StatusOption[]>(() => {
+    if (this.listing().status === 'Draft') {
+      return [
+        { label: 'Publish', value: 'Available', tone: 'available' },
+        { label: 'Draft', value: 'Draft', tone: 'draft' },
+      ];
+    }
+    return [
+      { label: 'Available', value: 'Available', tone: 'available' },
+      { label: 'Pause', value: 'Paused', tone: 'paused' },
+      { label: 'Sold', value: 'Sold', tone: 'sold' },
+    ];
+  });
 
   protected readonly details = computed<readonly ListingDetailItem[]>(() => {
     const record = this.listingRecord();
@@ -3138,7 +3151,9 @@ export class ListingDetailsPageComponent implements OnDestroy {
         ? 'available'
         : this.listing().status === 'Paused'
           ? 'paused'
-          : 'sold',
+          : this.listing().status === 'Draft'
+            ? 'draft'
+            : 'sold',
     );
   }
 
@@ -3148,6 +3163,8 @@ export class ListingDetailsPageComponent implements OnDestroy {
         return 'bg-[#FFF7EA] text-[#F19A1A]';
       case 'paused':
         return 'bg-[#F3F0FF] text-[#5E44EE]';
+      case 'draft':
+        return 'bg-[#F0F0F0] text-[#606060]';
       default:
         return 'bg-[#EEFCEB] text-[#2F9E44]';
     }
@@ -4350,6 +4367,8 @@ export class ListingDetailsPageComponent implements OnDestroy {
         return 'paused';
       case 'Sold':
         return 'sold';
+      case 'Draft':
+        return 'draft';
       default:
         return null;
     }
@@ -4366,6 +4385,8 @@ export class ListingDetailsPageComponent implements OnDestroy {
       case 'paused':
       case 'pause':
         return 'Paused';
+      case 'draft':
+        return 'Draft';
       default:
         return 'Available';
     }

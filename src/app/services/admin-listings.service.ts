@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export type AdminListingsStatus = 'available' | 'sold' | 'paused' | 'suspended';
+export type AdminListingsStatus = 'available' | 'sold' | 'paused' | 'suspended' | 'draft';
 export type AdminListingsSummaryFilter = 'all' | AdminListingsStatus;
 
 export type AdminListingRecordResponse = {
@@ -41,6 +41,7 @@ export type AdminListingsResponse = {
     sold?: number;
     paused?: number;
     suspended?: number;
+    draft?: number;
   };
   stores?: AdminListingsFilterStore[];
   categories?: AdminListingsFilterCategory[];

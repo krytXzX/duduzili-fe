@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export type AdminListingDetailStatus = 'Available' | 'Sold' | 'Paused' | 'Suspended';
+export type AdminListingDetailStatus = 'Available' | 'Sold' | 'Paused' | 'Suspended' | 'Draft';
 
 export type AdminListingDetailGalleryItem = {
   id: string;

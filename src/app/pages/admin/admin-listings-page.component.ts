@@ -420,6 +420,7 @@ export class AdminListingsPageComponent {
     sold: 0,
     paused: 0,
     suspended: 0,
+    draft: 0,
   });
   readonly availableCategories = signal<Array<{ slug: string; name: string }>>([]);
   readonly availableStores = signal<Array<{ id: string; store_name: string }>>([]);
@@ -446,6 +447,7 @@ export class AdminListingsPageComponent {
     { value: 'sold', label: 'Sold' },
     { value: 'paused', label: 'Paused' },
     { value: 'suspended', label: 'Suspended' },
+    { value: 'draft', label: 'Draft' },
   ];
 
   readonly desktopSummaryCards = computed(() => [
@@ -458,6 +460,7 @@ export class AdminListingsPageComponent {
   readonly mobileSummaryCards = computed(() => [
     ...this.desktopSummaryCards(),
     { label: 'Suspended', value: 'suspended' as const, amount: this.counts().suspended },
+    { label: 'Draft', value: 'draft' as const, amount: this.counts().draft },
   ]);
 
   readonly desktopListings = computed(() => this.listings());
@@ -496,6 +499,7 @@ export class AdminListingsPageComponent {
           sold: response.counts?.sold ?? 0,
           paused: response.counts?.paused ?? 0,
           suspended: response.counts?.suspended ?? 0,
+          draft: response.counts?.draft ?? 0,
         });
         this.availableCategories.set(response.categories ?? []);
         this.availableStores.set(response.stores ?? []);
@@ -556,6 +560,8 @@ export class AdminListingsPageComponent {
         return 'Paused';
       case 'suspended':
         return 'Suspended';
+      case 'draft':
+        return 'Draft';
     }
   }
 
@@ -569,6 +575,8 @@ export class AdminListingsPageComponent {
         return '/assets/icons/admin-listings/status-paused.svg';
       case 'suspended':
         return '/assets/icons/admin-listings/status-suspended.svg';
+      case 'draft':
+        return '/assets/icons/listings-status-draft.svg';
     }
   }
 
