@@ -143,17 +143,17 @@ type ChatDay = {
               >
                 <span class="flex items-center gap-2 min-w-0">
                   @if (selectedStore().variant === 'all') {
-                    @if (firstStoreAvatar()?.avatar; as storeAvatar) {
+                    @if (firstStoreAvatar().avatar; as storeAvatar) {
                       <span class="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
                         <img
                           [ngSrc]="storeAvatar"
                           width="32"
                           height="32"
-                          [alt]="firstStoreAvatar()?.label ?? 'Store'"
+                          [alt]="firstStoreAvatar().label"
                           class="h-8 w-8 object-cover"
                         />
                       </span>
-                    } @else if (firstStoreAvatar()?.label; as storeLabel) {
+                    } @else if (firstStoreAvatar().label; as storeLabel) {
                       <span
                         class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold text-white"
                         [style.background]="avatarGradientForLabel(storeLabel)"
@@ -236,17 +236,17 @@ type ChatDay = {
                       >
                         <span class="flex min-w-0 items-center gap-2">
                           @if (store.variant === 'all') {
-                            @if (firstStoreAvatar()?.avatar; as storeAvatar) {
+                            @if (firstStoreAvatar().avatar; as storeAvatar) {
                               <span class="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full">
                                 <img
                                   [ngSrc]="storeAvatar"
                                   width="40"
                                   height="40"
-                                  [alt]="firstStoreAvatar()?.label ?? 'Store'"
+                                  [alt]="firstStoreAvatar().label"
                                   class="h-10 w-10 object-cover"
                                 />
                               </span>
-                            } @else if (firstStoreAvatar()?.label; as storeLabel) {
+                            } @else if (firstStoreAvatar().label; as storeLabel) {
                               <span
                                 class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-[14px] font-semibold text-white"
                                 [style.background]="avatarGradientForLabel(storeLabel)"
@@ -909,17 +909,17 @@ type ChatDay = {
               >
                 <span class="flex items-center gap-2 min-w-0">
                   @if (selectedStore().variant === 'all') {
-                    @if (firstStoreAvatar()?.avatar; as storeAvatar) {
+                    @if (firstStoreAvatar().avatar; as storeAvatar) {
                       <span class="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
                         <img
                           [ngSrc]="storeAvatar"
                           width="32"
                           height="32"
-                          [alt]="firstStoreAvatar()?.label ?? 'Store'"
+                          [alt]="firstStoreAvatar().label"
                           class="h-8 w-8 object-cover"
                         />
                       </span>
-                    } @else if (firstStoreAvatar()?.label; as storeLabel) {
+                    } @else if (firstStoreAvatar().label; as storeLabel) {
                       <span
                         class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold text-white"
                         [style.background]="avatarGradientForLabel(storeLabel)"
@@ -1748,17 +1748,17 @@ type ChatDay = {
               >
                 <span class="flex min-w-0 items-center gap-2">
                   @if (store.variant === 'all') {
-                    @if (firstStoreAvatar()?.avatar; as storeAvatar) {
+                    @if (firstStoreAvatar().avatar; as storeAvatar) {
                       <span class="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full">
                         <img
                           [ngSrc]="storeAvatar"
                           width="40"
                           height="40"
-                          [alt]="firstStoreAvatar()?.label ?? 'Store'"
+                          [alt]="firstStoreAvatar().label"
                           class="h-10 w-10 object-cover"
                         />
                       </span>
-                    } @else if (firstStoreAvatar()?.label; as storeLabel) {
+                    } @else if (firstStoreAvatar().label; as storeLabel) {
                       <span
                         class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-[14px] font-semibold text-white"
                         [style.background]="avatarGradientForLabel(storeLabel)"
