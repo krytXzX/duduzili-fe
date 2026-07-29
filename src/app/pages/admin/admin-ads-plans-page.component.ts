@@ -194,7 +194,7 @@ const PLAN_FEATURE_DESCRIPTIONS: Record<PlanFeatureLabel, string> = {
                   <div class="mt-7 border-t border-[#e7e7e7] pt-4">
                     <h3 class="text-[18px] font-medium text-[#0d0d0d]">Features</h3>
                     <ul class="mt-4 space-y-3">
-                      @for (feature of enabledFeatures(plan); track feature.label) {
+                      @for (feature of plan.features; track feature.label) {
                         <li class="flex items-start gap-2">
                           <span class="mt-[8px] h-[5px] w-[5px] shrink-0 rounded-full bg-[#bfbfbf]"></span>
                           <span>
@@ -357,7 +357,7 @@ const PLAN_FEATURE_DESCRIPTIONS: Record<PlanFeatureLabel, string> = {
                   <div class="mt-6 border-t border-[#e7e7e7] pt-5">
                     <h3 class="text-[16px] font-medium text-[#222222]">Features</h3>
                     <ul class="mt-4 space-y-4">
-                      @for (feature of enabledFeatures(plan); track feature.label) {
+                      @for (feature of plan.features; track feature.label) {
                         <li class="flex items-start gap-3">
                           <span class="mt-[10px] h-[5px] w-[5px] shrink-0 rounded-full bg-[#bfbfbf]"></span>
                           <span>
@@ -485,27 +485,18 @@ export class AdminAdsPlansPageComponent {
     this.loadPlans();
   }
 
-  enabledFeatures(plan: AdminEditablePlan): AdminEditablePlan['features'] {
-    return plan.features.filter((feature) => feature.enabled);
-  }
+
 
   openEditPlanModal(plan: AdminEditablePlan): void {
     this.editingPlan.set({
       ...plan,
       prices: { ...plan.prices },
+      limits: { ...plan.limits },
       features: plan.features.map((feature) => ({ ...feature })),
     });
   }
 
   openCreatePlanModal(): void {
-    const defaultFeatures: AdminEditablePlan['features'] = PLAN_FEATURE_CATALOG.map(
-      (label) => ({
-        label,
-        description: PLAN_FEATURE_DESCRIPTIONS[label],
-        enabled: false,
-      })
-    );
-
     this.editingPlan.set({
       id: -1,
       name: 'New Plan',
@@ -515,7 +506,16 @@ export class AdminAdsPlansPageComponent {
         monthly: '₦0',
         yearly: '₦0',
       },
-      features: defaultFeatures,
+      unlimitedViews: false,
+      limits: {
+        automobile: 0,
+        property: 0,
+        other: 0,
+        image_banner: 0,
+        video_banner: 0,
+        store_promotion: 0,
+      },
+      features: [],
     });
   }
 
@@ -602,28 +602,38 @@ export class AdminAdsPlansPageComponent {
   }
 
   private mapSubscriptionPlan(plan: AdminSubscriptionPlanRecord): AdminEditablePlan {
-    const enabledLabels: string[] = [];
+    const features: { label: string; description: string }[] = [];
 
     if (plan.unlimited_ads_views) {
-      enabledLabels.push('Unlimited ads views');
+      features.push({ label: 'Unlimited ads views', description: 'Keeps promoted items visible without a view-count cap.' });
     } else {
-      enabledLabels.push('Limited ads views');
+      features.push({ label: 'Limited ads views', description: 'Restricts promotion exposure to the plan’s standard visibility allowance.' });
     }
 
-    enabledLabels.push(this.automobileFeatureLabel(plan.automobile_limit));
-    enabledLabels.push(this.propertyFeatureLabel(plan.property_limit));
-    enabledLabels.push(this.otherFeatureLabel(plan.other_limit));
+    const addLimitFeature = (limit: number, name: string, plural: string = name + 's') => {
+      if (limit > 0) {
+        if (limit >= 999999) {
+          features.push({ label: `Unlimited ${plural}`, description: `Allows unlimited ${plural} promotions.` });
+        } else {
+          features.push({ label: `${limit} ${limit === 1 ? name : plural}`, description: `Allows up to ${limit} ${limit === 1 ? name : plural} to be promoted.` });
+        }
+      } else {
+         features.push({ label: `No ${plural}`, description: `Does not allow ${plural} promotions.` });
+      }
+    };
 
+    addLimitFeature(plan.automobile_limit, 'Automobile listing');
+    addLimitFeature(plan.property_limit, 'Property listing');
+    addLimitFeature(plan.other_limit, 'Other listing');
+    
     if (plan.image_banner_limit > 0) {
-      enabledLabels.push('1 image banner listing');
+       features.push({ label: `${plan.image_banner_limit} Image banner${plan.image_banner_limit > 1 ? 's' : ''}`, description: 'Image banner ad placement.' });
     }
     if (plan.video_banner_limit > 0) {
-      enabledLabels.push('1 video banner listing');
+       features.push({ label: `${plan.video_banner_limit} Video banner${plan.video_banner_limit > 1 ? 's' : ''}`, description: 'Video banner ad placement.' });
     }
-    if (plan.store_promotion_limit > 1) {
-      enabledLabels.push('Unlimited store promotion');
-    } else if (plan.store_promotion_limit > 0) {
-      enabledLabels.push('1 store promotion');
+    if (plan.store_promotion_limit > 0) {
+       features.push({ label: `${plan.store_promotion_limit} Store promotion${plan.store_promotion_limit > 1 ? 's' : ''}`, description: 'Store promotion campaigns.' });
     }
 
     return {
@@ -635,7 +645,16 @@ export class AdminAdsPlansPageComponent {
         monthly: this.toCurrency(plan.monthly_price || plan.price),
         yearly: this.toCurrency(plan.yearly_price || plan.price),
       },
-      features: this.createPlanFeatures(enabledLabels),
+      unlimitedViews: plan.unlimited_ads_views,
+      limits: {
+        automobile: plan.automobile_limit,
+        property: plan.property_limit,
+        other: plan.other_limit,
+        image_banner: plan.image_banner_limit,
+        video_banner: plan.video_banner_limit,
+        store_promotion: plan.store_promotion_limit,
+      },
+      features,
     };
   }
 
@@ -656,10 +675,6 @@ export class AdminAdsPlansPageComponent {
   }
 
   private toSubscriptionPlanPayload(updatedPlan: AdminEditablePlan, backendPlan: AdminSubscriptionPlanRecord | null): Partial<AdminSubscriptionPlanRecord> {
-    const enabledLabels = new Set(
-      updatedPlan.features.filter((feature) => feature.enabled).map((feature) => feature.label),
-    );
-
     return {
       plan_name: updatedPlan.name.trim(),
       weekly_price: this.toBackendDecimal(updatedPlan.prices.weekly),
@@ -667,29 +682,13 @@ export class AdminAdsPlansPageComponent {
       yearly_price: this.toBackendDecimal(updatedPlan.prices.yearly),
       price: this.toBackendDecimal(updatedPlan.prices.monthly),
       is_active: updatedPlan.status === 'active',
-      unlimited_ads_views: enabledLabels.has('Unlimited ads views'),
-      automobile_limit: enabledLabels.has('Unlimited listings in Automobile')
-        ? 999999
-        : enabledLabels.has('5 listings in Automobile')
-          ? 5
-          : 1,
-      property_limit: enabledLabels.has('Unlimited listings in Property')
-        ? 999999
-        : enabledLabels.has('5 listings in Property')
-          ? 5
-          : 1,
-      other_limit: enabledLabels.has('Unlimited listings in Others')
-        ? 999999
-        : enabledLabels.has('15 listings in Other categories')
-          ? 15
-          : 5,
-      image_banner_limit: enabledLabels.has('1 image banner listing') ? 1 : 0,
-      video_banner_limit: enabledLabels.has('1 video banner listing') ? 1 : 0,
-      store_promotion_limit: enabledLabels.has('Unlimited store promotion')
-        ? 999999
-        : enabledLabels.has('1 store promotion')
-          ? 1
-          : 0,
+      unlimited_ads_views: updatedPlan.unlimitedViews,
+      automobile_limit: updatedPlan.limits.automobile,
+      property_limit: updatedPlan.limits.property,
+      other_limit: updatedPlan.limits.other,
+      image_banner_limit: updatedPlan.limits.image_banner,
+      video_banner_limit: updatedPlan.limits.video_banner,
+      store_promotion_limit: updatedPlan.limits.store_promotion,
       discount_percentage: backendPlan?.discount_percentage ?? '0.00',
       vat_percentage: backendPlan?.vat_percentage ?? '0.00',
     };
@@ -717,36 +716,7 @@ export class AdminAdsPlansPageComponent {
     };
   }
 
-  private automobileFeatureLabel(limit: number): string {
-    if (limit >= 999999) {
-      return 'Unlimited listings in Automobile';
-    }
-    return limit >= 5 ? '5 listings in Automobile' : '1 listings in Automobile';
-  }
 
-  private propertyFeatureLabel(limit: number): string {
-    if (limit >= 999999) {
-      return 'Unlimited listings in Property';
-    }
-    return limit >= 5 ? '5 listings in Property' : '1 listings in Property';
-  }
-
-  private otherFeatureLabel(limit: number): string {
-    if (limit >= 999999) {
-      return 'Unlimited listings in Others';
-    }
-    return limit >= 15 ? '15 listings in Other categories' : '5 listings in Other categories';
-  }
-
-  private createPlanFeatures(enabledLabels: readonly string[]) {
-    const enabledSet = new Set(enabledLabels);
-
-    return PLAN_FEATURE_CATALOG.map((label) => ({
-      label,
-      description: PLAN_FEATURE_DESCRIPTIONS[label],
-      enabled: enabledSet.has(label),
-    }));
-  }
 
   private toCurrency(value: string | number): string {
     const numericValue = Number(value) || 0;

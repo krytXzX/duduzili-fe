@@ -9,7 +9,6 @@ export type AdminBillingCycleId = 'weekly' | 'monthly' | 'yearly';
 export interface AdminPlanFeature {
   label: string;
   description: string;
-  enabled: boolean;
 }
 
 export interface AdminEditablePlan {
@@ -17,6 +16,15 @@ export interface AdminEditablePlan {
   name: string;
   status: AdminPlanStatus;
   prices: Record<AdminBillingCycleId, string>;
+  limits: {
+    automobile: number;
+    property: number;
+    other: number;
+    image_banner: number;
+    video_banner: number;
+    store_promotion: number;
+  };
+  unlimitedViews: boolean;
   features: AdminPlanFeature[];
 }
 
@@ -107,33 +115,82 @@ export interface AdminEditablePlan {
           </section>
 
           <section class="mt-10">
-            <h3 class="text-[18px] font-semibold text-[#222222] sm:text-[20px]">Select features for this plan</h3>
+            <h3 class="text-[18px] font-semibold text-[#222222] sm:text-[20px]">Plan limits & features</h3>
 
-            <div class="mt-5 rounded-[18px] bg-[#fafafa] p-3">
-              @for (feature of features(); track feature.label) {
-                <div class="flex items-center gap-4 border-b border-[#efefef] px-3 py-3 last:border-b-0">
-                  <div class="min-h-11 flex-1 rounded-[10px] bg-white px-4 py-3">
-                    <p class="text-[15px] font-medium text-[#313131]">{{ feature.label }}</p>
-                    <p class="mt-1 text-[13px] leading-5 text-[#8a8a8a]">{{ feature.description }}</p>
-                  </div>
+            <div class="mt-5 grid gap-4 sm:grid-cols-2">
+              <label class="block">
+                <span class="mb-2 block text-[15px] font-medium text-[#5b5b5b]">Automobile Limit</span>
+                <input
+                  type="number"
+                  formControlName="automobileLimit"
+                  class="h-12 w-full rounded-[10px] border border-[#e3e3e3] px-4 text-[15px] text-[#202020] outline-none transition placeholder:text-[#b1b1b1] focus:border-[#6a5aed] focus:ring-4 focus:ring-[#6a5aed]/10"
+                >
+              </label>
 
-                  <button
-                    type="button"
-                    class="relative h-7 w-12 rounded-full transition-colors focus:outline-none focus:ring-4 focus:ring-[#6a5aed]/15"
-                    [class.bg-[#6756e8]]="feature.enabled"
-                    [class.bg-[#ececec]]="!feature.enabled"
-                    [attr.aria-label]="'Toggle ' + feature.label"
-                    [attr.aria-pressed]="feature.enabled"
-                    (click)="toggleFeature(feature.label)"
-                  >
-                    <span
-                      class="absolute top-1 h-5 w-5 rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.2)] transition-all"
-                      [class.left-1]="!feature.enabled"
-                      [class.left-6]="feature.enabled"
-                    ></span>
-                  </button>
+              <label class="block">
+                <span class="mb-2 block text-[15px] font-medium text-[#5b5b5b]">Property Limit</span>
+                <input
+                  type="number"
+                  formControlName="propertyLimit"
+                  class="h-12 w-full rounded-[10px] border border-[#e3e3e3] px-4 text-[15px] text-[#202020] outline-none transition placeholder:text-[#b1b1b1] focus:border-[#6a5aed] focus:ring-4 focus:ring-[#6a5aed]/10"
+                >
+              </label>
+
+              <label class="block">
+                <span class="mb-2 block text-[15px] font-medium text-[#5b5b5b]">Other Categories Limit</span>
+                <input
+                  type="number"
+                  formControlName="otherLimit"
+                  class="h-12 w-full rounded-[10px] border border-[#e3e3e3] px-4 text-[15px] text-[#202020] outline-none transition placeholder:text-[#b1b1b1] focus:border-[#6a5aed] focus:ring-4 focus:ring-[#6a5aed]/10"
+                >
+              </label>
+
+              <label class="block">
+                <span class="mb-2 block text-[15px] font-medium text-[#5b5b5b]">Store Promotion Limit</span>
+                <input
+                  type="number"
+                  formControlName="storePromotionLimit"
+                  class="h-12 w-full rounded-[10px] border border-[#e3e3e3] px-4 text-[15px] text-[#202020] outline-none transition placeholder:text-[#b1b1b1] focus:border-[#6a5aed] focus:ring-4 focus:ring-[#6a5aed]/10"
+                >
+              </label>
+
+              <label class="block">
+                <span class="mb-2 block text-[15px] font-medium text-[#5b5b5b]">Image Banner Limit</span>
+                <input
+                  type="number"
+                  formControlName="imageBannerLimit"
+                  class="h-12 w-full rounded-[10px] border border-[#e3e3e3] px-4 text-[15px] text-[#202020] outline-none transition placeholder:text-[#b1b1b1] focus:border-[#6a5aed] focus:ring-4 focus:ring-[#6a5aed]/10"
+                >
+              </label>
+
+              <label class="block">
+                <span class="mb-2 block text-[15px] font-medium text-[#5b5b5b]">Video Banner Limit</span>
+                <input
+                  type="number"
+                  formControlName="videoBannerLimit"
+                  class="h-12 w-full rounded-[10px] border border-[#e3e3e3] px-4 text-[15px] text-[#202020] outline-none transition placeholder:text-[#b1b1b1] focus:border-[#6a5aed] focus:ring-4 focus:ring-[#6a5aed]/10"
+                >
+              </label>
+            </div>
+
+            <div class="mt-5 flex items-center gap-4 rounded-[18px] bg-[#fafafa] p-4">
+                <div class="flex-1">
+                  <p class="text-[15px] font-medium text-[#313131]">Unlimited Ad Views</p>
+                  <p class="mt-1 text-[13px] leading-5 text-[#8a8a8a]">Keeps promoted items visible without a view-count cap.</p>
                 </div>
-              }
+                <button
+                  type="button"
+                  class="relative h-7 w-12 rounded-full transition-colors focus:outline-none focus:ring-4 focus:ring-[#6a5aed]/15"
+                  [class.bg-[#6756e8]]="pricingForm.controls.unlimitedViews.value"
+                  [class.bg-[#ececec]]="!pricingForm.controls.unlimitedViews.value"
+                  (click)="pricingForm.controls.unlimitedViews.setValue(!pricingForm.controls.unlimitedViews.value)"
+                >
+                  <span
+                    class="absolute top-1 h-5 w-5 rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.2)] transition-all"
+                    [class.left-1]="!pricingForm.controls.unlimitedViews.value"
+                    [class.left-6]="pricingForm.controls.unlimitedViews.value"
+                  ></span>
+                </button>
             </div>
           </section>
 
@@ -201,6 +258,13 @@ export class AdminEditPlanModalComponent implements OnInit {
     weekly: ['N0.00'],
     monthly: ['N0.00'],
     yearly: ['N0.00'],
+    unlimitedViews: [false],
+    automobileLimit: [0, [Validators.min(0)]],
+    propertyLimit: [0, [Validators.min(0)]],
+    otherLimit: [0, [Validators.min(0)]],
+    imageBannerLimit: [0, [Validators.min(0)]],
+    videoBannerLimit: [0, [Validators.min(0)]],
+    storePromotionLimit: [0, [Validators.min(0)]],
   });
 
   ngOnInit(): void {
@@ -212,20 +276,20 @@ export class AdminEditPlanModalComponent implements OnInit {
         weekly: this.toModalCurrency(plan.prices.weekly),
         monthly: this.toModalCurrency(plan.prices.monthly),
         yearly: this.toModalCurrency(plan.prices.yearly),
+        unlimitedViews: plan.unlimitedViews,
+        automobileLimit: plan.limits.automobile,
+        propertyLimit: plan.limits.property,
+        otherLimit: plan.limits.other,
+        imageBannerLimit: plan.limits.image_banner,
+        videoBannerLimit: plan.limits.video_banner,
+        storePromotionLimit: plan.limits.store_promotion,
       },
       { emitEvent: false }
     );
-    this.features.set(plan.features.map((feature) => ({ ...feature })));
     this.isPlanDeactivated.set(plan.status === 'inactive');
   }
 
-  toggleFeature(label: string): void {
-    this.features.update((features) =>
-      features.map((feature) =>
-        feature.label === label ? { ...feature, enabled: !feature.enabled } : feature
-      )
-    );
-  }
+
 
   submit(): void {
     if (this.pricingForm.invalid) {
@@ -244,7 +308,15 @@ export class AdminEditPlanModalComponent implements OnInit {
         monthly: this.toCardCurrency(rawValue.monthly),
         yearly: this.toCardCurrency(rawValue.yearly),
       },
-      features: this.features(),
+      limits: {
+        automobile: rawValue.automobileLimit,
+        property: rawValue.propertyLimit,
+        other: rawValue.otherLimit,
+        image_banner: rawValue.imageBannerLimit,
+        video_banner: rawValue.videoBannerLimit,
+        store_promotion: rawValue.storePromotionLimit,
+      },
+      unlimitedViews: rawValue.unlimitedViews,
     });
   }
 
