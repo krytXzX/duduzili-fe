@@ -306,7 +306,8 @@ export class SignUpPageComponent {
     const redirectUri = encodeURIComponent(this.getGoogleRedirectUri());
     const scope = encodeURIComponent('profile email');
     const responseType = 'code';
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
+    const prompt = 'select_account';
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&prompt=${prompt}`;
     window.location.href = authUrl;
   }
 

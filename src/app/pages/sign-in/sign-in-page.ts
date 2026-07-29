@@ -1,5 +1,5 @@
-import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, signal } from '@angular/core';
+import { NgOptimizedImage, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, effect, signal, PLATFORM_ID } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -72,6 +72,8 @@ export class SignInPageComponent {
     () => this.isCheckingEmail() || this.isSigningIn(),
   );
 
+  private readonly platformId = inject(PLATFORM_ID);
+
   constructor() {
     effect(() => {
       this.emailValue();
@@ -84,7 +86,7 @@ export class SignInPageComponent {
     });
 
     const code = this.route.snapshot.queryParams['code'];
-    if (code) {
+    if (code && isPlatformBrowser(this.platformId)) {
       void this.handleGoogleCallback(code);
     }
   }
@@ -173,7 +175,8 @@ export class SignInPageComponent {
     const redirectUri = encodeURIComponent(this.getGoogleRedirectUri());
     const scope = encodeURIComponent('profile email');
     const responseType = 'code';
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
+    const prompt = 'select_account';
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&prompt=${prompt}`;
     window.location.href = authUrl;
   }
 
