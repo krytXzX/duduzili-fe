@@ -322,10 +322,17 @@ export interface ListingPromotionSelection {
               <div class="mt-[66px] flex justify-center">
                 <button
                   type="button"
-                  (click)="storeStep.set('payment')"
-                  class="flex h-10 w-[445px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
+                  (click)="submitStorePromotion()"
+                  [disabled]="isSubmitting()"
+                  class="flex h-10 w-[445px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] disabled:opacity-50 disabled:pointer-events-none gap-2 transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
                 >
-                  Proceed
+                  @if (isSubmitting()) {
+                    <svg class="animate-spin h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  }
+                  {{ isSubmitting() ? 'Processing...' : 'Promote store' }}
                 </button>
               </div>
             </div>
@@ -404,298 +411,21 @@ export interface ListingPromotionSelection {
             <div class="absolute bottom-0 right-0 w-full bg-white px-4 pb-[26px] pt-[11px]">
               <button
                 type="button"
-                (click)="storeStep.set('payment')"
-                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
+                (click)="submitStorePromotion()"
+                [disabled]="isSubmitting()"
+                class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] disabled:opacity-50 disabled:pointer-events-none gap-2 transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
               >
-                Proceed
+                @if (isSubmitting()) {
+                  <svg class="animate-spin h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                }
+                {{ isSubmitting() ? 'Processing...' : 'Promote store' }}
               </button>
             </div>
           </div>
         } @else {
-          <div
-            class="relative hidden w-full max-w-[1024px] overflow-hidden rounded-[32px] border border-[#D7D7D7] bg-white shadow-[0_0_12px_4px_rgba(180,180,180,0.17)] md:grid md:grid-cols-[minmax(0,1fr)_509px]"
-            (click)="$event.stopPropagation()"
-          >
-            <section class="px-[31px] pb-10 pt-[47px]">
-              <h2 class="text-[24px] font-medium leading-6 text-[#1A1B1D]">
-                Select your payment method
-              </h2>
-
-              <div class="mt-6 w-full max-w-[512px] space-y-4">
-                @for (paymentMethod of storePaymentMethods; track paymentMethod.id) {
-                  <button
-                    type="button"
-                    (click)="selectedPaymentId.set(paymentMethod.id)"
-                    class="relative h-[67px] w-full rounded-[9.944px] border text-left transition-all duration-200 hover:border-[#6453D9]/50 active:scale-[0.98]"
-                    [class.border-2]="selectedPaymentId() === paymentMethod.id"
-                    [class.border-[#6453D9]]="selectedPaymentId() === paymentMethod.id"
-                    [class.bg-[rgba(100,83,217,0.04)]]="selectedPaymentId() === paymentMethod.id"
-                    [class.border-[#E8E8E8]]="selectedPaymentId() !== paymentMethod.id"
-                    [class.bg-white]="selectedPaymentId() !== paymentMethod.id"
-                  >
-                    <img
-                      [ngSrc]="paymentMethod.desktopIcon"
-                      width="16"
-                      height="16"
-                      alt=""
-                      class="absolute left-[7.08px] top-[7.59px] h-4 w-4"
-                    />
-
-                    <span
-                      class="absolute right-[6.48px] top-[7.59px] flex h-4 w-4 items-center justify-center rounded-full border"
-                      [class.border-[#6453D9]]="selectedPaymentId() === paymentMethod.id"
-                      [class.border-[#E2E2E2]]="selectedPaymentId() !== paymentMethod.id"
-                    >
-                      @if (selectedPaymentId() === paymentMethod.id) {
-                        <span class="h-[9px] w-[9px] rounded-full bg-[#6453D9]"></span>
-                      }
-                    </span>
-
-                    <span
-                      class="absolute left-[7.08px] top-[39.5px] text-[14px] font-medium leading-5 text-[#0D0D0D]"
-                    >
-                      {{ paymentMethod.label }}
-                    </span>
-                  </button>
-                }
-              </div>
-            </section>
-
-            <section class="flex flex-col items-center px-[22px] pb-[22px] pt-[23px]">
-              <div class="w-[509px] rounded-[24px] bg-[#F8F8F8] px-8 pb-[30px] pt-4">
-                <button
-                  type="button"
-                  (click)="close.emit()"
-                  class="ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-white transition-all duration-200 hover:bg-gray-50 active:scale-95"
-                  aria-label="Close promote store payment flow"
-                >
-                  <img
-                    [ngSrc]="storeAssets.paymentCloseDesktop"
-                    width="24"
-                    height="24"
-                    alt=""
-                    class="h-6 w-6"
-                  />
-                </button>
-
-                <div class="mt-[-2px] w-[339px]">
-                  <h3 class="text-[36px] font-medium leading-[1.1] text-[#0D0D0D]">
-                    {{ selectedStorePlan().desktopSummaryTitle }}
-                  </h3>
-                  <p class="mt-1 text-[18px] leading-normal text-[#717171]">
-                    {{ selectedStorePlan().desktopSummaryBilling }}
-                  </p>
-                </div>
-
-                <div class="mt-8 h-px bg-[#E4E0DB]"></div>
-
-                <div class="mt-8 space-y-4">
-                  <div
-                    class="flex items-center justify-between text-[16px] leading-normal text-[#525252]"
-                  >
-                    <span>Weekly subscription</span>
-                    <span>{{ selectedStorePlan().subscriptionAmount }}</span>
-                  </div>
-                  <div
-                    class="flex items-center justify-between text-[16px] leading-normal text-[#525252]"
-                  >
-                    <span>VAT (7.5%)</span>
-                    <span>{{ selectedStorePlan().desktopVatAmount }}</span>
-                  </div>
-                  <div
-                    class="flex items-center justify-between text-[20px] font-medium leading-normal text-[#0D0D0D]"
-                  >
-                    <span>Total due today</span>
-                    <span>{{ selectedStorePlan().totalAmount }}</span>
-                  </div>
-                </div>
-
-                <div class="mt-6 h-px bg-[#E4E0DB]"></div>
-
-                <label class="mt-8 flex items-center gap-2 text-[14px] leading-5 text-[#1F1F1F]">
-                  <input
-                    type="checkbox"
-                    [checked]="isRecurring()"
-                    (change)="isRecurring.set(!isRecurring())"
-                    class="h-4 w-4 rounded-[4px] border border-[#D5D5D5] text-[#6453D9] focus:ring-[#6453D9]/20"
-                  />
-                  <span>Mark this payment as recurring</span>
-                </label>
-
-                <button
-                  type="button"
-                  (click)="finishAndClose()"
-                  class="mt-[58px] flex h-10 w-[392px] items-center justify-center rounded-full border border-white bg-[#6453D9] text-[14px] font-medium leading-5 text-white shadow-[0_4px_12px_rgba(81,35,173,0.33),0_0_0_1px_#6B5BD5] transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
-                >
-                  Confirm and pay
-                </button>
-              </div>
-
-              <p class="mt-5 w-[432px] text-[12px] leading-normal text-[#525252]">
-                By clicking on Confirm and pay, you accept the
-                <span class="text-[#6453D9]"> Terms of Use</span>, confirm that you will abide by
-                the Safety Tips and declare that this posting does not include any Prohibited Items.
-              </p>
-            </section>
-          </div>
-
-          <div
-            class="relative h-[calc(100vh-1.5rem)] w-full max-w-[375px] overflow-hidden rounded-[36px] bg-white shadow-[0_30px_80px_-40px_rgba(19,27,45,0.45)] md:hidden"
-            (click)="$event.stopPropagation()"
-          >
-            <div class="absolute left-0 top-0 h-6 w-[366px]">
-              <div
-                class="absolute left-1/2 top-[11px] h-1 w-[50px] -translate-x-1/2 rounded-full bg-[#EBEBEB]"
-              ></div>
-
-              <button
-                type="button"
-                (click)="storeStep.set('plan')"
-                class="absolute left-4 top-[26px] flex h-10 w-10 items-center justify-center rounded-full bg-[#F4F4F4] transition-all duration-200 hover:bg-[#e8e8e8] active:scale-95"
-                aria-label="Go back"
-              >
-                <img
-                  [ngSrc]="storeAssets.paymentBackMobile"
-                  width="20"
-                  height="20"
-                  alt=""
-                  class="h-5 w-5"
-                />
-              </button>
-
-              <button
-                type="button"
-                (click)="close.emit()"
-                class="absolute left-[306px] top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#EAEAEA] bg-white shadow-[0_4px_8px_rgba(202,202,202,0.25)] transition-all duration-200 hover:bg-gray-50 active:scale-95"
-                aria-label="Close promote store payment flow"
-              >
-                <img
-                  [ngSrc]="storeAssets.paymentCloseMobile"
-                  width="24"
-                  height="24"
-                  alt=""
-                  class="h-6 w-6"
-                />
-              </button>
-            </div>
-
-            <div class="h-full overflow-y-auto px-4 pb-[190px] pt-20">
-              <section class="rounded-2xl bg-[#F8F8F8] px-4 pb-4 pt-4">
-                <h3 class="text-[28px] font-semibold leading-10 text-[#0D0D0D]">
-                  {{ selectedStorePlan().mobileSummaryTitle }}
-                </h3>
-                <p class="mt-0.5 text-[16px] leading-6 text-[#828282]">
-                  {{ selectedStorePlan().mobileSummaryBilling }}
-                </p>
-
-                <div class="mt-4 h-px bg-[#E4E0DB]"></div>
-
-                <div class="mt-4 space-y-4">
-                  <div
-                    class="flex items-center justify-between text-[14px] leading-normal text-[#525252]"
-                  >
-                    <span>Weekly subscription</span>
-                    <span>{{ selectedStorePlan().subscriptionAmount }}</span>
-                  </div>
-                  <div
-                    class="flex items-center justify-between text-[14px] leading-normal text-[#525252]"
-                  >
-                    <span>VAT (7.5%)</span>
-                    <span>{{ selectedStorePlan().mobileVatAmount }}</span>
-                  </div>
-                  <div
-                    class="flex items-center justify-between text-[16px] font-medium leading-normal text-[#0D0D0D]"
-                  >
-                    <span>Total due today</span>
-                    <span>{{ selectedStorePlan().totalAmount }}</span>
-                  </div>
-                </div>
-
-                <div class="mt-4 h-px bg-[#E4E0DB]"></div>
-
-                <label class="mt-4 flex items-center gap-2 text-[14px] leading-5 text-[#1F1F1F]">
-                  <input
-                    type="checkbox"
-                    [checked]="isRecurring()"
-                    (change)="isRecurring.set(!isRecurring())"
-                    class="h-4 w-4 rounded-[4px] border border-[#D5D5D5] text-[#6453D9] focus:ring-[#6453D9]/20"
-                  />
-                  <span>Mark this payment as recurring</span>
-                </label>
-              </section>
-
-              <section class="mt-11">
-                <h2 class="text-[18px] font-medium leading-6 text-[#1A1B1D]">
-                  Select your payment method
-                </h2>
-
-                <div class="mt-4 space-y-4">
-                  @for (paymentMethod of storePaymentMethods; track paymentMethod.id) {
-                    <button
-                      type="button"
-                      (click)="selectedPaymentId.set(paymentMethod.id)"
-                      class="relative h-[67px] w-full rounded-[9.944px] border text-left transition-all duration-200 hover:border-[#6453D9]/50 active:scale-[0.98]"
-                      [class.border-2]="selectedPaymentId() === paymentMethod.id"
-                      [class.border-[#6453D9]]="selectedPaymentId() === paymentMethod.id"
-                      [class.bg-[rgba(100,83,217,0.04)]]="selectedPaymentId() === paymentMethod.id"
-                      [class.border-[#E8E8E8]]="selectedPaymentId() !== paymentMethod.id"
-                      [class.bg-white]="selectedPaymentId() !== paymentMethod.id"
-                    >
-                      <img
-                        [ngSrc]="paymentMethod.mobileIcon"
-                        width="16"
-                        height="16"
-                        alt=""
-                        class="absolute left-[7.08px] top-[7.59px] h-4 w-4"
-                      />
-
-                      <span
-                        class="absolute right-[6.48px] top-[7.59px] flex h-4 w-4 items-center justify-center rounded-full border"
-                        [class.border-[#6453D9]]="selectedPaymentId() === paymentMethod.id"
-                        [class.border-[#E2E2E2]]="selectedPaymentId() !== paymentMethod.id"
-                      >
-                        @if (selectedPaymentId() === paymentMethod.id) {
-                          <span class="h-[9px] w-[9px] rounded-full bg-[#6453D9]"></span>
-                        }
-                      </span>
-
-                      <span
-                        class="absolute left-[7.08px] top-[39.5px] text-[14px] font-medium leading-5 text-[#0D0D0D]"
-                      >
-                        {{ paymentMethod.label }}
-                      </span>
-                    </button>
-                  }
-                </div>
-              </section>
-            </div>
-
-            <div class="absolute bottom-0 left-1/2 h-[167px] w-[366px] -translate-x-1/2 bg-white">
-              <div class="px-4 pb-0 pt-[11px]">
-                <button
-                  type="button"
-                  (click)="finishAndClose()"
-                  [disabled]="isSubmitting()"
-                  class="flex h-[52px] w-full items-center justify-center rounded-full border border-white bg-[#6453D9] text-[16px] font-medium leading-6 text-white shadow-[0_4px_8px_rgba(81,35,173,0.4),0_0_0_1px_#2A6CE8] disabled:opacity-50 disabled:pointer-events-none gap-2 transition-all duration-200 hover:bg-[#5342c6] active:scale-95"
-                >
-                  @if (isSubmitting()) {
-                    <svg class="animate-spin h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  }
-                  Confirm and pay
-                </button>
-
-                <p class="mt-4 text-center text-[11px] leading-normal text-[#525252]">
-                  By clicking on Confirm and pay, you accept the
-                  <span class="text-[#6453D9]"> Terms of Use</span>, confirm that you will abide by
-                  the Safety Tips and declare that this posting does not include any Prohibited
-                  Items.
-                </p>
-              </div>
-            </div>
-          </div>
         }
       } @else {
         <div
@@ -1060,13 +790,6 @@ export class PromoteListingModalComponent implements OnDestroy {
     awardMobile: '/assets/icons/promote-store-award-mobile.svg',
     closeDesktop: '/assets/icons/promote-store-close-desktop.svg',
     closeMobile: '/assets/icons/promote-store-close-mobile.svg',
-    paymentBackMobile: '/assets/icons/promote-store-payment-back-mobile.svg',
-    paymentCloseDesktop: '/assets/icons/promote-store-payment-close-desktop.svg',
-    paymentCloseMobile: '/assets/icons/promote-store-payment-close-mobile.svg',
-    paymentGlobalDesktop: '/assets/icons/promote-store-payment-global-desktop.svg',
-    paymentGlobalMobile: '/assets/icons/promote-store-payment-global-mobile.svg',
-    paymentWalletDesktop: '/assets/icons/promote-store-payment-wallet-desktop.svg',
-    paymentWalletMobile: '/assets/icons/promote-store-payment-wallet-mobile.svg',
     planCheckFilled: '/assets/icons/promote-store-plan-check-filled.svg',
     planCheckFilledCenter: '/assets/images/promote-store-plan-check-filled-center.svg',
     planCheckOutline: '/assets/icons/promote-store-plan-check-outline.svg',
@@ -1080,27 +803,10 @@ export class PromoteListingModalComponent implements OnDestroy {
     ringOuterMobile: '/assets/images/promote-store-ring-outer-mobile.svg',
   } as const;
 
-  readonly storeStep = signal<'confirm' | 'plan' | 'payment'>('confirm');
+  readonly storeStep = signal<'confirm' | 'plan'>('confirm');
   readonly selectedStorePlanId = signal<StoreBoostPlan['id']>('7-days');
   readonly step = signal<'confirm' | 'plan' | 'success'>('confirm');
   readonly selectedPlanId = signal<ListingBoostPlan['id']>('7-days');
-  readonly selectedPaymentId = signal<'wallet' | 'online'>('wallet');
-  readonly isRecurring = signal(false);
-
-  readonly storePaymentMethods: StorePaymentMethod[] = [
-    {
-      id: 'wallet',
-      label: 'Wallet (Balance: N250,000)',
-      desktopIcon: this.storeAssets.paymentWalletDesktop,
-      mobileIcon: this.storeAssets.paymentWalletMobile,
-    },
-    {
-      id: 'online',
-      label: 'Online',
-      desktopIcon: this.storeAssets.paymentGlobalDesktop,
-      mobileIcon: this.storeAssets.paymentGlobalMobile,
-    },
-  ];
 
   readonly storePlans: StoreBoostPlan[] = [
     {
@@ -1303,7 +1009,6 @@ export class PromoteListingModalComponent implements OnDestroy {
     this.storeStep.set('confirm');
     this.selectedStorePlanId.set('7-days');
     this.selectedPlanId.set('7-days');
-    this.isRecurring.set(false);
     this.step.set('confirm');
   }
 
@@ -1322,7 +1027,17 @@ export class PromoteListingModalComponent implements OnDestroy {
     });
   }
 
-  private durationFromPlanId(planId: ListingBoostPlan['id']): number {
+  submitStorePromotion() {
+    if (this.isSubmitting()) {
+      return;
+    }
+
+    this.promotionRequested.emit({
+      durationDays: this.durationFromPlanId(this.selectedStorePlanId()),
+    });
+  }
+
+  private durationFromPlanId(planId: string): number {
     switch (planId) {
       case '1-day':
         return 1;
