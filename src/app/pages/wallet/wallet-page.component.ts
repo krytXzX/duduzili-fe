@@ -10,6 +10,8 @@ import {
   SellerMonetizationService,
   type WalletTransactionRecord,
 } from '../../services/seller-monetization.service';
+import { environment } from '../../../environments/environment';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 type WalletStatus = 'successful' | 'failed';
 type WalletTransactionType =
@@ -787,6 +789,7 @@ interface MobileWalletTransaction {
 export class WalletPageComponent {
   private readonly appToastService = inject(AppToastService);
   private readonly sellerMonetizationService = inject(SellerMonetizationService);
+  private readonly authSession = inject(AuthSessionService);
   readonly statusFilterOptions: readonly CustomDropdownOption<'all' | WalletStatus>[] = [
     { value: 'all', label: 'All statuses' },
     { value: 'successful', label: 'Successful' },
@@ -1009,18 +1012,11 @@ export class WalletPageComponent {
           const backendMessage =
             response.error ?? response.message ?? 'Online funding isn’t available right now. Please try again.';
 
-          if (paymentUrl) {
-            this.isFundingOnline.set(false);
-            this.closeFundWallet();
-            globalThis.location?.assign(paymentUrl);
-            return;
-          }
-
           if (accessCode) {
             this.loadPaystackScript().then(() => {
               this.isFundingOnline.set(false);
               this.closeFundWallet();
-              this.openPaystackPopup(accessCode, reference);
+              this.openPaystackPopup(accessCode, amount, reference);
             }).catch((err) => {
               console.error(err);
               this.isFundingOnline.set(false);
@@ -1028,6 +1024,13 @@ export class WalletPageComponent {
                 message: backendMessage,
               });
             });
+            return;
+          }
+
+          if (paymentUrl) {
+            this.isFundingOnline.set(false);
+            this.closeFundWallet();
+            globalThis.location?.assign(paymentUrl);
             return;
           }
 
@@ -1066,8 +1069,11 @@ export class WalletPageComponent {
     });
   }
 
-  private openPaystackPopup(accessCode: string, initializedReference?: string): void {
+  private openPaystackPopup(accessCode: string, amount: number, initializedReference?: string): void {
     const handler = (window as any).PaystackPop.setup({
+      key: environment.paystackPublicKey,
+      email: this.authSession.user()?.email || '',
+      amount: amount * 100,
       access_code: accessCode,
       callback: (response: unknown) => {
         const callbackReference = this.readPaystackReference(response) ?? initializedReference;

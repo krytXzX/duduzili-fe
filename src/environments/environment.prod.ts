@@ -7,6 +7,7 @@ export const environment = {
   demoMode: false,
   backendEnabled: true,
   disableOtp: true,
+  paystackPublicKey: 'pk_test_f4f0fa205ea6defda81edbd52d1d50f53e1f9f98',
 };
 
 export const ENVIRIONMENT = environment;
