@@ -6,7 +6,7 @@ export const environment = {
   googleOAuthRedirectUri: 'http://127.0.0.1:8000/api/auth/google/',
   demoMode: false,
   backendEnabled: true,
-  disableOtp: true,
+  disableOtp: false,
   paystackPublicKey: 'pk_test_f4f0fa205ea6defda81edbd52d1d50f53e1f9f98',
 };
 

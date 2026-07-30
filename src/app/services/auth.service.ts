@@ -199,6 +199,18 @@ export class AuthService {
     return this.http.patch<ProfileResponse>(`${this.apiUrl}/auth/profile/`, payload);
   }
 
+  forgotPassword(email: string): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password/`, { email });
+  }
+
+  verifyResetCode(email: string, code: string): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password/verify-code/`, { email, code });
+  }
+
+  resetPassword(payload: any): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password/reset/`, payload);
+  }
+
   changePassword(payload: ChangePasswordRequest): Observable<{ detail?: string }> {
     return this.http.post<{ detail?: string }>(`${this.apiUrl}/auth/security/change-password/`, payload);
   }
