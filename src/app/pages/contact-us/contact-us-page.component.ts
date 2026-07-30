@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { AppToastComponent } from '../../components/common/app-toast.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { AppToastService } from '../../services/app-toast.service';
+import { HomeService } from '../../services/home.service';
 
 @Component({
   selector: 'app-contact-us-page',
@@ -216,6 +217,7 @@ import { AppToastService } from '../../services/app-toast.service';
 export class ContactUsPageComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly toastService = inject(AppToastService);
+  private readonly homeService = inject(HomeService);
 
   readonly isSubmitting = signal(false);
   readonly submitLabel = computed(() => (this.isSubmitting() ? 'Sending...' : 'Submit'));
@@ -239,12 +241,20 @@ export class ContactUsPageComponent {
 
     this.isSubmitting.set(true);
 
-    window.setTimeout(() => {
-      this.isSubmitting.set(false);
-      this.contactForm.reset();
-      this.toastService.show({
-        message: 'Thanks for reaching out. We will get back to you soon.',
-      });
-    }, 450);
+    this.homeService.submitContactForm(this.contactForm.getRawValue()).subscribe({
+      next: () => {
+        this.isSubmitting.set(false);
+        this.contactForm.reset();
+        this.toastService.show({
+          message: 'Thanks for reaching out. We will get back to you soon.',
+        });
+      },
+      error: () => {
+        this.isSubmitting.set(false);
+        this.toastService.show({
+          message: 'An error occurred while submitting your message. Please try again.',
+        });
+      },
+    });
   }
 }

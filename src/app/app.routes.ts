@@ -262,6 +262,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'contact-submissions',
+        title: 'Contact Submissions',
+        loadComponent: () =>
+          import('./pages/admin/admin-contact-submissions-page.component').then(
+            (m) => m.AdminContactSubmissionsPageComponent,
+          ),
+      },
+      {
         path: 'analytics',
         title: 'Analytics',
         canActivate: [adminAnalyticsGuard],

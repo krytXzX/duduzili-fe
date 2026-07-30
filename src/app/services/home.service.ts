@@ -76,4 +76,8 @@ export class HomeService {
   trackAd(adId: number | string, eventType: 'view' | 'click'): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/ads/${adId}/track/`, { type: eventType });
   }
+
+  submitContactForm(data: { name: string; email: string; message: string }): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/contact-us/`, data);
+  }
 }
