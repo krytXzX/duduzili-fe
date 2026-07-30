@@ -50,7 +50,7 @@ interface FeaturePlanConfig {
         (click)="$event.stopPropagation()"
       >
         <div class="flex h-full flex-col md:hidden">
-          @if (step() === 'review') {
+          @if (!isSuccess()) {
             <div class="flex min-h-0 flex-1 flex-col">
               <header class="relative px-4 pb-4 pt-5">
                 <div class="mx-auto h-1.5 w-14 rounded-full bg-[#E6E7EC]"></div>
@@ -225,9 +225,8 @@ interface FeaturePlanConfig {
 
                 <button
                   type="button"
-                  (click)="emitSelectedSubscription()"
-                  [disabled]="isSubmitting()"
-                  class="inline-flex h-[52px] w-[174px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5] transition hover:bg-[#5341C6] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none gap-2"
+                  (click)="close.emit()"
+                  class="inline-flex h-[52px] w-[174px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[16px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5] transition hover:bg-[#5341C6] active:scale-95 duration-200 gap-2"
                 >
                   @if (isSubmitting()) {
                     <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -243,7 +242,7 @@ interface FeaturePlanConfig {
         </div>
 
         <div class="hidden h-full flex-col md:flex">
-          @if (step() === 'review') {
+          @if (!isSuccess()) {
             <div class="grid h-full gap-6 p-8 lg:grid-cols-[minmax(0,1fr)_430px]">
               <section class="min-w-0 pt-2">
                 <h2 class="text-[2rem] font-bold tracking-tight text-[#1A1C21]">
@@ -424,9 +423,16 @@ interface FeaturePlanConfig {
 
                 <button
                   type="button"
-                  (click)="step.set('success')"
-                  class="mt-12 w-full rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20"
+                  (click)="handleSubscribe()"
+                  [disabled]="isSubmitting()"
+                  class="mt-12 w-full inline-flex justify-center items-center gap-2 rounded-full bg-[#6653E4] px-8 py-4 text-[1rem] font-semibold text-white shadow-[0_16px_32px_-18px_rgba(102,83,228,0.9)] transition hover:bg-[#5642D3] active:scale-95 duration-200 focus:outline-none focus:ring-4 focus:ring-[#6653E4]/20 disabled:opacity-50 disabled:pointer-events-none"
                 >
+                  @if (isSubmitting()) {
+                    <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  }
                   Subscribe
                 </button>
 
@@ -467,9 +473,8 @@ interface FeaturePlanConfig {
 
                 <button
                   type="button"
-                  (click)="emitSelectedSubscription()"
-                  [disabled]="isSubmitting()"
-                  class="inline-flex h-10 w-[208px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[14px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5] transition hover:bg-[#5341C6] active:scale-95 duration-200 disabled:opacity-50 disabled:pointer-events-none gap-2"
+                  (click)="close.emit()"
+                  class="inline-flex h-10 w-[208px] items-center justify-center rounded-[64px] border border-white bg-[#6453D9] text-[14px] font-medium text-white shadow-[0px_4px_12px_rgba(81,35,173,0.33),0px_0px_0px_1px_#6B5BD5] transition hover:bg-[#5341C6] active:scale-95 duration-200 gap-2"
                 >
                   @if (isSubmitting()) {
                     <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -499,7 +504,7 @@ export class AdsSubscriptionModalComponent implements OnDestroy {
   readonly successDesktopImage = '/assets/images/ads-plan-success-desktop.png';
   readonly successMobileImage = '/assets/images/ads-plan-success-mobile.png';
 
-  readonly step = signal<'review' | 'success'>('review');
+  readonly isSuccess = input(false);
   readonly selectedBillingId = signal<BillingOptionId>('week');
   readonly selectedPaymentId = signal<PaymentOptionId>('wallet');
   readonly isAutoRenewing = signal(false);
@@ -683,9 +688,6 @@ export class AdsSubscriptionModalComponent implements OnDestroy {
     });
   }
 
-  emitSelectedSubscription(): void {
-    this.handleSubscribe();
-  }
 
   private featuresForBackendPlan(plan: SubscriptionPlan): string[] {
     const features: string[] = [];

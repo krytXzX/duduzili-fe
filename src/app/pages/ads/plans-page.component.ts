@@ -328,6 +328,7 @@ interface PlanDefinition extends PlanUiDefinition {
       <app-ads-subscription-modal
         [plan]="selectedPlanType()"
         [planDetails]="selectedBackendPlan()"
+        [isSuccess]="isSubscriptionSuccessful()"
         [isSubmitting]="isSubmittingSubscription()"
         (close)="isSubscriptionModalOpen.set(false)"
         (subscribe)="handleSubscribe($event)"
@@ -387,6 +388,7 @@ export class AdsPlansPageComponent {
   readonly subscriptionsEnabled = signal(true);
   readonly selectedBackendPlan = signal<SubscriptionPlan | null>(null);
   readonly isSubmittingSubscription = signal(false);
+  readonly isSubscriptionSuccessful = signal(false);
 
   readonly plans = computed(() => {
     const currentPlanName = this.normalizePlanName(this.subscriptionStatus()?.plan_name);
@@ -532,6 +534,7 @@ export class AdsPlansPageComponent {
 
     this.selectedBackendPlan.set(plan.backendPlan);
     this.selectedPlanType.set(plan.id);
+    this.isSubscriptionSuccessful.set(false);
     this.isSubscriptionModalOpen.set(true);
   }
 
@@ -564,10 +567,9 @@ export class AdsPlansPageComponent {
     this.sellerMonetizationService.subscribeToPlan(backendPlan.id, this.activeBillingTab(), true).subscribe({
       next: () => {
         this.isSubmittingSubscription.set(false);
-        this.isSubscriptionModalOpen.set(false);
+        this.isSubscriptionSuccessful.set(true);
         this.selectedBackendPlan.set(null);
         this.loadSubscriptionData();
-        this.appToastService.show({ message: 'Subscription updated successfully.' });
       },
       error: (error) => {
         this.isSubmittingSubscription.set(false);
