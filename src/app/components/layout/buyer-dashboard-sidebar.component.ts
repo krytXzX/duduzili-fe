@@ -10,11 +10,13 @@ import {
   heroQrCode,
   heroShoppingBag,
 } from '@ng-icons/heroicons/outline';
+import { NgOptimizedImage } from '@angular/common';
+import { faBrandApple, faBrandAndroid } from '@ng-icons/font-awesome/brands';
 import { NotificationsService } from '../../services/notifications.service';
 
 @Component({
   selector: 'app-buyer-dashboard-sidebar',
-  imports: [RouterLink, RouterLinkActive, NgIcon],
+  imports: [RouterLink, RouterLinkActive, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({
       heroBell,
@@ -24,6 +26,8 @@ import { NotificationsService } from '../../services/notifications.service';
       heroHeart,
       heroQrCode,
       heroShoppingBag,
+      faBrandApple,
+      faBrandAndroid,
     }),
   ],
   template: `
@@ -84,22 +88,33 @@ import { NotificationsService } from '../../services/notifications.service';
         </a>
       </nav>
 
-      <div class="mt-8 rounded-3xl border border-gray-100 bg-gray-50 p-6 text-center">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-3 shadow-sm">
-          <ng-icon name="heroQrCode" class="text-3xl text-gray-900"></ng-icon>
-        </div>
-        <div class="mx-auto hidden h-28 w-28 items-center justify-center rounded-[24px] border border-[#EEF0F4] bg-[#FAFAFB]">
-          <div class="grid grid-cols-5 gap-1">
-            @for (_ of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]; track $index) {
-              <span
-                [class]="$index % 2 === 0 ? 'h-3 w-3 rounded-[2px] bg-[#1A1C21]' : 'h-3 w-3 rounded-[2px] bg-white'"
-              ></span>
-            }
+      <div class="mt-auto pt-6">
+        <div class="overflow-hidden rounded-[20px] bg-white px-6 pb-6 pt-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+          <div class="relative mx-auto flex w-[120px] flex-col items-center gap-3">
+            <div class="relative flex h-[120px] w-[120px] items-center justify-center">
+              <div
+                class="absolute inset-[6px] rotate-[-5deg] rounded-[10px] border border-[#F0F0F0] bg-white shadow-[0_4.737px_12.631px_rgba(199,199,199,0.25)]"
+              ></div>
+              <img
+                ngSrc="/assets/images/seller-sidebar-qr-code.png"
+                alt="QR code to download the Duduzili mobile app"
+                width="109"
+                height="109"
+                class="relative z-10 h-[109px] w-[109px] rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="flex items-center justify-center gap-4 text-[#6C6C6C]">
+              <ng-icon name="faBrandAndroid" class="text-[24px] leading-none"></ng-icon>
+              <span class="h-4 w-px bg-[#D8D8D8]"></span>
+              <ng-icon name="faBrandApple" class="text-[20px] leading-none"></ng-icon>
+            </div>
           </div>
+          <p class="mt-5 text-center text-[14px] font-medium leading-[1.2] text-[#99A2B1]">
+            Scan QR code to
+            <br />
+            download mobile app
+          </p>
         </div>
-        <p class="text-[11px] font-bold leading-relaxed tracking-wide text-gray-400">
-          Scan QR code to<br>download mobile app
-        </p>
       </div>
     </aside>
   `,

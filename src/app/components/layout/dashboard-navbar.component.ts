@@ -681,6 +681,7 @@ export class DashboardNavbarComponent {
       this.appToastService.show({
         message: 'Upgrade your plan to access this feature.',
       });
+      void this.router.navigate(['/seller/ads/plans']);
       return;
     }
     void this.router.navigateByUrl(item.route);

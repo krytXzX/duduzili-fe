@@ -8,6 +8,7 @@ import {
   input,
 } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroXMark,
@@ -1865,6 +1866,7 @@ export interface ListingBoostPlan {
 })
 export class CreateAdTypeModalComponent {
   private readonly mobileOverlayService = inject(MobileOverlayService);
+  private readonly router = inject(Router);
 
   readonly close = output<void>();
   readonly continue = output<CreateAdType>();
@@ -2205,6 +2207,8 @@ export class CreateAdTypeModalComponent {
       this.appToastService.show({
         message: 'Upgrade your plan to access this feature.',
       });
+      this.close.emit();
+      void this.router.navigate(['/seller/ads/plans']);
       return;
     }
     this.selectedType.set(option.id);

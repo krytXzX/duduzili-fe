@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { faBrandApple, faBrandAndroid } from '@ng-icons/font-awesome/brands';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { NotificationsService } from '../../services/notifications.service';
 import { SellerMonetizationService } from '../../services/seller-monetization.service';
@@ -14,7 +16,8 @@ type SidebarLink = {
 
 @Component({
   selector: 'app-dashboard-sidebar',
-  imports: [NgOptimizedImage, RouterLink, RouterLinkActive],
+  imports: [NgOptimizedImage, RouterLink, RouterLinkActive, NgIconComponent],
+  providers: [provideIcons({ faBrandApple, faBrandAndroid })],
   template: `
     <aside class="flex h-full w-full flex-col overflow-y-auto bg-inherit px-4 pb-4 pt-6">
       <div class="space-y-7">
@@ -265,10 +268,10 @@ type SidebarLink = {
                 class="relative z-10 h-[109px] w-[109px] rounded-[10px] object-cover"
               />
             </div>
-            <div class="flex items-center justify-center gap-4">
-              <span class="text-[24px] leading-none text-[#6C6C6C]">🤖</span>
+            <div class="flex items-center justify-center gap-4 text-[#6C6C6C]">
+              <ng-icon name="faBrandAndroid" class="text-[24px] leading-none"></ng-icon>
               <span class="h-4 w-px bg-[#D8D8D8]"></span>
-              <span class="text-[20px] leading-none text-[#6C6C6C]"></span>
+              <ng-icon name="faBrandApple" class="text-[20px] leading-none"></ng-icon>
             </div>
           </div>
           <p class="mt-5 text-center text-[14px] font-medium leading-[1.2] text-[#99A2B1]">
@@ -296,6 +299,7 @@ export class DashboardSidebarComponent {
       this.appToastService.show({
         message: 'Upgrade your plan to access this feature.',
       });
+      void this.router.navigate(['/seller/ads/plans']);
     }
   }
 

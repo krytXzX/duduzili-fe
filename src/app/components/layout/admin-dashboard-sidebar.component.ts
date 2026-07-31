@@ -20,10 +20,12 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { NotificationsService } from '../../services/notifications.service';
+import { NgOptimizedImage } from '@angular/common';
+import { faBrandApple, faBrandAndroid } from '@ng-icons/font-awesome/brands';
 
 @Component({
   selector: 'app-admin-dashboard-sidebar',
-  imports: [RouterLink, RouterLinkActive, NgIcon],
+  imports: [RouterLink, RouterLinkActive, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({
       heroBell,
@@ -41,6 +43,8 @@ import { NotificationsService } from '../../services/notifications.service';
       heroSquares2x2,
       heroUserCircle,
       heroQuestionMarkCircle,
+      faBrandApple,
+      faBrandAndroid,
     }),
   ],
   template: `
@@ -320,6 +324,35 @@ import { NotificationsService } from '../../services/notifications.service';
             }
           </a>
         </nav>
+      </div>
+
+      <div class="mt-auto pt-6">
+        <div class="overflow-hidden rounded-[20px] bg-white px-6 pb-6 pt-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+          <div class="relative mx-auto flex w-[120px] flex-col items-center gap-3">
+            <div class="relative flex h-[120px] w-[120px] items-center justify-center">
+              <div
+                class="absolute inset-[6px] rotate-[-5deg] rounded-[10px] border border-[#F0F0F0] bg-white shadow-[0_4.737px_12.631px_rgba(199,199,199,0.25)]"
+              ></div>
+              <img
+                ngSrc="/assets/images/seller-sidebar-qr-code.png"
+                alt="QR code to download the Duduzili mobile app"
+                width="109"
+                height="109"
+                class="relative z-10 h-[109px] w-[109px] rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="flex items-center justify-center gap-4 text-[#6C6C6C]">
+              <ng-icon name="faBrandAndroid" class="text-[24px] leading-none"></ng-icon>
+              <span class="h-4 w-px bg-[#D8D8D8]"></span>
+              <ng-icon name="faBrandApple" class="text-[20px] leading-none"></ng-icon>
+            </div>
+          </div>
+          <p class="mt-5 text-center text-[14px] font-medium leading-[1.2] text-[#99A2B1]">
+            Scan QR code to
+            <br />
+            download mobile app
+          </p>
+        </div>
       </div>
     </aside>
   `,
