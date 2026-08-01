@@ -1,17 +1,15 @@
 <div class="flex min-h-full flex-col bg-white">
   @if (isAuthenticated()) {
-    <app-buyer-dashboard-navbar class="w-full" />
+  <app-buyer-dashboard-navbar class="w-full" />
   } @else {
-    <app-public-home-navbar class="w-full" />
+  <app-public-home-navbar class="w-full" />
   }
 
-  <main
-    [class]="
+  <main [class]="
       isAuthenticated()
         ? 'min-h-0 min-w-0 flex-1 bg-white'
         : 'min-h-0 min-w-0 flex-1 bg-white lg:pt-20'
-    "
-  >
+    ">
     <div class="mx-auto flex w-full max-w-[1240px] flex-col gap-14 px-5 py-5 md:gap-12 md:px-6 md:py-8 lg:px-8">
       @if (isProductLoading()) {
       <!-- Skeleton layout -->
@@ -173,7 +171,7 @@
           </svg>
         </div>
         <h2 class="mt-4 text-xl font-bold text-gray-900">Product Unavailable</h2>
-        <p class="mt-2 text-sm text-gray-600">This product belongs to a store that has been suspended by the platform administrator and is currently unavailable.</p>
+        <p class="mt-2 text-sm text-gray-600">This product might not be available or the seller has been suspended.</p>
         <a routerLink="/" class="mt-6 inline-flex items-center gap-2 rounded-full bg-[#6453D9] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5343c7]">
           Go to Homepage
         </a>
