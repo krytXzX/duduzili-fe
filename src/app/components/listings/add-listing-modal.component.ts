@@ -1103,7 +1103,7 @@ type YoutubePreview = {
                             <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.callNumber || '---' }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Price</span>
-                            <span class="text-right text-[12px] font-medium text-[#202335]">₦{{ (listingForm.value.price | number) || '0' }}</span>
+                            <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.listForFree ? 'Free' : '₦' + ((listingForm.value.price | number) || '0') }}</span>
 
                             <span class="text-[12px] font-medium text-[#8A8F9A]">Accept offers</span>
                             <span class="text-right text-[12px] font-medium text-[#202335]">{{ listingForm.value.acceptOffers ? 'Yes' : 'No' }}</span>
@@ -1248,7 +1248,7 @@ type YoutubePreview = {
                              </div>
                              <div class="flex items-start">
                                 <span class="text-[15px] text-gray-400 font-medium w-48 shrink-0">Price</span>
-                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">₦{{ (listingForm.value.price | number) || '0' }}</span>
+                                <span class="text-[15px] font-medium text-[#1A1C21] flex-1">{{ listingForm.value.listForFree ? 'Free' : '₦' + ((listingForm.value.price | number) || '0') }}</span>
                              </div>
                              @if (listingForm.value.addDiscount) {
                                <div class="flex items-start">
