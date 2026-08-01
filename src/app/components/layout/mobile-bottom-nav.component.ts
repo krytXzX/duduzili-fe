@@ -118,7 +118,7 @@ type NavItem = {
       aria-label="Mobile bottom navigation"
     >
       <!-- Floating Search Icon (Just above the bottom nav on the right) -->
-      @if (variant() === 'buyer') {
+      @if (variant() === 'buyer' && !isOnHomepage()) {
         <div class="absolute bottom-[94px] right-5">
           <button
             type="button"
@@ -375,6 +375,11 @@ export class MobileBottomNavComponent {
   isRouteActive(paths: readonly string[]): boolean {
     const currentUrl = this.router.url.split('?')[0] ?? this.router.url;
     return paths.some((path) => currentUrl === path || currentUrl.startsWith(`${path}/`));
+  }
+
+  isOnHomepage(): boolean {
+    const currentUrl = this.router.url.split('?')[0] ?? this.router.url;
+    return currentUrl === '/' || currentUrl === '';
   }
 
   handlePrimaryAction(): void {
