@@ -3432,6 +3432,14 @@ export class ListingDetailsPageComponent implements OnDestroy {
       }
     }
 
+    if (this.editableGalleryImages().length === 0) {
+      this.appToastService.show({
+        message: 'Please provide at least one image before saving changes.',
+        durationMs: 3500,
+      });
+      return;
+    }
+
     const formValue = this.editListingForm.getRawValue();
     const payload = this.buildListingUpdateFormData(formValue);
 

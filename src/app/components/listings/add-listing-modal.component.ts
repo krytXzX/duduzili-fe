@@ -2165,6 +2165,14 @@ export class AddListingModalComponent implements OnDestroy {
       return;
     }
 
+    if (!this.mainImageFile) {
+      this.appToastService.show({
+        message: 'Please upload at least one image before publishing.',
+        durationMs: 3500,
+      });
+      return;
+    }
+
     this.isPublishing.set(true);
 
     try {
