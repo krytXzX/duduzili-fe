@@ -76,6 +76,9 @@ export function formatDiscountBadge(value: unknown): string | undefined {
 }
 
 function formatCurrency(value: number | null): string {
+  if (value === 0) {
+    return 'Free';
+  }
   return value === null
     ? ''
     : `₦${new Intl.NumberFormat('en-NG', { maximumFractionDigits: 0 }).format(value)}`;
