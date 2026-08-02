@@ -57,7 +57,7 @@ import { LocationService } from '../../services/location.service';
 
             <div
               class="relative mt-6 min-h-0 flex-1 lg:mt-8"
-              style="overflow-x: hidden; overflow-y:auto"
+              style="overflow: hidden;"
             >
               <div
                 class="no-scrollbar h-full overflow-y-auto pr-1 transition-transform duration-300 ease-out lg:pr-2"

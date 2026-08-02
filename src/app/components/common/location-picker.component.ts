@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal, viewChildren, ElementRef } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   heroChevronLeft,
@@ -69,7 +69,7 @@ export interface PickerOption {
         />
       </label>
 
-      <div class="mt-4 max-h-[52vh] overflow-y-auto">
+      <div #scrollContainer class="mt-4 max-h-[52vh] overflow-y-auto">
         @for (option of filteredPickerOptions(); track option.value) {
           <button
             type="button"
@@ -132,7 +132,7 @@ export interface PickerOption {
         />
       </label>
 
-      <div class="mt-5 max-h-[420px] overflow-y-auto">
+      <div #scrollContainer class="mt-5 max-h-[420px] overflow-y-auto">
         @for (option of filteredPickerOptions(); track option.value) {
           <button
             type="button"
@@ -157,6 +157,7 @@ export interface PickerOption {
 export class LocationPickerComponent {
   readonly close = output<void>();
   readonly selectLocation = output<string>();
+  readonly scrollContainers = viewChildren<ElementRef<HTMLElement>>('scrollContainer');
 
   private readonly locationService = inject(LocationService);
 
@@ -206,12 +207,18 @@ export class LocationPickerComponent {
   protected closeLocationCityPanel(): void {
     this.activeLocationState.set(null);
     this.pickerSearch.set('');
+    this.scrollContainers().forEach(container => {
+      container.nativeElement.scrollTop = 0;
+    });
   }
 
   protected selectPickerOption(value: string): void {
     if (this.activeLocationState() === null) {
       this.activeLocationState.set(value as PublicHomeLocationValue);
       this.pickerSearch.set('');
+      this.scrollContainers().forEach(container => {
+        container.nativeElement.scrollTop = 0;
+      });
     } else {
       this.selectLocation.emit(value);
       this.close.emit();
