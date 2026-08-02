@@ -60,7 +60,7 @@ import { LocationService } from '../../services/location.service';
               style="overflow: hidden;"
             >
               <div
-                class="no-scrollbar h-full overflow-y-auto pr-1 transition-transform duration-300 ease-out lg:pr-2"
+                class="absolute inset-0 no-scrollbar overflow-y-auto pr-1 transition-transform duration-300 ease-out lg:pr-2"
                 style="touch-action: pan-y; -webkit-overflow-scrolling: touch;"
                 [class.-translate-x-[8%]]="locationService.activeLocationPanel() !== null"
                 [class.opacity-0]="locationService.activeLocationPanel() !== null"
