@@ -1,3 +1,5 @@
+import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,62 +10,62 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { CommonModule, DOCUMENT, NgOptimizedImage } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
-import { Review } from '../../components/product/review-card.component';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { firstValueFrom } from 'rxjs';
 import {
-  heroChevronRight,
-  heroMapPin,
-  heroCheckBadge,
-  heroChevronDown,
-  heroChevronLeft,
-  heroChevronRight as heroChevronRightOutline,
-  heroCube,
-  heroStar,
-  heroChatBubbleLeftRight,
-  heroPhone,
-  heroChatBubbleOvalLeftEllipsis,
   heroArrowLeft,
   heroArrowUpTray,
-  heroTrash,
-  heroXMark,
+  heroChatBubbleLeftRight,
+  heroChatBubbleOvalLeftEllipsis,
+  heroChevronDown,
+  heroChevronLeft,
+  heroChevronRight,
+  heroChevronRight as heroChevronRightOutline,
+  heroCube,
   heroEllipsisHorizontal,
   heroFlag,
+  heroMapPin,
+  heroPhone,
+  heroStar,
+  heroTrash,
+  heroXMark,
 } from '@ng-icons/heroicons/outline';
 import { heroStarSolid } from '@ng-icons/heroicons/solid';
-import { AuthSessionService } from '../../services/auth-session.service';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { AppToastComponent } from '../../components/common/app-toast.component';
-import { AppToastService } from '../../services/app-toast.service';
-import { MessagesService } from '../../services/messages.service';
 import { BuyerDashboardNavbarComponent } from '../../components/layout/buyer-dashboard-navbar.component';
 import { BuyerDashboardSidebarComponent } from '../../components/layout/buyer-dashboard-sidebar.component';
 import { HomeFooterComponent } from '../../components/layout/home-footer.component';
 import { MobileBottomNavComponent } from '../../components/layout/mobile-bottom-nav.component';
 import { PublicHomeNavbarComponent } from '../../components/layout/public-home-navbar.component';
+import { Listing, ListingCardComponent } from '../../components/listings/listing-card.component';
+import { ShareListingModalComponent } from '../../components/listings/share-listing-modal.component';
+import { Review } from '../../components/product/review-card.component';
 import {
   CustomDropdownComponent,
   type CustomDropdownOption,
 } from '../../components/ui/custom-dropdown.component';
+import { AppToastService } from '../../services/app-toast.service';
+import { AuthSessionService } from '../../services/auth-session.service';
+import { ListingsService } from '../../services/listings.service';
+import { MessagesService } from '../../services/messages.service';
 import {
   CreateVendorReviewPayload,
   VendorFollowResponse,
   VendorListingRecord,
+  VendorListingsResponse,
   VendorRecord,
   VendorReviewRecord,
   VendorReviewTagRecord,
-  VendorListingsResponse,
   VendorReviewsResponse,
   VendorsService,
 } from '../../services/vendors.service';
-import { ListingsService } from '../../services/listings.service';
-import { ReportStoreModalComponent, ReportStoreSubmitValue } from './components/report-store-modal.component';
-import { ShareListingModalComponent } from '../../components/listings/share-listing-modal.component';
-import { environment } from '../../../environments/environment';
 import { formatListingPricing } from '../../utils/listing-pricing';
+import {
+  ReportStoreModalComponent,
+  ReportStoreSubmitValue,
+} from './components/report-store-modal.component';
 
 type BuyerStoreTab = 'products' | 'reviews';
 type StoreReviewSort = 'most-recent' | 'highest-rated' | 'lowest-rated';
@@ -135,7 +137,6 @@ type VendorTagSummary = {
     provideIcons({
       heroChevronRight,
       heroMapPin,
-      heroCheckBadge,
       heroChevronDown,
       heroChevronLeft,
       heroChevronRightOutline,
@@ -204,14 +205,33 @@ type VendorTagSummary = {
             <div class="bg-white pb-[120px] lg:px-4 lg:pb-12 lg:pt-20">
               @if (isStoreSuspended()) {
                 <div class="mx-auto max-w-md px-6 py-20 text-center">
-                  <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                  <div
+                    class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="h-8 w-8"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                      />
                     </svg>
                   </div>
                   <h2 class="mt-4 text-xl font-bold text-gray-900">Store Suspended</h2>
-                  <p class="mt-2 text-sm text-gray-600">This store has been suspended by the platform administrator and is currently unavailable.</p>
-                  <a [routerLink]="backRoute()" class="mt-6 inline-flex items-center gap-2 rounded-full bg-[#6453D9] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5343c7]">
+                  <p class="mt-2 text-sm text-gray-600">
+                    This store has been suspended by the platform administrator and is currently
+                    unavailable.
+                  </p>
+                  <a
+                    [routerLink]="backRoute()"
+                    class="mt-6 inline-flex items-center gap-2 rounded-full bg-[#6453D9] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5343c7]"
+                  >
                     Go Back
                   </a>
                 </div>
@@ -226,14 +246,33 @@ type VendorTagSummary = {
         <main class="min-h-0 flex-1 bg-white pb-[48px] pt-0 lg:px-4 lg:pt-[112px]">
           @if (isStoreSuspended()) {
             <div class="mx-auto max-w-md px-6 py-20 text-center">
-              <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              <div
+                class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="h-8 w-8"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                  />
                 </svg>
               </div>
               <h2 class="mt-4 text-xl font-bold text-gray-900">Store Suspended</h2>
-              <p class="mt-2 text-sm text-gray-600">This store has been suspended by the platform administrator and is currently unavailable.</p>
-              <a [routerLink]="backRoute()" class="mt-6 inline-flex items-center gap-2 rounded-full bg-[#6453D9] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5343c7]">
+              <p class="mt-2 text-sm text-gray-600">
+                This store has been suspended by the platform administrator and is currently
+                unavailable.
+              </p>
+              <a
+                [routerLink]="backRoute()"
+                class="mt-6 inline-flex items-center gap-2 rounded-full bg-[#6453D9] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5343c7]"
+              >
                 Go Back
               </a>
             </div>
@@ -879,10 +918,7 @@ type VendorTagSummary = {
                           {{ store().name }}
                         </h1>
                         @if (store().isVerified) {
-                          <ng-icon
-                            name="heroCheckBadge"
-                            class="text-[18px] text-[#5932EA]"
-                          ></ng-icon>
+                          <img src="/assets/icons/verify.svg" alt="verified" class="size-3.5" />
                         }
                       </div>
 
@@ -1014,7 +1050,10 @@ type VendorTagSummary = {
                           (click)="isShareStoreModalOpen.set(true); showOptionsMenu.set(false)"
                           class="flex w-full items-center gap-3 rounded-[14px] px-4 py-3 text-left text-sm font-medium text-[#4b5563] hover:text-black transition hover:bg-[#F7F7FA] active:scale-95"
                         >
-                          <ng-icon name="heroArrowUpTray" class="text-[18px] text-[#4b5563]"></ng-icon>
+                          <ng-icon
+                            name="heroArrowUpTray"
+                            class="text-[18px] text-[#4b5563]"
+                          ></ng-icon>
                           <span>Share store</span>
                         </button>
                         <button
@@ -1474,10 +1513,7 @@ type VendorTagSummary = {
                           >
                             <span class="truncate">{{ store().name }}</span>
                             @if (store().isVerified) {
-                              <ng-icon
-                                name="heroCheckBadge"
-                                class="shrink-0 text-[14px] text-[#5D45E8] md:text-[17px]"
-                              ></ng-icon>
+                              <img src="/assets/icons/verify.svg" alt="verified" class="size-3.5" />
                             }
                           </h3>
 
@@ -2135,7 +2171,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
     firstValueFrom(
       this.listingsService.createSellerReport(storeId, {
         reason: value.reason,
-      })
+      }),
     ).then(
       () => {
         // Successfully reported
@@ -2145,7 +2181,7 @@ export class BuyerFollowedStoreDetailsPageComponent implements OnDestroy {
           message: 'Could not submit report. Please try again.',
           durationMs: 2500,
         });
-      }
+      },
     );
   }
 
