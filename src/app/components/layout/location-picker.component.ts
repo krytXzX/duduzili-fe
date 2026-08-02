@@ -24,7 +24,7 @@ import { LocationService } from '../../services/location.service';
         ></button>
 
         <div
-          class="relative z-[1] flex max-h-[85vh] w-full flex-col rounded-t-[36px] bg-white pb-8 md:max-h-[80vh] md:w-[min(600px,calc(100vw-48px))] md:rounded-[36px] md:pb-10 lg:w-[min(760px,calc(100vw-64px))] lg:rounded-[36px] lg:pb-10"
+          class="relative z-[1] flex h-[85vh] w-full flex-col rounded-t-[36px] bg-white pb-8 md:h-[80vh] md:w-[min(600px,calc(100vw-48px))] md:rounded-[36px] md:pb-10 lg:w-[min(760px,calc(100vw-64px))] lg:rounded-[36px] lg:pb-10"
         >
           <div class="relative h-6 w-full md:hidden lg:hidden">
             <div
