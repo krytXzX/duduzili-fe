@@ -167,6 +167,13 @@ export class AuthService {
     });
   }
 
+  loginWithApple(code: string, idToken?: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/apple/`, {
+      code,
+      id_token: idToken,
+    });
+  }
+
   verifyTwoFactorLogin(payload: { user_id: string; code: string }): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/verify-2fa/`, payload);
   }

@@ -301,6 +301,10 @@ export class SignUpPageComponent {
     return environment.googleOAuthRedirectUri;
   }
 
+  private getAppleRedirectUri(): string {
+    return environment.appleOAuthRedirectUri;
+  }
+
   protected loginWithGoogle(): void {
     const clientId = environment.googleOAuthClientId;
     const redirectUri = encodeURIComponent(this.getGoogleRedirectUri());
@@ -308,6 +312,16 @@ export class SignUpPageComponent {
     const responseType = 'code';
     const prompt = 'select_account';
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&prompt=${prompt}`;
+    window.location.href = authUrl;
+  }
+
+  protected loginWithApple(): void {
+    const clientId = environment.appleOAuthClientId;
+    const redirectUri = encodeURIComponent(this.getAppleRedirectUri());
+    const scope = encodeURIComponent('name email');
+    const responseType = 'code id_token';
+    const responseMode = 'form_post';
+    const authUrl = `https://appleid.apple.com/auth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&response_mode=${responseMode}&scope=${scope}`;
     window.location.href = authUrl;
   }
 

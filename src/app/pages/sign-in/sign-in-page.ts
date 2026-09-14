@@ -86,8 +86,16 @@ export class SignInPageComponent {
     });
 
     const code = this.route.snapshot.queryParams['code'];
-    if (code && isPlatformBrowser(this.platformId)) {
-      void this.handleGoogleCallback(code);
+    const idToken = this.route.snapshot.queryParams['id_token'];
+    const provider = this.route.snapshot.queryParams['provider'];
+    if (isPlatformBrowser(this.platformId)) {
+      if (provider === 'apple' || idToken) {
+        if (code || idToken) {
+          void this.handleAppleCallback(code, idToken);
+        }
+      } else if (code) {
+        void this.handleGoogleCallback(code);
+      }
     }
   }
 
@@ -170,6 +178,10 @@ export class SignInPageComponent {
     return environment.googleOAuthRedirectUri;
   }
 
+  private getAppleRedirectUri(): string {
+    return environment.appleOAuthRedirectUri;
+  }
+
   protected loginWithGoogle(): void {
     const clientId = environment.googleOAuthClientId;
     const redirectUri = encodeURIComponent(this.getGoogleRedirectUri());
@@ -177,6 +189,16 @@ export class SignInPageComponent {
     const responseType = 'code';
     const prompt = 'select_account';
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&prompt=${prompt}`;
+    window.location.href = authUrl;
+  }
+
+  protected loginWithApple(): void {
+    const clientId = environment.appleOAuthClientId;
+    const redirectUri = encodeURIComponent(this.getAppleRedirectUri());
+    const scope = encodeURIComponent('name email');
+    const responseType = 'code id_token';
+    const responseMode = 'form_post';
+    const authUrl = `https://appleid.apple.com/auth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&response_mode=${responseMode}&scope=${scope}`;
     window.location.href = authUrl;
   }
 
@@ -203,6 +225,35 @@ export class SignInPageComponent {
       console.error('Google login error:', error);
       this.emailErrorMessage.set(
         this.resolveLoginErrorMessage(error) ?? 'Google authentication failed. Please try again.'
+      );
+    } finally {
+      this.isSigningIn.set(false);
+    }
+  }
+
+  private async handleAppleCallback(code: string, idToken?: string): Promise<void> {
+    this.isSigningIn.set(true);
+    this.emailErrorMessage.set(null);
+    this.passwordErrorMessage.set(null);
+
+    try {
+      const loginResponse = await firstValueFrom(
+        this.authService.loginWithApple(code, idToken)
+      );
+
+      this.authSessionService.saveLoginSession(loginResponse, null);
+
+      await this.router.navigate([], {
+        queryParams: { code: null, id_token: null, state: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true
+      });
+
+      await this.router.navigate(this.resolvePostLoginRoute(loginResponse));
+    } catch (error: unknown) {
+      console.error('Apple login error:', error);
+      this.emailErrorMessage.set(
+        this.resolveLoginErrorMessage(error) ?? 'Apple authentication failed. Please try again.'
       );
     } finally {
       this.isSigningIn.set(false);
